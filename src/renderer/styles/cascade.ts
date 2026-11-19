@@ -35,6 +35,8 @@ import './RichPick.scss';
 import './Games.scss';
 import './GamingGamesLayout.scss';
 import './App.scss';
+// The cover full screen changes behind, and the transitions it holds.
+import './WindowRefit.scss';
 import './Rainbow.scss';
 // The header's logo and name ("Signal"): over `.brand-mark`, and with
 // Rainbow mode's own turn for them.

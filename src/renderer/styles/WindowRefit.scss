@@ -1,0 +1,70 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// The window into full screen and back, behind one cover that the new view
+// rises out of (`windowRefit.ts`).
+//
+// The cover is a manual popover so it sits in the top layer, over every
+// z-index the page has; everything the UA gives a popover is taken back off.
+.window-refit-cover {
+  position: fixed;
+  // Only counts where the top layer is not to be had (`windowRefit.ts`).
+  z-index: 2147483647;
+  inset: 0;
+  width: auto;
+  max-width: none;
+  height: auto;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  // The window's floor on the way out: what Windows fills the window with
+  // once it has left full screen, and what the docked app rises out of.
+  background: $surface-base;
+  color: transparent;
+  // While it is up, a press on it is the way out of a refit that cannot end
+  // (`windowRefit.ts`); while it rises the app under it already takes presses.
+  pointer-events: auto;
+
+  &.is-rising {
+    pointer-events: none;
+  }
+
+  // Full screen's own black on the way in (`FULL_SCREEN_FLOOR` in
+  // `windowBackdrop.ts`): the strip Windows opens as the window grows is
+  // that colour, and the picture rises out of it.
+  &[data-toward-full-screen] {
+    background: $black;
+  }
+
+  &::backdrop {
+    display: none;
+  }
+}
+
+// HELD WHILE THE LAYOUT CHANGES BEHIND THE COVER. Entering full screen puts
+// both side panels into drawers that slide off and the header up, 220ms each;
+// leaving it, the panels' contents and the karaoke stage's padding travel
+// too. Run behind the cover they were still travelling when it rose, so the
+// rise showed the frame half-built. Held, every value lands in one step, and
+// letting go of the hold once they have landed starts no transition at all.
+// Cut the way reduced motion cuts them (`data-motion` in App.scss), so what
+// waits on a slide finds none to wait on (`useSoundPaneSlide`). Keyframe
+// animations are left alone: one stopped here would start again from its
+// beginning the moment the hold let go.
+:root[data-window-refitting] {
+  &,
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0s !important;
+    transition-delay: 0ms !important;
+  }
+}
