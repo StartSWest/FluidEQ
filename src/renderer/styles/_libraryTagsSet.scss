@@ -49,6 +49,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include animate(library-tags-page-in, 260ms);
 }
 
+// Songs that could not be read: a short line at the right, close under the
+// note above it rather than a full row of its own (Ivan, 2026-11-19: "move
+// that to the right", "less gap between the card on top and the text", "the
+// gap is too much"). The note keeps its 18px from the album below when this
+// line is absent; with it, 8px above the line and 10px under it.
+.library-tags-set__unreadable {
+  justify-content: flex-end;
+  margin: 0 0 10px;
+  text-align: right;
+
+  .library-tags-set__fixed + & {
+    margin-top: -10px;
+  }
+}
+
 @keyframes library-tags-page-in {
   from {
     opacity: 0;

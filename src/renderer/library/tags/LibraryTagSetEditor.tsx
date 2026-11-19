@@ -319,8 +319,11 @@ const LibraryTagSetEditor = () => {
           </div>
         )}
         {unreadable > 0 && (
-          <p className="library-tags__note is-warning">
-            {t('library.tags.set.unreadable', { count: unreadable })}
+          <p className="library-tags__note is-warning library-tags-set__unreadable">
+            <MenuIcon name="alert" />
+            <span>
+              {t('library.tags.set.unreadable', { count: unreadable })}
+            </span>
           </p>
         )}
         {fix.isChoosing && (
