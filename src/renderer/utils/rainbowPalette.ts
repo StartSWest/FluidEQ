@@ -399,11 +399,60 @@ const paletteOnWhite = (palette: readonly string[]): readonly string[] => {
   return made;
 };
 
+/**
+ * A dark window's floor as the stops are judged against it: #1f1f1f, near
+ * the darkest the window goes, so a stop that reads there reads on every
+ * dark floor above it.
+ */
+const DARK_FLOOR_LUMINANCE = 0.0137;
+/** OKLab chroma under which a stop has no hue to speak of (`windowLight`). */
+const HUELESS_CHROMA = 0.02;
+/** Where a hue-less stop stands on a dark window: the window's light ink. */
+const MONO_ON_DARK_LIGHTNESS = 0.93;
+
+/**
+ * A stop on a dark window. A colour with no hue (black, a grey) is worn as
+ * the window's light ink, as the accent is (`filledOn`); a dark colour with a
+ * hue is lifted in lightness, hue kept, until a line in it reads on the floor
+ * (3:1). Picked black used to paint every stop black on a black floor: the
+ * graph's nodes, the curve's glow and the meters' ramp all vanished (Ivan,
+ * 2026-11-18: "the graph nodes need to look better, and be prepared for when
+ * the user selects black"). Every stop bright enough already - Lagoon's are
+ * held between 0.70 and 0.88 - is returned as it is.
+ */
+const stopOnDark = (hex: string): string => {
+  const parsed = parseCssColour(hex);
+  if (!parsed) {
+    return hex;
+  }
+  const lab = rgbToLab(parsed.rgb);
+  if (Math.hypot(lab.a, lab.b) < HUELESS_CHROMA) {
+    return toHex({ l: Math.max(lab.l, MONO_ON_DARK_LIGHTNESS), a: 0, b: 0 });
+  }
+  return clearedFor(hex, DARK_FLOOR_LUMINANCE, LINE_ON_WHITE, false);
+};
+
+/** Each palette's dark-window copy, made once per palette. */
+const onDark = new WeakMap<readonly string[], readonly string[]>();
+const paletteOnDark = (palette: readonly string[]): readonly string[] => {
+  const known = onDark.get(palette);
+  if (known) {
+    return known;
+  }
+  const made = palette.map((stop) => stopOnDark(stop));
+  // The palette itself where nothing moved, so a dark window wearing Lagoon
+  // keeps the very array it always wore.
+  const isSame = made.every((stop, index) => stop === palette[index]);
+  const worn = isSame ? palette : made;
+  onDark.set(palette, worn);
+  return worn;
+};
+
 // *** The palette in use ******************************************************
 
 /** The palette chosen, before the window's side has a say. */
 let chosen: readonly string[] = LAGOON;
-/** What is worn: the chosen palette, or its copy on a light window. */
+/** What is worn: the chosen palette, or its copy for the side of the window it is on. */
 let stops: readonly string[] = LAGOON;
 const listeners = new Set<() => void>();
 
@@ -437,7 +486,7 @@ export const getRainbowStops = (): readonly string[] => stops;
 
 /** Wear the chosen palette as this side of the window wants it. */
 const wear = () => {
-  const next = isLightWindow() ? paletteOnWhite(chosen) : chosen;
+  const next = isLightWindow() ? paletteOnWhite(chosen) : paletteOnDark(chosen);
   if (next === stops) {
     return;
   }

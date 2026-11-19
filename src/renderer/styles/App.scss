@@ -4760,11 +4760,13 @@ button.graph-legend {
 .graph-edit-point {
   outline: none;
 
-  // Mostly a target for the pointer. Visible enough at rest to say the handle
-  // has a reach, not so visible that a row of them reads as a second curve.
+  // Mostly a target for the pointer, unseen at rest: a faint second ring on
+  // every handle drew each one twice, a row of double outlines along the
+  // curve (Ivan, 2026-11-18: "the graph nodes need to look better"). It
+  // comes in under the pointer and on the band in hand.
   &__halo {
     fill: transparent;
-    stroke: var(--point-muted-color);
+    stroke: transparent;
     stroke-width: 1;
     transition:
       x 120ms ease,
