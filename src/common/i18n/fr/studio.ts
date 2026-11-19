@@ -740,11 +740,10 @@ const studio = {
   'studio.wave.hint':
     'Enregistré dans la scène et publié avec elle : elle s’ouvre comme vous l’avez laissée. Qui l’utilise peut les changer dans Affichage, sur le graphique, et revenir à la vôtre. Essayez les extrêmes : une onde basse, ou remontée jusqu’au milieu.',
   'studio.tint.label': 'FluidEQ avec cette scène',
-  'studio.tint.theme': 'Thème',
   'studio.brightness.hint':
     'La Luminosité de toute l’application, le même curseur que dans Couleurs de la fenêtre. Avec elle, chaque scène passe de la nuit à 0 au plein jour à 100 : essayez la vôtre aux deux extrêmes avant de la publier.',
   'studio.tint.hint':
-    'Ici seulement, pendant que vous travaillez : les Couleurs de la fenêtre du graphique restent comme vous les avez réglées. Thème laisse la fenêtre comme l’application l’a réglée ; les autres lui donnent les couleurs de cette scène, ou ces couleurs avec ses éléments qui volent autour de la fenêtre, pour que vous la voyiez et la sentiez comme chaque auditeur.',
+    'Ici seulement, pendant que vous travaillez : les Couleurs de la fenêtre du graphique restent comme vous les avez réglées. Les deux donnent à la fenêtre les couleurs de cette scène, la seconde avec en plus ses éléments qui volent autour de la fenêtre, pour que vous la voyiez et la sentiez comme chaque auditeur.',
   'studio.tint.short': 'Ici seulement, pendant que vous travaillez.',
   'studio.grid.label': 'Afficher la grille du graphique',
   'studio.grid.hint':

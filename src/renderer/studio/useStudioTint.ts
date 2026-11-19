@@ -9,17 +9,13 @@ it under the terms of the GNU General Public License version 3 or later.
 import { useEffect, useState, type RefObject } from 'react';
 import type { IScenePack } from 'common/scenePacks';
 import observeShown from '../utils/observeShown';
-import {
-  setStudioTintSource,
-  useStudioTintMode,
-} from '../utils/sceneTintStore';
+import { setStudioTintSource } from '../utils/sceneTintStore';
 
 /**
- * Hands the window's colour to the project on the Studio's bench while the
- * Studio's own choice lends it one (`useStudioTintMode`): on Theme the Studio
- * claims nothing, and the window is whatever the app's Window colours make
- * it (Ivan, 2026-09-27: "you simply have to use the option that is in the
- * global").
+ * Hands the window's colour to the project on the Studio's bench, always:
+ * the Studio wears the scene it holds, in Colours or Ambient, and has no
+ * Theme that left the window to whatever the graph's scene lent it (Ivan,
+ * 2026-11-18: "the Studio always tints as the scene").
  *
  * The project claims it the moment it is on the bench, before its first build
  * has arrived: that is what lets moving from one project to the next go
@@ -65,7 +61,6 @@ export default function useStudioTint(
   playing: boolean,
   bench: RefObject<HTMLElement | null>,
 ) {
-  const isOn = useStudioTintMode() !== 'theme';
   const [isShown, setIsShown] = useState(false);
 
   useEffect(() => {
@@ -74,7 +69,7 @@ export default function useStudioTint(
   }, [bench]);
 
   useEffect(() => {
-    if (!isOn || !project || !isShown) {
+    if (!project || !isShown) {
       setStudioTintSource(undefined);
       return;
     }
@@ -84,7 +79,7 @@ export default function useStudioTint(
         ? { playing: { build: studioBuildKey(project, serial), pack } }
         : {}),
     });
-  }, [isOn, isShown, playing, pack, project, serial]);
+  }, [isShown, playing, pack, project, serial]);
 
   // Apart from the effect above, so moving from one build to the next is one
   // change of source rather than a clear and a set.

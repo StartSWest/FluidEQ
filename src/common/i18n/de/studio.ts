@@ -749,11 +749,10 @@ const studio = {
   'studio.wave.hint':
     'Wird in der Szene gespeichert und mit ihr veröffentlicht, also öffnet sie sich, wie Sie sie gelassen haben. Wer sie nutzt, kann beides unter Ansicht im Diagramm ändern und Ihre Einstellung zurückholen. Probieren Sie die Extreme: eine flache Welle oder eine bis zur Mitte angehobene.',
   'studio.tint.label': 'FluidEQ mit dieser Szene',
-  'studio.tint.theme': 'Design',
   'studio.brightness.hint':
     'Die Helligkeit der ganzen App, derselbe Regler wie unter Fensterfarben. Mit ihr geht jede Szene von Nacht bei 0 bis zum hellen Tag bei 100: Probieren Sie Ihre an beiden Enden aus, bevor Sie sie veröffentlichen.',
   'studio.tint.hint':
-    'Nur hier, solange Sie arbeiten: Die Fensterfarben im Diagramm bleiben, wie Sie sie eingestellt haben. Design zeigt das Fenster so, wie die App eingestellt ist; die anderen geben ihm die Farben dieser Szene oder dazu ihre Elemente, die ums Fenster fliegen – so sehen und spüren Sie sie, wie alle Hörer sie erleben.',
+    'Nur hier, solange Sie arbeiten: Die Fensterfarben im Diagramm bleiben, wie Sie sie eingestellt haben. Beide geben dem Fenster die Farben dieser Szene, die zweite dazu ihre Elemente, die ums Fenster fliegen – so sehen und spüren Sie sie, wie alle Hörer sie erleben.',
   'studio.tint.short': 'Nur hier, solange Sie arbeiten.',
   'studio.grid.label': 'Raster des Diagramms zeigen',
   'studio.grid.hint':

@@ -729,11 +729,10 @@ const studio = {
   'studio.wave.hint':
     'Fica salvo na cena e é publicado com ela, por isso abre como você deixou. Quem a usar pode alterá-las em Visualização, no gráfico, e voltar à sua. Teste os extremos: uma onda baixa ou elevada até o centro.',
   'studio.tint.label': 'O FluidEQ com esta cena',
-  'studio.tint.theme': 'Tema',
   'studio.brightness.hint':
     'O Brilho do app inteiro, o mesmo controle de Cores da janela. Com ele, toda cena vai da noite em 0 ao dia pleno em 100: teste a sua nos dois extremos antes de publicar.',
   'studio.tint.hint':
-    'Só aqui, enquanto você trabalha: as Cores da janela do gráfico continuam como você deixou. Tema mantém a janela como o app está; as outras dão a ela as cores desta cena, ou essas cores com os elementos dela voando ao redor da janela, para você ver e sentir como todos que a ouvirem.',
+    'Só aqui, enquanto você trabalha: as Cores da janela do gráfico continuam como você deixou. As duas dão à janela as cores desta cena, a segunda também com os elementos dela voando ao redor da janela, para você ver e sentir como todos que a ouvirem.',
   'studio.tint.short': 'Só aqui, enquanto você trabalha.',
   'studio.grid.label': 'Mostrar a grade do gráfico',
   'studio.grid.hint':

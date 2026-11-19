@@ -53,7 +53,6 @@ import {
   studioSkyKey,
   useAmpHoldsWindow,
   useSceneTintEnabled,
-  useStudioTintMode,
   useStudioTintSource,
 } from '../utils/sceneTintStore';
 import useIsBackdrop from '../utils/useIsBackdrop';
@@ -134,8 +133,7 @@ const SceneTint = () => {
   // goes; the Backdrop's glass darkens with it (`TSkyTone`). The Studio's
   // own mode while it is the one asking, which never has the Backdrop.
   const isBackdrop = useIsBackdrop();
-  const studioMode = useStudioTintMode();
-  const isStudioAsking = studio !== undefined && studioMode !== 'theme';
+  const isStudioAsking = studio !== undefined;
   const tone = isBackdrop && !isStudioAsking ? 'follow' : 'held';
 
   const isSceneLook = isPremiumLookId(lookId) || isMemberLookId(lookId);

@@ -739,11 +739,10 @@ const studio = {
   'studio.wave.hint':
     'Si salva nella scena e viene pubblicata con essa, così si apre come l’hai lasciata. Chi la usa può cambiarle in Vista, sul grafico, e rimettere la tua. Prova gli estremi: un’onda bassa o sollevata fino al centro.',
   'studio.tint.label': 'FluidEQ con questa scena',
-  'studio.tint.theme': 'Tema',
   'studio.brightness.hint':
     'La Luminosità di tutta l’app, lo stesso cursore di Colori della finestra. Con essa ogni scena passa dalla notte a 0 al pieno giorno a 100: prova la tua a entrambi gli estremi prima di pubblicarla.',
   'studio.tint.hint':
-    'Solo qui, mentre lavori: i Colori della finestra del grafico restano come li hai impostati. Tema lascia la finestra come ce l’ha l’app; gli altri le danno i colori di questa scena, o quei colori con i suoi elementi che volano intorno alla finestra, così la vedi e la senti come chi la ascolterà.',
+    'Solo qui, mentre lavori: i Colori della finestra del grafico restano come li hai impostati. Entrambi danno alla finestra i colori di questa scena, il secondo anche con i suoi elementi che volano intorno alla finestra, così la vedi e la senti come chi la ascolterà.',
   'studio.tint.short': 'Solo qui, mentre lavori.',
   'studio.grid.label': 'Mostra la griglia del grafico',
   'studio.grid.hint':

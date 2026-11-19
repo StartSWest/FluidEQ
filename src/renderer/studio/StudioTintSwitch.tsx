@@ -31,18 +31,18 @@ import { useStudio } from './studioStore';
  *
  * THE STUDIO'S OWN CHOICE, never the app's (`useStudioTintMode`; Ivan,
  * 2026-09-27: "the studio options are independent of the global ones, you
- * can't modify the global ones"). Theme is the app's own choice, whatever
- * the graph's Window colours are set to, and the Studio claims nothing; the
- * other two are the graph's Colours and Ambient with the project on the
- * bench as the scene. The graph's Backdrop is not offered: there is no graph
- * here to put the scene behind, and it showed as Ambient (Ivan, 2026-09-28:
- * "remove backdrop option from studio only"). For a day the tiles set the
- * app's one mode, and picking Theme here put the whole app on Original.
+ * can't modify the global ones"): the graph's Colours and Ambient with the
+ * project on the bench as the scene. There is no Theme: on it the window
+ * showed whatever scene the graph lent it, somebody else's scene judged
+ * inside this one's Studio (Ivan, 2026-11-18: "we should actually remove
+ * that", "the Studio always tints as the scene"). The graph's Backdrop is
+ * not offered: there is no graph here to put the scene behind, and it showed
+ * as Ambient (Ivan, 2026-09-28: "remove backdrop option from studio only").
  *
  * Tiles rather than the graph's single button, because the card has the room
  * and a member judging a scene wants to see every choice at once. Each wears
  * the glyph the graph's menu does for it, in the colour it would give the
- * window: the theme's accent on Theme, the scene's on the other two.
+ * window: the scene's.
  *
  * Never disabled, unlike the test controls above it. The project claims the
  * window's colour even while its scene is loading or too heavy to play, and
@@ -60,8 +60,7 @@ export default function StudioTintSwitch() {
   // window its colour, the one being shown. It was only the chosen tile's,
   // only while it lent, so with Theme chosen the other three were grey dots
   // that said nothing of the scene they stand for (Ivan, 2026-09-27: "fix
-  // all this crap"). The Theme tile wears the theme's own accent
-  // (`--theme-accent`, `StudioStage.scss`).
+  // all this crap").
   const { state } = useStudio();
   const project = source?.project ?? state.activeId;
   const rememberedSky = useRememberedSceneSky(
@@ -92,28 +91,13 @@ export default function StudioTintSwitch() {
             type="button"
             className="studio-tile"
             aria-pressed={mode === entry}
-            aria-label={t(
-              entry === 'theme'
-                ? 'studio.tint.theme'
-                : SCENE_TINT_MODE_NAMES[entry],
-            )}
-            title={t(
-              entry === 'theme'
-                ? 'studio.tint.theme'
-                : SCENE_TINT_MODE_NAMES[entry],
-            )}
+            aria-label={t(SCENE_TINT_MODE_NAMES[entry])}
+            title={t(SCENE_TINT_MODE_NAMES[entry])}
             onClick={() => setStudioTintMode(entry)}
           >
-            <TintIcon
-              className="studio-tint__glyph"
-              mode={entry === 'theme' ? 'off' : entry}
-            />
+            <TintIcon className="studio-tint__glyph" mode={entry} />
             <span className="studio-tile__name">
-              {t(
-                entry === 'theme'
-                  ? 'studio.tint.theme'
-                  : SCENE_TINT_MODE_SHORT_NAMES[entry],
-              )}
+              {t(SCENE_TINT_MODE_SHORT_NAMES[entry])}
             </span>
           </button>
         ))}

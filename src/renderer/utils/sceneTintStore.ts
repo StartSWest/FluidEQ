@@ -213,7 +213,11 @@ export const useSceneTintEnabled = () => useSceneTintMode() !== 'off';
  * old `fluideq.studioTintMode` holds whatever an earlier version left there,
  * and following the app is what the Studio did all that day.
  */
-export const STUDIO_TINT_MODES = ['theme', 'tint', 'pulse'] as const;
+// No Theme: the Studio always wears the scene on its bench (Ivan, 2026-11-18: "Theme mode should not be the current Plus viz on the graph", "we should actually remove that", "and the Studio always tints as the scene"). On
+// Theme it showed whatever the graph's scene lent the window, which judged
+// somebody else's scene inside this one's Studio. A stored 'theme' reads as
+// the default.
+export const STUDIO_TINT_MODES = ['tint', 'pulse'] as const;
 export type TStudioTintMode = (typeof STUDIO_TINT_MODES)[number];
 
 const isStudioTintMode = (value: unknown): value is TStudioTintMode =>
@@ -353,7 +357,7 @@ export const useWindowTintMode = (): TSceneTintMode => {
   if (isAmp) {
     return 'cover';
   }
-  return source && studio !== 'theme' ? studio : app;
+  return source ? studio : app;
 };
 
 // *** What each scene's sky was measured to be ********************************

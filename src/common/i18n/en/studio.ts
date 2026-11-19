@@ -743,15 +743,12 @@ const studio = {
   // A switch under the size: the whole app in the colour of the scene on the
   // stage, for judging it as a theme without leaving the Studio.
   'studio.tint.label': 'FluidEQ with this scene',
-  // The first tile: the app's own Window colours, whatever they are set
-  // to. Here "Original" read as the scene's own colours.
-  'studio.tint.theme': 'Theme',
   // Under the window’s colours: the app’s own Brightness, which every
   // scene’s Daylight follows.
   'studio.brightness.hint':
     'The whole app’s Brightness, the same slider as in Window colours. Every scene goes from night at 0 to full day at 100 with it: try yours at both ends before you publish.',
   'studio.tint.hint':
-    'Only here, while you work: the graph’s Window colours stay as you set them. Theme keeps the window as the app has it; the others give it this scene’s colours, or its colours with its elements flying around the window, so you see and feel it as every listener will.',
+    'Only here, while you work: the graph’s Window colours stay as you set them. Both give the window this scene’s colours, the second with its elements flying around the window too, so you see and feel it as every listener will.',
   // The line under the tiles; the whole of studio.tint.hint is behind the "i".
   'studio.tint.short': 'Only here, while you work.',
   'studio.grid.label': 'Show the graph grid',
