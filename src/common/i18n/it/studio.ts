@@ -239,6 +239,7 @@ const studio = {
   'studio.publish.noteWriting':
     'La chat della tua scena sta scrivendo cosa c’è di nuovo…',
   'studio.publish.noteNeeded': 'Obbligatorio',
+  'studio.publish.noteWriteAi': 'Scrivi con l’IA',
   'studio.publish.point1':
     'Chiunque abbia effettuato l’accesso può vederla nella galleria delle scene, guardarla per qualche secondo e ottenerla con un credito. Per te suona gratis.',
   'studio.publish.point3':

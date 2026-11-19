@@ -224,7 +224,7 @@ export default function useStudioPublish(
     currentDraft.current = next;
     showDraft(next);
   }, []);
-  const { translate: translateNote } = usePublishNote(
+  const { translate: translateNote, write: writeNote } = usePublishNote(
     draft,
     currentDraft,
     setDraft,
@@ -618,6 +618,7 @@ export default function useStudioPublish(
     choose,
     publish,
     translateNote,
+    writeNote,
     cancel,
     requestCancel,
     phase,

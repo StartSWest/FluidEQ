@@ -213,6 +213,7 @@ const studio = {
   'studio.publish.coversNormal': '封面在普通视图中截取',
   'studio.publish.noteWriting': '场景的聊天正在写这次的新内容…',
   'studio.publish.noteNeeded': '必填',
+  'studio.publish.noteWriteAi': '用 AI 撰写',
   'studio.publish.point1':
     '任何已登录的人都能在场景图库中看到它，观看几秒，并用一点获取它。对你来说它免费播放。',
   'studio.publish.point3':

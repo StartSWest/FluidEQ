@@ -70,6 +70,8 @@ interface IStudioPublishDialogProps {
   ) => void;
   /** The member's changed line handed to the chat to write in every language. */
   onTranslateNote: (line: string, from: string) => Promise<boolean>;
+  /** Asks the scene's chat to write the line (`usePublishNote`). */
+  onWriteNote?: () => Promise<boolean>;
   onCancel: () => void;
 }
 
@@ -107,6 +109,7 @@ export default function StudioPublishDialog({
   onChoose,
   onPublish,
   onTranslateNote,
+  onWriteNote,
   onCancel,
 }: IStudioPublishDialogProps) {
   const { t, locale } = useTranslation();
@@ -461,6 +464,16 @@ export default function StudioPublishDialog({
             asWritten={noteSend.asWritten}
             unreadable={draft.noteUnreadable === true}
             noteRef={noteRef}
+            onWrite={
+              onWriteNote &&
+              (() => {
+                // What the boxes hold stops counting as typed, so the line
+                // the chat writes takes their place instead of standing
+                // behind the member's (`publishNoteLines.ts`).
+                setNoteLines((now) => ({ ...now, edited: [] }));
+                onWriteNote().catch(() => undefined);
+              })
+            }
           />
         </div>
       </DialogFrame>

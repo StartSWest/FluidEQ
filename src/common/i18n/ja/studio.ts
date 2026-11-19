@@ -233,6 +233,7 @@ const studio = {
   'studio.publish.coversNormal': 'カバーは通常表示で撮ります',
   'studio.publish.noteWriting': 'シーンのチャットが新しい内容を書いています…',
   'studio.publish.noteNeeded': '必須',
+  'studio.publish.noteWriteAi': 'AI で書く',
   'studio.publish.point1':
     'サインインしている人なら誰でもシーンのギャラリーで見て、数秒間再生し、1クレジットで入手できます。あなたには無料で再生されます。',
   'studio.publish.point3':

@@ -231,6 +231,7 @@ const studio = {
   'studio.publish.coversNormal': 'Обложки снимаются в обычном виде',
   'studio.publish.noteWriting': 'Чат вашей сцены пишет, что нового…',
   'studio.publish.noteNeeded': 'Обязательно',
+  'studio.publish.noteWriteAi': 'Написать с ИИ',
   'studio.publish.point1':
     'Любой, кто вошёл, может увидеть её в галерее сцен, посмотреть несколько секунд и получить за кредит. У вас она играет бесплатно.',
   'studio.publish.point3':

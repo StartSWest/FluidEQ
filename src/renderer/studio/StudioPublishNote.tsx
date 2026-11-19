@@ -19,6 +19,7 @@ import {
   type TVersionNotes,
 } from 'common/sceneVersionNote';
 import type { TranslationKey } from 'common/i18n';
+import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import {
   languageName,
@@ -103,6 +104,12 @@ interface IStudioPublishNoteProps {
    */
   unreadable: boolean;
   noteRef: RefObject<HTMLTextAreaElement | null>;
+  /**
+   * Asks the scene's chat to write the line (Ivan, 2026-11-18: "add a nice
+   * button to generate the note with AI, and it will ask the agent to fill
+   * it"). Absent where there is no chat to ask.
+   */
+  onWrite?: () => void;
 }
 
 /**
@@ -124,6 +131,7 @@ export default function StudioPublishNote({
   asWritten,
   unreadable,
   noteRef,
+  onWrite,
 }: IStudioPublishNoteProps) {
   const { t } = useTranslation();
   const mineId = useId();
@@ -170,6 +178,17 @@ export default function StudioPublishNote({
         >
           {mineLine.length} / {MAX_VERSION_NOTE}
         </span>
+        {onWrite && (
+          <button
+            type="button"
+            className="button small subtle studio-publish__note-ai"
+            disabled={writing || translating !== undefined || running}
+            onClick={onWrite}
+          >
+            <MenuIcon name="smart" />
+            {t('studio.publish.noteWriteAi')}
+          </button>
+        )}
       </span>
       {shown.map((locale) => {
         const id = locale === mine ? mineId : englishId;

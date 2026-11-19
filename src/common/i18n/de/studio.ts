@@ -241,6 +241,7 @@ const studio = {
     'Titelbilder werden in der normalen Ansicht aufgenommen',
   'studio.publish.noteWriting': 'Der Chat Ihrer Szene schreibt, was neu ist…',
   'studio.publish.noteNeeded': 'Erforderlich',
+  'studio.publish.noteWriteAi': 'Mit KI schreiben',
   'studio.publish.point1':
     'Alle Angemeldeten können sie in der Szenen-Galerie sehen, einige Sekunden ansehen und mit einem Credit holen. Für Sie läuft sie kostenlos.',
   'studio.publish.point3':

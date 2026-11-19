@@ -69,17 +69,31 @@ it under the terms of the GNU General Public License version 3 or later.
   line-height: 1.35;
 }
 
+// The title and its "Needed" at the start; the count and "Write with AI" at
+// the end, the button last, where a hand looks for an action.
 .studio-publish__note-head {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: center;
   gap: $spacing-s;
 }
 
 .studio-publish__note-count {
+  margin-left: auto;
   color: $text-dim;
   font-size: $text-micro;
   font-variant-numeric: tabular-nums;
+}
+
+.studio-publish__note-ai {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
 }
 
 // At the limit the field takes no more letters and says nothing about it, so

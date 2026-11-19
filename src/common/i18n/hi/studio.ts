@@ -233,6 +233,7 @@ const studio = {
   'studio.publish.coversNormal': 'कवर सामान्य व्यू में लिए जाते हैं',
   'studio.publish.noteWriting': 'आपके सीन की चैट लिख रही है कि नया क्या है…',
   'studio.publish.noteNeeded': 'ज़रूरी',
+  'studio.publish.noteWriteAi': 'AI से लिखें',
   'studio.publish.point1':
     'साइन इन किया हुआ कोई भी व्यक्ति इसे सीन गैलरी में देख सकता है, कुछ सेकंड चला सकता है और एक क्रेडिट से ले सकता है। आपके लिए यह मुफ़्त चलता है।',
   'studio.publish.point3':

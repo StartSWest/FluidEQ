@@ -213,6 +213,7 @@ const studio = {
   'studio.publish.coversNormal': '封面在一般檢視中擷取',
   'studio.publish.noteWriting': '場景的聊天正在寫這次的新內容…',
   'studio.publish.noteNeeded': '需要',
+  'studio.publish.noteWriteAi': '用 AI 撰寫',
   'studio.publish.point1':
     '任何登入的人都可以在場景畫廊中看到它，觀看幾秒鐘並獲得點數。它免費為您播放。',
   'studio.publish.point3':

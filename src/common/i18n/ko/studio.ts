@@ -230,6 +230,7 @@ const studio = {
   'studio.publish.coversNormal': '커버는 일반 보기에서 찍습니다',
   'studio.publish.noteWriting': '장면의 채팅이 새로운 점을 쓰고 있습니다…',
   'studio.publish.noteNeeded': '필요',
+  'studio.publish.noteWriteAi': 'AI로 쓰기',
   'studio.publish.point1':
     '로그인한 사람은 누구나 장면 갤러리에서 볼 수 있으며 몇 초 동안 시청하면 크레딧을 받을 수 있습니다. 그것은 당신을 위해 무료로 재생됩니다.',
   'studio.publish.point3':

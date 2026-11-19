@@ -241,6 +241,7 @@ const studio = {
   'studio.publish.coversNormal': 'Covers are caught in the Normal view',
   'studio.publish.noteWriting': 'Your scene’s chat is writing what is new…',
   'studio.publish.noteNeeded': 'Needed',
+  'studio.publish.noteWriteAi': 'Write with AI',
   'studio.publish.point1':
     'Anyone signed in can see it in the Scenes gallery, watch it for a few seconds and get it with a credit. It plays free for you.',
   'studio.publish.point3':

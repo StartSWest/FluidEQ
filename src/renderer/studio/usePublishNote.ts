@@ -196,5 +196,29 @@ export default function usePublishNote(
     [currentDraft, setDraft],
   );
 
-  return { translate };
+  /**
+   * The line asked of the scene's chat at the member's press (Ivan,
+   * 2026-11-18: "a nice button to generate the note with AI, and it will ask
+   * the agent to fill it"). The ask on opening goes once and only into an
+   * empty box, and a chat answering something else then refuses it, so the
+   * box could stay empty with nothing to ask again. False when there is no
+   * chat to ask or it is answering something else.
+   */
+  const write = useCallback(() => {
+    const now = currentDraft.current;
+    if (!now) {
+      return Promise.resolve(false);
+    }
+    return askStudioChatForNote({ first: !now.published })
+      .catch(() => false)
+      .then((went) => {
+        const later = currentDraft.current;
+        if (went && later) {
+          setDraft({ ...later, noteWriting: true });
+        }
+        return went;
+      });
+  }, [currentDraft, setDraft]);
+
+  return { translate, write };
 }
