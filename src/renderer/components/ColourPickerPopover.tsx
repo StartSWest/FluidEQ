@@ -6,14 +6,23 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
   useCallback,
+  useDeferredValue,
   useEffect,
   useId,
+  useLayoutEffect,
+  useMemo,
   useState,
   type CSSProperties,
   type KeyboardEvent,
   type PointerEvent,
 } from 'react';
 import AnchoredMenu from '../widgets/AnchoredMenu';
+import {
+  runsOfColumns,
+  SHADE_COLUMNS,
+  shadeGrid,
+} from '../utils/colourLimitShade';
+import { parseCssColour } from '../utils/oklab';
 import type { TColourLimit } from '../utils/useColourLimits';
 import { useTranslation } from '../utils/I18nContext';
 import useLiveSlider from '../utils/useLiveSlider';
@@ -50,6 +59,10 @@ const STEP = 0.01;
 const BIG_STEP = 0.1;
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+
+/** The shade's canvas height, and the stops down each of its columns. */
+const SHADE_HEIGHT = 64;
+const SHADE_STOPS = 32;
 
 /** Every part of a press held back outside an open picker. */
 const PRESS_EVENTS = [
@@ -102,13 +115,14 @@ interface IColourPickerPopoverProps {
   hueWhenGrey?: number;
   /**
    * What the colour may be: the window's own rule for it (`useColourLimits`).
-   * The field is the whole colour square, as any picker's; a pick the rule
-   * would change is brought to the colour it gives and the mark goes there,
-   * so what is picked is what the window wears (Ivan, 2026-11-18: "the limit
-   * should be on the pickers, not before applying them to the UI"). Drawing
-   * the limit in the square - in cells, shaded with an edge, stretched over
-   * only what can be picked - was sent back three times ("why that colour
-   * picker with that ugly limiting"). Absent, any colour.
+   * The field is the whole colour square, as any picker's, with the menu's
+   * material fading softly over what the rule would change
+   * (`colourLimitShade`); a pick there is brought to the colour the rule
+   * gives and the mark goes there, where the fade begins, so what is picked
+   * is what the window wears (Ivan, 2026-11-18: "the limit should be on the
+   * pickers, not before applying them to the UI"; "do a smooth limit"). A
+   * field painted in cells, one shaded with an edge and one stretched over
+   * only what can be picked were all sent back. Absent, any colour.
    */
   limit?: TColourLimit;
 }
@@ -309,6 +323,46 @@ export default function ColourPickerPopover({
   };
 
   const hueColour = hexOfHsv({ h: hsv.h, s: 1, v: 1 });
+  // What the rule leaves alone, for the hue the bar stands at: worked out at
+  // the pace the window can draw it while the hue is dragged, never holding
+  // the handle back.
+  const shadeHue = useDeferredValue(hsv.h);
+  const grid = useMemo(
+    () =>
+      limit
+        ? shadeGrid(runsOfColumns(limit, shadeHue), SHADE_STOPS)
+        : undefined,
+    [limit, shadeHue],
+  );
+  // The shade painted on a canvas over the square, one column per unit and
+  // a gradient of the menu's material down each, smoothed by the browser to
+  // the square's size. Held as state, not a ref: the menu puts its contents
+  // in only once it has measured where to stand, a render after it opens.
+  const [shade, setShade] = useState<HTMLCanvasElement | null>(null);
+  useLayoutEffect(() => {
+    const context = shade?.getContext('2d');
+    if (!grid || !shade || !context) {
+      return;
+    }
+    const material = parseCssColour(
+      getComputedStyle(shade).getPropertyValue('--surface-menu'),
+    );
+    const [red, green, blue] = (material?.rgb ?? [0, 0, 0]).map((channel) =>
+      Math.round(channel * 255),
+    );
+    context.clearRect(0, 0, SHADE_COLUMNS, SHADE_HEIGHT);
+    grid.forEach((column, index) => {
+      const fill = context.createLinearGradient(0, 0, 0, SHADE_HEIGHT);
+      column.forEach((alpha, stop) => {
+        fill.addColorStop(
+          stop / SHADE_STOPS,
+          `rgba(${red}, ${green}, ${blue}, ${alpha.toFixed(3)})`,
+        );
+      });
+      context.fillStyle = fill;
+      context.fillRect(index, 0, 1, SHADE_HEIGHT);
+    });
+  }, [shade, grid]);
   return (
     <AnchoredMenu
       anchor={anchor}
@@ -340,6 +394,15 @@ export default function ColourPickerPopover({
         onPointerMove={dragField}
         onKeyDown={fieldKeys}
       >
+        {limit && (
+          <canvas
+            ref={setShade}
+            className="colour-picker__shade"
+            width={SHADE_COLUMNS}
+            height={SHADE_HEIGHT}
+            aria-hidden
+          />
+        )}
         <span
           className="colour-picker__mark"
           style={

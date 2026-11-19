@@ -72,6 +72,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
+// The menu's material fading over what the colour cannot be at this point
+// (`colourLimitShade`): no edge, no line, under the mark.
+.colour-picker__shade {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
 .colour-picker__mark {
   position: absolute;
   z-index: 1;
