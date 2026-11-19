@@ -217,6 +217,15 @@ const ConvolutionPanel = () => {
               {t('convolution.search')}
             </span>
             <div className="convolution-search__field">
+              <svg
+                className="convolution-search__glyph"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <circle cx="11" cy="11" r="6.5" />
+                <path d="M20 20l-4.2-4.2" />
+              </svg>
               {/* A text input with the app's own clear cross, not a search
                   input with the browser's: Chromium draws a grey blob in a
                   `type="search"` field that no stylesheet can reach, and
@@ -326,7 +335,10 @@ const ConvolutionPanel = () => {
                 actionLabel = t('convolution.isApplied');
               }
               return (
-                <article className="convolution-result" key={entry.id}>
+                <article
+                  className={`convolution-result${isApplied ? ' is-applied' : ''}`}
+                  key={entry.id}
+                >
                   <div className="convolution-result__details">
                     <strong>{entry.name}</strong>
                     <span>

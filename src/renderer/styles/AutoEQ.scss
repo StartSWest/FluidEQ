@@ -21,6 +21,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'constant' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 
 // The AutoEQ row reflows against the width of the EQ card, not the viewport:
 // the card can be narrow on a wide screen (multi-column shell) and wide on a
@@ -113,13 +114,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // would be meeting the letter of the requirement while dodging the point.
   //
   // Still inside the fold, so it goes away with the rest of the section.
-  // A footer, so it is ruled off from the controls above rather than sitting
-  // among them.
+  // A footnote, parted from the controls by the space above it: the rule
+  // that used to stand there was one of the page's dividing lines (Ivan,
+  // 2026-11-19).
   .opra-credit {
     display: grid;
-    padding: 10px 0 2px;
-    border-top: 1px solid $card-edge;
-    margin-top: 4px;
+    padding: 0;
+    margin-top: 26px;
     gap: 10px;
     grid-template-columns: max-content 1fr;
     align-items: center;
@@ -182,19 +183,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     align-items: stretch;
   }
 
-  // Same well, same minimum height as the import preview below it.
+  // The curve's ground: the page's one step of light (`$studio-surface`),
+  // with no edge, as the Library and the DSP page draw a tray.
   .autoeq-curve {
     display: flex;
     min-width: 0;
     min-height: 194px;
-    padding: 16px 14px 10px;
+    padding: 16px 18px 12px;
     flex-direction: column;
     justify-content: center;
     gap: 12px;
-    border: 1px solid $card-edge;
-    border-radius: $radius-s;
-    // The graph's colour, like every drawing on a pane.
-    background: $surface-plot;
+    border-radius: $radius-m;
+    background: $studio-surface;
   }
 
   .autoeq-curve--empty {
