@@ -28,6 +28,7 @@ import { CHOICE_TYPE } from './sceneChoice';
 import { COLOUR_TYPE } from './sceneColourControl';
 import { PALETTE_TYPE } from './scenePalette';
 import type { IScenePack } from './scenePacks';
+import { firstSceneWindowColourStop } from './sceneWindowColours';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -71,12 +72,37 @@ export const storedFormOf = (raw: unknown): unknown => {
   };
 };
 
+/**
+ * The scene's one set of window colours, the day's: what a scene lends the
+ * window since Ivan's 2026-11-19 "pick the colour from the day, and that's
+ * the colour for the whole scene". Stored and signed as `windowColours`
+ * alone, never the points: the gallery's service keeps `windowColours` and
+ * drops `windowColourStops`, so a pack sent with the points was read back
+ * different from the one the app built and every publication was refused
+ * ("the gallery read this scene differently from how it plays here").
+ */
+const sceneColoursOf = (pack: IScenePack) => {
+  const stops = pack.windowColourStops;
+  return (
+    (stops && (stops['100'] ?? firstSceneWindowColourStop(stops))) ??
+    pack.windowColours
+  );
+};
+
 export default function storedScenePack(
   pack: IScenePack,
 ): Record<string, unknown> {
-  const { palettes, colours, ...rest } = pack;
+  const {
+    palettes,
+    colours,
+    windowColours: unusedSet,
+    windowColourStops: unusedStops,
+    ...rest
+  } = pack;
+  const windowColours = sceneColoursOf(pack);
   return {
     ...rest,
+    ...(windowColours ? { windowColours } : {}),
     params: [
       ...pack.params.map((param) =>
         param.options ? { ...param, type: CHOICE_TYPE } : param,
