@@ -163,9 +163,12 @@ $studio-rail-folded: 56px;
 // parts - one head on every page with a rail (Ivan, 2026-11-19: "the same
 // header that the DSP has" for the Library, the Gaming Lab, Share Audio and
 // Scenes). The pin's square is the line, so the name sits on its middle.
+// The rows' own size, in bold: at 1.125rem it stood over them as a page
+// heading (Ivan, 2026-11-19: "the headers are too big ... exactly the size of
+// the items below, but bold").
 @mixin studio-rail-title {
   color: $text-primary;
-  font-size: 1.125rem;
+  font-size: $studio-text-row;
   font-weight: $weight-bold;
   letter-spacing: normal;
   line-height: $control-height-xs;
