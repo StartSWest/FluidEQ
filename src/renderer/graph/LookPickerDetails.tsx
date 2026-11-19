@@ -33,6 +33,12 @@ interface ILookPickerDetailsProps {
  * small picture, then name, maker, kind and version in columns, the chosen
  * one with the Library's mark. For finding a scene by who made it or which
  * version is here, where the grid is for finding one by its picture.
+ *
+ * "New", "Updated" and the lock stand in a column of their own at the end of
+ * the name's, every row on one grid (`_lookPickerTiles.scss`), so they line
+ * up down the list (Ivan, 2026-11-19: "align pills to the right"); after
+ * each name they zig-zagged with the names' lengths. Every row has that
+ * cell, empty or not, or the columns after it would slide one to the left.
  */
 export default function LookPickerDetails({
   value,
@@ -47,8 +53,11 @@ export default function LookPickerDetails({
     <div className="look-picker__details" role="list">
       <div className="look-picker__details-head" aria-hidden="true">
         <span />
-        <span>{t('library.sort.name')}</span>
-        <span>{t('graph.picker.from')}</span>
+        {/* Over the name and the column of marks beside it. */}
+        <span className="look-picker__head-name">{t('library.sort.name')}</span>
+        <span className="look-picker__cell--from">
+          {t('graph.picker.from')}
+        </span>
         <span className="look-picker__cell--kind">
           {t('graph.picker.colKind')}
         </span>
@@ -85,7 +94,8 @@ export default function LookPickerDetails({
               />
             </span>
             <span className="look-picker__name">{row.name}</span>
-            <span className="look-picker__cell">
+            <span className="look-picker__flags" />
+            <span className="look-picker__cell look-picker__cell--from">
               <OriginMark row={row} />
               <span className="look-picker__caption-text">
                 {row.yours ? t('graph.member.mine') : t('account.plus.eyebrow')}
@@ -138,6 +148,8 @@ function SceneRow({
         </span>
         <span className="look-picker__name">
           <span className="look-picker__name-text">{row.name}</span>
+        </span>
+        <span className="look-picker__flags">
           {fresh === 'new' && (
             <span className="look-picker__flag">{t('graph.version.new')}</span>
           )}
@@ -148,7 +160,7 @@ function SceneRow({
           )}
           {row.locked && <LockBadge label={t('graph.scene.badge')} />}
         </span>
-        <span className="look-picker__cell">
+        <span className="look-picker__cell look-picker__cell--from">
           <OriginMark row={row} />
           <span className="look-picker__caption-text">{text}</span>
         </span>

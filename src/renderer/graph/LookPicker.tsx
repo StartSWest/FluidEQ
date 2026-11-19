@@ -27,8 +27,9 @@ import {
   useLockedScenes,
   useUsableScenes,
 } from '../utils/scenePacks';
-import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
+import { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import LookPickerBody from './LookPickerBody';
+import LookPickerWindow from './LookPickerWindow';
 import type {
   TPickerFrom,
   TPickerPlace,
@@ -316,13 +317,10 @@ const LookPicker = ({
         )}
         {!trigger && <Chevron className="arrow" />}
       </button>
-      <AnchoredMenu
+      <LookPickerWindow
         anchor={rootRef.current}
         isOpen={isOpen}
-        className="graph-look-menu look-picker__menu"
-        role="dialog"
         ariaLabel={t('graph.picker.label')}
-        maxHeight={640}
       >
         <LookPickerBody
           value={value}
@@ -344,7 +342,7 @@ const LookPicker = ({
           bodyRef={arrive}
           onLeave={() => close(false)}
         />
-      </AnchoredMenu>
+      </LookPickerWindow>
     </div>
   );
 };
