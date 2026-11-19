@@ -14,7 +14,7 @@ const SPARK_ANIMATION = 'library-surprise-spark';
  * otherwise carry a dark blob in its bend. The spark is the one filled
  * shape, and takes that ink.
  */
-const SurpriseIcon = () => (
+export const SurpriseIcon = () => (
   <svg className="library-surprise__icon" viewBox="0 0 24 24" aria-hidden>
     <path
       fill="none"
@@ -26,6 +26,36 @@ const SurpriseIcon = () => (
     />
   </svg>
 );
+
+/**
+ * A press of Surprise me: asks the library for a song, and turns the spark
+ * on the press itself, before the library has answered, so the press is seen
+ * the moment it lands. `sparkEnded` goes on the button's animation end.
+ */
+export const useSurprisePress = (
+  onAnswer?: (picked: string | null) => void,
+) => {
+  const { surprise } = useLibraryPlayerSession();
+  const [isSparking, setIsSparking] = useState(false);
+  const press = () => {
+    setIsSparking(true);
+    surprise()
+      .then((picked) => onAnswer?.(picked))
+      .catch((error: unknown) => {
+        // eslint-disable-next-line no-console -- context-rich error before it is dropped; nothing starts and the button stays
+        console.error(
+          'Surprise me could not ask the library for a song',
+          error,
+        );
+      });
+  };
+  const sparkEnded = (event: AnimationEvent<HTMLButtonElement>) => {
+    if (event.animationName === SPARK_ANIMATION) {
+      setIsSparking(false);
+    }
+  };
+  return { press, isSparking, sparkEnded };
+};
 
 /**
  * Surprise me: a random song from the whole library starts now, and Up Next
@@ -48,25 +78,7 @@ const LibrarySurpriseButton = ({
   onAnswer?: (picked: string | null) => void;
 }) => {
   const { t } = useTranslation();
-  const { surprise } = useLibraryPlayerSession();
-  const [isSparking, setIsSparking] = useState(false);
-  const press = () => {
-    setIsSparking(true);
-    surprise()
-      .then((picked) => onAnswer?.(picked))
-      .catch((error: unknown) => {
-        // eslint-disable-next-line no-console -- context-rich error before it is dropped; nothing starts and the button stays
-        console.error(
-          'Surprise me could not ask the library for a song',
-          error,
-        );
-      });
-  };
-  const sparkEnded = (event: AnimationEvent<HTMLButtonElement>) => {
-    if (event.animationName === SPARK_ANIMATION) {
-      setIsSparking(false);
-    }
-  };
+  const { press, isSparking, sparkEnded } = useSurprisePress(onAnswer);
   return (
     <button
       type="button"

@@ -16,7 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  CSSProperties,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { useSystemFader } from '../../audio/systemVolume';
 import { ILibraryTrack } from '../../../common/library/types';
@@ -77,6 +84,12 @@ export interface INowPlayingBarProps {
   /** True for a format Chromium has no demuxer for — see `isLibraryPlayable`
    * and `LibraryPlayerContext`'s `isUnplayable`. */
   isUnplayable?: boolean;
+  /**
+   * Surprise me, beside shuffle, where the bar plays the Library
+   * (`NowPlayingSurprise`): handed in so this view stays free of the player's
+   * context. Absent, there is none.
+   */
+  surprise?: ReactNode;
 }
 
 /** `m:ss`, and blank rather than `NaN:NaN` for anything that is not a real,
@@ -379,6 +392,7 @@ const NowPlayingBar = ({
   onFavorite,
   onReveal,
   isUnplayable = false,
+  surprise,
 }: INowPlayingBarProps) => {
   const { t } = useTranslation();
   const barRef = useRef<HTMLDivElement | null>(null);
@@ -576,6 +590,7 @@ const NowPlayingBar = ({
           {t('library.shuffle')}
         </span>
       </button>
+      {surprise}
       <button
         type="button"
         className="now-playing-bar__toggle"

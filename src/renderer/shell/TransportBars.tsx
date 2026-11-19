@@ -29,6 +29,7 @@ import { usePlaylists } from '../library/PlaylistContext';
 import IdleTransportBar from '../library/player/IdleTransportBar';
 import { useLibraryPlayer } from '../library/player/LibraryPlayerContext';
 import NowPlayingBar from '../library/player/NowPlayingBar';
+import NowPlayingSurprise from '../library/player/NowPlayingSurprise';
 import SourceTransportBar from '../library/player/SourceTransportBar';
 import type { TWorkspaceTab } from '../workspaceTabs';
 
@@ -228,6 +229,8 @@ export const ConnectedNowPlayingBar = ({
       isFavorite={track ? isFavorite(track.id) : false}
       onFavorite={track ? () => toggleFavorite(track.id) : undefined}
       onReveal={track ? () => onReveal(track) : undefined}
+      // Only while the Library is what plays (Ivan, 2026-11-19).
+      surprise={track && !isIdle ? <NowPlayingSurprise /> : undefined}
     />
   );
 };
