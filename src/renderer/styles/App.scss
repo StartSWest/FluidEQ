@@ -1866,12 +1866,15 @@ textarea,
   // thing left in the window that no scene could reach.
   --arrow-fill: var(--accent);
   // The pet in the titlebar, one flat colour (Ivan, 2026-11-17: "all needs
-  // to look flat and modern"): the lit buttons' own fill - the accent at
-  // 22% (`tone-fill-lit`) - laid on the window's floor so she stays one
-  // solid colour where her ears meet her head (Ivan, 2026-11-19: "the pet
-  // colour looks burned, let's use the same tone as the buttons' background";
-  // the accent's light was "too light").
-  --pet-tone: color-mix(in srgb, var(--accent) 22%, var(--surface-base));
+  // to look flat and modern"): the accent itself, the solid fill of a lit
+  // switch's track beside her - the same place her own mint (#4ad3dc) holds
+  // on an untinted window. Her face is drawn in a near-black ink, so she needs
+  // a light body: the lit buttons' 22% fill on the floor (#0d4450 under a
+  // cyan accent) left her a dark blot with no face (Ivan, 2026-11-19: "fix
+  // the pet colours, still bad"), and the accent's light was "too light".
+  // The "burned" look that started this was a stale colour - Balloon Dawn's
+  // red under a cyan accent - which her probe now repaints.
+  --pet-tone: var(--accent);
 }
 
 // On a light window an accent that carries the floor's light label is deep
