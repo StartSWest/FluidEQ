@@ -114,6 +114,7 @@ import {
   useSelectedSceneLookId,
   useSelectedLookId,
 } from '../utils/graphStyle';
+import { useLookColouringAvailable } from '../utils/windowInk';
 import {
   toggleFullScreenTopBar,
   useFullScreenTopBar,
@@ -428,6 +429,7 @@ const FrequencyResponseChart = ({
   hasDrawnSceneRef.current = Boolean(drawnScene);
   const graphPalette: GraphPalette = useGraphPalette();
   const isPaletteSelectable = useIsPaletteSelectable();
+  const isColouringAvailable = useLookColouringAvailable();
   const customLooks = useCustomLooks();
   // Whether somebody wants the designer; `isDesignerOpen` below is whether it
   // is on screen, which lasts through its way out.
@@ -1584,10 +1586,22 @@ const FrequencyResponseChart = ({
                   aria-label={`${t('look.palette.cycle')}: ${t(
                     PALETTE_LABEL_KEYS[graphPalette],
                   )}`}
-                  title={`${t('look.palette.cycle')}: ${t(
-                    PALETTE_LABEL_KEYS[graphPalette],
-                  )}`}
-                  disabled={isDisplayedWaveHidden || !isPaletteSelectable}
+                  // With one colour to work with, Frequency, Level and Heat
+                  // were three shades of it: off until the Tint has a second
+                  // colour (or Rainbow lends its stops), and the hover says
+                  // where to give one (Ivan, 2026-11-20).
+                  title={
+                    isColouringAvailable
+                      ? `${t('look.palette.cycle')}: ${t(
+                          PALETTE_LABEL_KEYS[graphPalette],
+                        )}`
+                      : t('look.palette.needsSecond')
+                  }
+                  disabled={
+                    isDisplayedWaveHidden ||
+                    !isPaletteSelectable ||
+                    !isColouringAvailable
+                  }
                   onClick={() =>
                     setGraphPalette(
                       GRAPH_PALETTES[

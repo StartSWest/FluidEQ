@@ -12,6 +12,7 @@ import { labToHex, parseCssColour, rgbToLab } from './oklab';
 import { getRainbowStops, useRainbowStops } from './rainbowPalette';
 import { readSurface, useLiveSurface, useRootHasClass } from './theme';
 import { isLightWindow } from './windowSide';
+import { getWindowTintSecondary, useWindowTintSecondary } from './windowTint';
 
 /**
  * THE WINDOW'S COLOURS, FOR EVERYTHING THAT IS DRAWN RATHER THAN STYLED.
@@ -199,15 +200,68 @@ const colourSet = (
 ): readonly string[] => (rainbow ? stops : walk);
 
 /**
+ * The first colour to the second, through their middle round the hue circle
+ * (OKLCH, the shorter way): what a
+ * look's Frequency, Level and Heat run across once the listener has given
+ * the Tint a second colour. On the primary's walk alone the three were three
+ * shades of one colour, and Colouring seemed to do nothing (Ivan,
+ * 2026-11-20: "disabled when no secondary colour is chosen ... choose a
+ * secondary colour to enable this feature").
+ */
+const secondWalk = (primary: string, second: string): readonly string[] => {
+  const from = parseCssColour(primary);
+  const to = parseCssColour(second);
+  if (!from || !to) {
+    return rememberSet([primary, second]);
+  }
+  const a = rgbToLab(from.rgb);
+  const b = rgbToLab(to.rgb);
+  // Round the hue, never straight across: a straight OKLab middle of two
+  // far-apart hues (teal and orange) is a grey-brown, and Level's middle
+  // band came out mud.
+  const chromaA = Math.hypot(a.a, a.b);
+  const chromaB = Math.hypot(b.a, b.b);
+  const hueA = Math.atan2(a.b, a.a);
+  let turn = Math.atan2(b.b, b.a) - hueA;
+  if (turn > Math.PI) {
+    turn -= 2 * Math.PI;
+  } else if (turn < -Math.PI) {
+    turn += 2 * Math.PI;
+  }
+  const hue = hueA + turn / 2;
+  const chroma = Math.max(chromaA, chromaB);
+  const middle = labToHex({
+    l: (a.l + b.l) / 2,
+    a: chroma * Math.cos(hue),
+    b: chroma * Math.sin(hue),
+  });
+  return rememberSet([primary, middle, second]);
+};
+
+/**
+ * Whether Colouring has more than one colour to work with: in Rainbow mode
+ * the rainbow's stops, otherwise the Tint's second colour.
+ */
+export const useLookColouringAvailable = (): boolean => {
+  const rainbow = useRootHasClass('is-euphoric');
+  const second = useWindowTintSecondary();
+  return rainbow || second !== undefined;
+};
+
+/**
  * The set the window draws in right now: the rainbow's stops, or the
  * primary's walk.
  */
-export const windowColours = (): readonly string[] =>
-  colourSet(
+export const windowColours = (): readonly string[] => {
+  const second = getWindowTintSecondary();
+  return colourSet(
     isWindowRainbow(),
     getRainbowStops(),
-    primaryWalk(windowPrimaryDark(), windowPrimary(), windowPrimaryLight()),
+    second === undefined
+      ? primaryWalk(windowPrimaryDark(), windowPrimary(), windowPrimaryLight())
+      : secondWalk(windowPrimary(), second),
   );
+};
 
 /**
  * What a look with no colours of its own is painted in: the window's set, and
@@ -219,15 +273,23 @@ const lookColoursOf = (
   palette: GraphPalette,
   set: readonly string[],
   rainbow: boolean,
+  hasSecond: boolean,
 ): readonly string[] => {
   if (palette !== 'signal') {
     return set;
   }
-  return rememberSet([rainbow ? set[0] : (set[1] ?? set[0])]);
+  // Flat is the first colour: the walk's middle on the primary's own walk,
+  // its first step on the walk to the second colour.
+  return rememberSet([rainbow || hasSecond ? set[0] : (set[1] ?? set[0])]);
 };
 
 export const windowLookColours = (palette: GraphPalette): readonly string[] =>
-  lookColoursOf(palette, windowColours(), isWindowRainbow());
+  lookColoursOf(
+    palette,
+    windowColours(),
+    isWindowRainbow(),
+    getWindowTintSecondary() !== undefined,
+  );
 
 const lightnessOf = (hex: string): number | undefined => {
   const parsed = parseCssColour(hex);
@@ -330,18 +392,21 @@ export const useWindowColours = (): readonly string[] => {
   const dark = useLiveSurface('--accent-dark', PRIMARY_DARK_FALLBACK);
   const primary = useLiveSurface('--accent', PRIMARY_FALLBACK);
   const light = useLiveSurface('--accent-light', PRIMARY_LIGHT_FALLBACK);
+  const second = useWindowTintSecondary();
   return useMemo(
     () =>
       colourSet(
         rainbow,
         stops,
-        primaryWalk(
-          asHex(dark, PRIMARY_DARK_FALLBACK),
-          asHex(primary, PRIMARY_FALLBACK),
-          asHex(light, PRIMARY_LIGHT_FALLBACK),
-        ),
+        second === undefined
+          ? primaryWalk(
+              asHex(dark, PRIMARY_DARK_FALLBACK),
+              asHex(primary, PRIMARY_FALLBACK),
+              asHex(light, PRIMARY_LIGHT_FALLBACK),
+            )
+          : secondWalk(asHex(primary, PRIMARY_FALLBACK), second),
       ),
-    [rainbow, stops, dark, primary, light],
+    [rainbow, stops, dark, primary, light, second],
   );
 };
 
@@ -350,9 +415,10 @@ export const useWindowLookColours = (
   palette: GraphPalette,
 ): readonly string[] => {
   const rainbow = useRootHasClass('is-euphoric');
+  const second = useWindowTintSecondary();
   const set = useWindowColours();
   return useMemo(
-    () => lookColoursOf(palette, set, rainbow),
-    [palette, set, rainbow],
+    () => lookColoursOf(palette, set, rainbow, second !== undefined),
+    [palette, set, rainbow, second],
   );
 };

@@ -48,6 +48,8 @@ const look: Partial<Dictionary> = {
   'look.pickForm': 'ऊपर चयनक से आकार चुनें या Space दबाएँ।',
   'look.colourBy': 'रंग का आधार',
   'look.palette.cycle': 'रंग-योजना',
+  'look.palette.needsSecond':
+    'लुक को फ़्रीक्वेंसी, लेवल या हीट से रंगने के लिए मेनू में रंगत के नीचे दूसरा रंग चुनें',
   'look.palette.flat': 'एक रंग',
   'look.palette.flatHint': 'पूरी आकृति के लिए एक रंग',
   'look.palette.frequency': 'आवृत्ति',

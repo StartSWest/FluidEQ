@@ -30,6 +30,8 @@ const look = {
   'look.pickForm': '使用上面的選擇器選擇表單，或按空白鍵。',
   'look.colourBy': '顏色依據',
   'look.palette.cycle': '著色',
+  'look.palette.needsSecond':
+    '在選單的「色調」中選擇第二個顏色，即可依頻率、音量或熱度上色',
   'look.palette.flat': '平',
   'look.palette.flatHint': '整個人物只有一種顏色',
   'look.palette.frequency': '頻率',

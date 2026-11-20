@@ -48,6 +48,8 @@ const look: Partial<Dictionary> = {
   'look.pickForm': 'Elige la forma con el selector superior o pulsa Espacio.',
   'look.colourBy': 'Colorear por',
   'look.palette.cycle': 'Coloreado',
+  'look.palette.needsSecond':
+    'Elige un segundo color en Tono, en el menú, para colorear el look por frecuencia, nivel o calor',
   'look.palette.flat': 'Plano',
   'look.palette.flatHint': 'Un color para toda la figura',
   'look.palette.frequency': 'Frecuencia',

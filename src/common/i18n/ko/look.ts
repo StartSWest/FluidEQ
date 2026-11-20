@@ -31,6 +31,8 @@ const look = {
   'look.pickForm': '위의 선택기로 형태을 선택하거나 Space를 누르세요.',
   'look.colourBy': '색상 기준',
   'look.palette.cycle': '색칠하기',
+  'look.palette.needsSecond':
+    '메뉴의 색조에서 두 번째 색을 고르면 주파수, 레벨 또는 히트로 색을 입힐 수 있습니다',
   'look.palette.flat': '플랫',
   'look.palette.flatHint': '전체 그림에 하나의 색상',
   'look.palette.frequency': '주파수',

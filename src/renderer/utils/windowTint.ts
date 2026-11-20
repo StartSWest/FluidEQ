@@ -165,6 +165,9 @@ const subscribe = (listener: () => void) => {
   };
 };
 
+/** The second colour as the drawings read it outside React. */
+export const getWindowTintSecondary = (): string | undefined => secondary;
+
 export const useWindowTintSecondary = () =>
   useSyncExternalStore(
     subscribe,

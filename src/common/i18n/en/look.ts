@@ -46,6 +46,8 @@ const look = {
   'look.pickForm': 'Pick the form with the picker above, or press Space.',
   'look.colourBy': 'Colour by',
   'look.palette.cycle': 'Colouring',
+  'look.palette.needsSecond':
+    'Choose a second colour under Tint in the menu to colour the look by frequency, level or heat',
   'look.palette.flat': 'Flat',
   'look.palette.flatHint': 'One colour for the whole figure',
   'look.palette.frequency': 'Frequency',

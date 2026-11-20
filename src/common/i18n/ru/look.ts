@@ -48,6 +48,8 @@ const look: Partial<Dictionary> = {
   'look.pickForm': 'Выберите форму сверху или нажмите Пробел.',
   'look.colourBy': 'Раскрашивать по',
   'look.palette.cycle': 'Раскраска',
+  'look.palette.needsSecond':
+    'Выберите второй цвет в разделе «Оттенок» в меню, чтобы раскрашивать вид по частоте, уровню или нагреву',
   'look.palette.flat': 'Однотонно',
   'look.palette.flatHint': 'Один цвет для всей фигуры',
   'look.palette.frequency': 'Частота',

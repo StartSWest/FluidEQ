@@ -48,6 +48,8 @@ const look: Partial<Dictionary> = {
   'look.pickForm': '上の選択欄から形を選ぶか、スペースキーを押します。',
   'look.colourBy': '色の基準',
   'look.palette.cycle': '配色',
+  'look.palette.needsSecond':
+    'メニューの「色合い」で2番目の色を選ぶと、周波数・レベル・ヒートで色付けできます',
   'look.palette.flat': '単色',
   'look.palette.flatHint': '図形全体を1色で表示',
   'look.palette.frequency': '周波数',

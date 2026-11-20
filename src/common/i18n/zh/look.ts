@@ -47,6 +47,8 @@ const look: Partial<Dictionary> = {
   'look.pickForm': '请从上方选择形状，或按空格键。',
   'look.colourBy': '着色依据',
   'look.palette.cycle': '配色',
+  'look.palette.needsSecond':
+    '在菜单的“色调”中选择第二种颜色，即可按频率、电平或热度着色',
   'look.palette.flat': '纯色',
   'look.palette.flatHint': '整个图形使用一种颜色',
   'look.palette.frequency': '频率',
