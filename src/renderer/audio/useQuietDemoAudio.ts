@@ -5,6 +5,7 @@ import {
 } from './LiveAudioContext';
 import { useSceneAudio, type ISceneAudio } from './SceneAudioContext';
 import { useTransportSources } from './transportSource';
+import { LEVEL_FLOOR_DB } from '../graph/outputLevel';
 import createPublishDemoAudio from '../studio/publishDemoAudio';
 
 type TDemoAudio = ReturnType<typeof createPublishDemoAudio>;
@@ -27,25 +28,35 @@ const MUSIC_DB = -48;
  * only ever heard the capture sat at rest with nothing playing and looked
  * broken.
  *
- * Quiet is a state, never a stretch of time: nothing heard by the capture
- * (whose own floor already calls anything under -95 dBFS silence) AND no
- * player reporting that it plays. The second half is what keeps the gap
- * between two songs on the music: the player still says it is playing there,
- * so the demo does not blink on for a second of silence, and it starts the
- * moment the music is paused or stopped. Sound from a program that reports
- * nothing is heard by the capture and wins at once. Nothing is decided until
- * the capture has started (or failed), so a page opened over music does not
- * flash the demo while the capture opens.
+ * Music is what the capture HEARS, never what a player says. A player
+ * reporting that it plays only keeps music that was heard - through the gap
+ * between two songs, where the player still says it plays, so the demo does
+ * not blink on for a second of silence - and the demo starts the moment the
+ * music is paused or stopped. Sound from a program that reports nothing is
+ * heard by the capture and wins at once. Nothing is decided until the capture
+ * has started (or failed), so a page opened over music does not flash the
+ * demo while the capture opens.
  *
  * TWO LEVELS, NOT ONE (Ivan, 2026-11-09: "is glitching because the sound
  * threshold make it come and goes fast, needs to be smooth"). Heard used to
  * mean anything over the capture's floor, both ways: a sound hovering at
  * that floor - a faint hum, a fade's tail, another program idling - was
  * over it one frame and under it the next, and the scene and its tag swapped
- * between the music and the demo many times a second. Music now has to be
- * plainly there to take the scene back from the demo (`MUSIC_DB` on the
- * meter's held peak, far above the floor), and only true silence gives the
- * scene to the demo; anything in between keeps what it has.
+ * between the music and the demo many times a second. Music has to be
+ * plainly there to take the scene from the demo (`MUSIC_DB` on the meter's
+ * held peak), and it is gone once the meter shows nothing at all (every held
+ * peak at `LEVEL_FLOOR_DB`, 12 dB under that) or the capture hears nothing;
+ * anything in between keeps what it has.
+ *
+ * WHY THE PREVIEW SAT STILL (Ivan, 2026-11-19: "if not [sound] it should a
+ * demo not the sound but the animation"). Two rules here could each hold a
+ * scene on silence while its tag said it was playing on the music. Any
+ * player saying it plays kept the demo off whether or not anything had been
+ * heard, and a game in front always says it plays (`gameSource`), as a paused
+ * browser tab's media session can. And once music had been heard, only the
+ * capture's own -95 dBFS floor handed the scene back, so a faint sound left
+ * after the music - another program idling, a device's hiss - kept it on the
+ * silence for good.
  * The demo's audio context exists only while it is wanted, and never while
  * the page is not `listening` to the music at all: the Studio's made-up test
  * signals replace everything the scene hears, so a demo under them would be
@@ -65,18 +76,24 @@ export default function useQuietDemoAudio(listening = true): {
   const isLoud = useLiveAudioFrameSelector(({ outputLevels }) =>
     outputLevels.some(({ peakDb }) => peakDb > MUSIC_DB),
   );
+  // The meter shows nothing: every channel's held peak at its floor.
+  const isUnderMeter = useLiveAudioFrameSelector(({ outputLevels }) =>
+    outputLevels.every(({ peakDb }) => peakDb <= LEVEL_FLOOR_DB),
+  );
   const anything = !live.isPaused && live.points.length > 0;
   const plain = anything && isLoud;
+  const gone = !anything || isUnderMeter;
   // Kept between renders, and set while rendering when it changes, so the
-  // music and the demo never disagree for a render.
+  // music and the demo never disagree for a render. A player saying it plays
+  // keeps music that was heard, through the gap between two songs; it never
+  // stands for music on its own.
   const [heard, setHeard] = useState(false);
-  const nowHeard = heard ? anything : plain;
+  const nowHeard = heard ? !gone || playerPlays : plain;
   if (nowHeard !== heard) {
     setHeard(nowHeard);
   }
   // The capture's error is the empty string while it has none.
-  const wanted =
-    listening && (isActive || error !== '') && !nowHeard && !playerPlays;
+  const wanted = listening && (isActive || error !== '') && !nowHeard;
 
   const [playing, setPlaying] = useState<TDemoAudio>();
   const playingRef = useRef<TDemoAudio | undefined>(undefined);
