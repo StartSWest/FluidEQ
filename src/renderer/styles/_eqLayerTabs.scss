@@ -190,6 +190,20 @@ $eq-row-ink-quiet: color-mix(in srgb, $text-primary 62%, transparent);
   gap: 16px;
 }
 
+// From the step where Add and Clear go to glyphs, the groups stand a little
+// closer: at 1600 px with a saved EQ's name on Save EQ and a preset and the
+// Tone on, the row was 8 px short of keeping "15 · Movie · On", and these
+// three gaps give 12.
+.eq-layer-tabs:is(
+    [data-fit='quiet-bands'],
+    [data-fit='bare-tabs'],
+    [data-fit='icons'],
+    [data-fit='icon-tabs']
+  )
+  .eq-layer-tabs__tools {
+  gap: 12px;
+}
+
 // Between the groups, and before Clear EQ on the other two tabs: the
 // stronger of the two rules, where the row's foot is the fainter.
 .eq-layer-tabs__rule {
@@ -296,7 +310,7 @@ $eq-row-ink-quiet: color-mix(in srgb, $text-primary 62%, transparent);
 // only a glyph then are square.
 .eq-layer-tabs:is(
     [data-fit='uncaptioned'],
-    [data-fit='quiet-save'],
+    [data-fit='quiet-bands'],
     [data-fit='bare-tabs'],
     [data-fit='icons'],
     [data-fit='icon-tabs']
@@ -305,16 +319,27 @@ $eq-row-ink-quiet: color-mix(in srgb, $text-primary 62%, transparent);
   display: none;
 }
 
-// Save EQ gives its word up next, before the tabs give up what they hold: the
-// newest tool's word is the one a tab's "15" or "Off" is worth more than.
-// From the glyphs-only fit on, the rule below covers it with the others.
-.eq-layer-tabs:is([data-fit='quiet-save'], [data-fit='bare-tabs'])
-  .eq-save-trigger {
-  justify-content: center;
-  width: 32px;
-  padding-inline: 0;
+// Add and Clear give their words up next, before the tabs give up what they
+// hold: a plus and a turning arrow say what they do, while Save EQ's word is
+// the name of the saved EQ that is loaded and a tab's "15" or "Off" is its
+// state. From the glyphs-only fit on, the rule below covers them with the
+// others.
+.eq-layer-tabs:is([data-fit='quiet-bands'], [data-fit='bare-tabs']) {
+  .clear-eq-trigger,
+  .eq-toolbar__add {
+    justify-content: center;
+    width: 32px;
+    padding-inline: 0;
 
-  .eq-toolbar__word {
+    .eq-toolbar__word {
+      @include words-hidden;
+    }
+  }
+
+  // Auto EQ's song Save too, its disk saying it beside Auto EQ's name: on the
+  // white window, whose tabs are pills 20 px wider each, the row at 1600 px
+  // was 20 px short of the tabs' values without it.
+  .eq-auto__save .eq-toolbar__word {
     @include words-hidden;
   }
 }

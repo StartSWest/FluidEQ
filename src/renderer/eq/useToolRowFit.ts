@@ -8,10 +8,12 @@ import { type RefObject, useLayoutEffect } from 'react';
 
 /**
  * How much of the row's wording is shown, most first: everything; the
- * groups' captions given up; then Save EQ's word, the newest tool's, which
- * at 1600 px was the 52 px between the tabs keeping what they hold and not
- * (Ivan, 2026-11-20: the row must never crowd); then what each tab holds ("15", the preset's
- * name, Off), the tabs keeping their names; then the tools' words too, each
+ * groups' captions given up; then Add's and Clear's words, so Save EQ keeps
+ * the name of the saved EQ that is loaded and the tabs keep what they hold —
+ * at 1600 px that was the difference between "15 · Movie · On" shown and not
+ * (Ivan, 2026-11-20, choosing it: "yes, my answer is the recommended"); then
+ * what each tab holds ("15", the preset's name, Off), the tabs keeping their
+ * names; then the tools' words too, each
  * left its glyph and its tooltip (Smart EQ keeps its word at every width);
  * last, the tabs' own words, each tab its glyph and its tooltip, the open
  * one still underlined. The tabs' chips go before the tools' words because a
@@ -22,7 +24,7 @@ import { type RefObject, useLayoutEffect } from 'react';
 const FITS = [
   'full',
   'uncaptioned',
-  'quiet-save',
+  'quiet-bands',
   'bare-tabs',
   'icons',
   'icon-tabs',
