@@ -117,8 +117,11 @@ vec4 wfStack(vec2 p, vec4 band, int stack, bool mate, float presence) {
     vec4 at = wfParam(age, 0);
     vec4 more = wfParam(age, 1);
     float baseH = at.x * depth;
-    // Below this slice's foot is below every slice behind it too.
-    if (height < baseH - margin) {
+    // The front slice's skin hangs to the stack's own foot wherever its
+    // baseline has glided to (skinFootOf), or the strip under it blinks.
+    float skinH = age == 0 ? 0.0 : baseH;
+    // Below this slice's skin is below every slice behind it too.
+    if (height < skinH - margin) {
       break;
     }
     float crestH = baseH + (stack == 0 ? more.z : more.w) * at.y * depth;
@@ -149,7 +152,7 @@ vec4 wfStack(vec2 p, vec4 band, int stack, bool mate, float presence) {
     vec2 from = wfPoint(band, stack, age, at, k);
     vec2 to = wfPoint(band, stack, age, at, k + 1);
     float ridgeY = mix(from.y, to.y, clamp((p.x - from.x) / max(1e-3, to.x - from.x), 0.0, 1.0));
-    float baseY = foot + rise * baseH;
+    float baseY = foot + rise * skinH;
     // The skin: between the ridge and the slice's foot, across its width.
     float px = lookPixel();
     bool inside = (p.y - ridgeY) * rise <= 0.0;
@@ -163,7 +166,7 @@ vec4 wfStack(vec2 p, vec4 band, int stack, bool mate, float presence) {
     vec3 ridgeInk = age == 0 && anEuphoria() ? anEdgeColour() : ink;
     float ridgeAlpha = age == 0 && anEuphoria() ? 1.0 : inkAlpha;
     acc = wfUnder(acc, lookPaint(ridgeInk, presence * at.w * ridgeAlpha * lookStroke(d, stroke)));
-    if (age == 0 && crestH > baseH) {
+    if (age == 0 && crestH > skinH) {
       // The skin under the front ridge, lit in its colour and darkening to
       // its foot: the fade over the glow, so behind it here.
       float crestY = foot + rise * crestH;

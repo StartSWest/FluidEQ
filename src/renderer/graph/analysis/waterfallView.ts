@@ -303,6 +303,27 @@ export const waterfallSlice = (
   };
 };
 
+/**
+ * The row a slice's skin hangs down to. The front slice's reaches the
+ * stack's own foot wherever its baseline has glided to: the stack glides
+ * back by the roll, so the front slice's foot leaves the plot's bottom by
+ * one step (2.6% of the band) and comes back when the next slice is taken,
+ * twenty-two times a second. Hanging only to its baseline, the strip under
+ * it was empty, then filled, then empty again - a band blinking along the
+ * foot of the plot (Ivan, 2026-11-20: "on the bottom there is a blinking
+ * glitch").
+ */
+export const skinFootOf = (
+  band: IAnalysisBand,
+  slice: IWaterfallSlice,
+  age: number,
+): number => {
+  if (age !== 0) {
+    return slice.baseline;
+  }
+  return band.flipped ? band.top : band.bottom;
+};
+
 /** Where point `index` of `points` of a slice stands. */
 export const slicePoint = (
   plot: IAnalysisPlot,
@@ -431,9 +452,10 @@ const paintStack = (
     const middle = (plot.left + plot.right) / 2;
     const rightEdge = middle + (plot.right - middle) * slice.shrink;
     const leftEdge = middle + (plot.left - middle) * slice.shrink;
+    const skinFoot = skinFootOf(band, slice, age);
     const skirt = new Path2D(path);
-    skirt.lineTo(rightEdge, slice.baseline);
-    skirt.lineTo(leftEdge, slice.baseline);
+    skirt.lineTo(rightEdge, skinFoot);
+    skirt.lineTo(leftEdge, skinFoot);
     skirt.closePath();
     const ridgePaint = acrossPaint ?? rampRgba(colours, slice.ramp, 0.9);
 
@@ -472,7 +494,7 @@ const paintStack = (
     context.fillStyle = floorInk(skin, darker);
     context.fill(skirt);
     if (age === 0) {
-      paintFrontGlow(frame, band, skirt, hereY, slice.baseline, ridgePaint);
+      paintFrontGlow(frame, band, skirt, hereY, skinFoot, ridgePaint);
     }
     context.globalAlpha = band.opacity * slice.faded;
     context.lineWidth = age === 0 ? Math.max(1.4, frame.edge.width) : 1;
