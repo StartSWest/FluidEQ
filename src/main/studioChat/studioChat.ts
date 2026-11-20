@@ -28,7 +28,7 @@ import createChatQueue from './chatQueue';
 import createChatSessions from './chatSessions';
 import createChatShown from './chatShown';
 import createChatTurns from './chatTurns';
-import { readNoteFirst, readNoteTranslation } from './noteDue';
+import { readNoteFirst, readNotePressed, readNoteTranslation } from './noteDue';
 import createChatUsage from './chatUsage';
 import createUsageRead from './chatUsageRead';
 import createChatWindow from './chatWindow';
@@ -317,7 +317,12 @@ export const createStudioChat = ({
     if (!chat || !picks || isBusy(chat.key)) {
       return false;
     }
-    if (transcriptOf(chat.key).entries.length === 0) {
+    // The dialog's own ask, as it opens, never starts a scene's first
+    // conversation unbidden. The member's press does: refused on a scene
+    // whose chat was still empty, "Write with AI" did nothing at all and
+    // said nothing (Ivan, 2026-11-19, on Aurora: "write with AI is not
+    // working").
+    if (transcriptOf(chat.key).entries.length === 0 && !readNotePressed(raw)) {
       return false;
     }
     const session = await sessionFor(chat.key, chat.folder, picks);

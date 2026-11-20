@@ -59,6 +59,8 @@ const studioChatBridge = {
       translate?: { line: string; from: string };
       /** A first publication: what the scene is, not what changed. */
       first?: true;
+      /** The member pressed "Write with AI": it may start the first chat. */
+      pressed?: true;
     },
   ): Promise<boolean> => ipcRenderer.invoke('studio-chat-ask-note', picks),
   /** The failed reply at the end of the chat, answered again in its place. */

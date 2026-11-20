@@ -102,6 +102,14 @@ export const readNoteFirst = (raw: unknown): boolean =>
   isRecord(raw) && raw.first === true;
 
 /**
+ * Whether the member pressed "Write with AI" for this ask, rather than the
+ * dialog asking by itself as it opened: a press may start the scene's first
+ * conversation, the dialog's own ask never does.
+ */
+export const readNotePressed = (raw: unknown): boolean =>
+  isRecord(raw) && raw.pressed === true;
+
+/**
  * A line the member changed in the publish dialog, to be written in every
  * language before it goes out (Ivan, 2026-11-12): the words as the member
  * left them and the language they are in.

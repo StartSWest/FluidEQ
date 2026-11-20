@@ -84,12 +84,20 @@ export default function usePublishNote(
   const open = draft !== undefined;
   // Each opening of the dialog: an answer to an earlier one is not this one's.
   const opening = useRef(0);
+  // A "Write with AI" press the chat refused because it was answering
+  // something else: asked again when that answer ends (the effect below),
+  // never on a clock. `pressedAsk` is the press itself, held so the effect
+  // can make it without depending on it.
+  const pressWaiting = useRef(false);
+  const pressedAsk = useRef<() => void>(() => undefined);
 
   useEffect(() => {
     if (!open || !projectId) {
       return undefined;
     }
     opening.current += 1;
+    // A press waiting from an earlier opening is not this one's.
+    pressWaiting.current = false;
     const mine = opening.current;
     const still = () =>
       opening.current === mine ? currentDraft.current : undefined;
@@ -156,6 +164,15 @@ export default function usePublishNote(
         }
         reread(true)
           .then(ask)
+          .then(() => {
+            // A press the chat refused while it answered something else
+            // goes now that the answer has ended.
+            if (pressWaiting.current) {
+              pressWaiting.current = false;
+              pressedAsk.current();
+            }
+            return undefined;
+          })
           .catch(() => undefined);
       },
     );
@@ -209,16 +226,22 @@ export default function usePublishNote(
     if (!now) {
       return Promise.resolve(false);
     }
-    return askStudioChatForNote({ first: !now.published })
+    // `pressed`: the member's own ask may start a scene's first conversation,
+    // which the dialog's ask on opening never does.
+    return askStudioChatForNote({ first: !now.published, pressed: true })
       .catch(() => false)
       .then((went) => {
         const later = currentDraft.current;
         if (went && later) {
           setDraft({ ...later, noteWriting: true });
         }
+        pressWaiting.current = !went;
         return went;
       });
   }, [currentDraft, setDraft]);
+  pressedAsk.current = () => {
+    write().catch(() => undefined);
+  };
 
   return { translate, write };
 }

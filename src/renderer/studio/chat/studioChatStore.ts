@@ -376,14 +376,18 @@ export const compactStudioChat = () =>
  */
 export const askStudioChatForNote = ({
   first,
+  pressed = false,
 }: {
   /** A first publication: the line says what the scene is, not what changed. */
   first: boolean;
+  /** The member's press: it may start the scene's first conversation. */
+  pressed?: boolean;
 }): Promise<boolean> =>
   bridge()?.studioChatAskNote?.({
     brief: chatBrief(),
     ...scenePicks(),
     ...(first ? { first: true } : {}),
+    ...(pressed ? { pressed: true } : {}),
   }) ?? Promise.resolve(false);
 
 /**
