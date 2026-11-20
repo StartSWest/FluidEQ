@@ -462,7 +462,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // `hidden` cut its scrollbar off there (Ivan, 2026-11-19: "the scroller on
   // the Library list, you removed it").
   overflow: clip;
-  overflow-clip-margin: 6px;
+  // 14 under the Cover Flow row, where the table reaches the panel's 8px
+  // more on the right (`LibraryCoverFlow.scss`).
+  overflow-clip-margin: 14px;
 }
 
 // The Library's one Back, on the place bar over every view

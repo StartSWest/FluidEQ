@@ -71,7 +71,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 0;
   flex: 1 1 auto;
   flex-direction: column;
-  overflow: hidden;
+  // Clipped with the 6px the album's table reaches past the column on each
+  // side (`.library-list`), or its scrollbar is cut off.
+  overflow: clip;
+  overflow-clip-margin: 6px;
 }
 
 .library-coverflow__stage {
@@ -460,6 +463,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex-direction: column;
   padding: $spacing-s $spacing-s 0;
   border-top: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
+
+  // The album's table keeps its words where they are and its scrollbar goes
+  // out to where the grid's stands, 6px short of the queue's hairline (Ivan,
+  // 2026-11-19: "the gap on the left is perfect, and on the right, but the
+  // scroller needs to be more toward the right like in the grid"): the
+  // table reaches the panel's 8px further and gives them back inside.
+  .library-list {
+    margin-right: -14px;
+  }
+
+  .library-list__header,
+  .library-list__body {
+    padding-right: $spacing-s;
+  }
   // Rises out of the seam it opens along, rather than appearing whole. The
   // stage above is still shrinking on its own 340ms as this arrives, so the
   // two read as one movement: the row lifts and the album comes up behind it.
