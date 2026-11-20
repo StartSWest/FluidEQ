@@ -63,12 +63,15 @@ export const COVER_FRAGMENT = /* glsl */ `
     colour = mix(vec3(luma), colour, uSaturation);
     float facing = clamp(dot(normalize(vNormal), normalize(vView)), 0.0, 1.0);
     float band = exp(-pow((vUv.x + vUv.y * 0.55) - (0.75 + uSheen * 0.9), 2.0) * 18.0);
-    // On a white window a cover turned away or far off pales toward the
-    // page instead of sinking into shade: dark sides on white read as
-    // smudges (Ivan, 2026-11-18, Cover Flow on the light theme).
+    // On a white window a cover turned away or far off keeps its own
+    // picture, a little dimmer, never sunk into the dark window's shade -
+    // dark sides on white read as smudges (Ivan, 2026-11-18) - and never
+    // paled toward the page either: mixed up to 45% white, the covers at the
+    // row's ends were blank cards (2026-11-20: "I don't like the fade to
+    // white on the cover art for items not in the view").
     vec3 shaded = colour * mix(0.42, 1.0, facing) * uShade;
-    vec3 paled = mix(colour * mix(0.82, 1.0, facing), vec3(1.0), (1.0 - uShade) * 0.55);
-    colour = mix(shaded, paled, uLight) + vec3(band * 0.12 * facing);
+    vec3 kept = colour * mix(0.84, 1.0, facing) * mix(1.0, uShade, 0.3);
+    colour = mix(shaded, kept, uLight) + vec3(band * 0.12 * facing);
     float d = sleeveDistance(vUv, uRadius);
     float pixel = max(fwidth(d), 1e-5);
     float inside = -d / pixel;
