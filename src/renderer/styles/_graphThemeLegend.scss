@@ -12,99 +12,6 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// The live-output legend carries the style picker.
-//
-// Clicking the plot cycles through the looks, which is for flicking past them
-// while listening; this is for reaching a particular one out of forty, so it
-// has to be readable rather than merely present.
-.graph-legend--picker {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-
-  // No swatch: the picker names a look, not a line. The live output's swatch,
-  // a wave, is on its entry in the corner legend (`GraphCornerLegend`).
-  &::before {
-    display: none;
-  }
-
-  // Set apart from the legends beside it. The card does that job now, so the
-  // hairline that used to is gone — an internal divider inside a pane that is
-  // already a boundary is one line too many.
-  margin-inline-start: 6px;
-
-  // Wide enough for the name to be read, not guessed.
-  //
-  // The trigger is the only place the current look is written down, and the
-  // longest of the forty ("Mirrored ridge · Rainbow") is a good deal longer
-  // than the shortest. Sized to the long one so the label never ellipsises and
-  // the legends to its right never shuffle sideways when the look changes.
-  //
-  // It moved when the glyph arrived, and had to. The name has `overflow:
-  // visible` below, so it does not ellipsise when it runs out of room — it
-  // simply makes the pill wider, and a pill that is wider for some looks than
-  // others is the shuffling this floor exists to prevent. The extra is the
-  // icon and its gap, nothing more.
-  .dropdown:has(.graph-look-name) {
-    min-width: 194px;
-  }
-
-  // Everything the pill itself is comes from the shared rule further down,
-  // which this trigger and the View button split between them. What is left
-  // here is only how the label and the arrow sit inside it.
-  .look-picker__trigger {
-    // The whole of the floor above. A button sizes to its content, so the
-    // pill stopped after a short name and left the rest of its 194px as a
-    // gap before the next-look arrow.
-    width: 100%;
-    min-height: 0;
-    box-shadow: none;
-    justify-content: flex-start;
-    overflow: visible;
-
-    &:hover:not(:disabled) {
-      border: 1px solid color-mix(in srgb, $secondary-light 65%, transparent);
-      color: $ink;
-    }
-
-    .graph-look-name {
-      flex: 0 0 auto;
-      overflow: visible;
-      color: inherit;
-      text-overflow: clip;
-      white-space: nowrap;
-    }
-
-    // A shade smaller in the closed pill than in the list. The pill is 22px
-    // tall, so the glyph that sits comfortably on a row's tile fills the
-    // trigger to its edges — and a control whose contents touch its border
-    // reads as overflowing rather than as full.
-    .graph-look-option__icon {
-      width: 14px;
-      height: 14px;
-    }
-
-    svg.arrow {
-      width: 8px;
-      margin-left: auto;
-      opacity: 0.7;
-    }
-  }
-
-  // Filled in while the picker is open, exactly as the View button is while
-  // its menu is — the one place a trigger has a state worth showing.
-  .dropdown--open > .look-picker__trigger {
-    border-color: $secondary-light;
-    background: color-mix(in srgb, $secondary-light 16%, transparent);
-    color: $ink;
-
-    svg.arrow {
-      opacity: 1;
-      transform: rotate(180deg);
-    }
-  }
-}
-
 // A look's name with its own drawing in front of it.
 //
 // One class for both places the picker renders an entry — every row of the open
@@ -112,9 +19,9 @@ it under the terms of the GNU General Public License version 3 or later.
 // node to each, and two rules would be two chances for the row and the pill to
 // disagree about a look that is supposed to be the same look.
 //
-// Top level rather than under `.graph-legend--picker`: the menu is portalled to
-// the body, so the strip is not one of its ancestors and a scoped rule would
-// style the trigger and nothing else.
+// Top level rather than under the strip: the menu is portalled to the body,
+// so the strip is not one of its ancestors and a scoped rule would style the
+// trigger and nothing else.
 .graph-look-option {
   display: inline-flex;
   min-width: 0;
@@ -139,110 +46,6 @@ it under the terms of the GNU General Public License version 3 or later.
   flex: 0 0 auto;
 }
 
-// The graph's captions and controls, as one row and not a surface: every
-// button in it carries a face of its own, and the captions between them stand
-// on the strip's text shadow.
-//
-// It has been a pane three times — the floating surfaces' colour at 72%, a
-// glass one in full screen, then the quiet pill's 7% fill — and each was a
-// band laid across the top of the plot, the width of the whole cluster
-// (Ivan, 2026-09-27: "esta barra bg ... algo hay que hacer"). No edge either
-// (2026-09-25: "no borders"), and no `backdrop-filter`: it would sit over the
-// one thing in this app that repaints continuously.
-.graph-legend-group {
-  border: 0;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-  display: inline-flex;
-  align-items: center;
-  padding: 0;
-  gap: $spacing-s;
-
-  // The pane floats inside the plot (`plotTopMargin`), so only its controls
-  // take a press: between them a press goes through to the band handle
-  // underneath. Stated on the pane, because a press passing through a child
-  // lands on its parent first. The hint's mark takes the pointer, for its
-  // tooltip.
-  .live-output-controls > & {
-    pointer-events: none;
-  }
-
-  > * {
-    pointer-events: auto;
-  }
-}
-
-// The look's caption, then its arrows round its name: laid out at the picker's
-// own 10px, exactly as when they were the picker's children, as boxes the row
-// can fold round but never through.
-.graph-look-walk,
-.graph-look-walk__steps {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 10px;
-}
-
-// Folded: the chips are already the one "Curves" button (or a single chip)
-// and the row still does not fit. The cluster is right-aligned over the plot,
-// so what did not fit did not stop at an edge: it ran off the graph's left,
-// the first chip cut in half (2026-09-28, the graph at 740px, and narrower
-// still under the sound panel's drawer or the window zoomed). Now it folds
-// onto a second line under the first, right-aligned as the first is, and the
-// look's caption, arrows and name travel together.
-.graph-legend-group.is-folded {
-  // The row's whole width, so what folds is laid out against the plot and not
-  // against the width it would have liked; still right-aligned, so while it
-  // all fits on one line it stands exactly where it did. It takes no press
-  // itself, as above.
-  flex: 1 1 100%;
-  min-width: 0;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  // The picker's own spacing, which its controls keep once they are this
-  // row's: the chip first, then the look, then the tools, one line of them
-  // that runs on to the next. Folded inside the picker instead, the chip
-  // stood alone at the plot's left with a gap the width of what had wrapped.
-  column-gap: 10px;
-  row-gap: 6px;
-
-  .graph-legend--picker {
-    display: contents;
-  }
-
-  // Set apart from the chip by the picker's 6px, less the 2px this row's gap
-  // has over the group's. On a row too narrow even for the caption beside its
-  // look, the caption stands over it; wrapped, its box spans a line it does
-  // not fill, so only its controls take a press.
-  .graph-look-walk {
-    flex: 0 1 auto;
-    min-width: 0;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    row-gap: 6px;
-    margin-inline-start: 4px;
-    pointer-events: none;
-
-    > * {
-      pointer-events: auto;
-    }
-  }
-}
-
-// No shade under the graph's options: the row's controls stand on the
-// drawing with their own faces. A shade ran from the top of the plot to the
-// foot of the row and faded out below it, over the picture and then the
-// card (2026-09-27), and Ivan took it off the same day: "I hate the
-// dropshadow that shows when options pane open, remove".
-
-// One step through the looks, either side of the name.
-//
-// Small on purpose: they sit between a caption and a dropdown in a row of
-// captions, and a pair of real buttons there would read as the important thing
-// in the strip. What they are is the shortcut, for when the shortcut cannot
-// reach — click the video and focus is in the guest, so Space belongs to the
-// page from then on.
 // The full-screen icons at the row's end are every page's 32px targets
 // (`ViewBar.scss`), in a row whose buttons are 28: they stand 2px into the
 // band above and below it rather than making the row, and the band, taller.

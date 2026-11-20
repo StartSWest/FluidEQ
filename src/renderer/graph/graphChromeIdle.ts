@@ -8,8 +8,9 @@ import { useIsChromeIdle } from '../utils/idleChrome';
 
 /**
  * Whether the graph's own chrome has faded for the window's stillness
- * (`useIsChromeIdle`): the strip of controls across the top of the plot with
- * the shade it carries (`.live-output-controls::before`).
+ * (`useIsChromeIdle`): the looks' gallery over the plot (`GraphGallery`) with
+ * the shade its corner row carries in full screen
+ * (`.live-output-controls::before`).
  *
  * A Plus visualizer used to hold all of it on screen in the ordinary view
  * (2026-09-26: "I can see them and not see them"). With a shade under the

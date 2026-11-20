@@ -19,7 +19,7 @@ import { TEXT_CONTRAST } from '../utils/themeInk';
 /**
  * The ink the words standing on the graph's scene wear, while the scene is
  * drawn on the EQ column's layer (`SceneColumnLayer.tsx`): the EQ head, the
- * graph's options row, and each of the graph's figures — the dB scales, the
+ * graph's options, and each of the graph's figures — the dB scales, the
  * frequency names, the slope's label. The picture behind each is read on the scene's own frames
  * (`sceneProbe.ts`), and one that is bright turns that word dark
  * (`sceneInk.ts` for where):
@@ -30,8 +30,8 @@ import { TEXT_CONTRAST } from '../utils/themeInk';
  *   (`_graphThemeChart.scss`): a scale runs from the sky at the top of the
  *   plot to the ground at its foot, and one ink for the whole column would
  *   be wrong at one end of it;
- * - the graph's options row, by the same mark on the row, read behind its
- *   bare controls together (`App.scss`, `.live-output-controls`);
+ * - each of the graph's options, the looks' gallery's crystals, by the same
+ *   mark on itself (`GraphGallery.scss`);
  * - and while the EQ page's panels let the picture through
  *   (`has-scene-panel-glass`), the picture behind the bands' card, which sets
  *   how thin their face may go and keep the window's words readable
@@ -90,19 +90,18 @@ const panelFloorOf = (picture: number): string => {
 const FIGURES =
   ':scope > .graph-wrapper :is(.chart-axis--inside, .chart-axis--inside-bottom, .chart-slope-line) text';
 
-/** The graph's options row, marked as one by the picture behind its controls. */
-const OPTIONS = ':scope > .graph-wrapper > .live-output-controls';
-
 /**
- * The options row's controls that have no face of their own, which are what
- * its mark changes (`App.scss`): the picture behind them is the row's.
+ * The graph's options, the looks' gallery: each crystal marked on itself by
+ * the picture behind it alone (`GraphGallery.scss`). The reel stands at the
+ * plot's foot and the corner at its top, and one ink for all of them was the
+ * old row's failure over a scene bright in one place and dark in the next.
  */
-const BARE_OPTIONS =
-  '.graph-edit-hint-mark, .graph-look-step, .graph-auto-cycle > [role="menu"], .graph-solo, .view-bar__icon';
+const CRYSTALS =
+  ':scope > .graph-wrapper > .live-output-controls :is(.graph-gallery-edge, .graph-gallery-credit, .graph-gallery-keys)';
 
 /**
  * The head as a whole, marked on the root; or one element marked on itself —
- * a figure, or the options row.
+ * a figure, or one of the gallery's crystals.
  */
 type TInkTarget =
   { kind: 'head' } | { kind: 'panel' } | { kind: 'element'; element: Element };
@@ -122,19 +121,6 @@ const sameTargets = (a: readonly TInkTarget[], b: readonly TInkTarget[]) =>
       ? target.element === other.element
       : target.kind === other.kind;
   });
-
-/** The smallest box round `boxes`, or undefined for none. */
-const unionOf = (boxes: readonly DOMRect[]): DOMRect | undefined => {
-  const drawn = boxes.filter((box) => box.width > 0 && box.height > 0);
-  if (drawn.length === 0) {
-    return undefined;
-  }
-  const left = Math.min(...drawn.map((box) => box.left));
-  const top = Math.min(...drawn.map((box) => box.top));
-  const right = Math.max(...drawn.map((box) => box.right));
-  const bottom = Math.max(...drawn.map((box) => box.bottom));
-  return new DOMRect(left, top, right - left, bottom - top);
-};
 
 /** Where the head, the options and the figures stand on `layer`, or none. */
 const measurePlaces = (layer: HTMLElement): IInkPlaces | undefined => {
@@ -156,17 +142,9 @@ const measurePlaces = (layer: HTMLElement): IInkPlaces | undefined => {
   if (panel) {
     found.push([{ kind: 'panel' }, panel.getBoundingClientRect()]);
   }
-  const options = column.querySelector(OPTIONS);
-  if (options) {
-    found.push([
-      { kind: 'element', element: options },
-      unionOf(
-        Array.from(options.querySelectorAll(BARE_OPTIONS), (control) =>
-          control.getBoundingClientRect(),
-        ),
-      ),
-    ]);
-  }
+  column.querySelectorAll(CRYSTALS).forEach((element) => {
+    found.push([{ kind: 'element', element }, element.getBoundingClientRect()]);
+  });
   column.querySelectorAll(FIGURES).forEach((element) => {
     found.push([{ kind: 'element', element }, element.getBoundingClientRect()]);
   });

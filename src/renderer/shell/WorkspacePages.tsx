@@ -48,6 +48,24 @@ import {
   EQ_GROUP_TABS,
   isEqGroupTab,
 } from './workspaceGroups';
+import useCrystalLens from '../graph/crystalLens';
+
+/**
+ * The engine's name, Game mode and the delay, held together. Over a scene it
+ * is one crystal, and while the engine is working only the delay shows: the
+ * name and the switch open from it under the pointer or the keyboard (Ivan,
+ * 2026-11-19, round 3 of the graph's options). A state that needs saying —
+ * checking, part of it off, not on this output — keeps it open
+ * (`EngineStrip.scss`).
+ */
+const EngineChip = ({ children }: { children: ReactNode }) => {
+  const lens = useCrystalLens<HTMLSpanElement>();
+  return (
+    <span ref={lens} className="eq-engine-chip">
+      {children}
+    </span>
+  );
+};
 
 /**
  * The equaliser's five as pills.
@@ -91,15 +109,17 @@ export const EqGroupPills = ({
         }
       }}
     >
-      <FluidEngineLabel
-        isEngineOnOutput={isEngineOnOutput}
-        isPartlyOff={isPartlyOff}
-      />
-      {/* The Bands page's Game mode and the path's delay, next to the
-          engine's name they belong to (Ivan, 2026-09-27: "put game engine next
-          to fluid engine on the top menu right"), the graph above the bands
-          or not. */}
-      {activeTab === 'eq' && <ListenedLatency />}
+      <EngineChip>
+        <FluidEngineLabel
+          isEngineOnOutput={isEngineOnOutput}
+          isPartlyOff={isPartlyOff}
+        />
+        {/* The Bands page's Game mode and the path's delay, next to the
+            engine's name they belong to (Ivan, 2026-09-27: "put game engine
+            next to fluid engine on the top menu right"), the graph above the
+            bands or not. */}
+        {activeTab === 'eq' && <ListenedLatency />}
+      </EngineChip>
     </WorkspaceSectionTabs>
   );
 };

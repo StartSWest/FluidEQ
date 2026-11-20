@@ -407,13 +407,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // one has a state, and a state needs somewhere to show — so it takes a border
 // when it is off and fills in when it is on, and the label says what pressing
 // it will do rather than what is currently true.
-.graph-solo,
-// The style picker's trigger wears the same pill, and shares the rule rather
-// than restating it. Two near-identical blocks are how the two ended up
-// different heights: one had `height`, the other took its height from padding
-// and a line box, so they agreed at one font size and drifted at every other.
-// One declaration, one shape.
-.graph-legend--picker .look-picker__trigger {
+.graph-solo {
   display: inline-flex;
   // As tall as the strip's buttons, and on their face, edge and ink, the
   // preset picker's (`$surface-control`, `$border-control`): the select was a
