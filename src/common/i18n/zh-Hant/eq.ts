@@ -727,6 +727,8 @@ const eq = {
   'eq.tools.add': '新增',
   'eq.tools.clear': '清除',
   'eq.tools.saveEq': '儲存等化器',
+  'eq.tools.saveEqOn': '已儲存的等化器：正在套用 {name}',
+  'eq.tools.saveEqChanged': '已儲存的等化器：{name}（已變更）',
   'eq.addBandAria': '新增 EQ 頻段',
   'eq.quickLayouts': '快速佈局',
   'eq.bandCount': '{count} 頻段',

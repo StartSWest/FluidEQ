@@ -759,6 +759,8 @@ const eq = {
   'eq.tools.add': '추가',
   'eq.tools.clear': '지우기',
   'eq.tools.saveEq': 'EQ 저장',
+  'eq.tools.saveEqOn': '저장한 EQ: {name} 적용 중',
+  'eq.tools.saveEqChanged': '저장한 EQ: {name}, 변경됨',
   'eq.addBandAria': 'EQ 밴드 추가',
   'eq.quickLayouts': '빠른 레이아웃',
   'eq.bandCount': '{count} 밴드',

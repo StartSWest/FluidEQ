@@ -750,6 +750,8 @@ const eq: Partial<Dictionary> = {
   'eq.tools.add': '添加',
   'eq.tools.clear': '清空',
   'eq.tools.saveEq': '保存均衡器',
+  'eq.tools.saveEqOn': '已保存的均衡器：正在使用 {name}',
+  'eq.tools.saveEqChanged': '已保存的均衡器：{name}（已更改）',
   'eq.addBandAria': '添加一个均衡频段',
   'eq.quickLayouts': '快速布局',
   'eq.bandCount': '{count} 段',

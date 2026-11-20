@@ -459,3 +459,32 @@ SPDX-License-Identifier: GPL-3.0-or-later
 .eq-auto-eq__tag {
   @include animate(fade-in, $motion-fast);
 }
+
+// The Save EQ face (`SaveEqMenu`): the saved EQ that is loaded, by name, cut
+// short past a word's width (the tooltip holds the whole of it), and Changed
+// as an amber dot on the glyph, which stays when the row is down to glyphs.
+.eq-save-trigger__glyph {
+  position: relative;
+  display: inline-flex;
+}
+
+.eq-save-trigger__changed {
+  position: absolute;
+  top: -2px;
+  right: -3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: $sound-album;
+}
+
+.eq-save-trigger__name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// A saved EQ put on, or taken off, swaps the name in.
+.eq-save-trigger.is-swap .eq-save-trigger__name {
+  @include animate(fade-in, $motion-fast);
+}

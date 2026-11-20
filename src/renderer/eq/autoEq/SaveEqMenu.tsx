@@ -10,6 +10,7 @@ import MenuIcon from '../../icons/MenuIcon';
 import TextInput from '../../widgets/TextInput';
 import AnimatedHeight from '../../widgets/AnimatedHeight';
 import { type TViewStep, viewClass } from '../../utils/viewStep';
+import useHasChanged from '../../utils/useHasChanged';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../../widgets/AnchoredMenu';
 import { useTranslation } from '../../utils/I18nContext';
 import { useSongSoundIndex } from '../../audio/songSoundIndex';
@@ -112,6 +113,22 @@ const SaveEqMenu = () => {
   const onId = states.changedId ?? states.playingId;
   const on = onId === undefined ? undefined : eqById.get(onId);
   const isChanged = on !== undefined && on.id === states.changedId;
+  // The face names the saved EQ that is loaded (Ivan, 2026-11-20: "aqui debe
+  // decir el EQ que esta cargado no en auto eq"), marked when what plays has
+  // moved off it, and says Save EQ while none is; Auto EQ's face keeps saying
+  // where the song's sound comes from. The whole of it in the tooltip, for a
+  // long name cut short and for the row down to glyphs.
+  let face = label;
+  if (on) {
+    face = on.name;
+  }
+  let faceTitle = label;
+  if (on) {
+    faceTitle = isChanged
+      ? t('eq.tools.saveEqChanged', { name: on.name })
+      : t('eq.tools.saveEqOn', { name: on.name });
+  }
+  const faceSwap = useHasChanged(on?.id ?? '') ? ' is-swap' : '';
   const shown = orderSavedEqs(eqs, states).slice(0, SHOWN);
 
   return (
@@ -119,8 +136,9 @@ const SaveEqMenu = () => {
       <button
         ref={setAnchor}
         type="button"
-        className="button small subtle eq-save-trigger"
-        title={label}
+        className={`button small subtle eq-save-trigger${faceSwap}`}
+        title={faceTitle}
+        aria-label={faceTitle}
         aria-haspopup="menu"
         aria-expanded={isOpen}
         onClick={() => {
@@ -130,9 +148,22 @@ const SaveEqMenu = () => {
           setIsOpen((open) => !open);
         }}
       >
-        <MenuIcon name="saveEq" className="eq-toolbar__icon" />
+        <span className="eq-save-trigger__glyph">
+          <MenuIcon name="saveEq" className="eq-toolbar__icon" />
+          {/* Changed, in the amber a change waiting wears: still there when
+            the row is down to glyphs. */}
+          {isChanged && (
+            <span className="eq-save-trigger__changed" aria-hidden="true" />
+          )}
+        </span>
         {/* Hidden, never removed, where the row is down to glyphs. */}
-        <span className="eq-toolbar__word">{label}</span>
+        <span
+          key={on?.id ?? 'none'}
+          className="eq-toolbar__word eq-save-trigger__name"
+          aria-hidden="true"
+        >
+          {face}
+        </span>
       </button>
       <AnchoredMenu
         anchor={anchor}

@@ -811,6 +811,8 @@ const eq: Partial<Dictionary> = {
   'eq.tools.add': 'Ajouter',
   'eq.tools.clear': 'Vider',
   'eq.tools.saveEq': 'Enregistrer l’EQ',
+  'eq.tools.saveEqOn': 'EQ enregistrés : {name} est appliqué',
+  'eq.tools.saveEqChanged': 'EQ enregistrés : {name}, modifié',
   'eq.addBandAria': 'Ajouter une bande d’égalisation',
   'eq.quickLayouts': 'Dispositions rapides',
   'eq.bandCount': '{count} bandes',

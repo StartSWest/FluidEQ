@@ -789,6 +789,8 @@ const eq: Partial<Dictionary> = {
   'eq.tools.add': '追加',
   'eq.tools.clear': 'クリア',
   'eq.tools.saveEq': 'EQを保存',
+  'eq.tools.saveEqOn': '保存したEQ：{name} を使用中',
+  'eq.tools.saveEqChanged': '保存したEQ：{name}（変更あり）',
   'eq.addBandAria': 'EQ バンドを追加',
   'eq.quickLayouts': 'クイックレイアウト',
   'eq.bandCount': '{count} バンド',

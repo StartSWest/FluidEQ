@@ -802,6 +802,8 @@ const eq: Partial<Dictionary> = {
   'eq.tools.add': 'Adicionar',
   'eq.tools.clear': 'Limpar',
   'eq.tools.saveEq': 'Salvar EQ',
+  'eq.tools.saveEqOn': 'EQs salvos: {name} está colocado',
+  'eq.tools.saveEqChanged': 'EQs salvos: {name}, alterado',
   'eq.addBandAria': 'Adicionar uma banda de EQ',
   'eq.quickLayouts': 'Layouts rápidos',
   'eq.bandCount': '{count} bandas',

@@ -807,6 +807,8 @@ const eq = {
   'eq.tools.add': 'Add',
   'eq.tools.clear': 'Clear',
   'eq.tools.saveEq': 'Save EQ',
+  'eq.tools.saveEqOn': 'Saved EQs: {name} is on',
+  'eq.tools.saveEqChanged': 'Saved EQs: {name}, changed',
   'eq.addBandAria': 'Add EQ band',
   'eq.quickLayouts': 'Quick layouts',
   'eq.bandCount': '{count} Band',

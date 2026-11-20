@@ -788,6 +788,8 @@ const eq: Partial<Dictionary> = {
   'eq.tools.add': 'जोड़ें',
   'eq.tools.clear': 'ख़ाली करें',
   'eq.tools.saveEq': 'EQ सहेजें',
+  'eq.tools.saveEqOn': 'सहेजे गए EQ: {name} लगा है',
+  'eq.tools.saveEqChanged': 'सहेजे गए EQ: {name}, बदला गया',
   'eq.addBandAria': 'EQ बैंड जोड़ें',
   'eq.quickLayouts': 'तेज़ लेआउट',
   'eq.bandCount': '{count} बैंड',

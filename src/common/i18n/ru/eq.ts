@@ -798,6 +798,8 @@ const eq: Partial<Dictionary> = {
   'eq.tools.add': 'Добавить',
   'eq.tools.clear': 'Сбросить',
   'eq.tools.saveEq': 'Сохранить EQ',
+  'eq.tools.saveEqOn': 'Сохранённые эквалайзеры: включён «{name}»',
+  'eq.tools.saveEqChanged': 'Сохранённые эквалайзеры: «{name}» изменён',
   'eq.addBandAria': 'Добавить полосу эквалайзера',
   'eq.quickLayouts': 'Готовые раскладки',
   'eq.bandCount': '{count} полос',
