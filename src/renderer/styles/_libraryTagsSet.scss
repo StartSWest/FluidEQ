@@ -31,11 +31,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // replace on their own line. Save shows only once there is something to
 // save. On the shelf's own floor, with the shelf's gutters.
 
+// Into the column's gutters as the list and the grid are (`.library-list`):
+// its page 12px from the rail's hairline, its scrollbar 6px short of the
+// queue's, beside the splitter (Ivan, 2026-11-19: "reduce the gap ... and
+// the tag editor").
 .library-tags-set {
   display: flex;
   min-height: 0;
   flex: 1 1 auto;
   flex-direction: column;
+  margin: 0 -6px 0 (-$library-gutter);
   color: $text-primary;
   // The page arrives instead of appearing (Ivan, 2026-11-16: "show a nice
   // animation so it's not suddenly glitchy"): it fades up from just below,

@@ -586,12 +586,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // In normal flow a height is a height. Nothing here needs flex: the rows lay
 // themselves out and the panel above is still the column that gives this box
 // its own share.
+// Through the pane's 10px to the card's edge, so its scrollbar stands on
+// the border as the shelf's does beside it (Ivan, 2026-11-19: "on the up
+// next list the scroller more toward the border"); 4px of the 10 come back
+// inside, between the rows' ends and the bar.
 .library-up-next__list {
   display: block;
   min-height: 0;
   flex: 1 1 auto;
-  padding: 0;
-  margin: 0;
+  padding: 0 4px 0 0;
+  margin: 0 -10px 0 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   @include slim-scrollbar;
