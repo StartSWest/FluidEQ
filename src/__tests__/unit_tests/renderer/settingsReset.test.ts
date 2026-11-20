@@ -278,6 +278,8 @@ describe('Reset all settings', () => {
       'fluideq.gaming.gamesLayout',
       'fluideq.gaming.railWidth',
       'fluideq.gaming.railPinned',
+      'fluideq.video.railWidth',
+      'fluideq.video.railPinned',
       'fluideq-rainbow',
       'fluideq.windowTintColour',
       'fluideq.windowTintSecondary',
