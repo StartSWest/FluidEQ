@@ -199,7 +199,15 @@ const GraphGallery = ({
                   <GalleryPicture entry={current} isAsleep={isIdle} />
                   <span className="graph-gallery-credit__who">
                     <span className="graph-gallery-credit__name">
-                      {current.name}
+                      {/* Its own box, so a name longer than the credit's
+                          fixed width ends in an ellipsis, said whole on
+                          hover. */}
+                      <span
+                        className="graph-gallery-credit__name-text"
+                        title={current.name}
+                      >
+                        {current.name}
+                      </span>
                       {isUnseenSceneVersion(current.id, current.version) && (
                         <span
                           className="look-picker__dot"
@@ -226,16 +234,35 @@ const GraphGallery = ({
           {current?.liked && (
             <SceneLikeButton key={current.id} scene={current.liked} />
           )}
-          {dots > 1 && index >= 0 && (
+          {/* Always there while there is a walk, so the bar keeps its width:
+              a look set aside out of the walk lights no dot and says no
+              place. */}
+          {dots > 1 && (
             <span
               className="graph-gallery-credit__place"
-              role="img"
-              aria-label={place}
-              title={place}
+              role={index >= 0 ? 'img' : undefined}
+              aria-label={index >= 0 ? place : undefined}
+              aria-hidden={index >= 0 ? undefined : true}
+              title={index >= 0 ? place : undefined}
             >
-              {Array.from({ length: dots }, (_, dot) => (
-                <i key={dot} className={dot === here ? 'is-here' : undefined} />
-              ))}
+              {Array.from({ length: dots }, (_, dot) => {
+                // Out of the walk, the long dot stays, unlit, keeping the
+                // dots' width.
+                if (index < 0) {
+                  return (
+                    <i
+                      key={dot}
+                      className={dot === 0 ? 'is-here is-unlit' : undefined}
+                    />
+                  );
+                }
+                return (
+                  <i
+                    key={dot}
+                    className={dot === here ? 'is-here' : undefined}
+                  />
+                );
+              })}
             </span>
           )}
         </span>

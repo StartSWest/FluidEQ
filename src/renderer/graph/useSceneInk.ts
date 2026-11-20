@@ -92,12 +92,12 @@ const FIGURES =
 
 /**
  * The graph's options, the looks' gallery: each crystal marked on itself by
- * the picture behind it alone (`GraphGallery.scss`). The reel stands at the
- * plot's foot and the corner at its top, and one ink for all of them was the
+ * the picture behind it alone (`GraphGallery.scss`): the reel, one bar at the
+ * plot's foot, and the corner at its top. One ink for all of it was the
  * old row's failure over a scene bright in one place and dark in the next.
  */
 const CRYSTALS =
-  ':scope > .graph-wrapper > .live-output-controls :is(.graph-gallery-edge, .graph-gallery-credit, .graph-gallery-keys)';
+  ':scope > .graph-wrapper > .live-output-controls > :is(.graph-gallery-reel, .graph-gallery-keys)';
 
 /**
  * The head as a whole, marked on the root; or one element marked on itself —

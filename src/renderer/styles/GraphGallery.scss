@@ -13,35 +13,36 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // THE GRAPH'S LOOKS AS A GALLERY (`GraphGallery`; Ivan, 2026-11-19, round 3's
 // "I"). The strip they hang from spans the plot (`App.scss`,
 // `.live-output-controls`) and lets every press between them through to the
-// bands; each piece is placed in it, and each is a crystal
-// (`scene-crystal`) whose ink is read from the picture behind that piece
-// alone (`useSceneInk.ts`).
+// bands; its two pieces, the reel at the foot and the corner, are placed in
+// it, and each is a crystal (`scene-crystal`) whose ink is read from the
+// picture behind that piece alone (`useSceneInk.ts`).
 
-.graph-gallery-edge,
-.graph-gallery-credit,
+// The reel and the corner are each one crystal, with a dark edge so the
+// glass reads on a light window too (Ivan, 2026-11-19: "add black border to
+// the bar so is easy to see on white theme ... make sure is a single bar not
+// separated arrows"). Their ink is read from the picture behind each.
+.graph-gallery-reel,
 .graph-gallery-keys {
   @include scene-crystal;
+
+  border: 1px solid rgba($black, 0.6);
 }
 
 :root.is-scene-column
-  :is(
-    .graph-gallery-edge,
-    .graph-gallery-credit,
-    .graph-gallery-keys
-  )[data-scene-ink='dark'] {
+  :is(.graph-gallery-reel, .graph-gallery-keys)[data-scene-ink='dark'] {
   @include crystal-dark-ink;
 }
 
 // *** The reel along the plot's foot ****************************************
 
-// The look before, this look's credit, the look after, centred above the
-// frequency names. The neighbours stood at the plot's sides first, in its
-// margins, and lay over the dB scales there (session 0's review,
-// 2026-11-19): the margins are the scales', and the foot is the one place
-// along the plot a band reaches only at a deep cut, which the credit already
-// stands over. Its own width, as wide as the strip at most: shrink-to-fit
-// from the middle would stop at the half of the strip right of `left`, and
-// the switches opening squeezed the name out of the credit.
+// One bar: the look before, this look's credit, the look after, centred
+// above the frequency names, the three parted by a seam rather than three
+// boxes. The neighbours stood at the plot's sides first, in its margins, and
+// lay over the dB scales there (session 0's review, 2026-11-19): the margins
+// are the scales', and the foot is the one place along the plot a band
+// reaches only at a deep cut. Its own width, as wide as the strip at most:
+// shrink-to-fit from the middle would stop at the half of the strip right of
+// `left`.
 .graph-gallery-reel {
   position: absolute;
   bottom: 0;
@@ -51,13 +52,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
   max-width: 100%;
   box-sizing: border-box;
   align-items: stretch;
-  gap: 6px;
-  // Only its pieces take a press, as in the strip.
-  pointer-events: none;
   transform: translateX(-50%);
 
-  > * {
-    pointer-events: auto;
+  // The seams between the neighbours and the credit.
+  // The neighbours light to the bar's own corners under the pointer.
+  > .graph-gallery-edge--previous {
+    border-radius: calc(#{$card-radius} - 1px) 0 0 calc(#{$card-radius} - 1px);
+    border-right: 1px solid color-mix(in srgb, currentcolor 18%, transparent);
+  }
+
+  > .graph-gallery-edge--next {
+    border-radius: 0 calc(#{$card-radius} - 1px) calc(#{$card-radius} - 1px) 0;
+    border-left: 1px solid color-mix(in srgb, currentcolor 18%, transparent);
   }
 }
 
@@ -76,6 +82,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
   align-items: center;
   padding: 4px;
   border: 0;
+  border-radius: 0;
+  background: none;
+  color: inherit;
   cursor: pointer;
   gap: 2px;
 
@@ -211,24 +220,45 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
+// One width whatever the look is called, so the reel does not shift as the
+// looks change (Ivan, 2026-11-19: "the name should have like a nice fixed
+// width so it doesn't move with different scenes"). Every one of the walk's
+// forty names fit whole in Spanish, the longest "RTA de tercio de octava" at
+// 123px of the 168; a longer name, in another language or a member's, ends
+// in an ellipsis and is said whole on hover.
 .graph-gallery-credit__who {
   display: flex;
+  width: 168px;
   min-width: 0;
+  flex: 0 0 auto;
   flex-direction: column;
   gap: 1px;
   line-height: 1.2;
 }
 
+// The heart beside it holds the room of a four-figure count, so going from a
+// scene liked 9 times to one liked 1280 times moves nothing either: the heart,
+// its gap and four tabular figures inside the strip's button padding and
+// edge (`_graphThemePlot.scss`, `App.scss`).
+.live-output-controls .graph-gallery-credit .graph-like {
+  min-width: calc(11px + 5px + 4ch + 2 * 9px + 2px);
+  justify-content: flex-start;
+}
+
 .graph-gallery-credit__name {
-  display: inline-flex;
+  display: flex;
   min-width: 0;
   align-items: center;
   gap: 6px;
-  overflow: hidden;
   font-size: $text-body;
   font-weight: $weight-semibold;
-  text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.graph-gallery-credit__name-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .graph-gallery-credit__byline {
@@ -260,6 +290,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
     border-radius: 3px;
     opacity: 1;
   }
+
+  i.is-unlit {
+    opacity: 0.35;
+  }
 }
 
 // The switches' wrapper is no box: its row is the credit's own flex item.
@@ -286,9 +320,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 // Narrow: the switches stand under the credit, wrapped, rather than off its
-// end and out of the plot. The reel with every switch beside the credit
-// measured 610px on a standard look, neighbours included; 720 leaves room for
-// a member's scene's heart and a longer name.
+// end and out of the plot. The bar with every switch beside the credit
+// measured 694px on a FluidEQ scene, heart and neighbours included, in
+// Spanish. Where a longer language still runs past the strip between that and
+// 720, the credit wraps its switches under itself on its own (`flex-wrap`).
 @container graph-gallery (max-width: 720px) {
   .graph-gallery-credit__tools-row {
     flex-basis: 100%;
