@@ -190,7 +190,7 @@ const installMain = () => {
 /** The Bands page's own tab row: Your EQ, Preset, Tone. */
 const bandsTabs = () => screen.getByRole('tablist', { name: 'EQ layers' });
 
-/** The section pills: Bands, EQ Presets, DSP and the rest. */
+/** The section pills: Bands, Headphone corrections, DSP and the rest. */
 const pills = () => screen.getByRole('tablist', { name: 'EQ' });
 
 /** The shell, with the state answered and the Bands page past its spinner. */
@@ -461,7 +461,7 @@ describe('where the graph is not above the page', () => {
 describe('the other EQ pages', () => {
   it('open without their graph', async () => {
     const { container } = await renderShell();
-    await pressTab('EQ Presets', 'presets');
+    await pressTab('Headphone corrections', 'presets');
     expect(container.querySelector('.graph-wrapper')).toBeNull();
   });
 
@@ -471,13 +471,13 @@ describe('the other EQ pages', () => {
       JSON.stringify({ presets: true }),
     );
     const { container, column } = await renderShell();
-    await pressTab('EQ Presets', 'presets');
+    await pressTab('Headphone corrections', 'presets');
 
     const page = container.querySelector<HTMLElement>(
       '.workspace-tab-panel--presets',
     );
     if (!page) {
-      throw new Error('the EQ Presets page is missing');
+      throw new Error('the Headphone corrections page is missing');
     }
     // POSITIVE CONTROL: the graph is on, so where it stands is the page's
     // kind, not a missing graph.
@@ -486,7 +486,7 @@ describe('the other EQ pages', () => {
     expect(container.querySelector('.center-head')).toBeNull();
     expect(onScreen(column)).toEqual(['page', 'divider', 'graph']);
     expect(
-      within(page).getByRole('tab', { name: 'EQ Presets' }),
+      within(page).getByRole('tab', { name: 'Headphone corrections' }),
     ).toHaveAttribute('aria-selected', 'true');
   });
 });

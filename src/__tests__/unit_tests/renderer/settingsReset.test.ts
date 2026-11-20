@@ -28,7 +28,6 @@ const ROOTS = ['src/renderer', 'src/common'];
 const KEPT = [
   // The sound: the rack, Smart EQ and what it trusts.
   'fluideq.dsp.v1',
-  'fluideq.continuousEq',
   'fluideq.correctionLimitDb',
   'fluideq.smartEqMode',
   'fluideq.presenceOffsets',
@@ -140,7 +139,9 @@ const NOT_STORED = [
   'fluideq-game-profiles-changed',
   'fluideq-game-sound-changed',
   'fluideq-gaming-profiles-changed',
+  'fluideq-open-auto-eq',
   'fluideq-open-gaming-lab',
+  'fluideq-open-headphone-corrections',
   'fluideq-opra-updated',
   'fluideq-sounding-game-tuned',
   'fluideq-output-changed',

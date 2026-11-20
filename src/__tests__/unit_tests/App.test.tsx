@@ -469,7 +469,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'EQ' }));
     expect(container.querySelector('.graph-wrapper')).toBeNull();
 
-    await pressTab('EQ Presets', 'presets');
+    await pressTab('Headphone corrections', 'presets');
     expect(container.querySelector('.graph-wrapper')).toBeNull();
     await act(async () => Promise.resolve());
   });

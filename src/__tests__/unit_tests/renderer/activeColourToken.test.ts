@@ -21,6 +21,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { compileStylesheet, styleRules } from '../../utils/stylesheetRules';
 
 const LIME = '#54ff8a';
+/** "On" as words wear it: the token under the window's ink ceiling. */
+const ACTIVE_INK =
+  'oklch(from var(--active) min(l, var(--ink-ceiling, 1)) c h)';
 
 /** Every value `property` is given for a selector containing `fragment`. */
 const valuesFor = (css: string, fragment: string, property: string) =>
@@ -104,10 +107,22 @@ describe('the "on" colour', () => {
     ['Gallery.scss', '.gallery-preview__live', 'background'],
     ['Studio.scss', '.studio-projects__live', 'background'],
     ['StudioCode.scss', '.studio-code__dot', 'background'],
-    ['MainContent.scss', '.eq-mode__bubble-text', 'color'],
   ])('%s says "on" with the token in %s', (file, selector, property) => {
     const values = valuesFor(compileStylesheet(file), selector, property);
     expect(values).toContain('var(--active)');
+    expect(values).not.toContain(LIME);
+  });
+
+  // Words say it in the token's readable ink: the token held under the
+  // window's ink ceiling, so a pale scene's "on" still reads on white
+  // (e52f106ca).
+  it('says "on" in words with the token’s readable ink', () => {
+    const values = valuesFor(
+      compileStylesheet('MainContent.scss'),
+      '.eq-mode__bubble-text',
+      'color',
+    );
+    expect(values).toContain(ACTIVE_INK);
     expect(values).not.toContain(LIME);
   });
 
@@ -143,9 +158,7 @@ describe('the "on" colour', () => {
   it('marks Equalizer APO’s configuration as applied, and the output playing, with the token', () => {
     const css = compileStylesheet('ConfigInspector.scss');
     expect(badgeFace(css, '.config-card__badge')).toEqual(ON_BADGE);
-    expect(valuesFor(css, '.config-status--on', 'color')).toEqual([
-      'var(--active)',
-    ]);
+    expect(valuesFor(css, '.config-status--on', 'color')).toEqual([ACTIVE_INK]);
     expect(valuesFor(css, '.config-status--on::before', 'background')).toEqual([
       'var(--active)',
     ]);

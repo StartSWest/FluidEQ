@@ -177,12 +177,12 @@ it('sends the reader to each ear’s split by the band menu’s own words', () =
   expect(onOpenTab).toHaveBeenCalledWith('eq');
 });
 
-it('shows My curves with the page’s own parts and lands on EQ Presets', () => {
+it('shows My curves with the page’s own parts and lands on Headphone corrections', () => {
   const { onOpenTab } = showTour('2.1.0');
   goTo('Your own list of curves, beside OPRA’s');
   expect(
     screen.getByText(
-      'Open EQ Presets under EQ, choose My curves and press Add curve.',
+      'Open Headphone corrections under EQ, choose My curves and press Add curve.',
     ),
   ).toBeInTheDocument();
   expect(
@@ -198,7 +198,7 @@ it('shows My curves with the page’s own parts and lands on EQ Presets', () => 
   // The picture is the page's own rows, each drawing its own curve: the
   // list before and the list after a curve is saved from Squiglink.
   const picture = screen.getByRole('img', {
-    name: /The EQ Presets page on My curves/,
+    name: /The Headphone corrections page on My curves/,
   });
   expect(picture).toHaveAttribute('inert');
   const turns = Array.from(picture.querySelectorAll('.my-curves-visual__turn'));
@@ -218,7 +218,9 @@ it('shows My curves with the page’s own parts and lands on EQ Presets', () => 
   const after = turns[1].querySelector('.my-curve');
   expect(after).toHaveClass('is-playing');
   expect(after).toHaveTextContent(/^Squiglink curve, /);
-  fireEvent.click(screen.getByRole('button', { name: 'Open EQ Presets' }));
+  fireEvent.click(
+    screen.getByRole('button', { name: 'Open Headphone corrections' }),
+  );
   expect(onOpenTab).toHaveBeenCalledWith('presets');
 });
 

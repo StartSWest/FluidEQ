@@ -418,8 +418,25 @@ it('says the list is full, and offers no save, at the limit', async () => {
   ).toBeDisabled();
 });
 
-it('cannot take a copy from OPRA while none of its corrections plays', async () => {
+it('leads to OPRA’s library from From OPRA while none of its corrections plays', async () => {
+  const asked: unknown[] = [];
+  const listen = (event: Event) =>
+    asked.push(event instanceof CustomEvent ? event.detail : undefined);
+  window.addEventListener('fluideq-open-headphone-corrections', listen);
   await show();
   fireEvent.click(screen.getByRole('button', { name: 'Add curve' }));
-  expect(screen.getByRole('button', { name: /^From OPRA/ })).toBeDisabled();
+  const source = screen.getByRole('button', { name: /^From OPRA/ });
+  // Pressable, not a dead card: it says where a correction comes from.
+  expect(source).toBeEnabled();
+  // CONTROL: no guide before the card is chosen, so the press draws it.
+  expect(
+    screen.queryByText('Play a correction from the OPRA library first'),
+  ).toBeNull();
+  fireEvent.click(source);
+  expect(
+    screen.getByText('Play a correction from the OPRA library first'),
+  ).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'OPRA library' }));
+  expect(asked).toEqual(['opra']);
+  window.removeEventListener('fluideq-open-headphone-corrections', listen);
 });
