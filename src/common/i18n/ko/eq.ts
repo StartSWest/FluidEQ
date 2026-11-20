@@ -354,6 +354,7 @@ const eq = {
   'graph.style.next': '다음 스타일',
   'graph.style.previous': '이전 스타일',
   'graph.picker.label': '스타일 및 장면',
+  'graph.gallery.place': '{count}개 중 {index}번째',
   'graph.picker.search': '검색 스타일 및 장면',
   'graph.picker.styles': '스타일',
   'graph.picker.plus': '장면',

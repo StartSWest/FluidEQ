@@ -37,3 +37,67 @@ $glass-blur: blur(26px) saturate($glass-saturate);
   box-shadow: $glass-bevel;
   backdrop-filter: $glass-blur;
 }
+
+// THE CRYSTAL: the controls that stand on a scene (Ivan, 2026-11-19, round 3
+// of the graph's options: "cristal"). Where the window's glass is a frosted
+// pane of the window's own colour, this is nearly clear: what holds its words
+// off the picture is the picture itself, darkened behind light words and
+// brightened behind dark ones (`--crystal-see`), blurred enough that a busy
+// scene's detail cannot run through the letters.
+//
+// Flat: no lit rim, no sheen, no bend at the edge, no bevel, no shadow. The
+// first version had all four, a lens bending the scene at its rim included,
+// and Ivan, seeing it over his own scenes: "el efecto ese de 3d apesta".
+//
+// The words' ink is the picture's, chosen behind each crystal on the scene's
+// own frames (`useSceneInk.ts`): `crystal-light-ink` by default over a scene,
+// `crystal-dark-ink` where the picture behind is bright. With no scene the
+// crystal is the window's glass, on the window's words.
+
+// Light words over a picture that is mostly dark: what is behind them taken
+// down to 62% of its light.
+@mixin crystal-light-ink {
+  --crystal-ink: #{$picture-ink-light};
+  --crystal-ink-muted: #{$picture-ink-light-muted};
+  --crystal-accent: #{$picture-accent-light};
+  --crystal-see: 0.62;
+  --crystal-frost: #{rgba($white, 0.07)};
+}
+
+// Dark words over a bright picture: what is behind them lifted, under a
+// whiter frost.
+@mixin crystal-dark-ink {
+  --crystal-ink: #{$picture-ink-dark};
+  --crystal-ink-muted: #{color-mix(in srgb, $picture-ink-dark 80%, transparent)};
+  --crystal-accent: #{$secondary-darker};
+  --crystal-see: 1.12;
+  --crystal-frost: #{rgba($white, 0.18)};
+}
+
+// The crystal's face alone, for a selector that is already only over a scene.
+@mixin crystal-face {
+  @include crystal-light-ink;
+
+  border-radius: $card-radius;
+  background: var(--crystal-frost);
+  box-shadow: none;
+  color: var(--crystal-ink);
+  backdrop-filter: blur(7px) saturate(180%) brightness(var(--crystal-see));
+}
+
+// A crystal over a scene, and the window's glass where there is none, flat
+// as the crystal is: without the glass's bevel.
+@mixin scene-crystal {
+  @include window-glass;
+
+  --crystal-ink: #{$ink};
+  --crystal-ink-muted: #{$text-muted};
+  --crystal-accent: #{$secondary-light};
+
+  box-shadow: none;
+  color: var(--crystal-ink);
+
+  :root.is-scene-column & {
+    @include crystal-face;
+  }
+}

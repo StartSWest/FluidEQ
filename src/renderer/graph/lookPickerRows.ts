@@ -148,6 +148,49 @@ export const buildStyleRows = (
       };
     });
 
+/**
+ * How to picture one of FluidEQ's own scenes that this computer can play: the
+ * picker's row and the graph's gallery (`lookGallery.ts`) ask the same way.
+ */
+export const officialSceneThumbnail = (
+  scene: IUsableScene,
+  gallery: IGalleryScene | undefined,
+): ILookThumbnailRef => ({
+  lookId: scene.lookId,
+  version: scene.revision ?? String(scene.version),
+  // The copy the gallery names, when a list has it, as member rows do:
+  // its date is what lets the picture be read back from disk.
+  published: gallery
+    ? {
+        authorId: FLUIDEQ_CREATOR_ID,
+        sceneId: scene.id,
+        version: gallery.version,
+        revision: gallery.updatedAt,
+      }
+    : {
+        authorId: FLUIDEQ_CREATOR_ID,
+        sceneId: scene.id,
+        version: scene.version,
+      },
+  load: () => loadScenePack(scene.id),
+});
+
+/** How to picture a member's scene that this computer can play. */
+export const memberSceneThumbnail = (
+  scene: IUsableMemberScene,
+  gallery: IGalleryScene | undefined,
+): ILookThumbnailRef => ({
+  lookId: scene.lookId,
+  version: scene.revision ?? String(scene.version),
+  published: gallery && {
+    authorId: gallery.authorId,
+    sceneId: gallery.sceneId,
+    version: gallery.version,
+    revision: gallery.updatedAt,
+  },
+  load: () => loadMemberScene(scene.lookId),
+});
+
 interface IPlusSources {
   usable: readonly IUsableScene[];
   locked: readonly ILockedScene[];
@@ -232,25 +275,7 @@ export const buildPlusRows = ({
       ...noteFor(gallery, scene.version),
       ...latestFor(gallery, scene.version),
       ...listingFor(gallery),
-      thumbnail: {
-        lookId: scene.lookId,
-        version: scene.revision ?? String(scene.version),
-        // The copy the gallery names, when a list has it, as member rows do:
-        // its date is what lets the picture be read back from disk.
-        published: gallery
-          ? {
-              authorId: FLUIDEQ_CREATOR_ID,
-              sceneId: scene.id,
-              version: gallery.version,
-              revision: gallery.updatedAt,
-            }
-          : {
-              authorId: FLUIDEQ_CREATOR_ID,
-              sceneId: scene.id,
-              version: scene.version,
-            },
-        load: () => loadScenePack(scene.id),
-      },
+      thumbnail: officialSceneThumbnail(scene, gallery),
     });
   });
   // A locked pack is not on this computer and its catalogue entry carries no
@@ -293,17 +318,7 @@ export const buildPlusRows = ({
       ...noteFor(gallery, scene.version),
       ...latestFor(gallery, scene.version),
       ...listingFor(gallery),
-      thumbnail: {
-        lookId: scene.lookId,
-        version: scene.revision ?? String(scene.version),
-        published: gallery && {
-          authorId: gallery.authorId,
-          sceneId: gallery.sceneId,
-          version: gallery.version,
-          revision: gallery.updatedAt,
-        },
-        load: () => loadMemberScene(scene.lookId),
-      },
+      thumbnail: memberSceneThumbnail(scene, gallery),
     });
   });
   const memberLocked = lockedMembers.map((scene) =>

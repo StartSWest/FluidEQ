@@ -355,6 +355,7 @@ const eq: Partial<Dictionary> = {
   'graph.style.next': '下一个样式',
   'graph.style.previous': '上一个样式',
   'graph.picker.label': '样式与场景',
+  'graph.gallery.place': '第 {index} 个，共 {count} 个',
   'graph.picker.search': '搜索样式和场景',
   'graph.picker.styles': '样式',
   'graph.picker.plus': '场景',

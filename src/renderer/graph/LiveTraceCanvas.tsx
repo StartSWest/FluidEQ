@@ -658,7 +658,10 @@ const LiveTraceCanvas = ({
     const measure = () => {
       const box = canvas.getBoundingClientRect();
       chromeRef.current = [
-        ...strips,
+        // The strip's pieces, never the strip: it spans the whole plot for
+        // the looks' gallery (`GraphGallery`), and only what is placed in it
+        // covers anything.
+        ...strips.flatMap((strip) => [...strip.children]),
         ...document.querySelectorAll(
           '.window-titlebar, .now-playing-bar, .fullscreen-chrome > *',
         ),
@@ -682,7 +685,11 @@ const LiveTraceCanvas = ({
     };
     const observer = new ResizeObserver(measure);
     observer.observe(canvas);
-    strips.forEach((strip) => observer.observe(strip));
+    strips.forEach((strip) => {
+      observer.observe(strip);
+      // The credit grows as its switches open.
+      [...strip.children].forEach((piece) => observer.observe(piece));
+    });
     measure();
     return () => observer.disconnect();
   }, [width, height]);

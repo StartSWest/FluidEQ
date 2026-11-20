@@ -50,6 +50,16 @@ import {
 } from './workspaceGroups';
 
 /**
+ * The engine's name, Game mode and the delay, held together: over a scene,
+ * one flat crystal with all three always shown (Ivan, 2026-11-19, round 3 of
+ * the graph's options; `EngineStrip.scss`). It folded down to the delay
+ * once, and opened under the pointer: "se expande y apesta".
+ */
+const EngineChip = ({ children }: { children: ReactNode }) => (
+  <span className="eq-engine-chip">{children}</span>
+);
+
+/**
  * The equaliser's five as pills.
  *
  * Inside the page rather than above it, and pills rather than tabs: the
@@ -91,15 +101,17 @@ export const EqGroupPills = ({
         }
       }}
     >
-      <FluidEngineLabel
-        isEngineOnOutput={isEngineOnOutput}
-        isPartlyOff={isPartlyOff}
-      />
-      {/* The Bands page's Game mode and the path's delay, next to the
-          engine's name they belong to (Ivan, 2026-09-27: "put game engine next
-          to fluid engine on the top menu right"), the graph above the bands
-          or not. */}
-      {activeTab === 'eq' && <ListenedLatency />}
+      <EngineChip>
+        <FluidEngineLabel
+          isEngineOnOutput={isEngineOnOutput}
+          isPartlyOff={isPartlyOff}
+        />
+        {/* The Bands page's Game mode and the path's delay, next to the
+            engine's name they belong to (Ivan, 2026-09-27: "put game engine
+            next to fluid engine on the top menu right"), the graph above the
+            bands or not. */}
+        {activeTab === 'eq' && <ListenedLatency />}
+      </EngineChip>
     </WorkspaceSectionTabs>
   );
 };

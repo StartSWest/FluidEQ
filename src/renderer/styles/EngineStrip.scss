@@ -21,6 +21,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // where they appear together.
 
 @use 'color' as *;
+@use 'glass' as *;
 @use 'theme' as *;
 
 .engine-strip {
@@ -127,4 +128,58 @@ SPDX-License-Identifier: GPL-3.0-or-later
   > .latency-readout.is-game {
     border-left-color: $border-field;
   }
+}
+
+// THE ENGINE CHIP (`EngineChip` in `WorkspacePages.tsx`): the engine's name
+// and this strip, held together. On the window's own face it is no box at
+// all, and the two stand in the head's row as they always did.
+.eq-engine-chip {
+  display: contents;
+}
+
+// Over a scene, one crystal (Ivan, 2026-11-19, round 3 of the graph's
+// options, where the engine's row was one of the things circled as weak on
+// a bright picture), flat, with its name, Game mode and the delay always
+// shown. It folded down to the delay once and opened under the pointer, and
+// Ivan: "se expande y apesta".
+:root.is-scene-column
+  .center-workspace.is-graph-first
+  > .center-head--eq
+  .eq-engine-chip {
+  @include crystal-face;
+
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 2px 2px 10px;
+  gap: 8px;
+
+  // No engine to name (neither is installed and usable): no crystal either.
+  &:empty {
+    display: none;
+  }
+
+  // The crystal is the face: the strip draws none of its own inside it.
+  .engine-strip {
+    padding: 0;
+    border-color: transparent;
+    background: none;
+    box-shadow: none;
+  }
+
+  // Inside the crystal its words carry no halo: the picture behind them is
+  // what the crystal holds off.
+  :is(.eq-engine-label, .game-mode-switch__label, .latency-readout__value) {
+    text-shadow: none;
+  }
+
+  svg {
+    filter: none;
+  }
+}
+
+:root.is-scene-column[data-scene-head-ink='dark']
+  .center-workspace.is-graph-first
+  > .center-head--eq
+  .eq-engine-chip {
+  @include crystal-dark-ink;
 }
