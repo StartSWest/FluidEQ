@@ -392,23 +392,61 @@ describe('songEqRecorder', () => {
   });
 
   /**
-   * Switching a mode ON starts saving from off, every time.
-   *
-   * A mode that has just started has measured nothing yet, so a switch found
-   * already ticked would file whatever curve happened to be left in the chain
-   * under the first song that plays.
+   * Saving follows the measurement (Auto EQ, 2026-11-20): Smart correction
+   * keeps each song's correction whenever it runs, because a correction not
+   * kept for its song is measured again every play. Its own switch is gone.
    */
-  it('starts saving from off each time an automatic mode is switched on', () => {
-    const { state } = run(getInitialRecorderState(), [
+  it('saves whenever an automatic mode runs, and stops when it stops', () => {
+    const on = run(getInitialRecorderState(), [
       [0, { kind: 'autoEqChanged', isRunning: true }],
-      [1, { kind: 'saveToggled', isSaveOn: true }],
-      [2, { kind: 'autoEqChanged', isRunning: false }],
-      [3, { kind: 'autoEqChanged', isRunning: true }],
     ]);
-    expect(state.isSaveOn).toBe(false);
-    // The run itself is still on, so this is saving having been reset and not
-    // the reducer having lost track of the mode.
-    expect(state.isAutoEqRunning).toBe(true);
+    expect(on.state.isSaveOn).toBe(true);
+    const off = run(on.state, [
+      [1, { kind: 'autoEqChanged', isRunning: false }],
+    ]);
+    expect(off.state.isSaveOn).toBe(false);
+    const again = run(off.state, [
+      [2, { kind: 'autoEqChanged', isRunning: true }],
+    ]);
+    expect(again.state.isSaveOn).toBe(true);
+    expect(again.state.isAutoEqRunning).toBe(true);
+  });
+
+  /**
+   * A mode that has just started has measured nothing yet: the song already
+   * playing starts its two minutes again from then, or the curve left in the
+   * chain, refined for a few seconds, would be filed under it.
+   */
+  it('gives a song already playing its two minutes again from when the mode starts', () => {
+    const idle: ISongEqRecorderState = {
+      ...armed(),
+      isAutoEqRunning: false,
+      isSaveOn: false,
+    };
+    // Paused and played on before the mode starts, so part of its time is
+    // banked as well as running: both have to start again.
+    const started = (listenAfter: number) =>
+      run(idle, [
+        ...play(songA, 60_000),
+        [60_001, { kind: 'nowPlaying', identity: songA, isPlaying: false }],
+        [61_000, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
+        ...ticksFrom(62_000, 100_000),
+        [100_001, { kind: 'autoEqChanged', isRunning: true }],
+        ...ticksFrom(101_000, 100_000 + listenAfter),
+        [
+          100_001 + listenAfter,
+          { kind: 'nowPlaying', identity: songB, isPlaying: true },
+        ],
+      ]);
+    // Ninety seconds of measuring, though the song has played for over three
+    // minutes: nothing filed.
+    expect(
+      started(90_000).effects.filter((effect) => effect.kind === 'commit'),
+    ).toHaveLength(0);
+    // The control: two minutes of measuring files it.
+    expect(
+      started(125_000).effects.filter((effect) => effect.kind === 'commit'),
+    ).toHaveLength(1);
   });
 
   /**

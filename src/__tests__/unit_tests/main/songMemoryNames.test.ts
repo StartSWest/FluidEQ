@@ -29,12 +29,13 @@ import {
   type ISongEqSettings,
 } from 'common/songEq';
 import { buildSongIdentity, type ISongIdentity } from 'common/songIdentity';
+import type { ISongSound } from 'common/songSound';
 import {
   getDefaultSongSoundSettings,
   lookupSongSound,
-  type ISongSound,
+  soundScopeOf,
   type ISongSoundSettings,
-} from 'common/songSound';
+} from 'common/songSoundMemory';
 import { flushPendingWrites } from 'main/asyncWriter';
 import {
   loadSongEqSettings,
@@ -45,6 +46,7 @@ import { loadSongSoundSettings } from 'main/songSoundStore';
 import {
   fingerprintSongMemory,
   storedSongIdentity,
+  storedSoundIdentity,
 } from 'main/songMemoryNames';
 
 const mustBuild = (identity: ISongIdentity | undefined): ISongIdentity => {
@@ -105,6 +107,20 @@ describe('the song as the memory files it', () => {
     expect(storedSongIdentity(spotify).alias).toBe(
       storedSongIdentity(ownFile).alias,
     );
+  });
+
+  it('keeps a file and a player apart in Auto EQ’s sounds, which file the alias with its world', () => {
+    const spotify = mustBuild(
+      buildSongIdentity('system', 'Spotify.exe', 'Blue in Green', 'Miles'),
+    );
+    const library = storedSoundIdentity(ownFile);
+    const player = storedSoundIdentity(spotify);
+    expect(library.alias).toMatch(FINGERPRINT);
+    expect(player.alias).toMatch(FINGERPRINT);
+    expect(player.alias).not.toBe(library.alias);
+    // Each world still finds its own song again by the same fingerprint.
+    expect(storedSoundIdentity(spotify)).toEqual(player);
+    expect(library.key).toBe(storedSongIdentity(ownFile).key);
   });
 });
 
@@ -382,8 +398,8 @@ describe('the song sounds file on disk', () => {
     SONGS.forEach(({ identity, isOwn, plays }, index) => {
       const entry = lookupSongSound(
         settings,
-        'device-a',
-        storedSongIdentity(identity),
+        storedSoundIdentity(identity),
+        soundScopeOf(identity.source),
       );
       expect(entry?.sound).toEqual(soundOf(index + 1));
       expect(entry?.plays).toBe(plays);

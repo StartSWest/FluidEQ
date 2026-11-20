@@ -28,7 +28,7 @@ import useAppFullMark, {
   APP_FULL_ATTRIBUTE,
 } from 'renderer/utils/useAppFullMark';
 
-type TNotice = Exclude<TNoticeClaim, 'modal' | 'appFull'>;
+type TNotice = Exclude<TNoticeClaim, 'modal' | 'appFull' | 'autoEqPanel'>;
 
 const NOTICES: readonly TNotice[] = [
   'output',
@@ -38,6 +38,7 @@ const NOTICES: readonly TNotice[] = [
   'audioRestart',
   'prereq',
   'songEq',
+  'songSound',
   'plusTerms',
   'sceneReview',
   'addonA',
@@ -45,8 +46,14 @@ const NOTICES: readonly TNotice[] = [
   'addonC',
 ];
 
-/** Everything that can hold a notice back: the notices, a dialog, full screen. */
-const HOLDERS: readonly TNoticeClaim[] = [...NOTICES, 'modal', 'appFull'];
+/** Everything that can hold a notice back: the notices, a dialog, full
+ * screen, and Auto EQ's panel open. */
+const HOLDERS: readonly TNoticeClaim[] = [
+  ...NOTICES,
+  'modal',
+  'appFull',
+  'autoEqPanel',
+];
 
 /**
  * `[loser, winner]`: the loser is not on screen while the winner wants it.
@@ -66,6 +73,7 @@ const CORNER_GIVES_WAY_TO: readonly TNoticeClaim[] = [
   'audioRestart',
   'prereq',
   'songEq',
+  'songSound',
   'appFull',
 ];
 const CSS_ENCODED: readonly (readonly [TNotice, TNoticeClaim])[] = [
@@ -93,6 +101,11 @@ const CSS_ENCODED: readonly (readonly [TNotice, TNoticeClaim])[] = [
   // `.device-apo-notice:not(.engine-trouble-notice):not(.engine-update-notice)`.
   ['engineTrouble', 'output'],
   ['engineTrouble', 'room'],
+  // The song's own notice after Smart correction's (SongEqNotice.scss).
+  ['songSound', 'songEq'],
+  // Auto EQ's panel open holds every notice back: one came up over its top
+  // and covered its Forget (2026-11-20).
+  ...NOTICES.map((loser) => [loser, 'autoEqPanel'] as const),
 ];
 
 const isEncoded = (loser: TNotice, winner: TNoticeClaim) =>
@@ -106,6 +119,12 @@ const FullScreen = ({ isFull }: { isFull: boolean }) => {
   return null;
 };
 
+/** Auto EQ's panel, open, as `useAutoEqButton` claims it. */
+const AutoEqPanelOpen = () => {
+  useNoticeClaim('autoEqPanel', true);
+  return null;
+};
+
 /** Whatever `holder` is, wanting the screen. */
 const Holder = ({ holder }: { holder: TNoticeClaim }) => {
   if (holder === 'modal') {
@@ -113,6 +132,9 @@ const Holder = ({ holder }: { holder: TNoticeClaim }) => {
   }
   if (holder === 'appFull') {
     return <FullScreen isFull />;
+  }
+  if (holder === 'autoEqPanel') {
+    return <AutoEqPanelOpen />;
   }
   return <Probe notice={holder} />;
 };

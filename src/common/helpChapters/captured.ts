@@ -178,7 +178,7 @@ const CAPTURED = {
   '40-rail-right.png': {
     image: '40-rail-right.png',
     width: 329,
-    height: 897,
+    height: 826,
     controls: [
       {
         box: [9, 9, 311, 40],
@@ -196,32 +196,32 @@ const CAPTURED = {
         text: 'help.profiles.list',
       },
       {
-        box: [21, 267, 107, 32],
+        box: [21, 267, 106, 32],
         name: 'profiles.new',
         text: 'help.profiles.new',
       },
       {
-        box: [225, 267, 83, 32],
+        box: [224, 267, 84, 32],
         name: 'profiles.update',
         text: 'help.profiles.update',
       },
       {
-        box: [21, 485, 287, 54],
+        box: [21, 410, 287, 54],
         name: 'extraOutput.singlePlayer',
         text: 'help.profiles.onePlayer',
       },
       {
-        box: [21, 565, 287, 144],
+        box: [21, 490, 287, 148],
         name: 'extraOutput.title',
         text: 'help.profiles.outputs',
       },
       {
-        box: [239, 646, 69, 22],
+        box: [237, 571, 71, 22],
         name: 'extraOutput.edit',
         text: 'help.profiles.editSound',
       },
       {
-        box: [8, 769, 313, 120],
+        box: [8, 697, 313, 120],
         name: 'driver.title',
         text: 'help.profiles.driver',
       },

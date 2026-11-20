@@ -146,8 +146,11 @@ const PlayerSound = () => {
               {face('tone', t('eq.tone'))}
               {face('bands', t('player.sound.bands', { count: bandCount }))}
             </span>
-            {/* Only while Smart EQ keeps measuring, as on the EQ page:
-                saving a song files the layer that measurement refines. */}
+            {/* Only while Smart correction keeps measuring: saving a song
+                files the layer that measurement refines. Lit from the start
+                of every run, because Auto EQ keeps each song's correction
+                (`autoEqChanged` in `songEqRecorder.ts`); a press stops saving
+                for this run. */}
             {isMeasuring && (
               <button
                 type="button"

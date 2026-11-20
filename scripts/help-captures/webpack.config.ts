@@ -80,9 +80,15 @@ const configuration: webpack.Configuration = {
         type: 'asset/resource',
       },
       {
-        test: /\.(?:wasm|onnx|glb|vtt|mp3|wav|ogg)$/i,
+        test: /\.(?:wasm|onnx|glb|mp3|wav|ogg)$/i,
         type: 'asset/resource',
       },
+      // As the app's own renderer configs load them: Help's films beside the
+      // page, their captions and the Studio's agent skills as text. Without
+      // these the harness stopped building once Help imported its films.
+      { test: /\.mp4$/i, type: 'asset/resource' },
+      { test: /\.vtt$/i, type: 'asset/source' },
+      { test: /\.md$/i, type: 'asset/source' },
     ],
   },
   optimization: { minimize: false },

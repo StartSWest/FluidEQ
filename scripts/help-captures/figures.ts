@@ -42,8 +42,10 @@ export interface IFigureSpec {
   readonly controls: readonly IControlSpec[];
 }
 
-/** Every step waits for the EQ page to be there first. */
-const EQ_PAGE = `await until(() => $('.eq-flat-editor--tone'))`;
+/** Every step waits for the EQ page to be there first: its row of tabs,
+ * which every tab of the page draws (the Tone editor shows only on its own
+ * tab since the page became three tabs). */
+const EQ_PAGE = `await until(() => $('.eq-layer-tabs'))`;
 
 /** View → Show EQ labels, as somebody would turn them on. */
 const SHOW_LABELS = [

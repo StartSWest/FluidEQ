@@ -12,7 +12,11 @@ import {
   type IDeviceProfileSettings,
   type IPresetV2,
 } from '../../../common/constants';
-import { buildSongIdentity } from '../../../common/songIdentity';
+import {
+  buildSongIdentity,
+  libraryTrackIdentity,
+  type ISongIdentity,
+} from '../../../common/songIdentity';
 import type { ISongSound } from '../../../common/songSound';
 import { flushPendingWrites } from '../../../main/asyncWriter';
 import { fetchPreset, savePreset } from '../../../main/flush';
@@ -20,7 +24,9 @@ import createMainSession from '../../../main/mainSession';
 import { createProfileStore } from '../../../main/profileStore';
 import { createUpdatePath } from '../../../main/updatePath';
 import { putSongSoundOn } from '../../../main/songSoundLoan';
+import { createSongSoundHolder } from '../../../main/songSoundHolder';
 import registerSongSoundIpc from '../../../main/ipc/songSound';
+import registerSongSoundLibraryIpc from '../../../main/ipc/songSoundLibrary';
 
 type Handler = (
   event: { reply: jest.Mock },
@@ -88,6 +94,7 @@ describe('SongSound IPC ownership and profile persistence', () => {
   let session: ReturnType<typeof createMainSession>;
   let profiles: ReturnType<typeof createProfileStore>;
   let editorAvailable: boolean;
+  const notify = jest.fn();
   const ensure = jest.fn(async (_configPath: string) => undefined);
   const expectedEditor = () => ({
     deviceId: session.activeAudioDeviceId,
@@ -109,6 +116,7 @@ describe('SongSound IPC ownership and profile persistence', () => {
   beforeEach(async () => {
     handlers.clear();
     mockFlush.mockClear();
+    notify.mockClear();
     ensure.mockReset().mockResolvedValue(undefined);
     editorAvailable = true;
     root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-song-loan-'));
@@ -158,9 +166,12 @@ describe('SongSound IPC ownership and profile persistence', () => {
         stop: () => undefined,
       },
     });
+    const holder = createSongSoundHolder(root, notify);
+    await holder.launchRead;
+    registerSongSoundLibraryIpc(holder);
     registerSongSoundIpc({
       state,
-      userDataDir: root,
+      holder,
       handleUpdateHelper: update.handleUpdateHelper,
       getOutputEditor: () =>
         editorAvailable
@@ -232,6 +243,42 @@ describe('SongSound IPC ownership and profile persistence', () => {
     },
   );
 
+  const lookup = async (identity: ISongIdentity | undefined) => {
+    const reply = await fire(ChannelEnum.LOOKUP_SONG_SOUND, [identity]);
+    return reply.mock.calls[0]?.[1] as unknown;
+  };
+  const mustBe = (identity: ISongIdentity | undefined): ISongIdentity => {
+    if (!identity) {
+      throw new Error('test fixture produced no identity');
+    }
+    return identity;
+  };
+  const storedEntries = () =>
+    Object.values(
+      (
+        JSON.parse(
+          fs.readFileSync(path.join(root, 'song-sound.json'), 'utf8'),
+        ) as { songs: { entries: Record<string, unknown> } }
+      ).songs.entries,
+    );
+  const blueInGreen = mustBe(
+    libraryTrackIdentity({
+      id: 'track-1',
+      title: 'Blue in Green',
+      artist: 'Miles',
+      album: 'Kind of Blue',
+      albumArtist: 'Miles',
+      kind: 'audio',
+    }),
+  );
+  const onSpotify = mustBe(
+    buildSongIdentity('system', 'Spotify.exe', 'Blue in Green', 'Miles'),
+  );
+  const albumMatch = {
+    sound: { presetId: 'vocal' },
+    title: 'Kind of Blue',
+  };
+
   it('keeps no name of another program’s song in its file, and still finds it', async () => {
     const identity = buildSongIdentity(
       'system',
@@ -240,21 +287,107 @@ describe('SongSound IPC ownership and profile persistence', () => {
       'A private channel',
     );
     const saved = await fire(ChannelEnum.SAVE_SONG_SOUND, [
-      'main',
       identity,
       song,
+      true,
     ]);
     expect(saved).toHaveBeenCalledWith(ChannelEnum.SAVE_SONG_SOUND, {
       result: undefined,
     });
+    // Every change is told to the window, so the Library and Manage follow.
+    expect(notify).toHaveBeenCalledTimes(1);
     await flushPendingWrites();
 
     const text = fs.readFileSync(path.join(root, 'song-sound.json'), 'utf8');
     expect(text).not.toMatch(/private|chrome/i);
+    expect(storedEntries()).toEqual([
+      expect.objectContaining({ scope: 'other', title: '', plays: 1 }),
+    ]);
     // The control: what was filed is still found by the song playing.
-    const found = await fire(ChannelEnum.LOOKUP_SONG_SOUND, ['main', identity]);
-    expect(found).toHaveBeenCalledWith(ChannelEnum.LOOKUP_SONG_SOUND, {
-      result: expect.objectContaining({ plays: 1 }),
+    expect(await lookup(identity)).toEqual({ result: { song } });
+  });
+
+  it('answers a Library song with its own sound and its album’s, and the same song on another player with neither', async () => {
+    const albumKey = blueInGreen.albumKey ?? '';
+    expect(albumKey).not.toBe('');
+    await fire(ChannelEnum.SET_ALBUM_SOUND, [
+      albumKey,
+      'Kind of Blue',
+      'Miles',
+      { presetId: 'vocal' },
+    ]);
+    expect(await lookup(blueInGreen)).toEqual({
+      result: { album: albumMatch },
+    });
+
+    await fire(ChannelEnum.PICK_LIBRARY_SONG_SOUNDS, [
+      [blueInGreen],
+      { presetId: 'cinema' },
+    ]);
+    expect(await lookup(blueInGreen)).toEqual({
+      result: { song: { presetId: 'cinema' }, album: albumMatch },
+    });
+    // The same title and artist from Spotify: the Library's pick never plays
+    // there, and albums are the Library's alone.
+    expect(await lookup(onSpotify)).toEqual({ result: {} });
+  });
+
+  it('files a Library song with its track id, so the Library can label its row', async () => {
+    await fire(ChannelEnum.SAVE_SONG_SOUND, [blueInGreen, song, true]);
+    const index = await fire(ChannelEnum.GET_SONG_SOUND_INDEX, []);
+    expect(index).toHaveBeenCalledWith(ChannelEnum.GET_SONG_SOUND_INDEX, {
+      result: expect.objectContaining({
+        songs: [
+          expect.objectContaining({
+            trackId: 'track-1',
+            title: 'Blue in Green',
+            presetId: 'none',
+            isWhole: true,
+          }),
+        ],
+        otherCount: 0,
+        hasUnnamed: false,
+      }),
+    });
+  });
+
+  it('forgets a song in its own world and leaves the other world’s copy', async () => {
+    await fire(ChannelEnum.SAVE_SONG_SOUND, [blueInGreen, song, true]);
+    await fire(ChannelEnum.SAVE_SONG_SOUND, [onSpotify, song, true]);
+    await fire(ChannelEnum.FORGET_SONG_SOUND, [onSpotify]);
+    expect(await lookup(onSpotify)).toEqual({ result: {} });
+    expect(await lookup(blueInGreen)).toEqual({ result: { song } });
+  });
+
+  it('never keeps a sound for a film', async () => {
+    const film = mustBe(
+      libraryTrackIdentity({
+        id: 'film-1',
+        title: 'A Film',
+        artist: 'Studio',
+        kind: 'video',
+      }),
+    );
+    const saved = await fire(ChannelEnum.SAVE_SONG_SOUND, [film, song, true]);
+    expect(saved).toHaveBeenCalledWith(ChannelEnum.SAVE_SONG_SOUND, {
+      errorCode: ErrorCode.INVALID_PARAMETER,
+    });
+    expect(await lookup(film)).toEqual({ result: {} });
+    expect(notify).not.toHaveBeenCalled();
+    expect(fs.existsSync(path.join(root, 'song-sound.json'))).toBe(false);
+  });
+
+  it('refuses a lookup or a save that names no song', async () => {
+    expect(await lookup(undefined)).toEqual({
+      errorCode: ErrorCode.INVALID_PARAMETER,
+    });
+    const saved = await fire(ChannelEnum.SAVE_SONG_SOUND, [
+      onSpotify,
+      song,
+      'yes',
+    ]);
+    expect(saved).toHaveBeenCalledWith(ChannelEnum.SAVE_SONG_SOUND, {
+      errorCode: ErrorCode.INVALID_PARAMETER,
     });
   });
 
@@ -348,63 +481,5 @@ describe('SongSound IPC ownership and profile persistence', () => {
     expect(read('main').filters).toEqual(own(1).filters);
     expect(read('second').filters).toEqual(own(2).filters);
     expect(mockFlush).not.toHaveBeenCalled();
-  });
-});
-
-describe('the song sound memory just after launch', () => {
-  it('writes a file of names again without them, and still finds the song', async () => {
-    // As builds before 2026-10-26 wrote it: the song by name, in the key,
-    // the alias, the title and the artist.
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-song-sound-'));
-    const identity = buildSongIdentity(
-      'system',
-      'chrome.exe',
-      'A private title',
-      'A private channel',
-    );
-    if (!identity) {
-      throw new Error('test fixture produced no identity');
-    }
-    fs.writeFileSync(
-      path.join(dir, 'song-sound.json'),
-      JSON.stringify({
-        version: 1,
-        outputs: {
-          main: {
-            entries: {
-              [identity.key]: {
-                sound: song,
-                title: identity.title,
-                artist: identity.artist,
-                alias: identity.alias,
-                plays: 2,
-                updatedAt: 1,
-              },
-            },
-            aliases: { [identity.alias ?? '']: identity.key },
-          },
-        },
-      }),
-      'utf8',
-    );
-    handlers.clear();
-
-    await registerSongSoundIpc({
-      state: getDefaultState(),
-      userDataDir: dir,
-      handleUpdateHelper: jest.fn(async () => undefined),
-      getOutputEditor: () => undefined,
-    });
-    await flushPendingWrites();
-
-    const text = fs.readFileSync(path.join(dir, 'song-sound.json'), 'utf8');
-    expect(text).not.toMatch(/private|chrome/i);
-    const lookup = handlers.get(ChannelEnum.LOOKUP_SONG_SOUND);
-    const reply = jest.fn();
-    await lookup?.({ reply }, ['main', identity]);
-    expect(reply).toHaveBeenCalledWith(ChannelEnum.LOOKUP_SONG_SOUND, {
-      result: expect.objectContaining({ plays: 2 }),
-    });
-    fs.rmSync(dir, { recursive: true, force: true });
   });
 });

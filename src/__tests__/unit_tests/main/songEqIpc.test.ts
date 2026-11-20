@@ -276,7 +276,9 @@ describe('the song memory channels', () => {
       // A layer that is not a layer.
       [ChannelEnum.COMMIT_SONG_EQ, [DEVICE, identity, 'nope']],
       // The pre-fix Forget payload: a bare key string where the identity goes.
-      [ChannelEnum.FORGET_SONG_EQ, [DEVICE, identity.key]],
+      [ChannelEnum.FORGET_SONG_EQ, [identity.key]],
+      // The payload from before a forget reached every output.
+      [ChannelEnum.FORGET_SONG_EQ, [DEVICE, identity]],
     ];
 
     invalid.forEach(([channel, arg]) => {
@@ -298,7 +300,6 @@ describe('the song memory channels', () => {
     register(dir);
     expect(
       fire(ChannelEnum.FORGET_SONG_EQ, [
-        DEVICE,
         mustBuild(buildSongIdentity('library', 'never-saved', 'Nobody')),
       ]),
     ).toEqual({ result: undefined });
@@ -331,12 +332,40 @@ describe('the song memory channels', () => {
       result: expect.objectContaining({ title: 'Black Dog' }),
     });
 
-    fire(ChannelEnum.FORGET_SONG_EQ, [DEVICE, fromSpotify]);
+    fire(ChannelEnum.FORGET_SONG_EQ, [fromSpotify]);
 
     expect(fire(ChannelEnum.LOOKUP_SONG_EQ, [DEVICE, fromSpotify])).toEqual({
       result: undefined,
     });
     expect(onDisk(dir).outputs[DEVICE].entries).toEqual({});
+  });
+
+  /**
+   * A correction is the record's and is found from any output, so a Forget
+   * that left another output's copy would see it come straight back.
+   */
+  it('finds a song learned on another output, and forgets it from every output', () => {
+    const dir = tempDir();
+    register(dir);
+    const song = mustBuild(
+      buildSongIdentity('library', 'both-outputs', 'Both', 'Artist'),
+    );
+    fire(ChannelEnum.COMMIT_SONG_EQ, [DEVICE, song, layerOf(3)]);
+    expect(fire(ChannelEnum.LOOKUP_SONG_EQ, ['device-c', song])).toEqual({
+      result: expect.objectContaining({ settings: layerOf(3) }),
+    });
+    fire(ChannelEnum.COMMIT_SONG_EQ, ['device-b', song, layerOf(-2)]);
+
+    fire(ChannelEnum.FORGET_SONG_EQ, [song]);
+
+    expect(fire(ChannelEnum.LOOKUP_SONG_EQ, [DEVICE, song])).toEqual({
+      result: undefined,
+    });
+    expect(fire(ChannelEnum.LOOKUP_SONG_EQ, ['device-b', song])).toEqual({
+      result: undefined,
+    });
+    expect(onDisk(dir).outputs[DEVICE].entries).toEqual({});
+    expect(onDisk(dir).outputs['device-b'].entries).toEqual({});
   });
 
   it('answers a lookup from what it holds in memory, not from the file', () => {

@@ -5,61 +5,99 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { translate } from 'common/i18n';
-import type { ISongSoundEntry } from 'common/songSound';
+import type { ISongIdentity } from 'common/songIdentity';
 import SongSoundNotice from 'renderer/components/SongSoundNotice';
-import * as session from 'renderer/audio/songSoundSession';
+import {
+  dismissSongSoundNotice,
+  showSongSoundNotice,
+} from 'renderer/audio/songSoundNotice';
 
 /**
- * What the song memory's card says when a song's own sound goes on. The
- * memory keeps no name for a song that is not the listener's own file
- * (`songMemoryNames.ts`), so the card names the song that is playing.
+ * What Auto EQ's card says when a saved sound goes on: the song's own, or
+ * its album's. The memory keeps no name for a song that is not the
+ * listener's own file (`songMemoryNames.ts`), so the card names the song
+ * that is playing.
  */
-jest.mock('renderer/audio/songSoundSession');
 jest.mock('renderer/utils/noticeTurn', () => ({
   useNoticeTurn: (_name: string, wants: boolean) => wants,
 }));
 
-const mockUseSongSoundNotice = session.useSongSoundNotice as jest.Mock;
-
-const entry: ISongSoundEntry = {
-  sound: { presetId: 'none', filters: {} },
-  title: '',
-  plays: 2,
-  updatedAt: 1,
+const playing: ISongIdentity = {
+  key: 'system:chrome.exe:a tune:',
+  title: 'A tune',
+  source: 'system',
 };
+const noName = translate('en', 'songSound.noPresetName');
 
 afterEach(() => {
-  jest.resetAllMocks();
+  act(() => dismissSongSoundNotice());
 });
 
 it('names the song playing, which the memory may not', () => {
-  mockUseSongSoundNotice.mockReturnValue({
-    kind: 'lent',
-    id: 1,
-    identity: {
-      key: 'system:chrome.exe:a tune:',
-      title: 'A tune',
-      source: 'system',
-    },
-    entry,
-  });
-
   render(<SongSoundNotice />);
+  act(() =>
+    showSongSoundNotice({
+      kind: 'lent',
+      identity: playing,
+      owner: 'song',
+      presetId: 'none',
+    }),
+  );
 
   expect(
+    screen.getByText(translate('en', 'songSound.noticeTitle')),
+  ).toBeVisible();
+  expect(
     screen.getByText(
-      translate('en', 'songSound.noticeBodyNoPreset', { title: 'A tune' }),
+      translate('en', 'songSound.noticeBody', {
+        title: 'A tune',
+        preset: noName,
+      }),
     ),
   ).toBeVisible();
 });
 
-it('draws nothing while no song’s sound has gone on', () => {
-  // The control for the case above: the card is drawn by the notice alone.
-  mockUseSongSoundNotice.mockReturnValue(undefined);
+it('says when the sound is the album’s, and which album', () => {
+  render(<SongSoundNotice />);
+  act(() =>
+    showSongSoundNotice({
+      kind: 'lent',
+      identity: playing,
+      owner: 'album',
+      presetId: 'none',
+      albumTitle: 'Night Album',
+    }),
+  );
 
+  expect(
+    screen.getByText(
+      translate('en', 'songSound.albumNoticeTitle', { album: 'Night Album' }),
+    ),
+  ).toBeVisible();
+  expect(
+    screen.getByText(
+      translate('en', 'songSound.albumNoticeBody', {
+        title: 'A tune',
+        preset: noName,
+      }),
+    ),
+  ).toBeVisible();
+});
+
+it('draws nothing while no saved sound has gone on, nor for a change about to be saved', () => {
+  // The control for the cases above: the card is drawn by a sound going on.
   const { container } = render(<SongSoundNotice />);
+  expect(container).toBeEmptyDOMElement();
 
+  act(() =>
+    showSongSoundNotice({
+      kind: 'willSave',
+      identity: playing,
+      owner: 'song',
+      presetId: 'none',
+    }),
+  );
   expect(container).toBeEmptyDOMElement();
 });

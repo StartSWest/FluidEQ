@@ -114,17 +114,62 @@ describe('songEq store', () => {
     );
   });
 
-  it('keeps outputs apart', () => {
-    // A correction measured on headphones says nothing about speakers.
+  it('finds a correction learned on another output, this output’s own first', () => {
+    // Smart correction measures the source, before any output's effects, so
+    // a song measured on the headphones is measured for the speakers too
+    // (Auto EQ, 2026-11-20).
     const identity = identityOf('Song', 'Artist');
-    const saved = commitSongEq(
+    const onHeadphones = commitSongEq(
       getDefaultSongEqSettings(),
       DEVICE,
       identity,
       layerOf(3),
       1000,
     );
-    expect(lookupSongEq(saved, 'device-b', identity)).toBeUndefined();
+    expect(lookupSongEq(onHeadphones, 'device-b', identity)?.settings).toEqual(
+      layerOf(3),
+    );
+    const onBoth = commitSongEq(
+      onHeadphones,
+      'device-b',
+      identity,
+      layerOf(-2),
+      500,
+    );
+    // Its own, though older, before the other output's.
+    expect(lookupSongEq(onBoth, 'device-b', identity)?.settings).toEqual(
+      layerOf(-2),
+    );
+    expect(lookupSongEq(onBoth, DEVICE, identity)?.settings).toEqual(
+      layerOf(3),
+    );
+    // Elsewhere, the newest of them.
+    expect(lookupSongEq(onBoth, 'device-c', identity)?.settings).toEqual(
+      layerOf(3),
+    );
+  });
+
+  it('forgets a song on every output, or a lookup would bring it straight back', () => {
+    const identity = identityOf('Song', 'Artist');
+    const other = identityOf('Other', 'Artist');
+    let store = commitSongEq(
+      getDefaultSongEqSettings(),
+      DEVICE,
+      identity,
+      layerOf(3),
+      1000,
+    );
+    store = commitSongEq(store, 'device-b', identity, layerOf(-2), 2000);
+    store = commitSongEq(store, 'device-b', other, layerOf(1), 3000);
+    const forgotten = forgetSongEq(store, identity);
+    expect(lookupSongEq(forgotten, DEVICE, identity)).toBeUndefined();
+    expect(lookupSongEq(forgotten, 'device-b', identity)).toBeUndefined();
+    // The control: another song stays.
+    expect(lookupSongEq(forgotten, 'device-b', other)?.settings).toEqual(
+      layerOf(1),
+    );
+    // Nothing left to forget: the same store back.
+    expect(forgetSongEq(forgotten, identity)).toBe(forgotten);
   });
 
   it('counts a play on commit and not on checkpoint', () => {
@@ -226,7 +271,7 @@ describe('songEq store', () => {
       layerOf(3),
       1000,
     );
-    const forgotten = forgetSongEq(saved, DEVICE, identity);
+    const forgotten = forgetSongEq(saved, identity);
     expect(lookupSongEq(forgotten, DEVICE, identity)).toBeUndefined();
     expect(Object.keys(forgotten.outputs[DEVICE].aliases)).toHaveLength(0);
   });
@@ -265,7 +310,7 @@ describe('songEq store', () => {
     // before Forget is asked to remove it.
     expect(lookupSongEq(store, DEVICE, fromSpotify)).toBeDefined();
 
-    store = forgetSongEq(store, DEVICE, fromSpotify);
+    store = forgetSongEq(store, fromSpotify);
     expect(lookupSongEq(store, DEVICE, fromSpotify)).toBeUndefined();
     expect(lookupSongEq(store, DEVICE, fromLibrary)).toBeUndefined();
     expect(store.outputs[DEVICE].entries[fromLibrary.key]).toBeUndefined();
@@ -334,7 +379,7 @@ describe('songEq store', () => {
       1000,
     );
     store = commitSongEq(store, DEVICE, second, layerOf(4), 2000);
-    store = forgetSongEq(store, DEVICE, first);
+    store = forgetSongEq(store, first);
 
     expect(lookupSongEq(store, DEVICE, second)).toBeDefined();
     expect(store.outputs[DEVICE].aliases[alias]).toBe(second.key);

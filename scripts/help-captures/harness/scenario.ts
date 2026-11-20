@@ -10,6 +10,8 @@ import {
 import type { IEqualizerSnapshot } from 'common/outputSettings';
 import type { IAudioDevice, IDeviceProfileSettings } from 'common/profileTypes';
 import type { IAudioEngineStatus } from 'common/audioEngine';
+import type { ISongSoundIndex } from 'common/songSoundMemory';
+import { EMPTY_NEWS } from 'common/appNews';
 import { DEFAULT_LIGHTING_SETTINGS } from 'common/lighting/lightingModel';
 import type { TEmit } from './fakeMain';
 import { FORUM_INVOKES } from './forumScenario';
@@ -213,6 +215,13 @@ export const REQUESTS: Record<string, TAnswer> = {
     bandPhaseScopes: { eq: true, curves: true },
   }),
   [ChannelEnum.GET_TREBLE_DESIGN]: () => ({ eq: 'precise', curves: 'precise' }),
+  // Auto EQ with nothing saved yet, as a first launch has it.
+  [ChannelEnum.GET_SONG_SOUND_INDEX]: (): ISongSoundIndex => ({
+    songs: [],
+    albums: [],
+    otherCount: 0,
+    hasUnnamed: false,
+  }),
 };
 
 /** Calls made with `invoke`, by channel. */
@@ -288,6 +297,11 @@ export const INVOKES: Record<string, TAnswer> = {
       channels: 2,
     })),
   }),
+  // No output's profile was lost: an answer of nothing took the window down.
+  'recovered-profiles': () => [],
+  // Nobody signed in: no news and no scene announcement, as main answers then.
+  'app-news': () => EMPTY_NEWS,
+  'scene-announcement': () => null,
   'plus-terms-notice': () => null,
   'plus-welcome': () => null,
   'scene-review-notice': () => ({ notice: null }),

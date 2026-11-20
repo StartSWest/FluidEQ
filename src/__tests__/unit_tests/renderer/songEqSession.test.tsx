@@ -167,22 +167,16 @@ describe('songEqSession', () => {
    * are indistinguishable: a refusal proves nothing unless the same call
    * succeeds once the missing condition is supplied.
    *
-   * What it guards is the reported bug. `setSongEqSaveOn` used to START a
-   * continuous mode when ticked on — which was silently a no-op whenever a
-   * continuous mode was already the one CHOSEN but switched off, exactly the
-   * state a real window was found in (`smartEqMode` = `balance`,
-   * `continuousEq` = `false`). Saving went on, no loop ran, and nothing was
-   * ever committed.
+   * Saving follows the measurement (Auto EQ, 2026-11-20): no mode running,
+   * nothing to file and nothing turns it on; a mode running, it is on from
+   * the start. The player's Song lamp can still turn it off for the run.
    */
-  it('turns saving on only while an automatic mode is running', () => {
+  it('saves only while an automatic mode is running, from the moment it runs', () => {
     setSongEqSaveOn(true);
     expect(getSongEqSaveOn()).toBe(false);
 
     startAutoEq();
     renderHook(() => useSongEqSessionHost(), { wrapper });
-    act(() => {
-      setSongEqSaveOn(true);
-    });
     expect(getSongEqSaveOn()).toBe(true);
 
     act(() => {
@@ -193,19 +187,17 @@ describe('songEqSession', () => {
 
   /**
    * Fails if the shell stops reporting `autoEqChanged`, or reports it only in
-   * one direction: saving would then survive an automatic mode being switched
-   * on again and promise a save for the first song of a run that has measured
-   * nothing yet.
+   * one direction: saving would then outlive the mode that measures what it
+   * files, or stay off for a run that should keep each song's correction.
    */
-  it('starts saving from off each time an automatic mode is switched on', () => {
+  it('stops saving with the mode, and saves again each time a mode is switched on', () => {
     startAutoEq();
     renderHook(() => useSongEqSessionHost(), { wrapper });
     act(() => {
-      setSongEqSaveOn(true);
+      setSongEqSaveOn(false);
     });
-    // The positive control: without this the assertion below would pass
-    // against a store where saving simply never turns on at all.
-    expect(getSongEqSaveOn()).toBe(true);
+    // The positive control: turned off for this run, as the player's lamp can.
+    expect(getSongEqSaveOn()).toBe(false);
 
     act(() => {
       setSmartEqMode('smart');
@@ -215,7 +207,7 @@ describe('songEqSession', () => {
     act(() => {
       startAutoEq();
     });
-    expect(getSongEqSaveOn()).toBe(false);
+    expect(getSongEqSaveOn()).toBe(true);
   });
 
   /**
@@ -615,7 +607,7 @@ describe('songEqSession', () => {
     // The whole identity, so main can resolve it through the alias index the
     // way a lookup does — a bare key deletes nothing when the curve was
     // learned from another source.
-    expect(api.forgetSongEq).toHaveBeenCalledWith('device-a', song);
+    expect(api.forgetSongEq).toHaveBeenCalledWith(song);
     expect(result.current).toBeUndefined();
   });
 
