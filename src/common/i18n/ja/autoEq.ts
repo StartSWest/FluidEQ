@@ -112,8 +112,6 @@ export default {
   'autoEq.moved.open': 'オート EQ を開く',
   'autoEq.moved.dismiss': 'OK',
   'autoEq.eqs.title': '保存したEQ',
-  'autoEq.eqs.hint':
-    '気に入ったEQを残せます。かけたり、曲やアルバムに割り当てたりできます。',
   'autoEq.eqs.saveThis': 'このEQを保存',
   'autoEq.eqs.empty': 'まだ何も保存されていません',
   'autoEq.eqs.name': '名前',
@@ -134,8 +132,6 @@ export default {
   'autoEq.eqs.deleteKeeps':
     '{what} が使っています。それぞれがそのサウンドを自分のものとして残します。',
   'autoEq.eqs.usedBy': '{what} で使用',
-  'autoEq.eqs.moreCount': 'ほか {count} 件',
-  'autoEq.eqs.seeAll': '{count} 件すべて表示',
   'autoEq.eqs.use': '保存したEQを使う',
   'autoEq.eqs.saveNew': '新しいEQとして保存…',
   'autoEq.eqs.updateNamed': '「{name}」を再生中の音で更新',

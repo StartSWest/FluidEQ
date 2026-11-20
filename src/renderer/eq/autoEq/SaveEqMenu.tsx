@@ -23,7 +23,7 @@ import {
 import AutoEqMiniCurve from './AutoEqMiniCurve';
 import AutoEqSaveEqForm from './AutoEqSaveEqForm';
 import AutoEqEqList from './AutoEqEqList';
-import { orderSavedEqs, rowStateOf } from './AutoEqSavedEqs';
+import { orderSavedEqs, rowStateOf } from './savedEqOrder';
 
 /** What the menu shows: its list, Save as new EQ's form, or every saved EQ
  * to manage. */

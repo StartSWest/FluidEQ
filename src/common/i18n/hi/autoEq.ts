@@ -110,7 +110,6 @@ export default {
   'autoEq.moved.open': 'ऑटो EQ खोलें',
   'autoEq.moved.dismiss': 'ठीक है',
   'autoEq.eqs.title': 'सहेजे गए EQ',
-  'autoEq.eqs.hint': 'पसंद आया EQ रखें। उसे लगाएँ, या गानों और एल्बमों को दें।',
   'autoEq.eqs.saveThis': 'यह EQ सहेजें',
   'autoEq.eqs.empty': 'अभी कुछ नहीं सहेजा गया',
   'autoEq.eqs.name': 'नाम',
@@ -131,8 +130,6 @@ export default {
   'autoEq.eqs.deleteKeeps':
     '{what} इसका इस्तेमाल करते हैं। हर एक इसकी आवाज़ अपनी बनाकर रखता है।',
   'autoEq.eqs.usedBy': '{what} पर',
-  'autoEq.eqs.moreCount': '{count} और',
-  'autoEq.eqs.seeAll': 'सभी {count} देखें',
   'autoEq.eqs.use': 'सहेजा गया EQ इस्तेमाल करें',
   'autoEq.eqs.saveNew': 'नए EQ के रूप में सहेजें…',
   'autoEq.eqs.updateNamed': '“{name}” को जो बज रहा है उससे अपडेट करें',

@@ -115,8 +115,6 @@ export default {
   'autoEq.moved.open': 'Ouvrir l’égalisation auto',
   'autoEq.moved.dismiss': 'Compris',
   'autoEq.eqs.title': 'EQ enregistrés',
-  'autoEq.eqs.hint':
-    'Gardez un égaliseur qui vous plaît. Appliquez-le, ou donnez-le à des chansons et des albums.',
   'autoEq.eqs.saveThis': 'Enregistrer cet EQ',
   'autoEq.eqs.empty': 'Rien d’enregistré pour l’instant',
   'autoEq.eqs.name': 'Nom',
@@ -138,8 +136,6 @@ export default {
   'autoEq.eqs.deleteKeeps':
     'Utilisé par {what}. Chacun garde son son comme le sien.',
   'autoEq.eqs.usedBy': 'sur {what}',
-  'autoEq.eqs.moreCount': '{count} de plus',
-  'autoEq.eqs.seeAll': 'Voir les {count}',
   'autoEq.eqs.use': 'Utiliser un EQ enregistré',
   'autoEq.eqs.saveNew': 'Enregistrer comme nouvel EQ…',
   'autoEq.eqs.updateNamed': 'Mettre à jour « {name} » avec ce qui joue',

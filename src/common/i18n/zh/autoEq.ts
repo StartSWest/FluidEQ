@@ -105,8 +105,6 @@ export default {
   'autoEq.moved.open': '打开自动均衡',
   'autoEq.moved.dismiss': '知道了',
   'autoEq.eqs.title': '已保存的均衡器',
-  'autoEq.eqs.hint':
-    '留住你喜欢的均衡器。可以直接使用，也可以分配给歌曲和专辑。',
   'autoEq.eqs.saveThis': '保存这个均衡器',
   'autoEq.eqs.empty': '还没有保存任何内容',
   'autoEq.eqs.name': '名称',
@@ -127,8 +125,6 @@ export default {
   'autoEq.eqs.deleteKeeps':
     '{what} 正在使用它。每一项都会把它的声音保留为自己的。',
   'autoEq.eqs.usedBy': '用于 {what}',
-  'autoEq.eqs.moreCount': '还有 {count} 个',
-  'autoEq.eqs.seeAll': '查看全部 {count} 个',
   'autoEq.eqs.use': '使用已保存的均衡器',
   'autoEq.eqs.saveNew': '另存为新的均衡器…',
   'autoEq.eqs.updateNamed': '用正在播放的声音更新“{name}”',

@@ -115,8 +115,6 @@ export default {
   'autoEq.moved.open': 'Auto-EQ öffnen',
   'autoEq.moved.dismiss': 'Verstanden',
   'autoEq.eqs.title': 'Gespeicherte EQs',
-  'autoEq.eqs.hint':
-    'Behalten Sie einen EQ, der Ihnen gefällt. Legen Sie ihn auf oder geben Sie ihn Songs und Alben.',
   'autoEq.eqs.saveThis': 'Diesen EQ speichern',
   'autoEq.eqs.empty': 'Noch nichts gespeichert',
   'autoEq.eqs.name': 'Name',
@@ -139,8 +137,6 @@ export default {
   'autoEq.eqs.deleteKeeps':
     'Verwendet von {what}. Jedes behält seinen Klang als eigenen.',
   'autoEq.eqs.usedBy': 'auf {what}',
-  'autoEq.eqs.moreCount': '{count} weitere',
-  'autoEq.eqs.seeAll': 'Alle {count} zeigen',
   'autoEq.eqs.use': 'Gespeicherten EQ verwenden',
   'autoEq.eqs.saveNew': 'Als neuen EQ speichern…',
   'autoEq.eqs.updateNamed': '„{name}“ mit dem Laufenden aktualisieren',

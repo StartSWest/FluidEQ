@@ -110,8 +110,6 @@ const autoEq = {
   'autoEq.moved.open': 'Auto EQ 열기',
   'autoEq.moved.dismiss': '알았어요',
   'autoEq.eqs.title': '저장한 EQ',
-  'autoEq.eqs.hint':
-    '마음에 드는 EQ를 남겨 두세요. 적용하거나 노래와 앨범에 지정할 수 있습니다.',
   'autoEq.eqs.saveThis': '이 EQ 저장',
   'autoEq.eqs.empty': '아직 저장한 것이 없습니다',
   'autoEq.eqs.name': '이름',
@@ -132,8 +130,6 @@ const autoEq = {
   'autoEq.eqs.deleteKeeps':
     '{what}에서 사용 중입니다. 각각 그 사운드를 자기 것으로 유지합니다.',
   'autoEq.eqs.usedBy': '{what}에 사용',
-  'autoEq.eqs.moreCount': '{count}개 더',
-  'autoEq.eqs.seeAll': '{count}개 모두 보기',
   'autoEq.eqs.use': '저장한 EQ 사용',
   'autoEq.eqs.saveNew': '새 EQ로 저장…',
   'autoEq.eqs.updateNamed': '“{name}”을(를) 재생 중인 소리로 업데이트',

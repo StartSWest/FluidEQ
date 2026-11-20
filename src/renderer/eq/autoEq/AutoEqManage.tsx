@@ -18,19 +18,17 @@ import {
   pickLibrarySongSounds,
   setAlbumSound,
 } from '../../utils/songSoundApi';
-import AutoEqEqList from './AutoEqEqList';
 import usePresenceList, { rowPhaseClass } from '../../utils/usePresenceList';
 import { type TViewStep, stepBetween, viewClass } from '../../utils/viewStep';
 import { eqNameOf } from '../../library/librarySoundTag';
 
-export type TManageTab = 'songs' | 'albums' | 'eqs';
+export type TManageTab = 'songs' | 'albums';
 
-const MANAGE_TABS: readonly TManageTab[] = ['songs', 'albums', 'eqs'];
+const MANAGE_TABS: readonly TManageTab[] = ['songs', 'albums'];
 
 const TAB_LABEL = {
   songs: 'autoEq.manage.songs',
   albums: 'autoEq.manage.albums',
-  eqs: 'autoEq.eqs.title',
 } as const;
 
 /** Reported and left standing: a forget that fails keeps what it was asked
@@ -45,11 +43,8 @@ const report = (error: unknown) =>
  *
  * Other players' songs are counted and not listed: the store never keeps
  * their names (`songMemoryNames.ts`, Ivan 2026-10-26), so they are forgotten
- * together.
- *
- * Saved EQs have a tab of their own, every one with the panel's own row (Put
- * on, Update, Rename, Delete): the panel lists three and See all opens here.
- * Forget all is not offered there — a saved EQ is deleted one at a time.
+ * together. Saved EQs are managed in the Save EQ menu beside Clear, their
+ * one home (Ivan, 2026-11-20: "remove from there dude").
  */
 const AutoEqManage = ({
   initialTab,
@@ -60,7 +55,7 @@ const AutoEqManage = ({
 }) => {
   const { t } = useTranslation();
   const soundIndex = useSongSoundIndex();
-  const { index, eqs } = soundIndex;
+  const { index } = soundIndex;
   const [tab, setTab] = useState<TManageTab>(initialTab);
   // A tab further along slides its list in from the right, one before it
   // from the left.
@@ -87,7 +82,7 @@ const AutoEqManage = ({
     if (one === 'songs') {
       return (index?.songs.length ?? 0) + otherCount;
     }
-    return one === 'albums' ? (index?.albums.length ?? 0) : eqs.length;
+    return index?.albums.length ?? 0;
   };
   const presetOf = (id: string) =>
     songSoundPresetName(id, t) ?? t('songSound.noPresetName');
@@ -167,121 +162,110 @@ const AutoEqManage = ({
         handleSubmit={setSearch}
         handleEscape={() => setSearch('')}
       />
-      {tab === 'eqs' && (
-        <div key="eqs" className={viewClass(tabStep)}>
-          <AutoEqEqList search={search} />
-        </div>
-      )}
-      {tab !== 'eqs' && (
-        <ul key={tab} className={`eq-auto-manage__list ${viewClass(tabStep)}`}>
-          {tab === 'songs' &&
-            songRows.rows.map(({ key, item: song, phase }) => (
-              <li
-                key={key}
-                className={rowPhaseClass(phase)}
-                onAnimationEnd={songRows.onRowAnimationEnd(key)}
-              >
-                <span className="eq-auto-manage__words">
-                  <strong>{song.title}</strong>
-                  <span>
-                    {[song.artist, whatOf(song)].filter(Boolean).join(' · ')}
-                  </span>
-                </span>
-                <button
-                  type="button"
-                  className="button small subtle"
-                  onClick={() => {
-                    const identity = libraryTrackIdentity({
-                      id: song.trackId,
-                      title: song.title,
-                      artist: song.artist,
-                      kind: 'audio',
-                    });
-                    if (identity) {
-                      pickLibrarySongSounds([identity], null).catch(report);
-                    }
-                  }}
-                >
-                  {t('autoEq.manage.forget')}
-                </button>
-              </li>
-            ))}
-          {tab === 'songs' && otherCount > 0 && needle === '' && (
-            <li className="eq-auto-manage__others">
+      <ul key={tab} className={`eq-auto-manage__list ${viewClass(tabStep)}`}>
+        {tab === 'songs' &&
+          songRows.rows.map(({ key, item: song, phase }) => (
+            <li
+              key={key}
+              className={rowPhaseClass(phase)}
+              onAnimationEnd={songRows.onRowAnimationEnd(key)}
+            >
               <span className="eq-auto-manage__words">
-                <strong>
-                  {t('autoEq.manage.others', { count: otherCount })}
-                </strong>
-                <span>{t('autoEq.manage.othersHint')}</span>
+                <strong>{song.title}</strong>
+                <span>
+                  {[song.artist, whatOf(song)].filter(Boolean).join(' · ')}
+                </span>
               </span>
               <button
                 type="button"
                 className="button small subtle"
-                onClick={() => forgetSongSoundsOf('other').catch(report)}
+                onClick={() => {
+                  const identity = libraryTrackIdentity({
+                    id: song.trackId,
+                    title: song.title,
+                    artist: song.artist,
+                    kind: 'audio',
+                  });
+                  if (identity) {
+                    pickLibrarySongSounds([identity], null).catch(report);
+                  }
+                }}
               >
                 {t('autoEq.manage.forget')}
               </button>
             </li>
-          )}
-          {tab === 'albums' &&
-            albumRows.rows.map(({ key, item: album, phase }) => (
-              <li
-                key={key}
-                className={rowPhaseClass(phase)}
-                onAnimationEnd={albumRows.onRowAnimationEnd(key)}
-              >
-                <span className="eq-auto-manage__words">
-                  <strong>{album.title}</strong>
-                  <span>
-                    {[album.artist, whatOf(album)].filter(Boolean).join(' · ')}
-                  </span>
-                </span>
-                <button
-                  type="button"
-                  className="button small subtle"
-                  onClick={() =>
-                    setAlbumSound(
-                      album.key,
-                      album.title,
-                      album.artist,
-                      null,
-                    ).catch(report)
-                  }
-                >
-                  {t('autoEq.manage.forget')}
-                </button>
-              </li>
-            ))}
-          {((tab === 'songs' &&
-            songs.length === 0 &&
-            (otherCount === 0 || needle !== '')) ||
-            (tab === 'albums' && albums.length === 0)) && (
-            <li className="eq-auto-manage__empty">
-              {t(
-                needle === '' ? 'autoEq.manage.empty' : 'autoEq.manage.noMatch',
-              )}
-            </li>
-          )}
-        </ul>
-      )}
-      {tab !== 'eqs' && (
-        <footer className="eq-auto-panel__foot">
-          <span>{t('autoEq.manage.resetKeeps')}</span>
-          {isConfirming ? (
-            <button type="button" className="button small" onClick={forgetAll}>
-              {t('autoEq.manage.forgetAllConfirm')}
-            </button>
-          ) : (
+          ))}
+        {tab === 'songs' && otherCount > 0 && needle === '' && (
+          <li className="eq-auto-manage__others">
+            <span className="eq-auto-manage__words">
+              <strong>
+                {t('autoEq.manage.others', { count: otherCount })}
+              </strong>
+              <span>{t('autoEq.manage.othersHint')}</span>
+            </span>
             <button
               type="button"
               className="button small subtle"
-              onClick={() => setIsConfirming(true)}
+              onClick={() => forgetSongSoundsOf('other').catch(report)}
             >
-              {t('autoEq.manage.forgetAll')}
+              {t('autoEq.manage.forget')}
             </button>
-          )}
-        </footer>
-      )}
+          </li>
+        )}
+        {tab === 'albums' &&
+          albumRows.rows.map(({ key, item: album, phase }) => (
+            <li
+              key={key}
+              className={rowPhaseClass(phase)}
+              onAnimationEnd={albumRows.onRowAnimationEnd(key)}
+            >
+              <span className="eq-auto-manage__words">
+                <strong>{album.title}</strong>
+                <span>
+                  {[album.artist, whatOf(album)].filter(Boolean).join(' · ')}
+                </span>
+              </span>
+              <button
+                type="button"
+                className="button small subtle"
+                onClick={() =>
+                  setAlbumSound(
+                    album.key,
+                    album.title,
+                    album.artist,
+                    null,
+                  ).catch(report)
+                }
+              >
+                {t('autoEq.manage.forget')}
+              </button>
+            </li>
+          ))}
+        {((tab === 'songs' &&
+          songs.length === 0 &&
+          (otherCount === 0 || needle !== '')) ||
+          (tab === 'albums' && albums.length === 0)) && (
+          <li className="eq-auto-manage__empty">
+            {t(needle === '' ? 'autoEq.manage.empty' : 'autoEq.manage.noMatch')}
+          </li>
+        )}
+      </ul>
+      <footer className="eq-auto-panel__foot">
+        <span>{t('autoEq.manage.resetKeeps')}</span>
+        {isConfirming ? (
+          <button type="button" className="button small" onClick={forgetAll}>
+            {t('autoEq.manage.forgetAllConfirm')}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="button small subtle"
+            onClick={() => setIsConfirming(true)}
+          >
+            {t('autoEq.manage.forgetAll')}
+          </button>
+        )}
+      </footer>
     </div>
   );
 };

@@ -112,8 +112,6 @@ export default {
   'autoEq.moved.open': 'Открыть «Авто EQ»',
   'autoEq.moved.dismiss': 'Понятно',
   'autoEq.eqs.title': 'Сохранённые эквалайзеры',
-  'autoEq.eqs.hint':
-    'Сохраните понравившийся эквалайзер. Включайте его или назначайте песням и альбомам.',
   'autoEq.eqs.saveThis': 'Сохранить этот эквалайзер',
   'autoEq.eqs.empty': 'Пока ничего не сохранено',
   'autoEq.eqs.name': 'Название',
@@ -135,8 +133,6 @@ export default {
   'autoEq.eqs.deleteKeeps':
     'Используется: {what}. Каждый сохранит его звук как свой.',
   'autoEq.eqs.usedBy': 'используется: {what}',
-  'autoEq.eqs.moreCount': 'Ещё {count}',
-  'autoEq.eqs.seeAll': 'Показать все: {count}',
   'autoEq.eqs.use': 'Выбрать сохранённый эквалайзер',
   'autoEq.eqs.saveNew': 'Сохранить как новый…',
   'autoEq.eqs.updateNamed': 'Обновить «{name}» тем, что играет',

@@ -103,8 +103,6 @@ const autoEq = {
   'autoEq.moved.open': '開啟 Auto EQ',
   'autoEq.moved.dismiss': '明白了',
   'autoEq.eqs.title': '已儲存的等化器',
-  'autoEq.eqs.hint':
-    '留住你喜歡的等化器。可以直接套用，也可以指定給歌曲和專輯。',
   'autoEq.eqs.saveThis': '儲存這個等化器',
   'autoEq.eqs.empty': '還沒有儲存任何內容',
   'autoEq.eqs.name': '名稱',
@@ -125,8 +123,6 @@ const autoEq = {
   'autoEq.eqs.deleteKeeps':
     '{what} 正在使用它。每一項都會把它的聲音保留為自己的。',
   'autoEq.eqs.usedBy': '用於 {what}',
-  'autoEq.eqs.moreCount': '還有 {count} 個',
-  'autoEq.eqs.seeAll': '查看全部 {count} 個',
   'autoEq.eqs.use': '使用已儲存的等化器',
   'autoEq.eqs.saveNew': '另存為新的等化器…',
   'autoEq.eqs.updateNamed': '用正在播放的聲音更新「{name}」',

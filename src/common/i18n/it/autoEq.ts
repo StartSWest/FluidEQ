@@ -114,8 +114,6 @@ export default {
   'autoEq.moved.open': 'Apri EQ automatico',
   'autoEq.moved.dismiss': 'Ho capito',
   'autoEq.eqs.title': 'EQ salvati',
-  'autoEq.eqs.hint':
-    'Tieni un EQ che ti piace. Mettilo, o dallo a brani e album.',
   'autoEq.eqs.saveThis': 'Salva questo EQ',
   'autoEq.eqs.empty': 'Ancora niente di salvato',
   'autoEq.eqs.name': 'Nome',
@@ -137,8 +135,6 @@ export default {
   'autoEq.eqs.deleteKeeps':
     'Usato da {what}. Ognuno tiene il suo suono come proprio.',
   'autoEq.eqs.usedBy': 'su {what}',
-  'autoEq.eqs.moreCount': 'altri {count}',
-  'autoEq.eqs.seeAll': 'Vedi tutti e {count}',
   'autoEq.eqs.use': 'Usa un EQ salvato',
   'autoEq.eqs.saveNew': 'Salva come nuovo EQ…',
   'autoEq.eqs.updateNamed': 'Aggiorna «{name}» con ciò che suona',

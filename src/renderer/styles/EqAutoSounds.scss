@@ -10,14 +10,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'libraryTokens' as *;
 @use 'motion' as *;
 
-// WHAT A SOUND HOLDS AND THE SAVED EQS in Auto EQ's panel (`AutoEqSongHolds`,
-// `AutoEqSavedEqs`, `AutoEqEqRow`, `AutoEqSaveEqForm`), flat on the panel like
-// everything in it (`EqAutoPanel.scss`): no box under a row, a row lit only
-// while it plays, no shadow anywhere (Ivan, 2026-11-19).
+// WHAT A SOUND HOLDS, in Auto EQ's panel (`AutoEqSongHolds`), AND THE SAVED
+// EQS, in the Save EQ menu beside Clear (`SaveEqMenu`, `AutoEqEqRow`,
+// `AutoEqSaveEqForm`): flat like the panel (`EqAutoPanel.scss`), no box under
+// a row, a row lit only while it plays, no shadow anywhere (Ivan, 2026-11-19).
 
-// A button's icon in the panel, the size of its words. An svg with no size of
+// A button's icon in the Save EQ menu, the size of its words. An svg with no size of
 // its own fills its parent.
-.eq-auto-panel .button > .menu-icon,
 .eq-save-menu .button > .menu-icon {
   flex: 0 0 auto;
   width: 14px;
@@ -25,7 +24,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 // The word beside an icon a breath away from it, never touching.
-.eq-auto-panel .button:has(> .menu-icon),
 .eq-save-menu .button:has(> .menu-icon) {
   gap: 6px;
 }
@@ -223,10 +221,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   font: inherit;
   font-size: $text-body;
   font-weight: $weight-semibold;
-}
-
-.eq-auto-eqs__more {
-  color: $text-faint;
 }
 
 // Save this EQ, in the part's place.

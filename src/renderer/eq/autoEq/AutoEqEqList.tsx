@@ -11,7 +11,7 @@ import { useLiveSongSound } from '../../audio/songSoundSession';
 import { useSavedEqStates } from '../../audio/savedEqActions';
 import AutoEqEqRow from './AutoEqEqRow';
 import usePresenceList from '../../utils/usePresenceList';
-import { orderSavedEqs, rowStateOf } from './AutoEqSavedEqs';
+import { orderSavedEqs, rowStateOf } from './savedEqOrder';
 
 /**
  * Every saved EQ, the one on first and then the newest, each with the panel's

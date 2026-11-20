@@ -28,9 +28,7 @@ import { type TViewStep, viewClass } from '../../utils/viewStep';
 import useHasChanged from '../../utils/useHasChanged';
 import AutoEqMeasureOnce from './AutoEqMeasureOnce';
 import AutoEqSongHolds from './AutoEqSongHolds';
-import AutoEqSavedEqs from './AutoEqSavedEqs';
 import AutoEqEqPicker from './AutoEqEqPicker';
-import { useSavedEqStates } from '../../audio/savedEqActions';
 
 /** One of the panel's parts: its name and line, its switch, what it holds. */
 const AutoEqPart = ({
@@ -69,9 +67,10 @@ const AutoEqPart = ({
 /**
  * Auto EQ's panel (the 2026-11-19 mockup, Ivan's yes on 2026-11-20): the song
  * that plays and what decides its sound, the parts — Song sounds for what a
- * song keeps, Album sounds for what the Library set for its album, Saved EQs
- * the listener keeps under a name, Smart correction on top — and how much is
- * kept, with Manage.
+ * song keeps (a saved EQ among what it can be given), Album sounds for what
+ * the Library set for its album, Smart correction on top — and how much is
+ * kept, with Manage. The saved EQs themselves live in the Save EQ menu beside
+ * Clear (Ivan, 2026-11-20: "remove from there dude").
  *
  * Flat inside one surface (Ivan, 2026-11-19: no boxes in boxes, no shadows):
  * the parts are parted by a hairline and their headings, as the DSP page's
@@ -91,7 +90,6 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
   const isHeld = useSongSoundHeld();
   const now = useSongSoundNow();
   const { index, albums, eqs, eqById } = useSongSoundIndex();
-  const eqStates = useSavedEqStates(eqs);
   // The song's line swaps in when its state does — Changed, Saved, nothing
   // saved — and not as the panel opens.
   const songLineState = `${now.isChanged ? 'changed' : (now.owner ?? 'own')}`;
@@ -111,14 +109,11 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
     );
   }
 
-  // The saved EQ that plays, named wherever a preset would be: the one a
-  // saved song follows, or one the listener's own sound is exactly.
+  // The saved EQ a saved song follows, named where its preset would be: it is
+  // the song's sound. A saved EQ the listener put on is the Save EQ menu's to
+  // name, beside Clear (Ivan, 2026-11-20: "aqui debe decir el EQ que esta
+  // cargado no en auto eq").
   const songEq = now.eqId === undefined ? undefined : eqById.get(now.eqId);
-  const playingEq =
-    songEq ??
-    (eqStates.playingId === undefined
-      ? undefined
-      : eqById.get(eqStates.playingId));
 
   const songCount = (index?.songs.length ?? 0) + (index?.otherCount ?? 0);
   const albumCount = index?.albums.length ?? 0;
@@ -166,7 +161,7 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
           <span>{t('autoEq.aside')}</span>
         </p>
       )}
-      <AutoEqNowPlaying now={now} eqName={playingEq?.name} />
+      <AutoEqNowPlaying now={now} eqName={songEq?.name} />
       <AutoEqPart
         id="eq-auto-songs"
         title={t('autoEq.songs.title')}
@@ -249,7 +244,6 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
           <span>{albumLine}</span>
         </div>
       </AutoEqPart>
-      <AutoEqSavedEqs onSeeAll={() => manage('eqs')} />
       <AutoEqSmartPart button={button} />
       <footer className="eq-auto-panel__foot">
         <span>
