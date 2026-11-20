@@ -20,7 +20,7 @@ import {
   nowPlaying,
   TStep,
 } from './songSoundSteps';
-import { reconsider, saveNow, switched } from './songSoundChoices';
+import { reconsider, revert, saveNow, switched } from './songSoundChoices';
 
 export { getInitialSongSoundState } from './songSoundEvents';
 export type {
@@ -43,26 +43,25 @@ export type {
  * A pure reducer with the clock passed in, like the Smart EQ memory's
  * (`songEqRecorder.ts`), whose pause grace it shares: a pause under a minute
  * is the same play. Unlike that memory a song is looked up the moment it is
- * named, with no settle (`open` in `songSoundSteps.ts` says why). `songSoundSession.ts` performs the effects and decides
- * nothing.
+ * named, with no settle (`open` in `songSoundSteps.ts` says why).
+ * `songSoundSession.ts` performs the effects and decides nothing.
  *
- * WHAT IS FILED: the sound a song ends with, when a saved sound played — its
- * own or its album's — and it is not the sound it began with: the listener
- * changed the preset, the Tone or a band while it played (Ivan, 2026-10-02:
- * "when I set that preset and when the song ends or skip to another it will
- * save that preset"). Over its album's sound the change is the song's alone;
- * an album changes in the Library only (Ivan, 2026-11-19). A song that plays
- * the listener's own sound files nothing however it is changed — a change
- * there is the listener's new sound, and the song keeps it only when they
- * press "Save for this song" (`saveNow`). No floor of listening time: a
- * change made and skipped past is still a choice for that song. Not a change
- * something else made — a profile loaded or saved, a game putting its sound
- * on, the output switching: a song they reached files nothing that play.
+ * WHAT IS FILED: what plays, when the listener presses "Save for this song"
+ * or, over a saved sound they changed, Save changes (`saveNow`) — never a
+ * song's end (Ivan approved explicit saving, 2026-11-20: "ok with auto eq
+ * song save"). A change made while a saved sound plays is heard at once and
+ * shown as "Changed, not saved", with Back to saved (`revert`); left unsaved,
+ * it stays behind with the song, which plays its saved sound next time, and
+ * the listener's own sound comes back for the next song as after any saved
+ * one. Over its album's sound a save is the song's alone; an album changes in
+ * the Library only (Ivan, 2026-11-19). It used to be filed by itself at the
+ * song's end: nothing on screen said so, and Clear EQ pressed during a saved
+ * song saved it flat.
  *
  * WHAT IS LENT: a remembered song's sound goes on as its lookup answers and
- * is the song's while it plays — a change made then is the song's too — and
- * the sound from before it is handed back at its end, so a song with no
- * memory plays with what the listener had, not with the last remembered
+ * is the song's while it plays, and the sound from before it is handed back
+ * at its end, so a song with no memory plays with what the listener had, not
+ * with the last remembered
  * song's. The hand-back waits for the next song's answer when one follows:
  * handed back at once and replaced a moment later by the next song's own,
  * two remembered songs in a row would play a moment of a third sound between
@@ -96,24 +95,6 @@ export const reduceSongSound = (
         sound !== undefined &&
         state.pending !== undefined &&
         sameSongSound(sound, state.pending);
-      // Said when it happens, not at the song's end: another preset put on by
-      // the listener's hand while a saved sound plays — never one of this
-      // memory's own on its way (`pending`), never on a song something else
-      // reached — and only where it is not the preset the song began with,
-      // which would file no change of preset at all.
-      const willSave =
-        state.parts.songs &&
-        state.deviceId !== '' &&
-        session !== undefined &&
-        session.owner !== undefined &&
-        !session.isLoaded &&
-        !session.isKeptOut &&
-        state.pending === undefined &&
-        sound !== undefined &&
-        state.live !== undefined &&
-        session.baseline !== undefined &&
-        sound.presetId !== state.live.presetId &&
-        sound.presetId !== session.baseline.presetId;
       return [
         {
           ...state,
@@ -126,31 +107,18 @@ export const reduceSongSound = (
               ? { ...session, baseline: sound }
               : session,
         },
-        willSave && sound && session?.owner
-          ? [
-              ...timed,
-              {
-                kind: 'willSave',
-                identity: session.identity,
-                presetId: sound.presetId,
-                owner: session.owner,
-              },
-            ]
-          : timed,
-      ];
-    }
-
-    case 'dontSave':
-      return [
-        { ...state, session: session && { ...session, isKeptOut: true } },
         timed,
       ];
+    }
 
     case 'matched':
       return withTimed(matched(state, event.identity, event.song, event.album));
 
     case 'saveNow':
       return withTimed(saveNow(state));
+
+    case 'revert':
+      return withTimed(revert(state));
 
     case 'reconsider':
       return withTimed(reconsider(state));
@@ -192,7 +160,7 @@ export const reduceSongSound = (
       if (!session || session.identity.key !== target.key) {
         return [state, [...timed, forget]];
       }
-      const [next, effects] = giveBack(state, session, { isKeptOut: true });
+      const [next, effects] = giveBack(state, session, {});
       return [next, [...timed, forget, ...effects]];
     }
 

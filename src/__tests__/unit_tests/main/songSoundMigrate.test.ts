@@ -358,18 +358,23 @@ describe.each(['by name', 'by fingerprint'] as const)(
       ]);
     });
 
-    it('goes on counting plays after the move, and is never moved twice', async () => {
+    it('keeps the plays it moved over through a save, and is never moved twice', async () => {
       const { ask } = await launch(dir);
       await ask(ChannelEnum.SAVE_SONG_SOUND, [
         libraryTrackIdentity(kindOfBlue),
-        speakerSound,
-        true,
+        headphoneSound,
       ]);
       await flushPendingWrites();
       const afterSave = fs.readFileSync(fileIn(dir), 'utf8');
+      // A save is a press, never a play: the five counted before stay five.
       expect(Object.values(stored(dir).songs.entries)).toContainEqual(
-        expect.objectContaining({ title: 'Blue in Green', plays: 6 }),
+        expect.objectContaining({ title: 'Blue in Green', plays: 5 }),
       );
+      expect(
+        await ask(ChannelEnum.LOOKUP_SONG_SOUND, [
+          libraryTrackIdentity(kindOfBlue),
+        ]),
+      ).toEqual({ song: headphoneSound });
 
       // The next launch reads version 2 as it is: nothing written, nothing told.
       const next = await launch(dir);

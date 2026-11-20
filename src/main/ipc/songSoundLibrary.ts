@@ -68,10 +68,14 @@ const registerSongSoundLibraryIpc = (holder: ISongSoundHolder): void => {
       next =
         sound === null
           ? forgetSongSound(next, stored, 'library')
-          : saveSongSound(next, stored, 'library', sound, now, {
-              isPlay: false,
-              ...(trackId === undefined ? {} : { trackId }),
-            });
+          : saveSongSound(
+              next,
+              stored,
+              'library',
+              sound,
+              now,
+              trackId === undefined ? {} : { trackId },
+            );
     });
     holder.write(next);
     replySuccess(event, channel, undefined);

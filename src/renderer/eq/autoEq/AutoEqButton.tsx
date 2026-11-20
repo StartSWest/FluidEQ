@@ -14,6 +14,8 @@ import isOwnAnimationEnd from '../../utils/ownAnimationEnd';
 import { endCorrectionFlash } from '../../utils/correctionFlash';
 import { useTranslation } from '../../utils/I18nContext';
 import {
+  saveSongSoundNow,
+  type ISongSoundNow,
   useSongSoundHeld,
   useSongSoundNow,
   useSongSoundParts,
@@ -33,6 +35,79 @@ import '../../styles/EqAutoPanel.scss';
  * The pet's bubble beside it is Smart correction's voice while it measures,
  * as it was Smart EQ's.
  */
+type TSaveHalf = 'save' | 'saveChanges' | 'saved';
+
+/**
+ * What the button's Save half offers, the same press as the panel's (Ivan
+ * approved, 2026-11-20): Save changes over a saved sound changed while it
+ * plays, Saved for one that plays as saved, and "Save to this song" over the
+ * listener's own sound — nothing while nothing plays, Song sounds is off or
+ * Auto EQ steps aside.
+ */
+const saveHalfOf = (
+  now: ISongSoundNow,
+  isSongsOn: boolean,
+  isHeld: boolean,
+): TSaveHalf | undefined => {
+  if (isHeld || !isSongsOn || !now.identity) {
+    return undefined;
+  }
+  if (now.isChanged) {
+    return 'saveChanges';
+  }
+  if (now.owner === 'song') {
+    return 'saved';
+  }
+  return now.canSave ? 'save' : undefined;
+};
+
+/** The Save half itself: a segment sharing the button's edge, as the caret of
+ * the row's other split controls does (`_mainContentToolbar.scss`). */
+const AutoEqSaveHalf = ({
+  save,
+  title,
+}: {
+  save: TSaveHalf | undefined;
+  title: string | undefined;
+}) => {
+  const { t } = useTranslation();
+  if (!save) {
+    return null;
+  }
+  if (save === 'saved') {
+    return (
+      <span className="eq-auto__save is-saved" role="status">
+        <MenuIcon name="check" className="eq-toolbar__icon" />
+        <span className="eq-auto__save-word eq-toolbar__word">
+          {t('autoEq.button.saved')}
+        </span>
+      </span>
+    );
+  }
+  // The panel's own words for a screen reader; on the row one short word,
+  // the main half already saying Changed or Yours. "Save changes" there
+  // pushed the row into its narrower fit at full width, and the Preset and
+  // Tone tabs gave up what they hold to make room.
+  const name =
+    save === 'saveChanges'
+      ? t('autoEq.songs.saveChanges')
+      : t('autoEq.songs.save');
+  return (
+    <button
+      type="button"
+      className="eq-auto__save"
+      aria-label={name}
+      title={title ? t('autoEq.button.saveFor', { title }) : name}
+      onClick={saveSongSoundNow}
+    >
+      <MenuIcon name="save" className="eq-toolbar__icon" />
+      <span className="eq-auto__save-word eq-toolbar__word" aria-hidden="true">
+        {t('autoEq.button.save')}
+      </span>
+    </button>
+  );
+};
+
 const AutoEqButton = () => {
   const { t } = useTranslation();
   const button = useAutoEqButton();
@@ -61,6 +136,8 @@ const AutoEqButton = () => {
     state = t('autoEq.state.measuring');
   } else if (isHeld && (parts.songs || parts.albums)) {
     state = t('autoEq.state.paused');
+  } else if (now.isChanged) {
+    state = t('autoEq.state.changed');
   } else if (now.owner === 'song') {
     state = t('autoEq.state.song');
   } else if (now.owner === 'album') {
@@ -98,6 +175,10 @@ const AutoEqButton = () => {
         {state && <span className="eq-auto__state">{state}</span>}
         <Chevron />
       </button>
+      <AutoEqSaveHalf
+        save={saveHalfOf(now, parts.songs, isHeld)}
+        title={now.identity?.title}
+      />
       <AnchoredMenu
         anchor={holder.current}
         isOpen={isOpen}

@@ -23,27 +23,29 @@ export interface ISongSoundSession {
   identity: ISongIdentity;
   phase: TSongSoundPhase;
   suspendedSince?: number;
-  /** The sound it began with, or was put on with: an edit is any other. */
+  /**
+   * The sound it began with, or was put on with — for a song that plays a
+   * saved sound, that sound as it plays: an edit is any other, and Back to
+   * saved puts it on again.
+   */
   baseline?: ISongSound;
   /** The sound from before its own was put on, handed back at its end. */
   handBack?: ISongSound;
   /**
    * Whose saved sound plays — the song's, or its album's — or nothing for a
-   * song that plays the listener's own. A change made while a saved sound
-   * plays is the song's and is filed at its end; a change made over the
-   * listener's own is theirs, and is filed for the song only when they ask
-   * (Ivan, 2026-11-19: "if a song has it sounds it plays that preset and if
-   * not return to the last preset choosed by the user").
+   * song that plays the listener's own. A change is heard at once and kept
+   * for the song only when the listener saves it (Ivan approved, 2026-11-20:
+   * "ok with auto eq song save"); a song with no sound of its own plays the
+   * listener's ("if a song has it sounds it plays that preset and if not
+   * return to the last preset choosed by the user").
    */
   owner?: TSongSoundOwner;
   /**
    * Something other than the listener's hand reached it — a profile loaded or
-   * saved, a game's sound, an output switch: it files nothing and is lent
-   * nothing for the rest of this play.
+   * saved, a game's sound, an output switch: nothing is saved for it and
+   * nothing lent to it for the rest of this play.
    */
   isLoaded: boolean;
-  /** Not filed this play: forgotten while it plays, or Don't save pressed. */
-  isKeptOut: boolean;
 }
 
 /**
@@ -109,10 +111,10 @@ export type TSongSoundEvent =
    */
   | { kind: 'applied'; asked: ISongSound; landed?: ISongSound }
   | { kind: 'undo' }
-  /** Don't file this song this play, whatever it ends with. */
-  | { kind: 'dontSave' }
-  /** "Save for this song": what plays is the song's own from now. */
+  /** "Save for this song", or "Save changes": what plays is the song's own. */
   | { kind: 'saveNow' }
+  /** "Back to saved": the saved sound on again, the changes left. */
+  | { kind: 'revert' }
   /**
    * What is kept for the playing song changed elsewhere — picked in the
    * Library while it plays: it is looked up again and plays the new answer.
@@ -146,13 +148,8 @@ export type TSongSoundEffect =
    * with the preset.
    */
   | { kind: 'release' }
-  /** File what plays as the song's own; `isPlay` at the song's end. */
-  | {
-      kind: 'save';
-      identity: ISongIdentity;
-      sound: ISongSound;
-      isPlay: boolean;
-    }
+  /** File what plays as the song's own: a press, never the song's end. */
+  | { kind: 'save'; identity: ISongIdentity; sound: ISongSound }
   /** A saved sound went on: the song's own, or its album's. */
   | {
       kind: 'notice';
@@ -160,18 +157,6 @@ export type TSongSoundEffect =
       owner: TSongSoundOwner;
       sound: ISongSound;
       albumTitle?: string;
-    }
-  /**
-   * The listener put another preset on while a saved sound plays: the song
-   * keeps it at its end (Ivan, 2026-10-02: "show a notification this preset
-   * will be saved for x current song"). Over the album's sound it is the
-   * song's alone — albums change in the Library only.
-   */
-  | {
-      kind: 'willSave';
-      identity: ISongIdentity;
-      presetId: string;
-      owner: TSongSoundOwner;
     }
   | { kind: 'forget'; identity: ISongIdentity };
 

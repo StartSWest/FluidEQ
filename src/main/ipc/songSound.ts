@@ -113,13 +113,7 @@ const registerSongSoundIpc = ({
     const channel = ChannelEnum.SAVE_SONG_SOUND;
     const identity = arg?.[0];
     const sound = toSongSound(arg?.[1]);
-    const isPlay = arg?.[2];
-    if (
-      !isIdentity(identity) ||
-      !sound ||
-      typeof isPlay !== 'boolean' ||
-      !canKeepSongSound(identity)
-    ) {
+    if (!isIdentity(identity) || !sound || !canKeepSongSound(identity)) {
       replyInvalidParameter(event, channel);
       return;
     }
@@ -131,7 +125,7 @@ const registerSongSoundIpc = ({
         soundScopeOf(identity.source),
         sound,
         Date.now(),
-        { isPlay, ...(trackId === undefined ? {} : { trackId }) },
+        trackId === undefined ? {} : { trackId },
       ),
     );
     replySuccess(event, channel, undefined);

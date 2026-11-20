@@ -10,6 +10,7 @@ import Switch from '../../widgets/Switch';
 import { useTranslation } from '../../utils/I18nContext';
 import {
   forgetPlayingSongSound,
+  revertSongSound,
   saveSongSoundNow,
   setSongSoundParts,
   useSongSoundHeld,
@@ -24,6 +25,7 @@ import AutoEqNowPlaying from './AutoEqNowPlaying';
 import AutoEqSmartPart from './AutoEqSmartPart';
 import AutoEqManage from './AutoEqManage';
 import AutoEqMeasureOnce from './AutoEqMeasureOnce';
+import AutoEqSongHolds from './AutoEqSongHolds';
 
 /** One of the panel's parts: its name and line, its switch, what it holds. */
 const AutoEqPart = ({
@@ -131,30 +133,57 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
         isOn={parts.songs}
         onToggle={() => setSongSoundParts({ ...parts, songs: !parts.songs })}
       >
-        <div className="eq-auto-part__line">
-          <span>{songLine}</span>
-          {now.owner === 'song' ? (
+        {now.saved && <AutoEqSongHolds sound={now.saved} />}
+        {now.isChanged ? (
+          // Changed over a saved sound, and kept only when saved (Ivan
+          // approved explicit saving, 2026-11-20): saving is the suggestion,
+          // so it wears the loud style, and going back the quiet one.
+          <div className="eq-auto-part__line">
+            <span className="eq-auto-part__changed" role="status">
+              {t('autoEq.songs.changed')}
+            </span>
             <button
               type="button"
               className="button small subtle"
-              disabled={isHeld}
-              onClick={forgetPlayingSongSound}
+              onClick={revertSongSound}
             >
-              {t('autoEq.songs.forget')}
+              {t('autoEq.songs.revert')}
             </button>
-          ) : (
-            // The loud one: keeping a sound for a song is what this part is
-            // for, and nothing else here does it while the song plays.
             <button
               type="button"
               className="button small"
               disabled={!now.canSave}
               onClick={saveSongSoundNow}
             >
-              {t('autoEq.songs.save')}
+              {t('autoEq.songs.saveChanges')}
             </button>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="eq-auto-part__line">
+            <span>{songLine}</span>
+            {now.owner === 'song' ? (
+              <button
+                type="button"
+                className="button small subtle"
+                disabled={isHeld}
+                onClick={forgetPlayingSongSound}
+              >
+                {t('autoEq.songs.forget')}
+              </button>
+            ) : (
+              // The loud one: keeping a sound for a song is what this part is
+              // for, and nothing else here does it while the song plays.
+              <button
+                type="button"
+                className="button small"
+                disabled={!now.canSave}
+                onClick={saveSongSoundNow}
+              >
+                {t('autoEq.songs.save')}
+              </button>
+            )}
+          </div>
+        )}
       </AutoEqPart>
       <AutoEqPart
         id="eq-auto-albums"

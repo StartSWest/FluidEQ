@@ -7,6 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'theme' as *;
 @use 'spacing' as *;
 @use 'color' as *;
+@use 'motion' as *;
+@use 'libraryTokens' as *;
 
 // AUTO EQ'S PANEL (`AutoEqButton`, `AutoEqPanel`), flat on the app's menu
 // surface: no ground under a part and no box in a box, the parts parted by
@@ -409,4 +411,120 @@ $auto-eq-pad: $spacing-s + $spacing-xs;
   display: flex;
   flex-wrap: wrap;
   gap: $spacing-s;
+}
+
+// What a song's saved sound holds (`AutoEqSongHolds`): label beside value, a
+// line each, flat on the panel like everything in it.
+.eq-auto-holds {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: $spacing-xs ($spacing-s + $spacing-xs);
+  align-items: center;
+  margin: 0;
+
+  dt {
+    color: $text-faint;
+  }
+
+  dd {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: $spacing-xs $spacing-s;
+    min-width: 0;
+    margin: 0;
+    color: $text-primary;
+  }
+
+  small {
+    color: $text-faint;
+    font-size: $text-micro;
+  }
+}
+
+// The Tone's three values, whose digits stand still as they change.
+.eq-auto-holds__tone {
+  font-variant-numeric: tabular-nums;
+}
+
+// Your EQ's curve, the size of a word.
+.eq-auto-holds__curve {
+  flex: 0 0 auto;
+  width: 92px;
+  height: 22px;
+  overflow: visible;
+}
+
+.eq-auto-holds__zero {
+  fill: none;
+  stroke: color-mix(in srgb, $edge-tint 18%, transparent);
+  stroke-dasharray: 2 3;
+  stroke-width: 1;
+}
+
+.eq-auto-holds__line {
+  fill: none;
+  stroke: $secondary-default;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+// "Changed, not saved", in the colour the app gives a change waiting.
+.eq-auto-part__changed {
+  color: $sound-album;
+  font-weight: $weight-semibold;
+}
+
+// The Save half of Auto EQ's button on the EQ page (`AutoEqSaveHalf`): a
+// segment sharing the button's edge, as the caret of the row's other split
+// controls does (`_mainContentToolbar.scss`), so the pair reads as one pill
+// with a divider. The main half gives up its right corners and edge to it.
+.eq-auto .button.eq-mode__main:has(+ .eq-auto__save) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: 0;
+}
+
+.eq-auto__save {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border-radius: 0 $radius-xs $radius-xs 0;
+  font: inherit;
+  font-size: $studio-text-tree;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+  @include button-lit;
+
+  &:hover {
+    @include button-face-lit-hover;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $secondary-light;
+    outline-offset: 1px;
+  }
+
+  // Saved: nothing to press, said in the colour a song's own sound has.
+  &.is-saved {
+    @include button-line;
+    color: $sound-own;
+    cursor: default;
+
+    &:hover {
+      @include button-line;
+      color: $sound-own;
+    }
+  }
+
+  .eq-toolbar__icon {
+    width: 14px;
+    height: 14px;
+  }
 }

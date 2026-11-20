@@ -15,10 +15,4 @@ export default {
   'songSound.albumNoticeBody': '{title} plays the album’s {preset}',
   'songSound.noPresetName': 'Your preset',
   'songSound.undo': 'Undo',
-  'songSound.willSaveTitle': 'Saving for this song',
-  'songSound.willSaveBody': '{title} will keep {preset}.',
-  'songSound.willSaveAlbumTitle': 'Saving for this song only',
-  'songSound.willSaveAlbumBody':
-    '{title} will keep {preset}. The album keeps its own sound.',
-  'songSound.dontSave': 'Don’t save',
 };

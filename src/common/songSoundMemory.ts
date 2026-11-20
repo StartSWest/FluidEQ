@@ -178,8 +178,10 @@ export const lookupSongSound = (
 };
 
 /**
- * File a song's sound. A play is counted when it is filed at the song's end
- * (`isPlay`); a pick in the Library or "Save for this song" counts none.
+ * File a song's sound: a pick in the Library, "Save for this song" or Save
+ * changes. Every save is a press (Ivan approved explicit saving, 2026-11-20),
+ * so nothing here counts a play: `plays` keeps what "Remember each song's
+ * sound" counted, which a moved file carries over.
  */
 export const saveSongSound = (
   settings: ISongSoundSettings,
@@ -187,7 +189,7 @@ export const saveSongSound = (
   scope: TSoundScope,
   sound: TSavedSound,
   now: number,
-  { isPlay, trackId }: { isPlay: boolean; trackId?: string },
+  { trackId }: { trackId?: string } = {},
 ): ISongSoundSettings => ({
   ...settings,
   songs: putInSongMemory(
@@ -207,7 +209,7 @@ export const saveSongSound = (
         title: identity.title,
         artist: identity.artist,
         alias: identity.alias,
-        plays: (kept?.plays ?? 0) + (isPlay ? 1 : 0),
+        plays: kept?.plays ?? 0,
         updatedAt: now,
       };
     },

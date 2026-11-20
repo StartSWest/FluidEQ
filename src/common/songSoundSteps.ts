@@ -72,7 +72,6 @@ const open = (
   phase: 'playing',
   baseline: state.owed?.sound ?? state.pending ?? state.live,
   isLoaded: false,
-  isKeptOut: false,
 });
 
 /**
@@ -107,38 +106,25 @@ export const lookupOpen = (state: ISongSoundState): TSongSoundEffect[] => {
 };
 
 /**
- * End the session: file it if a saved sound played and was changed, and hand
- * back what it borrowed — now, or held for `nextSong` to settle when one
- * follows; a hand-back held for a song that is gone before its answer is put
- * on when nothing follows after all. `handBack` is off for a switch of
- * output, which brings its own sound.
+ * End the session and hand back what it borrowed — now, or held for
+ * `nextSong` to settle when one follows; a hand-back held for a song that is
+ * gone before its answer is put on when nothing follows after all.
+ * `handBack` is off for a switch of output, which brings its own sound.
+ *
+ * Nothing is filed here. A change made while a saved song plays used to be
+ * kept for it by itself at its end, which nothing on screen said, and Clear
+ * EQ pressed then saved the song flat; now a change is the song's only once
+ * the listener presses Save changes (`saveNow`), and one left unsaved stays
+ * behind with the song (Ivan approved, 2026-11-20).
  */
 export const close = (
   state: ISongSoundState,
   { nextSong, handBack }: { nextSong: boolean; handBack: boolean },
 ): TStep => {
-  const { session, live } = state;
+  const { session } = state;
   let next: ISongSoundState = { ...state, session: undefined };
   const effects: TSongSoundEffect[] = [];
   if (session) {
-    if (
-      state.parts.songs &&
-      state.deviceId !== '' &&
-      session.owner !== undefined &&
-      !session.isLoaded &&
-      !session.isKeptOut &&
-      !state.pending &&
-      live &&
-      session.baseline &&
-      !sameSongSound(live, session.baseline)
-    ) {
-      effects.push({
-        kind: 'save',
-        identity: session.identity,
-        sound: live,
-        isPlay: true,
-      });
-    }
     if (handBack && session.handBack) {
       if (nextSong && state.isOn) {
         next = { ...next, owed: { sound: session.handBack } };

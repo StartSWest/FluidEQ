@@ -9,27 +9,21 @@ import type { ISongIdentity } from 'common/songIdentity';
 import type { TSongSoundOwner } from 'common/songSoundEvents';
 
 /**
- * The card Auto EQ's song and album sounds put up (`SongSoundNotice`,
- * `SongSoundSaveNotice`): one at a time, the latest belonging to the song and
- * the editor that raised it. Apart from the session that raises it
- * (`songSoundSession.ts`), which says when.
+ * The card Auto EQ's song and album sounds put up (`SongSoundNotice`): one
+ * at a time, the latest belonging to the song and the editor that raised it.
+ * Apart from the session that raises it (`songSoundSession.ts`), which says
+ * when. There is no card for a change about to be saved any more: a change is
+ * saved only by a press (Save changes), and the panel and the EQ page say it
+ * is not saved yet.
  */
-export type TSongSoundNoticeContent =
-  | {
-      kind: 'lent';
-      identity: ISongIdentity;
-      owner: TSongSoundOwner;
-      presetId: string;
-      albumTitle?: string;
-    }
-  | {
-      kind: 'willSave';
-      identity: ISongIdentity;
-      presetId: string;
-      owner: TSongSoundOwner;
-    };
+export interface ISongSoundNoticeContent {
+  identity: ISongIdentity;
+  owner: TSongSoundOwner;
+  presetId: string;
+  albumTitle?: string;
+}
 
-export type TSongSoundNotice = TSongSoundNoticeContent & { id: number };
+export type TSongSoundNotice = ISongSoundNoticeContent & { id: number };
 
 const listeners = new Set<() => void>();
 const emit = (): void => listeners.forEach((listener) => listener());
@@ -43,17 +37,7 @@ const subscribe = (listener: () => void): (() => void) => {
 let notice: TSongSoundNotice | undefined;
 let lastNoticeId = 0;
 
-export const showSongSoundNotice = (next: TSongSoundNoticeContent): void => {
-  // The same preset again for the same song — the picker's curve and its rack
-  // landing a render apart — is the same news, and keeps the card it has.
-  if (
-    next.kind === 'willSave' &&
-    notice?.kind === 'willSave' &&
-    notice.identity.key === next.identity.key &&
-    notice.presetId === next.presetId
-  ) {
-    return;
-  }
+export const showSongSoundNotice = (next: ISongSoundNoticeContent): void => {
   lastNoticeId += 1;
   notice = { ...next, id: lastNoticeId };
   emit();

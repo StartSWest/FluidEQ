@@ -18,6 +18,7 @@ import {
   getInitialSongSoundState,
   reduceSongSound,
 } from 'common/songSoundRecorder';
+import { isSongSoundChanged } from 'common/songSoundChoices';
 import { endDspLoan } from '../dsp/store';
 import {
   forgetSongSound,
@@ -49,6 +50,14 @@ export interface ISongSoundNow {
   albumTitle?: string;
   /** "Save for this song" would file what plays now. */
   canSave: boolean;
+  /**
+   * The saved sound as it plays — the song's own or its album's — for the
+   * panel's list of what it holds. Absent over the listener's own sound.
+   */
+  saved?: ISongSound;
+  /** It plays a saved sound, changed since and not saved: Save changes and
+   * Back to saved are offered. */
+  isChanged: boolean;
 }
 
 const listeners = new Set<() => void>();
@@ -64,7 +73,11 @@ const subscribe = (listener: () => void): (() => void) => {
 let chosenParts: ISongSoundParts = readAutoEqParts();
 let isHeld = false;
 let state: ISongSoundState = getInitialSongSoundState(chosenParts);
-let now: ISongSoundNow = { isPlaying: false, canSave: false };
+let now: ISongSoundNow = {
+  isPlaying: false,
+  canSave: false,
+  isChanged: false,
+};
 /** The album named by the last lookup, for the song it was about. */
 let lastAlbum: { key: string; title: string } | undefined;
 let queue: Promise<void> = Promise.resolve();
@@ -181,29 +194,18 @@ const performEffects = (effects: TSongSoundEffect[]): Promise<void> => {
         // would put the outgoing output's loan onto it, or end its own loan.
         break;
       case 'save':
-        saveSongSound(effect.identity, effect.sound, effect.isPlay).catch(
-          (error: unknown) => {
-            log.error('A song’s sound could not be saved', error);
-          },
-        );
+        saveSongSound(effect.identity, effect.sound).catch((error: unknown) => {
+          log.error('A song’s sound could not be saved', error);
+        });
         break;
       case 'notice':
         showSongSoundNotice({
-          kind: 'lent',
           identity: effect.identity,
           owner: effect.owner,
           presetId: effect.sound.presetId,
           ...(effect.albumTitle === undefined
             ? {}
             : { albumTitle: effect.albumTitle }),
-        });
-        break;
-      case 'willSave':
-        showSongSoundNotice({
-          kind: 'willSave',
-          identity: effect.identity,
-          presetId: effect.presetId,
-          owner: effect.owner,
         });
         break;
       case 'forget':
@@ -245,20 +247,26 @@ const readNow = (): ISongSoundNow => {
     owner === 'album' && lastAlbum?.key === identity?.key
       ? lastAlbum?.title
       : undefined;
+  const saved = owner ? session?.baseline : undefined;
+  const isChanged = isSongSoundChanged(state) && !isHeld;
   return now.identity?.key === identity?.key &&
     now.owner === owner &&
     now.canSave === canSave &&
     now.isPlaying === isPlaying &&
     now.presetId === presetId &&
-    now.albumTitle === albumTitle
+    now.albumTitle === albumTitle &&
+    now.saved === saved &&
+    now.isChanged === isChanged
     ? now
     : {
         ...(identity ? { identity } : {}),
         ...(owner ? { owner } : {}),
         ...(presetId === undefined ? {} : { presetId }),
         ...(albumTitle === undefined ? {} : { albumTitle }),
+        ...(saved ? { saved } : {}),
         canSave,
         isPlaying,
+        isChanged,
       };
 };
 
@@ -404,7 +412,7 @@ export const useSongSoundNow = (): ISongSoundNow =>
     () => now,
   );
 
-/** "Save for this song": what plays is the song's own from now. */
+/** "Save for this song", or Save changes: what plays is the song's own. */
 export const saveSongSoundNow = (): void => feedSongSound({ kind: 'saveNow' });
 
 /** What is kept changed elsewhere: the playing song is looked up again. */
@@ -421,11 +429,8 @@ export const undoSongSound = (): void => {
   dismissSongSoundNotice();
 };
 
-/** This song not filed this play, whatever it ends with. */
-export const dontSaveSongSound = (): void => {
-  feedSongSound({ kind: 'dontSave' });
-  dismissSongSoundNotice();
-};
+/** Back to saved: the song's saved sound on again, the changes left. */
+export const revertSongSound = (): void => feedSongSound({ kind: 'revert' });
 
 /** Reset module ownership between isolated sessions. */
 export const resetSongSoundSession = (): void => {
@@ -434,7 +439,7 @@ export const resetSongSoundSession = (): void => {
   state = getInitialSongSoundState(chosenParts);
   dismissSongSoundNotice();
   lastAlbum = undefined;
-  now = { isPlaying: false, canSave: false };
+  now = { isPlaying: false, canSave: false, isChanged: false };
   queue = Promise.resolve();
   stateEditor = undefined;
   hasReturned = false;

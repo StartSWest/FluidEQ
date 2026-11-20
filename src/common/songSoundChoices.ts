@@ -4,21 +4,42 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { sameSongSound } from './songSound';
 import { ISongSoundParts, ISongSoundState } from './songSoundEvents';
 import { TStep, giveEverythingBack, lookupOpen } from './songSoundSteps';
 
 /**
  * What the listener chooses about Auto EQ's song and album sounds while a
- * song plays — "Save for this song", a switch moved — and the song looked up
+ * song plays — "Save for this song", Save changes, Back to saved, a switch
+ * moved — and the song looked up
  * again when what is kept changed elsewhere: steps of `reduceSongSound`
  * (`songSoundRecorder.ts`) beside the ones songs playing make
  * (`songSoundSteps.ts`). Pure, as those are.
  */
 
 /**
- * "Save for this song": what plays is filed for it now, and is its own for
- * the rest of the play — a change from here on is filed at its end. The
- * listener's own sound still comes back after it, as after any saved song.
+ * Whether the song plays a saved sound and the listener has changed it since:
+ * the panel's "Changed, not saved", with Back to saved and Save changes. Not
+ * while a sound is on its way: half of it landed is nobody's change.
+ */
+export const isSongSoundChanged = (state: ISongSoundState): boolean => {
+  const { session, live } = state;
+  return (
+    session !== undefined &&
+    session.owner !== undefined &&
+    !session.isLoaded &&
+    session.baseline !== undefined &&
+    live !== undefined &&
+    state.pending === undefined &&
+    !sameSongSound(live, session.baseline)
+  );
+};
+
+/**
+ * "Save for this song", or Save changes over a saved sound: what plays is
+ * filed for the song now and is its own from here; a change after it is
+ * changed again until saved. The listener's own sound still comes back after
+ * it, as after any saved song.
  */
 export const saveNow = (state: ISongSoundState): TStep => {
   const { session, live } = state;
@@ -34,9 +55,26 @@ export const saveNow = (state: ISongSoundState): TStep => {
   return [
     {
       ...state,
-      session: { ...session, owner: 'song', baseline: live, isKeptOut: false },
+      session: { ...session, owner: 'song', baseline: live },
     },
-    [{ kind: 'save', identity: session.identity, sound: live, isPlay: false }],
+    [{ kind: 'save', identity: session.identity, sound: live }],
+  ];
+};
+
+/**
+ * Back to saved: the saved sound as it plays (`baseline`) on again, and the
+ * changes made over it left — lent where the song borrowed the listener's
+ * sound, as it was when it went on.
+ */
+export const revert = (state: ISongSoundState): TStep => {
+  const { session } = state;
+  if (!isSongSoundChanged(state) || !session?.baseline) {
+    return [state, []];
+  }
+  const sound = session.baseline;
+  return [
+    { ...state, pending: sound },
+    [{ kind: 'apply', sound, isLent: session.handBack !== undefined }],
   ];
 };
 

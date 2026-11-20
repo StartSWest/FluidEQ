@@ -13,12 +13,6 @@ const songSound = {
   'songSound.albumNoticeBody': '{title} 使用專輯的 {preset}',
   'songSound.noPresetName': '您的預設',
   'songSound.undo': '撤銷',
-  'songSound.willSaveTitle': '正在為這首歌儲存',
-  'songSound.willSaveBody': '{title} 將保留 {preset}。',
-  'songSound.willSaveAlbumTitle': '僅為這首歌儲存',
-  'songSound.willSaveAlbumBody':
-    '{title} 將保留 {preset}。專輯保留自己的聲音。',
-  'songSound.dontSave': '不儲存',
 } satisfies Partial<Dictionary>;
 
 export default songSound;

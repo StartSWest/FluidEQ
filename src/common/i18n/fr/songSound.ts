@@ -15,10 +15,4 @@ export default {
   'songSound.albumNoticeBody': '{title} joue {preset}, le son de l’album',
   'songSound.noPresetName': 'Votre préréglage',
   'songSound.undo': 'Annuler',
-  'songSound.willSaveTitle': 'Enregistrement pour cette chanson',
-  'songSound.willSaveBody': '{title} gardera {preset}.',
-  'songSound.willSaveAlbumTitle': 'Enregistrement pour cette chanson seulement',
-  'songSound.willSaveAlbumBody':
-    '{title} gardera {preset}. L’album garde son propre son.',
-  'songSound.dontSave': 'Ne pas enregistrer',
 };

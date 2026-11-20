@@ -3,6 +3,7 @@
 import { FilterTypeEnum } from 'common/constants';
 import { buildSongIdentity, ISongIdentity } from 'common/songIdentity';
 import { ISongSound } from 'common/songSound';
+import { isSongSoundChanged } from 'common/songSoundChoices';
 import {
   getInitialSongSoundState,
   ISongSoundParts,
@@ -104,7 +105,7 @@ describe('Auto EQ song sounds: what is looked up', () => {
     const desktop = startedAlone(onDesktop);
     expect(desktop.effects).toEqual([
       { kind: 'lookup', identity: onDesktop },
-      { kind: 'save', identity: onDesktop, sound: original, isPlay: false },
+      { kind: 'save', identity: onDesktop, sound: original },
     ]);
   });
 
@@ -112,7 +113,7 @@ describe('Auto EQ song sounds: what is looked up', () => {
     // It used to hold still for two seconds first.
     expect(startedAlone(songA).effects).toEqual([
       { kind: 'lookup', identity: songA },
-      { kind: 'save', identity: songA, sound: original, isPlay: false },
+      { kind: 'save', identity: songA, sound: original },
     ]);
   });
 
@@ -158,28 +159,31 @@ describe('Auto EQ song sounds: the listener’s own sound', () => {
       [later + 3, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
     ]);
     expect(kinds(result.effects, 'save')).toEqual([]);
-    expect(kinds(result.effects, 'willSave')).toEqual([]);
     expect(kinds(result.effects, 'apply')).toEqual([]);
   });
 
-  it('"Save for this song" files what plays at once, and a later change at the song’s end', () => {
+  it('"Save for this song" files what plays at once, and a later change only when saved again', () => {
     const saved = run(playing().state, [
       [later + 1, { kind: 'matched', identity: songA }],
       [later + 2, { kind: 'saveNow' }],
     ]);
     expect(saved.effects).toEqual([
-      { kind: 'save', identity: songA, sound: original, isPlay: false },
+      { kind: 'save', identity: songA, sound: original },
     ]);
     expect(saved.state.session?.owner).toBe('song');
-    const ended = run(saved.state, [
+    const changed = run(saved.state, [
       [later + 3, { kind: 'soundChanged', sound: edited }],
-      [later + 4, { kind: 'closing' }],
     ]);
-    expect(kinds(ended.effects, 'save')).toEqual([
-      { kind: 'save', identity: songA, sound: edited, isPlay: true },
-    ]);
+    expect(isSongSoundChanged(changed.state)).toBe(true);
+    const ended = run(changed.state, [[later + 4, { kind: 'closing' }]]);
+    expect(kinds(ended.effects, 'save')).toEqual([]);
     // It was the listener's own sound already: nothing to hand back.
     expect(kinds(ended.effects, 'apply')).toEqual([]);
+    const resaved = run(changed.state, [[later + 4, { kind: 'saveNow' }]]);
+    expect(resaved.effects).toEqual([
+      { kind: 'save', identity: songA, sound: edited },
+    ]);
+    expect(isSongSoundChanged(resaved.state)).toBe(false);
   });
 
   it('"Save for this song" does nothing before the window has heard the sound, or with Song sounds off', () => {
@@ -218,20 +222,66 @@ describe('Auto EQ song sounds: a song’s own sound', () => {
     ]);
   });
 
-  it('files a change made while the song’s sound plays, and says so when the preset changes', () => {
-    const result = run(borrowed().state, [
+  it('hears a change made while the song’s sound plays, and keeps it for the song only when saved', () => {
+    const changed = run(borrowed().state, [
       [later + 3, { kind: 'soundChanged', sound: edited }],
-      [later + 4, { kind: 'closing' }],
     ]);
-    expect(kinds(result.effects, 'willSave')).toEqual([
-      { kind: 'willSave', identity: songA, presetId: 'rock', owner: 'song' },
-    ]);
-    expect(kinds(result.effects, 'save')).toEqual([
-      { kind: 'save', identity: songA, sound: edited, isPlay: true },
-    ]);
-    expect(kinds(result.effects, 'apply')).toEqual([
+    // The control: unchanged, nothing is offered.
+    expect(isSongSoundChanged(borrowed().state)).toBe(false);
+    expect(isSongSoundChanged(changed.state)).toBe(true);
+    // Left unsaved, nothing is filed and the listener's own sound comes back.
+    const ended = run(changed.state, [[later + 4, { kind: 'closing' }]]);
+    expect(kinds(ended.effects, 'save')).toEqual([]);
+    expect(kinds(ended.effects, 'apply')).toEqual([
       { kind: 'apply', sound: original, isLent: false },
     ]);
+    // Saved, the song keeps it, and the listener's own still comes back.
+    const saved = run(changed.state, [
+      [later + 4, { kind: 'saveNow' }],
+      [later + 5, { kind: 'closing' }],
+    ]);
+    expect(kinds(saved.effects, 'save')).toEqual([
+      { kind: 'save', identity: songA, sound: edited },
+    ]);
+    expect(kinds(saved.effects, 'apply')).toEqual([
+      { kind: 'apply', sound: original, isLent: false },
+    ]);
+  });
+
+  it('Back to saved puts the saved sound on again, lent, and files nothing', () => {
+    const reverted = run(borrowed().state, [
+      [later + 3, { kind: 'soundChanged', sound: edited }],
+      [later + 4, { kind: 'revert' }],
+    ]);
+    expect(reverted.effects).toEqual([
+      { kind: 'apply', sound: remembered, isLent: true },
+    ]);
+    const landed = run(reverted.state, [
+      [later + 5, { kind: 'applied', asked: remembered, landed: remembered }],
+    ]);
+    expect(isSongSoundChanged(landed.state)).toBe(false);
+    // Unchanged, there is nothing to go back to.
+    expect(
+      run(borrowed().state, [[later + 3, { kind: 'revert' }]]).effects,
+    ).toEqual([]);
+  });
+
+  it('Clear EQ while a saved song plays plays flat now, and the song keeps its saved sound', () => {
+    const flat = sound('none');
+    const result = run(borrowed().state, [
+      [later + 3, { kind: 'soundChanged', sound: flat }],
+      [later + 4, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
+      [later + 5, { kind: 'matched', identity: songB }],
+      [later + 6, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
+      [later + 7, { kind: 'matched', identity: songA, song: remembered }],
+    ]);
+    expect(kinds(result.effects, 'save')).toEqual([]);
+    // Song A comes back with its saved sound, lent over the listener's own.
+    expect(result.effects).toContainEqual({
+      kind: 'apply',
+      sound: remembered,
+      isLent: true,
+    });
   });
 
   it('plays a preset picked in the Library over the listener’s own Tone and bands', () => {
@@ -286,10 +336,8 @@ describe('Auto EQ song sounds: a song’s own sound', () => {
         (effect) => effect.kind === 'apply' && effect.isLent,
       ),
     ).toEqual([]);
-    // ...and the change is filed at the end.
-    expect(kinds(result.effects, 'save')).toEqual([
-      { kind: 'save', identity: songA, sound: edited, isPlay: true },
-    ]);
+    // ...and the change is still there, waiting to be saved.
+    expect(kinds(result.effects, 'save')).toEqual([]);
   });
 
   it('a pick made in the Library while the song plays reaches it at once', () => {
@@ -360,17 +408,15 @@ describe('Auto EQ song sounds: an album’s sound', () => {
     expect(result.state.session?.owner).toBe('album');
   });
 
-  it('a change over the album’s sound is filed for the song alone', () => {
+  it('a change over the album’s sound, saved, is the song’s alone', () => {
     const result = run(onAlbum().state, [
       [later + 3, { kind: 'soundChanged', sound: edited }],
-      [later + 4, { kind: 'closing' }],
-    ]);
-    expect(kinds(result.effects, 'willSave')).toEqual([
-      { kind: 'willSave', identity: songA, presetId: 'rock', owner: 'album' },
+      [later + 4, { kind: 'saveNow' }],
     ]);
     expect(kinds(result.effects, 'save')).toEqual([
-      { kind: 'save', identity: songA, sound: edited, isPlay: true },
+      { kind: 'save', identity: songA, sound: edited },
     ]);
+    expect(result.state.session?.owner).toBe('song');
   });
 
   it('with Song sounds off, a change over the album’s sound is filed nowhere', () => {
@@ -378,7 +424,6 @@ describe('Auto EQ song sounds: an album’s sound', () => {
       [later + 3, { kind: 'soundChanged', sound: edited }],
       [later + 4, { kind: 'closing' }],
     ]);
-    expect(kinds(result.effects, 'willSave')).toEqual([]);
     expect(kinds(result.effects, 'save')).toEqual([]);
     expect(kinds(result.effects, 'apply')).toEqual([
       { kind: 'apply', sound: original, isLent: false },

@@ -39,7 +39,6 @@ it('names the song playing, which the memory may not', () => {
   render(<SongSoundNotice />);
   act(() =>
     showSongSoundNotice({
-      kind: 'lent',
       identity: playing,
       owner: 'song',
       presetId: 'none',
@@ -63,7 +62,6 @@ it('says when the sound is the album’s, and which album', () => {
   render(<SongSoundNotice />);
   act(() =>
     showSongSoundNotice({
-      kind: 'lent',
       identity: playing,
       owner: 'album',
       presetId: 'none',
@@ -86,18 +84,8 @@ it('says when the sound is the album’s, and which album', () => {
   ).toBeVisible();
 });
 
-it('draws nothing while no saved sound has gone on, nor for a change about to be saved', () => {
+it('draws nothing while no saved sound has gone on', () => {
   // The control for the cases above: the card is drawn by a sound going on.
   const { container } = render(<SongSoundNotice />);
-  expect(container).toBeEmptyDOMElement();
-
-  act(() =>
-    showSongSoundNotice({
-      kind: 'willSave',
-      identity: playing,
-      owner: 'song',
-      presetId: 'none',
-    }),
-  );
   expect(container).toBeEmptyDOMElement();
 });

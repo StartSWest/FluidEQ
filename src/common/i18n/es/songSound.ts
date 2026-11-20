@@ -16,10 +16,4 @@ export default {
     '{title} suena con {preset}, el sonido del álbum',
   'songSound.noPresetName': 'Tu preset',
   'songSound.undo': 'Deshacer',
-  'songSound.willSaveTitle': 'Guardando para esta canción',
-  'songSound.willSaveBody': '{title} conservará {preset}.',
-  'songSound.willSaveAlbumTitle': 'Guardando solo para esta canción',
-  'songSound.willSaveAlbumBody':
-    '{title} conservará {preset}. El álbum conserva su propio sonido.',
-  'songSound.dontSave': 'No guardar',
 };

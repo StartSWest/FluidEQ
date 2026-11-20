@@ -286,11 +286,7 @@ describe('SongSound IPC ownership and profile persistence', () => {
       'A private title',
       'A private channel',
     );
-    const saved = await fire(ChannelEnum.SAVE_SONG_SOUND, [
-      identity,
-      song,
-      true,
-    ]);
+    const saved = await fire(ChannelEnum.SAVE_SONG_SOUND, [identity, song]);
     expect(saved).toHaveBeenCalledWith(ChannelEnum.SAVE_SONG_SOUND, {
       result: undefined,
     });
@@ -301,7 +297,7 @@ describe('SongSound IPC ownership and profile persistence', () => {
     const text = fs.readFileSync(path.join(root, 'song-sound.json'), 'utf8');
     expect(text).not.toMatch(/private|chrome/i);
     expect(storedEntries()).toEqual([
-      expect.objectContaining({ scope: 'other', title: '', plays: 1 }),
+      expect.objectContaining({ scope: 'other', title: '', plays: 0 }),
     ]);
     // The control: what was filed is still found by the song playing.
     expect(await lookup(identity)).toEqual({ result: { song } });
@@ -333,7 +329,7 @@ describe('SongSound IPC ownership and profile persistence', () => {
   });
 
   it('files a Library song with its track id, so the Library can label its row', async () => {
-    await fire(ChannelEnum.SAVE_SONG_SOUND, [blueInGreen, song, true]);
+    await fire(ChannelEnum.SAVE_SONG_SOUND, [blueInGreen, song]);
     const index = await fire(ChannelEnum.GET_SONG_SOUND_INDEX, []);
     expect(index).toHaveBeenCalledWith(ChannelEnum.GET_SONG_SOUND_INDEX, {
       result: expect.objectContaining({
@@ -352,8 +348,8 @@ describe('SongSound IPC ownership and profile persistence', () => {
   });
 
   it('forgets a song in its own world and leaves the other world’s copy', async () => {
-    await fire(ChannelEnum.SAVE_SONG_SOUND, [blueInGreen, song, true]);
-    await fire(ChannelEnum.SAVE_SONG_SOUND, [onSpotify, song, true]);
+    await fire(ChannelEnum.SAVE_SONG_SOUND, [blueInGreen, song]);
+    await fire(ChannelEnum.SAVE_SONG_SOUND, [onSpotify, song]);
     await fire(ChannelEnum.FORGET_SONG_SOUND, [onSpotify]);
     expect(await lookup(onSpotify)).toEqual({ result: {} });
     expect(await lookup(blueInGreen)).toEqual({ result: { song } });
@@ -368,7 +364,7 @@ describe('SongSound IPC ownership and profile persistence', () => {
         kind: 'video',
       }),
     );
-    const saved = await fire(ChannelEnum.SAVE_SONG_SOUND, [film, song, true]);
+    const saved = await fire(ChannelEnum.SAVE_SONG_SOUND, [film, song]);
     expect(saved).toHaveBeenCalledWith(ChannelEnum.SAVE_SONG_SOUND, {
       errorCode: ErrorCode.INVALID_PARAMETER,
     });
@@ -383,8 +379,7 @@ describe('SongSound IPC ownership and profile persistence', () => {
     });
     const saved = await fire(ChannelEnum.SAVE_SONG_SOUND, [
       onSpotify,
-      song,
-      'yes',
+      { presetId: 'none', filters: {} },
     ]);
     expect(saved).toHaveBeenCalledWith(ChannelEnum.SAVE_SONG_SOUND, {
       errorCode: ErrorCode.INVALID_PARAMETER,

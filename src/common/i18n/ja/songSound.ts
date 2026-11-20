@@ -15,10 +15,4 @@ export default {
   'songSound.albumNoticeBody': '{title} はアルバムの {preset} で再生されます',
   'songSound.noPresetName': 'あなたのプリセット',
   'songSound.undo': '元に戻す',
-  'songSound.willSaveTitle': 'この曲用に保存',
-  'songSound.willSaveBody': '{title} は {preset} を保持します。',
-  'songSound.willSaveAlbumTitle': 'この曲だけに保存',
-  'songSound.willSaveAlbumBody':
-    '{title} は {preset} を保持します。アルバムは独自のサウンドのままです。',
-  'songSound.dontSave': '保存しない',
 };

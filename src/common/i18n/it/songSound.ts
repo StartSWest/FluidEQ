@@ -16,10 +16,4 @@ export default {
     '{title} suona con {preset}, il suono dell’album',
   'songSound.noPresetName': 'Il tuo preset',
   'songSound.undo': 'Annulla',
-  'songSound.willSaveTitle': 'Salvataggio per questo brano',
-  'songSound.willSaveBody': '{title} manterrà {preset}.',
-  'songSound.willSaveAlbumTitle': 'Salvataggio solo per questo brano',
-  'songSound.willSaveAlbumBody':
-    '{title} manterrà {preset}. L’album mantiene il suo suono.',
-  'songSound.dontSave': 'Non salvare',
 };

@@ -15,10 +15,4 @@ export default {
   'songSound.albumNoticeBody': '{title} играет с пресетом альбома: {preset}',
   'songSound.noPresetName': 'Ваш пресет',
   'songSound.undo': 'Отменить',
-  'songSound.willSaveTitle': 'Сохранение для этой песни',
-  'songSound.willSaveBody': '{title} сохранит {preset}.',
-  'songSound.willSaveAlbumTitle': 'Сохранение только для этой песни',
-  'songSound.willSaveAlbumBody':
-    '{title} сохранит {preset}. У альбома остаётся свой звук.',
-  'songSound.dontSave': 'Не сохранять',
 };

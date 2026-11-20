@@ -31,8 +31,7 @@ import '../styles/SongEqNotice.scss';
  */
 const SongSoundNotice = () => {
   const { t } = useTranslation();
-  const current = useSongSoundNotice();
-  const notice = current?.kind === 'lent' ? current : undefined;
+  const notice = useSongSoundNotice();
   const isShown = useNoticeTurn('songSound', Boolean(notice));
 
   if (!notice || !isShown) {

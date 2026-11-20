@@ -34,15 +34,14 @@ export const lookupSongSound = (
     simpleResponseHandler<ISongSoundMatch>(),
   );
 
-/** File what plays as the song's own; `isPlay` counts a play at its end. */
+/** File what plays as the song's own: "Save for this song", Save changes. */
 export const saveSongSound = (
   identity: ISongIdentity,
   sound: ISongSound,
-  isPlay: boolean,
 ): Promise<void> =>
   sendRequest(
     ChannelEnum.SAVE_SONG_SOUND,
-    [identity, sound, isPlay],
+    [identity, sound],
     setterResponseHandler,
   );
 

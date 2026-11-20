@@ -47,8 +47,6 @@ const identity = (...args: Parameters<typeof buildSongIdentity>) => {
 const librarySong = identity('library', 'track-1', 'Song', 'Artist');
 const spotifySong = identity('system', 'Spotify.exe', 'Song', 'Artist');
 const empty = getDefaultSongSoundSettings;
-const PLAY = { isPlay: true };
-const PICK = { isPlay: false };
 
 describe('Auto EQ’s store of song sounds', () => {
   it('reads which world a song belongs to from where it plays', () => {
@@ -59,14 +57,13 @@ describe('Auto EQ’s store of song sounds', () => {
     expect(soundScopeOf('remote')).toBe('other');
   });
 
-  it('keeps one sound per song, counting a play only when it is filed at the song’s end', () => {
+  it('keeps one sound per song, the last saved, and counts no play for a save', () => {
     const picked = saveSongSound(
       empty(),
       librarySong,
       'library',
       sound('music'),
       10,
-      PICK,
     );
     expect(lookupSongSound(picked, librarySong, 'library')).toMatchObject({
       sound: sound('music'),
@@ -79,11 +76,12 @@ describe('Auto EQ’s store of song sounds', () => {
       'library',
       sound('cinema', 2),
       20,
-      PLAY,
     );
+    // A save is a press, never a play (Ivan approved explicit saving,
+    // 2026-11-20): what "Remember each song's sound" counted stays as it was.
     expect(lookupSongSound(played, librarySong, 'library')).toMatchObject({
       sound: sound('cinema', 2),
-      plays: 1,
+      plays: 0,
       updatedAt: 20,
     });
   });
@@ -97,7 +95,6 @@ describe('Auto EQ’s store of song sounds', () => {
       'library',
       sound('music'),
       10,
-      PICK,
     );
     expect(lookupSongSound(fromLibrary, spotifySong, 'other')).toBeUndefined();
 
@@ -107,7 +104,6 @@ describe('Auto EQ’s store of song sounds', () => {
       'other',
       sound('cinema'),
       20,
-      PLAY,
     );
     expect(lookupSongSound(both, librarySong, 'library')?.sound).toEqual(
       sound('music'),
@@ -124,7 +120,7 @@ describe('Auto EQ’s store of song sounds', () => {
       'library',
       sound('music'),
       10,
-      { isPlay: false, trackId: 'track-1' },
+      { trackId: 'track-1' },
     );
     const resaved = saveSongSound(
       named,
@@ -132,7 +128,6 @@ describe('Auto EQ’s store of song sounds', () => {
       'library',
       sound('cinema'),
       20,
-      PLAY,
     );
     expect(lookupSongSound(resaved, librarySong, 'library')?.trackId).toBe(
       'track-1',
@@ -143,7 +138,7 @@ describe('Auto EQ’s store of song sounds', () => {
       'other',
       sound('music'),
       10,
-      { isPlay: true, trackId: 'nope' },
+      { trackId: 'nope' },
     );
     expect(lookupSongSound(other, spotifySong, 'other')).not.toHaveProperty(
       'trackId',
@@ -152,12 +147,11 @@ describe('Auto EQ’s store of song sounds', () => {
 
   it('forgets a song only in its own world', () => {
     const both = saveSongSound(
-      saveSongSound(empty(), librarySong, 'library', sound('music'), 10, PICK),
+      saveSongSound(empty(), librarySong, 'library', sound('music'), 10),
       spotifySong,
       'other',
       sound('cinema'),
       20,
-      PLAY,
     );
     const forgotten = forgetSongSound(both, spotifySong, 'other');
     expect(lookupSongSound(forgotten, spotifySong, 'other')).toBeUndefined();
@@ -170,12 +164,11 @@ describe('Auto EQ’s store of song sounds', () => {
 
   it('"Forget all" takes one world’s songs and leaves the other’s', () => {
     const both = saveSongSound(
-      saveSongSound(empty(), librarySong, 'library', sound('music'), 10, PICK),
+      saveSongSound(empty(), librarySong, 'library', sound('music'), 10),
       spotifySong,
       'other',
       sound('cinema'),
       20,
-      PLAY,
     );
     const withoutOther = forgetSongSoundsOf(both, 'other');
     expect(lookupSongSound(withoutOther, spotifySong, 'other')).toBeUndefined();
@@ -283,7 +276,7 @@ describe('what the Library and Manage are shown', () => {
       'library',
       sound('music'),
       10,
-      { isPlay: false, trackId: 'track-1' },
+      { trackId: 'track-1' },
     );
     settings = saveSongSound(
       settings,
@@ -291,16 +284,8 @@ describe('what the Library and Manage are shown', () => {
       'library',
       { presetId: 'cinema' },
       20,
-      PICK,
     );
-    settings = saveSongSound(
-      settings,
-      spotifySong,
-      'other',
-      sound('game'),
-      30,
-      PLAY,
-    );
+    settings = saveSongSound(settings, spotifySong, 'other', sound('game'), 30);
     settings = setAlbumSound(settings, 'album-1', {
       title: 'Night Album',
       artist: 'Artist',
@@ -339,7 +324,6 @@ describe('what the Library and Manage are shown', () => {
       'library',
       sound('music'),
       10,
-      PICK,
     );
     const named = nameSongSound(unnamed, librarySong.key, 'track-1');
     expect(lookupSongSound(named, librarySong, 'library')).toMatchObject({
@@ -354,7 +338,6 @@ describe('what the Library and Manage are shown', () => {
       'other',
       sound('music'),
       10,
-      PLAY,
     );
     expect(nameSongSound(other, spotifySong.key, 'track-1')).toBe(other);
     expect(nameSongSound(unnamed, 'missing', 'track-1')).toBe(unnamed);

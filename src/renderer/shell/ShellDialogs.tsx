@@ -47,7 +47,6 @@ import RestartAudioDialog from '../components/RestartAudioDialog';
 import SceneReviewNotice from '../components/SceneReviewNotice';
 import SongEqNotice from '../components/SongEqNotice';
 import SongSoundNotice from '../components/SongSoundNotice';
-import SongSoundSaveNotice from '../components/SongSoundSaveNotice';
 import SongSoundHost from '../audio/SongSoundHost';
 import SpeechMemoryNotice from '../components/SpeechMemoryNotice';
 import UpdateNotice from '../components/UpdateNotice';
@@ -252,7 +251,6 @@ const ShellDialogs = ({
           band and every position a player reports, and redraws only itself. */}
       <SongSoundHost />
       <SongSoundNotice />
-      <SongSoundSaveNotice />
       {/* An output whose profile was gone at launch, and what it plays now:
           about the sound, so on whichever tab is open. */}
       <ProfileRecoveredNotice />

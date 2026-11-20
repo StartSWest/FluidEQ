@@ -15,10 +15,4 @@ export default {
   'songSound.albumNoticeBody': '{title} एल्बम के {preset} से बजता है',
   'songSound.noPresetName': 'आपका प्रीसेट',
   'songSound.undo': 'पूर्ववत',
-  'songSound.willSaveTitle': 'इस गाने के लिए सहेजा जा रहा है',
-  'songSound.willSaveBody': '{title} {preset} रखेगा।',
-  'songSound.willSaveAlbumTitle': 'सिर्फ़ इस गाने के लिए सहेजा जा रहा है',
-  'songSound.willSaveAlbumBody':
-    '{title} {preset} रखेगा। एल्बम अपनी आवाज़ रखता है।',
-  'songSound.dontSave': 'न सहेजें',
 };
