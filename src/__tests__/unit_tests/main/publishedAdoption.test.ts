@@ -140,3 +140,35 @@ it('leaves alone a project already recorded as it stands', async () => {
   expect(await adoption.adopt([folder])).toBe(false);
   expect(readPack).not.toHaveBeenCalled();
 });
+
+/** A scene's one set of window colours, and another to tell it from. */
+const DAY = { surface: '#101820', accent: '#ff8040', glow: '#ffd0a0' };
+const NIGHT = { surface: '#05070a', accent: '#4060ff', glow: '#a0b0ff' };
+
+it('reads a folder that still holds its colour stops as the copy published from them', async () => {
+  // The gallery stores the day's set as the scene's one set and no stops
+  // (`storedScenePack`); the Studio's folder keeps the stops it was edited
+  // with. Read as changed, every scene published from the Studio was marked
+  // "changed" the moment it went out (2026-11-19, Alpine v78).
+  project(5);
+  const onDisk: IScenePack = {
+    ...pack(5),
+    windowColourStops: { '100': DAY, '0': NIGHT },
+  };
+  const stored: IScenePack = { ...pack(5), windowColours: DAY };
+  const { records, adoption } = setUp(stored, onDisk);
+  expect(await adoption.adopt([folder])).toBe(true);
+  expect((await records.stateOf(folder))?.unchanged).toBe(true);
+});
+
+it('control: a copy published with other colours is still a change', async () => {
+  project(5);
+  const onDisk: IScenePack = {
+    ...pack(5),
+    windowColourStops: { '100': DAY, '0': NIGHT },
+  };
+  const stored: IScenePack = { ...pack(5), windowColours: NIGHT };
+  const { records, adoption } = setUp(stored, onDisk);
+  expect(await adoption.adopt([folder])).toBe(false);
+  expect(await records.stateOf(folder)).toBeUndefined();
+});

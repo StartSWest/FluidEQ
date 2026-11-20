@@ -11,6 +11,7 @@ import {
   type IScenePack,
 } from '../../common/scenePacks';
 import { canonicalPreviewPayload } from '../../common/scenePreviewPayload';
+import storedScenePack from '../../common/sceneStoredPack';
 import { readProject } from './project';
 import writeFileAtomically from '../atomicWrite';
 import {
@@ -107,10 +108,16 @@ const headOf = async (folder: string) => {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-/** A scene as the signing service compares it; undefined if unreadable. */
+/**
+ * A scene as the signing service compares it; undefined if unreadable. Both
+ * sides in the form a publication stores (`storedScenePack`): the gallery
+ * keeps one set of window colours and no stops, so a Studio folder that
+ * still holds its stops read as changed the moment it was published
+ * ("differs from version 78 as published: windowColourStops", 2026-11-19).
+ */
 const sceneOf = (pack: IScenePack) => {
   try {
-    const parsed = parseScenePackPayload(JSON.stringify(pack));
+    const parsed = parseScenePackPayload(JSON.stringify(storedScenePack(pack)));
     return parsed ? canonicalPreviewPayload(parsed) : undefined;
   } catch {
     return undefined;
