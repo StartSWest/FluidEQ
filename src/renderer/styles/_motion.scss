@@ -163,6 +163,44 @@ $smart-eq-status-hold: 6s;
   }
 }
 
+// A view inside a menu taking the place of another (Ivan, 2026-11-20: "add
+// animations to all those menus and navigations inside of them"): going
+// forward it comes in from the right, going back from the left, so the
+// direction reads. Half the corner notices' travel: it moves inside a menu.
+@keyframes view-forward {
+  from {
+    opacity: 0;
+    translate: 12px 0;
+  }
+}
+
+@keyframes view-back {
+  from {
+    opacity: 0;
+    translate: -12px 0;
+  }
+}
+
+// A row joining a list that is already on screen grows into its place, and
+// one leaving folds out of it, so the rows around it glide instead of
+// jumping. Heights to and from `auto` need `interpolate-size` on the row
+// (`row-presence`).
+@keyframes row-enter {
+  from {
+    height: 0;
+    padding-block: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes row-leave {
+  to {
+    height: 0;
+    padding-block: 0;
+    opacity: 0;
+  }
+}
+
 // A small overshoot on the way in. Only for things that appear one at a time
 // in response to a click — a chip, a badge — never for a list.
 @keyframes fade-out {
@@ -335,6 +373,44 @@ $scrim-leaving: fade-out 170ms ease-in 0ms forwards;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
+  }
+}
+
+/**
+ * A view swapped in inside a menu: `.is-forward` slides in from the right,
+ * `.is-back` from the left (`view-forward`, `view-back`). A view with neither —
+ * the one the menu opens on — arrives with the menu itself.
+ */
+@mixin view-swap {
+  &.is-forward {
+    @include animate(view-forward, $motion-base);
+  }
+
+  &.is-back {
+    @include animate(view-back, $motion-base);
+  }
+}
+
+/**
+ * A row of a list on screen that gains or loses rows (`usePresenceList`):
+ * `.is-entering` grows in, `.is-leaving` folds out and is then removed by its
+ * own `animationend`. Clipped while it changes size, and out of reach while
+ * it leaves. With motion off it does neither, and the list swaps at once.
+ */
+@mixin row-presence {
+  &.is-entering,
+  &.is-leaving {
+    overflow: clip;
+    interpolate-size: allow-keywords;
+  }
+
+  &.is-entering {
+    @include animate(row-enter, $motion-base);
+  }
+
+  &.is-leaving {
+    pointer-events: none;
+    @include animate(row-leave, $motion-fast, ease-in, 0ms, forwards);
   }
 }
 

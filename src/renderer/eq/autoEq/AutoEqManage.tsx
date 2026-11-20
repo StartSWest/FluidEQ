@@ -19,9 +19,13 @@ import {
   setAlbumSound,
 } from '../../utils/songSoundApi';
 import AutoEqEqList from './AutoEqEqList';
+import usePresenceList, { rowPhaseClass } from '../../utils/usePresenceList';
+import { type TViewStep, stepBetween, viewClass } from '../../utils/viewStep';
 import { eqNameOf } from '../../library/librarySoundTag';
 
 export type TManageTab = 'songs' | 'albums' | 'eqs';
+
+const MANAGE_TABS: readonly TManageTab[] = ['songs', 'albums', 'eqs'];
 
 const TAB_LABEL = {
   songs: 'autoEq.manage.songs',
@@ -58,6 +62,9 @@ const AutoEqManage = ({
   const soundIndex = useSongSoundIndex();
   const { index, eqs } = soundIndex;
   const [tab, setTab] = useState<TManageTab>(initialTab);
+  // A tab further along slides its list in from the right, one before it
+  // from the left.
+  const [tabStep, setTabStep] = useState<TViewStep>();
   const [search, setSearch] = useState('');
   // Forget all asks once more before it removes anything: there is no undo.
   const [isConfirming, setIsConfirming] = useState(false);
@@ -72,6 +79,9 @@ const AutoEqManage = ({
   const albums = (index?.albums ?? []).filter((album) =>
     matches(album.title, album.artist),
   );
+  // Forgotten rows fold out of the list rather than vanish.
+  const songRows = usePresenceList(songs, (song) => song.trackId);
+  const albumRows = usePresenceList(albums, (album) => album.key);
   const otherCount = index?.otherCount ?? 0;
   const countOf = (one: TManageTab) => {
     if (one === 'songs') {
@@ -127,7 +137,7 @@ const AutoEqManage = ({
         <strong>{t('autoEq.manage.title')}</strong>
       </header>
       <div className="eq-auto-manage__tabs" role="tablist">
-        {(['songs', 'albums', 'eqs'] as const).map((one) => (
+        {MANAGE_TABS.map((one) => (
           <button
             key={one}
             type="button"
@@ -135,6 +145,9 @@ const AutoEqManage = ({
             aria-selected={tab === one}
             className={`eq-auto-manage__tab${tab === one ? ' is-active' : ''}`}
             onClick={() => {
+              if (one !== tab) {
+                setTabStep(stepBetween(MANAGE_TABS, tab, one));
+              }
               setTab(one);
               setIsConfirming(false);
             }}
@@ -154,12 +167,20 @@ const AutoEqManage = ({
         handleSubmit={setSearch}
         handleEscape={() => setSearch('')}
       />
-      {tab === 'eqs' && <AutoEqEqList search={search} />}
+      {tab === 'eqs' && (
+        <div key="eqs" className={viewClass(tabStep)}>
+          <AutoEqEqList search={search} />
+        </div>
+      )}
       {tab !== 'eqs' && (
-        <ul className="eq-auto-manage__list">
+        <ul key={tab} className={`eq-auto-manage__list ${viewClass(tabStep)}`}>
           {tab === 'songs' &&
-            songs.map((song) => (
-              <li key={song.trackId}>
+            songRows.rows.map(({ key, item: song, phase }) => (
+              <li
+                key={key}
+                className={rowPhaseClass(phase)}
+                onAnimationEnd={songRows.onRowAnimationEnd(key)}
+              >
                 <span className="eq-auto-manage__words">
                   <strong>{song.title}</strong>
                   <span>
@@ -203,8 +224,12 @@ const AutoEqManage = ({
             </li>
           )}
           {tab === 'albums' &&
-            albums.map((album) => (
-              <li key={album.key}>
+            albumRows.rows.map(({ key, item: album, phase }) => (
+              <li
+                key={key}
+                className={rowPhaseClass(phase)}
+                onAnimationEnd={albumRows.onRowAnimationEnd(key)}
+              >
                 <span className="eq-auto-manage__words">
                   <strong>{album.title}</strong>
                   <span>

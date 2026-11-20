@@ -410,6 +410,10 @@ $auto-eq-pad: $spacing-s + $spacing-xs;
   font-size: $text-body;
   font-weight: $weight-semibold;
   cursor: pointer;
+  // The underline and the ink move to the tab pressed, not snap to it.
+  transition:
+    color $motion-fast $ease-out,
+    border-color $motion-fast $ease-out;
 
   &.is-active {
     color: $text-primary;

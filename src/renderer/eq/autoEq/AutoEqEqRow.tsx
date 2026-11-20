@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { Fragment, useEffect, useState } from 'react';
+import { type AnimationEvent, Fragment, useEffect, useState } from 'react';
 import log from 'electron-log/renderer';
 import type { Translate } from 'common/i18n';
 import { SAVED_EQ_NAME_MAX } from 'common/savedEq';
@@ -19,6 +19,7 @@ import {
   updateSavedEqWithLive,
 } from '../../audio/savedEqActions';
 import AutoEqMiniCurve from './AutoEqMiniCurve';
+import { type TRowPhase, rowPhaseClass } from '../../utils/usePresenceList';
 import { bandsLine, isToneFlat, presetLine } from './AutoEqSongHolds';
 
 const report = (what: string) => (error: unknown) =>
@@ -60,12 +61,17 @@ const AutoEqEqRow = ({
   eq,
   state,
   canPutOn,
+  phase = 'stay',
+  onAnimationEnd,
 }: {
   eq: ISavedEqSummary;
   /** Plays exactly, or was put on and has changed since. */
   state?: 'playing' | 'changed';
   /** Something to put it on over: the window has heard what plays. */
   canPutOn: boolean;
+  /** Arriving in, or leaving, a list already on screen (`usePresenceList`). */
+  phase?: TRowPhase;
+  onAnimationEnd?: (event: AnimationEvent) => void;
 }) => {
   const { t } = useTranslation();
   const [mode, setMode] = useState<TRowMode>('idle');
@@ -163,7 +169,12 @@ const AutoEqEqRow = ({
   if (mode === 'deleting') {
     const users = eq.songCount + eq.albumCount;
     return (
-      <li className="eq-auto-eq is-asking">
+      <li
+        className={['eq-auto-eq is-asking', rowPhaseClass(phase)]
+          .filter(Boolean)
+          .join(' ')}
+        onAnimationEnd={onAnimationEnd}
+      >
         <div className="eq-auto-eq__words">
           <strong>{t('autoEq.eqs.deleteAsk', { name: eq.name })}</strong>
           {users > 0 && (
@@ -191,7 +202,16 @@ const AutoEqEqRow = ({
   }
 
   return (
-    <li className={`eq-auto-eq${state === 'playing' ? ' is-playing' : ''}`}>
+    <li
+      className={[
+        'eq-auto-eq',
+        state === 'playing' ? 'is-playing' : undefined,
+        rowPhaseClass(phase),
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      onAnimationEnd={onAnimationEnd}
+    >
       <AutoEqMiniCurve
         filters={eq.sound.filters}
         width={58}

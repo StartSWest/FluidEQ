@@ -1,0 +1,19 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'motion' as *;
+
+// A box whose height runs to its content's (`AnimatedHeight`). `clip`, not
+// `hidden`: no scroll container, so a sticky foot inside keeps sticking to the
+// menu that scrolls.
+.animated-height {
+  overflow: clip;
+  transition: height $motion-base $ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}

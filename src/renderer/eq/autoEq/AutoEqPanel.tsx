@@ -24,6 +24,8 @@ import type { TAutoEqButton } from './useAutoEqButton';
 import AutoEqNowPlaying from './AutoEqNowPlaying';
 import AutoEqSmartPart from './AutoEqSmartPart';
 import AutoEqManage, { type TManageTab } from './AutoEqManage';
+import { type TViewStep, viewClass } from '../../utils/viewStep';
+import useHasChanged from '../../utils/useHasChanged';
 import AutoEqMeasureOnce from './AutoEqMeasureOnce';
 import AutoEqSongHolds from './AutoEqSongHolds';
 import AutoEqSavedEqs from './AutoEqSavedEqs';
@@ -78,18 +80,34 @@ const AutoEqPart = ({
 const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
   const { t } = useTranslation();
   const [managing, setManaging] = useState<TManageTab | undefined>();
+  // Which way the view was reached, so Manage slides in from the right and
+  // the panel back from the left.
+  const [step, setStep] = useState<TViewStep>();
+  const manage = (tab: TManageTab) => {
+    setManaging(tab);
+    setStep('forward');
+  };
   const parts = useSongSoundParts();
   const isHeld = useSongSoundHeld();
   const now = useSongSoundNow();
   const { index, albums, eqs, eqById } = useSongSoundIndex();
   const eqStates = useSavedEqStates(eqs);
+  // The song's line swaps in when its state does — Changed, Saved, nothing
+  // saved — and not as the panel opens.
+  const songLineState = `${now.isChanged ? 'changed' : (now.owner ?? 'own')}`;
+  const swap = useHasChanged(songLineState) ? ' is-swap' : '';
 
   if (managing) {
     return (
-      <AutoEqManage
-        initialTab={managing}
-        onBack={() => setManaging(undefined)}
-      />
+      <div className={viewClass(step)}>
+        <AutoEqManage
+          initialTab={managing}
+          onBack={() => {
+            setManaging(undefined);
+            setStep('back');
+          }}
+        />
+      </div>
     );
   }
 
@@ -137,7 +155,7 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
   }
 
   return (
-    <div className="eq-auto-panel__content">
+    <div className={`eq-auto-panel__content ${viewClass(step)}`}>
       <header className="eq-auto-panel__head">
         <strong>{t('autoEq.title')}</strong>
         <span>{t('autoEq.tagline')}</span>
@@ -161,7 +179,7 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
           // Changed over a saved sound, and kept only when saved (Ivan
           // approved explicit saving, 2026-11-20): saving is the suggestion,
           // so it wears the loud style, and going back the quiet one.
-          <div className="eq-auto-part__line">
+          <div key={songLineState} className={`eq-auto-part__line${swap}`}>
             <span className="eq-auto-part__changed" role="status">
               {t('autoEq.songs.changed')}
             </span>
@@ -186,7 +204,8 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
           // row to itself and the two buttons stand together under it: in a
           // row of three the second button fell to a line of its own.
           <div
-            className={`eq-auto-part__line${
+            key={songLineState}
+            className={`eq-auto-part__line${swap}${
               eqs.length > 0 && now.owner !== 'song' ? ' is-stacked' : ''
             }`}
           >
@@ -230,7 +249,7 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
           <span>{albumLine}</span>
         </div>
       </AutoEqPart>
-      <AutoEqSavedEqs onSeeAll={() => setManaging('eqs')} />
+      <AutoEqSavedEqs onSeeAll={() => manage('eqs')} />
       <AutoEqSmartPart button={button} />
       <footer className="eq-auto-panel__foot">
         <span>
@@ -242,7 +261,7 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
         <button
           type="button"
           className="button small subtle"
-          onClick={() => setManaging('songs')}
+          onClick={() => manage('songs')}
         >
           {t('autoEq.manage')}
         </button>

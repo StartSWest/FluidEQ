@@ -10,6 +10,7 @@ import { useSongSoundIndex } from '../../audio/songSoundIndex';
 import { useLiveSongSound } from '../../audio/songSoundSession';
 import { useSavedEqStates } from '../../audio/savedEqActions';
 import AutoEqEqRow from './AutoEqEqRow';
+import usePresenceList from '../../utils/usePresenceList';
 import { orderSavedEqs, rowStateOf } from './AutoEqSavedEqs';
 
 /**
@@ -28,14 +29,18 @@ const AutoEqEqList = ({ search }: { search: string }) => {
   const shown = orderSavedEqs(eqs, states).filter(
     (eq) => needle === '' || normalizeForSearch(eq.name).includes(needle),
   );
+  // A saved EQ added grows into the list, one deleted folds out of it.
+  const { rows, onRowAnimationEnd } = usePresenceList(shown, (eq) => eq.id);
   return (
     <ul className="eq-auto-eqs eq-auto-eqs--all">
-      {shown.map((eq) => (
+      {rows.map(({ key, item: eq, phase }) => (
         <AutoEqEqRow
-          key={eq.id}
+          key={key}
           eq={eq}
           state={rowStateOf(eq, states)}
           canPutOn={!!live}
+          phase={phase}
+          onAnimationEnd={onRowAnimationEnd(key)}
         />
       ))}
       {shown.length === 0 && (

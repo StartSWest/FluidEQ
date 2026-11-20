@@ -15,6 +15,8 @@ import {
   useSavedEqStates,
 } from '../../audio/savedEqActions';
 import AutoEqEqRow from './AutoEqEqRow';
+import usePresenceList from '../../utils/usePresenceList';
+import { type TViewStep, viewClass } from '../../utils/viewStep';
 import AutoEqSaveEqForm from './AutoEqSaveEqForm';
 
 /** The panel lists this many; See all opens the rest in Manage. */
@@ -58,13 +60,24 @@ const AutoEqSavedEqs = ({ onSeeAll }: { onSeeAll: () => void }) => {
   const live = useLiveSongSound();
   const states = useSavedEqStates(eqs);
   const [isSaving, setIsSaving] = useState(false);
+  // The form slides in from the right, and the list back from the left.
+  const [step, setStep] = useState<TViewStep>();
   const shown = orderSavedEqs(eqs, states).slice(0, SHOWN);
+  const { rows, onRowAnimationEnd } = usePresenceList(shown, (eq) => eq.id);
+  const openForm = () => {
+    setIsSaving(true);
+    setStep('forward');
+  };
+  const closeForm = () => {
+    setIsSaving(false);
+    setStep('back');
+  };
   const saveButton = (
     <button
       type="button"
       className="button small subtle"
       disabled={!live}
-      onClick={() => setIsSaving(true)}
+      onClick={openForm}
     >
       <MenuIcon name="plus" />
       {t('autoEq.eqs.saveThis')}
@@ -83,13 +96,15 @@ const AutoEqSavedEqs = ({ onSeeAll }: { onSeeAll: () => void }) => {
         {!isSaving && eqs.length > 0 && saveButton}
       </div>
       {isSaving && (
-        <AutoEqSaveEqForm
-          suggestedName={t('autoEq.eqs.defaultName', {
-            count: eqs.length + 1,
-          })}
-          onCancel={() => setIsSaving(false)}
-          onSaved={() => setIsSaving(false)}
-        />
+        <div className={viewClass(step)}>
+          <AutoEqSaveEqForm
+            suggestedName={t('autoEq.eqs.defaultName', {
+              count: eqs.length + 1,
+            })}
+            onCancel={closeForm}
+            onSaved={closeForm}
+          />
+        </div>
       )}
       {!isSaving && eqs.length === 0 && (
         <div className="eq-auto-part__line">
@@ -98,13 +113,15 @@ const AutoEqSavedEqs = ({ onSeeAll }: { onSeeAll: () => void }) => {
         </div>
       )}
       {!isSaving && eqs.length > 0 && (
-        <ul className="eq-auto-eqs">
-          {shown.map((eq) => (
+        <ul className={`eq-auto-eqs ${viewClass(step)}`}>
+          {rows.map(({ key, item: eq, phase }) => (
             <AutoEqEqRow
-              key={eq.id}
+              key={key}
               eq={eq}
               state={rowStateOf(eq, states)}
               canPutOn={!!live}
+              phase={phase}
+              onAnimationEnd={onRowAnimationEnd(key)}
             />
           ))}
         </ul>

@@ -9,6 +9,7 @@ import { endSmartEqStatus } from '../../utils/smartEqRun';
 import MenuIcon from '../../icons/MenuIcon';
 import Chevron from '../../icons/Chevron';
 import AnchoredMenu from '../../widgets/AnchoredMenu';
+import AnimatedHeight from '../../widgets/AnimatedHeight';
 import { PetArt } from '../../SupportPet';
 import isOwnAnimationEnd from '../../utils/ownAnimationEnd';
 import { endCorrectionFlash } from '../../utils/correctionFlash';
@@ -21,6 +22,7 @@ import {
   useSongSoundParts,
 } from '../../audio/songSoundSession';
 import { useContinuousEq } from '../../utils/continuousEq';
+import useHasChanged from '../../utils/useHasChanged';
 import { useSmartEqPhase } from '../../utils/smartEqPreview';
 import useAutoEqButton from './useAutoEqButton';
 import AutoEqPanel from './AutoEqPanel';
@@ -72,12 +74,14 @@ const AutoEqSaveHalf = ({
   title: string | undefined;
 }) => {
   const { t } = useTranslation();
+  // Save and Saved swap in when they swap, never as the page opens.
+  const swap = useHasChanged(save ?? 'none') ? ' is-swap' : '';
   if (!save) {
     return null;
   }
   if (save === 'saved') {
     return (
-      <span className="eq-auto__save is-saved" role="status">
+      <span className={`eq-auto__save is-saved${swap}`} role="status">
         <MenuIcon name="check" className="eq-toolbar__icon" />
         <span className="eq-auto__save-word eq-toolbar__word">
           {t('autoEq.button.saved')}
@@ -96,7 +100,7 @@ const AutoEqSaveHalf = ({
   return (
     <button
       type="button"
-      className="eq-auto__save"
+      className={`eq-auto__save${swap}`}
       aria-label={name}
       title={title ? t('autoEq.button.saveFor', { title }) : name}
       onClick={saveSongSoundNow}
@@ -191,7 +195,10 @@ const AutoEqButton = () => {
         role="dialog"
         ariaLabel={t('autoEq.title')}
       >
-        <AutoEqPanel button={button} />
+        {/* Its height runs to each view's: Manage, a form, a row gone. */}
+        <AnimatedHeight className="eq-auto-panel__body">
+          <AutoEqPanel button={button} />
+        </AnimatedHeight>
       </AnchoredMenu>
       {/* What Smart correction is doing, said by the pet, from the button
         itself: hung off the button it belongs to, it is obviously about that

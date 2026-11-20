@@ -8,6 +8,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'spacing' as *;
 @use 'color' as *;
 @use 'libraryTokens' as *;
+@use 'motion' as *;
 
 // WHAT A SOUND HOLDS AND THE SAVED EQS in Auto EQ's panel (`AutoEqSongHolds`,
 // `AutoEqSavedEqs`, `AutoEqEqRow`, `AutoEqSaveEqForm`), flat on the panel like
@@ -313,6 +314,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // panel's own form in its place while saving.
 .band-menu.eq-save-menu {
   width: 300px;
+  // Its width runs to each view's as its height does (`AnimatedHeight`).
+  transition: width $motion-base $ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 
   &.is-form {
     width: 340px;
@@ -413,4 +420,42 @@ SPDX-License-Identifier: GPL-3.0-or-later
   padding: $spacing-m $spacing-s;
   color: $text-faint;
   text-align: center;
+}
+
+// MOTION (Ivan, 2026-11-20: "add animations to all those menus and navigations
+// inside of them"). The menus arrive and leave on their own (`menu-motion`)
+// and grow to each view's height (`AnimatedHeight`); what changes inside
+// them moves with the app's tokens, never further than a menu's own arrival.
+
+// A view swapped in: from the right going forward, from the left going back.
+.eq-view {
+  @include view-swap;
+}
+
+// The menu's own list view, laid out as the band menu lays its rows.
+.eq-save-menu__list {
+  display: grid;
+  gap: 1px;
+}
+
+// A saved EQ added grows into its list and one deleted folds out of it; a
+// song or album forgotten in Manage likewise.
+.eq-auto-eq,
+.eq-auto-manage__list li {
+  @include row-presence;
+}
+
+// The song's line when its state swaps (Changed, Saved, nothing saved).
+.eq-auto-part__line.is-swap {
+  @include animate(rise-in, $motion-fast);
+}
+
+// Save and Saved on Auto EQ's button: the words swap, the segment stays.
+.eq-auto__save.is-swap > * {
+  @include animate(fade-in, $motion-fast);
+}
+
+// Playing and Changed arriving on a row.
+.eq-auto-eq__tag {
+  @include animate(fade-in, $motion-fast);
 }

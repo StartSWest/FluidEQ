@@ -68,6 +68,7 @@ import './SongEqBadge.scss';
 import './NowPlayingBar.scss';
 import './EqAutoPanel.scss';
 import './EqAutoSounds.scss';
+import './AnimatedHeight.scss';
 // A page's left rail (`StudioRail`), ahead of the pages that host one, so a
 // page's own rules for its rail win the ties.
 import './StudioRail.scss';
