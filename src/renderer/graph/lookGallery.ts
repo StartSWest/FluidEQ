@@ -29,6 +29,7 @@ import {
   officialSceneThumbnail,
 } from './lookPickerRows';
 import type { ILookThumbnailRef } from './lookThumbnails';
+import type { ILikedScene } from './SceneLikeButton';
 
 /**
  * The graph's looks as a gallery (Ivan, 2026-11-19, round 3's "I"): the one
@@ -52,6 +53,11 @@ export interface IGalleryEntry {
   thumbnail?: ILookThumbnailRef;
   /** The scene's version on this computer, for its "new version" mark. */
   version?: number;
+  /**
+   * Who a like on it thanks: a scene's alone, FluidEQ's own or a member's,
+   * never a standard look (Ivan, 2026-11-19: "solo las plus").
+   */
+  liked?: ILikedScene;
 }
 
 export interface ILookGallery {
@@ -93,6 +99,12 @@ export const useLookGallery = (selectedLookId: string): ILookGallery => {
           swatch: scene.swatch,
           thumbnail: officialSceneThumbnail(scene, findGalleryScene(look.id)),
           version: scene.version,
+          liked: {
+            lookId: look.id,
+            names: scene.names,
+            own: false,
+            authorName: t('account.plus.eyebrow'),
+          },
         } satisfies IGalleryEntry;
       }
       if (isMemberLookId(look.id)) {
@@ -109,6 +121,7 @@ export const useLookGallery = (selectedLookId: string): ILookGallery => {
           swatch: scene.swatch,
           thumbnail: memberSceneThumbnail(scene, findGalleryScene(look.id)),
           version: scene.version,
+          liked: scene,
         } satisfies IGalleryEntry;
       }
       return {
@@ -138,6 +151,18 @@ export const useLookGallery = (selectedLookId: string): ILookGallery => {
               ? t('account.plus.eyebrow')
               : t('graph.member.theirs'),
             swatch: pack.swatch,
+            // FluidEQ's own is still this account's to thank, drawn here or
+            // not; a member's set aside is not this account's any more.
+            ...(isPremiumLookId(lookId)
+              ? {
+                  liked: {
+                    lookId,
+                    names: pack.names,
+                    own: false,
+                    authorName: t('account.plus.eyebrow'),
+                  },
+                }
+              : {}),
           }
         : undefined;
     };

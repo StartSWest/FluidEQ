@@ -63,22 +63,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // *** The neighbours ***********************************************************
 
-// A landscape tile of the look either side, as tall as the credit beside it,
-// with the step's chevron on its outer side. The name is its tooltip and its
-// label. The strip's ghost pill is not theirs (`App.scss`,
-// `.live-output-controls button`): the crystal is the face.
+// A tile of the look either side, as tall as the credit beside it: the
+// step's chevron on its outer side and the look's picture beside it, the two
+// side by side on the crystal so the picture is seen whole (Ivan, 2026-11-19:
+// "the next arrows need to be outside the scene thumbnail inside the bar").
+// The name is its tooltip and its label. The strip's ghost pill is not theirs
+// (`App.scss`, `.live-output-controls button`): the crystal is the face.
 .graph-gallery-edge {
-  position: relative;
-  display: block;
-  width: 64px;
+  display: flex;
   min-height: 42px;
   flex: 0 0 auto;
+  align-items: center;
   padding: 4px;
   border: 0;
   cursor: pointer;
+  gap: 2px;
 
-  &:hover .graph-gallery-picture {
-    filter: brightness(1.12);
+  &:hover {
+    background: color-mix(in srgb, var(--crystal-ink) 12%, transparent);
   }
 
   &:focus-visible {
@@ -86,32 +88,28 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   .graph-gallery-picture {
-    width: 100%;
-    height: 100%;
+    width: 52px;
+    align-self: stretch;
     border-radius: $radius-xs;
   }
 }
 
-// The step, a dark disc over the picture's outer side, flat: it reads over
-// any picture without a lit edge of its own.
+// The previous look's chevron leads, on the outside.
+.graph-gallery-edge--previous {
+  flex-direction: row-reverse;
+}
+
+// The step: the chevron alone, in the crystal's ink.
 .graph-gallery-edge__step {
-  position: absolute;
-  top: 50%;
   display: grid;
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  flex: 0 0 auto;
+  align-self: stretch;
   place-items: center;
-  border-radius: 50%;
-  background: rgba($black, 0.45);
-  color: $white;
-  transform: translateY(-50%);
+  color: var(--crystal-ink-muted);
 
-  .graph-gallery-edge--previous & {
-    left: 8px;
-  }
-
-  .graph-gallery-edge--next & {
-    right: 8px;
+  .graph-gallery-edge:hover & {
+    color: var(--crystal-ink);
   }
 
   svg {

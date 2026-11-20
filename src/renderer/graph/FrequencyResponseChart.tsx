@@ -45,7 +45,6 @@ import {
 import Spinner from 'renderer/icons/Spinner';
 import { isLockedLookId, isPremiumLookId } from 'common/scenePacks';
 import { isMemberLookId } from 'common/memberScenes';
-import { useUsableMemberScenes } from 'renderer/utils/memberScenes';
 import { requestAccountPanel } from 'renderer/account/accountPanel';
 import PaletteIcon from 'renderer/icons/PaletteIcon';
 import {
@@ -147,7 +146,6 @@ import FILTER_TYPE_NAME_KEYS from '../utils/filterTypeNames';
 import LookDesigner from '../components/LookDesigner';
 import { ROW_ORDER } from '../components/activeLayerList';
 import GraphAutoCycle from './GraphAutoCycle';
-import SceneLikeButton from './SceneLikeButton';
 import { isGraphWaveDrawn } from './graphScenePlace';
 import GraphUpdateNotice from './GraphUpdateNotice';
 import GraphWallpaperToggle from './GraphWallpaperToggle';
@@ -431,14 +429,6 @@ const FrequencyResponseChart = ({
   const graphPalette: GraphPalette = useGraphPalette();
   const isPaletteSelectable = useIsPaletteSelectable();
   const customLooks = useCustomLooks();
-  // Scenes the member made in the Studio, for the heart beside the one on the
-  // plot. The picker subscribes to every list it shows itself (`LookPicker`).
-  const memberScenes = useUsableMemberScenes();
-  // The member's scene on the plot, if one is: the option bar carries its
-  // heart in the design button's place.
-  const selectedMemberScene = isMemberLookId(selectedLookId)
-    ? memberScenes.find((scene) => scene.lookId === selectedLookId)
-    : undefined;
   // Whether somebody wants the designer; `isDesignerOpen` below is whether it
   // is on screen, which lasts through its way out.
   const [isDesignerWanted, setIsDesignerWanted] = useState(false);
@@ -1573,17 +1563,6 @@ const FrequencyResponseChart = ({
           isIdle={isChromeIdle}
           onStep={cycleGraphLook}
           onChoose={chooseGraphLook}
-          like={
-            // A member's scene has somebody to thank (Ivan, 2026-09-29).
-            // Keyed on the scene so the count never carries over from the
-            // last one.
-            selectedMemberScene && (
-              <SceneLikeButton
-                key={selectedMemberScene.lookId}
-                scene={selectedMemberScene}
-              />
-            )
-          }
           tools={
             <>
               <GraphAutoCycle

@@ -10,6 +10,7 @@ import SceneLookIcon from '../icons/SceneLookIcon';
 import { useTranslation } from '../utils/I18nContext';
 import { isUnseenSceneVersion } from '../utils/seenSceneVersions';
 import LookPicker from './LookPicker';
+import SceneLikeButton from './SceneLikeButton';
 import { useLookGallery, type IGalleryEntry } from './lookGallery';
 import { useLookThumbnail, type ILookThumbnailRef } from './lookThumbnails';
 import '../styles/GraphGallery.scss';
@@ -147,9 +148,7 @@ interface IGraphGalleryProps {
   isIdle: boolean;
   onStep: (direction: 1 | -1) => void;
   onChoose: (lookId: string) => void;
-  /** The heart, on a member's scene. */
-  like?: ReactNode;
-  /** The switches that belong to the look, opened from its credit. */
+  /** The switches that belong to the look, shown beside its credit. */
   tools: ReactNode;
 }
 
@@ -159,7 +158,6 @@ const GraphGallery = ({
   isIdle,
   onStep,
   onChoose,
-  like,
   tools,
 }: IGraphGalleryProps) => {
   const { t } = useTranslation();
@@ -223,7 +221,11 @@ const GraphGallery = ({
             }
             triggerTitle={current ? t('graph.picker.label') : undefined}
           />
-          {like}
+          {/* A scene's heart, FluidEQ's own or a member's, keyed on the scene
+              so a count never carries over from the last one. */}
+          {current?.liked && (
+            <SceneLikeButton key={current.id} scene={current.liked} />
+          )}
           {dots > 1 && index >= 0 && (
             <span
               className="graph-gallery-credit__place"

@@ -1,15 +1,27 @@
 import { useEffect, useState } from 'react';
-import { resolveSceneName } from 'common/scenePacks';
+import { resolveSceneName, type TLocalizedName } from 'common/scenePacks';
 import type { ILikeStatus } from 'main/memberScenes/social';
+import { patchGalleryScene } from '../plus/galleryStore';
 import { useTranslation } from '../utils/I18nContext';
 import {
   fetchMemberSceneLikes,
   likeMemberSceneLook,
-  type IUsableMemberScene,
 } from '../utils/memberScenes';
 
+/**
+ * A scene a like can thank: one of FluidEQ's own, filed by the server under
+ * the FluidEQ author (`likedSceneOf`), or a member's.
+ */
+export interface ILikedScene {
+  lookId: string;
+  names: TLocalizedName;
+  /** The member's own scene: its count, never a like of their own. */
+  own: boolean;
+  authorName?: string | null;
+}
+
 interface ISceneLikeButtonProps {
-  scene: IUsableMemberScene;
+  scene: ILikedScene;
 }
 
 const Heart = () => (
@@ -19,14 +31,15 @@ const Heart = () => (
 );
 
 /**
- * The heart on a member's scene, in the graph's option bar — the row that is
- * on screen in the normal view and in full screen alike, and fades with it.
+ * The heart on a scene, in the credit of the graph's gallery (`GraphGallery`)
+ * — FluidEQ's own scenes and members' alike (Ivan, 2026-11-19: "I should be
+ * able to like it there by clicking the heart", "solo las plus"), never a
+ * standard look. It was members' scenes only.
  *
- * It takes the place of the design button, which a scene has no use for, so
- * the row is no wider with a scene playing than with a look. A like is for
- * the author: a member's own scene shows its count and
- * cannot be pressed. Nobody is shown who liked what; the count is all there
- * is. Hovering names the scene and who made it.
+ * A like is for the author: a member's own scene shows its count and cannot
+ * be pressed. Nobody is shown who liked what; the count is all there is.
+ * Hovering names the scene and who made it. A like given here is the same
+ * like the Scenes gallery shows, so its lists take the answer too.
  */
 export default function SceneLikeButton({ scene }: ISceneLikeButtonProps) {
   const { t, locale } = useTranslation();
@@ -95,6 +108,10 @@ export default function SceneLikeButton({ scene }: ISceneLikeButtonProps) {
         if (answer) {
           setStatus(answer);
           setOffline(false);
+          patchGalleryScene(lookId, {
+            liked: answer.liked,
+            likes: answer.likes,
+          });
         } else {
           setStatus(status);
           setOffline(true);
