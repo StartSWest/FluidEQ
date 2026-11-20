@@ -74,6 +74,8 @@ import './Dsp.scss';
 // The Gaming Lab's frame and rail (`GamingLabFrame`), after the rail and the
 // rack it borrows, so its page's rules stand over theirs.
 import './GamingLab.scss';
+// A game's page while its sound is off, after the Lab's own rules.
+import './GamingSoundSheet.scss';
 import './EqModeSelect.scss';
 import './BandLayoutMenu.scss';
 import './BandLabels.scss';

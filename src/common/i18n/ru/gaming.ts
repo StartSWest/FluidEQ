@@ -63,8 +63,40 @@ export default {
   'gaming.stage.curve': 'Кривая',
   'gaming.curve.any': 'Любая игра',
   'gaming.editor.notLoaded': 'Собственный звук {game} сейчас не играет',
-  'gaming.editor.notLoadedMore':
-    'Попробуйте сейчас, чтобы услышать его и настроить прямо здесь. Музыкальный звук вернётся по кнопке «Выгрузить» или когда игра закроется.',
+  'gaming.sheet.lead':
+    'Сейчас играет ваш музыкальный звук. Ниже — то, что играет {game}: нажмите «Попробовать сейчас» или «Настроить» у любой части, чтобы услышать и настроить прямо здесь.',
+  'gaming.sheet.tune': 'Настроить',
+  'gaming.sheet.tuneHint':
+    'Включает собственный звук {game} и открывает раздел «{part}».',
+  'gaming.sheet.tuneRackHint':
+    'Включает собственный звук {game} и открывает его ступени DSP.',
+  'gaming.sheet.off': 'Выкл.',
+  'gaming.sheet.none': 'Нет',
+  'gaming.sheet.flat': 'Ровно',
+  'gaming.sheet.asMixed': 'Как сведено',
+  'gaming.sheet.filterOff': 'В звуке этой игры фильтр «Игра» выключен.',
+  'gaming.sheet.footstepsOn': 'Тихий шаг поднимается, пока звучит',
+  'gaming.sheet.footstepsOff': 'Шаги остаются такими, как их свела игра',
+  'gaming.sheet.dialogueOn': 'Голос выходит вперёд, пока кто-то говорит',
+  'gaming.sheet.dialogueOff': 'Голоса остаются там, где их поставила игра',
+  'gaming.sheet.environmentDown': 'Дождь, ветер и гул тише',
+  'gaming.sheet.environmentUp': 'Дождь, ветер и гул громче',
+  'gaming.sheet.environmentAsMixed':
+    'Дождь, ветер и гул такие, как сделала игра',
+  'gaming.sheet.calm': 'Смягчение до {db}',
+  'gaming.sheet.alsoOn': 'Также включено: {parts}',
+  'gaming.sheet.bands': 'Полосы',
+  'gaming.sheet.bandsNone':
+    'Полосы, добавленные во время игры, остаются с этой игрой',
+  'gaming.sheet.bandsSome': 'Собственные полосы этой игры, поверх её кривой',
+  'gaming.sheet.toneOn': 'Задан',
+  'gaming.sheet.toneFlat': 'Басы, середина и верха на 0 дБ',
+  'gaming.sheet.toneSet': 'Басы {bass} · Середина {mid} · Верха {treble}',
+  'gaming.sheet.correction': 'Вместе с ней играет коррекция наушников.',
+  'gaming.sheet.rackOff': 'Все ступени рэка выключены.',
+  'gaming.sheet.gameMode': 'Игровой режим включён',
+  'gaming.sheet.restOff': 'Выключены: {stages}',
+  'gaming.sheet.dbUnit': 'дБ',
   'gaming.editor.eqNote':
     'Собственные полосы этой игры, нарисованные на графике выше, когда он показан.',
   'gaming.editor.curveNote':

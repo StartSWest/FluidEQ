@@ -26,6 +26,7 @@ import {
   TFootstepsPresetGroup,
 } from './dsp/footstepsPresets';
 import type { TRoomPresetId } from './dsp/roomPresets';
+import type { ITone } from './tone';
 
 /** A ready-made profile's id: its Game filter preset's, prefixed. */
 const READY = 'ready:';
@@ -251,6 +252,25 @@ export interface IYoursGamingProfile {
   /** Milliseconds since the epoch. */
   savedAt: number;
   summary?: IYoursSoundSummary;
+}
+
+/**
+ * What a game's copy plays on this output, for the page to show while that
+ * sound is not the one on (Ivan, 2026-11-19: "is too empty"). A game's sound
+ * is edited only while it plays, so the page cannot read it from the window's
+ * live state then; main reads it from the copy, or makes it from the seed
+ * exactly as the first load would, so a game never played shows what it will
+ * sound like.
+ */
+export interface IGameCopySound {
+  dsp: IDspSettings;
+  /** The Preset layer's preset id (`dsp:` taken off): a game curve or a chain. */
+  curveId?: string;
+  /** Your EQ's bands that are on and do something. */
+  bands: number;
+  tone: ITone;
+  /** Whether a headphone correction or an impulse plays under the curve. */
+  hasCorrection: boolean;
 }
 
 export const GAMING_PROFILE_NAME_MAX = 60;

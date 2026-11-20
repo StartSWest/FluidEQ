@@ -44,7 +44,11 @@ import type { ICurveComparisonStatus } from 'common/curveComparison';
 import type { ITrebleDesigns } from 'common/filterDesign';
 import type { IBandDesign } from 'common/bandDesigns';
 import type { IMyCurve } from 'common/myCurves';
-import type { IGameSoundState, IYoursGamingProfile } from 'common/gaming';
+import type {
+  IGameCopySound,
+  IGameSoundState,
+  IYoursGamingProfile,
+} from 'common/gaming';
 import type {
   IAudioEngineStatus,
   IAudioRestartOutcome,
@@ -246,6 +250,7 @@ export const buildResponseHandler = <
     | IEngineSetupResult
     | IMyCurve[]
     | IGameSoundState
+    | IGameCopySound
     | IYoursGamingProfile
     | IYoursGamingProfile[]
     | Record<string, string>,
@@ -312,6 +317,7 @@ export const simpleResponseHandler = <
     | IEngineSetupResult
     | IMyCurve[]
     | IGameSoundState
+    | IGameCopySound
     | IYoursGamingProfile
     | IYoursGamingProfile[]
     | Record<string, string>,

@@ -63,8 +63,45 @@ export default {
   'gaming.stage.curve': 'Kurve',
   'gaming.curve.any': 'Jedes Spiel',
   'gaming.editor.notLoaded': 'Der eigene Klang von {game} spielt nicht',
-  'gaming.editor.notLoadedMore':
-    'Mit „Jetzt ausprobieren“ hören Sie ihn und stimmen ihn gleich hier ab. Ihr Musikklang kommt mit „Entladen“ zurück oder wenn das Spiel endet.',
+  'gaming.sheet.lead':
+    'Ihr Musikklang läuft. Darunter steht, was {game} spielt: Mit „Jetzt ausprobieren“ oder „Anpassen“ bei einem Teil hören Sie es und stimmen es gleich hier ab.',
+  'gaming.sheet.tune': 'Anpassen',
+  'gaming.sheet.tuneHint':
+    'Schaltet den eigenen Klang von {game} ein und öffnet {part}.',
+  'gaming.sheet.tuneRackHint':
+    'Schaltet den eigenen Klang von {game} ein und öffnet seine DSP-Stufen.',
+  'gaming.sheet.off': 'Aus',
+  'gaming.sheet.none': 'Keine',
+  'gaming.sheet.flat': 'Neutral',
+  'gaming.sheet.asMixed': 'Wie gemischt',
+  'gaming.sheet.filterOff': 'Der Filter Spiel ist im Klang dieses Spiels aus.',
+  'gaming.sheet.footstepsOn':
+    'Ein leiser Schritt wird lauter, während er kommt',
+  'gaming.sheet.footstepsOff':
+    'Schritte bleiben, wie das Spiel sie gemischt hat',
+  'gaming.sheet.dialogueOn':
+    'Eine Stimme kommt nach vorn, während jemand spricht',
+  'gaming.sheet.dialogueOff':
+    'Stimmen bleiben, wo das Spiel sie hingesetzt hat',
+  'gaming.sheet.environmentDown': 'Regen, Wind und Brummen leiser',
+  'gaming.sheet.environmentUp': 'Regen, Wind und Brummen lauter',
+  'gaming.sheet.environmentAsMixed':
+    'Regen, Wind und Brummen, wie das Spiel sie gemacht hat',
+  'gaming.sheet.calm': 'Dämpfen bis zu {db}',
+  'gaming.sheet.alsoOn': 'Außerdem an: {parts}',
+  'gaming.sheet.bands': 'Bänder',
+  'gaming.sheet.bandsNone':
+    'Bänder, die Sie beim Spielen hinzufügen, bleiben bei diesem Spiel',
+  'gaming.sheet.bandsSome':
+    'Die eigenen Bänder dieses Spiels, über seiner Kurve',
+  'gaming.sheet.toneOn': 'Eingestellt',
+  'gaming.sheet.toneFlat': 'Bass, Mitten und Höhen bei 0 dB',
+  'gaming.sheet.toneSet': 'Bass {bass} · Mitten {mid} · Höhen {treble}',
+  'gaming.sheet.correction': 'Eine Kopfhörerkorrektur spielt mit.',
+  'gaming.sheet.rackOff': 'Alle Stufen des Racks sind aus.',
+  'gaming.sheet.gameMode': 'Spielmodus an',
+  'gaming.sheet.restOff': 'Aus: {stages}',
+  'gaming.sheet.dbUnit': 'dB',
   'gaming.editor.eqNote':
     'Die eigenen Bänder dieses Spiels, oben im Diagramm gezeichnet, wenn es angezeigt wird.',
   'gaming.editor.curveNote':

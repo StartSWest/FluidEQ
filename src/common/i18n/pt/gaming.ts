@@ -63,8 +63,39 @@ export default {
   'gaming.stage.curve': 'Curva',
   'gaming.curve.any': 'Qualquer jogo',
   'gaming.editor.notLoaded': 'O som próprio de {game} não está tocando',
-  'gaming.editor.notLoadedMore':
-    'Experimente agora para ouvir e ajustar aqui mesmo. Seu som de música volta com Descarregar, ou quando o jogo fecha.',
+  'gaming.sheet.lead':
+    'Seu som de música está tocando. Abaixo está o que {game} toca: Experimentar agora, ou Ajustar em qualquer parte, para ouvir e ajustar aqui mesmo.',
+  'gaming.sheet.tune': 'Ajustar',
+  'gaming.sheet.tuneHint': 'Coloca o som próprio de {game} e abre {part}.',
+  'gaming.sheet.tuneRackHint':
+    'Coloca o som próprio de {game} e abre seus estágios DSP.',
+  'gaming.sheet.off': 'Desligado',
+  'gaming.sheet.none': 'Nenhuma',
+  'gaming.sheet.flat': 'Plano',
+  'gaming.sheet.asMixed': 'Como mixado',
+  'gaming.sheet.filterOff': 'O Filtro Jogo está desligado no som deste jogo.',
+  'gaming.sheet.footstepsOn': 'Um passo baixo sobe enquanto chega',
+  'gaming.sheet.footstepsOff': 'Os passos ficam como o jogo os mixou',
+  'gaming.sheet.dialogueOn': 'Uma voz vem para a frente enquanto alguém fala',
+  'gaming.sheet.dialogueOff': 'As vozes ficam onde o jogo as colocou',
+  'gaming.sheet.environmentDown': 'Chuva, vento e zumbido mais baixos',
+  'gaming.sheet.environmentUp': 'Chuva, vento e zumbido mais altos',
+  'gaming.sheet.environmentAsMixed':
+    'Chuva, vento e zumbido como o jogo os fez',
+  'gaming.sheet.calm': 'Acalmar até {db}',
+  'gaming.sheet.alsoOn': 'Também ligado: {parts}',
+  'gaming.sheet.bands': 'Bandas',
+  'gaming.sheet.bandsNone':
+    'As bandas que você adicionar enquanto toca ficam com este jogo',
+  'gaming.sheet.bandsSome': 'As bandas próprias deste jogo, sobre a curva dele',
+  'gaming.sheet.toneOn': 'Ajustado',
+  'gaming.sheet.toneFlat': 'Graves, médios e agudos em 0 dB',
+  'gaming.sheet.toneSet': 'Graves {bass} · Médios {mid} · Agudos {treble}',
+  'gaming.sheet.correction': 'Toca com uma correção de fones.',
+  'gaming.sheet.rackOff': 'Todos os estágios do rack estão desligados.',
+  'gaming.sheet.gameMode': 'Modo jogo ligado',
+  'gaming.sheet.restOff': 'Desligados: {stages}',
+  'gaming.sheet.dbUnit': 'dB',
   'gaming.editor.eqNote':
     'As bandas próprias deste jogo, desenhadas no gráfico acima quando ele aparece.',
   'gaming.editor.curveNote':

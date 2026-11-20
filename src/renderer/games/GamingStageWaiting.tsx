@@ -4,57 +4,65 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import type { IGameProgram } from '../../common/games';
+import type { IGameCopySound } from '../../common/gaming';
 import { useTranslation } from '../utils/I18nContext';
+import GameIcon from './GameIcon';
+import GamingSoundSheet from './GamingSoundSheet';
+import type { TGamingStage } from './gamingStages';
 
 interface IGamingStageWaitingProps {
-  gameName: string;
-  onTryNow: () => void;
+  game: Pick<IGameProgram, 'name' | 'icon' | 'source'>;
+  /** What the game's sound plays; none until main has answered. */
+  sound?: IGameCopySound;
+  /** The part chosen in the rail. */
+  stage: TGamingStage;
+  /** Puts the game's sound on and opens that part. */
+  onTune: (part: TGamingStage) => void;
   isBusy: boolean;
 }
 
 /**
  * Where a part's editor stands while the game's own sound is not the one
- * on. A sound that cannot be heard is not tuned blind: the panel says so and
- * offers to put it on. Drawn by the page and by its Help drawing
+ * on. A sound that cannot be heard is not tuned blind, so the editors wait;
+ * what stands here instead is the line saying so and everything that sound
+ * does (`GamingSoundSheet`). A lone note in the middle of the page left the
+ * rest of it empty (Ivan, 2026-11-19: "is too empty"). The way to put the
+ * sound on is the header's Try it now and each part's Tune: a second lit
+ * Try it now here stood a hand's width under the header's, two suggested
+ * actions for one thing. Drawn by the page and by its Help drawing
  * (`help/live/gamingFigures`).
  */
 const GamingStageWaiting = ({
-  gameName,
-  onTryNow,
+  game,
+  sound,
+  stage,
+  onTune,
   isBusy,
 }: IGamingStageWaitingProps) => {
   const { t } = useTranslation();
   return (
-    <div className="gaming-editor gaming-editor--waiting">
-      <div className="gaming-editor__waiting">
-        <svg
-          className="gaming-editor__art"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M8 7.5h8a5 5 0 0 1 5 5v1a3.6 3.6 0 0 1-6.3 2.4l-.7-.8h-4l-.7.8A3.6 3.6 0 0 1 3 13.5v-1a5 5 0 0 1 5-5z" />
-          <path d="M7.4 11.4v2.4M6.2 12.6h2.4M15.8 11.6h.01M18 13.4h.01" />
-        </svg>
-        <p className="gaming-editor__title">
-          {t('gaming.editor.notLoaded', { game: gameName })}
-        </p>
-        <p className="gaming-editor__more">
-          {t('gaming.editor.notLoadedMore')}
-        </p>
-        <button
-          type="button"
-          className="button small"
-          disabled={isBusy}
-          onClick={onTryNow}
-        >
-          {t('gaming.action.try')}
-        </button>
+    <div className="gaming-editor gaming-sheet">
+      <div className="gaming-sheet__strip">
+        <GameIcon program={game} className="gaming-sheet__icon" />
+        <div className="gaming-sheet__say">
+          <p className="gaming-sheet__title">
+            {t('gaming.editor.notLoaded', { game: game.name })}
+          </p>
+          <p className="gaming-sheet__lead">
+            {t('gaming.sheet.lead', { game: game.name })}
+          </p>
+        </div>
       </div>
+      {sound && (
+        <GamingSoundSheet
+          gameName={game.name}
+          sound={sound}
+          stage={stage}
+          onTune={onTune}
+          isBusy={isBusy}
+        />
+      )}
     </div>
   );
 };

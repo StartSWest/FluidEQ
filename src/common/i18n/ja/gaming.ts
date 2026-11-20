@@ -63,8 +63,39 @@ export default {
   'gaming.stage.curve': 'カーブ',
   'gaming.curve.any': 'どのゲームでも',
   'gaming.editor.notLoaded': '{game} 専用のサウンドは再生されていません',
-  'gaming.editor.notLoadedMore':
-    '今すぐ試すと、聴きながらここで調整できます。音楽用のサウンドは「アンロード」か、ゲームを閉じたときに戻ります。',
+  'gaming.sheet.lead':
+    '音楽用のサウンドが再生中です。下は {game} が鳴らす内容です。今すぐ試すか、各パートの「調整」で、聴きながらここで調整できます。',
+  'gaming.sheet.tune': '調整',
+  'gaming.sheet.tuneHint':
+    '{game} 専用のサウンドをオンにして {part} を開きます。',
+  'gaming.sheet.tuneRackHint':
+    '{game} 専用のサウンドをオンにして DSP ステージを開きます。',
+  'gaming.sheet.off': 'オフ',
+  'gaming.sheet.none': 'なし',
+  'gaming.sheet.flat': 'フラット',
+  'gaming.sheet.asMixed': 'ミックスのまま',
+  'gaming.sheet.filterOff':
+    'このゲームのサウンドではゲームフィルターがオフです。',
+  'gaming.sheet.footstepsOn': '小さな足音が届く間だけ持ち上がります',
+  'gaming.sheet.footstepsOff': '足音はゲームのミックスのままです',
+  'gaming.sheet.dialogueOn': '誰かが話す間、その声が前に出ます',
+  'gaming.sheet.dialogueOff': '声はゲームが置いた位置のままです',
+  'gaming.sheet.environmentDown': '雨・風・ハムを下げています',
+  'gaming.sheet.environmentUp': '雨・風・ハムを上げています',
+  'gaming.sheet.environmentAsMixed': '雨・風・ハムはゲームが作ったまま',
+  'gaming.sheet.calm': '抑制 最大 {db}',
+  'gaming.sheet.alsoOn': 'ほかにオン：{parts}',
+  'gaming.sheet.bands': 'バンド',
+  'gaming.sheet.bandsNone': '再生中に追加したバンドはこのゲームに残ります',
+  'gaming.sheet.bandsSome': 'このゲーム専用のバンド（カーブの上に重なります）',
+  'gaming.sheet.toneOn': '設定済み',
+  'gaming.sheet.toneFlat': '低音・中音・高音とも 0 dB',
+  'gaming.sheet.toneSet': '低音 {bass} · 中音 {mid} · 高音 {treble}',
+  'gaming.sheet.correction': 'ヘッドホン補正も一緒に再生されます。',
+  'gaming.sheet.rackOff': 'ラックのステージはすべてオフです。',
+  'gaming.sheet.gameMode': 'ゲームモード オン',
+  'gaming.sheet.restOff': 'オフ：{stages}',
+  'gaming.sheet.dbUnit': 'dB',
   'gaming.editor.eqNote':
     'このゲーム専用のバンドです。上のグラフが表示されているときはそこに描かれます。',
   'gaming.editor.curveNote':

@@ -228,9 +228,11 @@ export const presetLayerName = (
   t: Translate,
 ): string | undefined => {
   const id = dspVoicingPresetId(voicing);
-  if (id === undefined) {
-    return undefined;
-  }
+  return id === undefined ? undefined : presetLayerNameOf(id, t);
+};
+
+/** The same name, from the preset id a Preset layer carries after `dsp:`. */
+export const presetLayerNameOf = (id: string, t: Translate): string => {
   const gameCurve = gameCurveOfVoicing(id);
   if (gameCurve) {
     return t(gameCurve.labelKey);

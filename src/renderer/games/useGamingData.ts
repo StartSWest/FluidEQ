@@ -5,12 +5,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { IYoursGamingProfile } from '../../common/gaming';
+import type { IGameCopySound, IYoursGamingProfile } from '../../common/gaming';
 import { GAME_SOUND_PARTS, TGameSoundPart } from '../../common/gameSoundParts';
 import { useDspSettings } from '../dsp/store';
 import { useFluidEqContext } from '../utils/FluidEqContext';
-import { readGameTuned, readGamingProfiles } from '../utils/gamingApi';
+import {
+  readGameCopySound,
+  readGameTuned,
+  readGamingProfiles,
+} from '../utils/gamingApi';
 import { reportError } from '../utils/logger';
+import gameSeedFor from './gameSeed';
 
 const PROFILES_CHANGED = 'fluideq-gaming-profiles-changed';
 const COPY_CHANGED = 'fluideq-game-copy-changed';
@@ -131,6 +136,66 @@ export const useGameTuned = (
   }, [ask, isLoaded, filters, tone, headphone, eqImport, headset, rack]);
 
   return tuned;
+};
+
+/**
+ * What a game's sound plays on this output, for its page while that sound
+ * is off: its copy, or what its profile would make (`readGameCopySound`).
+ *
+ * Asked only while the sound is off, because while it plays the page shows
+ * the live editors instead; asked again whenever it is put back (the copy
+ * took every edit made meanwhile), a profile is picked or saved, or the
+ * output changes. The seed is made from the rack as it stands, as a load
+ * would make it, and read when asked rather than kept: it changes with every
+ * rack edit, and only what a game never played here takes from it. An
+ * answer overtaken by a later question is dropped.
+ */
+export const useGameCopySound = (
+  gameId: string,
+  profileId: string,
+  isLoaded: boolean,
+): IGameCopySound | undefined => {
+  const rack = useDspSettings();
+  const latestRack = useRef(rack);
+  latestRack.current = rack;
+  const [answer, setAnswer] = useState<{
+    gameId: string;
+    sound?: IGameCopySound;
+  }>();
+
+  useEffect(() => {
+    if (isLoaded) {
+      return undefined;
+    }
+    let live = true;
+    let asked = 0;
+    const read = () => {
+      asked += 1;
+      const mine = asked;
+      readGameCopySound(gameId, gameSeedFor(profileId, latestRack.current))
+        .then((sound) => {
+          if (live && mine === asked) {
+            setAnswer({ gameId, sound });
+          }
+          return undefined;
+        })
+        .catch((error: unknown) => {
+          reportError('Could not read what a game’s sound plays', error);
+        });
+    };
+    read();
+    window.addEventListener('fluideq-output-changed', read);
+    window.addEventListener(COPY_CHANGED, read);
+    window.addEventListener(PROFILES_CHANGED, read);
+    return () => {
+      live = false;
+      window.removeEventListener('fluideq-output-changed', read);
+      window.removeEventListener(COPY_CHANGED, read);
+      window.removeEventListener(PROFILES_CHANGED, read);
+    };
+  }, [gameId, profileId, isLoaded]);
+
+  return answer?.gameId === gameId ? answer.sound : undefined;
 };
 
 const SOUNDING_TUNED = 'fluideq-sounding-game-tuned';

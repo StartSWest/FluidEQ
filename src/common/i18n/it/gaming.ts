@@ -63,8 +63,40 @@ export default {
   'gaming.stage.curve': 'Curva',
   'gaming.curve.any': 'Qualsiasi gioco',
   'gaming.editor.notLoaded': 'Il suono di {game} non è in riproduzione',
-  'gaming.editor.notLoadedMore':
-    'Provalo ora per sentirlo e regolarlo proprio qui. Il tuo suono per la musica torna con Scarica, o quando il gioco si chiude.',
+  'gaming.sheet.lead':
+    'È attivo il tuo suono per la musica. Qui sotto c’è ciò che suona {game}: Provalo ora, o Regola su una parte, per sentirlo e regolarlo proprio qui.',
+  'gaming.sheet.tune': 'Regola',
+  'gaming.sheet.tuneHint': 'Attiva il suono di {game} e apre {part}.',
+  'gaming.sheet.tuneRackHint':
+    'Attiva il suono di {game} e apre i suoi stadi DSP.',
+  'gaming.sheet.off': 'Spento',
+  'gaming.sheet.none': 'Nessuna',
+  'gaming.sheet.flat': 'Piatto',
+  'gaming.sheet.asMixed': 'Come mixato',
+  'gaming.sheet.filterOff':
+    'Il Filtro Gioco è spento nel suono di questo gioco.',
+  'gaming.sheet.footstepsOn': 'Un passo leggero sale mentre arriva',
+  'gaming.sheet.footstepsOff': 'I passi restano come li ha mixati il gioco',
+  'gaming.sheet.dialogueOn': 'Una voce viene avanti mentre qualcuno parla',
+  'gaming.sheet.dialogueOff': 'Le voci restano dove le ha messe il gioco',
+  'gaming.sheet.environmentDown': 'Pioggia, vento e ronzio abbassati',
+  'gaming.sheet.environmentUp': 'Pioggia, vento e ronzio alzati',
+  'gaming.sheet.environmentAsMixed':
+    'Pioggia, vento e ronzio come li ha fatti il gioco',
+  'gaming.sheet.calm': 'Calma fino a {db}',
+  'gaming.sheet.alsoOn': 'Attivo anche: {parts}',
+  'gaming.sheet.bands': 'Bande',
+  'gaming.sheet.bandsNone':
+    'Le bande che aggiungi mentre suona restano con questo gioco',
+  'gaming.sheet.bandsSome': 'Le bande di questo gioco, sopra la sua curva',
+  'gaming.sheet.toneOn': 'Impostato',
+  'gaming.sheet.toneFlat': 'Bassi, medi e alti a 0 dB',
+  'gaming.sheet.toneSet': 'Bassi {bass} · Medi {mid} · Alti {treble}',
+  'gaming.sheet.correction': 'Con una correzione per cuffie.',
+  'gaming.sheet.rackOff': 'Tutti gli stadi del rack sono spenti.',
+  'gaming.sheet.gameMode': 'Modalità gioco attiva',
+  'gaming.sheet.restOff': 'Spenti: {stages}',
+  'gaming.sheet.dbUnit': 'dB',
   'gaming.editor.eqNote':
     'Le bande di questo gioco, disegnate nel grafico sopra quando è visibile.',
   'gaming.editor.curveNote':

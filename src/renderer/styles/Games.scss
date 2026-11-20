@@ -222,48 +222,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 12px;
 }
 
-// A game whose sound is not on: said, with the way to put it on, at the top
-// beside the rail like any editor. Centred on the rail's height it floated
-// halfway down a column of sixteen stages, under a hole.
-.gaming-editor--waiting {
-  justify-content: flex-start;
-}
-
-.gaming-editor__waiting {
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-  padding: 44px 24px 48px;
-  text-align: center;
-
-  > p {
-    max-width: 50ch;
-    margin: 0;
-  }
-
-  > .button {
-    margin-top: 8px;
-  }
-}
-
-.gaming-editor__art {
-  width: 46px;
-  height: 46px;
-  color: color-mix(in srgb, $secondary-default 70%, $text-faint);
-}
-
-.gaming-editor__title {
-  color: $text-primary;
-  font-size: $text-lead;
-  font-weight: $weight-semibold;
-}
-
-.gaming-editor__more {
-  color: $text-faint;
-  font-size: $text-small;
-  line-height: 1.45;
-}
-
 // The EQ page's editor in the box its own page gives it
 // (`.workspace-tab-panel__scroll`): the same width container, so its rows
 // fold here exactly as they do there at this width, and a height, because

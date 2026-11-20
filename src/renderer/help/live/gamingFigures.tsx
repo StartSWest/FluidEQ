@@ -1,6 +1,10 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
+import { DSP_DEFAULTS } from 'common/dsp/chain';
 import { gamingProfileOf, IGameProfile } from 'common/games';
+import type { IGameCopySound } from 'common/gaming';
+import { FLAT_TONE } from 'common/tone';
+import gameSeedFor from '../../games/gameSeed';
 import { gamingProfileEntry } from '../../games/gamingCatalog';
 import {
   GamingGameHead,
@@ -56,6 +60,25 @@ const GAMES: readonly IGameProfile[] = [
 ];
 
 const TUNED: readonly TGamingStage[] = ['footsteps', 'mainEq', 'curve'];
+
+/**
+ * What a ready-made profile's first copy plays, as main makes it from the
+ * seed (`gameCopyFromSeed`): a new profile's sound — no bands, a flat Tone,
+ * no correction — with the profile's rack and game curve. The drawing asks
+ * main nothing, so it is made here from the same seed.
+ */
+const soundOfProfile = (profileId: string): IGameCopySound | undefined => {
+  const seed = gameSeedFor(profileId, DSP_DEFAULTS);
+  return seed?.kind === 'rack'
+    ? {
+        dsp: seed.dsp,
+        ...(seed.gameCurve ? { curveId: seed.gameCurve } : {}),
+        bands: 0,
+        tone: FLAT_TONE,
+        hasCorrection: false,
+      }
+    : undefined;
+};
 
 const GamingLabDrawing = () => {
   const { t } = useTranslation();
@@ -162,9 +185,11 @@ export const GamingPartsDrawing = () => {
                   tuned={TUNED}
                 />
                 <GamingStageWaiting
-                  gameName={shown.name}
+                  game={shown}
+                  sound={soundOfProfile(gamingProfileOf(shown))}
+                  stage="footsteps"
                   isBusy={false}
-                  onTryNow={nothing}
+                  onTune={nothing}
                 />
               </div>
             </section>

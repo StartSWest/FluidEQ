@@ -130,6 +130,7 @@ enum ChannelEnum {
   // profiles beside them.
   GAME_SOUND_STATE = 'gameSoundState',
   GAME_SOUND_TUNED = 'gameSoundTuned',
+  GAME_SOUND_COPY = 'gameSoundCopy',
   GAME_SOUND_LOAD = 'gameSoundLoad',
   GAME_SOUND_UNLOAD = 'gameSoundUnload',
   GAME_SOUND_RESET = 'gameSoundReset',

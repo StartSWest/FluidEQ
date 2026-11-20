@@ -13,11 +13,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import ChannelEnum from '../../common/channels';
 import { clampDspSettings } from '../../common/dsp/chain';
 import type {
+  IGameCopySound,
   IGameSoundState,
   IYoursGamingProfile,
   IYoursSoundSummary,
   TGameSeed,
 } from '../../common/gaming';
+import { FLAT_TONE, toTone } from '../../common/tone';
 import {
   sendRequest,
   setterResponseHandler,
@@ -110,6 +112,37 @@ export const readGameTuned = (gameId: string): Promise<string[]> =>
     [gameId],
     simpleResponseHandler<string[]>(),
   ).then(asStrings);
+
+/** What a game's sound plays, kept only as far as it is well formed. */
+const asCopySound = (value: unknown): IGameCopySound | undefined =>
+  isObject(value) && isObject(value.dsp)
+    ? {
+        dsp: clampDspSettings(value.dsp),
+        ...(typeof value.curveId === 'string'
+          ? { curveId: value.curveId }
+          : {}),
+        bands:
+          isDial(value.bands) && value.bands > 0 ? Math.round(value.bands) : 0,
+        tone: toTone(value.tone) ?? FLAT_TONE,
+        hasCorrection: value.hasCorrection === true,
+      }
+    : undefined;
+
+/**
+ * What a game's sound plays on the playing output, for its page while the
+ * sound is off: the copy, or what `seed` would make the first time this
+ * output plays it (`main/ipc/gameCopySound.ts`). None when main has nothing
+ * to read.
+ */
+export const readGameCopySound = (
+  gameId: string,
+  seed: TGameSeed | undefined,
+): Promise<IGameCopySound | undefined> =>
+  sendRequest(
+    ChannelEnum.GAME_SOUND_COPY,
+    [gameId, seed],
+    simpleResponseHandler<IGameCopySound | boolean>(),
+  ).then(asCopySound);
 
 /**
  * The game's copy on the playing output, made from `seed` the first time

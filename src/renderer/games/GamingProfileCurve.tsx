@@ -31,9 +31,11 @@ const xOf = (hz: number): number =>
 
 interface IGamingProfileCurveProps {
   gains: readonly number[];
+  /** Where it is drawn bigger than a card's, the place's own class beside it. */
+  className?: string;
 }
 
-const GamingProfileCurve = ({ gains }: IGamingProfileCurveProps) => {
+const GamingProfileCurve = ({ gains, className }: IGamingProfileCurveProps) => {
   // React's ids carry colons, which a `url(#…)` reference does not take.
   const id = useId().replace(/:/g, '');
   const range = Math.max(
@@ -65,7 +67,7 @@ const GamingProfileCurve = ({ gains }: IGamingProfileCurveProps) => {
 
   return (
     <svg
-      className="gaming-profile__curve"
+      className={`gaming-profile__curve${className ? ` ${className}` : ''}`}
       viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
       preserveAspectRatio="none"
       aria-hidden="true"

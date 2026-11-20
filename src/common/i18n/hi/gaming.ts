@@ -63,8 +63,39 @@ export default {
   'gaming.stage.curve': 'कर्व',
   'gaming.curve.any': 'कोई भी गेम',
   'gaming.editor.notLoaded': '{game} की अपनी साउंड नहीं चल रही',
-  'gaming.editor.notLoadedMore':
-    'इसे सुनने और यहीं ट्यून करने के लिए अभी आज़माएँ। आपकी संगीत वाली साउंड अनलोड करने पर या गेम बंद होने पर वापस आती है।',
+  'gaming.sheet.lead':
+    'आपकी संगीत वाली साउंड चल रही है। नीचे वह है जो {game} चलाता है: इसे सुनने और यहीं ट्यून करने के लिए अभी आज़माएँ, या किसी भी हिस्से पर ट्यून करें दबाएँ।',
+  'gaming.sheet.tune': 'ट्यून करें',
+  'gaming.sheet.tuneHint':
+    '{game} की अपनी साउंड चालू करता है और {part} खोलता है।',
+  'gaming.sheet.tuneRackHint':
+    '{game} की अपनी साउंड चालू करता है और उसके DSP स्टेज खोलता है।',
+  'gaming.sheet.off': 'बंद',
+  'gaming.sheet.none': 'कोई नहीं',
+  'gaming.sheet.flat': 'सपाट',
+  'gaming.sheet.asMixed': 'जैसा मिक्स हुआ',
+  'gaming.sheet.filterOff': 'इस गेम की साउंड में गेम फ़िल्टर बंद है।',
+  'gaming.sheet.footstepsOn': 'धीमा कदम आते समय ऊपर आता है',
+  'gaming.sheet.footstepsOff': 'कदम वैसे ही रहते हैं जैसे गेम ने मिक्स किए',
+  'gaming.sheet.dialogueOn': 'कोई बोलता है तो उसकी आवाज़ आगे आती है',
+  'gaming.sheet.dialogueOff': 'आवाज़ें वहीं रहती हैं जहाँ गेम ने रखीं',
+  'gaming.sheet.environmentDown': 'बारिश, हवा और गुनगुनाहट धीमी',
+  'gaming.sheet.environmentUp': 'बारिश, हवा और गुनगुनाहट तेज़',
+  'gaming.sheet.environmentAsMixed': 'बारिश, हवा और गुनगुनाहट जैसी गेम ने बनाई',
+  'gaming.sheet.calm': '{db} तक शांत',
+  'gaming.sheet.alsoOn': 'साथ में चालू: {parts}',
+  'gaming.sheet.bands': 'बैंड',
+  'gaming.sheet.bandsNone':
+    'चलते समय आप जो बैंड जोड़ते हैं, वे इसी गेम के साथ रहते हैं',
+  'gaming.sheet.bandsSome': 'इस गेम के अपने बैंड, उसके कर्व के ऊपर',
+  'gaming.sheet.toneOn': 'सेट है',
+  'gaming.sheet.toneFlat': 'बेस, मिड और ट्रेबल 0 dB पर',
+  'gaming.sheet.toneSet': 'बेस {bass} · मिड {mid} · ट्रेबल {treble}',
+  'gaming.sheet.correction': 'इसके साथ एक हेडफ़ोन सुधार चलता है।',
+  'gaming.sheet.rackOff': 'रैक के सभी स्टेज बंद हैं।',
+  'gaming.sheet.gameMode': 'गेम मोड चालू',
+  'gaming.sheet.restOff': 'बंद: {stages}',
+  'gaming.sheet.dbUnit': 'dB',
   'gaming.editor.eqNote':
     'इस गेम के अपने बैंड, जो ऊपर ग्राफ़ दिखने पर उस पर बनते हैं।',
   'gaming.editor.curveNote':

@@ -1,0 +1,228 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// A game's page while its own sound is off (`GamingStageWaiting`,
+// `GamingSoundSheet`): the line saying so with Try it now, and under it every
+// part of that sound, flat on the card like the DSP stages (Ivan,
+// 2026-11-19: "flat and clean") — a heading with its one hairline, readings
+// as name and value, no fill and no box anywhere. Every grid here wraps by
+// the room it has, never by a breakpoint: the editor column is anything
+// from a phone's width to a 2560px window.
+
+@use 'color' as *;
+@use 'theme' as *;
+@use 'dspTokens' as *;
+
+.gaming-sheet {
+  gap: 0;
+}
+
+.gaming-sheet__strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  @include dsp-section-head;
+  padding-bottom: 16px;
+}
+
+// The game's own icon where Windows has one; the drawn gamepad otherwise.
+.gaming-sheet__icon {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  color: $secondary-default;
+  object-fit: contain;
+}
+
+.gaming-sheet__say {
+  display: grid;
+  flex: 1 1 260px;
+  gap: 3px;
+  min-width: 0;
+
+  > p {
+    margin: 0;
+  }
+}
+
+.gaming-sheet__title {
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+}
+
+.gaming-sheet__lead {
+  max-width: 80ch;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+// The Game filter and Your EQ side by side while both fit, the curve and the
+// rack across the whole column under them.
+.gaming-sheet__parts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 26px 40px;
+  padding-top: 20px;
+}
+
+.gaming-sheet__part {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.gaming-sheet__part--curve,
+.gaming-sheet__part--rack {
+  grid-column: 1 / -1;
+}
+
+.gaming-sheet__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  @include dsp-section-head;
+}
+
+// The part chosen in the rail: its line in the accent, so the rail reads as
+// this page's index.
+.gaming-sheet__part.is-chosen > .gaming-sheet__head {
+  border-bottom-color: $secondary-default;
+}
+
+// The rail's own group names (`dsp-rail-group-label`), so a part's name here
+// reads as the same word down the side.
+.gaming-sheet__name {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  @include tracking(0.12em);
+  text-transform: uppercase;
+}
+
+.gaming-sheet__aside {
+  color: $text-muted;
+  font-size: $text-small;
+}
+
+// The plain tier inks its label in the body colour; Tune is the page's way
+// into a part, so it takes the accent, as a link would.
+.button.gaming-sheet__tune {
+  margin-inline-start: auto;
+  color: $text-accent;
+}
+
+.gaming-sheet__readings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr));
+  gap: 14px 20px;
+}
+
+.gaming-sheet__reading {
+  display: grid;
+  align-content: start;
+  gap: 3px;
+  min-width: 0;
+}
+
+.gaming-sheet__label {
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+.gaming-sheet__value {
+  color: $text-primary;
+  font-size: $text-title;
+  font-weight: $weight-semibold;
+  overflow-wrap: anywhere;
+
+  // A value that says nothing is done (Off, None, As mixed): quieter than
+  // one that does something.
+  &.is-quiet {
+    color: $text-muted;
+    font-weight: $weight-regular;
+  }
+}
+
+.gaming-sheet__more,
+.gaming-sheet__facts {
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.4;
+}
+
+.gaming-sheet__facts {
+  margin: 0;
+  color: $text-faint;
+}
+
+.gaming-sheet__curve-name {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+}
+
+// The profile card's drawing (`GamingProfileCurve`), taller and in the
+// accent, with the three decades under it.
+.gaming-sheet__plot {
+  --kind: #{$secondary-default};
+  --kind-ink: #{$secondary-default};
+  display: grid;
+  gap: 6px;
+}
+
+// The card's own ±5 dB scale (`GamingProfileCurve`): every game curve sits
+// inside ±4.3 dB, so a taller drawing only adds air under the cuts.
+.gaming-profile__curve.gaming-sheet__curve {
+  height: 84px;
+}
+
+.gaming-sheet__axis {
+  position: relative;
+  height: 1.3em;
+  color: $text-faint;
+  font-size: $text-micro;
+
+  > span {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+}
+
+.gaming-sheet__stages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.button.gaming-sheet__stage {
+  gap: 8px;
+
+  &.is-chosen {
+    color: $text-accent;
+  }
+}
+
+// The rail's lamp (`dsp-rail-lamp`): only stages that play are listed, so
+// every one is lit.
+.gaming-sheet__lamp {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: $active;
+}

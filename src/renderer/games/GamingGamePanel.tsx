@@ -42,6 +42,7 @@ import usePlayingGamePreset from './usePlayingGamePreset';
 import {
   sayGameCopyChanged,
   sayGamingProfilesChanged,
+  useGameCopySound,
   useGameTuned,
 } from './useGamingData';
 
@@ -81,6 +82,7 @@ const GamingGamePanel = ({
   const yoursId = gamingProfileRef(profileId);
   const [stage, setStage] = useState<TGamingStage>('footsteps');
   const [busy, setBusy] = useState(false);
+  const copySound = useGameCopySound(game.id, profileId, isLoaded);
 
   const run = (work: () => Promise<void>) => {
     setBusy(true);
@@ -232,9 +234,14 @@ const GamingGamePanel = ({
           <GamingStageEditor stage={stage} />
         ) : (
           <GamingStageWaiting
-            gameName={game.name}
+            game={game}
+            sound={copySound}
+            stage={stage}
             isBusy={busy}
-            onTryNow={() => run(() => putGameSoundOn(game, rack))}
+            onTune={(part) => {
+              setStage(part);
+              run(() => putGameSoundOn(game, rack));
+            }}
           />
         )}
       </div>

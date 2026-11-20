@@ -21,11 +21,13 @@ import { createHash, randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import log from 'electron-log';
-import { AUTOMATIC_PRESET_PREFIX } from '../common/constants';
+import { AUTOMATIC_PRESET_PREFIX, isBandEnabled } from '../common/constants';
 import type { IDeviceProfileSettings } from '../common/constants';
 import type { IPresetV2 } from '../common/profileTypes';
+import { FLAT_TONE, toTone } from '../common/tone';
 import {
   gamingProfileName,
+  IGameCopySound,
   IYoursGamingProfile,
   IYoursSoundSummary,
   TGameSeed,
@@ -248,6 +250,26 @@ export const yoursSummary = (sound: IPresetV2): IYoursSoundSummary => {
     ...(curveId ? { curveId } : {}),
     ...(dsp.presetId ? { chainId: dsp.presetId } : {}),
     ...(enabled ? { footsteps: { lift, voices, environment } } : {}),
+  };
+};
+
+/**
+ * What a game's copy plays, for its page while the sound is off
+ * (`IGameCopySound`): the rack whole, since the page reads it as the DSP
+ * page reads the live one, and of the rest only what the page says. The
+ * band count and the correction are read as the Lab's lamps read the live
+ * sound (`GamingGamePanel`).
+ */
+export const gameCopySound = (sound: IPresetV2): IGameCopySound => {
+  const curveId = dspVoicingPresetId(sound.voicing);
+  return {
+    dsp: clampDspSettings(sound.dsp),
+    ...(curveId ? { curveId } : {}),
+    bands: Object.values(sound.filters).filter(
+      (band) => isBandEnabled(band) && band.gain !== 0,
+    ).length,
+    tone: toTone(sound.tone) ?? FLAT_TONE,
+    hasCorrection: Boolean(sound.headphone) || Boolean(sound.convolution),
   };
 };
 

@@ -63,8 +63,40 @@ export default {
   'gaming.stage.curve': 'Curva',
   'gaming.curve.any': 'Cualquier juego',
   'gaming.editor.notLoaded': 'El sonido propio de {game} no está sonando',
-  'gaming.editor.notLoadedMore':
-    'Pruébalo ahora para oírlo y ajustarlo aquí mismo. Tu sonido de música vuelve con Descargar, o cuando el juego se cierra.',
+  'gaming.sheet.lead':
+    'Está sonando tu sonido de música. Abajo está lo que suena en {game}: Probar ahora, o Ajustar en cualquier parte, para oírlo y ajustarlo aquí mismo.',
+  'gaming.sheet.tune': 'Ajustar',
+  'gaming.sheet.tuneHint': 'Pone el sonido propio de {game} y abre {part}.',
+  'gaming.sheet.tuneRackHint':
+    'Pone el sonido propio de {game} y abre sus etapas DSP.',
+  'gaming.sheet.off': 'Apagado',
+  'gaming.sheet.none': 'Ninguna',
+  'gaming.sheet.flat': 'Plano',
+  'gaming.sheet.asMixed': 'Como viene',
+  'gaming.sheet.filterOff':
+    'El Filtro Juego está apagado en el sonido de este juego.',
+  'gaming.sheet.footstepsOn': 'Un paso suave sube mientras llega',
+  'gaming.sheet.footstepsOff': 'Los pasos quedan como los mezcló el juego',
+  'gaming.sheet.dialogueOn': 'Una voz se adelanta mientras alguien habla',
+  'gaming.sheet.dialogueOff': 'Las voces quedan donde las puso el juego',
+  'gaming.sheet.environmentDown': 'Lluvia, viento y zumbido más bajos',
+  'gaming.sheet.environmentUp': 'Lluvia, viento y zumbido más altos',
+  'gaming.sheet.environmentAsMixed':
+    'Lluvia, viento y zumbido como los hizo el juego',
+  'gaming.sheet.calm': 'Calmar hasta {db}',
+  'gaming.sheet.alsoOn': 'También activado: {parts}',
+  'gaming.sheet.bands': 'Bandas',
+  'gaming.sheet.bandsNone':
+    'Las bandas que añadas mientras suena se quedan con este juego',
+  'gaming.sheet.bandsSome': 'Las bandas propias de este juego, sobre su curva',
+  'gaming.sheet.toneOn': 'Ajustado',
+  'gaming.sheet.toneFlat': 'Graves, medios y agudos a 0 dB',
+  'gaming.sheet.toneSet': 'Graves {bass} · Medios {mid} · Agudos {treble}',
+  'gaming.sheet.correction': 'Suena con una corrección de auriculares.',
+  'gaming.sheet.rackOff': 'Todas las etapas del rack están apagadas.',
+  'gaming.sheet.gameMode': 'Modo juego activado',
+  'gaming.sheet.restOff': 'Apagadas: {stages}',
+  'gaming.sheet.dbUnit': 'dB',
   'gaming.editor.eqNote':
     'Las bandas propias de este juego, dibujadas en la gráfica de arriba cuando se muestra.',
   'gaming.editor.curveNote':

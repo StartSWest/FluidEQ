@@ -63,8 +63,41 @@ export default {
   'gaming.stage.curve': 'Courbe',
   'gaming.curve.any': 'Tout jeu',
   'gaming.editor.notLoaded': 'Le son propre de {game} n’est pas en lecture',
-  'gaming.editor.notLoadedMore':
-    'Essayez-le maintenant pour l’écouter et l’ajuster ici même. Votre son musique revient avec Décharger, ou quand le jeu se ferme.',
+  'gaming.sheet.lead':
+    'Votre son musique est en lecture. Voici ce que joue {game} : Essayer maintenant, ou Ajuster sur une partie, pour l’écouter et l’ajuster ici même.',
+  'gaming.sheet.tune': 'Ajuster',
+  'gaming.sheet.tuneHint': 'Met le son propre de {game} et ouvre {part}.',
+  'gaming.sheet.tuneRackHint':
+    'Met le son propre de {game} et ouvre ses étages DSP.',
+  'gaming.sheet.off': 'Désactivé',
+  'gaming.sheet.none': 'Aucune',
+  'gaming.sheet.flat': 'Neutre',
+  'gaming.sheet.asMixed': 'Tel que mixé',
+  'gaming.sheet.filterOff':
+    'Le Filtre Jeu est désactivé dans le son de ce jeu.',
+  'gaming.sheet.footstepsOn': 'Un pas discret monte pendant qu’il arrive',
+  'gaming.sheet.footstepsOff': 'Les pas restent tels que le jeu les a mixés',
+  'gaming.sheet.dialogueOn':
+    'Une voix passe devant pendant que quelqu’un parle',
+  'gaming.sheet.dialogueOff': 'Les voix restent là où le jeu les a placées',
+  'gaming.sheet.environmentDown': 'Pluie, vent et bourdonnement baissés',
+  'gaming.sheet.environmentUp': 'Pluie, vent et bourdonnement montés',
+  'gaming.sheet.environmentAsMixed':
+    'Pluie, vent et bourdonnement tels que le jeu les a faits',
+  'gaming.sheet.calm': 'Apaiser jusqu’à {db}',
+  'gaming.sheet.alsoOn': 'Aussi activé : {parts}',
+  'gaming.sheet.bands': 'Bandes',
+  'gaming.sheet.bandsNone':
+    'Les bandes que vous ajoutez pendant la lecture restent avec ce jeu',
+  'gaming.sheet.bandsSome': 'Les bandes propres à ce jeu, par-dessus sa courbe',
+  'gaming.sheet.toneOn': 'Réglée',
+  'gaming.sheet.toneFlat': 'Graves, médiums et aigus à 0 dB',
+  'gaming.sheet.toneSet': 'Graves {bass} · Médiums {mid} · Aigus {treble}',
+  'gaming.sheet.correction': 'Une correction de casque joue avec.',
+  'gaming.sheet.rackOff': 'Tous les étages du rack sont désactivés.',
+  'gaming.sheet.gameMode': 'Mode jeu activé',
+  'gaming.sheet.restOff': 'Désactivés : {stages}',
+  'gaming.sheet.dbUnit': 'dB',
   'gaming.editor.eqNote':
     'Les bandes propres à ce jeu, tracées sur le graphique ci-dessus quand il est affiché.',
   'gaming.editor.curveNote':

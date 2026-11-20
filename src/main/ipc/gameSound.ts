@@ -45,6 +45,7 @@ import { ownPreset } from '../songSoundLoan';
 import type { IReplySink } from './profiles';
 import onWindowMessage from './windowMessages';
 import { asGameId, asSeed } from './gameSoundValues';
+import { createGameSounds, registerGameCopySoundIpc } from './gameCopySound';
 
 export interface IGameSoundIpcDeps {
   state: IState;
@@ -115,26 +116,13 @@ export const registerGameSoundIpc = ({
     notifyOutputStateChanged();
   };
 
-  /**
-   * The output's own sound as it stands, for a new copy to start from: the
-   * profile the game borrowed from if a game's sound is on, or the live one.
-   */
-  const musicSound = (deviceId: string, dir: string): IPresetV2 => {
-    const loan = loans.get(deviceId);
-    return loan
-      ? fetchPreset(loan.musicPresetName, dir)
-      : ownPreset(getCurrentPreset(), state);
-  };
-
-  /** The game's copy on this output, as it sounds now. */
-  const copySound = (gameId: string, dir: string): IPresetV2 | undefined => {
-    const copy = gameCopyName(gameId);
-    const deviceId = session.activeAudioDeviceId;
-    if (deviceProfileSettings.assignments[deviceId]?.presetName === copy) {
-      return ownPreset(getCurrentPreset(), state);
-    }
-    return doesPresetExist(copy, dir) ? fetchPreset(copy, dir) : undefined;
-  };
+  const { musicSound, copySound } = createGameSounds({
+    state,
+    session,
+    deviceProfileSettings,
+    loans,
+    getCurrentPreset,
+  });
 
   /**
    * Every output that lent its sound to a game has its own back, and the
@@ -257,6 +245,15 @@ export const registerGameSoundIpc = ({
       return undefined;
     }
   };
+
+  registerGameCopySoundIpc({
+    session,
+    presetDirForDevice,
+    yours,
+    copySound,
+    musicSound,
+    handleError,
+  });
 
   onWindowMessage(ChannelEnum.GAME_SOUND_STATE, (event) => {
     const loan = loans.get(session.activeAudioDeviceId);
