@@ -20,7 +20,11 @@ import {
   TSongSoundEffect,
   TSongSoundOwner,
 } from './songSoundEvents';
-import { SONG_EQ_SETTLE_MS, SONG_EQ_SUSPEND_GRACE_MS } from './songEqTiming';
+import {
+  SONG_EQ_SETTLE_MS,
+  SONG_EQ_SUSPEND_GRACE_MS,
+  settlesAtOnce,
+} from './songEqTiming';
 
 /**
  * Each thing that can happen to Auto EQ's song and album sounds, as a step
@@ -54,7 +58,9 @@ const open = (
   now: number,
 ): ISongSoundSession => ({
   identity,
-  phase: 'settling',
+  // Another program's song settles as it starts: nothing would ever move its
+  // settle on (`settlesAtOnce`).
+  phase: settlesAtOnce(identity) ? 'playing' : 'settling',
   settlingSince: now,
   baseline: state.owed?.sound ?? state.pending ?? state.live,
   isLoaded: false,
@@ -397,13 +403,12 @@ export const nowPlaying = (
     nextSong: isPlaying,
     handBack: true,
   });
-  return [
-    {
-      ...closed,
-      session: isPlaying ? open(closed, identity, now) : undefined,
-    },
-    effects,
-  ];
+  const opened: ISongSoundState = {
+    ...closed,
+    session: isPlaying ? open(closed, identity, now) : undefined,
+  };
+  // Looked up at once where it settled as it opened; a settling one waits.
+  return [opened, [...effects, ...lookupOpen(opened)]];
 };
 
 export const deviceChanged = (

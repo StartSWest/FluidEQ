@@ -85,6 +85,43 @@ const onAlbum = (parts: ISongSoundParts = BOTH) =>
   ]);
 
 describe('Auto EQ song sounds: what is looked up', () => {
+  // Another program's song: Windows tells its position only when the player
+  // republishes one, and a browser tab may say nothing more until the song
+  // ends (Ivan, 2026-11-20: "not working well for live audio, is not
+  // detecting always"). Nothing here reports after it starts.
+  const onDesktop = identity('system', 'chrome.exe', 'Live Song', 'Channel');
+  const startedAlone = (song: ISongIdentity) =>
+    run(
+      { ...getInitialSongSoundState(BOTH), deviceId: 'main', live: original },
+      [
+        [0, { kind: 'nowPlaying', identity: song, isPlaying: true }],
+        [1, { kind: 'saveNow' }],
+      ],
+    );
+
+  it('looks another program’s song up as it starts, and lets "Save for this song" take it', () => {
+    const desktop = startedAlone(onDesktop);
+    expect(desktop.effects).toEqual([
+      { kind: 'lookup', identity: onDesktop },
+      { kind: 'save', identity: onDesktop, sound: original, isPlay: false },
+    ]);
+  });
+
+  it('still lets a Library song hold still before it is looked up', () => {
+    // The control: the app's own players report every moment, so a song
+    // clicked past in under two seconds is never looked up or filed.
+    expect(startedAlone(songA).effects).toEqual([]);
+  });
+
+  it('turns away the answer about another program’s song skipped past', () => {
+    const next = identity('system', 'chrome.exe', 'Next Song', 'Channel');
+    const skipped = run(startedAlone(onDesktop).state, [
+      [2, { kind: 'nowPlaying', identity: next, isPlaying: true }],
+      [3, { kind: 'matched', identity: onDesktop, song: remembered }],
+    ]);
+    expect(skipped.effects).toEqual([{ kind: 'lookup', identity: next }]);
+  });
+
   it('looks a song up once it has settled, and files nothing for an untouched play', () => {
     const started = playing();
     expect(started.effects).toEqual([{ kind: 'lookup', identity: songA }]);

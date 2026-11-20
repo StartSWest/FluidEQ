@@ -109,6 +109,57 @@ const play = (
   return steps;
 };
 
+describe('another program’s song, which reports nothing as it plays', () => {
+  // Windows tells another program's position only when the player republishes
+  // one; a browser tab may say nothing more until the song ends.
+  const onDesktop = buildSongIdentity(
+    'system',
+    'chrome.exe',
+    'Live Song',
+    'Channel',
+  );
+
+  it('is looked up as it starts, with no report after it', () => {
+    const { effects, state } = run(armed(), [
+      [0, { kind: 'nowPlaying', identity: onDesktop, isPlaying: true }],
+    ]);
+    expect(effects).toEqual([
+      { kind: 'lookup', identity: onDesktop, deviceId: 'device-a' },
+    ]);
+    expect(state.session?.phase).toBe('recording');
+  });
+
+  it('is filed at its end from the time that passed, though nothing ticked', () => {
+    const { effects } = run(armed(), [
+      [0, { kind: 'nowPlaying', identity: onDesktop, isPlaying: true }],
+      [130_000, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
+    ]);
+    expect(effects.filter((effect) => effect.kind === 'commit')).toHaveLength(
+      1,
+    );
+  });
+
+  it('is looked up as it starts after a song that played, too', () => {
+    const { effects } = run(armed(), [
+      ...play(songA, 30_000),
+      [30_001, { kind: 'nowPlaying', identity: onDesktop, isPlaying: true }],
+    ]);
+    expect(effects.filter((effect) => effect.kind === 'lookup')).toEqual([
+      { kind: 'lookup', identity: songA, deviceId: 'device-a' },
+      { kind: 'lookup', identity: onDesktop, deviceId: 'device-a' },
+    ]);
+  });
+
+  it('leaves a Library song settling until it has held still', () => {
+    // The control: the app's own players report every moment.
+    const { effects, state } = run(armed(), [
+      [0, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
+    ]);
+    expect(effects).toEqual([]);
+    expect(state.session?.phase).toBe('settling');
+  });
+});
+
 describe('songEqRecorder', () => {
   it('saves nothing for a song skipped after ninety seconds', () => {
     const { effects } = run(armed(), [

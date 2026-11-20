@@ -32,6 +32,7 @@ import {
   advance,
   closeSession,
   listenedAt,
+  settlesAtOnce,
 } from './songEqTiming';
 
 // Re-exported: this module is the public face of the feature — the shell and
@@ -67,7 +68,7 @@ export type {
  */
 
 const open = (identity: ISongIdentity, now: number): ISongEqSession => ({
-  phase: 'settling',
+  phase: settlesAtOnce(identity) ? 'recording' : 'settling',
   identity,
   listenedMs: 0,
   playingSince: now,
@@ -75,6 +76,16 @@ const open = (identity: ISongIdentity, now: number): ISongEqSession => ({
   hasCheckpointed: false,
   hasLoan: false,
 });
+
+/** What a session asks for as it opens: the lookup a settle would have asked
+ * for, where the song settles at once (`settlesAtOnce`). */
+const openedEffects = (
+  state: ISongEqRecorderState,
+  session: ISongEqSession | undefined,
+): TSongEqEffect[] =>
+  session?.phase === 'recording'
+    ? [{ kind: 'lookup', identity: session.identity, deviceId: state.deviceId }]
+    : [];
 
 const sameFilter = (a: IFilter, b: IFilter): boolean =>
   a.id === b.id &&
@@ -394,9 +405,10 @@ export const reduceSongEq = (
       // A different song. Close the old one — unless it never settled, which
       // is somebody clicking through a queue and is worth nothing.
       if (!session || session.phase === 'settling') {
+        const opened = isPlaying ? open(identity, now) : undefined;
         return [
-          { ...state, session: isPlaying ? open(identity, now) : undefined },
-          timed,
+          { ...state, session: opened },
+          [...timed, ...openedEffects(state, opened)],
         ];
       }
       const [closed, closedEffects] = closeSession(
@@ -405,9 +417,10 @@ export const reduceSongEq = (
         now,
         state.deviceId,
       );
+      const opened = isPlaying ? open(identity, now) : undefined;
       return [
-        { ...closed, session: isPlaying ? open(identity, now) : undefined },
-        [...timed, ...closedEffects],
+        { ...closed, session: opened },
+        [...timed, ...closedEffects, ...openedEffects(closed, opened)],
       ];
     }
 

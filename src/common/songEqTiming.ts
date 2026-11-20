@@ -24,6 +24,7 @@ import type {
   ISongEqSession,
   TSongEqEffect,
 } from './songEqEvents';
+import type { ISongIdentity } from './songIdentity';
 
 /**
  * When a session settles, checkpoints, times out on the suspend grace, and
@@ -49,6 +50,28 @@ import type {
  * song is nothing; two seconds of skipping is six config rewrites avoided.
  */
 export const SONG_EQ_SETTLE_MS = 2_000;
+
+/**
+ * Whether a song settles as it starts, rather than once it has held still for
+ * `SONG_EQ_SETTLE_MS` — for both song memories, Smart correction's and Auto
+ * EQ's song sounds (`songSoundSteps.ts`).
+ *
+ * The settle has no clock of its own (there are no timers here); it is moved
+ * on by what the players report — the app's own players a position several
+ * times a second, a computer sending its sound one every second. Another
+ * program on this machine reports only what Windows tells, and Windows tells
+ * a position only when that player republishes one (`native/media-watch`): a
+ * browser tab, or a player that publishes no timeline, says nothing more
+ * until the song changes. Such a song never settled. It was never looked up,
+ * its saved sound and its correction never went on, and "Save for this song"
+ * stayed off for as long as it played (Ivan, 2026-11-20: "not working well for
+ * live audio, is not detecting always"). With no clock to wait on, it settles
+ * at once. Skipping through such a player's queue then costs a lookup and,
+ * where a song has a sound, a write per song; an answer about a song that is
+ * no longer playing is turned away by its key in both memories.
+ */
+export const settlesAtOnce = (identity: ISongIdentity): boolean =>
+  identity.source === 'system';
 
 /** How much has to have been *listened to* before a song is worth keeping.
  * Below this the user was browsing, and browsing should leave no trace. */
