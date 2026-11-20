@@ -32,6 +32,13 @@ import { useFluidEqLayers } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { useKnownAudioEngineStatus } from '../utils/useAudioEngineStatus';
 import { setEqPresetQuery, useEqPresetQuery } from './eqLayerTab';
+import NewPresetTile from './ownPresets/NewPresetTile';
+import OwnPresetTile from './ownPresets/OwnPresetTile';
+import {
+  OwnPresetNotes,
+  OwnPresetsEmptyNotes,
+} from './ownPresets/OwnPresetNotes';
+import useOwnPresetActions from './ownPresets/useOwnPresetActions';
 
 type TPresetGroup = 'favorites' | 'saved' | 'classic' | 'genre';
 
@@ -42,9 +49,14 @@ const GROUP_LABEL: Record<TPresetGroup, TranslationKey> = {
   genre: 'voicing.groupGenre',
 };
 
+/**
+ * Yours first, and there even when it is empty (Ivan, 2026-11-20, own
+ * presets): it is where New preset is, and a group that came and went with
+ * its first preset would leave nowhere to make one.
+ */
 const GROUPS: readonly TPresetGroup[] = [
-  'favorites',
   'saved',
+  'favorites',
   'classic',
   'genre',
 ];
@@ -91,13 +103,18 @@ const EqPresetTab = () => {
     }),
     genre: catalog.filter((preset) => preset.group === 'genre'),
   };
-  const groups = GROUPS.filter((group) => members[group].length > 0);
+  const groups = GROUPS.filter(
+    (group) => group === 'saved' || members[group].length > 0,
+  );
   const playingGroup = groups.find((group) =>
     members[group].some((preset) => preset.id === activeId),
   );
   const [picked, setPicked] = useState<TPresetGroup | undefined>(undefined);
   const group: TPresetGroup = picked ?? playingGroup ?? 'genre';
   const [pointedAt, setPointedAt] = useState<string | undefined>(undefined);
+  const [renamingId, setRenamingId] = useState<string | undefined>(undefined);
+  const [askingId, setAskingId] = useState<string | undefined>(undefined);
+  const own = useOwnPresetActions();
 
   // A search looks in every group at once, each preset once.
   const searched = Array.from(
@@ -108,15 +125,24 @@ const EqPresetTab = () => {
     ).values(),
   ).filter((preset) => preset.name.toLocaleLowerCase().includes(query));
   const shown = query ? searched : members[group];
+  // Yours, with its New preset tile ahead of what it holds.
+  const isYours = !query && group === 'saved';
   // Not while a preset is being put on: disabling every tile for that half
   // second dimmed the whole grid and brought it back, which read as every
   // preset blinking at each press (Ivan, 2026-11-17). A second press needs
   // no guard either: `apply` counts its presses and only the last one lands.
   const isDisabled = isBlockingError || !isEnabled;
 
+  // A preset whose deletion is being asked holds the notes until answered.
   const focused = catalog.find(
-    (preset) => preset.id === (pointedAt ?? activeId),
+    (preset) => preset.id === (askingId ?? pointedAt ?? activeId),
   );
+  const isOwnFocused = focused?.group === 'saved';
+  const showsEmptyYours =
+    !query &&
+    group === 'saved' &&
+    members.saved.length === 0 &&
+    pointedAt === undefined;
   const stages = focused ? dspPresetStages(focused, t) : [];
   // Nothing in the catalogue: no preset at all, or a curve that is none of
   // them, which the tab's chip calls Custom (`EqLayerTabs`) and so does this.
@@ -164,13 +190,16 @@ const EqPresetTab = () => {
           </strong>
           <span>{t('eq.preset.count', { count: shown.length })}</span>
         </div>
-        {shown.length === 0 ? (
+        {shown.length === 0 && !isYours ? (
           <p className="eq-preset-tab__empty">{t('eq.preset.empty')}</p>
         ) : (
           <div
-            className="eq-preset-tab__grid"
+            className={`eq-preset-tab__grid${
+              isYours ? ' eq-preset-tab__grid--own' : ''
+            }`}
             onPointerLeave={() => setPointedAt(undefined)}
           >
+            {isYours && <NewPresetTile isDisabled={isDisabled} />}
             {/* Off is a preset of its own, first in the classics, where the
                 pick lists it first. */}
             {!query && group === 'classic' && (
@@ -197,11 +226,47 @@ const EqPresetTab = () => {
                   ? 'library.playlist.removeFromFavorites'
                   : 'library.playlist.addToFavorites',
               );
+              const toggleStar = () =>
+                toggleFavouriteDspPreset(
+                  preset.id,
+                  catalog.map((one) => one.id),
+                );
               // The star beside the tile, never inside it: a button cannot
               // hold a button, and starring must not put the preset on. The
               // same star, list and labels as the preset picks' menus, so a
               // star given here files the preset first there too (Ivan,
               // 2026-11-20: "on presets how do I add one to fav or remove").
+              if (preset.group === 'saved') {
+                return (
+                  <OwnPresetTile
+                    key={preset.id}
+                    preset={preset}
+                    hint={
+                      isApo ? t('dsp.quick.apo') : dspPresetRowHint(preset, t)
+                    }
+                    isPlaying={preset.id === activeId}
+                    isDisabled={isDisabled}
+                    isRenaming={renamingId === preset.id}
+                    isFavourite={isFavourite}
+                    starLabel={starLabel}
+                    onToggleStar={toggleStar}
+                    onApply={() => {
+                      apply(preset.id).catch(() => undefined);
+                    }}
+                    onPoint={() => setPointedAt(preset.id)}
+                    onEdit={() => own.edit(preset.id)}
+                    onRenameStart={() => setRenamingId(preset.id)}
+                    onRenameEnd={(name) => {
+                      setRenamingId(undefined);
+                      if (name !== undefined) {
+                        own.rename(preset.id, name);
+                      }
+                    }}
+                    onDuplicate={() => own.duplicate(preset.id)}
+                    onAskDelete={() => setAskingId(preset.id)}
+                  />
+                );
+              }
               return (
                 <div key={preset.id} className="eq-preset-tab__cell">
                   <button
@@ -236,12 +301,7 @@ const EqPresetTab = () => {
                     aria-pressed={isFavourite}
                     aria-label={`${starLabel}: ${preset.name}`}
                     title={starLabel}
-                    onClick={() =>
-                      toggleFavouriteDspPreset(
-                        preset.id,
-                        catalog.map((one) => one.id),
-                      )
-                    }
+                    onClick={toggleStar}
                   >
                     <MenuIcon name="star" />
                   </button>
@@ -262,21 +322,51 @@ const EqPresetTab = () => {
           new panel at every tile, which a reader sensitive to flashing
           should not be shown (Ivan, 2026-11-18). The panel keeps its place
           all the while. */}
+        {/* Not while a deletion is asked: the question comes at once. */}
         <div
           className={`eq-preset-tab__detail-body${
-            pointedAt === undefined ? '' : ' is-pointed'
+            pointedAt === undefined || askingId !== undefined
+              ? ''
+              : ' is-pointed'
           }`}
-          key={focused?.id ?? ''}
+          key={showsEmptyYours ? 'yours-empty' : (focused?.id ?? '')}
         >
-          {focused && genreNotesFor(focused.id) ? (
-            <GenreNotesPreview chainId={focused.id} closeMenu={keepOpen} />
-          ) : (
-            <div className="eq-preset-tab__about">
-              <strong>{aboutName}</strong>
-              {aboutHint && <span>{aboutHint}</span>}
-            </div>
+          {showsEmptyYours && <OwnPresetsEmptyNotes />}
+          {!showsEmptyYours && isOwnFocused && focused && (
+            <OwnPresetNotes
+              preset={focused}
+              stages={stages}
+              isAskingDelete={askingId === focused.id}
+              isDisabled={isDisabled}
+              onEdit={() => own.edit(focused.id)}
+              onDuplicate={() => own.duplicate(focused.id)}
+              onRename={() => {
+                // Renamed in its tile, so the tile is put in view first.
+                if (query === '') {
+                  setPicked('saved');
+                }
+                setRenamingId(focused.id);
+              }}
+              onAskDelete={() => setAskingId(focused.id)}
+              onKeep={() => setAskingId(undefined)}
+              onDelete={() => {
+                setAskingId(undefined);
+                setPointedAt(undefined);
+                own.remove(focused.id);
+              }}
+            />
           )}
-          {stages.length > 0 && (
+          {!showsEmptyYours &&
+            !isOwnFocused &&
+            (focused && genreNotesFor(focused.id) ? (
+              <GenreNotesPreview chainId={focused.id} closeMenu={keepOpen} />
+            ) : (
+              <div className="eq-preset-tab__about">
+                <strong>{aboutName}</strong>
+                {aboutHint && <span>{aboutHint}</span>}
+              </div>
+            ))}
+          {!showsEmptyYours && !isOwnFocused && stages.length > 0 && (
             <div className="eq-preset-tab__stages">
               <span className="eq-preset-tab__eyebrow">
                 {t('eq.preset.rack')}

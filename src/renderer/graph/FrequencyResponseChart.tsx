@@ -153,7 +153,12 @@ import GraphWallpaperToggle from './GraphWallpaperToggle';
 import LightingToggle from './LightingToggle';
 import GraphViewMenu from './GraphViewMenu';
 import useResponseCurves from './useResponseCurves';
-import shownCurves from './shownCurves';
+import usePresetEditPoints from '../eq/ownPresets/usePresetEditPoints';
+import { shownCurvesFor } from '../eq/ownPresets/presetEditCurves';
+import {
+  readPresetEditSession,
+  selectDraftBands,
+} from '../eq/ownPresets/presetEditSession';
 import isOwnAnimationEnd from '../utils/ownAnimationEnd';
 import GraphGallery, { GraphGalleryKeys } from './GraphGallery';
 import liveTraceCurves from './liveTraceCurves';
@@ -1044,6 +1049,10 @@ const FrequencyResponseChart = ({
   // Every layer's curve, built where the Gaming Lab's Curve stage builds its
   // own; `appliedChartData` is the ones in the audible chain.
   const { chartData, autoPreAmpValue, appliedChartData } = useResponseCurves();
+  // One of the listener's presets open for editing: its curve's handles
+  // stand in for Your EQ's, and its line is the one drawn in front.
+  const presetPoints = usePresetEditPoints(chartData);
+  const isEditingPreset = presetPoints !== undefined;
 
   useEffect(() => {
     // The config writer owns automatic gain staging. Every edit that changes a
@@ -1234,7 +1243,13 @@ const FrequencyResponseChart = ({
             return;
           }
           event.preventDefault();
-          setSelectedFilterIds(Object.keys(filtersRef.current));
+          // The bands on the graph: a preset's, while one is being edited.
+          const editing = readPresetEditSession();
+          if (editing) {
+            selectDraftBands(editing.bands.map((band) => band.id));
+          } else {
+            setSelectedFilterIds(Object.keys(filtersRef.current));
+          }
           return;
         }
         if (
@@ -1360,8 +1375,15 @@ const FrequencyResponseChart = ({
           // a curve does not rescale the axis under the ones left. A grid that
           // moves when you take a line off it makes the remaining lines look
           // like they changed.
-          shownCurves(appliedChartData, hiddenCurves),
-    [appliedChartData, hasRecentAudio, hiddenCurves, isClean, isSolo],
+          shownCurvesFor(isEditingPreset, appliedChartData, hiddenCurves),
+    [
+      appliedChartData,
+      hasRecentAudio,
+      hiddenCurves,
+      isClean,
+      isEditingPreset,
+      isSolo,
+    ],
   );
 
   /**
@@ -1499,8 +1521,9 @@ const FrequencyResponseChart = ({
   return isGraphViewOn ? (
     <div
       className={`graph-wrapper${
-        bypassed.includes('eq') ? ' is-eq-bypassed' : ''
-      }${areHandlesHidden || isLiveOutputForeground ? ' is-handles-hidden' : ''}${
+        // A preset's curve being edited is live whatever Your EQ's chip says.
+        bypassed.includes('eq') && !isEditingPreset ? ' is-eq-bypassed' : ''
+      }${isEditingPreset ? ' is-editing-preset' : ''}${areHandlesHidden || isLiveOutputForeground ? ' is-handles-hidden' : ''}${
         isGridHidden ? ' is-gridless' : ''
       }${isDisplayedGridHidden ? ' is-edge-to-edge' : ''}${
         isDesignerOpen ? ' is-designing' : ''
@@ -1809,7 +1832,9 @@ const FrequencyResponseChart = ({
             data={displayData}
             outputOffset={isPreampLive ? liveEnginePreamp : undefined}
             dimensions={dimensions}
-            editablePoints={canEditEqCurve ? editablePoints : []}
+            editablePoints={
+              canEditEqCurve ? (presetPoints ?? editablePoints) : []
+            }
             liveCurves={liveCurves}
             isLiveOutputForeground={isLiveOutputForeground}
             isPlotPartOfWindow={isPlotPartOfWindow}

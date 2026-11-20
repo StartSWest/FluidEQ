@@ -54,6 +54,27 @@ export const readFavouriteDspPresets = (): string[] => {
 };
 
 /**
+ * A deleted preset's star taken with it, rather than left in storage for an
+ * id that will never be shown again. Nothing written for one never starred.
+ */
+export const unstarDspPreset = (id: string): void => {
+  const current = readFavouriteDspPresets();
+  if (!current.includes(id)) {
+    return;
+  }
+  try {
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(current.filter((one) => one !== id)),
+    );
+  } catch {
+    // Quota or a locked profile: a star for a preset that is gone is never
+    // shown, since every list draws stars only for presets it has.
+  }
+  window.dispatchEvent(new Event(DSP_PRESETS_CHANGED));
+};
+
+/**
  * Star `id`, or take its star away; the list as it now stands. `known` is
  * every id the picker can show, so the stars of presets that are gone go
  * with this write.

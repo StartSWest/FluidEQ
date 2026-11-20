@@ -10,6 +10,7 @@ import {
   IEqSettings,
   clampDspSettings,
 } from './chain';
+import { clampPresetCurve } from './presetCurveClamp';
 
 export interface IDspChainPresetFile {
   format: 'fluideq-dsp-chain';
@@ -37,10 +38,13 @@ const FORMAT = 'fluideq-dsp-chain';
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
-/** A curve from anywhere, fit to play: every field clamped, no monitor on. */
+/**
+ * A curve from anywhere, fit to play: every field clamped, no monitor on, and
+ * as many bands as the main EQ takes, where it plays (`presetCurveClamp.ts`).
+ */
 export const portableDspCurve = (curve: unknown): IEqSettings | undefined =>
   isRecord(curve)
-    ? { ...clampDspSettings({ eq: curve }).eq, enabled: true, isolate: false }
+    ? { ...clampPresetCurve(curve), enabled: true, isolate: false }
     : undefined;
 
 /**

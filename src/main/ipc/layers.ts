@@ -22,8 +22,8 @@ import { APO_LAYERS, IState, TApoLayer } from '../../common/constants';
 import { ErrorCode } from '../../common/errors';
 import ChannelEnum from '../../common/channels';
 import { getVoicingProfile } from '../../common/voicing';
-import { clampDspSettings } from '../../common/dsp/chain';
 import { dspPresetVoicing } from '../../common/dsp/presetVoicing';
+import { clampPresetCurve } from '../../common/dsp/presetCurveClamp';
 import { getDriverProfile } from '../../common/driver';
 import {
   DEFAULT_EQ_CUTS,
@@ -207,9 +207,13 @@ export const registerLayersIpc = ({
       !Array.isArray(dspEq) &&
       intensity === 1
     ) {
-      const { eq } = clampDspSettings({ eq: dspEq });
       applyingLayer('voicing');
-      state.voicing = dspPresetVoicing(profileId.slice(4), eq);
+      // As many bands as the main EQ takes, not the rack's budget: the curve
+      // plays here (`presetCurveClamp.ts`).
+      state.voicing = dspPresetVoicing(
+        profileId.slice(4),
+        clampPresetCurve(dspEq),
+      );
       await handleUpdate(event, channel, false, true);
       return;
     }

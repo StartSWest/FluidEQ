@@ -25,7 +25,17 @@ let mockEngine: 'fluid' | 'apo' = 'fluid';
 jest.mock('renderer/utils/useAudioEngineStatus', () => ({
   useKnownAudioEngineStatus: () => ({ engine: mockEngine }),
 }));
-jest.mock('renderer/utils/equalizerApi', () => ({ setVoicing: jest.fn() }));
+// The listener's own presets are main's (`main/ipc/userPresets.ts`): here an
+// array the two requests read and write.
+let mockMainPresets: unknown[] = [];
+jest.mock('renderer/utils/equalizerApi', () => ({
+  setVoicing: jest.fn(),
+  readUserPresets: jest.fn(async () => mockMainPresets),
+  writeUserPresets: jest.fn(async (presets: unknown[]) => {
+    mockMainPresets = presets;
+    return true;
+  }),
+}));
 
 const show = (legacy = false) =>
   render(
@@ -65,7 +75,7 @@ it('opens the real grouped picker and loads Gaming into the shared DSP rack', as
 });
 
 it('updates favorites from saved presets immediately and removes stale entries', async () => {
-  const saved = saveUserDspPreset('My sound', {
+  const saved = await saveUserDspPreset('My sound', {
     ...DSP_DEFAULTS,
     enabled: true,
   });
@@ -80,8 +90,8 @@ it('updates favorites from saved presets immediately and removes stale entries',
   });
   expect(readDspSettings().presetId).toBe(saved.id);
   fireEvent.click(screen.getByRole('button', { name: 'Presets' }));
-  act(() => {
-    removeUserDspPreset(saved.id);
+  await act(async () => {
+    await removeUserDspPreset(saved.id);
   });
   expect(
     screen.queryByRole('menuitemradio', { name: /My sound/ }),

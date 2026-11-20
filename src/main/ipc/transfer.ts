@@ -63,6 +63,7 @@ import { TSuccess } from '../../renderer/utils/equalizerApi';
 import onWindowMessage from './windowMessages';
 import { registerCurveExportIpc } from './curveExport';
 import { registerMyCurvesIpc } from './myCurves';
+import { registerUserPresetsIpc } from './userPresets';
 import mainText from '../mainText';
 import { Refusal, userMessageOf } from '../refusal';
 
@@ -801,4 +802,5 @@ export const registerTransferIpc = ({
 
   registerCurveExportIpc({ getMainWindow, handleError });
   registerMyCurvesIpc({ userDataDir, handleError, logger: log });
+  registerUserPresetsIpc({ userDataDir, handleError, logger: log });
 };

@@ -1,0 +1,447 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026> <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'mainContentTokens' as *;
+@use 'libraryTokens' as *;
+
+// *** The listener's own presets (own presets, Direction A, 2026-11-20) ****
+//
+// A preset being made or changed wears the caution amber, `$ink-caution`:
+// light on a dark window and a deep amber at 5:1 on a white one, so the one
+// ink reads on both. The graph draws its curve and handles in the same ink
+// (`ColorEnum.PRESET_EDIT`). Flat surfaces parted by light, no shadows.
+
+$own-ink: $ink-caution;
+$own-tint: color-mix(in srgb, $ink-caution 13%, transparent);
+$own-edge: color-mix(in srgb, $ink-caution 55%, transparent);
+
+// --- New preset, among the Preset tab's tools: its word in the accent, the
+// one tool on the row that makes something. Over the row's flat tool ink.
+.eq-layer-tabs__tools .button.small.subtle.own-preset-new-tool {
+  color: $text-accent;
+}
+
+// --- The tile at the head of Yours: a place for a preset, not one. A dashed
+// edge in the accent and its word in the accent's light.
+.eq-preset-tab__tile.own-preset-new-tile {
+  border-style: dashed;
+  border-color: color-mix(in srgb, $secondary-default 48%, transparent);
+
+  .eq-preset-tab__glyph,
+  strong {
+    color: $text-accent;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: $secondary-default;
+    background: color-mix(in srgb, $secondary-default 7%, transparent);
+  }
+}
+
+// Yours holds wider tiles than the other groups: each carries its curve, its
+// star and its menu beside its words, and at the tab's 196px those three left
+// a name like "Podcast voice" cut to "Podcast vo…".
+.eq-preset-tab__grid.eq-preset-tab__grid--own {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+// --- One of the listener's presets: the Preset tab's tile, as two controls
+// side by side in one frame — the press that plays it, and its menu.
+.own-preset-tile {
+  display: flex;
+  min-width: 0;
+  min-height: 48px;
+  box-sizing: border-box;
+  align-items: stretch;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  transition: $transition-control;
+
+  &:hover {
+    border-color: color-mix(in srgb, $edge-tint 26%, transparent);
+    background: color-mix(in srgb, $edge-tint 5%, transparent);
+  }
+
+  &.is-playing {
+    border-color: $secondary-default;
+    background: color-mix(in srgb, $secondary-default 12%, transparent);
+
+    .eq-preset-tab__words strong {
+      color: $secondary-light;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.own-preset-tile__main {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px 6px 10px;
+  color: $text-primary;
+  border: 0;
+  border-radius: $radius-m 0 0 $radius-m;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: $disabled-opacity;
+  }
+
+  &:focus-visible {
+    @include focus-outline(-2px);
+  }
+
+  .eq-preset-tab__words {
+    flex: 1 1 auto;
+  }
+}
+
+.own-preset-tile__rename {
+  min-width: 0;
+  flex: 1 1 auto;
+  height: 28px;
+  box-sizing: border-box;
+  padding: 0 8px;
+  color: $text-primary;
+  border: 1px solid $secondary-default;
+  border-radius: $radius-xs;
+  background: $surface-field;
+  font: inherit;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.own-preset-tile__more {
+  display: grid;
+  width: 28px;
+  flex: none;
+  align-self: center;
+  height: 28px;
+  margin-right: 6px;
+  padding: 0;
+  place-items: center;
+  color: $text-muted;
+  border: 0;
+  border-radius: $radius-s;
+  background: none;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover,
+  &[aria-expanded='true'] {
+    color: $text-primary;
+    background: $studio-surface;
+  }
+
+  &:focus-visible {
+    @include focus-outline(-2px);
+  }
+}
+
+// The star every tile on the tab has (`.eq-preset-tab__star`), here a step
+// in the row rather than laid over the tile's end, so it stands beside the
+// menu and never on it: shown under the pointer or the focus, and always
+// once given (`.rich-pick__star.is-on`).
+.own-preset-tile__star {
+  flex: none;
+  align-self: center;
+  margin: 0 2px 0 4px;
+
+  .own-preset-tile:hover &,
+  .own-preset-tile:focus-within & {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    opacity: 1;
+  }
+}
+
+// Its curve, small, between its words and its menu.
+.own-preset-spark {
+  display: block;
+  flex: none;
+  color: $own-ink;
+}
+
+.own-preset-spark--tile {
+  width: 44px;
+  height: 20px;
+}
+
+.own-preset-spark__zero {
+  stroke: $border-subtle;
+  stroke-dasharray: 2 3;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.own-preset-spark__line {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+  vector-effect: non-scaling-stroke;
+}
+
+// The tile's menu: the band menu's surface and rows, Delete in the red every
+// answer that deletes wears.
+.band-menu.own-preset-menu {
+  button.is-danger:not(.button) {
+    color: $ink-removed;
+
+    .band-menu__icon {
+      color: $ink-removed;
+    }
+  }
+}
+
+// --- Beside the grid: its curve drawn wide in a well, its actions, and the
+// question Delete asks.
+.own-preset-notes__curve {
+  padding: 8px 10px;
+  border-radius: $radius-m;
+  background: $studio-surface;
+
+  .own-preset-spark--wide {
+    width: 100%;
+    height: 48px;
+  }
+}
+
+.own-preset-notes__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.own-preset-notes__confirm {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $ink-removed 9%, transparent);
+}
+
+.own-preset-notes__confirm-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: $text-primary;
+  font-size: $text-body;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.own-preset-notes__confirm-glyph {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  place-items: center;
+  color: $ink-removed;
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $ink-removed 14%, transparent);
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+// --- New preset's dialog: a name, then where the curve and the rack start,
+// each a row of the app's segmented choices that wraps rather than clips.
+.dialog-frame.own-preset-dialog {
+  @include dialog.size(680px, 600px);
+}
+
+.own-preset-dialog__row {
+  display: grid;
+  gap: 8px;
+
+  & + & {
+    padding-top: 14px;
+  }
+}
+
+.own-preset-dialog__label {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+
+  small {
+    margin-left: auto;
+    color: $text-faint;
+    font-size: $text-small;
+    font-weight: $weight-regular;
+  }
+}
+
+.segmented.own-preset-dialog__choices {
+  flex-wrap: wrap;
+  align-self: start;
+  justify-self: start;
+  max-width: 100%;
+
+  .segmented__option {
+    flex: 0 1 auto;
+    min-width: 0;
+    padding: 6px 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.own-preset-dialog .own-preset-spark--wide {
+  width: 100%;
+  height: 48px;
+  padding: 4px 0;
+  border-radius: $radius-s;
+  background: $studio-surface;
+}
+
+// --- The strip: where the EQ page's tab row stood, and over the DSP page,
+// while a preset is open. The row's own height, on the amber's tint, with
+// the amber's hairline under it: the page is in another mode, plainly.
+.own-preset-strip {
+  display: flex;
+  min-width: 0;
+  min-height: $eq-row-height;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  padding: 6px 10px 6px 12px;
+  border-bottom: 1px solid $own-edge;
+  background: $own-tint;
+}
+
+.own-preset-strip__who {
+  display: flex;
+  min-width: 0;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 8px;
+
+  strong {
+    @include truncate;
+    max-width: 260px;
+    color: $text-primary;
+    font-size: $studio-text-row;
+    font-weight: $weight-semibold;
+  }
+}
+
+.own-preset-strip__swatch {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 2px;
+  background: $own-ink;
+}
+
+.own-preset-strip__editing {
+  color: $text-muted;
+  font-size: $text-small;
+  white-space: nowrap;
+}
+
+.own-preset-strip__icon {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+
+// Curve and Rack: the segmented track, the part lit in the amber.
+.segmented.own-preset-strip__parts {
+  flex: none;
+  border-color: $own-edge;
+
+  .segmented__option {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 11px;
+  }
+
+  .segmented__option.is-selected {
+    color: $own-ink;
+    background: $own-tint;
+    box-shadow: inset 0 0 0 1px $own-edge;
+    font-weight: $weight-semibold;
+
+    :root[data-window-ink='dark'] & {
+      color: $white;
+      background: $own-ink;
+      box-shadow: none;
+    }
+  }
+}
+
+.own-preset-strip__unsaved {
+  margin-right: 4px;
+  color: $own-ink;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+}
+
+.own-preset-strip__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+
+  .button {
+    gap: 6px;
+  }
+}
+
+// Add band: a tool, flat as the tab row's tools are, beside the parts it
+// belongs to; the edged buttons at the end are the strip's actions.
+.button.small.subtle.own-preset-strip__add {
+  gap: 6px;
+  color: $text-primary;
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+
+  &:hover:not(:disabled) {
+    border-color: transparent;
+    background: $studio-surface;
+  }
+}
+
+// The graph's key names the preset's line in the amber it is drawn in while
+// it is the one being shaped (`presetEditCurves`).
+.graph-wrapper.is-editing-preset .graph-legend--voicing {
+  --curve-color: #{$own-ink};
+}

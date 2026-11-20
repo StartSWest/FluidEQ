@@ -54,6 +54,12 @@ import {
 } from './EqBandPopovers';
 import EqPresetTab, { EqPresetSearch } from './EqPresetTab';
 import EqToneTab from './EqToneTab';
+import NewPresetButton from './ownPresets/NewPresetButton';
+import NewPresetDialog from './ownPresets/NewPresetDialog';
+import PresetCurveRail from './ownPresets/PresetCurveRail';
+import PresetEditStrip from './ownPresets/PresetEditStrip';
+import { useNewPresetDialogOpen } from './ownPresets/newPresetDialogState';
+import { usePresetEditSession } from './ownPresets/presetEditSession';
 
 type TEqPageViewProps = {
   bands: TEqPageBands;
@@ -77,6 +83,11 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
   // On the EQ page the row stands above the scrolling page, on the graph's
   // surface (`eqRowSlot.ts`); elsewhere it stays inline over the bands.
   const rowSlot = useEqRowSlot();
+  // One of the listener's presets open: its strip stands where the tab row
+  // stood and its bands where the open tab's page was (own presets,
+  // Direction A). Your EQ's bands, hooks and all, wait untouched underneath.
+  const isEditingPreset = usePresetEditSession() !== undefined;
+  const isNewPresetOpen = useNewPresetDialogOpen();
   const {
     filters,
     isLoading,
@@ -167,6 +178,7 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
     preset: (
       <>
         <EqPresetSearch />
+        <NewPresetButton />
         {rule}
         <ClearEqButton label={t('eq.clear')} />
       </>
@@ -192,7 +204,9 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
       </>
     ),
   };
-  const row = (
+  const row = isEditingPreset ? (
+    <PresetEditStrip page="eq" />
+  ) : (
     <EqLayerTabs
       active={tab}
       bandCount={frequencySortedFilters.length}
@@ -240,9 +254,17 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
       <OutputEditingNotice />
       {/* The same popover beside a handle on the graph, whichever layer tab is
           open: the graph's handles are the bands on every one of them. */}
-      <EqBandPopoverOnGraph bands={bands} actions={actions} popover={popover} />
+      {!isEditingPreset && (
+        <EqBandPopoverOnGraph
+          bands={bands}
+          actions={actions}
+          popover={popover}
+        />
+      )}
       {rowSlot === undefined ? row : rowSlot && createPortal(row, rowSlot)}
-      {tab === 'bands' && (
+      {isNewPresetOpen && <NewPresetDialog />}
+      {isEditingPreset && <PresetCurveRail />}
+      {!isEditingPreset && tab === 'bands' && (
         <div
           id={eqLayerPanelId('bands')}
           role="tabpanel"
@@ -379,7 +401,7 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
           </div>
         </div>
       )}
-      {tab === 'preset' && (
+      {!isEditingPreset && tab === 'preset' && (
         <div
           id={eqLayerPanelId('preset')}
           role="tabpanel"
@@ -389,7 +411,7 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
           <EqPresetTab />
         </div>
       )}
-      {tab === 'tone' && (
+      {!isEditingPreset && tab === 'tone' && (
         <div
           id={eqLayerPanelId('tone')}
           role="tabpanel"

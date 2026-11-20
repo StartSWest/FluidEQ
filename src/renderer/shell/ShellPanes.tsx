@@ -44,6 +44,7 @@ import { DspPanelPage } from '../workspacePages';
 import DspPausedForGame from '../games/DspPausedForGame';
 import { useLoadedGame } from '../games/gameSoundStore';
 import { useSoundingGame } from '../games/useGameSound';
+import PresetEditStrip from '../eq/ownPresets/PresetEditStrip';
 
 /**
  * The DSP page, subscribed to the rack's settings itself.
@@ -66,14 +67,20 @@ export const DspPage = memo(
     if (game) {
       return <DspPausedForGame gameName={game.name} musicDsp={musicDsp} />;
     }
+    // Over the page while one of the listener's presets is open: this page
+    // is that preset's rack meanwhile, and the strip is the way back to its
+    // curve and to Save (own presets, Direction A).
     return (
-      <DspPanelPage.Page
-        settings={settings}
-        onChange={applyDspSettings}
-        onCommit={persistDspSettings}
-        engineState={engineState}
-        onOpenEngineDialog={onOpenEngineDialog}
-      />
+      <>
+        <PresetEditStrip page="dsp" />
+        <DspPanelPage.Page
+          settings={settings}
+          onChange={applyDspSettings}
+          onCommit={persistDspSettings}
+          engineState={engineState}
+          onOpenEngineDialog={onOpenEngineDialog}
+        />
+      </>
     );
   },
 );

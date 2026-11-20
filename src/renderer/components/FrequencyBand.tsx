@@ -45,6 +45,7 @@ import { removeEqualizerSlider, setGain } from '../utils/equalizerApi';
 import { requestBandMenu } from './BandMenu';
 import { FilterActionEnum, useFluidEqShell } from '../utils/FluidEqContext';
 import Slider from './Slider';
+import type { IBandColor } from '../utils/bandColors';
 import '../styles/FrequencyBand.scss';
 import '../styles/EqChannels.scss';
 
@@ -80,6 +81,14 @@ interface IFrequencyBandProps {
   onGainPreview?: (filterId: string, newValue: number) => void;
   /** Its frequency back to the band layout's (`bandLayoutDefaults.ts`). */
   onResetFrequency?: (filterId: string) => void;
+  /**
+   * Its gain back to 0 dB (Ctrl+click on the slider), for a row whose bands
+   * are not Your EQ's: a preset's curve being edited. Without it the reset
+   * goes to Your EQ's band of this id.
+   */
+  onGainReset?: (filterId: string) => void;
+  /** One colour for the band's slider instead of its place on the spectrum. */
+  ink?: IBandColor;
 }
 
 const FrequencyBand = forwardRef(
@@ -99,6 +108,8 @@ const FrequencyBand = forwardRef(
       onGainPreview,
       onResetFrequency,
       onQualityWheel,
+      onGainReset,
+      ink,
     }: IFrequencyBandProps,
     ref: ForwardedRef<HTMLDivElement>,
   ) => {
@@ -199,6 +210,10 @@ const FrequencyBand = forwardRef(
     );
 
     const resetGain = async () => {
+      if (onGainReset) {
+        onGainReset(filter.id);
+        return;
+      }
       try {
         await throttleSetGain({ kind: 'reset' });
       } catch (error) {
@@ -413,6 +428,7 @@ const FrequencyBand = forwardRef(
               onKeyboardSelect={(event) => onSelect?.(filter.id, event)}
               isReadOnly={isGainDisabled}
               colorProgress={colorProgress}
+              ink={ink}
               showNumberInput={false}
             />
           </div>

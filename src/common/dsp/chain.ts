@@ -210,7 +210,7 @@ const clampExciterBand = (
 const EQ_TYPES = ['PK', 'NO', 'LSC', 'HSC', 'LPQ', 'HPQ', 'BP'] as const;
 
 /** For a stored band past the default rack, which has no counterpart there. */
-const FALLBACK_EQ_BAND: IEqBandSettings = {
+export const FALLBACK_EQ_BAND: IEqBandSettings = {
   enabled: true,
   type: 'PK',
   frequency: 1_000,
@@ -220,7 +220,8 @@ const FALLBACK_EQ_BAND: IEqBandSettings = {
   quality: 1.4,
 };
 
-const clampEqBand = (
+/** One band, every field bounded; also a preset curve's (`presetCurveClamp.ts`). */
+export const clampEqBand = (
   value: unknown,
   fallback: IEqBandSettings,
 ): IEqBandSettings => {

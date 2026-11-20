@@ -30,7 +30,7 @@ import {
 import ArrowButton from './ArrowButton';
 import '../styles/RangeInput.scss';
 import { clamp } from '../utils/utils';
-import { getBandColor } from '../utils/bandColors';
+import { getBandColor, type IBandColor } from '../utils/bandColors';
 import { useRainbowStops } from '../utils/rainbowPalette';
 import rangeKeyValue from './rangeKeyValue';
 
@@ -54,6 +54,8 @@ interface IRangeInputProps {
   handleDragStart?: () => void;
   onKeyboardSelect?: (event: KeyboardEvent<HTMLInputElement>) => void;
   colorProgress?: number;
+  /** One colour for the whole slider instead of its place on the spectrum. */
+  ink?: IBandColor;
 }
 
 const RangeInput = ({
@@ -72,6 +74,7 @@ const RangeInput = ({
   handleDragStart,
   onKeyboardSelect,
   colorProgress = 0,
+  ink,
 }: IRangeInputProps) => {
   // Store a copy of the last value so it isn't lost to the throttle
   const lastValue = useRef<number | undefined>(undefined);
@@ -117,8 +120,8 @@ const RangeInput = ({
   // Rainbow mode's palette, read here so a new one draws the band again.
   const rainbow = useRainbowStops();
   const rangeColor = useMemo(
-    () => getBandColor(colorProgress, rainbow),
-    [colorProgress, rainbow],
+    () => ink ?? getBandColor(colorProgress, rainbow),
+    [colorProgress, ink, rainbow],
   );
 
   // A drag lets go of 0 within a few pixels of it, as a fader's centre

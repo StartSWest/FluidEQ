@@ -43,6 +43,11 @@ import { OPEN_AUTO_EQ_EVENT } from './eq/autoEq/autoEqOpen';
 import RackFollowsEngine from './dsp/RackFollowsEngine';
 import useMainEditorWhile from './utils/useMainEditorWhile';
 import PresetToneFeed from './dsp/PresetToneFeed';
+import PresetEditLive from './eq/ownPresets/PresetEditLive';
+import {
+  OPEN_PRESET_EDIT_PAGE_EVENT,
+  presetEditPageOf,
+} from './eq/ownPresets/presetEditPages';
 import './styles/App.scss';
 // After App.scss: these are the accents in their rainbow form, and they have to
 // win against the cyan ones they replace without reaching for `!important`.
@@ -210,6 +215,19 @@ const AppContent = () => {
     const open = () => selectTopWorkspaceTab('eq');
     window.addEventListener(OPEN_AUTO_EQ_EVENT, open);
     return () => window.removeEventListener(OPEN_AUTO_EQ_EVENT, open);
+  }, [selectTopWorkspaceTab]);
+
+  // Asked by a preset being edited: its curve on the EQ page, its rack on
+  // the DSP page (`presetEditPages.ts`).
+  useEffect(() => {
+    const open = (event: Event) => {
+      const page = presetEditPageOf(event);
+      if (page) {
+        selectTopWorkspaceTab(page);
+      }
+    };
+    window.addEventListener(OPEN_PRESET_EDIT_PAGE_EVENT, open);
+    return () => window.removeEventListener(OPEN_PRESET_EDIT_PAGE_EVENT, open);
   }, [selectTopWorkspaceTab]);
   usePerformanceContext(activeWorkspaceTab, windowMode);
   /**
@@ -819,6 +837,9 @@ const AppContent = () => {
               {/* And its curve, told to the rack's Maximizer from wherever the
                 curve changes: a preset, its chip, the EQ mode menu. */}
               <PresetToneFeed />
+              {/* A preset of the listener's own being edited, heard as it
+                  is shaped, whichever page it is shaped on. */}
+              <PresetEditLive />
             </MiddleContent>
           </EqGraphAboveContext.Provider>
           {/* One divider, both tabs, always in the same place: the seam between

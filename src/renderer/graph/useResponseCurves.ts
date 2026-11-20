@@ -9,6 +9,9 @@ import type { IFiltersMap } from '../../common/constants';
 import { useCurrentEngine } from '../utils/audioEngineContext';
 import { useEnginePreampAudible } from '../utils/enginePreamp';
 import { useFluidEqContext } from '../utils/FluidEqContext';
+import { dspPresetVoicing } from '../../common/dsp/presetVoicing';
+import { usePresetEditSession } from '../eq/ownPresets/presetEditSession';
+import { draftCurveOf } from '../eq/ownPresets/presetEditBands';
 import { useGraphEqQuiet } from '../utils/graphViewSettings';
 import { useTranslation } from '../utils/I18nContext';
 import { useRainbowStops } from '../utils/rainbowPalette';
@@ -62,14 +65,39 @@ const useResponseCurves = (): IResponseCurves => {
     preAmp: configuredPreAmp,
     eqFormat,
     graphicEq,
-    voicing,
+    voicing: playingVoicing,
     driver,
     headphone,
     smartEq,
     tone,
-    bypassed,
+    bypassed: playingBypassed,
     customFx,
   } = useFluidEqContext();
+  // A preset being edited is drawn from its draft in the same frame as the
+  // handle that moved it, not a round trip later through the window's
+  // layers, and drawn whatever its chip said: the first write of the draft
+  // switches the layer on (`applyingLayer` in main).
+  // Keyed on what the curve is made of, so a hover or a selection over its
+  // handles redraws no line.
+  const presetEdit = usePresetEditSession();
+  const editedId = presetEdit?.presetId;
+  const editedBase = presetEdit?.base;
+  const editedBands = presetEdit?.bands;
+  const editedVoicing = useMemo(
+    () =>
+      editedId !== undefined && editedBase && editedBands
+        ? dspPresetVoicing(editedId, draftCurveOf(editedBase, editedBands))
+        : undefined,
+    [editedBands, editedBase, editedId],
+  );
+  const voicing = editedVoicing ?? playingVoicing;
+  const bypassed = useMemo(
+    () =>
+      editedVoicing
+        ? playingBypassed.filter((layer) => layer !== 'voicing')
+        : playingBypassed,
+    [editedVoicing, playingBypassed],
+  );
   const currentEngine = useCurrentEngine();
   const matchedDesign = useMatchedDesign();
   const outputRate = useOutputRate('editor');

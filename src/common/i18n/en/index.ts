@@ -54,6 +54,7 @@ import dspDeEsser from './dspDeEsser';
 import dspFootsteps from './dspFootsteps';
 import dspDynamics from './dspDynamics';
 import dspStageSave from './dspStageSave';
+import ownPresets from './ownPresets';
 import remoteAudio from './remoteAudio';
 import tour from './tour';
 import tour24 from './tour24';
@@ -113,6 +114,7 @@ const en = {
   ...dspFootsteps,
   ...dspDynamics,
   ...dspStageSave,
+  ...ownPresets,
   ...remoteAudio,
   ...tour,
   ...tour24,

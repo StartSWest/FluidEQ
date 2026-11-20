@@ -35,6 +35,7 @@ import {
 import { useSmartEqMode } from '../utils/smartEqMode';
 import { dspVoicingPresetId } from '../../common/dsp/presetVoicing';
 import { presetLayerName } from '../dsp/dspPresetCatalog';
+import { useUserDspPresetsState } from '../dsp/userDspPresets';
 import { keptCurveName } from '../eq/appliedCurve';
 import { useMyCurves } from '../eq/myCurvesStore';
 import { collectLayers } from './activeLayerList';
@@ -227,6 +228,10 @@ const useActiveLayers = () => {
   const voicingProfile = getVoicingProfile(voicing?.profileId ?? '');
   // A preset's tone plays as a voicing named `dsp:<preset>`; its chip wears
   // the preset's own name and glyph, as the picker that put it there does.
+  // The listener's own come from main once (`userDspPresets.ts`), so the
+  // chip reads that list as a subscriber: a name that arrives after the
+  // first paint, or changes on a rename, is drawn when it does.
+  useUserDspPresetsState();
   const presetName = presetLayerName(voicing, t);
   const voicingGlyph = dspVoicingPresetId(voicing) ?? voicing?.profileId;
   const driverProfile = getDriverProfile(driver?.profileId ?? '');

@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { DSP_PRESETS, DSP_PRESET_GROUPS } from '../../common/dsp/presets';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
@@ -23,7 +23,11 @@ import {
   dspPresetName,
   dspPresetRowHint,
 } from './dspPresetCatalog';
-import { IUserDspPreset, readUserDspPresets } from './userDspPresets';
+import {
+  IUserDspPreset,
+  ensureUserDspPresetsLoaded,
+  readUserDspPresets,
+} from './userDspPresets';
 
 /** None's own place, first and without a heading. */
 const NONE_GROUP = '';
@@ -47,9 +51,11 @@ const QUICK_GROUP = 'quick';
  */
 const useDspChainEntries = (scope: TDspPresetScope) => {
   const { t } = useTranslation();
-  const [userPresets, setUserPresets] = useState<IUserDspPreset[]>(() =>
-    readUserDspPresets(),
+  const [userPresets, setUserPresets] = useState<readonly IUserDspPreset[]>(
+    () => readUserDspPresets(),
   );
+  // The list the first render read, for the effect to compare against.
+  const firstList = useRef(userPresets);
   const [favourites, setFavourites] = useState<string[]>(() =>
     readFavouriteDspPresets(),
   );
@@ -64,6 +70,14 @@ const useDspChainEntries = (scope: TDspPresetScope) => {
     };
     window.addEventListener(DSP_PRESETS_CHANGED, changed);
     window.addEventListener('storage', changed);
+    // Main's list arrives once, and may have arrived between this render
+    // and this listener: read again once it is in, if it is another list.
+    const readAgain = () => {
+      if (readUserDspPresets() !== firstList.current) {
+        changed();
+      }
+    };
+    ensureUserDspPresetsLoaded().then(readAgain, () => undefined);
     return () => {
       window.removeEventListener(DSP_PRESETS_CHANGED, changed);
       window.removeEventListener('storage', changed);

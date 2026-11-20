@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import type { TImportEars } from 'common/bandEars';
 import type { IMyCurve } from 'common/myCurves';
+import type { IUserDspPreset } from 'common/userPresetsFile';
 import ChannelEnum from 'common/channels';
 import { IGatheredFacts } from 'common/bugReport';
 import {
@@ -397,6 +398,23 @@ export const writeMyCurves = (
 ): Promise<boolean> => {
   const channel = ChannelEnum.SET_MY_CURVES;
   return sendRequest(channel, [curves], simpleResponseHandler<boolean>());
+};
+
+/** The listener's own presets as main keeps them (`main/ipc/userPresets.ts`). */
+export const readUserPresets = (): Promise<IUserDspPreset[]> => {
+  const channel = ChannelEnum.GET_USER_PRESETS;
+  return sendRequest(channel, [], simpleResponseHandler<IUserDspPreset[]>());
+};
+
+/**
+ * Keep `presets` as the whole of the listener's own. Rejects, and nothing is
+ * written, when main cannot keep it.
+ */
+export const writeUserPresets = (
+  presets: readonly IUserDspPreset[],
+): Promise<boolean> => {
+  const channel = ChannelEnum.SET_USER_PRESETS;
+  return sendRequest(channel, [presets], simpleResponseHandler<boolean>());
 };
 
 /** Show the desktop Save As dialog for a complete DSP filter chain. */

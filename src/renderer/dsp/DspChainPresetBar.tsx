@@ -37,11 +37,12 @@ import {
 import {
   IUserDspPreset,
   USER_DSP_PRESET_NAME_MAX,
-  USER_DSP_PRESET_PREFIX,
   findUserDspPreset,
-  removeUserDspPreset,
   saveUserDspPreset,
 } from './userDspPresets';
+import { removeOwnPreset } from '../eq/ownPresets/ownPresetRemoval';
+import { editedPresetName } from '../eq/ownPresets/presetEditSession';
+import type { ErrorDescription } from '../../common/errors';
 
 interface IDspChainPresetBarProps {
   settings: IDspSettings;
@@ -58,7 +59,7 @@ const DspChainPresetBar = ({
 }: IDspChainPresetBarProps) => {
   const { t } = useTranslation();
   const scope = useDspPresetScope();
-  const { voicing } = useFluidEqLayers();
+  const { voicing, setGlobalError } = useFluidEqLayers();
   const [notice, setNotice] = useState('');
   const [isImporting, setIsImporting] = useState(false);
   const [isNaming, setIsNaming] = useState(false);
@@ -118,52 +119,59 @@ const DspChainPresetBar = ({
 
   // A chain is saved and shared as it is heard: the rack, and the tone the
   // Preset layer is playing in the main EQ (`presetCurve.ts`).
-  const handleSave = (name: string) => {
-    const saved = saveUserDspPreset(name, settings, dspVoicingCurve(voicing));
-    refreshUserPresets();
+  const handleSave = async (name: string) => {
     setIsNaming(false);
-    onChange({ ...settings, presetId: saved.id });
-    onCommit();
-    setNotice(t('dsp.eqSave.saved', { name: saved.name }));
+    try {
+      const saved = await saveUserDspPreset(
+        name,
+        settings,
+        dspVoicingCurve(voicing),
+      );
+      refreshUserPresets();
+      onChange({ ...settings, presetId: saved.id });
+      onCommit();
+      setNotice(t('dsp.eqSave.saved', { name: saved.name }));
+    } catch (error) {
+      setGlobalError(error as ErrorDescription);
+    }
   };
 
-  const handleDelete = () => {
+  // The chain on now is the one deleted, so it is taken off first, the same
+  // as from the EQ page's Preset tab (`removeOwnPreset`): None, rather than
+  // a rack and a curve left playing under a name that is gone.
+  const handleDelete = async () => {
     const saved = findUserDspPreset(settings.presetId);
     if (!saved) {
       return;
     }
-    removeUserDspPreset(saved.id);
-    refreshUserPresets();
-    // Its star goes with it, rather than waiting in storage for an id that
-    // will never be shown again.
-    if (favourites.includes(saved.id)) {
-      setFavourites(
-        toggleFavouriteDspPreset(
-          saved.id,
-          ordered.filter((id) => id !== saved.id),
-        ),
-      );
+    try {
+      await removeOwnPreset(saved.id, () => selectPreset('none'));
+      refreshUserPresets();
+      setNotice(t('dsp.eqSave.deleted', { name: saved.name }));
+    } catch (error) {
+      setGlobalError(error as ErrorDescription);
     }
-    onChange({ ...settings, presetId: '' });
-    onCommit();
-    setNotice(t('dsp.eqSave.deleted', { name: saved.name }));
   };
 
-  const handleImport = (text: string) => {
+  const handleImport = async (text: string) => {
     const imported = fromDspChainPresetFile(text);
     if (!imported) {
       setNotice(t('dsp.chainImport.invalid'));
       return;
     }
-    const saved = saveUserDspPreset(
-      imported.name,
-      imported.settings,
-      imported.curve,
-    );
-    refreshUserPresets();
-    setIsImporting(false);
-    applyUserPreset(saved);
-    setNotice(t('dsp.eqSave.imported', { name: saved.name }));
+    try {
+      const saved = await saveUserDspPreset(
+        imported.name,
+        imported.settings,
+        imported.curve,
+      );
+      refreshUserPresets();
+      setIsImporting(false);
+      applyUserPreset(saved);
+      setNotice(t('dsp.eqSave.imported', { name: saved.name }));
+    } catch (error) {
+      setGlobalError(error as ErrorDescription);
+    }
   };
 
   const handleExport = async () => {
@@ -213,7 +221,10 @@ const DspChainPresetBar = ({
           }}
           activeId={settings.presetId}
           onPick={applyPreset}
-          placeholder={t('dsp.eqPreset.custom')}
+          // A preset being made is in no list yet: its own name, not Custom.
+          placeholder={
+            editedPresetName(settings.presetId) ?? t('dsp.eqPreset.custom')
+          }
           placeholderIcon={<VoicingIcon className="rich-pick__glyph" />}
           triggerAriaLabel={t('dsp.presets')}
           triggerTitle={t('dsp.presets')}
@@ -308,13 +319,16 @@ const DspChainPresetBar = ({
           <DspBarIcon name="import" />
           {t('dsp.eqPreset.import')}
         </button>
-        {settings.presetId.startsWith(USER_DSP_PRESET_PREFIX) && (
+        {/* Kept ones only: a preset still being made has nothing to delete. */}
+        {findUserDspPreset(settings.presetId) && (
           <button
             type="button"
             className="button small subtle"
             title={t('dsp.eqSave.delete')}
             disabled={disabled || selecting}
-            onClick={handleDelete}
+            onClick={() => {
+              handleDelete().catch(() => undefined);
+            }}
           >
             <DspBarIcon name="delete" />
             {t('dsp.eqSave.delete')}
@@ -335,7 +349,9 @@ const DspChainPresetBar = ({
           placeholderKey="dsp.chainImport.placeholder"
           accept=".json,.fluideq-dsp.json,application/json"
           error={notice}
-          onImport={handleImport}
+          onImport={(text) => {
+            handleImport(text).catch(() => undefined);
+          }}
           onClose={() => setIsImporting(false)}
         />
       )}
@@ -347,7 +363,9 @@ const DspChainPresetBar = ({
           hintKey="dsp.chainSave.hint"
           placeholderKey="dsp.eqSave.placeholder"
           nameMax={USER_DSP_PRESET_NAME_MAX}
-          onSave={handleSave}
+          onSave={(name) => {
+            handleSave(name).catch(() => undefined);
+          }}
           onClose={() => setIsNaming(false)}
         />
       )}

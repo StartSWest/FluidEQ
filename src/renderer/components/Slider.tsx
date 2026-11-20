@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
 import NumberInput from '../widgets/NumberInput';
 import RangeInput from '../widgets/RangeInput';
+import type { IBandColor } from '../utils/bandColors';
 import { useFluidEqShell } from '../utils/FluidEqContext';
 import '../styles/Slider.scss';
 
@@ -35,6 +36,8 @@ interface ISliderProps {
   label?: string;
   showNumberInput?: boolean;
   colorProgress?: number;
+  /** One colour for the whole slider (`RangeInput`). */
+  ink?: IBandColor;
   onKeyboardSelect?: (event: KeyboardEvent<HTMLInputElement>) => void;
   setValue: (newValue: number) => Promise<void>;
 }
@@ -51,6 +54,7 @@ const Slider = ({
   isDisabled = false,
   isReadOnly = false,
   colorProgress = 0,
+  ink,
   onKeyboardSelect,
   setValue,
 }: ISliderProps) => {
@@ -113,6 +117,7 @@ const Slider = ({
         isDisabled={isDisabled || isBlockingError}
         isReadOnly={isReadOnly}
         colorProgress={colorProgress}
+        ink={ink}
         incrementPrecision={0}
         displayPrecision={2}
       />

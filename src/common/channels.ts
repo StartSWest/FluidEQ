@@ -125,6 +125,10 @@ enum ChannelEnum {
   EXPORT_CURVE_FOLDER = 'exportCurveFolder',
   GET_MY_CURVES = 'getMyCurves',
   SET_MY_CURVES = 'setMyCurves',
+  // The listener's own presets, a curve and a rack each, kept whole in
+  // `user-presets.json` (`main/ipc/userPresets.ts`).
+  GET_USER_PRESETS = 'getUserPresets',
+  SET_USER_PRESETS = 'setUserPresets',
   // A game's own sound on the playing output, and the music sound back once
   // the game is over (`main/ipc/gameSound.ts`); the listener's Gaming
   // profiles beside them.

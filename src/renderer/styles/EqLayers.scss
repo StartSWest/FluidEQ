@@ -12,6 +12,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'eqLayerTabs';
 @use 'eqPresetTab';
 @use 'eqToneTab';
+@use 'ownPresets';
 
 @media (prefers-reduced-motion: reduce) {
   .eq-layer-tabs__tab,

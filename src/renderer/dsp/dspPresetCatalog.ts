@@ -1,6 +1,6 @@
 /* FluidEQ — GPL-3.0-or-later */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   IDspSettings,
   IEqSettings,
@@ -23,8 +23,10 @@ import {
   readFavouriteDspPresets,
 } from './favouriteDspPresets';
 import { genreHookKey } from './genreNotesModel';
+import { editedPresetName } from '../eq/ownPresets/presetEditSession';
 import {
   IUserDspPreset,
+  ensureUserDspPresetsLoaded,
   findUserDspPreset,
   readUserDspPresets,
 } from './userDspPresets';
@@ -242,6 +244,11 @@ export const presetLayerNameOf = (id: string, t: Translate): string => {
   if (saved) {
     return saved.name;
   }
+  // A preset being made is in no list until it is saved.
+  const editing = editedPresetName(id);
+  if (editing !== undefined) {
+    return editing;
+  }
   return factory ? dspPresetName(factory, t) : t('dsp.eqPreset.custom');
 };
 
@@ -264,10 +271,20 @@ const readSaved = () => ({
  */
 export const useDspPresetCatalog = (t: Translate) => {
   const [saved, setSaved] = useState(readSaved);
+  // The list the first render read, for the effect to compare against.
+  const firstList = useRef(saved.chains);
   useEffect(() => {
     const changed = () => setSaved(readSaved());
     window.addEventListener(DSP_PRESETS_CHANGED, changed);
     window.addEventListener('storage', changed);
+    // Main's list arrives once, and may have arrived between this render
+    // and this listener: read again once it is in, if it is another list.
+    const readAgain = () => {
+      if (readUserDspPresets() !== firstList.current) {
+        changed();
+      }
+    };
+    ensureUserDspPresetsLoaded().then(readAgain, () => undefined);
     return () => {
       window.removeEventListener(DSP_PRESETS_CHANGED, changed);
       window.removeEventListener('storage', changed);

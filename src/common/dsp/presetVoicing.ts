@@ -6,7 +6,8 @@ import {
   IVoicingSettings,
 } from '../constants';
 import { getVoicingFilters } from '../voicing';
-import { DSP_DEFAULTS, clampDspSettings, IEqSettings } from './chain';
+import { DSP_DEFAULTS, IEqSettings } from './chain';
+import { clampPresetCurve } from './presetCurveClamp';
 import modelledQuality from './eqModel';
 
 /** What a Preset layer's id starts with; the preset's own id follows. */
@@ -42,7 +43,7 @@ export const dspPresetVoicing = (
   id: string,
   eq: IEqSettings,
 ): IVoicingSettings => {
-  const clamped = clampDspSettings({ eq }).eq;
+  const clamped = clampPresetCurve(eq);
   const filters: IFiltersMap = {};
   if (clamped.enabled) {
     // A dynamic band acts only above its threshold, which a static filter
@@ -117,13 +118,11 @@ export const dspVoicingCurve = (
     dynamic: false,
     thresholdDb: -24,
   }));
-  return clampDspSettings({
-    eq: {
-      ...DSP_DEFAULTS.eq,
-      enabled: true,
-      presetId: '',
-      bands,
-      sourceBands: bands.map((band) => ({ ...band })),
-    },
-  }).eq;
+  return clampPresetCurve({
+    ...DSP_DEFAULTS.eq,
+    enabled: true,
+    presetId: '',
+    bands,
+    sourceBands: bands.map((band) => ({ ...band })),
+  });
 };
