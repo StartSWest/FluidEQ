@@ -136,7 +136,7 @@ export default {
   'autoEq.eqs.renameLabel': 'Nuevo nombre para {name}',
   'autoEq.eqs.deleteAsk': '¿Eliminar {name}?',
   'autoEq.eqs.deleteKeeps':
-    'Las canciones y álbumes que lo usan conservan su sonido como propio.',
+    'Lo usan {what}. Cada uno conserva su sonido como propio.',
   'autoEq.eqs.usedBy': 'en {what}',
   'autoEq.eqs.moreCount': '{count} más',
   'autoEq.eqs.seeAll': 'Ver los {count}',
@@ -144,6 +144,7 @@ export default {
   'autoEq.eqs.saveNew': 'Guardar como EQ nuevo…',
   'autoEq.eqs.updateNamed': 'Actualizar «{name}» con lo que suena',
   'autoEq.eqs.manageAll': 'Gestionar EQ guardados…',
+  'autoEq.eqs.search': 'Buscar EQ guardados',
   'autoEq.eqs.putOnNamed': 'Poner {name}',
   'autoEq.songs.follows': 'Sigue {name}',
 };

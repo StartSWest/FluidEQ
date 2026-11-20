@@ -129,7 +129,7 @@ export default {
   'autoEq.eqs.renameLabel': '{name} का नया नाम',
   'autoEq.eqs.deleteAsk': '{name} हटाएँ?',
   'autoEq.eqs.deleteKeeps':
-    'इस पर चल रहे गाने और एल्बम इसकी आवाज़ अपनी बनाकर रखते हैं।',
+    '{what} इसका इस्तेमाल करते हैं। हर एक इसकी आवाज़ अपनी बनाकर रखता है।',
   'autoEq.eqs.usedBy': '{what} पर',
   'autoEq.eqs.moreCount': '{count} और',
   'autoEq.eqs.seeAll': 'सभी {count} देखें',
@@ -137,6 +137,7 @@ export default {
   'autoEq.eqs.saveNew': 'नए EQ के रूप में सहेजें…',
   'autoEq.eqs.updateNamed': '“{name}” को जो बज रहा है उससे अपडेट करें',
   'autoEq.eqs.manageAll': 'सहेजे गए EQ प्रबंधित करें…',
+  'autoEq.eqs.search': 'सहेजे गए EQ खोजें',
   'autoEq.eqs.putOnNamed': '{name} लगाएँ',
   'autoEq.songs.follows': '{name} के अनुसार',
 };

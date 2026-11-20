@@ -130,7 +130,7 @@ const autoEq = {
   'autoEq.eqs.renameLabel': '{name}의 새 이름',
   'autoEq.eqs.deleteAsk': '{name}을(를) 삭제할까요?',
   'autoEq.eqs.deleteKeeps':
-    '이것을 쓰는 노래와 앨범은 그 사운드를 자기 것으로 유지합니다.',
+    '{what}에서 사용 중입니다. 각각 그 사운드를 자기 것으로 유지합니다.',
   'autoEq.eqs.usedBy': '{what}에 사용',
   'autoEq.eqs.moreCount': '{count}개 더',
   'autoEq.eqs.seeAll': '{count}개 모두 보기',
@@ -138,6 +138,7 @@ const autoEq = {
   'autoEq.eqs.saveNew': '새 EQ로 저장…',
   'autoEq.eqs.updateNamed': '“{name}”을(를) 재생 중인 소리로 업데이트',
   'autoEq.eqs.manageAll': '저장한 EQ 관리…',
+  'autoEq.eqs.search': '저장한 EQ 검색',
   'autoEq.eqs.putOnNamed': '{name} 적용',
   'autoEq.songs.follows': '{name} 따름',
 } satisfies Partial<Dictionary>;

@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useState } from 'react';
 import log from 'electron-log/renderer';
 import MenuIcon from '../../icons/MenuIcon';
+import TextInput from '../../widgets/TextInput';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../../widgets/AnchoredMenu';
 import { useTranslation } from '../../utils/I18nContext';
 import { useSongSoundIndex } from '../../audio/songSoundIndex';
@@ -18,8 +19,12 @@ import {
 } from '../../audio/savedEqActions';
 import AutoEqMiniCurve from './AutoEqMiniCurve';
 import AutoEqSaveEqForm from './AutoEqSaveEqForm';
+import AutoEqEqList from './AutoEqEqList';
 import { orderSavedEqs, rowStateOf } from './AutoEqSavedEqs';
-import { requestAutoEqOpen } from './autoEqOpen';
+
+/** What the menu shows: its list, Save as new EQ's form, or every saved EQ
+ * to manage. */
+type TView = 'menu' | 'form' | 'manage';
 
 /** The menu lists this many; Manage has the rest. */
 const SHOWN = 5;
@@ -30,9 +35,10 @@ const SHOWN = 5;
  * show a specialised menu for that only"): a menu about saved EQs and nothing
  * else. Save as new EQ opens the panel's own form in the menu's place; the
  * saved EQ that is on can be updated with what plays, Changed said beside it
- * when it differs; the newest few go on in one press; and Manage holds them
- * all, in Auto EQ's panel. Auto EQ's own Save beside its button stays the
- * song's.
+ * when it differs; the newest few go on in one press; and Manage saved EQs…
+ * opens every one of them in the menu itself, with the panel's own rows
+ * (Ivan, 2026-11-20: "put that inside the same save EQ menu, not on auto EQ
+ * menu"). Auto EQ's own Save beside its button stays the song's.
  */
 const SaveEqMenu = () => {
   const { t } = useTranslation();
@@ -40,17 +46,21 @@ const SaveEqMenu = () => {
   const live = useLiveSongSound();
   const states = useSavedEqStates(eqs);
   const [isOpen, setIsOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [view, setView] = useState<TView>('menu');
+  const [search, setSearch] = useState('');
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
   const label = t('eq.tools.saveEq');
 
   const close = () => {
     setIsOpen(false);
-    setIsSaving(false);
+    setView('menu');
+    setSearch('');
   };
 
-  // A press anywhere but the menu and its button closes it, and Escape:
-  // from the form, back to the menu; from the menu, the menu.
+  // A press anywhere but the menu and its button closes it (a saved EQ's own
+  // row menu is a menu too, and inside), and Escape: from the form or the
+  // manage view, back to the menu; from the menu, the menu. A row's own menu
+  // and its rename take their Escape first.
   useEffect(() => {
     if (!isOpen) {
       return undefined;
@@ -61,13 +71,20 @@ const SaveEqMenu = () => {
         !anchor?.contains(event.target as Node)
       ) {
         setIsOpen(false);
-        setIsSaving(false);
+        setView('menu');
+        setSearch('');
       }
     };
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !isSaving) {
+      if (event.key !== 'Escape') {
+        return;
+      }
+      if (view === 'menu') {
         setIsOpen(false);
         anchor?.focus();
+      } else {
+        setView('menu');
+        setSearch('');
       }
     };
     window.addEventListener('mousedown', onPointerDown);
@@ -76,7 +93,7 @@ const SaveEqMenu = () => {
       window.removeEventListener('mousedown', onPointerDown);
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [anchor, isOpen, isSaving]);
+  }, [anchor, isOpen, view]);
 
   const onId = states.changedId ?? states.playingId;
   const on = onId === undefined ? undefined : eqById.get(onId);
@@ -93,7 +110,8 @@ const SaveEqMenu = () => {
         aria-haspopup="menu"
         aria-expanded={isOpen}
         onClick={() => {
-          setIsSaving(false);
+          setView('menu');
+          setSearch('');
           setIsOpen((open) => !open);
         }}
       >
@@ -104,28 +122,58 @@ const SaveEqMenu = () => {
       <AnchoredMenu
         anchor={anchor}
         isOpen={isOpen}
-        className={`band-menu eq-save-menu${isSaving ? ' is-form' : ''}`}
+        className={`band-menu eq-save-menu is-${view}`}
         ariaLabel={t('autoEq.eqs.title')}
       >
-        {isSaving ? (
+        {view === 'manage' && (
+          <div className="eq-save-menu__form eq-save-menu__manage">
+            <div className="eq-save-menu__head">
+              <button
+                type="button"
+                className="button small subtle eq-save-menu__back"
+                aria-label={t('autoEq.manage.back')}
+                title={t('autoEq.manage.back')}
+                onClick={() => {
+                  setView('menu');
+                  setSearch('');
+                }}
+              >
+                <MenuIcon name="back" />
+              </button>
+              <p className="band-menu__subject">{t('autoEq.eqs.title')}</p>
+            </div>
+            <TextInput
+              value={search}
+              ariaLabel={t('autoEq.eqs.search')}
+              placeholder={t('autoEq.eqs.search')}
+              isDisabled={false}
+              errorMessage=""
+              handleChange={setSearch}
+              handleSubmit={setSearch}
+            />
+            <AutoEqEqList search={search} />
+          </div>
+        )}
+        {view === 'form' && (
           <div className="eq-save-menu__form">
             <p className="band-menu__subject">{t('autoEq.eqs.saveThis')}</p>
             <AutoEqSaveEqForm
               suggestedName={t('autoEq.eqs.defaultName', {
                 count: eqs.length + 1,
               })}
-              onCancel={() => setIsSaving(false)}
+              onCancel={() => setView('menu')}
               onSaved={close}
             />
           </div>
-        ) : (
+        )}
+        {view === 'menu' && (
           <>
             <p className="band-menu__subject">{t('autoEq.eqs.title')}</p>
             <button
               type="button"
               role="menuitem"
               disabled={!live}
-              onClick={() => setIsSaving(true)}
+              onClick={() => setView('form')}
             >
               <MenuIcon name="plus" className="band-menu__icon" />
               <span>{t('autoEq.eqs.saveNew')}</span>
@@ -198,10 +246,7 @@ const SaveEqMenu = () => {
             <button
               type="button"
               role="menuitem"
-              onClick={() => {
-                close();
-                requestAutoEqOpen('eqs');
-              }}
+              onClick={() => setView('manage')}
             >
               <MenuIcon name="settings" className="band-menu__icon" />
               <span>{t('autoEq.eqs.manageAll')}</span>

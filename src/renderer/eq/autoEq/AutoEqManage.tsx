@@ -18,11 +18,8 @@ import {
   pickLibrarySongSounds,
   setAlbumSound,
 } from '../../utils/songSoundApi';
-import { useLiveSongSound } from '../../audio/songSoundSession';
-import { useSavedEqStates } from '../../audio/savedEqActions';
-import AutoEqEqRow from './AutoEqEqRow';
+import AutoEqEqList from './AutoEqEqList';
 import { eqNameOf } from '../../library/librarySoundTag';
-import { orderSavedEqs, rowStateOf } from './AutoEqSavedEqs';
 
 export type TManageTab = 'songs' | 'albums' | 'eqs';
 
@@ -60,8 +57,6 @@ const AutoEqManage = ({
   const { t } = useTranslation();
   const soundIndex = useSongSoundIndex();
   const { index, eqs } = soundIndex;
-  const live = useLiveSongSound();
-  const eqStates = useSavedEqStates(eqs);
   const [tab, setTab] = useState<TManageTab>(initialTab);
   const [search, setSearch] = useState('');
   // Forget all asks once more before it removes anything: there is no undo.
@@ -78,9 +73,6 @@ const AutoEqManage = ({
     matches(album.title, album.artist),
   );
   const otherCount = index?.otherCount ?? 0;
-  const shownEqs = orderSavedEqs(eqs, eqStates).filter((eq) =>
-    matches(eq.name),
-  );
   const countOf = (one: TManageTab) => {
     if (one === 'songs') {
       return (index?.songs.length ?? 0) + otherCount;
@@ -162,23 +154,7 @@ const AutoEqManage = ({
         handleSubmit={setSearch}
         handleEscape={() => setSearch('')}
       />
-      {tab === 'eqs' && (
-        <ul className="eq-auto-eqs eq-auto-manage__eqs">
-          {shownEqs.map((eq) => (
-            <AutoEqEqRow
-              key={eq.id}
-              eq={eq}
-              state={rowStateOf(eq, eqStates)}
-              canPutOn={!!live}
-            />
-          ))}
-          {shownEqs.length === 0 && (
-            <li className="eq-auto-manage__empty">
-              {t(needle === '' ? 'autoEq.eqs.empty' : 'autoEq.manage.noMatch')}
-            </li>
-          )}
-        </ul>
-      )}
+      {tab === 'eqs' && <AutoEqEqList search={search} />}
       {tab !== 'eqs' && (
         <ul className="eq-auto-manage__list">
           {tab === 'songs' &&

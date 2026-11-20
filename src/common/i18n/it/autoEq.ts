@@ -135,7 +135,7 @@ export default {
   'autoEq.eqs.renameLabel': 'Nuovo nome per {name}',
   'autoEq.eqs.deleteAsk': 'Eliminare {name}?',
   'autoEq.eqs.deleteKeeps':
-    'I brani e gli album che lo usano tengono il suo suono come proprio.',
+    'Usato da {what}. Ognuno tiene il suo suono come proprio.',
   'autoEq.eqs.usedBy': 'su {what}',
   'autoEq.eqs.moreCount': 'altri {count}',
   'autoEq.eqs.seeAll': 'Vedi tutti e {count}',
@@ -143,6 +143,7 @@ export default {
   'autoEq.eqs.saveNew': 'Salva come nuovo EQ…',
   'autoEq.eqs.updateNamed': 'Aggiorna «{name}» con ciò che suona',
   'autoEq.eqs.manageAll': 'Gestisci EQ salvati…',
+  'autoEq.eqs.search': 'Cerca EQ salvati',
   'autoEq.eqs.putOnNamed': 'Metti {name}',
   'autoEq.songs.follows': 'Segue {name}',
 };

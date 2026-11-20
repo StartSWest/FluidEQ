@@ -24,19 +24,25 @@ import { bandsLine, isToneFlat, presetLine } from './AutoEqSongHolds';
 const report = (what: string) => (error: unknown) =>
   log.error(`A saved EQ could not be ${what}`, error);
 
-/** What it holds, and who follows it, in one quiet line. */
-const metaOf = (eq: ISavedEqSummary, t: Translate): string => {
-  const used = [
+/** Who follows it: "12 songs, 1 album", or nothing. */
+const usedOf = (eq: ISavedEqSummary, t: Translate): string =>
+  [
     eq.songCount > 0 ? countText(t, 'library.trackCount', eq.songCount) : '',
     eq.albumCount > 0 ? countText(t, 'library.albumCount', eq.albumCount) : '',
-  ].filter(Boolean);
+  ]
+    .filter(Boolean)
+    .join(', ');
+
+/** What it holds, and who follows it, in one quiet line. */
+const metaOf = (eq: ISavedEqSummary, t: Translate): string => {
+  const used = usedOf(eq, t);
   return [
     eq.sound.presetId === ''
       ? t('autoEq.eqs.anyPreset')
       : presetLine(eq.sound.presetId, t),
     bandsLine(eq.sound, t),
     isToneFlat(eq.sound) ? '' : t('eq.tone'),
-    used.length > 0 ? t('autoEq.eqs.usedBy', { what: used.join(', ') }) : '',
+    used === '' ? '' : t('autoEq.eqs.usedBy', { what: used }),
   ]
     .filter(Boolean)
     .join(' · ');
@@ -160,7 +166,9 @@ const AutoEqEqRow = ({
       <li className="eq-auto-eq is-asking">
         <div className="eq-auto-eq__words">
           <strong>{t('autoEq.eqs.deleteAsk', { name: eq.name })}</strong>
-          {users > 0 && <span>{t('autoEq.eqs.deleteKeeps')}</span>}
+          {users > 0 && (
+            <span>{t('autoEq.eqs.deleteKeeps', { what: usedOf(eq, t) })}</span>
+          )}
         </div>
         <div className="eq-auto-eq__actions">
           <button

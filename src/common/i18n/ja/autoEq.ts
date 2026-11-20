@@ -132,7 +132,7 @@ export default {
   'autoEq.eqs.renameLabel': '{name} の新しい名前',
   'autoEq.eqs.deleteAsk': '{name} を削除しますか？',
   'autoEq.eqs.deleteKeeps':
-    'これを使っている曲とアルバムは、そのサウンドを自分のものとして残します。',
+    '{what} が使っています。それぞれがそのサウンドを自分のものとして残します。',
   'autoEq.eqs.usedBy': '{what} で使用',
   'autoEq.eqs.moreCount': 'ほか {count} 件',
   'autoEq.eqs.seeAll': '{count} 件すべて表示',
@@ -140,6 +140,7 @@ export default {
   'autoEq.eqs.saveNew': '新しいEQとして保存…',
   'autoEq.eqs.updateNamed': '「{name}」を再生中の音で更新',
   'autoEq.eqs.manageAll': '保存したEQを管理…',
+  'autoEq.eqs.search': '保存したEQを検索',
   'autoEq.eqs.putOnNamed': '{name} をかける',
   'autoEq.songs.follows': '{name} に従う',
 };

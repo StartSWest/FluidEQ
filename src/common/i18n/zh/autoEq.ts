@@ -124,7 +124,8 @@ export default {
   'autoEq.eqs.more': '{name} 的更多操作',
   'autoEq.eqs.renameLabel': '{name} 的新名称',
   'autoEq.eqs.deleteAsk': '删除 {name}？',
-  'autoEq.eqs.deleteKeeps': '使用它的歌曲和专辑会把它的声音保留为自己的。',
+  'autoEq.eqs.deleteKeeps':
+    '{what} 正在使用它。每一项都会把它的声音保留为自己的。',
   'autoEq.eqs.usedBy': '用于 {what}',
   'autoEq.eqs.moreCount': '还有 {count} 个',
   'autoEq.eqs.seeAll': '查看全部 {count} 个',
@@ -132,6 +133,7 @@ export default {
   'autoEq.eqs.saveNew': '另存为新的均衡器…',
   'autoEq.eqs.updateNamed': '用正在播放的声音更新“{name}”',
   'autoEq.eqs.manageAll': '管理已保存的均衡器…',
+  'autoEq.eqs.search': '搜索已保存的均衡器',
   'autoEq.eqs.putOnNamed': '使用 {name}',
   'autoEq.songs.follows': '跟随 {name}',
 };

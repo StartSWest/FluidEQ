@@ -132,7 +132,8 @@ export default {
   'autoEq.eqs.more': 'Ещё для {name}',
   'autoEq.eqs.renameLabel': 'Новое название для {name}',
   'autoEq.eqs.deleteAsk': 'Удалить {name}?',
-  'autoEq.eqs.deleteKeeps': 'Песни и альбомы с ним сохранят его звук как свой.',
+  'autoEq.eqs.deleteKeeps':
+    'Используется: {what}. Каждый сохранит его звук как свой.',
   'autoEq.eqs.usedBy': 'используется: {what}',
   'autoEq.eqs.moreCount': 'Ещё {count}',
   'autoEq.eqs.seeAll': 'Показать все: {count}',
@@ -140,6 +141,7 @@ export default {
   'autoEq.eqs.saveNew': 'Сохранить как новый…',
   'autoEq.eqs.updateNamed': 'Обновить «{name}» тем, что играет',
   'autoEq.eqs.manageAll': 'Управлять сохранёнными…',
+  'autoEq.eqs.search': 'Поиск сохранённых эквалайзеров',
   'autoEq.eqs.putOnNamed': 'Включить {name}',
   'autoEq.songs.follows': 'Следует за {name}',
 };

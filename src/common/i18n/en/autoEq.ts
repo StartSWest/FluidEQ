@@ -132,8 +132,7 @@ export default {
   'autoEq.eqs.more': 'More for {name}',
   'autoEq.eqs.renameLabel': 'New name for {name}',
   'autoEq.eqs.deleteAsk': 'Delete {name}?',
-  'autoEq.eqs.deleteKeeps':
-    'The songs and albums on it keep its sound as their own.',
+  'autoEq.eqs.deleteKeeps': 'Used by {what}. Each keeps its sound as its own.',
   'autoEq.eqs.usedBy': 'on {what}',
   'autoEq.eqs.moreCount': '{count} more',
   'autoEq.eqs.seeAll': 'See all {count}',
@@ -141,6 +140,7 @@ export default {
   'autoEq.eqs.saveNew': 'Save as new EQ…',
   'autoEq.eqs.updateNamed': 'Update “{name}” with what’s playing',
   'autoEq.eqs.manageAll': 'Manage saved EQs…',
+  'autoEq.eqs.search': 'Search saved EQs',
   'autoEq.eqs.putOnNamed': 'Put on {name}',
   'autoEq.songs.follows': 'Follows {name}',
 };

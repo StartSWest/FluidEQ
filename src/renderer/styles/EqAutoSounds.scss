@@ -16,14 +16,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // A button's icon in the panel, the size of its words. An svg with no size of
 // its own fills its parent.
-.eq-auto-panel .button > .menu-icon {
+.eq-auto-panel .button > .menu-icon,
+.eq-save-menu .button > .menu-icon {
   flex: 0 0 auto;
   width: 14px;
   height: 14px;
 }
 
 // The word beside an icon a breath away from it, never touching.
-.eq-auto-panel .button:has(> .menu-icon) {
+.eq-auto-panel .button:has(> .menu-icon),
+.eq-save-menu .button:has(> .menu-icon) {
   gap: 6px;
 }
 
@@ -316,6 +318,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
     width: 340px;
   }
 
+  // Every saved EQ with the panel's own rows, at the panel's width.
+  &.is-manage {
+    width: 440px;
+  }
+
   button:disabled:not(.button) {
     opacity: 0.45;
     cursor: default;
@@ -376,4 +383,34 @@ SPDX-License-Identifier: GPL-3.0-or-later
   .band-menu__subject {
     padding-inline: 4px;
   }
+}
+
+// The manage view's head: back to the menu, and its name.
+.eq-save-menu__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .band-menu__subject {
+    padding-inline: 0;
+  }
+}
+
+.eq-save-menu__back {
+  width: 28px;
+  height: 28px;
+  justify-content: center;
+  padding: 0;
+}
+
+// Every saved EQ, scrolled within the menu past a screenful.
+.eq-auto-eqs--all {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.eq-auto-eqs__empty {
+  padding: $spacing-m $spacing-s;
+  color: $text-faint;
+  text-align: center;
 }

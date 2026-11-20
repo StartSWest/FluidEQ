@@ -122,7 +122,8 @@ const autoEq = {
   'autoEq.eqs.more': '{name} 的更多操作',
   'autoEq.eqs.renameLabel': '{name} 的新名稱',
   'autoEq.eqs.deleteAsk': '刪除 {name}？',
-  'autoEq.eqs.deleteKeeps': '使用它的歌曲和專輯會把它的聲音保留為自己的。',
+  'autoEq.eqs.deleteKeeps':
+    '{what} 正在使用它。每一項都會把它的聲音保留為自己的。',
   'autoEq.eqs.usedBy': '用於 {what}',
   'autoEq.eqs.moreCount': '還有 {count} 個',
   'autoEq.eqs.seeAll': '查看全部 {count} 個',
@@ -130,6 +131,7 @@ const autoEq = {
   'autoEq.eqs.saveNew': '另存為新的等化器…',
   'autoEq.eqs.updateNamed': '用正在播放的聲音更新「{name}」',
   'autoEq.eqs.manageAll': '管理已儲存的等化器…',
+  'autoEq.eqs.search': '搜尋已儲存的等化器',
   'autoEq.eqs.putOnNamed': '套用 {name}',
   'autoEq.songs.follows': '跟隨 {name}',
 } satisfies Partial<Dictionary>;
