@@ -46,10 +46,13 @@ export interface ISongSoundSession {
   isKeptOut: boolean;
 }
 
-/** A hand-back held for the next song, and the sound it was held over. */
+/**
+ * A hand-back held for the next song: the listener's own sound from before
+ * the first saved song, put on as the next song's answer arrives unless that
+ * song has a sound of its own.
+ */
 export interface ISongSoundOwed {
   sound: ISongSound;
-  over?: ISongSound;
 }
 
 /** Auto EQ's two switches for saved sounds (Smart correction is apart). */

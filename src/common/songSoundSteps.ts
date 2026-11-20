@@ -39,14 +39,18 @@ const lend = (state: ISongSoundState, sound: ISongSound): TStep =>
     : [{ ...state, pending: sound }, [{ kind: 'apply', sound, isLent: true }]];
 
 /**
- * Put the listener's own sound back, which ends the loan. Where it already
- * plays the loan still has to end — main would otherwise go on keeping every
- * edit out of the output's profile — and that is a `keep`.
+ * Put the listener's own sound back, which ends the loan — always as an
+ * `apply` that is not lent, so main puts back exactly what its loan took
+ * (`putSongSoundOn` in `songSoundLoan.ts`): the bands' format, an import's
+ * name, the preset's curve. Where what plays already looked like the
+ * listener's own this used to be a `keep`, which ends the loan with what
+ * plays; the likeness is read on the preset, the Tone and the bands alone, so
+ * a song's curve could stay on the listener's sound.
  */
-const handBackTo = (state: ISongSoundState, sound: ISongSound): TStep =>
-  state.live && sameSongSound(state.live, sound)
-    ? [{ ...state, pending: undefined }, [{ kind: 'keep' }]]
-    : [{ ...state, pending: sound }, [{ kind: 'apply', sound, isLent: false }]];
+const handBackTo = (state: ISongSoundState, sound: ISongSound): TStep => [
+  { ...state, pending: sound },
+  [{ kind: 'apply', sound, isLent: false }],
+];
 
 /**
  * A song opened the moment it is named, on the same report the play bar draws
@@ -71,22 +75,25 @@ const open = (
   isKeptOut: false,
 });
 
-/** Whether the sound moved since a hand-back was held over it. */
-const isTakenOver = (state: ISongSoundState, owed: ISongSoundOwed): boolean =>
-  owed.over !== undefined &&
-  state.live !== undefined &&
-  !sameSongSound(state.live, owed.over);
-
 /**
- * Settle a hand-back held over from the last song: put on, or — where
- * somebody took over the sound since — kept as theirs.
+ * Settle a hand-back held over from the last song: the listener's own sound
+ * goes back on, always (Ivan, 2026-11-20, mandatory: "The main user EQ is
+ * untouchable; whatever the user does there, it needs to be restored").
+ *
+ * It used to be kept back wherever the sound had moved since it was held,
+ * read as somebody taking the sound over — and two ordinary things move it in
+ * that moment: the last step of a change made to the saved song reaching the
+ * window just after the next song is named, and a saved song's own sound
+ * landing just after it was skipped. Either way the saved song's sound was
+ * kept (a `keep`, which made it the listener's) and played on into the song
+ * with nothing saved, and from there into the next saved song's hand-back.
+ * Something that really puts a sound on between songs — a profile loaded, a
+ * game's sound — gives everything back before it does (`yield`), and an
+ * output switch drops the hand-back (`deviceChanged`), so nothing is left
+ * here to tell apart.
  */
-const settleOwed = (state: ISongSoundState, owed: ISongSoundOwed): TStep => {
-  const cleared: ISongSoundState = { ...state, owed: undefined };
-  return isTakenOver(state, owed)
-    ? [cleared, [{ kind: 'keep' }]]
-    : handBackTo(cleared, owed.sound);
-};
+const settleOwed = (state: ISongSoundState, owed: ISongSoundOwed): TStep =>
+  handBackTo({ ...state, owed: undefined }, owed.sound);
 
 /** Ask what is kept for the open song, when it may play any of it. */
 export const lookupOpen = (state: ISongSoundState): TSongSoundEffect[] => {
@@ -134,7 +141,7 @@ export const close = (
     }
     if (handBack && session.handBack) {
       if (nextSong && state.isOn) {
-        next = { ...next, owed: { sound: session.handBack, over: live } };
+        next = { ...next, owed: { sound: session.handBack } };
       } else {
         const [handed, handedEffects] = handBackTo(next, session.handBack);
         next = handed;
@@ -213,8 +220,7 @@ const pick = (
 /**
  * The answer to a lookup, for the song it was asked about. The hand-back held
  * over from the last song is settled here either way: replaced by this
- * song's own sound, or put on — unless the sound moved since it was held,
- * which is somebody taking over, whose sound stays.
+ * song's own sound, lent over it, or put on (`settleOwed`).
  *
  * Asked again while the song plays (`reconsider`, a switch), it starts from
  * the sound the song borrowed from, never from the saved sound it plays now.
@@ -230,13 +236,11 @@ export const matched = (
     return [state, []];
   }
   const { owed } = state;
-  const isOwedLive = owed !== undefined && !isTakenOver(state, owed);
   // What the song would play with if it had no sound of its own: what it
-  // borrowed from, what is owed to it, or what was last asked for and has not
-  // landed, or what plays.
-  const before =
-    session.handBack ??
-    (owed && isOwedLive ? owed.sound : (state.pending ?? state.live));
+  // borrowed from, the listener's own sound owed to it, or what was last asked
+  // for and has not landed, or what plays. Never what the last saved song
+  // played or was changed to.
+  const before = session.handBack ?? owed?.sound ?? state.pending ?? state.live;
   const chosen =
     state.isOn && !session.isLoaded
       ? pick(state.parts, song, album)
@@ -258,7 +262,7 @@ export const matched = (
         session: {
           ...session,
           owner: undefined,
-          baseline: isOwedLive ? owed.sound : session.baseline,
+          baseline: owed.sound,
         },
       },
       effects,
