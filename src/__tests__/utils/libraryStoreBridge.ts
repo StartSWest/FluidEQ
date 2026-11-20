@@ -34,6 +34,7 @@ import { createLibraryQueries } from '../../main/library/libraryQuery';
 import parseLibraryRequest from '../../main/library/libraryRequestGuard';
 import type { ILibraryStore } from '../../main/library/libraryStore';
 import { openLibraryStore } from '../../main/library/libraryStoreOpen';
+import { routeSongSounds } from './songSoundsBridge';
 
 type TIpcRenderer = Window['electron']['ipcRenderer'];
 
@@ -45,6 +46,8 @@ export type TLibraryStoreChannels = Pick<
   | 'onLibraryChanged'
   | 'onLibraryScanProgress'
   | 'onLibraryTracksMoved'
+  | 'on'
+  | 'sendMessage'
 >;
 
 export interface ILibraryStoreBridge {
@@ -155,6 +158,8 @@ export const openLibraryStoreBridge = ({
     // Main sends moves only after the tag editor renames a song's file, which
     // nothing here does; the player's queue still listens from the start.
     onLibraryTracksMoved: () => () => {},
+    // The sound column and the song menus read Auto EQ's song sounds.
+    ...routeSongSounds(),
   };
 
   return {

@@ -144,8 +144,9 @@ describe('searchHelp', () => {
   });
 
   it('finds what 2.1 brought, in every language, among the first hits', () => {
-    // Band labels, the battery, a song's own sound, the EQ mode card's pin,
-    // the keyboard and Edit sound, each in the words of the language read in
+    // Band labels, the battery, a song's own sound (Auto EQ's chapter since
+    // the Output panel's switch moved there, 2026-11-20), the EQ mode card's
+    // pin, the keyboard and Edit sound, each in the words of the language read in
     // and, for Edit sound, the button's own label in it. Among the first
     // three rather than first, because three of the words mean two things
     // here: labels are on the graph's View menu too, the keyboard is also an
@@ -173,7 +174,7 @@ describe('searchHelp', () => {
       de: [
         'Beschriftungen',
         'Akku',
-        'Lied',
+        'Song',
         'anheften',
         'Tastatur',
         'Klang bearbeiten',
@@ -210,7 +211,7 @@ describe('searchHelp', () => {
     const chapters: readonly HelpChapterId[] = [
       'eq',
       'profiles',
-      'profiles',
+      'songs',
       'eqmode',
       'eq',
       'profiles',

@@ -5,6 +5,7 @@ import {
   type ISourceAnalysisUpdate,
 } from '../../common/dsp/sourceAnalysis';
 import isRequestId from '../../common/ipcRequestId';
+import { routeSongSounds } from './songSoundsBridge';
 
 type TListener = (...args: unknown[]) => void;
 type TAction = 'publish' | 'capable' | 'prepare' | 'fallback' | 'release';
@@ -94,11 +95,14 @@ export const createSourceAnalysisBridge = ({
     // sendRequest subscribes after sending; Electron never replies in the send.
     Promise.resolve().then(() => emit(channel, { result }, requestId));
   };
+  // Spread over a Library bridge, this one answers the Library's song sounds
+  // too (`songSoundsBridge.ts`), or its `on` would refuse them.
+  const routed = routeSongSounds({ on, sendMessage });
   return {
-    sendMessage,
+    sendMessage: routed.sendMessage,
     // Preload's cleanup returns Electron's emitter, which renderer callers ignore.
     // This fixture implements the observable contract: remove the exact listener.
-    on: on as Window['electron']['ipcRenderer']['on'],
+    on: routed.on,
     requests,
     emit,
     listenerCount: (channel: string) => listeners.get(channel)?.size ?? 0,

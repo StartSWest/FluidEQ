@@ -209,7 +209,7 @@ describe('the song-eq badge', () => {
     mockUseSongEqRecording.mockReturnValue(recording({ isSaveOn: false }));
     bar();
     expect(
-      screen.queryByLabelText(/smart eq is learning this song/i),
+      screen.queryByLabelText(/smart correction is learning this song/i),
     ).toBeNull();
   });
 
@@ -223,7 +223,7 @@ describe('the song-eq badge', () => {
     mockUseSongEqRecording.mockReturnValue(recording({ isSaveOn: true }));
     bar();
     expect(
-      screen.getByLabelText(/smart eq is learning this song/i),
+      screen.getByLabelText(/smart correction is learning this song/i),
     ).toBeVisible();
   });
 
@@ -239,7 +239,7 @@ describe('the song-eq badge', () => {
     );
     bar();
     expect(
-      screen.queryByLabelText(/smart eq is learning this song/i),
+      screen.queryByLabelText(/smart correction is learning this song/i),
     ).toBeNull();
   });
 
@@ -264,7 +264,7 @@ describe('the song-eq badge', () => {
       </I18nProvider>,
     );
     expect(
-      screen.getByLabelText(/smart eq is learning this song/i),
+      screen.getByLabelText(/smart correction is learning this song/i),
     ).toBeVisible();
   });
 
@@ -351,7 +351,7 @@ describe('the song-eq badge', () => {
    *
    * Both of its faces: the one that names the last song played is the one a
    * badge would most plausibly be added to, and it is still not a song that
-   * is playing, so there is nothing for Smart EQ to be learning.
+   * is playing, so there is nothing for Smart correction to be learning.
    */
   it('never shows a badge on the idle bar, even while something elsewhere is recording', () => {
     mockUseSongEqRecording.mockReturnValue(recording({ isSaveOn: true }));
@@ -361,7 +361,7 @@ describe('the song-eq badge', () => {
       </I18nProvider>,
     );
     expect(
-      screen.queryByLabelText(/smart eq is learning this song/i),
+      screen.queryByLabelText(/smart correction is learning this song/i),
     ).toBeNull();
     view.unmount();
 
@@ -374,7 +374,7 @@ describe('the song-eq badge', () => {
       </I18nProvider>,
     );
     expect(
-      screen.queryByLabelText(/smart eq is learning this song/i),
+      screen.queryByLabelText(/smart correction is learning this song/i),
     ).toBeNull();
   });
 });

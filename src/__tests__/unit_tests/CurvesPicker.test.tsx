@@ -280,7 +280,7 @@ describe('Curves, the applied layers', () => {
     expect(screen.queryByText('Equalizer APO edit')).not.toBeInTheDocument();
   });
 
-  it('keeps the Smart EQ chip and strength control visible at zero', () => {
+  it('keeps the Smart correction chip and strength control visible at zero', () => {
     renderCurves({
       ...defaultFluidEqContext,
       smartEq: smartEqLayer(0),
@@ -288,7 +288,7 @@ describe('Curves, the applied layers', () => {
     });
     openCurves();
 
-    expect(screen.getAllByText('Smart EQ')).toHaveLength(2);
+    expect(screen.getAllByText('Smart correction')).toHaveLength(2);
     expect(screen.getByRole('slider', { name: 'Strength' })).toHaveValue('0');
     expect(screen.getByText('0%')).toBeInTheDocument();
   });
