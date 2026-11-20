@@ -228,20 +228,19 @@ const encodeStill = async (
 const encodePreview = (still: OffscreenCanvas) =>
   still.convertToBlob({ type: 'image/png' });
 
+/** The picture, or `uncompiled` when the code would not build here. */
 const renderStill = async (
   pack: IScenePack,
   run: TFrameRun,
   format?: 'png',
-): Promise<Blob | undefined> => {
+): Promise<{ blob?: Blob; uncompiled?: true }> => {
   const built = await build(pack);
   if (!built.ok) {
-    return undefined;
+    return { uncompiled: true };
   }
   const kept = keptFrame(built, run, STILL_SIZE, refuserOf(pack));
-  if (!kept) {
-    return undefined;
-  }
-  return format === 'png' ? encodePreview(kept.still) : encodeStill(kept.still);
+  const encode = format === 'png' ? encodePreview : encodeStill;
+  return kept ? { blob: await encode(kept.still) } : {};
 };
 
 type TAgentReply = Omit<Extract<TSceneStillReply, { kind: 'agent' }>, 'id'>;
@@ -472,13 +471,13 @@ const answer = async (request: TSceneStillRequest) => {
         undefined,
         request.daylight,
       );
-  const blob = await renderStill(request.pack, run, request.format).catch(
-    () => undefined,
+  const drawn = await renderStill(request.pack, run, request.format).catch(
+    () => ({}),
   );
   scope.postMessage({
     kind: 'still',
     id: request.id,
-    blob,
+    ...drawn,
     ...refusalOf(key),
   });
 };

@@ -107,9 +107,16 @@ export type TSceneStillRefusal = 'context-lost' | 'gpu-reset' | 'too-heavy';
 /**
  * Undefined `blob` or `pixels`: this machine could not draw the scene.
  * `refused`: and it must not be asked to again this session, and why.
+ * `uncompiled`: the scene's code would not build, so no frame was tried.
  */
 export type TSceneStillReply =
-  | { kind: 'still'; id: number; blob?: Blob; refused?: TSceneStillRefusal }
+  | {
+      kind: 'still';
+      id: number;
+      blob?: Blob;
+      refused?: TSceneStillRefusal;
+      uncompiled?: true;
+    }
   | {
       kind: 'sample';
       id: number;

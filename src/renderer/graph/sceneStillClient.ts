@@ -182,6 +182,26 @@ const ask = <K extends TSceneStillRequest['kind']>(
   });
 };
 
+/** The worker's whole answer for a still: its picture, or why there is none. */
+const askStill = async (
+  pack: IScenePack,
+  frames?: readonly ISceneFrame[],
+  format?: 'png',
+  daylight?: number,
+) => {
+  // After the graph's own compile of this scene, if one is under way, so this
+  // one is the GPU process's cached copy (`sceneLinkTurns.ts`).
+  await afterLinkTurns(sceneProgramKey(pack));
+  return ask<'still'>({
+    kind: 'still',
+    pack,
+    accent: pageAccent(),
+    daylight: daylight ?? pageDaylight(),
+    ...(frames ? { frames } : {}),
+    ...(format ? { format } : {}),
+  });
+};
+
 /**
  * `pack`'s picture under the showcase, or at a caught moment's `frames`, at
  * `daylight` (the Publish dialog's own time of day) or the page's.
@@ -191,20 +211,19 @@ export const drawStillInWorker = async (
   frames?: readonly ISceneFrame[],
   format?: 'png',
   daylight?: number,
-): Promise<Blob | undefined> => {
-  // After the graph's own compile of this scene, if one is under way, so this
-  // one is the GPU process's cached copy (`sceneLinkTurns.ts`).
-  await afterLinkTurns(sceneProgramKey(pack));
-  return (
-    await ask<'still'>({
-      kind: 'still',
-      pack,
-      accent: pageAccent(),
-      daylight: daylight ?? pageDaylight(),
-      ...(frames ? { frames } : {}),
-      ...(format ? { format } : {}),
-    })
-  )?.blob;
+): Promise<Blob | undefined> =>
+  (await askStill(pack, frames, format, daylight))?.blob;
+
+/**
+ * `pack`'s showcase picture, or `uncompiled` when its code would not build
+ * here: the look picker's tiles put such a member scene right from a better
+ * copy (`lookThumbnails.ts`), as the graph does when it plays one.
+ */
+export const drawShowcaseInWorker = async (
+  pack: IScenePack,
+): Promise<{ blob?: Blob; uncompiled: boolean }> => {
+  const reply = await askStill(pack);
+  return { blob: reply?.blob, uncompiled: reply?.uncompiled === true };
 };
 
 /**

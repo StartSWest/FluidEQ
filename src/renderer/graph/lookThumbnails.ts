@@ -6,10 +6,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useState } from 'react';
 import type { IScenePack } from 'common/scenePacks';
+import { isMemberLookId } from 'common/memberScenes';
 import { useAccount } from '../account/accountStore';
 import { useEntitlement } from '../account/entitlementStore';
+import { memberPictureWouldNotBuild } from './lookRecovery';
 import { isSceneRenderingAvailable } from './sceneHealth';
-import { blobAsDataUrl, renderSceneStill } from './sceneStill';
+import { blobAsDataUrl } from './sceneStill';
+import { drawShowcaseInWorker } from './sceneStillClient';
 
 /**
  * A Plus visualizer's picture, for its row in the graph's picker.
@@ -75,6 +78,7 @@ let drawing: Promise<unknown> = Promise.resolve();
 const keyOf = (ref: ILookThumbnailRef) => `${ref.lookId}@${ref.version}`;
 
 const drawFrame = (
+  lookId: string,
   load: () => Promise<IScenePack | undefined>,
 ): Promise<string | null> => {
   const turn = drawing.then(async () => {
@@ -85,7 +89,19 @@ const drawFrame = (
     if (!pack) {
       return null;
     }
-    const blob = await renderSceneStill(pack);
+    const { blob, uncompiled } = await drawShowcaseInWorker(pack);
+    // A member's copy whose code will not build is put right from a better
+    // one, as the graph does when it plays it - behind the line, so the next
+    // picture is not held up. Ivan's own Jellyfish in his looks had been
+    // written on 2026-11-09 by the save that dropped a scene's palettes
+    // (fixed 11-11 in `memberScenes/store.ts`), so its shader named a
+    // `uPalette_colours` the copy no longer declared; it never played on the
+    // graph, which is the only place that asked for a better copy, so its
+    // tile showed the stand-in for good. A kept copy is a new revision, and
+    // the tile asks for its picture by itself.
+    if (uncompiled && isMemberLookId(lookId)) {
+      memberPictureWouldNotBuild(lookId);
+    }
     return blob ? blobAsDataUrl(blob) : null;
   });
   const settled = turn.catch(() => null);
@@ -114,7 +130,7 @@ const pictureOf = (ref: ILookThumbnailRef): Promise<string | null> => {
     if (url) {
       return url;
     }
-    return load ? drawFrame(load) : null;
+    return load ? drawFrame(ref.lookId, load) : null;
   })().then((result) => {
     inFlight.delete(key);
     // Only a picture is kept. Nothing back says only "not now" — not signed

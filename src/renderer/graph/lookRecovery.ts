@@ -80,6 +80,15 @@ export const playerLookWouldNotBuild = async (
 };
 
 /**
+ * A member's look whose picture would not build in the look picker: put
+ * right behind its tile, and nothing is said. A kept copy is a new revision,
+ * so the tile asks for that copy's picture by itself.
+ */
+export const memberPictureWouldNotBuild = (lookId: string): void => {
+  recovered(lookId).catch(() => false);
+};
+
+/**
  * A new version would not build while an earlier one plays on: put right
  * behind the picture, and nothing is said - the scene is playing.
  */
