@@ -179,7 +179,9 @@ export const engineAnalysisStep = (
 // 3: every look's shader learned which side of the Brightness it paints on
 // (`lookOnLight`, 2026-11-19).
 // 4: the waterfall's front skin hangs to the stack's foot (2026-11-20).
-const LOOK_PACK_VERSION = 4;
+// 5: the bubbles' strike glow is no longer cut by its box, and a bubble
+// reaches from its column as far as it was pushed (2026-11-20).
+const LOOK_PACK_VERSION = 5;
 
 const packs = new Map<GraphStyle, IScenePack>();
 

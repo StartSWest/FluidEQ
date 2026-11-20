@@ -721,6 +721,7 @@ const presentFigure = ({
                       motionRef.current.travel[0] ?? 0,
                       tuning.gap,
                       bubbleStormRef.current,
+                      plot,
                     ),
                   ),
                   motes: motePaths.layout,

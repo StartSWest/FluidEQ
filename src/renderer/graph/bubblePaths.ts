@@ -122,6 +122,8 @@ export const bubbleLayout = (
   seconds: number,
   gap: number,
   storm: BubbleStorm,
+  /** The plot's sides: the bands run past them where the grid is off. */
+  plot: { left: number; right: number },
 ) => {
   const bubbles: (IBubble | undefined)[] = [];
   const pops: IBubblePop[] = [];
@@ -135,6 +137,14 @@ export const bubbleLayout = (
       : 1;
   const growth = Math.max(0.7, Math.min(2.4, Math.sqrt(renderedDepth / 360)));
   let widest = 0;
+  // The room a bubble may use: the row of bands within the plot's sides.
+  // With the grid off the plot is 20 Hz-16 kHz while the bands run on to
+  // Nyquist, past its right edge, so the last band is no edge to stop at.
+  const rowLeft = Math.max(plot.left, points[0]?.[0] ?? plot.left);
+  const rowRight = Math.min(
+    plot.right,
+    points[points.length - 1]?.[0] ?? plot.right,
+  );
   points.forEach(([x, y], index) => {
     const energy = Math.max(0, Math.min(1, (bottom - y) / depth));
     for (let layer = 0; layer < 3; layer += 1) {
@@ -151,8 +161,19 @@ export const bubbleLayout = (
         ) * riseEnvelope(phase),
       );
       const cy = (bottom - phase * depth) * scaleY;
-      const cx =
+      // Kept inside the row of bands by its widest burst: the outer bands
+      // stand on the plot's edges, so their bubbles were drawn half off the
+      // plot, and a burst - whose rim spreads to 1.9 times the bubble - more
+      // than half (Ivan, 2026-11-20: "still getting cut, not showing the
+      // entire bubbles when they explode"). Only where the row is wide
+      // enough to hold one burst whole; the sway is kept inside the room.
+      const room = fullRadius * (1 + 0.9);
+      const swayed =
         x + Math.sin(seconds * 0.4 + index * 1.7 + layer) * spacing * 0.35;
+      const cx =
+        rowRight - rowLeft > room * 2
+          ? Math.min(rowRight - room, Math.max(rowLeft + room, swayed))
+          : swayed;
       centres[index * 3 + layer] = { x: cx, y: cy };
       const poppedAt = storm.pops.get(index * 3 + layer);
       const age =
@@ -167,7 +188,7 @@ export const bubbleLayout = (
           spread,
           batch: Math.min(BUBBLE_BATCHES - 1, Math.floor(flight * 4)),
         });
-        widest = Math.max(widest, spread);
+        widest = Math.max(widest, Math.abs(cx - x) + spread);
         const seed = index * 7 + layer * 3;
         for (let drop = 0; drop < 6; drop += 1) {
           const angle = ((drop + (seed % 5) * 0.2) * Math.PI * 2) / 6;
@@ -202,7 +223,7 @@ export const bubbleLayout = (
               : undefined,
           refraction: radius > 3 ? radius * 0.82 : undefined,
         };
-        widest = Math.max(widest, radius * wobble);
+        widest = Math.max(widest, Math.abs(cx - x) + radius * wobble);
       } else {
         bubbles[index * 3 + layer] = undefined;
       }
@@ -226,6 +247,11 @@ export const bubbleLayout = (
       lines: traceBolt(a, b, bolt.from * 31 + Math.floor(bolt.at * 997)),
     });
   });
+  // `widest`: how far any bubble or burst reaches from its own band's
+  // column, sway and the push off the plot's sides included - the engine
+  // asks each pixel only the bands within it, and a bubble pushed inward
+  // past a reach that knew only the sway was cut along a straight line
+  // (2026-11-20).
   return { bubbles, pops, droplets, bolts, spacing, widest };
 };
 
@@ -252,8 +278,18 @@ const createBubblePaths = (
   gap: number,
   filled: boolean,
   storm: BubbleStorm,
+  plot: { left: number; right: number },
 ) => {
-  const layout = bubbleLayout(points, top, bottom, scaleY, seconds, gap, storm);
+  const layout = bubbleLayout(
+    points,
+    top,
+    bottom,
+    scaleY,
+    seconds,
+    gap,
+    storm,
+    plot,
+  );
   const beads = new Path2D();
   const shape = new Path2D();
   const body = new Path2D();

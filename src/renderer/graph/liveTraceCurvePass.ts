@@ -382,6 +382,7 @@ const paintCurves = ({
             tuning.gap,
             isFilled,
             bubbleStormRef.current,
+            plot,
           )
         : undefined;
     const dotPaths =

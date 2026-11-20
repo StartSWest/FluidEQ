@@ -37,7 +37,7 @@ const WHITE: readonly [number, number, number] = [1, 1, 1];
  * are sprites, the specks under the picture.
  *
  *   uLook[8]  bubbles, the first band's column, the bands' spacing, the
- *             widest reach of a bubble or a burst
+ *             widest reach of a bubble or a burst from its band's column
  *   uLook[9]  lightning lines, the figure's own stroke (0 where filled)
  *   texel (3b + n, copy)  bubble b of that copy: n 0 its centre and radii
  *             (no radii, not drawn); n 1 its radius, its rim, its glint's
@@ -70,7 +70,9 @@ vec4 bubblesCopy(vec4 picture, vec2 p, int copy) {
   int count = int(uLook[8].x + 0.5);
   float spacing = max(1e-3, uLook[8].z);
   float haloWide = dsStrokeWidth() + ${f(GLOW_LAYERS[0].widen)} * uLook[6].w;
-  float reach = uLook[8].w + spacing * 0.35 + haloWide * 0.5 + 2.0;
+  // uLook[8].w already reaches from each band's column (sway and the push
+  // off the plot's sides included, bubbleLayout).
+  float reach = uLook[8].w + haloWide * 0.5 + 2.0;
   int from = max(0, int(floor((q.x - uLook[8].y - reach) / spacing)));
   int to = min(count / 3 - 1, int(ceil((q.x - uLook[8].y + reach) / spacing)));
   float halo0 = 0.0;
@@ -164,7 +166,9 @@ vec4 bubblesCopy(vec4 picture, vec2 p, int copy) {
     }
     vec4 line = texelFetch(uLookData, ivec2(l, LINE_ROW), 0);
     vec4 box = texelFetch(uLookData, ivec2(l, BOX_ROW), 0);
-    if (int(line.x + 0.5) != copy || q.x < line.w - 4.0 || q.x > box.x + 4.0 || q.y < box.y - 4.0 || q.y > box.z + 4.0) {
+    // The box widened by the strike's widest glow (a 7 px stroke, drawn to
+    // 8 px below): at 4 px the glow ended on the box's straight edges.
+    if (int(line.x + 0.5) != copy || q.x < line.w - 8.0 || q.x > box.x + 8.0 || q.y < box.y - 8.0 || q.y > box.z + 8.0) {
       continue;
     }
     int points = int(line.z + 0.5);

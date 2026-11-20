@@ -8,7 +8,7 @@ import {
   REGROW_AFTER,
   SHAKE_LIFE,
 } from 'renderer/graph/bubbleStorm';
-import createBubblePaths from 'renderer/graph/bubblePaths';
+import createBubblePaths, { bubbleLayout } from 'renderer/graph/bubblePaths';
 import type { Projected } from 'common/graphStyles';
 import { getDefaultTuning } from 'common/customLooks';
 
@@ -22,6 +22,8 @@ const hit: Projected[] = [
   [60, 80],
   [100, 160],
 ];
+/** The plot's sides for the three bands above: the row exactly. */
+const ROW = { left: 20, right: 100 };
 
 describe('the bubble storm', () => {
   it('strikes once on a sharp rise and bursts both ends of the bolt', () => {
@@ -160,16 +162,62 @@ describe('the bubble paths', () => {
     const storm = createBubbleStorm();
     advanceBubbleStorm(storm, quiet, 20, 160, 1, true);
     advanceBubbleStorm(storm, hit, 20, 160, 1.1, true);
-    const live = createBubblePaths(hit, 20, 160, 1, 1.12, 0.1, false, storm);
+    const live = createBubblePaths(
+      hit,
+      20,
+      160,
+      1,
+      1.12,
+      0.1,
+      false,
+      storm,
+      ROW,
+    );
     const bolts = live.bolts as unknown as ReturnType<typeof makePath>[];
     expect(bolts.some((batch) => batch.calls.includes('lineTo'))).toBe(true);
     const rings = live.rings as unknown as ReturnType<typeof makePath>[];
     expect(rings.some((batch) => batch.calls.includes('arc'))).toBe(true);
 
-    const later = createBubblePaths(hit, 20, 160, 1, 3, 0.1, false, storm);
+    const later = createBubblePaths(hit, 20, 160, 1, 3, 0.1, false, storm, ROW);
     const laterBolts = later.bolts as unknown as ReturnType<typeof makePath>[];
     expect(laterBolts.every((batch) => batch.calls.length === 0)).toBe(true);
     const laterRings = later.rings as unknown as ReturnType<typeof makePath>[];
     expect(laterRings.every((batch) => batch.calls.length === 0)).toBe(true);
+  });
+});
+
+// The outer bands stand on the plot's sides, and with the grid off the
+// bands run past its right edge: a bubble there was drawn half off the plot,
+// its burst more so, and the engine - asking each pixel only the bands near
+// it - cut a bubble pushed inward along a straight line (2026-11-20).
+describe('bubbles inside the plot', () => {
+  // Thirty-one loud bands across 0-1000, the plot ending at 800.
+  const row: Projected[] = Array.from({ length: 31 }, (_unused, index) => [
+    index * (1000 / 30),
+    40,
+  ]);
+  const plot = { left: 0, right: 800 };
+
+  it('keeps every bubble and its burst inside the sides, and reaches as far as it was pushed', () => {
+    const storm = createBubbleStorm();
+    const layout = bubbleLayout(row, 20, 400, 1, 7.3, 0.1, storm, plot);
+    const drawn = layout.bubbles.flatMap((bubble, at) =>
+      bubble ? [{ bubble, column: row[Math.floor(at / 3)][0] }] : [],
+    );
+    // CONTROL: bubbles are drawn, and the first band's are pushed off their
+    // column further than its sway alone (a third of a band) would take them.
+    expect(drawn.length).toBeGreaterThan(30);
+    const first = drawn.filter(({ column }) => column === 0);
+    expect(
+      first.some(({ bubble }) => bubble.x > layout.spacing * 0.35 + 1e-6),
+    ).toBe(true);
+    drawn.forEach(({ bubble, column }) => {
+      const burst = bubble.radius * 1.9;
+      expect(bubble.x - burst).toBeGreaterThanOrEqual(plot.left - 1e-6);
+      expect(bubble.x + burst).toBeLessThanOrEqual(plot.right + 1e-6);
+      expect(layout.widest).toBeGreaterThanOrEqual(
+        Math.abs(bubble.x - column) + bubble.rx - 1e-6,
+      );
+    });
   });
 });
