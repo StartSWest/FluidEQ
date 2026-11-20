@@ -593,7 +593,7 @@ const tour = {
   'tour.film.headphones.intro':
     'FluidEQ can correct your headphones with measurements made by others.',
   'tour.film.headphones.search':
-    'Open EQ Presets, and search the OPRA library for your headphones.',
+    'Open Headphone corrections, and search the OPRA library for your headphones.',
   'tour.film.headphones.measure':
     'Pick a measurement. Each one says who made it.',
   'tour.film.headphones.applied':
@@ -702,9 +702,9 @@ const tour = {
     '{exportList} writes the whole list to one file, to back it up or take it to another computer; {importList} reads it back and says what it leaves out.',
   'tour.myCurves.how':
     'Open {eqPresets} under EQ, choose {myCurves} and press {add}.',
-  'tour.myCurves.open': 'Open EQ Presets',
+  'tour.myCurves.open': 'Open Headphone corrections',
   'tour.myCurves.imageAlt':
-    'The EQ Presets page on My curves: a list of four headphone curves, each with its name, where it came from, the day it was added and a drawing of its shape. A curve just saved from Squiglink arrives at the top and plays as the headphone correction.',
+    'The Headphone corrections page on My curves: a list of four headphone curves, each with its name, where it came from, the day it was added and a drawing of its shape. A curve just saved from Squiglink arrives at the top and plays as the headphone correction.',
 
   'tour.songs.kicker': 'A SOUND FOR EVERY SONG',
   'tour.songs.title': 'Songs that remember how you like them',

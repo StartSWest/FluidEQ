@@ -689,7 +689,7 @@ const eq: Partial<Dictionary> = {
     'Diesen Namen gibt es schon, bitte einen anderen wählen.',
   'profiles.edit': 'Profilnamen bearbeiten',
   'autoeq.page.eyebrow': 'AUF IHREN KOPFHÖRER ABSTIMMEN',
-  'autoeq.page.title': 'EQ-Presets',
+  'autoeq.page.title': 'Kopfhörer-Korrekturen',
   'autoeq.page.intro':
     'Finden Sie eine Kopfhörerkorrektur oder fügen Sie Ihre eigene Kurve hinzu.',
   'autoeq.model.hint':
@@ -782,6 +782,8 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.target.note':
     'Misst weiter · jede Aufnahme auf dieselbe Kurve',
   'eq.layers.aria': 'Was diesen Ausgang außerdem formt',
+  'eq.layers.addCorrection': 'Kopfhörer-Korrektur hinzufügen',
+  'eq.layers.changeCorrection': 'Kopfhörer-Korrektur ändern',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.bands': '{count} Bänder',
   'eq.layers.convolution': 'Faltung',

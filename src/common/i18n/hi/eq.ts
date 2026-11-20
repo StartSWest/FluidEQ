@@ -671,7 +671,7 @@ const eq: Partial<Dictionary> = {
   'profiles.error.duplicate': 'यह नाम पहले से है, दूसरा चुनें।',
   'profiles.edit': 'प्रोफ़ाइल का नाम बदलें',
   'autoeq.page.eyebrow': 'अपने हेडफ़ोन से मिलाएँ',
-  'autoeq.page.title': 'EQ प्रीसेट',
+  'autoeq.page.title': 'हेडफ़ोन सुधार',
   'autoeq.page.intro': 'हेडफ़ोन सुधार खोजें या अपना कर्व जोड़ें।',
   'autoeq.model.hint':
     'ब्रांड या मॉडल से खोजें। अगर आपका मॉडल मापा नहीं गया है, तो उसी श्रेणी का नज़दीकी मॉडल आमतौर पर काफ़ी क़रीब ले आता है।',
@@ -761,6 +761,8 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.target': 'लक्ष्य',
   'eq.smart.mode.target.note': 'मापता रहता है · हर रिकॉर्डिंग को एक ही कर्व पर',
   'eq.layers.aria': 'इस आउटपुट पर और क्या असर डाल रहा है',
+  'eq.layers.addCorrection': 'हेडफ़ोन सुधार जोड़ें',
+  'eq.layers.changeCorrection': 'हेडफ़ोन सुधार बदलें',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.bands': '{count} बैंड',
   'eq.layers.convolution': 'कन्वॉल्यूशन',

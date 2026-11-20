@@ -637,7 +637,7 @@ const eq: Partial<Dictionary> = {
   'profiles.error.duplicate': '名称重复，请换一个。',
   'profiles.edit': '修改配置名称',
   'autoeq.page.eyebrow': '匹配你的耳机',
-  'autoeq.page.title': 'EQ 预设',
+  'autoeq.page.title': '耳机校正',
   'autoeq.page.intro': '查找耳机校正，或添加你自己的曲线。',
   'autoeq.model.hint':
     '按品牌或型号搜索。如果你的型号没有被测过，同系列中相近的一款通常也能接近。',
@@ -724,6 +724,8 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.target': '目标',
   'eq.smart.mode.target.note': '持续测量 · 让每张唱片贴合同一条曲线',
   'eq.layers.aria': '还有什么在影响这个输出',
+  'eq.layers.addCorrection': '添加耳机校正',
+  'eq.layers.changeCorrection': '更换耳机校正',
   'eq.layers.eq': '均衡器',
   'eq.layers.eq.bands': '{count} 个频段',
   'eq.layers.convolution': '卷积',

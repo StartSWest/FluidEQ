@@ -283,7 +283,7 @@ const app: Partial<Dictionary> = {
   'tabs.aria': 'Рабочая область звука',
   'tabs.eq': 'Эквалайзер',
   'tabs.eqMain': 'Полосы',
-  'tabs.presets': 'Пресеты EQ',
+  'tabs.presets': 'Коррекции наушников',
   'tabs.convolution': 'Свёртка',
   'tabs.config': 'Config',
   'tabs.media': 'Онлайн-медиа',

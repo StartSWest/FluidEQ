@@ -573,7 +573,7 @@ const tour: Partial<Dictionary> = {
   'tour.film.headphones.intro':
     'FluidEQ は、ほかの人が測定したデータでヘッドホンを補正できます。',
   'tour.film.headphones.search':
-    '「EQ プリセット」を開いて、OPRA のライブラリからお使いのヘッドホンを探します。',
+    '「ヘッドホン補正」を開いて、OPRA のライブラリからお使いのヘッドホンを探します。',
   'tour.film.headphones.measure':
     '測定を一つ選びます。どれも、誰が測ったかが書かれています。',
   'tour.film.headphones.applied':
@@ -646,9 +646,9 @@ const tour: Partial<Dictionary> = {
     '{exportList} はリスト全体を 1 つのファイルに書き出し、バックアップや別のパソコンへの移動に使えます。{importList} で読み込むと、取り込まなかったものも教えてくれます。',
   'tour.myCurves.how':
     'EQ の {eqPresets} を開き、{myCurves} を選んで {add} を押します。',
-  'tour.myCurves.open': 'EQ プリセットを開く',
+  'tour.myCurves.open': 'ヘッドホン補正を開く',
   'tour.myCurves.imageAlt':
-    'マイカーブを開いた EQ プリセットページ。4 つのヘッドホンカーブが、名前、入手元、追加日、形の図とともに並んでいます。Squiglink から保存したばかりのカーブが一番上に入り、ヘッドホン補正として再生されます。',
+    'マイカーブを開いた ヘッドホン補正ページ。4 つのヘッドホンカーブが、名前、入手元、追加日、形の図とともに並んでいます。Squiglink から保存したばかりのカーブが一番上に入り、ヘッドホン補正として再生されます。',
 
   'tour.songs.kicker': '曲ごとにサウンドを',
   'tour.songs.title': '好みのサウンドを覚えている曲',

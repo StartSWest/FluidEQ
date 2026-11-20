@@ -283,7 +283,7 @@ const app: Partial<Dictionary> = {
   'tabs.aria': 'サウンド作業領域',
   'tabs.eq': 'EQ',
   'tabs.eqMain': 'バンド',
-  'tabs.presets': 'EQ プリセット',
+  'tabs.presets': 'ヘッドホン補正',
   'tabs.convolution': 'コンボリューション',
   'tabs.config': 'Config',
   'tabs.media': 'オンラインメディア',

@@ -32,6 +32,7 @@ import {
   WORKSPACE_TAB_KEY,
   type TWorkspaceTab,
 } from '../workspaceTabs';
+import { OPEN_HEADPHONE_CORRECTIONS_EVENT } from '../eq/headphoneCorrectionsOpen';
 import { EQ_GROUP_TABS, isEqGroupTab } from './workspaceGroups';
 
 /**
@@ -121,6 +122,15 @@ const useWorkspaceNavigation = () => {
       setLastEqTab(activeWorkspaceTab);
     }
   }, [activeWorkspaceTab]);
+
+  // Asked for by the Curves menu's way to a headphone correction: the page
+  // that holds OPRA's library and your own curves.
+  useEffect(() => {
+    const open = () => selectTopWorkspaceTab('presets');
+    window.addEventListener(OPEN_HEADPHONE_CORRECTIONS_EVENT, open);
+    return () =>
+      window.removeEventListener(OPEN_HEADPHONE_CORRECTIONS_EVENT, open);
+  }, [selectTopWorkspaceTab]);
 
   // Written on every change rather than on the way out, because there is no
   // reliable way out: a development reload, a crash and a quit all end the

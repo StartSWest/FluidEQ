@@ -576,7 +576,7 @@ const tour: Partial<Dictionary> = {
   'tour.film.headphones.intro':
     'FluidEQ può correggere le tue cuffie con misure fatte da altri.',
   'tour.film.headphones.search':
-    'Apri Preset EQ e cerca le tue cuffie nella libreria di OPRA.',
+    'Apri Correzioni cuffie e cerca le tue cuffie nella libreria di OPRA.',
   'tour.film.headphones.measure':
     'Scegli una misura. Ognuna dice chi l’ha fatta.',
   'tour.film.headphones.applied':
@@ -653,9 +653,9 @@ const tour: Partial<Dictionary> = {
     '{exportList} scrive l’intera lista in un file, per un backup o per portarla su un altro computer; {importList} la rilegge e ti dice cosa resta fuori.',
   'tour.myCurves.how':
     'Apri {eqPresets} sotto EQ, scegli {myCurves} e premi {add}.',
-  'tour.myCurves.open': 'Apri Preset EQ',
+  'tour.myCurves.open': 'Apri Correzioni cuffie',
   'tour.myCurves.imageAlt':
-    'La pagina Preset EQ su Le mie curve: una lista di quattro curve per cuffie, ognuna con il nome, la provenienza, il giorno in cui è stata aggiunta e un disegno della sua forma. Una curva appena salvata da Squiglink arriva in cima e suona come correzione delle cuffie.',
+    'La pagina Correzioni cuffie su Le mie curve: una lista di quattro curve per cuffie, ognuna con il nome, la provenienza, il giorno in cui è stata aggiunta e un disegno della sua forma. Una curva appena salvata da Squiglink arriva in cima e suona come correzione delle cuffie.',
 
   'tour.songs.kicker': 'UN SUONO PER OGNI BRANO',
   'tour.songs.title': 'Brani che ricordano come ti piacciono',

@@ -6,11 +6,15 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import OpraLibraryStatus from './components/OpraLibraryStatus';
 import OpraPicker from './OpraPicker';
 import MyCurvesPanel from './eq/MyCurvesPanel';
 import { useMyCurves } from './eq/myCurvesStore';
+import {
+  OPEN_HEADPHONE_CORRECTIONS_EVENT,
+  libraryAskedFor,
+} from './eq/headphoneCorrectionsOpen';
 import { useTranslation } from './utils/I18nContext';
 import './styles/AutoEQPanel.scss';
 
@@ -55,6 +59,19 @@ const LibraryTab = ({
 const EqPresetsPanel = () => {
   const { t } = useTranslation();
   const [library, setLibrary] = useState<TLibrary>('opra');
+  // An open that names a list shows it, the page already up or not: Add a
+  // curve's From OPRA, with no OPRA correction to copy, leads to the library.
+  useEffect(() => {
+    const show = (event: Event) => {
+      const asked = libraryAskedFor(event);
+      if (asked) {
+        setLibrary(asked);
+      }
+    };
+    window.addEventListener(OPEN_HEADPHONE_CORRECTIONS_EVENT, show);
+    return () =>
+      window.removeEventListener(OPEN_HEADPHONE_CORRECTIONS_EVENT, show);
+  }, []);
   const myCurves = useMyCurves();
 
   return (

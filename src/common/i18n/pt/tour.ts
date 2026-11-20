@@ -579,7 +579,7 @@ const tour: Partial<Dictionary> = {
   'tour.film.headphones.intro':
     'O FluidEQ pode corrigir seus fones com medições feitas por outras pessoas.',
   'tour.film.headphones.search':
-    'Abra Presets EQ e procure seus fones na biblioteca do OPRA.',
+    'Abra Correções de fones e procure seus fones na biblioteca do OPRA.',
   'tour.film.headphones.measure':
     'Escolha uma medição. Cada uma diz quem a fez.',
   'tour.film.headphones.applied':
@@ -656,9 +656,9 @@ const tour: Partial<Dictionary> = {
     '{exportList} grava a lista inteira em um arquivo, como cópia ou para levar a outro computador; {importList} lê de volta e diz o que ficou de fora.',
   'tour.myCurves.how':
     'Abra {eqPresets} no EQ, escolha {myCurves} e pressione {add}.',
-  'tour.myCurves.open': 'Abrir Presets EQ',
+  'tour.myCurves.open': 'Abrir Correções de fones',
   'tour.myCurves.imageAlt':
-    'A página Presets EQ em Minhas curvas: uma lista de quatro curvas de fone, cada uma com nome, origem, dia em que foi adicionada e um desenho do formato. Uma curva recém-salva do Squiglink chega no topo e toca como correção do fone.',
+    'A página Correções de fones em Minhas curvas: uma lista de quatro curvas de fone, cada uma com nome, origem, dia em que foi adicionada e um desenho do formato. Uma curva recém-salva do Squiglink chega no topo e toca como correção do fone.',
 
   'tour.songs.kicker': 'UM SOM PARA CADA MÚSICA',
   'tour.songs.title': 'Músicas que lembram como você gosta delas',

@@ -286,7 +286,7 @@ const app: Partial<Dictionary> = {
   'tabs.aria': 'Area di lavoro del suono',
   'tabs.eq': 'EQ',
   'tabs.eqMain': 'Bande',
-  'tabs.presets': 'Preset EQ',
+  'tabs.presets': 'Correzioni cuffie',
   'tabs.convolution': 'Convoluzione',
   'tabs.config': 'Config',
   'tabs.media': 'Media online',

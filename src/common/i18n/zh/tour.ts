@@ -527,7 +527,7 @@ const tour: Partial<Dictionary> = {
   'tour.film.deesser.isolate': '点击“独听”，只听它去掉的部分。',
   'tour.film.headphones.intro': 'FluidEQ 可以用别人做的测量来校正你的耳机。',
   'tour.film.headphones.search':
-    '打开“EQ 预设”，在 OPRA 资料库里搜索你的耳机。',
+    '打开“耳机校正”，在 OPRA 资料库里搜索你的耳机。',
   'tour.film.headphones.measure': '选一个测量，每个都写明了是谁做的。',
   'tour.film.headphones.applied':
     '点击“应用该型号的均衡”，校正会放在单独的一层，你自己的频段保持不变。',
@@ -591,9 +591,9 @@ const tour: Partial<Dictionary> = {
     '{exportList} 把整个列表写进一个文件，用来备份或带到另一台电脑；{importList} 再读回来，并告诉你哪些没有导入。',
   'tour.myCurves.how':
     '在 EQ 中打开 {eqPresets}，选择 {myCurves}，然后按 {add}。',
-  'tour.myCurves.open': '打开 EQ 预设',
+  'tour.myCurves.open': '打开 耳机校正',
   'tour.myCurves.imageAlt':
-    '“我的曲线”中的 EQ 预设页面：四条耳机曲线的列表，每条都有名称、来源、添加日期和形状图。刚从 Squiglink 保存的曲线出现在最上面，并作为耳机校正播放。',
+    '“我的曲线”中的 耳机校正页面：四条耳机曲线的列表，每条都有名称、来源、添加日期和形状图。刚从 Squiglink 保存的曲线出现在最上面，并作为耳机校正播放。',
 
   'tour.songs.kicker': '每首歌都有自己的声音',
   'tour.songs.title': '记得你喜好的歌曲',

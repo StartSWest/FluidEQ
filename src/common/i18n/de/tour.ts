@@ -586,7 +586,7 @@ const tour: Partial<Dictionary> = {
   'tour.film.headphones.intro':
     'FluidEQ kann Ihren Kopfhörer mit Messungen anderer korrigieren.',
   'tour.film.headphones.search':
-    'Öffnen Sie EQ-Presets und suchen Sie Ihren Kopfhörer in der OPRA-Bibliothek.',
+    'Öffnen Sie Kopfhörer-Korrekturen und suchen Sie Ihren Kopfhörer in der OPRA-Bibliothek.',
   'tour.film.headphones.measure':
     'Wählen Sie eine Messung. Bei jeder steht, wer sie gemacht hat.',
   'tour.film.headphones.applied':
@@ -663,9 +663,9 @@ const tour: Partial<Dictionary> = {
     '{exportList} schreibt die ganze Liste in eine Datei, als Sicherung oder für einen anderen Computer; {importList} liest sie wieder ein und sagt, was ausgelassen wird.',
   'tour.myCurves.how':
     'Öffnen Sie {eqPresets} unter EQ, wählen Sie {myCurves} und drücken Sie {add}.',
-  'tour.myCurves.open': 'EQ-Presets öffnen',
+  'tour.myCurves.open': 'Kopfhörer-Korrekturen öffnen',
   'tour.myCurves.imageAlt':
-    'Die Seite EQ-Presets unter Meine Kurven: eine Liste von vier Kopfhörerkurven, jede mit Namen, Herkunft, dem Tag, an dem sie hinzukam, und einer Zeichnung ihrer Form. Eine gerade aus Squiglink gespeicherte Kurve kommt oben an und spielt als Kopfhörerkorrektur.',
+    'Die Seite Kopfhörer-Korrekturen unter Meine Kurven: eine Liste von vier Kopfhörerkurven, jede mit Namen, Herkunft, dem Tag, an dem sie hinzukam, und einer Zeichnung ihrer Form. Eine gerade aus Squiglink gespeicherte Kurve kommt oben an und spielt als Kopfhörerkorrektur.',
 
   'tour.songs.kicker': 'EIN KLANG FÜR JEDEN SONG',
   'tour.songs.title': 'Songs, die sich merken, wie Sie sie mögen',

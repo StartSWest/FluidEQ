@@ -689,7 +689,7 @@ const eq = {
   'profiles.error.duplicate': 'Duplicate name found, please use another.',
   'profiles.edit': 'Edit profile name',
   'autoeq.page.eyebrow': 'MATCH YOUR HEADPHONES',
-  'autoeq.page.title': 'EQ presets',
+  'autoeq.page.title': 'Headphone corrections',
   'autoeq.page.intro': 'Find a headphone correction, or bring your own curve.',
   'autoeq.model.hint':
     'Search by brand or model. If yours is not measured, a close relation from the same range usually gets you most of the way.',
@@ -780,6 +780,8 @@ const eq = {
   'eq.smart.mode.target.note':
     'Keeps measuring · every record to the same curve',
   'eq.layers.aria': 'Also shaping this output',
+  'eq.layers.addCorrection': 'Add a headphone correction',
+  'eq.layers.changeCorrection': 'Change the headphone correction',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.bands': '{count} bands',
   'eq.layers.convolution': 'Convolution',
@@ -983,7 +985,7 @@ const eq = {
   'eq.refused.preampRange.action': 'The preamp was left where it was.',
   'eq.refused.externalEq':
     'The external EQ contains stages FluidEQ cannot safely adopt. Its files were left unchanged.',
-  // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
+  // My curves, beside OPRA on the Headphone corrections page (eq/MyCurvesPanel.tsx).
   'myCurves.intro': 'Your saved sound, ready whenever you need it.',
   'myCurves.importSquiglink': 'Import from Squiglink',
   'myCurves.preview': 'Curve preview',

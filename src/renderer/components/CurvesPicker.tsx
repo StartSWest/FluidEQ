@@ -9,6 +9,8 @@ import { useTranslation } from '../utils/I18nContext';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import { LAYER_SWATCH } from '../styles/color';
 import Chevron from '../icons/Chevron';
+import MenuIcon from '../icons/MenuIcon';
+import { openHeadphoneCorrections } from '../eq/headphoneCorrectionsOpen';
 import ActiveLayerChips from './ActiveLayerChips';
 import useActiveLayers from './useActiveLayers';
 import type { TActiveLayers } from './useActiveLayers';
@@ -39,6 +41,7 @@ const CurvesMenu = ({ active }: { active: TActiveLayers }) => {
   const { layers, isBypassed } = active;
   const [isOpen, setIsOpen] = useState(false);
   const holder = useRef<HTMLSpanElement>(null);
+  const hasCorrection = layers.some((layer) => layer.key === 'headphone');
 
   // Closes on a press elsewhere and on Escape, like every other menu here.
   useEffect(() => {
@@ -105,6 +108,25 @@ const CurvesMenu = ({ active }: { active: TActiveLayers }) => {
         ariaLabel={t('eq.layers.aria')}
       >
         <ActiveLayerChips active={active} />
+        {/* The way to a headphone correction from the list of what shapes
+            the sound (Ivan, 2026-11-20: "curves should have a button to add
+            a headset correction"): its page, OPRA's library and your own
+            curves, to add one or to change the one playing. */}
+        <button
+          type="button"
+          className="button small plain active-layers__add"
+          onClick={() => {
+            setIsOpen(false);
+            openHeadphoneCorrections();
+          }}
+        >
+          <MenuIcon name="model" />
+          {t(
+            hasCorrection
+              ? 'eq.layers.changeCorrection'
+              : 'eq.layers.addCorrection',
+          )}
+        </button>
       </AnchoredMenu>
     </span>
   );

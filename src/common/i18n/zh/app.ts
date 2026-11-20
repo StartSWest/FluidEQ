@@ -268,7 +268,7 @@ const app: Partial<Dictionary> = {
   'tabs.aria': '声音工作区',
   'tabs.eq': '均衡器',
   'tabs.eqMain': '频段',
-  'tabs.presets': 'EQ 预设',
+  'tabs.presets': '耳机校正',
   'tabs.convolution': '卷积',
   'tabs.config': 'Config',
   'tabs.media': '在线媒体',

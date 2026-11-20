@@ -519,7 +519,7 @@ const tour = {
   'tour.film.headphones.intro':
     'FluidEQ는 다른 사람이 측정한 데이터를 이용하여 헤드폰을 보정할 수 있습니다.',
   'tour.film.headphones.search':
-    'EQ 프리셋을 열고 OPRA 라이브러리에서 헤드폰을 검색하세요.',
+    '헤드폰 보정을 열고 OPRA 라이브러리에서 헤드폰을 검색하세요.',
   'tour.film.headphones.measure':
     '측정값을 선택하세요. 각 항목에 측정한 사람이 표시됩니다.',
   'tour.film.headphones.applied':
@@ -628,9 +628,9 @@ const tour = {
     '{exportList}는 전체 목록을 하나의 파일에 기록하여 백업하거나 다른 컴퓨터로 가져갑니다. {importList}는 그것을 다시 읽고 빠진 내용을 말합니다.',
   'tour.myCurves.how':
     'EQ 아래에서 {eqPresets}를 열고 {myCurves}를 선택한 다음 {add}를 누릅니다.',
-  'tour.myCurves.open': 'EQ 프리셋 열기',
+  'tour.myCurves.open': '헤드폰 보정 열기',
   'tour.myCurves.imageAlt':
-    '내 곡선의 EQ 프리셋 페이지: 각각 이름, 출처, 추가된 날짜 및 모양 그림이 포함된 4개의 헤드폰 곡선 목록입니다. Squiglink에서 방금 저장한 곡선이 맨 위에 도착하여 헤드폰 보정으로 재생됩니다.',
+    '내 곡선의 헤드폰 보정 페이지: 각각 이름, 출처, 추가된 날짜 및 모양 그림이 포함된 4개의 헤드폰 곡선 목록입니다. Squiglink에서 방금 저장한 곡선이 맨 위에 도착하여 헤드폰 보정으로 재생됩니다.',
   'tour.songs.kicker': '모든 노래에 어울리는 사운드',
   'tour.songs.title': '당신이 좋아하는 것을 기억하는 노래',
   'tour.songs.subtitle': '노래를 한 번 튜닝하고 매번 그렇게 들어보세요',

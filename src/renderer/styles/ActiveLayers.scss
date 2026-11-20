@@ -336,3 +336,20 @@ button.active-layer__body {
     margin-top: -4px;
   }
 }
+
+// The way to a headphone correction, under the rows and parted from them by
+// the menus' own rule: it goes somewhere, where every row above acts on a
+// layer in place.
+.active-layers__add {
+  justify-content: flex-start;
+  gap: 8px;
+  margin-top: 2px;
+  padding-top: 8px;
+  border-top: 1px solid $menu-rule;
+  border-radius: 0;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}

@@ -42,7 +42,8 @@ const ORIGINS: ReadonlyArray<{
 /**
  * The four ways a curve comes in, side by side: pasted text, a .txt file,
  * the EQ as it plays, or the OPRA correction playing now. A file is chosen
- * from its own card; OPRA's waits until one of its corrections plays.
+ * from its own card; OPRA's, with no OPRA correction playing, leads to the
+ * library instead.
  */
 export default function MyCurveSourcePick({
   value,
@@ -62,6 +63,9 @@ export default function MyCurveSourcePick({
       aria-label={t('myCurves.from')}
     >
       {ORIGINS.map(({ origin, title, hint, icon }) => {
+        // Pressable with nothing to copy too: the card then says where an
+        // OPRA correction comes from and leads there (Ivan, 2026-11-20: "why
+        // is from OPRA disabled? is like an incomplete feature").
         const isOff = origin === 'opra' && !hasOpra;
         return (
           <button
@@ -69,7 +73,6 @@ export default function MyCurveSourcePick({
             type="button"
             className={`my-curve-source${value === origin ? ' is-selected' : ''}`}
             aria-pressed={value === origin}
-            disabled={isOff}
             title={t(isOff ? 'myCurves.from.opraNone' : hint)}
             onClick={() => onPick(origin)}
           >

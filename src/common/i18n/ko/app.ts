@@ -263,7 +263,7 @@ const app = {
   'tabs.aria': '사운드 작업 공간',
   'tabs.eq': 'EQ',
   'tabs.eqMain': '밴드',
-  'tabs.presets': 'EQ 프리셋',
+  'tabs.presets': '헤드폰 보정',
   'tabs.convolution': '컨볼루션',
   'tabs.config': '설정 파일',
   'tabs.media': '온라인 미디어',

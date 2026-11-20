@@ -674,7 +674,7 @@ const eq: Partial<Dictionary> = {
   'profiles.error.duplicate': '同じ名前があります。別の名前にしてください。',
   'profiles.edit': 'プロファイル名を編集',
   'autoeq.page.eyebrow': 'ヘッドホンに合わせる',
-  'autoeq.page.title': 'EQ プリセット',
+  'autoeq.page.title': 'ヘッドホン補正',
   'autoeq.page.intro': 'ヘッドホン補正を探すか、自分のカーブを追加できます。',
   'autoeq.model.hint':
     'メーカー名か機種名で検索します。手持ちの機種が測られていなくても、同じシリーズの近い機種でかなり近づきます。',
@@ -762,6 +762,8 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.target': 'ターゲット',
   'eq.smart.mode.target.note': '測定を継続 · すべての音源を同じカーブへ',
   'eq.layers.aria': 'この出力に効いているその他の処理',
+  'eq.layers.addCorrection': 'ヘッドホン補正を追加',
+  'eq.layers.changeCorrection': 'ヘッドホン補正を変更',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.bands': '{count} バンド',
   'eq.layers.convolution': 'コンボリューション',

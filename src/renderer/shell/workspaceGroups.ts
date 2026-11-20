@@ -62,7 +62,10 @@ export const EQ_GROUP_LABEL_KEYS = {
  */
 export const EQ_GROUP_ICONS = {
   eq: 'eqBars',
-  presets: 'genre',
+  // The page is the headphone corrections, OPRA's and your own curves: the
+  // headphones, never the genre glyph it wore as "EQ Presets" (Ivan,
+  // 2026-11-20: "is not EQ presets, should be Headset corrections").
+  presets: 'model',
   convolution: 'convolution',
   config: 'settings',
 } as const satisfies Record<keyof typeof EQ_GROUP_LABEL_KEYS, MenuIconName>;

@@ -250,7 +250,7 @@ const app = {
   'tabs.aria': '聲音工作區',
   'tabs.eq': 'EQ',
   'tabs.eqMain': '頻段',
-  'tabs.presets': 'EQ 預設組',
+  'tabs.presets': '耳機校正',
   'tabs.convolution': '卷積',
   'tabs.config': '設定檔',
   'tabs.media': '線上媒體',

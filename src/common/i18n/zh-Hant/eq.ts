@@ -613,7 +613,7 @@ const eq = {
   'profiles.error.duplicate': '發現重複名稱，請使用其他名稱。',
   'profiles.edit': '編輯設定檔名稱',
   'autoeq.page.eyebrow': '搭配您的耳機',
-  'autoeq.page.title': '等化器預設',
+  'autoeq.page.title': '耳機校正',
   'autoeq.page.intro': '尋找耳機校正，或自備曲線。',
   'autoeq.model.hint':
     '按品牌或型號搜尋。如果你的關係沒有被衡量，那麼來自同一範圍的密切關係通常會讓你更順利。',
@@ -701,6 +701,8 @@ const eq = {
   'eq.smart.mode.target': '目標',
   'eq.smart.mode.target.note': '持續測量·每次記錄到同一曲線',
   'eq.layers.aria': '也塑造這個輸出',
+  'eq.layers.addCorrection': '加入耳機校正',
+  'eq.layers.changeCorrection': '更換耳機校正',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.bands': '{count} 條帶',
   'eq.layers.convolution': '卷積',

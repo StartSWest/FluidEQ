@@ -97,6 +97,17 @@
     cursor: default;
   }
 }
+// From OPRA with nothing playing: the way to the library, its headphones
+// glyph apart from its words.
+.my-curve-add__guide > div > .button {
+  gap: 6px;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
 .my-curve-add__guide {
   display: grid;
   gap: 5px;

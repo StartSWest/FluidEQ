@@ -30,6 +30,7 @@ import {
   readStoredEqText,
 } from '../utils/squiglinkImport';
 import { appliedOpraName, knownOpraProducts } from '../opraProducts';
+import { openHeadphoneCorrections } from './headphoneCorrectionsOpen';
 import ImportEarsPick from './ImportEarsPick';
 import MyCurveDialogShell from './MyCurveDialogShell';
 import MyCurvePreview from './MyCurvePreview';
@@ -179,6 +180,10 @@ export default function MyCurveAddDialog({
       setText(opra.text);
       setEars('both');
       nameFrom(opra.name ?? t('myCurves.defaultNameOpra', { date: today }));
+    } else if (next === 'opra') {
+      // Nothing to copy yet: the card leads to the library, and the name
+      // stops calling the curve a Squiglink one.
+      nameFrom(t('myCurves.defaultNameOpra', { date: today }));
     } else if (next === 'paste' && origin !== 'paste') {
       // A file or a live EQ must not overwrite the independent Squiglink draft.
       setText(readStoredEqText() ?? '');
@@ -305,6 +310,24 @@ export default function MyCurveAddDialog({
         )}
         <div className="my-curve-add__workspace">
           <div className="my-curve-add__form">
+            {origin === 'opra' && !opra && (
+              <div className="my-curve-add__guide">
+                <div>
+                  <strong>{t('myCurves.from.opraNone')}</strong>
+                  <button
+                    type="button"
+                    className="button small"
+                    onClick={() => {
+                      onClose();
+                      openHeadphoneCorrections('opra');
+                    }}
+                  >
+                    <MenuIcon name="model" />
+                    {t('myCurves.tab.opra')}
+                  </button>
+                </div>
+              </div>
+            )}
             {origin === 'paste' && (
               <div className="my-curve-add__guide">
                 <div>

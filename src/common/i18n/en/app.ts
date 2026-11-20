@@ -275,7 +275,7 @@ const app = {
   'tabs.aria': 'Sound workspace',
   'tabs.eq': 'EQ',
   'tabs.eqMain': 'Bands',
-  'tabs.presets': 'EQ Presets',
+  'tabs.presets': 'Headphone corrections',
   'tabs.convolution': 'Convolution',
   'tabs.config': 'Config',
   'tabs.media': 'Online Media',

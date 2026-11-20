@@ -642,7 +642,7 @@ const eq = {
     '중복된 이름이 발견되었습니다. 다른 이름을 사용하세요.',
   'profiles.edit': '프로필 이름 수정',
   'autoeq.page.eyebrow': '헤드폰과 일치',
-  'autoeq.page.title': 'EQ 프리셋',
+  'autoeq.page.title': '헤드폰 보정',
   'autoeq.page.intro': '헤드폰 교정을 찾거나 자신만의 곡선을 가져오세요.',
   'autoeq.model.hint':
     '브랜드나 모델로 검색하세요. 귀하의 것이 측정되지 않은 경우 동일한 범위의 가까운 관계가 일반적으로 대부분의 방법을 제공합니다.',
@@ -732,6 +732,8 @@ const eq = {
   'eq.smart.mode.target.note':
     '측정을 계속합니다. 모든 기록을 동일한 곡선으로 유지합니다.',
   'eq.layers.aria': '또한 이 출력을 형성합니다.',
+  'eq.layers.addCorrection': '헤드폰 보정 추가',
+  'eq.layers.changeCorrection': '헤드폰 보정 변경',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.bands': '{count} 밴드',
   'eq.layers.convolution': '컨볼루션',

@@ -686,7 +686,7 @@ const eq: Partial<Dictionary> = {
   'profiles.error.duplicate': 'Ese nombre ya existe, elige otro.',
   'profiles.edit': 'Editar el nombre del perfil',
   'autoeq.page.eyebrow': 'AJUSTA TUS AURICULARES',
-  'autoeq.page.title': 'Presets EQ',
+  'autoeq.page.title': 'Correcciones de auriculares',
   'autoeq.page.intro':
     'Encuentra una corrección de auriculares o añade tu propia curva.',
   'autoeq.model.hint':
@@ -779,6 +779,8 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.target.note':
     'Sigue midiendo · cada grabación a la misma curva',
   'eq.layers.aria': 'Otros ajustes que afectan a esta salida',
+  'eq.layers.addCorrection': 'Añadir una corrección de auriculares',
+  'eq.layers.changeCorrection': 'Cambiar la corrección de auriculares',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.bands': '{count} bandas',
   'eq.layers.convolution': 'Convolución',

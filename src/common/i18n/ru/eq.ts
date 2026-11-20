@@ -678,7 +678,7 @@ const eq: Partial<Dictionary> = {
   'profiles.error.duplicate': 'Такое имя уже есть, выберите другое.',
   'profiles.edit': 'Изменить имя профиля',
   'autoeq.page.eyebrow': 'НАСТРОЙТЕ ПОД СВОИ НАУШНИКИ',
-  'autoeq.page.title': 'Пресеты EQ',
+  'autoeq.page.title': 'Коррекции наушников',
   'autoeq.page.intro':
     'Найдите коррекцию для наушников или добавьте свою кривую.',
   'autoeq.model.hint':
@@ -771,6 +771,8 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.target.note':
     'Продолжает измерять · каждую запись к одной кривой',
   'eq.layers.aria': 'Что ещё влияет на этот выход',
+  'eq.layers.addCorrection': 'Добавить коррекцию наушников',
+  'eq.layers.changeCorrection': 'Сменить коррекцию наушников',
   'eq.layers.eq': 'Эквалайзер',
   'eq.layers.eq.bands': 'полос: {count}',
   'eq.layers.convolution': 'Свёртка',
