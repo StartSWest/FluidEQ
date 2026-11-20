@@ -752,7 +752,7 @@ $windows-blue: #8ec5ff;
 }
 
 .lighting-route--synapse {
-  color: color-mix(in srgb, $active 80%, $white);
+  color: readable-ink(color-mix(in srgb, $active 80%, $white));
   border-color: color-mix(in srgb, $active 30%, transparent);
   background: color-mix(in srgb, $active 9%, transparent);
 

@@ -216,7 +216,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     // clears the flash (`MainContent.tsx`). A second and a half, as the
     // timer it replaces held it — see `eq-bubble-applied` below.
     .eq-mode__bubble-text {
-      color: $active;
+      color: $active-ink;
       animation: eq-bubble-applied $eq-bubble-applied-hold linear;
     }
   }

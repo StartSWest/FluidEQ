@@ -72,11 +72,16 @@ html {
   // The halo under the window's own words where they stand on a face over a
   // picture (`window-ink-halo`): dark under light words.
   --ink-halo: 0 0 1px rgba(2, 8, 15, 0.55), 0 1px 3px rgba(2, 8, 15, 0.5);
+  // How light a colour worn as words may be (`readable-ink` in _color.scss):
+  // any lightness on a dark window, where the colours are lights already.
+  --ink-ceiling: 1;
 
   // A light window (`data-window-ink`, `themeInk.ts`): the native controls
   // that are left - a date field, the caret, a select's own list - in light.
   &[data-window-ink='dark'] {
     color-scheme: light;
+    // OKLCH lightness 0.5 stands about 6:1 on the white pane, past AA's 4.5.
+    --ink-ceiling: 0.5;
     // The output curve, a near-white on a dark window, in the muted ink.
     --curve-total: var(--text-muted);
     // Light under its dark words.

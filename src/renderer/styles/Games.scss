@@ -92,7 +92,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   flex: 0 0 auto;
   align-items: center;
   gap: 6px;
-  color: $active;
+  color: $active-ink;
   font-size: $text-eyebrow;
   font-weight: $weight-semibold;
   @include tracking(0.08em);
@@ -894,7 +894,7 @@ $gaming-kind-colours: (
   align-items: center;
   gap: 6px;
   min-width: 0;
-  color: $active;
+  color: $active-ink;
   font-size: $text-small;
 }
 

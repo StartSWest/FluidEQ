@@ -50,6 +50,20 @@ $analogous-2: #54ff8a;
 // property, so `rgba()` cannot take it: mix it with `color-mix()`.
 $active: var(--active);
 
+// A colour worn as WORDS, held under the window's ink ceiling
+// (`--ink-ceiling` on the root): unchanged on a dark window, taken down to a
+// readable depth on the light one, hue and chroma kept. "On" and the lime
+// are lights, made to glow on a dark floor; as text on the white window a
+// scene's pale "on" (#cee3fb) stood at 1.2:1 and the lime at 1.3:1 - "Read: 10
+// bands", the config's "Active" line, the YOURS badge (Ivan, 2026-11-20: "the
+// sec color for text sometimes is too light on white bg"). Fills keep the
+// colour itself; only words go through this.
+@function readable-ink($colour) {
+  @return oklch(from #{$colour} min(l, var(--ink-ceiling, 1)) c h);
+}
+
+$active-ink: readable-ink(var(--active));
+
 // The words on the accent and on "on" where they fill a control: the floor's
 // colour, or the white window's dark ink on a light colour somebody picked
 // (`--on-accent`, `--on-active`, `_shippedTheme.scss`). Only on those two

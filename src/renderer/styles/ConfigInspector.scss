@@ -177,7 +177,7 @@ $name-column: 34ch;
   }
 
   &--on {
-    color: $active;
+    color: $active-ink;
 
     &::before {
       background: $active;
@@ -679,7 +679,7 @@ $name-column: 34ch;
   // most of how anybody learns that.
   &--custom {
     background: tone-fill-lit($neon-lime);
-    color: $neon-lime;
+    color: readable-ink($neon-lime);
   }
 }
 

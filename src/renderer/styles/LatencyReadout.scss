@@ -58,7 +58,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   &.is-game {
     border-color: color-mix(in srgb, $active 40%, transparent);
     background: color-mix(in srgb, $active 11%, transparent);
-    color: $active;
+    color: $active-ink;
 
     .latency-readout__value {
       color: color-mix(in srgb, $active 55%, $ink);
@@ -182,7 +182,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   &.is-game &__total .latency-readout-menu__ms {
-    color: $active;
+    color: $active-ink;
   }
 
   &__note {

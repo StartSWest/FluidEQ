@@ -306,7 +306,7 @@ $code-bar: 10px;
 }
 
 .studio-code__delta-add {
-  color: $analogous-2;
+  color: readable-ink($analogous-2);
 }
 
 .studio-code__delta-remove {
@@ -465,7 +465,7 @@ $code-bar: 10px;
   }
 
   .is-added {
-    color: $analogous-2;
+    color: readable-ink($analogous-2);
   }
 
   // The same rule as the code's, carried across the numbers.
@@ -645,7 +645,7 @@ $code-bar: 10px;
   user-select: none;
 
   .studio-code__row--add & {
-    color: $analogous-2;
+    color: readable-ink($analogous-2);
   }
 
   .studio-code__row--remove & {

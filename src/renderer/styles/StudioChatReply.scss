@@ -129,7 +129,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   .is-done > & {
-    color: $active;
+    color: $active-ink;
   }
 
   .is-failed > & {
@@ -279,7 +279,7 @@ it under the terms of the GNU General Public License version 3 or later.
   place-items: center;
   width: 22px;
   height: 22px;
-  color: $active;
+  color: $active-ink;
   border-radius: 50%;
   background: color-mix(in srgb, $active 14%, transparent);
 
@@ -437,7 +437,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &.is-copied {
-    color: $active;
+    color: $active-ink;
   }
 
   &:focus-visible {

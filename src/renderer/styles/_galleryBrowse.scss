@@ -714,7 +714,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &.is-done {
-    color: $active;
+    color: $active-ink;
     border-color: color-mix(in srgb, $active 38%, transparent);
     background: color-mix(in srgb, $active 8%, transparent);
     opacity: 1;

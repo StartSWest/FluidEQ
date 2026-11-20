@@ -699,7 +699,7 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   gap: 6px;
   margin: 0;
-  color: $active;
+  color: $active-ink;
   font-size: $text-small;
 
   svg {
@@ -765,7 +765,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &:disabled {
     cursor: default;
-    color: $active;
+    color: $active-ink;
   }
 
   &:focus-visible {

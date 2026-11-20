@@ -317,7 +317,7 @@ $chat: 30%;
   display: inline-flex;
   align-items: center;
   margin-left: auto;
-  color: $neon-lime;
+  color: readable-ink($neon-lime);
   font-size: calc(#{$u} * 0.56);
   font-weight: $weight-semibold;
   gap: calc(#{$u} * 0.25);
