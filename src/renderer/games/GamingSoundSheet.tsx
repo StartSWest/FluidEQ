@@ -19,10 +19,15 @@ import { presetLayerNameOf } from '../dsp/dspPresetCatalog';
 import type { TDspSection } from '../dsp/sections';
 import { useTranslation } from '../utils/I18nContext';
 import GamingProfileCurve from './GamingProfileCurve';
+import rackStageProfileKey from './gamingStageProfile';
 import { GAMING_STAGES, rackStageIsOn, TGamingStage } from './gamingStages';
 
-/** Where 100 Hz, 1 kHz and 10 kHz stand on the curve's 20 Hz-20 kHz axis. */
+/**
+ * Where 20 Hz, 100 Hz, 1 kHz and 10 kHz stand on the curve's 20 Hz-20 kHz
+ * axis. The first stands at the left edge, from it rather than centred on it.
+ */
 const CURVE_TICKS: readonly { label: string; at: number }[] = [
+  { label: '20 Hz', at: 0 },
   { label: '100 Hz', at: Math.log10(5) / 3 },
   { label: '1 kHz', at: Math.log10(50) / 3 },
   { label: '10 kHz', at: Math.log10(500) / 3 },
@@ -289,6 +294,9 @@ const GamingSoundSheet = ({
               gains={curve?.gains ?? []}
               className="gaming-sheet__curve"
             />
+            <span className="gaming-sheet__zero" aria-hidden="true">
+              {db(0)}
+            </span>
             <div className="gaming-sheet__axis" aria-hidden="true">
               {CURVE_TICKS.map(({ label, at }) => (
                 <span key={label} style={{ insetInlineStart: `${at * 100}%` }}>
@@ -315,22 +323,30 @@ const GamingSoundSheet = ({
       >
         {playing.length > 0 ? (
           <ul className="gaming-sheet__stages">
-            {playing.map(({ id, labelKey }) => (
-              <li key={id}>
-                <button
-                  type="button"
-                  className={`button plain small gaming-sheet__stage${
-                    id === stage ? ' is-chosen' : ''
-                  }`}
-                  title={hintFor(labelKey)}
-                  disabled={isBusy}
-                  onClick={() => onTune(id)}
-                >
-                  <span className="gaming-sheet__lamp" aria-hidden="true" />
-                  {t(labelKey)}
-                </button>
-              </li>
-            ))}
+            {playing.map(({ id, labelKey }) => {
+              const profileKey = rackStageProfileKey(id as TDspSection, dsp);
+              return (
+                <li key={id} className="gaming-sheet__stage-row">
+                  <button
+                    type="button"
+                    className={`button plain small gaming-sheet__stage${
+                      id === stage ? ' is-chosen' : ''
+                    }`}
+                    title={hintFor(labelKey)}
+                    disabled={isBusy}
+                    onClick={() => onTune(id)}
+                  >
+                    <span className="gaming-sheet__lamp" aria-hidden="true" />
+                    {t(labelKey)}
+                  </button>
+                  {profileKey && (
+                    <span className="gaming-sheet__stage-profile">
+                      {t(profileKey)}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <p className="gaming-sheet__facts">{t('gaming.sheet.rackOff')}</p>

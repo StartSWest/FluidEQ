@@ -15,6 +15,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'color' as *;
 @use 'theme' as *;
 @use 'dspTokens' as *;
+@use 'libraryTokens' as *;
+
+// The rail and the page it indexes, parted by the Library's own hairline
+// (the mockup's line between the stages and the sheet, Ivan, 2026-11-20:
+// "where is the line you promised on the mockup"). On the playing editor
+// too: the rail is the same index whether the game's sound is on or not.
+.gaming-panel__body > .gaming-editor {
+  padding-inline-start: 24px;
+  border-inline-start: 1px solid $studio-hair;
+}
 
 .gaming-sheet {
   gap: 0;
@@ -62,25 +72,31 @@ SPDX-License-Identifier: GPL-3.0-or-later
   line-height: 1.45;
 }
 
-// The Game filter and Your EQ side by side while both fit, the curve and the
-// rack across the whole column under them.
+// The Game filter and Your EQ side by side while both fit, the filter the
+// wider of the two as the mockup drew it (1.4 to 1), so its three readings
+// stand in one row; the curve and the rack across the whole column under
+// them. A flex row so the split follows the room, never a breakpoint.
 .gaming-sheet__parts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
-  gap: 26px 40px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 26px 44px;
   padding-top: 20px;
 }
 
 .gaming-sheet__part {
   display: flex;
+  flex: 1 1 100%;
   flex-direction: column;
   gap: 12px;
   min-width: 0;
 }
 
-.gaming-sheet__part--curve,
-.gaming-sheet__part--rack {
-  grid-column: 1 / -1;
+.gaming-sheet__part--filter {
+  flex: 1.4 1 340px;
+}
+
+.gaming-sheet__part--eq {
+  flex: 1 1 240px;
 }
 
 .gaming-sheet__head {
@@ -122,7 +138,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 .gaming-sheet__readings {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 104px), 1fr));
   gap: 14px 20px;
 }
 
@@ -176,8 +192,21 @@ SPDX-License-Identifier: GPL-3.0-or-later
 .gaming-sheet__plot {
   --kind: #{$secondary-default};
   --kind-ink: #{$secondary-default};
+  position: relative;
   display: grid;
   gap: 6px;
+}
+
+// The level the curve's middle line stands at, at the plot's right end, so
+// a cut reads as a cut (the mockup's "0 dB"). Clear above the line at the
+// drawing's middle (42px of 84), where a label on the line hid its end.
+.gaming-sheet__zero {
+  position: absolute;
+  top: calc(42px - 2.2em);
+  right: 0;
+  color: $text-faint;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
 }
 
 // The card's own ±5 dB scale (`GamingProfileCurve`): every game curve sits
@@ -198,15 +227,41 @@ SPDX-License-Identifier: GPL-3.0-or-later
     transform: translateX(-50%);
     white-space: nowrap;
   }
+
+  // 20 Hz stands at the left edge, so it reads from it rather than past it.
+  > span:first-child {
+    transform: none;
+  }
 }
 
+// The stages that play, each its name (a way in) over the profile it is set
+// to, in as many columns as the room holds - the mockup's four at full width.
 .gaming-sheet__stages {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 6px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+  gap: 10px 18px;
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+// Each row from its top, so a stage with no profile line stands level with
+// one that has it rather than centred in the taller row.
+.gaming-sheet__stage-row {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: 1px;
+  min-width: 0;
+}
+
+// Under the name, where the name's words start: the small button's 10px
+// padding, the 6px lamp and the 8px gap.
+.gaming-sheet__stage-profile {
+  padding-inline-start: 24px;
+  color: $text-muted;
+  font-size: $text-small;
+  overflow-wrap: anywhere;
 }
 
 .button.gaming-sheet__stage {
