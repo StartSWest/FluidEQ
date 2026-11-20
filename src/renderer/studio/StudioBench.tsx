@@ -17,6 +17,7 @@ import StudioChat from './chat/StudioChat';
 import StudioChatColumn from './chat/StudioChatColumn';
 import useStageCapture from './chat/useStageCapture';
 import { useStudioChat } from './chat/studioChatStore';
+import usePublishMakesRoomForAsk from './usePublishMakesRoomForAsk';
 import StudioCode, { problemLinesOf } from './StudioCode';
 import { useCodeDraft } from './codeDraftStore';
 import StudioMeters from './StudioMeters';
@@ -258,6 +259,11 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
   );
 
   const chatBusy = useStudioChat().chat?.busy === true;
+  usePublishMakesRoomForAsk(
+    publishing.draft !== undefined,
+    publishing.publishing,
+    publishing.cancel,
+  );
   const stageCapture = useStageCapture(playing ? pack : undefined, tuner.wave);
 
   const status = studioBenchStatus({
