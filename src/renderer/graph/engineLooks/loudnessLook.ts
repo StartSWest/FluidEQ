@@ -14,6 +14,7 @@ import {
   DIAL_RINGS,
   DIAL_RING_INK,
   DIAL_UPRIGHT_INK,
+  DIAL_DAY_WELL,
   DIAL_WELL,
   FAINT_INK,
   SCALE_BRACKET_INK,
@@ -54,9 +55,13 @@ import { setLookVector, sizeLookData } from './lookInput';
 
 const f = (value: number) => value.toFixed(6);
 
-/** The dial's well, from its middle to its rim, as a GLSL function. */
-const wellGlsl = (): string => {
-  const inks = DIAL_WELL.map(([at, ink]) => [at, inkGlsl(ink)] as const);
+/** A well's stops as a GLSL function `name`, each ink through `toGlsl`. */
+const wellOf = (
+  name: string,
+  stops: readonly (readonly [number, string])[],
+  toGlsl: (ink: string) => string,
+): string => {
+  const inks = stops.map(([at, ink]) => [at, toGlsl(ink)] as const);
   const between = inks.slice(1).map(([at, ink], index) => {
     const [fromAt, fromInk] = inks[index];
     return `  if (u <= ${f(at)}) {
@@ -66,11 +71,23 @@ const wellGlsl = (): string => {
     return vec4(mix(a.rgb, b.rgb, t), mix(a.a, b.a, t));
   }`;
   });
-  return `vec4 loudnessWell(float u) {
+  return `vec4 ${name}(float u) {
 ${between.join('\n')}
   return ${inks[inks.length - 1][1]};
 }`;
 };
+
+/**
+ * The dial's well, from its middle to its rim, as a GLSL function: by the
+ * window's ink on a dark window (`DIAL_WELL`), and the white disc a light
+ * window has instead (`DIAL_DAY_WELL`), chosen by `lookOnLight`.
+ */
+const wellGlsl = (): string =>
+  `${wellOf('loudnessNightWell', DIAL_WELL, inkGlsl)}
+${wellOf('loudnessDayWell', DIAL_DAY_WELL, cssInkGlsl)}
+vec4 loudnessWell(float u) {
+  return lookOnLight() ? loudnessDayWell(u) : loudnessNightWell(u);
+}`;
 
 const TICKS = BAR_TICKS.map((db) => f(levelOfDb(db)));
 

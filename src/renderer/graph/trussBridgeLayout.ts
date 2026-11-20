@@ -6,6 +6,7 @@ import { createFireworkPaths, fireworkLayout } from './bridgeFireworks';
 import type { IBridgeCar, TrussBridge } from './trussBridge';
 import {
   CAR_COLOURS,
+  carColours,
   CROSSING_SECONDS,
   DECK_REACH,
   FADE_BANDS,
@@ -478,7 +479,7 @@ export const trussBridgeLayout = (
     );
     return Math.max(0, Math.min(1, (baseline - columns[at][1]) / height));
   };
-  const cars: IBridgeCarPose[] = CAR_COLOURS.map((colour, index) => {
+  const cars: IBridgeCarPose[] = carColours().map((colour, index) => {
     const x = left + ((phase + index / CAR_COLOURS.length) % 1) * width;
     const level = Math.min(
       1,

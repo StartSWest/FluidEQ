@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { IAnalysisBand } from '../analysis/analysisFrame';
 import {
+  sparkFill,
   HEAT_STEPS,
   clampUnit,
   hash01,
@@ -13,6 +14,7 @@ import {
   heatStep,
   inkAt,
   lightInkAt,
+  glowComposite,
   type ISceneDrawn,
   type ISceneFrame,
   type ISceneMusic,
@@ -207,7 +209,7 @@ const drawCopy = (
   // look's Glow. Added to what is behind rather than laid over it, so it
   // glows instead of painting a disc.
   context.save();
-  context.globalCompositeOperation = 'lighter';
+  context.globalCompositeOperation = glowComposite();
   const light = coreLight(music, frame.glow);
   const core = context.createRadialGradient(cx, cy, 0, cx, cy, radius);
   core.addColorStop(0, lightInkAt(colours, 0.1, 0.55, light.middle));
@@ -330,7 +332,7 @@ const drawCopy = (
   );
   context.fill(held);
   if (music.treble > 0.2) {
-    context.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    context.fillStyle = sparkFill(colours, 0.85);
     context.fill(tips);
   }
 };

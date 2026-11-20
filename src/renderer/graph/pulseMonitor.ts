@@ -237,6 +237,16 @@ export const pulseLayout = (
 /** How many slices the tail is cut into, brightening toward the head. */
 export const PULSE_TAIL_SLICES = 4;
 
+/**
+ * How solid the previous sweep is drawn: dim on a dark window, where a faint
+ * line in a light colour still glows; more than twice that on a light one,
+ * where the same line measured 1.4:1 on white (2026-11-19 scan). The tail's
+ * white core and the write-head's dot are drawn in the window's own ink
+ * there for the same reason, like a monitor's trace printed on paper.
+ */
+export const PULSE_OLD_ALPHA = 0.3;
+export const PULSE_OLD_DAY_ALPHA = 0.7;
+
 export const createPulsePaths = (
   state: PulseMonitor,
   points: readonly Projected[],

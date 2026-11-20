@@ -2,7 +2,9 @@ import type { Projected } from 'common/graphStyles';
 import { getEaseFactor } from 'common/smoothing';
 import noise from 'common/seededNoise';
 import type { ISkyFrame } from './terraceValley';
+import { DAY_SUN } from './terraceNight';
 import { floorLifted } from '../utils/windowInk';
+import { isLightWindow } from '../utils/windowSide';
 
 /**
  * The night city around the Skyline form. The towers are the figure; this
@@ -43,8 +45,16 @@ export interface CitySkyline {
  */
 const TOWER_LIFTS = [0.07, 0.11, 0.16];
 
+/**
+ * The same concrete on a light window, where lifting the floor made white
+ * towers on a white floor (1.1:1, 2026-11-19 scan): the floor taken DOWN,
+ * most at the street and least at the sunlit roofs, which puts the towers
+ * at 2.4-3.9:1 on white and the lit windows still clear of them.
+ */
+const DAY_TOWER_LIFTS = [-0.38, -0.32, -0.26];
+
 export const cityTowerColours = (): readonly string[] =>
-  floorLifted(TOWER_LIFTS);
+  floorLifted(isLightWindow() ? DAY_TOWER_LIFTS : TOWER_LIFTS);
 export const CITY_MOON = '#f3efd8';
 export const CITY_WINDOW = '#ffdf9b';
 export const CITY_BEACON = '#ff4d4d';
@@ -124,6 +134,22 @@ export const CITY_INKS = {
   lit: CITY_WINDOW,
   beacon: { colour: CITY_BEACON, alpha: 0.9 },
 };
+
+/**
+ * The city by day, on a light window: no stars, the sun where the moon
+ * stood (`DAY_SUN`, and its warmth for a halo in `terraceNight.ts`), no
+ * craters on it. The rest — the haze, the windows, the beacons — read on the
+ * day towers as they are.
+ */
+export const CITY_DAY_INKS: typeof CITY_INKS = {
+  ...CITY_INKS,
+  moon: { colour: DAY_SUN, alpha: 0.96 },
+  crater: { colour: CITY_INKS.crater.colour, alpha: 0 },
+};
+
+/** The city's inks for the window's side. */
+export const cityInks = (): typeof CITY_INKS =>
+  isLightWindow() ? CITY_DAY_INKS : CITY_INKS;
 
 /** One tower's windows: its middle, and each floor's lit panes as bits. */
 export interface ICityTower {

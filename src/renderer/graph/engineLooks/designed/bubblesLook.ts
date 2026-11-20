@@ -22,6 +22,9 @@ import {
   spritesSoFarUnder,
 } from '../lookInput';
 import { paintAt, sceneToScreen, type IDesignedFrame } from './designedInput';
+import { isLightWindow } from '../../../utils/windowSide';
+
+const WHITE: readonly [number, number, number] = [1, 1, 1];
 
 /**
  * BUBBLES on the GPU (`bubblePaths.ts`, painted by the page in
@@ -139,10 +142,13 @@ vec4 bubblesCopy(vec4 picture, vec2 p, int copy) {
   if (dsFilled()) {
     picture = lookOver(picture, lookPaint(ink, presence * dsFillOpacity() * ring));
   }
-  // The glassy body, faint, the glint hard and the refraction soft.
+  // The glassy body, faint, the glint hard and the refraction soft. The
+  // light on the film is white on a dark window and the look's own colour
+  // on a light one, where white vanished (the strike's core alike).
+  vec3 film = lookOnLight() ? ink : vec3(1.0);
   picture = lookOver(picture, lookPaint(ink, presence * 0.09 * body));
-  picture = lookOver(picture, lookPaint(vec3(1.0), presence * 0.85 * glint));
-  picture = lookOver(picture, lookPaint(vec3(1.0), presence * 0.28 * refraction));
+  picture = lookOver(picture, lookPaint(film, presence * 0.85 * glint));
+  picture = lookOver(picture, lookPaint(film, presence * 0.28 * refraction));
   // A burst: the rim expanding and fading, the freshest first.
   for (int k = 0; k < ${BUBBLE_BATCHES}; k++) {
     float rim = k == 0 ? pops.x : (k == 1 ? pops.y : (k == 2 ? pops.z : pops.w));
@@ -185,7 +191,7 @@ vec4 bubblesCopy(vec4 picture, vec2 p, int copy) {
     float strength = 1.0 - float(k) / ${f(BUBBLE_BATCHES)};
     picture = lookOver(picture, lookPaint(ink, presence * strength * 0.22 * lookStroke(d, 7.0)));
     picture = lookOver(picture, lookPaint(ink, presence * strength * 0.55 * lookStroke(d, 2.6)));
-    picture = lookOver(picture, lookPaint(vec3(1.0), presence * strength * lookStroke(d, 1.0)));
+    picture = lookOver(picture, lookPaint(film, presence * strength * lookStroke(d, 1.0)));
   }
   // A stroked look's own line round every bubble, over the rest.
   return lookOver(picture, lookPaint(ink, presence * outline));
@@ -302,7 +308,9 @@ const step = (
     }
     layout.droplets.forEach(({ x, y, size }) => {
       const at = sceneToScreen(frame, copy, x, y);
-      pushSprite(input, at.x, at.y, size, frame.opacity * 0.7, [1, 1, 1]);
+      // White on a dark window, the look's colour on a light one.
+      const colour = isLightWindow() ? paintAt(frame.paint, x, y) : WHITE;
+      pushSprite(input, at.x, at.y, size, frame.opacity * 0.7, colour);
     });
   });
 };

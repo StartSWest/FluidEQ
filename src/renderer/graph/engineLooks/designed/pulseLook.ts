@@ -7,6 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { GLOW_LAYERS } from '../../figureGlow';
 import {
   PULSE_GRID_HEAVY,
+  PULSE_OLD_ALPHA,
+  PULSE_OLD_DAY_ALPHA,
   PULSE_TAIL_FRACTION,
   PULSE_TAIL_SLICES,
   echoDrift,
@@ -132,18 +134,23 @@ vec4 pulseCopy(vec4 picture, vec2 p, int copy) {
   float head = uLook[8].y;
   float tail = uLook[8].z;
   float gap = uLook[8].w;
+  // On a light window the core and the head's dot are the window's ink and
+  // the old sweep solider (PULSE_OLD_DAY_ALPHA): white vanished there.
+  bool day = lookOnLight();
+  vec3 core = day ? uWindowInk : vec3(1.0);
+  float old = day ? ${f(PULSE_OLD_DAY_ALPHA)} : ${f(PULSE_OLD_ALPHA)};
   if (x < tail || x > gap) {
-    picture = lookOver(picture, lookPaint(dsPaint(q), dsOpacity() * 0.3 * lookStroke(near.x, 1.2)));
+    picture = lookOver(picture, lookPaint(dsPaint(q), dsOpacity() * old * lookStroke(near.x, 1.2)));
   } else if (x <= head && x >= uLook[11].y) {
     float slice = clamp(floor((x - tail) / max(1e-3, uLook[12].x)), 0.0, ${f(PULSE_TAIL_SLICES - 1)});
     float nearness = (slice + 1.0) / ${f(PULSE_TAIL_SLICES)};
     picture = lookOver(picture, lookPaint(dsPaint(q), dsOpacity() * nearness * (0.35 + thump * 0.3) * lookStroke(near.x, 3.0 + thump * 3.0)));
-    picture = lookOver(picture, lookPaint(vec3(1.0), dsOpacity() * (0.3 + nearness * 0.7) * lookStroke(near.x, 1.2 + thump)));
+    picture = lookOver(picture, lookPaint(core, dsOpacity() * (0.3 + nearness * 0.7) * lookStroke(near.x, 1.2 + thump)));
   }
   // The write-head: a dot that flares on the thump.
   float toHead = length(q - vec2(head, uLook[11].x));
   picture = lookOver(picture, lookPaint(dsPaint(q), dsOpacity() * 0.5 * lookFill(toHead - (2.5 + thump * 4.0))));
-  return lookOver(picture, lookPaint(vec3(1.0), dsOpacity() * lookFill(toHead - (1.6 + thump * 2.0))));
+  return lookOver(picture, lookPaint(core, dsOpacity() * lookFill(toHead - (1.6 + thump * 2.0))));
 }
 
 vec4 sceneColour(vec2 uv) {

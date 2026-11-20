@@ -17,7 +17,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { setAlpha } from './liveTraceStyle';
-import { TRUSS_INKS } from './trussBridge';
+import { TRUSS_INKS, trussWireInk } from './trussBridge';
+import { isLightWindow } from '../utils/windowSide';
 import { fireworkColour } from './bridgeFireworks';
 import { type createTrussBridgePaths } from './trussBridgeLayout';
 
@@ -49,11 +50,14 @@ export const paintTrussScenery = ({
   isFilled,
 }: IPaintTrussSceneryInput) => {
   if (trussPaths) {
-    context.fillStyle = '#fff';
-    setAlpha(context, opacity * TRUSS_INKS.stars.dim);
-    context.fill(trussPaths.stars);
-    setAlpha(context, opacity * TRUSS_INKS.stars.bright(trussPaths.thump));
-    context.fill(trussPaths.brightStars);
+    // No stars by day: a light window is a daytime sky.
+    if (!isLightWindow()) {
+      context.fillStyle = '#fff';
+      setAlpha(context, opacity * TRUSS_INKS.stars.dim);
+      context.fill(trussPaths.stars);
+      setAlpha(context, opacity * TRUSS_INKS.stars.bright(trussPaths.thump));
+      context.fill(trussPaths.brightStars);
+    }
     /**
      * The truss under the deck, and on a beat its glow.
      *
@@ -124,7 +128,7 @@ export const paintTrussScenery = ({
       );
     };
     paintLowRes(paintSea);
-    context.strokeStyle = '#fff';
+    context.strokeStyle = trussWireInk();
     context.lineWidth = TRUSS_INKS.horizon.width;
     setAlpha(context, opacity * TRUSS_INKS.horizon.alpha);
     context.beginPath();
@@ -156,7 +160,7 @@ export const paintTrussScenery = ({
     context.lineWidth = cable.tintWidth(trussPaths.bass);
     setAlpha(context, opacity * cable.tintAlpha(trussPaths.bass));
     context.stroke(trussPaths.cables);
-    context.strokeStyle = '#fff';
+    context.strokeStyle = trussWireInk();
     context.lineWidth = cable.wireWidth(trussPaths.bass, trussPaths.thump);
     setAlpha(
       context,

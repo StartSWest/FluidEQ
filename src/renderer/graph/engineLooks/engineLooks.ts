@@ -176,7 +176,9 @@ export const engineAnalysisStep = (
  * Bumped when a look's shader changes, so a program the engine keeps by its
  * source is built again rather than taken from a cache under the old one.
  */
-const LOOK_PACK_VERSION = 2;
+// 3: every look's shader learned which side of the Brightness it paints on
+// (`lookOnLight`, 2026-11-19).
+const LOOK_PACK_VERSION = 3;
 
 const packs = new Map<GraphStyle, IScenePack>();
 

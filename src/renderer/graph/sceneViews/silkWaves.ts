@@ -11,6 +11,7 @@ import {
   levelAtX,
   lightInkAt,
   rampAlong,
+  glowComposite,
   type ISceneDrawn,
   type ISceneFrame,
   type ISceneReading,
@@ -255,7 +256,7 @@ const drawCopy = (
   const { traced } = state;
 
   context.save();
-  context.globalCompositeOperation = 'lighter';
+  context.globalCompositeOperation = glowComposite();
   context.lineJoin = 'round';
   STRANDS.forEach((_, index) => {
     const loudness = strandLoudness(index, music);

@@ -11,6 +11,7 @@ import {
   hash01,
   heatInk,
   heatStep,
+  glowComposite,
   type ISceneDrawn,
   type ISceneFrame,
   type ISceneMusic,
@@ -172,7 +173,7 @@ const drawCopy = (
     );
     context.globalCompositeOperation = 'source-over';
   }
-  context.globalCompositeOperation = 'lighter';
+  context.globalCompositeOperation = glowComposite();
   context.fillStyle = figureInk(context, frame, span, 0.12 * look.opacity, 0.2);
   context.fill(halos);
   context.restore();

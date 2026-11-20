@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { isLightWindow } from '../../utils/windowSide';
 import { rampAt } from '../lookColours';
 import type { IAnalysisBand, IAnalysisPlot } from '../analysis/analysisFrame';
 
@@ -300,7 +301,30 @@ export const inkAt = (
   return `rgba(${red}, ${green}, ${blue}, ${clampUnit(alpha).toFixed(3)})`;
 };
 
-/** The same colour moved toward white by `amount`, for highlights. */
+/**
+ * How far toward black a highlight goes on a light window, per unit of the
+ * whitening it asks for on a dark one. A held peak, a column's hot top, a
+ * spark: each was its colour moved toward white, which on a white window is
+ * the floor itself, so every one of them vanished there (2026-11-19 scan:
+ * LED bars' top segment and peaks at 1.2:1). Deepened instead, the strongest
+ * of them (0.7) keeps 58% of its colour, which on the light window's
+ * darkened stops reads well over 3:1. `lookGlsl.ts` paints with the same.
+ */
+export const LIGHT_WINDOW_DEEPEN = 0.6;
+
+/**
+ * One 0..255 channel of a highlight: moved toward white by `amount` on a
+ * dark window, toward black on a light one.
+ */
+export const highlightChannel = (channel: number, amount: number): number =>
+  isLightWindow()
+    ? channel * (1 - clampUnit(amount) * LIGHT_WINDOW_DEEPEN)
+    : channel + (255 - channel) * clampUnit(amount);
+
+/**
+ * The same colour lifted by `amount` for a highlight: toward white on a dark
+ * window, toward black on a light one (`highlightChannel`).
+ */
 export const lightInkAt = (
   colours: readonly string[],
   position: number,
@@ -308,12 +332,58 @@ export const lightInkAt = (
   alpha: number,
 ): string => {
   const [red, green, blue] = rampAt(colours, clampUnit(position));
-  const toward = (channel: number) =>
-    Math.round(channel + (255 - channel) * clampUnit(amount));
-  return `rgba(${toward(red)}, ${toward(green)}, ${toward(blue)}, ${clampUnit(
+  const lift = (channel: number) =>
+    Math.round(highlightChannel(channel, amount));
+  return `rgba(${lift(red)}, ${lift(green)}, ${lift(blue)}, ${clampUnit(
     alpha,
   ).toFixed(3)})`;
 };
+
+/**
+ * How much of a night sky's stars a window shows: all of them on a dark
+ * window, none on a light one, which is a daytime sky — white specks on a
+ * white floor were noise at best.
+ */
+export const starShare = (): number => (isLightWindow() ? 0 : 1);
+
+/** How strongly a spark is lifted from the look's top colour on white. */
+export const SPARK_LIFT = 0.7;
+
+/**
+ * A spark's colour, 0..1 channels — a flung droplet, a tower's hot spark, a
+ * ray's tip: white on a dark window; on a light one, where white vanished,
+ * the look's top colour deepened as a highlight is (`lookSpark` on the GPU).
+ */
+export const sparkRgb = (
+  colours: readonly string[],
+): readonly [number, number, number] => {
+  if (!isLightWindow()) {
+    return [1, 1, 1];
+  }
+  const [red, green, blue] = rampAt(colours, 1);
+  const lift = (channel: number) => highlightChannel(channel, SPARK_LIFT) / 255;
+  return [lift(red), lift(green), lift(blue)];
+};
+
+/** `sparkRgb` as a CSS fill at `alpha`. */
+export const sparkFill = (
+  colours: readonly string[],
+  alpha: number,
+): string => {
+  const [red, green, blue] = sparkRgb(colours).map((channel) =>
+    Math.round(channel * 255),
+  );
+  return `rgba(${red}, ${green}, ${blue}, ${clampUnit(alpha).toFixed(3)})`;
+};
+
+/**
+ * How a light that glows is laid over the picture: added, as light is, on a
+ * dark window; laid on as colour on a light one, where adding light can only
+ * lighten toward the white floor and turned every glowing look's colour to a
+ * neon pale against it.
+ */
+export const glowComposite = (): GlobalCompositeOperation =>
+  isLightWindow() ? 'source-over' : 'lighter';
 
 /** Halving `remaining` every `halfLifeMs`: the fraction of it to close now. */
 export const easeToward = (deltaMs: number, halfLifeMs: number): number =>

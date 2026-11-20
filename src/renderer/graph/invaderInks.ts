@@ -3,6 +3,7 @@ import {
   INVADER_POINTS,
   INVADER_READOUT,
 } from './invaderCabinet';
+import { isLightWindow } from '../utils/windowSide';
 
 /**
  * How each part of the arcade is painted — its colour, how solid, how wide
@@ -101,5 +102,46 @@ const INVADER_INKS = {
   /** An outline, where the look is not filled. */
   outline: 1,
 };
+
+/** The steel and screen-text ink the day arcade uses for what was white. */
+const DAY_INK = '#26303f';
+
+/**
+ * The arcade on a light window, where everything light vanished — the
+ * score, credits and hi-score at 1.04:1, the fighter's hull at 1.2:1, the
+ * points, the shots, the hit flash (2026-11-19 scan). The same parts in the
+ * same hues, deep enough to read on white: the readouts and the flashes in a
+ * dark screen-text ink, the hull a steel grey, the greens, blues and the
+ * points' gold taken down, the stars a faint dust. The reds read as they
+ * are.
+ */
+const INVADER_DAY_INKS: typeof INVADER_INKS = {
+  ...INVADER_INKS,
+  frame: {
+    ground: { colour: '#1d9c47', alpha: 0.9 },
+    spare: { colour: '#1d9c47', alpha: 0.75 },
+    readout: { colour: DAY_INK, alpha: 0.85 },
+  },
+  stars: { ...INVADER_INKS.stars, colour: '#97a0ab' },
+  // One green for the glow and the core: the engine keeps the brighter of
+  // two strokes at a pixel, which by day would drop a darker core.
+  shots: { ...INVADER_INKS.shots, glow: '#14874a', core: '#14874a' },
+  shelter: '#1d9c47',
+  ship: {
+    ...INVADER_INKS.ship,
+    glow: '#3d8fd6',
+    hull: { colour: '#5e6b7b', alpha: 1 },
+    canopy: { colour: '#1497bb', alpha: 1 },
+    flash: { colour: DAY_INK, alpha: 0.95 },
+  },
+  shield: { ...INVADER_INKS.shield, colour: '#2a95c7' },
+  wreck: { ...INVADER_INKS.wreck, flash: DAY_INK },
+  hit: { colour: DAY_INK, alpha: 0.9 },
+  points: { ...INVADER_INKS.points, colour: '#b67c00' },
+};
+
+/** The arcade's inks for the window's side. */
+export const invaderInks = (): typeof INVADER_INKS =>
+  isLightWindow() ? INVADER_DAY_INKS : INVADER_INKS;
 
 export default INVADER_INKS;

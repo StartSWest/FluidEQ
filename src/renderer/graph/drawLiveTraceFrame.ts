@@ -37,7 +37,7 @@ import { noteLookPreviewPainted } from './lookPreview';
 
 import { hasGraphAmbientMotion } from './graphMotion';
 
-import INVADER_INKS from './invaderInks';
+import { invaderInks } from './invaderInks';
 import paintCurves from './liveTraceCurvePass';
 
 import presentFigure from './liveTracePresentation';
@@ -806,7 +806,7 @@ const drawLiveTraceFrame = (
         context.stroke(path);
       }
     };
-    const { frame: frameInk } = INVADER_INKS;
+    const { frame: frameInk } = invaderInks();
     paintEdge(
       cabinetFrame.ground,
       frameInk.ground.colour,

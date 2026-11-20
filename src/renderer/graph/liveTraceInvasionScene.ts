@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import INVADER_INKS from './invaderInks';
+import { invaderInks } from './invaderInks';
 import { setAlpha } from './liveTraceStyle';
 import { type createSpaceInvasionPaths } from './spaceInvasionLayout';
 
@@ -48,7 +48,7 @@ export const paintInvasion = ({
     // saucer, the bolts and the lasers, the ship with its engines,
     // the bursts, and a soft glow round the formation before the
     // aliens themselves are painted as the figure.
-    const ink = INVADER_INKS;
+    const ink = invaderInks();
     const { unit, thump } = invasionPaths;
     context.strokeStyle = ink.stars.colour;
     context.lineCap = 'round';
@@ -192,16 +192,17 @@ export const strokeInvasion = ({
   opacity,
 }: IStrokeInvasionInput) => {
   if (invasionPaths) {
-    // A hit alien flashes white.
-    context.fillStyle = INVADER_INKS.hit.colour;
-    setAlpha(context, opacity * INVADER_INKS.hit.alpha);
+    // A hit alien flashes white (a dark flash on a light window).
+    const ink = invaderInks();
+    context.fillStyle = ink.hit.colour;
+    setAlpha(context, opacity * ink.hit.alpha);
     context.fill(invasionPaths.flash);
     // The points won, over everything: painted with the rest of the
     // scene they came out under the formation and could not be read.
-    context.fillStyle = INVADER_INKS.points.colour;
-    setAlpha(context, opacity * INVADER_INKS.points.alpha);
+    context.fillStyle = ink.points.colour;
+    setAlpha(context, opacity * ink.points.alpha);
     context.fill(invasionPaths.popups);
-    setAlpha(context, opacity * INVADER_INKS.points.fading);
+    setAlpha(context, opacity * ink.points.fading);
     context.fill(invasionPaths.popupsFading);
   }
 };

@@ -23,8 +23,12 @@ import {
   type createPulsePaths,
   echoDrift,
   type IEcho,
+  PULSE_OLD_ALPHA,
+  PULSE_OLD_DAY_ALPHA,
   pulseThump,
 } from './pulseMonitor';
+import { readSurface } from '../utils/theme';
+import { isLightWindow } from '../utils/windowSide';
 import {
   type createTerraceValleyPaths,
   terraceEdgeStroke,
@@ -364,10 +368,13 @@ export const paintBubbles = ({
     setAlpha(context, opacity * 0.09);
     context.fill(bubblePaths.body);
     // Light on the film: a hard glint high-left, a soft band low-right.
-    context.fillStyle = '#fff';
+    // White on a dark window, the look's own colour on a light one, where
+    // white vanished (the droplets and the strike's core alike).
+    const film = isLightWindow() ? canvasPaint : '#fff';
+    context.fillStyle = film;
     setAlpha(context, opacity * 0.85);
     context.fill(bubblePaths.glints);
-    context.strokeStyle = '#fff';
+    context.strokeStyle = film;
     context.lineWidth = 1.6;
     setAlpha(context, opacity * 0.28);
     context.stroke(bubblePaths.refraction);
@@ -379,7 +386,7 @@ export const paintBubbles = ({
       setAlpha(context, opacity * (1 - ageStep / 4) * 0.75);
       context.stroke(batch);
     });
-    context.fillStyle = '#fff';
+    context.fillStyle = film;
     setAlpha(context, opacity * 0.7);
     context.fill(bubblePaths.droplets);
     // A strike is light, not a line: a wide soft glow in the look's
@@ -394,7 +401,7 @@ export const paintBubbles = ({
       context.lineWidth = 2.6;
       setAlpha(context, opacity * strength * 0.55);
       context.stroke(batch);
-      context.strokeStyle = '#fff';
+      context.strokeStyle = film;
       context.lineWidth = 1;
       setAlpha(context, opacity * strength);
       context.stroke(batch);
@@ -545,10 +552,14 @@ export const paintPulseBeam = ({
       context.restore();
     });
     // The previous sweep, dim, then the tail brightening toward the
-    // head: colour wide and faint under a white core.
+    // head: colour wide and faint under a white core. On a light window
+    // the core and the head's dot are the window's ink, and the old sweep
+    // solider (`PULSE_OLD_DAY_ALPHA`).
+    const day = isLightWindow();
+    const core = day ? readSurface('--ink', '#1b1b1b') : '#fff';
     context.strokeStyle = canvasPaint;
     context.lineWidth = 1.2;
-    setAlpha(context, opacity * 0.3);
+    setAlpha(context, opacity * (day ? PULSE_OLD_DAY_ALPHA : PULSE_OLD_ALPHA));
     context.stroke(pulsePaths.old);
     pulsePaths.fresh.forEach((slice, index) => {
       const nearness = (index + 1) / 4;
@@ -556,7 +567,7 @@ export const paintPulseBeam = ({
       context.lineWidth = 3 + thump * 3;
       setAlpha(context, opacity * nearness * (0.35 + thump * 0.3));
       context.stroke(slice);
-      context.strokeStyle = '#fff';
+      context.strokeStyle = core;
       context.lineWidth = 1.2 + thump;
       setAlpha(context, opacity * (0.3 + nearness * 0.7));
       context.stroke(slice);
@@ -568,11 +579,11 @@ export const paintPulseBeam = ({
     context.fillStyle = canvasPaint;
     setAlpha(context, opacity * 0.5);
     context.fill(dot);
-    const core = new Path2D();
-    core.arc(headX, headY, 1.6 + thump * 2, 0, Math.PI * 2);
-    context.fillStyle = '#fff';
+    const headCore = new Path2D();
+    headCore.arc(headX, headY, 1.6 + thump * 2, 0, Math.PI * 2);
+    context.fillStyle = core;
     setAlpha(context, opacity);
-    context.fill(core);
+    context.fill(headCore);
   }
 };
 

@@ -10,6 +10,7 @@ import {
   figureInk,
   heatInk,
   heatStep,
+  glowComposite,
   type ISceneDrawn,
   type ISceneFrame,
   type ISceneSpan,
@@ -173,7 +174,7 @@ const drawCopy = (
   };
 
   context.save();
-  context.globalCompositeOperation = 'lighter';
+  context.globalCompositeOperation = glowComposite();
   // Oldest first, so the trail fades out toward the past.
   for (let age = state.ghosts.length - 1; age >= 1; age -= 1) {
     const ghost = state.ghosts[age];

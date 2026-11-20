@@ -8,7 +8,7 @@ import type { PixelRect } from 'common/graphInvaders';
 import type { Projected } from 'common/graphStyles';
 import { parseCssColour } from '../../../utils/oklab';
 import type { CabinetFrameLayout } from '../../invaderCabinet';
-import INVADER_INKS from '../../invaderInks';
+import INVADER_INKS, { invaderInks } from '../../invaderInks';
 import type { SpaceInvasion } from '../../spaceInvasion';
 import type { SpaceInvasionLayout } from '../../spaceInvasionLayout';
 import {
@@ -233,7 +233,7 @@ const chunks = (rects: readonly PixelRect[]): PixelRect[][] => {
  */
 const stepsOf = (frame: IDesignedFrame, scene: IInvadersScene) => {
   const { fight, shelters, cabinet } = scene;
-  const ink = INVADER_INKS;
+  const ink = invaderInks();
   const { unit, thump } = fight;
   const { opacity, filled } = frame;
   const aliens = fight.aliens.map(({ rects }) => rects);
@@ -431,7 +431,7 @@ const writeStrokes = (
       count += 1;
     }
   };
-  const { bolts, shots } = INVADER_INKS;
+  const { bolts, shots } = invaderInks();
   const passes: [readonly Projected[][], string, number, number][] = [
     [fight.bolts, bolts.colour, bolts.glowWidth, bolts.glowAlpha],
     [fight.bolts, bolts.colour, bolts.width, bolts.alpha],

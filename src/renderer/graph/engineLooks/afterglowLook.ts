@@ -88,7 +88,7 @@ vec4 afterglowCopy(vec2 p, vec4 stand, vec4 picture) {
     float edgeCover = lookFill(lookBox(p, vec2(left, eTop), vec2(right, eTop + uLook[7].y), 0.0));
     trail += lookPaint(lookLightInk(t, 0.35), 0.6 * fade * opacity * edgeCover);
   }
-  picture = min(picture + trail, vec4(1.0));
+  picture = lookGlow(picture, trail);
 
   // The bars, their burning tops, the held line.
   float barTop = up < 0.0 ? floorY - height : floorY;

@@ -11,6 +11,7 @@ import {
   hash01,
   heatInk,
   heatStep,
+  glowComposite,
   type ISceneDrawn,
   type ISceneFrame,
   type ISceneMusic,
@@ -179,7 +180,7 @@ const drawCopy = (
   const paint = (shift: number) => {
     context.save();
     context.translate(shift, 0);
-    context.globalCompositeOperation = 'lighter';
+    context.globalCompositeOperation = glowComposite();
     context.globalAlpha = look.opacity * ghost;
     const drawGhost = (x: number, colour: string, shape: Path2D) => {
       context.save();

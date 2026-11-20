@@ -6,6 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { IAnalysisBand, IAnalysisPlot } from '../analysis/analysisFrame';
 import {
+  sparkFill,
+  starShare,
   clampUnit,
   hash01,
   inkAt,
@@ -13,6 +15,7 @@ import {
   levelAtX,
   lightInkAt,
   rampAlong,
+  glowComposite,
   type ISceneDrawn,
   type ISceneFrame,
   type ISceneLook,
@@ -621,7 +624,7 @@ const drawMoonColumn = (
     return;
   }
   context.save();
-  context.globalCompositeOperation = 'lighter';
+  context.globalCompositeOperation = glowComposite();
   context.translate(moonX, middle);
   context.scale(wide / tall, 1);
   const column = context.createRadialGradient(0, 0, 0, 0, 0, tall);
@@ -679,7 +682,8 @@ const drawCopy = (
 
   // The sky: stars to the window's edge when this is the only copy, and the
   // moon halfway between the band's head and the far swell.
-  if (frame.bands.length === 1) {
+  // No stars by day: a light window is a daytime sky (starShare).
+  if (frame.bands.length === 1 && starShare() > 0) {
     if (band.flipped) {
       drawStars(frame, farRest, frame.window.height);
     } else {
@@ -787,7 +791,7 @@ export const drawTide = (
     glow.arc(x, y, size, 0, Math.PI * 2);
   });
   if (alive > 0) {
-    frame.context.fillStyle = 'rgba(255, 255, 255, 0.75)';
+    frame.context.fillStyle = sparkFill(frame.colours, 0.75);
     frame.context.fill(glow);
   }
   return { moving: alive > 0 || state.rollers.length > 0, body };

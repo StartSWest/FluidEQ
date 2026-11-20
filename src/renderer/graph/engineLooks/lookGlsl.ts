@@ -4,7 +4,12 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { HEAT_STEPS } from '../sceneViews/sceneFrame';
+import { LIGHT_WINDOW_BLOOM } from '../sceneViews/sceneBloom';
+import {
+  HEAT_STEPS,
+  LIGHT_WINDOW_DEEPEN,
+  SPARK_LIFT,
+} from '../sceneViews/sceneFrame';
 import { LOOK_INKS, LOOK_VECTORS } from './engineLookInput';
 
 /**
@@ -40,6 +45,7 @@ uniform int uInkCount;
 uniform float uLookPass;
 uniform sampler2D uLookBloom;
 uniform float uLookBloomStrength;
+uniform vec3 uWindowInk;
 
 vec2 lookPoint(vec2 uv) {
   return vec2(uv.x, 1.0 - uv.y) * uLook[0].xy;
@@ -70,10 +76,27 @@ vec3 lookInk(float t) {
   return mix(uInk[from], uInk[to], at - float(from));
 }
 
-// The same colour moved toward white, for highlights.
+// Whether the window is on the light side of the Brightness: its strongest
+// ink (uWindowInk, --ink) is near-black there and white on a dark window.
+bool lookOnLight() {
+  return dot(uWindowInk, vec3(0.2126, 0.7152, 0.0722)) < 0.5;
+}
+
+// The same colour lifted for a highlight: toward white on a dark window,
+// toward black on a light one, where white is the floor (sceneFrame.ts,
+// highlightChannel).
 vec3 lookLightInk(float t, float whiten) {
   vec3 colour = lookInk(t);
-  return colour + (1.0 - colour) * clamp(whiten, 0.0, 1.0);
+  float w = clamp(whiten, 0.0, 1.0);
+  return lookOnLight()
+    ? colour * (1.0 - w * ${LIGHT_WINDOW_DEEPEN.toFixed(3)})
+    : colour + (1.0 - colour) * w;
+}
+
+// A spark's colour: white on a dark window, the look's top colour deepened
+// on a light one, where white vanished (sceneFrame.ts, sparkRgb).
+vec3 lookSpark() {
+  return lookOnLight() ? lookLightInk(1.0, ${SPARK_LIFT.toFixed(3)}) : vec3(1.0);
 }
 
 int lookInkMode() {
@@ -161,6 +184,13 @@ vec4 lookOver(vec4 under, vec4 top) {
   return top + under * (1.0 - top.a);
 }
 
+// A light laid over the picture: added, as light is, on a dark window; laid
+// on as colour on a light one, where adding can only lighten toward the
+// white floor (sceneFrame.ts, glowComposite).
+vec4 lookGlow(vec4 picture, vec4 light) {
+  return lookOnLight() ? lookOver(picture, light) : min(picture + light, vec4(1.0));
+}
+
 // A rectangle from lo to hi rounded by r: its signed distance, in CSS pixels.
 float lookBox(vec2 p, vec2 lo, vec2 hi, float r) {
   vec2 centre = (lo + hi) * 0.5;
@@ -232,12 +262,18 @@ vec4 lookStand(int copy) {
   return copy == 0 ? uLook[8] : uLook[9];
 }
 
-// The bloom added over the finished picture, as the canvas's lighter.
+// The bloom added over the finished picture, as the canvas's lighter. On a
+// light window it goes BEHIND the picture instead (sceneBloom.ts): added, it
+// lifted every lit shape toward the floor's white — LED bars and Horizon
+// came out at 1.1-1.2:1 — and laid over, it would blur the shapes it rings.
 vec4 lookBloomed(vec4 picture, vec2 uv) {
   if (uLookBloomStrength <= 0.0) {
     return picture;
   }
-  return min(picture + texture(uLookBloom, uv) * uLookBloomStrength, vec4(1.0));
+  vec4 bloom = texture(uLookBloom, uv) * uLookBloomStrength;
+  return lookOnLight()
+    ? lookOver(min(bloom * ${LIGHT_WINDOW_BLOOM.toFixed(3)}, vec4(1.0)), picture)
+    : min(picture + bloom, vec4(1.0));
 }
 `;
 

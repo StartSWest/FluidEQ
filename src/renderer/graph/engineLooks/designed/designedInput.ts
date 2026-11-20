@@ -9,7 +9,7 @@ import type { IAnalysisPlot } from '../../analysis/analysisFrame';
 import { rampAt } from '../../lookColours';
 import { isTraceGradient, type TracePaint } from '../../liveTracePaint';
 import { LOOK_INKS, type IEngineLookInput } from '../engineLookInput';
-import { setLookVector } from '../lookInput';
+import { setLookVector, writeWindowInk } from '../lookInput';
 
 /**
  * What the page hands the engine for a designed scene, beside the scene's
@@ -149,4 +149,5 @@ export const readDesignedInput = (
     frame.sceneBase,
     frame.sceneTop,
   );
+  writeWindowInk(input);
 };

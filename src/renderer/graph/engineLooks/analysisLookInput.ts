@@ -6,11 +6,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { ResolvedGraphPalette } from 'common/graphStyles';
 import { parseCssColour } from '../../utils/oklab';
-import { readSurface } from '../../utils/theme';
 import { rampAt } from '../lookColours';
 import { placeLevel, type IAnalysisReading } from '../analysis/analysisFrame';
 import type { IEngineLookInput } from './engineLookInput';
-import { setLookBands, setLookVector, writeInks } from './lookInput';
+import {
+  setLookBands,
+  setLookVector,
+  writeInks,
+  writeWindowInk,
+} from './lookInput';
 
 /**
  * Filling the vectors every measuring view shares (`analysisGlsl.ts`) from
@@ -104,6 +108,5 @@ export const readAnalysisLookInput = (
   input.inkCount = writeInks(input.inks, first.colours);
   input.mateInkCount = writeInks(input.mateInks, first.mate);
   // The scale's rules follow the window's ink, as the 2D views' `readInk`.
-  const ink = parseCssColour(readSurface('--ink', '#ffffff'));
-  input.windowInk.set(ink ? ink.rgb : [1, 1, 1]);
+  writeWindowInk(input);
 };

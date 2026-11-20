@@ -11,6 +11,7 @@ import type { GraphPalette, ResolvedGraphPalette } from 'common/graphStyles';
 import { labToHex, parseCssColour, rgbToLab } from './oklab';
 import { getRainbowStops, useRainbowStops } from './rainbowPalette';
 import { readSurface, useLiveSurface, useRootHasClass } from './theme';
+import { isLightWindow } from './windowSide';
 
 /**
  * THE WINDOW'S COLOURS, FOR EVERYTHING THAT IS DRAWN RATHER THAN STYLED.
@@ -114,9 +115,25 @@ export const windowFloor = (): readonly [number, number, number] => {
   return floor;
 };
 
-/** The floor as a fill, `darker` 0..1 of the way toward black. */
+/**
+ * How much of a floor-made body's darkening a light window keeps. Taken
+ * toward black, the white floor turned the Waterfall's slices into grey smoke
+ * and every measuring view's legend into a grey pill (2026-11-19 scan); on
+ * white a body that hides what is behind it is the floor itself, shaded only
+ * enough to tell one layer from the next.
+ */
+export const LIGHT_FLOOR_DARKEN = 0.15;
+
+/** `darker` for the window's side (`LIGHT_FLOOR_DARKEN`). */
+export const floorDarkening = (darker: number): number =>
+  Math.max(0, Math.min(1, darker)) * (isLightWindow() ? LIGHT_FLOOR_DARKEN : 1);
+
+/**
+ * The floor as a fill, `darker` 0..1 of the way toward black — a fraction of
+ * that on a light window (`floorDarkening`).
+ */
 export const floorInk = (alpha: number, darker = 0): string => {
-  const keep = 1 - Math.max(0, Math.min(1, darker));
+  const keep = 1 - floorDarkening(darker);
   const [red, green, blue] = windowFloor().map((channel) =>
     Math.round(channel * keep),
   );

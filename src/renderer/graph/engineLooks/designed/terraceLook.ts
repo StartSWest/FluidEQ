@@ -27,6 +27,7 @@ import {
   MIST_TOP,
 } from '../../terraceNight';
 import {
+  VALLEY_DAY_INKS,
   VALLEY_INKS,
   terraceEdgeStroke,
   type TerraceValleyLayout,
@@ -36,6 +37,7 @@ import { setLookVector, sizeLookData } from '../lookInput';
 import type { IDesignedFrame } from './designedInput';
 import {
   NIGHT_GLSL,
+  dayOrNight,
   glslInk as ink,
   nightStarGrid,
   writeNightStars,
@@ -102,13 +104,19 @@ const vec3 JUMPER_INK[${inks.length}] = vec3[${inks.length}](${inks.join(', ')})
 };
 
 const STAR = ink(VALLEY_INKS.star);
-const MOON = ink(VALLEY_INKS.moon.colour);
+const MOON = dayOrNight(VALLEY_DAY_INKS.moon.colour, VALLEY_INKS.moon.colour);
 const CRATER = ink(VALLEY_INKS.crater.colour);
-const CLOUD = ink(VALLEY_INKS.cloud.colour);
+const CLOUD = dayOrNight(
+  VALLEY_DAY_INKS.cloud.colour,
+  VALLEY_INKS.cloud.colour,
+);
 const WALL = ink(VALLEY_INKS.wall.colour);
 const RIM = ink(VALLEY_INKS.rim.colour);
 const GLINT = ink(VALLEY_INKS.glint.colour);
-const FIREFLY = ink(VALLEY_INKS.firefly.colour);
+const FIREFLY = dayOrNight(
+  VALLEY_DAY_INKS.firefly.colour,
+  VALLEY_INKS.firefly.colour,
+);
 const [FLY_LIT, FLY_DIM] = VALLEY_INKS.firefly.alphas;
 const BIRD = ink(VALLEY_INKS.bird.colour);
 const [MIST_R, MIST_G, MIST_B] = MIST_INK.map((channel) => channel / 255);
@@ -127,16 +135,21 @@ ${jumperGlsl()}
 // craters, the clouds, the mist.
 vec4 terraceNight(vec4 picture, vec2 q) {
   vec2 stars = nightStars(q, STAR_ROW, CELL_ROW, uLook[13], ivec2(uLook[14].xy + 0.5));
-  picture = lookOver(picture, lookPaint(${STAR.rgb}, dsOpacity() * uLook[11].x * stars.x));
-  picture = lookOver(picture, lookPaint(${STAR.rgb}, dsOpacity() * uLook[11].y * stars.y));
+  // By day (a light window) the sky has no stars, a sun for the moon and
+  // no craters on it, and solider clouds (VALLEY_DAY_INKS).
+  bool day = lookOnLight();
+  float night = day ? 0.0 : 1.0;
+  picture = lookOver(picture, lookPaint(${STAR.rgb}, night * dsOpacity() * uLook[11].x * stars.x));
+  picture = lookOver(picture, lookPaint(${STAR.rgb}, night * dsOpacity() * uLook[11].y * stars.y));
   vec2 moon = uLook[10].xy;
   float radius = uLook[10].z;
   vec4 halo = nightHalo(q, moon, radius);
   picture = lookOver(picture, lookPaint(halo.rgb, dsOpacity() * uLook[10].w * halo.a));
-  picture = lookOver(picture, lookPaint(${MOON.rgb}, dsOpacity() * ${f(VALLEY_INKS.moon.alpha)} * lookFill(length(q - moon) - radius)));
+  picture = lookOver(picture, lookPaint(${MOON}, dsOpacity() * ${f(VALLEY_INKS.moon.alpha)} * lookFill(length(q - moon) - radius)));
   int clouds = int(uLook[12].w + 0.5);
-  picture = lookOver(picture, lookPaint(${CRATER.rgb}, dsOpacity() * ${f(VALLEY_INKS.crater.alpha)} * nightCircles(q, CIRCLE_ROW, clouds, ${CRATERS})));
-  picture = lookOver(picture, lookPaint(${CLOUD.rgb}, dsOpacity() * ${f(VALLEY_INKS.cloud.alpha)} * nightCircles(q, CIRCLE_ROW, 0, clouds)));
+  picture = lookOver(picture, lookPaint(${CRATER.rgb}, night * dsOpacity() * ${f(VALLEY_INKS.crater.alpha)} * nightCircles(q, CIRCLE_ROW, clouds, ${CRATERS})));
+  float cloudAlpha = day ? ${f(VALLEY_DAY_INKS.cloud.alpha)} : ${f(VALLEY_INKS.cloud.alpha)};
+  picture = lookOver(picture, lookPaint(${CLOUD}, dsOpacity() * cloudAlpha * nightCircles(q, CIRCLE_ROW, 0, clouds)));
   // The mist's two bands, each rising from nothing to its middle and
   // falling back, across the plot.
   float depth = uLook[8].w;
@@ -300,8 +313,8 @@ vec4 terraceCopy(vec4 picture, vec2 p, int copy) {
       flies.y = max(flies.y, lit);
     }
   }
-  picture = lookOver(picture, lookPaint(${FIREFLY.rgb}, dsOpacity() * ${f(FLY_LIT)} * flies.x));
-  picture = lookOver(picture, lookPaint(${FIREFLY.rgb}, dsOpacity() * ${f(FLY_DIM)} * flies.y));
+  picture = lookOver(picture, lookPaint(${FIREFLY}, dsOpacity() * ${f(FLY_LIT)} * flies.x));
+  picture = lookOver(picture, lookPaint(${FIREFLY}, dsOpacity() * ${f(FLY_DIM)} * flies.y));
   // The birds, a wing, the body and a wing each.
   int birds = int(uLook[14].w + 0.5);
   float wings = 1e5;

@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { readInk } from '../../utils/theme';
+import { isLightWindow } from '../../utils/windowSide';
 import {
   clamp01,
   rampRgba,
@@ -75,6 +76,17 @@ const dialWellOf = (
   [1, 'rgba(0, 0, 0, 0)'],
 ];
 export const DIAL_WELL = dialWellOf(whiteAt(DIAL_WELL_LIGHT_ALPHA));
+/**
+ * The well on a light window. Shaded toward black like the dark window's,
+ * it was a grey smudge round the trace on white (2026-11-19 scan); there a
+ * recessed instrument reads as a disc of white a step over the floor,
+ * falling off to nothing at the rim.
+ */
+export const DIAL_DAY_WELL: readonly (readonly [at: number, ink: string])[] = [
+  [0, whiteAt(0.6)],
+  [0.7, whiteAt(0.45)],
+  [1, whiteAt(0)],
+];
 export const DIAL_RING_INK = { ramp: 0.5, alpha: 0.4 } as const;
 export const DIAL_ARM_INK = whiteAt(DIAL_ARM_ALPHA);
 export const DIAL_ARM_DASH: readonly [on: number, off: number] = [3, 4];
@@ -198,9 +210,10 @@ export const paintDial = (frame: IAnalysisFrame, panel: IPanel): void => {
     dialY,
     radius,
   );
-  dialWellOf(readInk(DIAL_WELL_LIGHT_ALPHA)).forEach(([at, ink]) =>
-    well.addColorStop(at, ink),
-  );
+  (isLightWindow()
+    ? DIAL_DAY_WELL
+    : dialWellOf(readInk(DIAL_WELL_LIGHT_ALPHA))
+  ).forEach(([at, ink]) => well.addColorStop(at, ink));
   context.fillStyle = well;
   context.beginPath();
   context.arc(dialX, dialY, radius, 0, Math.PI * 2);

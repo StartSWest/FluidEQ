@@ -31,7 +31,6 @@ import { LOOK_INKS } from './engineLookInput';
  * here decides where a reading lands.
  */
 const ANALYSIS_GLSL = `
-uniform vec3 uWindowInk;
 uniform vec3 uInkMate[${LOOK_INKS}];
 uniform int uInkMateCount;
 

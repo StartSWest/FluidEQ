@@ -4,12 +4,15 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { parseCssColour } from '../../utils/oklab';
+import { readSurface } from '../../utils/theme';
 import { rampAt } from '../lookColours';
 import type { IAnalysisBand } from '../analysis/analysisFrame';
-import type {
-  ISceneReading,
-  ISceneStand,
-  TSceneInk,
+import {
+  highlightChannel,
+  type ISceneReading,
+  type ISceneStand,
+  type TSceneInk,
 } from '../sceneViews/sceneFrame';
 import {
   LOOK_INKS,
@@ -138,7 +141,8 @@ export const pushRectSprite = (
   pushShape(input, x, y, width / 2, height / 2, alpha, colour, 0, true);
 
 /**
- * The look's ramp at `t`, moved toward white by `whiten`, as 0..1 channels:
+ * The look's ramp at `t`, lifted by `whiten` for a highlight (toward white,
+ * or toward black on a light window: `highlightChannel`), as 0..1 channels:
  * what a sprite is coloured with, as `lookLightInk` colours the picture.
  */
 export const lightRamp = (
@@ -147,8 +151,7 @@ export const lightRamp = (
   whiten = 0,
 ): [number, number, number] => {
   const [red, green, blue] = rampAt(colours, Math.min(1, Math.max(0, t)));
-  const w = Math.min(1, Math.max(0, whiten));
-  const lift = (channel: number) => channel / 255 + (1 - channel / 255) * w;
+  const lift = (channel: number) => highlightChannel(channel, whiten) / 255;
   return [lift(red), lift(green), lift(blue)];
 };
 
@@ -166,6 +169,17 @@ export const sizeLookData = (
     input.data = new Float32Array(across * down * 4);
   }
   return input.data;
+};
+
+/**
+ * The window's strongest ink (`uWindowInk`, `--ink`): white on a dark window,
+ * near-black on a light one. What a measuring view rules its scale in, and
+ * how every look's shader tells which side of the Brightness it paints on
+ * (`lookOnLight`). Read through the surfaces cache, so once per change.
+ */
+export const writeWindowInk = (input: IEngineLookInput): void => {
+  const ink = parseCssColour(readSurface('--ink', '#ffffff'));
+  input.windowInk.set(ink ? ink.rgb : [1, 1, 1]);
 };
 
 /** `uLook[index]`, set from four numbers. */
@@ -277,4 +291,5 @@ export const readLookInput = (
     music.energy,
   );
   input.inkCount = writeInks(input.inks, colours);
+  writeWindowInk(input);
 };

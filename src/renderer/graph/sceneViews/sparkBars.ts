@@ -13,6 +13,7 @@ import {
   hash01,
   heatInk,
   heatStep,
+  glowComposite,
   type ISceneDrawn,
   type ISceneFrame,
   type ISceneReading,
@@ -230,7 +231,7 @@ const drawCopy = (
     hot.rect(x - size / 2, y - size / 2, size, size);
   });
   context.save();
-  context.globalCompositeOperation = 'lighter';
+  context.globalCompositeOperation = glowComposite();
   context.fillStyle = figureInk(
     context,
     frame,

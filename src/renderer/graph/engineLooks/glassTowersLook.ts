@@ -4,7 +4,11 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { figureInkAt, type ISceneReading } from '../sceneViews/sceneFrame';
+import {
+  figureInkAt,
+  sparkRgb,
+  type ISceneReading,
+} from '../sceneViews/sceneFrame';
 import {
   MIN_PITCH,
   MIRROR,
@@ -158,8 +162,6 @@ vec4 sceneColour(vec2 uv) {
 }
 `;
 
-const HOT: readonly [number, number, number] = [1, 1, 1];
-
 const step = (
   reading: ISceneReading,
   state: IGlassTowersState,
@@ -231,7 +233,14 @@ const step = (
     pushSprite(input, x, y, sparkGlowRadius(life), alpha, ink);
   }
   for (let at = 0; at < placed.length; at += 3) {
-    pushSprite(input, placed[at], placed[at + 1], SPARK_CORE, 0.85, HOT);
+    pushSprite(
+      input,
+      placed[at],
+      placed[at + 1],
+      SPARK_CORE,
+      0.85,
+      sparkRgb(reading.colours),
+    );
   }
   return alive > 0 || (falling && look.accents);
 };

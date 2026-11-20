@@ -2,6 +2,8 @@ import { TERRACE_TIER_FRACTIONS } from 'common/graphTerrace';
 import type { Projected } from 'common/graphStyles';
 import { getEaseFactor } from 'common/smoothing';
 import noise from 'common/seededNoise';
+import { isLightWindow } from '../utils/windowSide';
+import { DAY_SUN } from './terraceNight';
 
 /**
  * The valley round the Terrace form, at night. The tiers and the jumper
@@ -70,6 +72,26 @@ export const VALLEY_INKS = {
   firefly: { colour: TERRACE_FIREFLY, alphas: [0.95, 0.4] },
   bird: { colour: '#10131f', width: 1.4, alpha: 0.9 },
 };
+
+/**
+ * The valley by day, on a light window, where the moon, its craters and the
+ * pale clouds vanished (1.1-1.3:1, 2026-11-19 scan): the sun where the moon
+ * stood (`DAY_SUN`), no craters, clouds a soft blue-grey solid enough to
+ * read on white, and the fireflies a deeper green. The rims and glints stay
+ * white: they lie on the coloured shelves, never on the floor. No stars: the
+ * painters leave them out on a light window.
+ */
+export const VALLEY_DAY_INKS: typeof VALLEY_INKS = {
+  ...VALLEY_INKS,
+  moon: { colour: DAY_SUN, alpha: 0.96 },
+  crater: { colour: VALLEY_INKS.crater.colour, alpha: 0 },
+  cloud: { colour: '#8d99b2', alpha: 0.38 },
+  firefly: { colour: '#6f9400', alphas: VALLEY_INKS.firefly.alphas },
+};
+
+/** The valley's inks for the window's side. */
+export const valleyInks = (): typeof VALLEY_INKS =>
+  isLightWindow() ? VALLEY_DAY_INKS : VALLEY_INKS;
 
 /** A shelf's edge: the skyline's bright and heavy, the lower ones faint. */
 export const terraceEdgeStroke = (index: number) =>

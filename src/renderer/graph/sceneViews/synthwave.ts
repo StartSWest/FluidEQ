@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { IAnalysisBand, IAnalysisPlot } from '../analysis/analysisFrame';
 import {
+  starShare,
   clampUnit,
   hash01,
   inkAt,
@@ -464,7 +465,9 @@ export const drawSynthwave = (
       window.height,
       music.pulse,
     );
-    drawStars(frame, sky, horizon);
+    if (starShare() > 0) {
+      drawStars(frame, sky, horizon);
+    }
     drawGrid(frame, horizon, near, cx, state.roll);
     drawSun(frame, cx, horizon, sun);
     // The body is gathered in the mirror's own space, so it is drawn back

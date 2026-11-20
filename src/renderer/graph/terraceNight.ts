@@ -10,6 +10,8 @@
  * that, which costs a copy instead of a fill.
  */
 
+import { isLightWindow } from '../utils/windowSide';
+
 interface ISurface {
   canvas: HTMLCanvasElement;
   key: string;
@@ -55,6 +57,23 @@ export const HALO_STOPS = [
   { at: 1, colour: 'rgba(160,170,220,0)' },
 ];
 
+/**
+ * The same sky by day, on a light window: the moon's pale light vanished
+ * against white (1.2:1, 2026-11-19 scan), so the disc becomes a warm sun
+ * (`DAY_SUN`) and its halo the sun's warmth, falling off the same way.
+ */
+export const DAY_HALO_STOPS = [
+  { at: 0, colour: 'rgba(233,138,44,0.32)' },
+  { at: 0.35, colour: 'rgba(240,170,80,0.12)' },
+  { at: 1, colour: 'rgba(245,190,110,0)' },
+];
+
+/** The sun that stands where the moon does on a light window. */
+export const DAY_SUN = '#e98a2c';
+
+/** The halo's stops for the window's side. */
+export const haloStops = () => (isLightWindow() ? DAY_HALO_STOPS : HALO_STOPS);
+
 /** The moon's halo, centred on the moon, in the caller's scene space. */
 export const paintMoonHalo = (
   context: CanvasRenderingContext2D,
@@ -66,7 +85,8 @@ export const paintMoonHalo = (
 ) => {
   const reach = radius * HALO_REACH;
   const side = reach * 2;
-  const key = `${radius.toFixed(1)}:${ratio}`;
+  const stops = haloStops();
+  const key = `${radius.toFixed(1)}:${ratio}:${stops === DAY_HALO_STOPS ? 'day' : 'night'}`;
   surfaces.halo = surfaceFor(
     surfaces.halo,
     key,
@@ -82,7 +102,7 @@ export const paintMoonHalo = (
         reach,
         reach,
       );
-      HALO_STOPS.forEach(({ at, colour }) => halo.addColorStop(at, colour));
+      stops.forEach(({ at, colour }) => halo.addColorStop(at, colour));
       target.fillStyle = halo;
       target.beginPath();
       target.arc(reach, reach, reach, 0, Math.PI * 2);

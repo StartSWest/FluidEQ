@@ -3,6 +3,8 @@ import { getEaseFactor } from 'common/smoothing';
 import createTrussRoad from 'common/graphTruss';
 import noise from 'common/seededNoise';
 
+import { readSurface } from '../utils/theme';
+import { isLightWindow } from '../utils/windowSide';
 import { IRocket, ROCKET_CLIMB, shellFor, shellLife } from './bridgeFireworks';
 
 export type { IFirework, IRocket } from './bridgeFireworks';
@@ -114,6 +116,24 @@ export const SEA_HORIZON = 0.6;
 export const CROSSING_SECONDS = 24;
 /** The cars, one colour each: four steps around the app's spectrum. */
 export const CAR_COLOURS = ['#77efdb', '#f7cf76', '#ed93c7', '#9bbcff'];
+/**
+ * The same four steps deep enough to read on a light window, where the
+ * night's pastels drove past as pale outlines (2026-11-19 scan).
+ */
+export const CAR_DAY_COLOURS = ['#0f8f7e', '#b97a06', '#b8387f', '#3d66c9'];
+
+/** The cars' colours for the window's side. */
+export const carColours = (): readonly string[] =>
+  isLightWindow() ? CAR_DAY_COLOURS : CAR_COLOURS;
+
+/**
+ * What the bridge's white lines are drawn in — the cables' wire and the
+ * horizon — for the window's side: white at night; the window's own ink by
+ * day, where a white wire on a white floor vanished (1.2:1) and a steel
+ * cable reads dark against a daytime sky anyway.
+ */
+export const trussWireInk = (): string =>
+  isLightWindow() ? readSurface('--ink', '#1b1b1b') : '#fff';
 /** How long the deck takes to close half the distance to the music. */
 export const DECK_HALF_LIFE_MS = 120;
 

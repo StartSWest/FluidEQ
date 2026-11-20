@@ -4,7 +4,16 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { isLightWindow } from '../../utils/windowSide';
 import { clampUnit, type ISceneFrame } from './sceneFrame';
+
+/**
+ * How strong the glow is on a light window, against a dark one. There it
+ * stands behind the shapes as colour on the floor rather than light added
+ * over them, and at full strength the ring read as a haze over the board
+ * (2026-11-19, LED bars); the GPU looks take the same share (`lookGlsl.ts`).
+ */
+export const LIGHT_WINDOW_BLOOM = 0.6;
 
 /**
  * The light a lit scene throws into the air around it.
@@ -83,8 +92,14 @@ export const endBloom = (
   const { context, ratio, window } = frame;
   context.save();
   context.setTransform(1, 0, 0, 1, 0, 0);
-  context.globalCompositeOperation = 'lighter';
-  context.globalAlpha = clampUnit(strength);
+  // On a light window the glow goes behind what is drawn, a soft ring of the
+  // look's colour on the floor: added over it, it lifted every lit shape
+  // toward the floor's white (`LIGHT_WINDOW_BLOOM`).
+  const onLight = isLightWindow();
+  context.globalCompositeOperation = onLight ? 'destination-over' : 'lighter';
+  context.globalAlpha = clampUnit(
+    strength * (onLight ? LIGHT_WINDOW_BLOOM : 1),
+  );
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
   context.drawImage(

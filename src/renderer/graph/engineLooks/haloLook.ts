@@ -66,7 +66,7 @@ vec4 haloCopy(vec2 p, int copy, vec4 picture) {
     vec4 core = coreT < 0.6
       ? mix(lookPaint(lookLightInk(0.1, 0.55), uLook[7].x), lookPaint(lookInk(0.85), uLook[7].y), coreT / 0.6)
       : mix(lookPaint(lookInk(0.85), uLook[7].y), vec4(0.0), (coreT - 0.6) / 0.4);
-    picture = min(picture + core * lookFill(dist - radius), vec4(1.0));
+    picture = lookGlow(picture, core * lookFill(dist - radius));
   }
   // The ring line.
   picture = lookOver(picture, vec4(vec3(1.0), 1.0) * uLook[7].z * lookStroke(abs(dist - radius), 1.5));
@@ -114,7 +114,7 @@ vec4 haloCopy(vec2 p, int copy, vec4 picture) {
   }
   vec3 heldInk = lookLightInk(lookRoundT(p, centre, base, base + reach, turn), 0.45);
   picture = lookOver(picture, lookPaint(heldInk, 0.9 * held));
-  return lookOver(picture, vec4(vec3(1.0), 1.0) * 0.85 * spark);
+  return lookOver(picture, lookPaint(lookSpark(), 0.85 * spark));
 }
 
 vec4 sceneColour(vec2 uv) {

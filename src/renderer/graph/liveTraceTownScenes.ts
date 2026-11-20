@@ -18,9 +18,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { type RefObject } from 'react';
 import { setAlpha } from './liveTraceStyle';
-import { CITY_INKS, type createCitySkylinePaths } from './citySkyline';
+import { cityInks, type createCitySkylinePaths } from './citySkyline';
 import { type NightSurfaces, paintMist, paintMoonHalo } from './terraceNight';
-import { type createTerraceValleyPaths, VALLEY_INKS } from './terraceValley';
+import { type createTerraceValleyPaths, valleyInks } from './terraceValley';
+import { isLightWindow } from '../utils/windowSide';
 import { type createSlopeFieldPaths } from './slopeField';
 import { type createCrystalSpikesPaths } from './crystalSpikes';
 import { type createBraidStagePaths } from './braidStage';
@@ -101,11 +102,14 @@ export const paintCity = ({
     // No sky painted: the stars and the moon stand over whatever is
     // behind the graph, the same as the terrace's night.
     enterSceneSpace();
-    context.fillStyle = CITY_INKS.star;
-    cityPaths.stars.forEach((band) => {
-      setAlpha(context, opacity * band.alpha);
-      context.fill(band.path);
-    });
+    context.fillStyle = cityInks().star;
+    // No stars by day: a light window is a daytime sky.
+    if (!isLightWindow()) {
+      cityPaths.stars.forEach((band) => {
+        setAlpha(context, opacity * band.alpha);
+        context.fill(band.path);
+      });
+    }
     setAlpha(context, opacity * cityPaths.layout.haloAlpha);
     paintMoonHalo(
       context,
@@ -115,8 +119,8 @@ export const paintCity = ({
       cityPaths.moonRadius,
       ratio,
     );
-    context.fillStyle = CITY_INKS.moon.colour;
-    setAlpha(context, opacity * CITY_INKS.moon.alpha);
+    context.fillStyle = cityInks().moon.colour;
+    setAlpha(context, opacity * cityInks().moon.alpha);
     context.beginPath();
     context.arc(
       cityPaths.moonX,
@@ -126,8 +130,8 @@ export const paintCity = ({
       Math.PI * 2,
     );
     context.fill();
-    context.fillStyle = CITY_INKS.crater.colour;
-    setAlpha(context, opacity * CITY_INKS.crater.alpha);
+    context.fillStyle = cityInks().crater.colour;
+    setAlpha(context, opacity * cityInks().crater.alpha);
     context.fill(cityPaths.craters);
     context.restore();
   }
@@ -168,11 +172,13 @@ export const paintValley = ({
     // covered by a painted gradient.
     enterSceneSpace();
     // The stars: the bright ones twinkle with the treble.
-    context.fillStyle = VALLEY_INKS.star;
-    valleyPaths.stars.forEach((band) => {
-      setAlpha(context, opacity * band.alpha);
-      context.fill(band.path);
-    });
+    context.fillStyle = valleyInks().star;
+    if (!isLightWindow()) {
+      valleyPaths.stars.forEach((band) => {
+        setAlpha(context, opacity * band.alpha);
+        context.fill(band.path);
+      });
+    }
     // The moon's halo breathes with the bass; the moon is a circle in
     // scene space, so the height slider never squashes it.
     setAlpha(context, opacity * valleyPaths.layout.haloAlpha);
@@ -184,8 +190,8 @@ export const paintValley = ({
       valleyPaths.moonRadius,
       ratio,
     );
-    context.fillStyle = VALLEY_INKS.moon.colour;
-    setAlpha(context, opacity * VALLEY_INKS.moon.alpha);
+    context.fillStyle = valleyInks().moon.colour;
+    setAlpha(context, opacity * valleyInks().moon.alpha);
     context.beginPath();
     context.arc(
       valleyPaths.moonX,
@@ -195,11 +201,11 @@ export const paintValley = ({
       Math.PI * 2,
     );
     context.fill();
-    context.fillStyle = VALLEY_INKS.crater.colour;
-    setAlpha(context, opacity * VALLEY_INKS.crater.alpha);
+    context.fillStyle = valleyInks().crater.colour;
+    setAlpha(context, opacity * valleyInks().crater.alpha);
     context.fill(valleyPaths.craters);
-    context.fillStyle = VALLEY_INKS.cloud.colour;
-    setAlpha(context, opacity * VALLEY_INKS.cloud.alpha);
+    context.fillStyle = valleyInks().cloud.colour;
+    setAlpha(context, opacity * valleyInks().cloud.alpha);
     context.fill(valleyPaths.clouds);
     // Two bands of mist between the tiers, thinning as it gets loud.
     setAlpha(context, opacity * valleyPaths.mist);
@@ -344,9 +350,9 @@ export const strokeCity = ({
       0,
       sceneBase,
     );
-    const hazeInk = CITY_INKS.haze.rgb.join(',');
+    const hazeInk = cityInks().haze.rgb.join(',');
     haze.addColorStop(0, `rgba(${hazeInk},0)`);
-    haze.addColorStop(1, `rgba(${hazeInk},${CITY_INKS.haze.alpha})`);
+    haze.addColorStop(1, `rgba(${hazeInk},${cityInks().haze.alpha})`);
     context.fillStyle = haze;
     setAlpha(context, opacity * cityPaths.layout.hazeAlpha);
     context.fillRect(
@@ -356,15 +362,15 @@ export const strokeCity = ({
       cityPaths.hazeHeight,
     );
     if (isFilled) {
-      context.fillStyle = CITY_INKS.dim.colour;
-      setAlpha(context, opacity * CITY_INKS.dim.alpha);
+      context.fillStyle = cityInks().dim.colour;
+      setAlpha(context, opacity * cityInks().dim.alpha);
       context.fill(cityPaths.dim);
-      context.fillStyle = CITY_INKS.lit;
+      context.fillStyle = cityInks().lit;
       setAlpha(context, opacity * cityPaths.layout.litAlpha);
       context.fill(cityPaths.lit);
     }
-    context.fillStyle = CITY_INKS.beacon.colour;
-    setAlpha(context, opacity * CITY_INKS.beacon.alpha);
+    context.fillStyle = cityInks().beacon.colour;
+    setAlpha(context, opacity * cityInks().beacon.alpha);
     context.fill(cityPaths.beacons);
   }
 };
@@ -384,20 +390,20 @@ export const strokeValley = ({
   opacity,
 }: IStrokeValleyInput) => {
   if (valleyPaths) {
-    context.strokeStyle = VALLEY_INKS.glint.colour;
-    context.lineWidth = VALLEY_INKS.glint.width;
+    context.strokeStyle = valleyInks().glint.colour;
+    context.lineWidth = valleyInks().glint.width;
     context.lineCap = 'round';
     setAlpha(context, opacity * valleyPaths.layout.glintAlpha);
     context.stroke(valleyPaths.glints);
-    context.fillStyle = VALLEY_INKS.firefly.colour;
+    context.fillStyle = valleyInks().firefly.colour;
     valleyPaths.fireflies.forEach((band) => {
       setAlpha(context, opacity * band.alpha);
       context.fill(band.path);
     });
-    context.strokeStyle = VALLEY_INKS.bird.colour;
-    context.lineWidth = VALLEY_INKS.bird.width;
+    context.strokeStyle = valleyInks().bird.colour;
+    context.lineWidth = valleyInks().bird.width;
     context.lineJoin = 'round';
-    setAlpha(context, opacity * VALLEY_INKS.bird.alpha);
+    setAlpha(context, opacity * valleyInks().bird.alpha);
     context.stroke(valleyPaths.birds);
   }
 };

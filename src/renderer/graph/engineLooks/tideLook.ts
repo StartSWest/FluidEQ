@@ -4,7 +4,11 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { ISceneReading } from '../sceneViews/sceneFrame';
+import {
+  sparkRgb,
+  starShare,
+  type ISceneReading,
+} from '../sceneViews/sceneFrame';
 import {
   MOON_SEAS,
   MOST_GLINTS,
@@ -175,7 +179,7 @@ vec4 tideCopy(vec2 p, int copy, vec4 picture) {
     float tall = abs(footY - sea.x) * 0.5;
     if (tall >= 1.0) {
       float r = length(vec2((p.x - m.x) / max(1.0, sea.y), (p.y - (sea.x + footY) * 0.5) / tall));
-      picture = min(picture + lookPaint(lookLightInk(1.0, 0.6), uLook[6].z * clamp(1.0 - r, 0.0, 1.0)), vec4(1.0));
+      picture = lookGlow(picture, lookPaint(lookLightInk(1.0, 0.6), uLook[6].z * clamp(1.0 - r, 0.0, 1.0)));
     }
   }
   return picture;
@@ -209,7 +213,8 @@ const step = (
   };
   const xs: number[] = [];
   const ys: number[] = [];
-  const stars = tideStarAlpha(music.treble);
+  // None by day: a light window is a daytime sky (starShare).
+  const stars = tideStarAlpha(music.treble) * starShare();
   bands.slice(0, 2).forEach((band, copy) => {
     const base = copy * ROWS_PER_COPY;
     const sky = tideSky(band, plot, music);
@@ -293,7 +298,7 @@ const step = (
   });
   spritesSoFarUnder(input);
   const alive = moveSpray(state, reading, (x, y, size) =>
-    pushSprite(input, x, y, size, 0.75, STAR),
+    pushSprite(input, x, y, size, 0.75, sparkRgb(reading.colours)),
   );
   setLookVector(
     input,

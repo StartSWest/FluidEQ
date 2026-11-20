@@ -5,7 +5,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { parseCssColour } from '../../../utils/oklab';
-import { HALO_INNER, HALO_REACH, HALO_STOPS } from '../../terraceNight';
+import {
+  DAY_HALO_STOPS,
+  HALO_INNER,
+  HALO_REACH,
+  HALO_STOPS,
+} from '../../terraceNight';
 
 /**
  * The night skies of the terrace and the skyline on the GPU, the parts the
@@ -89,9 +94,16 @@ export const nightStarGrid = <TStar extends INightStar>(
 
 export type NightStarGrid = ReturnType<typeof nightStarGrid>;
 
-/** The moon's halo, stop to stop, blended straight as a canvas blends it. */
-const haloInk = () => {
-  const stops = HALO_STOPS.map(({ at, colour }) => {
+/**
+ * A halo, stop to stop, blended straight as a canvas blends it: the moon's
+ * by night, the sun's on a light window (`DAY_HALO_STOPS`), as `haloStops`
+ * chooses for the page.
+ */
+const haloInk = (
+  name: string,
+  from: readonly { at: number; colour: string }[],
+) => {
+  const stops = from.map(({ at, colour }) => {
     const { rgb, alpha } = glslInk(colour);
     return { at, value: `vec4(${rgb}, ${f(alpha)})` };
   });
@@ -100,11 +112,18 @@ const haloInk = () => {
     return mix(${stops[index].value}, ${stop.value}, (t - ${f(stops[index].at)}) / ${f(Math.max(1e-6, stop.at - stops[index].at))});
   }`,
   );
-  return `vec4 nightHaloInk(float t) {
+  return `vec4 ${name}(float t) {
   ${pieces.join('\n  ')}
   return ${stops[stops.length - 1].value};
 }`;
 };
+
+/**
+ * One of two fixed inks by the window's side (`lookOnLight`): a night
+ * scene's own colour on a dark window, its day colour on a light one.
+ */
+export const dayOrNight = (day: string, night: string): string =>
+  `(lookOnLight() ? ${glslInk(day).rgb} : ${glslInk(night).rgb})`;
 
 export const NIGHT_GLSL = `
 // A box's signed distance: its middle, and half its size.
@@ -186,7 +205,11 @@ vec3 nightStreaks(vec2 q, int starRow, int cellRow, vec4 grid, ivec2 cells) {
   return near;
 }
 
-${haloInk()}
+${haloInk('nightHaloMoon', HALO_STOPS)}
+${haloInk('nightHaloSun', DAY_HALO_STOPS)}
+vec4 nightHaloInk(float t) {
+  return lookOnLight() ? nightHaloSun(t) : nightHaloMoon(t);
+}
 
 // The moon's halo at q, straight: its colour and how solid, before the
 // strength it is laid down at.

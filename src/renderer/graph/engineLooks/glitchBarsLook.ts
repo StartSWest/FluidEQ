@@ -80,7 +80,7 @@ vec4 glitchPicture(vec2 p, vec4 stand, vec4 picture) {
     vec3 colour = side == 0 ? uLook[10].rgb : uLook[11].rgb;
     light += lookPaint(colour, opacity * uLook[7].y * shape);
   }
-  picture = min(picture + light, vec4(1.0));
+  picture = lookGlow(picture, light);
 
   int here = int(floor((p.x - uLook[1].x) / pitch));
   for (int k = here - 1; k <= here + 1; k++) {

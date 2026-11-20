@@ -9,6 +9,7 @@ import { fireworkRgb, type TSegment } from '../../bridgeFireworks';
 import { GLOW_LAYERS, SEA_SCALE } from '../../figureGlow';
 import {
   CAR_COLOURS,
+  CAR_DAY_COLOURS,
   FADE_BANDS,
   LEVEL_BINS,
   SEA_ROWS,
@@ -89,9 +90,20 @@ const f = (value: number) => value.toFixed(6);
 const WIDEST_GLOW = Math.max(...GLOW_LAYERS.map(({ widen }) => widen));
 const { member, body, outline, cable, car: carInk } = TRUSS_INKS;
 const DARK = ink(carInk.dark);
-const CARS_GLSL = `const vec3 CAR_INKS[${CAR_COLOURS.length}] = vec3[${CAR_COLOURS.length}](${CAR_COLOURS.map(
-  (colour) => ink(colour).rgb,
-).join(', ')});`;
+const carInks = (name: string, colours: readonly string[]) =>
+  `const vec3 ${name}[${colours.length}] = vec3[${colours.length}](${colours
+    .map((colour) => ink(colour).rgb)
+    .join(', ')});`;
+// The night's pastels, and the same steps deepened for a light window
+// (`carColours`).
+const CARS_GLSL = `${carInks('CAR_INKS', CAR_COLOURS)}
+${carInks('CAR_DAY_INKS', CAR_DAY_COLOURS)}
+
+// The bridge's white lines (the cables' wire, the horizon): the window's
+// own ink by day, where white vanished on the floor (trussWireInk).
+vec3 trussWire() {
+  return lookOnLight() ? uWindowInk : vec3(1.0);
+}`;
 const box = ([x, y, w, h]: readonly [number, number, number, number]) =>
   `vec4(${f(x)}, ${f(y)}, ${f(w)}, ${f(h)})`;
 
@@ -182,8 +194,10 @@ vec4 trussCopy(vec4 picture, vec2 p, vec2 uv, int copy) {
 
   // The stars, dim then twinkling.
   vec2 stars = nightStars(q, ${STAR_ROW}, ${CELL_ROW}, trussParam(8), ivec2(trussParam(9).xy + 0.5));
-  picture = lookOver(picture, lookPaint(vec3(1.0), dsOpacity() * ${f(TRUSS_INKS.stars.dim)} * stars.y));
-  picture = lookOver(picture, lookPaint(vec3(1.0), dsOpacity() * (${f(TRUSS_INKS.stars.bright(0))} + thump * ${f(TRUSS_INKS.stars.bright(1) - TRUSS_INKS.stars.bright(0))}) * stars.x));
+  // None by day: a light window is a daytime sky.
+  float night = lookOnLight() ? 0.0 : 1.0;
+  picture = lookOver(picture, lookPaint(vec3(1.0), night * dsOpacity() * ${f(TRUSS_INKS.stars.dim)} * stars.y));
+  picture = lookOver(picture, lookPaint(vec3(1.0), night * dsOpacity() * (${f(TRUSS_INKS.stars.bright(0))} + thump * ${f(TRUSS_INKS.stars.bright(1) - TRUSS_INKS.stars.bright(0))}) * stars.x));
 
   // The truss: each member in its four pieces, the pieces burning by the
   // band under the member, gathered band by band as the page strokes them.
@@ -273,7 +287,7 @@ vec4 trussCopy(vec4 picture, vec2 p, vec2 uv, int copy) {
 
   // The horizon.
   float line = dsToSegment(q, vec2(p5.w, horizon), vec2(p6.x, horizon));
-  picture = lookOver(picture, lookPaint(vec3(1.0), dsOpacity() * ${f(TRUSS_INKS.horizon.alpha)} * lookStroke(line, ${f(TRUSS_INKS.horizon.width)})));
+  picture = lookOver(picture, lookPaint(trussWire(), dsOpacity() * ${f(TRUSS_INKS.horizon.alpha)} * lookStroke(line, ${f(TRUSS_INKS.horizon.width)})));
 
   // The piers and the towers, above the deck and below it: filled, then
   // edged.
@@ -378,7 +392,7 @@ vec4 trussCopy(vec4 picture, vec2 p, vec2 uv, int copy) {
   picture = lookOver(picture, lookPaint(paint, dsOpacity() * (${f(cable.tintAlpha(0))} + bass * ${f(cable.tintAlpha(1) - cable.tintAlpha(0))}) * lookStroke(wire, ${f(cable.tintWidth(0))} + bass * ${f(cable.tintWidth(1) - cable.tintWidth(0))})));
   float wireAlpha = ${f(cable.wireAlpha(0, 0))} + bass * ${f(cable.wireAlpha(1, 0) - cable.wireAlpha(0, 0))} + thump * ${f(cable.wireAlpha(0, 1) - cable.wireAlpha(0, 0))};
   float wireWidth = ${f(cable.wireWidth(0, 0))} + bass * ${f(cable.wireWidth(1, 0) - cable.wireWidth(0, 0))} + thump * ${f(cable.wireWidth(0, 1) - cable.wireWidth(0, 0))};
-  picture = lookOver(picture, lookPaint(vec3(1.0), dsOpacity() * wireAlpha * lookStroke(wire, wireWidth)));
+  picture = lookOver(picture, lookPaint(trussWire(), dsOpacity() * wireAlpha * lookStroke(wire, wireWidth)));
 
   // Not filled, the deck line is the figure.
   if (!dsFilled() && stroke > 0.0) {
@@ -413,7 +427,7 @@ vec4 trussCopy(vec4 picture, vec2 p, vec2 uv, int copy) {
     vec4 more = texelFetch(uLookData, ivec2(c * 2 + 1, ${CAR_ROW}), 0);
     float size = more.x;
     float level = more.y;
-    vec3 colour = CAR_INKS[c];
+    vec3 colour = lookOnLight() ? CAR_DAY_INKS[c] : CAR_INKS[c];
     vec2 d = q - pose.xy;
     // In the car's own units, before its size and tilt.
     vec2 local = vec2(d.x * pose.z + d.y * pose.w, -d.x * pose.w + d.y * pose.z) / max(1e-3, size);

@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { parseCssColour } from '../../utils/oklab';
-import { floorInk } from '../../utils/windowInk';
+import { floorDarkening, floorInk } from '../../utils/windowInk';
 import type { IAnalysisBand } from '../analysis/analysisFrame';
 import {
   FRONT_FADE,
@@ -260,7 +260,8 @@ const waterfallLook: IEngineAnalysisLook = {
           crests[0] ?? 0,
           crests[1] ?? 0,
           skin,
-          darker,
+          // A fraction of it on a light window, as the page's floorInk.
+          floorDarkening(darker),
           0,
           0,
         ],
@@ -302,7 +303,14 @@ const waterfallLook: IEngineAnalysisLook = {
     );
     setLookVector(input, 14, Math.max(1.4, edge.width), 0, 0, 0);
     const [[crestAlpha, crestDarker], [footAlpha, footDarker]] = FRONT_FADE;
-    setLookVector(input, 15, crestAlpha, crestDarker, footAlpha, footDarker);
+    setLookVector(
+      input,
+      15,
+      crestAlpha,
+      floorDarkening(crestDarker),
+      footAlpha,
+      floorDarkening(footDarker),
+    );
     return moving;
   },
 };

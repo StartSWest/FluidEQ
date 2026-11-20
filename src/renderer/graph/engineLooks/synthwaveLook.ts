@@ -4,8 +4,8 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { windowFloor } from '../../utils/windowInk';
-import type { ISceneReading } from '../sceneViews/sceneFrame';
+import { floorDarkening, windowFloor } from '../../utils/windowInk';
+import { starShare, type ISceneReading } from '../sceneViews/sceneFrame';
 import {
   RAILS,
   RAIL_FAR,
@@ -216,7 +216,8 @@ const step = (
   const across = RANGE_POINTS * 2 + 1;
   const data = sizeLookData(input, across, 4);
   data.fill(0);
-  const stars = starAlpha(music.treble);
+  // None by day: a light window is a daytime sky (starShare).
+  const stars = starAlpha(music.treble) * starShare();
   [0, 1].forEach((copy) => {
     const band = bands[copy];
     const base = 10 + copy * 3;
@@ -280,7 +281,10 @@ const step = (
   });
   spritesSoFarUnder(input);
   const [red, green, blue] = windowFloor();
-  const keep = 1 - ROCK_DARKER;
+  // A fraction of the darkening on a light window (floorDarkening): taken
+  // toward black there the range was a grey band; by day it is the look's
+  // colour at the ridge fading into the floor at the horizon.
+  const keep = 1 - floorDarkening(ROCK_DARKER);
   setLookVector(
     input,
     6,

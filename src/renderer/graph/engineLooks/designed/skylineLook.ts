@@ -6,13 +6,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { createSkylineTowers } from 'common/graphShapes';
 import { parseCssColour } from '../../../utils/oklab';
-import { CITY_INKS, type CitySkylineLayout } from '../../citySkyline';
+import {
+  CITY_DAY_INKS,
+  CITY_INKS,
+  type CitySkylineLayout,
+} from '../../citySkyline';
 import { GLOW_LAYERS } from '../../figureGlow';
 import type { IEngineLookInput } from '../engineLookInput';
 import { setLookVector, sizeLookData } from '../lookInput';
 import type { IDesignedFrame } from './designedInput';
 import {
   NIGHT_GLSL,
+  dayOrNight,
   glslInk as ink,
   nightStarGrid,
   writeNightStars,
@@ -66,7 +71,7 @@ const f = (value: number) => value.toFixed(6);
 const WIDEST_GLOW = Math.max(...GLOW_LAYERS.map(({ widen }) => widen));
 
 const STAR = ink(CITY_INKS.star);
-const MOON = ink(CITY_INKS.moon.colour);
+const MOON = dayOrNight(CITY_DAY_INKS.moon.colour, CITY_INKS.moon.colour);
 const CRATER = ink(CITY_INKS.crater.colour);
 const DIM = ink(CITY_INKS.dim.colour);
 const LIT = ink(CITY_INKS.lit);
@@ -104,12 +109,15 @@ vec4 skylineCopy(vec4 picture, vec2 p, int copy) {
 
   // The sky: stars, the moon's halo, the moon, its craters.
   vec2 stars = nightStars(q, STAR_ROW, CELL_ROW, uLook[13], ivec2(uLook[14].xy + 0.5));
-  picture = lookOver(picture, lookPaint(${STAR.rgb}, dsOpacity() * uLook[11].x * stars.x));
-  picture = lookOver(picture, lookPaint(${STAR.rgb}, dsOpacity() * uLook[11].y * stars.y));
+  // By day (a light window): no stars, a sun for the moon, no craters
+  // (CITY_DAY_INKS).
+  float night = lookOnLight() ? 0.0 : 1.0;
+  picture = lookOver(picture, lookPaint(${STAR.rgb}, night * dsOpacity() * uLook[11].x * stars.x));
+  picture = lookOver(picture, lookPaint(${STAR.rgb}, night * dsOpacity() * uLook[11].y * stars.y));
   vec4 halo = nightHalo(q, uLook[10].xy, uLook[10].z);
   picture = lookOver(picture, lookPaint(halo.rgb, dsOpacity() * uLook[10].w * halo.a));
-  picture = lookOver(picture, lookPaint(${MOON.rgb}, dsOpacity() * ${f(CITY_INKS.moon.alpha)} * lookFill(length(q - uLook[10].xy) - uLook[10].z)));
-  picture = lookOver(picture, lookPaint(${CRATER.rgb}, dsOpacity() * ${f(CITY_INKS.crater.alpha)} * nightCircles(q, CIRCLE_ROW, 0, 3)));
+  picture = lookOver(picture, lookPaint(${MOON}, dsOpacity() * ${f(CITY_INKS.moon.alpha)} * lookFill(length(q - uLook[10].xy) - uLook[10].z)));
+  picture = lookOver(picture, lookPaint(${CRATER.rgb}, night * dsOpacity() * ${f(CITY_INKS.crater.alpha)} * nightCircles(q, CIRCLE_ROW, 0, 3)));
 
   // The towers near q: how much of q they cover together, how much each
   // covers on its own, and how far q is from the nearest outline.

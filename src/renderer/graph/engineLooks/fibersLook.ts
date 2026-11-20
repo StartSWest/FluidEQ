@@ -126,7 +126,7 @@ vec4 fibersCopy(vec2 p, vec4 stand, vec4 picture) {
       held = max(held, lookFill(length(p - vec2(x, floorY + up * heldHeight)) - tipRadius * 0.7));
     }
   }
-  picture = min(picture + lookPaint(lookLightInk(t, 0.2), 0.12 * opacity * halo), vec4(1.0));
+  picture = lookGlow(picture, lookPaint(lookLightInk(t, 0.2), 0.12 * opacity * halo));
   picture = lookOver(picture, lookPaint(lookLightInk(t, lookFilled() ? 0.55 : 0.4), opacity * tips));
   return lookOver(picture, lookPaint(lookLightInk(t, 0.4), 0.5 * held));
 }

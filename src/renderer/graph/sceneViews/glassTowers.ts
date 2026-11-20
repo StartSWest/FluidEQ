@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { IAnalysisBand, IAnalysisPlot } from '../analysis/analysisFrame';
 import {
+  sparkFill,
   HEAT_STEPS,
   clampUnit,
   easeToward,
@@ -513,7 +514,7 @@ export const drawGlassTowers = (
       0.2,
     );
     frame.context.fill(glow);
-    frame.context.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    frame.context.fillStyle = sparkFill(frame.colours, 0.85);
     frame.context.fill(hot);
   }
   return {
