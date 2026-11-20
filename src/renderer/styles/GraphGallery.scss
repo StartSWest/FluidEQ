@@ -17,15 +17,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // it, and each is a crystal (`scene-crystal`) whose ink is read from the
 // picture behind that piece alone (`useSceneInk.ts`).
 
-// The reel and the corner are each one crystal, with a dark edge so the
-// glass reads on a light window too (Ivan, 2026-11-19: "add black border to
-// the bar so is easy to see on white theme ... make sure is a single bar not
-// separated arrows"). Their ink is read from the picture behind each.
+// The reel and the corner are each one crystal, edged like the card they
+// sit on (Ivan, 2026-11-20: "the borders shouldn't be black, let's use same
+// gray border we have on the card for this pane"). It was black from
+// 2026-11-19 ("add black border to the bar so is easy to see on white
+// theme"); the card edge already carries more tint on a light window
+// (`--card-edge-share`). Their ink is read from the picture behind each.
 .graph-gallery-reel,
 .graph-gallery-keys {
   @include scene-crystal;
 
-  border: 1px solid rgba($black, 0.6);
+  border: 1px solid $card-edge;
 }
 
 :root.is-scene-column
