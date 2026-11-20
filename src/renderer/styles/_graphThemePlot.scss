@@ -195,25 +195,36 @@ it under the terms of the GNU General Public License version 3 or later.
   z-index: 2;
   display: grid;
   place-items: center;
-  padding: 16px;
+  // Over the graph, between the gallery's corner and its reel, as far as each
+  // reaches in (`galleryClearance.ts`); 16px of air where neither does.
+  padding: max(16px, var(--gallery-clear-top, 0px)) 16px
+    max(16px, var(--gallery-clear-bottom, 0px));
   pointer-events: none;
   animation: fade-in $motion-base $ease-out both;
-  // Its own height decides how much the card says: a short plot - the
-  // narrow window's is 149 px - keeps the words and Try again, and drops the
-  // icon and the report hint, which together came to about 190 px.
-  container-type: size;
 }
 
-@container (max-height: 200px) {
-  .chart-scene-trouble__icon,
-  .chart-scene-trouble__hint {
-    display: none;
-  }
+// On a ruled plot, between the scales too: the gain scale's 58px and the
+// level scale's 56px, the strip's own insets (`App.scss`), so the one-line
+// card of a short plot never lies over their figures.
+.graph-wrapper:not(.is-gridless) .chart-scene-trouble {
+  padding-inline: 58px 56px;
+}
 
-  .chart-scene-trouble__card {
-    gap: 6px;
-    padding: 10px 14px;
-  }
+// The room left between them decides how much the card says: a short plot
+// keeps the words and Try again, and drops the icon and the report hint,
+// which together came to about 190 px; shorter still, it is one line. Its own
+// box, inside the padding, because a container is measured with its padding
+// in Chromium, and the layer's padding is the gallery's.
+.chart-scene-trouble__room {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  // One column the room's width: an auto column grew to the one-line card's
+  // whole sentence and ran past a narrow window.
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  container-type: size;
 }
 
 .chart-scene-trouble__card {
@@ -250,6 +261,55 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-faint;
   font-size: $text-small;
   line-height: 1.4;
+}
+
+// After the card's own rules, which they change: a container query adds no
+// weight, and placed before them the card's base rules won every tie, so the
+// short plot's tighter padding never applied.
+@container (max-height: 200px) {
+  .chart-scene-trouble__icon,
+  .chart-scene-trouble__hint {
+    display: none;
+  }
+
+  .chart-scene-trouble__card {
+    gap: 6px;
+    padding: 10px 14px;
+  }
+}
+
+// One line: the words, cut short and said whole on hover, and Try again
+// beside them, while the room between the corner and the reel is shorter than
+// the card as it is. Measured, not set at a height (`troubleCardFit.ts`): the
+// card is three lines in one language and four in another.
+.chart-scene-trouble__room[data-fit='line'] {
+  .chart-scene-trouble__card {
+    display: flex;
+    max-width: 100%;
+    align-items: center;
+    gap: 10px;
+    padding: 2px 4px 2px 12px;
+  }
+
+  .chart-scene-trouble__icon,
+  .chart-scene-trouble__hint {
+    display: none;
+  }
+
+  .chart-scene-trouble__text {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // Try again as tall as the line, so the card fits the narrow window's
+  // shortest plot (150 px, 29 px of room between the corner and the reel).
+  .chart-scene-trouble__card .button {
+    min-height: 22px;
+    padding-block: 0;
+  }
 }
 
 // *** Output level meter *****************************************************

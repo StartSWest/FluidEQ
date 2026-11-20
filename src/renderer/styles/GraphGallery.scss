@@ -338,6 +338,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
+// Narrow and short, with a scene's trouble card up: the switches under the
+// credit would take the card's last room, so they step away while the card
+// is there, and the bar is the credit and its neighbours on one line. Its two
+// lines (76px) and the corner left the card nothing on the narrow window's
+// 150px plot, where one line leaves it 29px, a line's worth
+// (`_graphThemePlot.scss`). The grid stays in View; the rest of the switches
+// act on a scene this computer is not drawing.
+@container graph-gallery (max-width: 720px) and (max-height: 160px) {
+  .graph-wrapper:has(.chart-scene-trouble) .graph-gallery-credit__tools-row {
+    display: none;
+  }
+}
+
 // *** The corner: View and full screen ****************************************
 
 .graph-gallery-keys {

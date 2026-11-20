@@ -4,9 +4,11 @@ import type { TranslationKey } from 'common/i18n';
 import { resolveSceneName } from 'common/scenePacks';
 import SceneLookIcon from '../icons/SceneLookIcon';
 import { useTranslation } from '../utils/I18nContext';
+import useGalleryClearance from './galleryClearance';
 import { retryLook } from './lookRefusal';
 import SceneLoading from './SceneLoading';
 import SceneLoadingFloor from './SceneLoadingFloor';
+import useTroubleCardFit from './troubleCardFit';
 import type { ISceneTrouble } from './sceneTrouble';
 
 const SAID: Record<
@@ -45,6 +47,10 @@ export default function SceneTroubleState({
   onRetry = retryLook,
 }: ISceneTroubleStateProps) {
   const { t, locale } = useTranslation();
+  // Over the graph, the card keeps between its corner and its reel.
+  const clearOfGallery = useGalleryClearance<HTMLDivElement>();
+  // And says itself on one line where the room left is shorter than it.
+  const { setRoom, setCard } = useTroubleCardFit();
   const swatch = [...trouble.swatch];
   const size =
     width === undefined || height === undefined ? undefined : { width, height };
@@ -72,31 +78,37 @@ export default function SceneTroubleState({
   // Gone from the account is not something trying again can mend.
   const canRetry = trouble.reason !== 'gone';
   return (
-    <div className="chart-scene-trouble" style={size}>
-      <div className="chart-scene-trouble__card" role="alert">
-        <SceneLookIcon
-          className="chart-scene-trouble__icon"
-          swatch={swatch}
-          lookId={trouble.lookId}
-        />
-        <p className="chart-scene-trouble__text">{text}</p>
-        {canRetry && (
-          <>
-            <p className="chart-scene-trouble__hint">
-              {t('graph.look.reportHint', {
-                help: t('help.menu'),
-                report: t('app.menu.reportProblem'),
-              })}
-            </p>
-            <button
-              type="button"
-              className="button small"
-              onClick={() => onRetry(trouble.lookId)}
-            >
-              {t('graph.look.retry')}
-            </button>
-          </>
-        )}
+    <div ref={clearOfGallery} className="chart-scene-trouble" style={size}>
+      {/* The room between the corner and the reel, which the card's words
+          answer to (`_graphThemePlot.scss`). */}
+      <div ref={setRoom} className="chart-scene-trouble__room">
+        <div ref={setCard} className="chart-scene-trouble__card" role="alert">
+          <SceneLookIcon
+            className="chart-scene-trouble__icon"
+            swatch={swatch}
+            lookId={trouble.lookId}
+          />
+          <p className="chart-scene-trouble__text" title={text}>
+            {text}
+          </p>
+          {canRetry && (
+            <>
+              <p className="chart-scene-trouble__hint">
+                {t('graph.look.reportHint', {
+                  help: t('help.menu'),
+                  report: t('app.menu.reportProblem'),
+                })}
+              </p>
+              <button
+                type="button"
+                className="button small"
+                onClick={() => onRetry(trouble.lookId)}
+              >
+                {t('graph.look.retry')}
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

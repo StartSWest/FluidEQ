@@ -4371,8 +4371,11 @@ $graph-controls-past-fold: calc(
   // The frequency names lie under the key, and so clear of the reel too.
   bottom: 57px;
   left: 10px;
-  // What the credit asks to know: whether its switches fit beside it.
-  container: graph-gallery / inline-size;
+  // What the credit asks to know: whether its switches fit beside it, and
+  // whether a scene's trouble card still has room above it
+  // (`GraphGallery.scss`). Its size is its insets', so containing it costs
+  // nothing.
+  container: graph-gallery / size;
   font-size: $text-small;
   // No shadow round the letters: each piece is a crystal, whose picture
   // behind is what holds its words off the scene, and a dark halo blurred
@@ -4405,6 +4408,15 @@ $graph-controls-past-fold: calc(
 .graph-wrapper:not(.is-gridless) > .live-output-controls {
   right: 56px;
   left: 58px;
+}
+
+// While a scene that cannot be drawn leaves its card on the graph, nothing
+// paints a measuring view's key at the foot, so the reel comes down to just
+// above the frequency names and leaves the card the room between it and the
+// corner (`galleryClearance.ts`): on the narrow window's 149px plot the card
+// had no room left at 57.
+.graph-wrapper:has(.chart-scene-trouble) > .live-output-controls {
+  bottom: 26px;
 }
 
 // The bar stays put when the sound panel opens over it. From 2026-09-25 it
