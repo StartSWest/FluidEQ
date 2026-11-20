@@ -200,6 +200,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .library-list__header {
   flex: 0 0 auto;
+  margin-inline: 6px;
   padding: 0 12px;
   border-bottom: 1px solid $studio-hair;
   color: $studio-t3;
@@ -261,12 +262,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   letter-spacing: 0;
 }
 
+// The rows stand 6px inside the scroller on both sides, as the grid's tiles
+// do inside theirs (`.library-grid`): every list's rows start 12px from the
+// rail's hairline, where the tiles do, and end 6px before the scrollbar. The
+// heading row takes the same inset as a margin, so its hairline lines up.
 .library-list__body {
   @include slim-scrollbar;
   display: flex;
   min-height: 0;
   flex: 1 1 0;
   flex-direction: column;
+  padding-inline: 6px;
   overflow-y: auto;
 }
 
