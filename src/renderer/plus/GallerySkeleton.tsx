@@ -110,8 +110,12 @@ export default function GallerySkeleton({
               Its own picture and two bars were 58 px shorter, and every card
               grew as the list came (Ivan, 2026-11-13). */}
           <span className="gallery-card__body">
-            <span className="gallery-card__name">
-              <span className="gallery-ghost-bar" />
+            {/* The card's title row (`GalleryCard`): its name stands in one,
+                beside the 3D label, since 83a742c4d. */}
+            <span className="gallery-card__title">
+              <span className="gallery-card__name">
+                <span className="gallery-ghost-bar" />
+              </span>
             </span>
             <span className="gallery-card__byline">
               <span className="gallery-ghost-bar gallery-ghost-bar--short" />

@@ -36,7 +36,8 @@ const PLUS_CHAPTERS = [
             text: 'help.plus.lighting',
           },
           {
-            target: '.community__rail-pin',
+            // The shared rail's pin (`StudioRail`) since Scenes moved onto it.
+            target: '.community .studio-rail__pin',
             name: 'plus.rail.collapse',
             text: 'help.plus.fold',
           },

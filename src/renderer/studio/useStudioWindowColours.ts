@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { IScenePack } from 'common/scenePacks';
 import {
+  firstSceneWindowColourStop,
   sameWindowColourSet,
   type ISceneWindowColours,
   type ISceneWindowColourStops,
@@ -131,15 +132,25 @@ export default function useStudioWindowColours(
   const atUndo: ISceneWindowColourStops = baseline.settings
     ? (baseline.settings.windowColourStops ?? NO_STOPS)
     : (opened.stops ?? NO_STOPS);
+  // The scene's one set as the window wears it (`resolveStopColours`): the
+  // day's, else the first point named. Read point by point, a project naming
+  // only its "0" - written before the points, or by an AI that set only
+  // `windowColours` - wore those colours on the card while this called them
+  // the palette, and publishing wrote the app's own at "100", which then won
+  // as the scene's set: it went out in colours the member never saw.
+  const oneSetOf = (stops: ISceneWindowColourStops) =>
+    stops[SCENE_COLOURS_STOP] ?? firstSceneWindowColourStop(stops);
   const sourceOf = (stop: TWindowColourStop): TWindowColoursSource => {
-    const colours = named[stop];
+    const colours = stop === SCENE_COLOURS_STOP ? oneSetOf(named) : named[stop];
     const automatic = resolved.automatic[stop];
     // Written by publishing for an end left to the app, they are still the
     // app's: automatic, not the AI's or the member's.
     if (!colours || same(colours, automatic?.colours)) {
       return automatic?.source === 'palette' ? 'palette' : 'auto';
     }
-    return same(colours, atUndo[stop]) ? 'ai' : 'member';
+    const undone =
+      stop === SCENE_COLOURS_STOP ? oneSetOf(atUndo) : atUndo[stop];
+    return same(colours, undone) ? 'ai' : 'member';
   };
 
   const wearing = resolved.sides[editing]?.colours;
@@ -225,16 +236,15 @@ export default function useStudioWindowColours(
   // window wears exactly what the maker saw, never a measurement of its own.
   // A middle point left to the app is the blend of the points either side
   // of it, the same on every machine, and is not written.
+  // With one set per scene, only a scene that names none is filled, at the
+  // day point: any set it names is already the one it wears and publishes.
   const fillAutomatic = useCallback(() => {
-    const next: TStopWrite = {};
-    MEASURED_STOPS.forEach((stop) => {
-      const automaticColours = resolved.automatic[stop]?.colours;
-      if (!named[stop] && automaticColours) {
-        next[stop] = automaticColours;
-      }
-    });
-    if (Object.keys(next).length > 0) {
-      write(next);
+    const automaticColours = resolved.automatic[SCENE_COLOURS_STOP]?.colours;
+    const namesASet =
+      (named[SCENE_COLOURS_STOP] ?? firstSceneWindowColourStop(named)) !==
+      undefined;
+    if (!namesASet && automaticColours) {
+      write({ [SCENE_COLOURS_STOP]: automaticColours });
     }
   }, [named, resolved.automatic, write]);
   // Reset, like every other block on the Tune tab, and for the open point

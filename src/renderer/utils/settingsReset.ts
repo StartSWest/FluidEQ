@@ -148,6 +148,8 @@ export const SETTING_STEMS: readonly string[] = [
   // to its glyphs.
   'fluideq.library.railWidth',
   'fluideq.library.railPinned',
+  // The look picker's dragged window size (`LookPickerWindow`).
+  'fluideq.lookPicker.size',
   'fluideq.library.keepPlaying',
   'fluideq.library.sort',
   'fluideq.library.sortDirection',
