@@ -14,7 +14,7 @@ import { ISongSound, TSavedSound } from './songSound';
  * memory's vocabulary is (`songEqEvents.ts`).
  */
 
-export type TSongSoundPhase = 'settling' | 'playing' | 'suspended';
+export type TSongSoundPhase = 'playing' | 'suspended';
 
 /** Whose saved sound a song plays: its own, or its album's. */
 export type TSongSoundOwner = 'song' | 'album';
@@ -22,7 +22,6 @@ export type TSongSoundOwner = 'song' | 'album';
 export interface ISongSoundSession {
   identity: ISongIdentity;
   phase: TSongSoundPhase;
-  settlingSince: number;
   suspendedSince?: number;
   /** The sound it began with, or was put on with: an edit is any other. */
   baseline?: ISongSound;

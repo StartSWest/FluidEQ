@@ -24,7 +24,6 @@ export const saveNow = (state: ISongSoundState): TStep => {
   const { session, live } = state;
   if (
     !session ||
-    session.phase === 'settling' ||
     session.isLoaded ||
     !state.parts.songs ||
     state.pending ||

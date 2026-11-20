@@ -20,11 +20,7 @@ import {
   TSongSoundEffect,
   TSongSoundOwner,
 } from './songSoundEvents';
-import {
-  SONG_EQ_SETTLE_MS,
-  SONG_EQ_SUSPEND_GRACE_MS,
-  settlesAtOnce,
-} from './songEqTiming';
+import { SONG_EQ_SUSPEND_GRACE_MS } from './songEqTiming';
 
 /**
  * Each thing that can happen to Auto EQ's song and album sounds, as a step
@@ -52,16 +48,24 @@ const handBackTo = (state: ISongSoundState, sound: ISongSound): TStep =>
     ? [{ ...state, pending: undefined }, [{ kind: 'keep' }]]
     : [{ ...state, pending: sound }, [{ kind: 'apply', sound, isLent: false }]];
 
+/**
+ * A song opened the moment it is named, on the same report the play bar draws
+ * it from, and looked up then (Ivan, 2026-11-20: "is taking too much to detect
+ * the new song to load the own song preset, despite we instantly can tell in
+ * the bottom play bar"). It used to wait two seconds of holding still first,
+ * Smart correction's settle — and that wait was moved on only by the players'
+ * reports, so a song from another program, whose player republishes its
+ * position seldom or never, put its sound on seconds late or not at all.
+ * Looking a song up is a question to main; skipping through a queue of songs
+ * with sounds costs a write each, and an answer about a song skipped past is
+ * turned away by its key (`matched`).
+ */
 const open = (
   state: ISongSoundState,
   identity: ISongIdentity,
-  now: number,
 ): ISongSoundSession => ({
   identity,
-  // Another program's song settles as it starts: nothing would ever move its
-  // settle on (`settlesAtOnce`).
-  phase: settlesAtOnce(identity) ? 'playing' : 'settling',
-  settlingSince: now,
+  phase: 'playing',
   baseline: state.owed?.sound ?? state.pending ?? state.live,
   isLoaded: false,
   isKeptOut: false,
@@ -98,10 +102,9 @@ export const lookupOpen = (state: ISongSoundState): TSongSoundEffect[] => {
 /**
  * End the session: file it if a saved sound played and was changed, and hand
  * back what it borrowed — now, or held for `nextSong` to settle when one
- * follows. A session that never settled is somebody clicking through, and
- * files nothing; a hand-back held for a song that never settled is put on when
- * nothing follows after all. `handBack` is off for a switch of output, which
- * brings its own sound.
+ * follows; a hand-back held for a song that is gone before its answer is put
+ * on when nothing follows after all. `handBack` is off for a switch of
+ * output, which brings its own sound.
  */
 export const close = (
   state: ISongSoundState,
@@ -110,7 +113,7 @@ export const close = (
   const { session, live } = state;
   let next: ISongSoundState = { ...state, session: undefined };
   const effects: TSongSoundEffect[] = [];
-  if (session && session.phase !== 'settling') {
+  if (session) {
     if (
       state.parts.songs &&
       state.deviceId !== '' &&
@@ -148,21 +151,11 @@ export const close = (
   return [next, effects];
 };
 
-/** Settling and the pause grace: time passing, carried by any event. */
+/** The pause grace: time passing, carried by any event. */
 export const advance = (state: ISongSoundState, now: number): TStep => {
   const { session } = state;
   if (!session) {
     return [state, []];
-  }
-  if (
-    session.phase === 'settling' &&
-    now - session.settlingSince >= SONG_EQ_SETTLE_MS
-  ) {
-    const settled: ISongSoundState = {
-      ...state,
-      session: { ...session, phase: 'playing' },
-    };
-    return [settled, lookupOpen(settled)];
   }
   if (
     session.phase === 'suspended' &&
@@ -233,11 +226,7 @@ export const matched = (
   album: IAlbumSoundMatch | undefined,
 ): TStep => {
   const { session } = state;
-  if (
-    !session ||
-    session.phase === 'settling' ||
-    identity.key !== session.identity.key
-  ) {
+  if (!session || identity.key !== session.identity.key) {
     return [state, []];
   }
   const { owed } = state;
@@ -377,15 +366,12 @@ export const nowPlaying = (
           ...state,
           session: {
             ...session,
-            phase: session.phase === 'settling' ? 'settling' : 'playing',
+            phase: 'playing',
             suspendedSince: undefined,
           },
         },
         [],
       ];
-    }
-    if (session.phase === 'settling') {
-      return [{ ...state, session: undefined }, []];
     }
     return [
       {
@@ -405,16 +391,14 @@ export const nowPlaying = (
   });
   const opened: ISongSoundState = {
     ...closed,
-    session: isPlaying ? open(closed, identity, now) : undefined,
+    session: isPlaying ? open(closed, identity) : undefined,
   };
-  // Looked up at once where it settled as it opened; a settling one waits.
   return [opened, [...effects, ...lookupOpen(opened)]];
 };
 
 export const deviceChanged = (
   state: ISongSoundState,
   deviceId: string,
-  now: number,
 ): TStep => {
   if (deviceId === state.deviceId) {
     return [state, []];
@@ -422,7 +406,7 @@ export const deviceChanged = (
   if (state.deviceId === '') {
     // The window learning which output it starts on is not a switch: the song
     // playing at launch is the listener's like any other, and is looked up
-    // now if it settled before the output was known.
+    // now if it opened before the output was known.
     const known: ISongSoundState = { ...state, deviceId };
     return [known, lookupOpen(known)];
   }
@@ -443,7 +427,7 @@ export const deviceChanged = (
       // The song carries on there, reached by the switch: nothing it ends
       // with is the listener's choice, and nothing is lent to it this play.
       session: playing?.isPlaying
-        ? { ...open(moved, playing.identity, now), isLoaded: true }
+        ? { ...open(moved, playing.identity), isLoaded: true }
         : undefined,
     },
     [...effects, { kind: 'release' }],

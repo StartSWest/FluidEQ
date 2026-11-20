@@ -234,7 +234,6 @@ const readNow = (): ISongSoundNow => {
   const owner = session?.owner;
   const canSave =
     !!session &&
-    session.phase !== 'settling' &&
     !session.isLoaded &&
     state.parts.songs &&
     !isHeld &&

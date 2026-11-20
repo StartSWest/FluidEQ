@@ -41,10 +41,9 @@ export type {
  * for where it is kept).
  *
  * A pure reducer with the clock passed in, like the Smart EQ memory's
- * (`songEqRecorder.ts`), whose settle and pause grace it shares: a song has to
- * hold still for two seconds before it is looked up — clicking through a
- * queue must not rewrite the engine once a song — and a pause under a minute
- * is the same play. `songSoundSession.ts` performs the effects and decides
+ * (`songEqRecorder.ts`), whose pause grace it shares: a pause under a minute
+ * is the same play. Unlike that memory a song is looked up the moment it is
+ * named, with no settle (`open` in `songSoundSteps.ts` says why). `songSoundSession.ts` performs the effects and decides
  * nothing.
  *
  * WHAT IS FILED: the sound a song ends with, when a saved sound played — its
@@ -60,12 +59,12 @@ export type {
  * something else made — a profile loaded or saved, a game putting its sound
  * on, the output switching: a song they reached files nothing that play.
  *
- * WHAT IS LENT: a remembered song's sound goes on once it has settled and
+ * WHAT IS LENT: a remembered song's sound goes on as its lookup answers and
  * is the song's while it plays — a change made then is the song's too — and
  * the sound from before it is handed back at its end, so a song with no
  * memory plays with what the listener had, not with the last remembered
- * song's. The hand-back waits for the next song to settle when one follows:
- * handed back at once and replaced two seconds later by the next song's own,
+ * song's. The hand-back waits for the next song's answer when one follows:
+ * handed back at once and replaced a moment later by the next song's own,
  * two remembered songs in a row would play a moment of a third sound between
  * them. Main keeps a lent sound out of the output's profile until the loan
  * ends, which only an `apply` that is not lent, a `keep` or an output switch
@@ -217,7 +216,7 @@ export const reduceSongSound = (
       ];
 
     case 'deviceChanged':
-      return withTimed(deviceChanged(state, event.deviceId, now));
+      return withTimed(deviceChanged(state, event.deviceId));
 
     case 'switched':
       return withTimed(switched(state, event.parts));
