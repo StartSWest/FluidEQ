@@ -23,9 +23,12 @@ import { countText } from '../../library/libraryFormat';
 import type { TAutoEqButton } from './useAutoEqButton';
 import AutoEqNowPlaying from './AutoEqNowPlaying';
 import AutoEqSmartPart from './AutoEqSmartPart';
-import AutoEqManage from './AutoEqManage';
+import AutoEqManage, { type TManageTab } from './AutoEqManage';
 import AutoEqMeasureOnce from './AutoEqMeasureOnce';
 import AutoEqSongHolds from './AutoEqSongHolds';
+import AutoEqSavedEqs from './AutoEqSavedEqs';
+import AutoEqEqPicker from './AutoEqEqPicker';
+import { useSavedEqStates } from '../../audio/savedEqActions';
 
 /** One of the panel's parts: its name and line, its switch, what it holds. */
 const AutoEqPart = ({
@@ -63,9 +66,10 @@ const AutoEqPart = ({
 
 /**
  * Auto EQ's panel (the 2026-11-19 mockup, Ivan's yes on 2026-11-20): the song
- * that plays and what decides its sound, the three parts — Song sounds for
- * what a song keeps, Album sounds for what the Library set for its album,
- * Smart correction on top — and how much is kept, with Manage.
+ * that plays and what decides its sound, the parts — Song sounds for what a
+ * song keeps, Album sounds for what the Library set for its album, Saved EQs
+ * the listener keeps under a name, Smart correction on top — and how much is
+ * kept, with Manage.
  *
  * Flat inside one surface (Ivan, 2026-11-19: no boxes in boxes, no shadows):
  * the parts are parted by a hairline and their headings, as the DSP page's
@@ -73,15 +77,30 @@ const AutoEqPart = ({
  */
 const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
   const { t } = useTranslation();
-  const [isManaging, setIsManaging] = useState(false);
+  const [managing, setManaging] = useState<TManageTab | undefined>();
   const parts = useSongSoundParts();
   const isHeld = useSongSoundHeld();
   const now = useSongSoundNow();
-  const { index, albums } = useSongSoundIndex();
+  const { index, albums, eqs, eqById } = useSongSoundIndex();
+  const eqStates = useSavedEqStates(eqs);
 
-  if (isManaging) {
-    return <AutoEqManage onBack={() => setIsManaging(false)} />;
+  if (managing) {
+    return (
+      <AutoEqManage
+        initialTab={managing}
+        onBack={() => setManaging(undefined)}
+      />
+    );
   }
+
+  // The saved EQ that plays, named wherever a preset would be: the one a
+  // saved song follows, or one the listener's own sound is exactly.
+  const songEq = now.eqId === undefined ? undefined : eqById.get(now.eqId);
+  const playingEq =
+    songEq ??
+    (eqStates.playingId === undefined
+      ? undefined
+      : eqById.get(eqStates.playingId));
 
   const songCount = (index?.songs.length ?? 0) + (index?.otherCount ?? 0);
   const albumCount = index?.albums.length ?? 0;
@@ -94,7 +113,9 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
       : albums.get(identity.albumKey);
 
   let songLine = t('autoEq.songs.nothing');
-  if (identity && now.owner === 'song') {
+  if (identity && now.owner === 'song' && songEq) {
+    songLine = t('autoEq.songs.follows', { name: songEq.name });
+  } else if (identity && now.owner === 'song') {
     songLine = t('autoEq.songs.saved');
   } else if (identity) {
     songLine = t('autoEq.songs.none');
@@ -107,7 +128,9 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
     albumLine = t('autoEq.albums.set', {
       album: album.title,
       preset:
-        songSoundPresetName(album.presetId, t) ?? t('songSound.noPresetName'),
+        (album.eqId === undefined ? undefined : eqById.get(album.eqId)?.name) ??
+        songSoundPresetName(album.presetId, t) ??
+        t('songSound.noPresetName'),
     });
   } else if (identity?.albumKey !== undefined) {
     albumLine = t('autoEq.albums.none');
@@ -125,7 +148,7 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
           <span>{t('autoEq.aside')}</span>
         </p>
       )}
-      <AutoEqNowPlaying now={now} />
+      <AutoEqNowPlaying now={now} eqName={playingEq?.name} />
       <AutoEqPart
         id="eq-auto-songs"
         title={t('autoEq.songs.title')}
@@ -159,7 +182,14 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
             </button>
           </div>
         ) : (
-          <div className="eq-auto-part__line">
+          // With "Use a saved EQ" beside Save for this song the line has the
+          // row to itself and the two buttons stand together under it: in a
+          // row of three the second button fell to a line of its own.
+          <div
+            className={`eq-auto-part__line${
+              eqs.length > 0 && now.owner !== 'song' ? ' is-stacked' : ''
+            }`}
+          >
             <span>{songLine}</span>
             {now.owner === 'song' ? (
               <button
@@ -171,16 +201,20 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
                 {t('autoEq.songs.forget')}
               </button>
             ) : (
-              // The loud one: keeping a sound for a song is what this part is
-              // for, and nothing else here does it while the song plays.
-              <button
-                type="button"
-                className="button small"
-                disabled={!now.canSave}
-                onClick={saveSongSoundNow}
-              >
-                {t('autoEq.songs.save')}
-              </button>
+              <>
+                <AutoEqEqPicker isDisabled={!now.canSave} />
+                {/* The loud one: keeping a sound for a song is what this part
+                  is for, and nothing else here does it while the song
+                  plays. */}
+                <button
+                  type="button"
+                  className="button small"
+                  disabled={!now.canSave}
+                  onClick={saveSongSoundNow}
+                >
+                  {t('autoEq.songs.save')}
+                </button>
+              </>
             )}
           </div>
         )}
@@ -196,6 +230,7 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
           <span>{albumLine}</span>
         </div>
       </AutoEqPart>
+      <AutoEqSavedEqs onSeeAll={() => setManaging('eqs')} />
       <AutoEqSmartPart button={button} />
       <footer className="eq-auto-panel__foot">
         <span>
@@ -207,7 +242,7 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
         <button
           type="button"
           className="button small subtle"
-          onClick={() => setIsManaging(true)}
+          onClick={() => setManaging('songs')}
         >
           {t('autoEq.manage')}
         </button>

@@ -20,7 +20,13 @@ import {
   nowPlaying,
   TStep,
 } from './songSoundSteps';
-import { reconsider, revert, saveNow, switched } from './songSoundChoices';
+import {
+  putOn,
+  reconsider,
+  revert,
+  saveNow,
+  switched,
+} from './songSoundChoices';
 
 export { getInitialSongSoundState } from './songSoundEvents';
 export type {
@@ -119,6 +125,9 @@ export const reduceSongSound = (
 
     case 'revert':
       return withTimed(revert(state));
+
+    case 'putOn':
+      return withTimed(putOn(state, event.sound));
 
     case 'reconsider':
       return withTimed(reconsider(state));

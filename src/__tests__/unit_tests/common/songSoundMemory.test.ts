@@ -314,6 +314,7 @@ describe('what the Library and Manage are shown', () => {
       ],
       otherCount: 1,
       hasUnnamed: true,
+      eqs: [],
     });
   });
 

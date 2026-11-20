@@ -258,6 +258,18 @@ export const matched = (
   if (
     session.handBack &&
     session.owner === chosen.owner &&
+    state.live &&
+    !state.pending &&
+    sameSongSound(state.live, sound)
+  ) {
+    // Asked again and the answer is what already plays — a saved EQ the song
+    // follows, updated with what plays: that is the saved sound now. Nothing
+    // to put on, and no notice for a sound that did not change.
+    return [{ ...state, session: { ...session, baseline: sound } }, []];
+  }
+  if (
+    session.handBack &&
+    session.owner === chosen.owner &&
     session.baseline &&
     sameSongSound(session.baseline, sound)
   ) {

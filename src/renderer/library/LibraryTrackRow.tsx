@@ -21,7 +21,7 @@ import { ILibraryTrack } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import LibraryPlayingBars from './LibraryPlayingBars';
-import songSoundPresetName from '../components/songSoundPresetName';
+import { savedSoundName } from './librarySoundTag';
 import {
   formatOf,
   NUMERIC_COLUMNS,
@@ -48,10 +48,12 @@ interface ILibraryTrackRowProps {
   isPlaying: boolean;
   /** This song is in Favourites. */
   isFavorite: boolean;
-  /** Where its sound comes from (`librarySoundTag`), as two primitives so
-   * the memo holds: its own or its album's, and the preset. */
+  /** Where its sound comes from (`librarySoundTag`), as primitives so the
+   * memo holds: its own or its album's, the preset, and the saved EQ it
+   * follows, by name. */
   soundKind?: 'own' | 'album';
   soundPresetId?: string;
+  soundEqName?: string;
   duration: string;
   onPlay: (trackId: string) => void;
   /** The second press of a double-press, in place of a second `onPlay`: the
@@ -101,6 +103,7 @@ const LibraryTrackRow = ({
   isFavorite,
   soundKind,
   soundPresetId,
+  soundEqName,
   duration,
   onPlay,
   onRestart,
@@ -163,9 +166,10 @@ const LibraryTrackRow = ({
             ? 'library.sound.tagOwn'
             : 'library.sound.tagAlbum',
           {
-            preset:
-              songSoundPresetName(soundPresetId, t) ??
-              t('songSound.noPresetName'),
+            preset: savedSoundName(
+              { presetId: soundPresetId, eqName: soundEqName },
+              t,
+            ),
           },
         );
         // Whole in the tooltip: a narrow column cuts the preset's name,

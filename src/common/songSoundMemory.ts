@@ -16,6 +16,7 @@ import {
 } from './songMemory';
 import { TSavedSound, isWholeSound, toSavedSound } from './songSound';
 import type { IAlbumSoundMatch } from './songSoundEvents';
+import { IEqLink, ISavedEq, isEqLink, toEqLink } from './savedEq';
 
 /**
  * Where Auto EQ keeps the sounds songs and albums play with: one store for
@@ -57,8 +58,18 @@ export const canKeepSongSound = (identity: ISongIdentity): boolean =>
   !identity.isVideo &&
   (soundScopeOf(identity.source) === 'library' || identity.alias !== undefined);
 
+/**
+ * What a song or an album keeps: a sound of its own, or a link to a saved EQ
+ * it follows (`savedEq.ts`), which a lookup answers with the EQ's sound.
+ */
+export type TStoredSound = TSavedSound | IEqLink;
+
+/** A kept sound as stored or sent, or nothing. */
+export const toStoredSound = (value: unknown): TStoredSound | undefined =>
+  toEqLink(value) ?? toSavedSound(value);
+
 export interface ISongSoundEntry extends ISongMemoryEntryBase {
-  sound: TSavedSound;
+  sound: TStoredSound;
   scope: TSoundScope;
   /**
    * A Library song's track id, so the Library can say which of its songs
@@ -74,15 +85,21 @@ export interface IAlbumSoundEntry {
   /** The album and its artist as the Library shows them, for Manage. */
   title: string;
   artist: string;
-  sound: TSavedSound;
+  sound: TStoredSound;
   updatedAt: number;
 }
 
+/**
+ * Version 3 added the saved EQs (2026-11-20); version 2 is read into it with
+ * none, and nothing else about it changes (`songSoundStore.ts`).
+ */
 export interface ISongSoundSettings {
-  version: 2;
+  version: 3;
   songs: ISongMemoryOutput<ISongSoundEntry>;
   /** By the Library's own album key (`albumKey` in `library/grouping.ts`). */
   albums: Record<string, IAlbumSoundEntry>;
+  /** Newest saved last, in the order the panel lists them. */
+  eqs: ISavedEq[];
 }
 
 /**
@@ -109,10 +126,28 @@ export const isAlbumKey = (key: string): boolean =>
 export const ALBUM_SOUND_MAX_ENTRIES = 4000;
 
 export const getDefaultSongSoundSettings = (): ISongSoundSettings => ({
-  version: 2,
+  version: 3,
   songs: emptySongMemoryOutput<ISongSoundEntry>(),
   albums: {},
+  eqs: [],
 });
+
+/** The saved EQ of this id, if it is still kept. */
+export const findSavedEq = (
+  settings: ISongSoundSettings,
+  eqId: string,
+): ISavedEq | undefined => settings.eqs.find((eq) => eq.id === eqId);
+
+/**
+ * A kept sound as it plays: itself, or the saved EQ it links to. A link to an
+ * EQ that is gone is no sound — deleting one turns its links into copies
+ * first (`deleteSavedEq`), so only a hand-edited file holds such a link.
+ */
+export const resolveStoredSound = (
+  settings: ISongSoundSettings,
+  sound: TStoredSound,
+): TSavedSound | undefined =>
+  isEqLink(sound) ? findSavedEq(settings, sound.eqId)?.sound : sound;
 
 const isFiniteNumber = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value);
@@ -126,7 +161,7 @@ export const toSongSoundEntry = (
   }
   const { sound, scope, trackId, title, artist, alias, plays, updatedAt } =
     value as Record<string, unknown>;
-  const saved = toSavedSound(sound);
+  const saved = toStoredSound(sound);
   if (
     !saved ||
     (scope !== 'library' && scope !== 'other') ||
@@ -155,7 +190,7 @@ export const toAlbumSoundEntry = (
     return undefined;
   }
   const { title, artist, sound, updatedAt } = value as Record<string, unknown>;
-  const saved = toSavedSound(sound);
+  const saved = toStoredSound(sound);
   if (
     !saved ||
     typeof title !== 'string' ||
@@ -187,7 +222,7 @@ export const saveSongSound = (
   settings: ISongSoundSettings,
   identity: ISongIdentity,
   scope: TSoundScope,
-  sound: TSavedSound,
+  sound: TStoredSound,
   now: number,
   { trackId }: { trackId?: string } = {},
 ): ISongSoundSettings => ({
@@ -286,6 +321,8 @@ export const setAlbumSound = (
  * album's (the Library's songs only). */
 export interface ISongSoundMatch {
   song?: TSavedSound;
+  /** The saved EQ the song's own sound is, when it follows one. */
+  songEqId?: string;
   album?: IAlbumSoundMatch;
 }
 
@@ -297,6 +334,19 @@ export interface ILibrarySongSound {
   presetId: string;
   /** Its Tone and bands too, not the preset alone. */
   isWhole: boolean;
+  /** The saved EQ it follows, named from the index's own list. */
+  eqId?: string;
+  updatedAt: number;
+}
+
+/** A saved EQ as the panel, Manage and the pickers list it. */
+export interface ISavedEqSummary {
+  id: string;
+  name: string;
+  sound: ISavedEq['sound'];
+  /** Songs of either world, and albums, that follow it. */
+  songCount: number;
+  albumCount: number;
   updatedAt: number;
 }
 
@@ -314,46 +364,91 @@ export interface ISongSoundIndex {
     artist: string;
     presetId: string;
     isWhole: boolean;
+    eqId?: string;
   }>;
   otherCount: number;
   hasUnnamed: boolean;
+  eqs: ISavedEqSummary[];
 }
+
+/** What the index says of a kept sound: its preset, whether it is whole, and
+ * the saved EQ it follows — or nothing for a link to an EQ that is gone. */
+const describe = (
+  settings: ISongSoundSettings,
+  sound: TStoredSound,
+): { presetId: string; isWhole: boolean; eqId?: string } | undefined => {
+  const played = resolveStoredSound(settings, sound);
+  if (!played) {
+    return undefined;
+  }
+  return {
+    presetId: played.presetId,
+    isWhole: isWholeSound(played),
+    ...(isEqLink(sound) ? { eqId: sound.eqId } : {}),
+  };
+};
 
 export const songSoundIndex = (
   settings: ISongSoundSettings,
 ): ISongSoundIndex => {
   const songs: ILibrarySongSound[] = [];
+  const songCounts = new Map<string, number>();
+  const albumCounts = new Map<string, number>();
+  const count = (counts: Map<string, number>, sound: TStoredSound) => {
+    if (isEqLink(sound)) {
+      counts.set(sound.eqId, (counts.get(sound.eqId) ?? 0) + 1);
+    }
+  };
   let otherCount = 0;
   let hasUnnamed = false;
   Object.values(settings.songs.entries).forEach((entry) => {
+    count(songCounts, entry.sound);
     if (entry.scope === 'other') {
       otherCount += 1;
       return;
     }
+    const described = describe(settings, entry.sound);
     if (entry.trackId === undefined) {
       hasUnnamed = true;
+      return;
+    }
+    if (!described) {
       return;
     }
     songs.push({
       trackId: entry.trackId,
       title: entry.title,
       ...(entry.artist === undefined ? {} : { artist: entry.artist }),
-      presetId: entry.sound.presetId,
-      isWhole: isWholeSound(entry.sound),
+      ...described,
       updatedAt: entry.updatedAt,
     });
   });
+  const albums: ISongSoundIndex['albums'] = [];
+  Object.entries(settings.albums).forEach(([key, album]) => {
+    count(albumCounts, album.sound);
+    const described = describe(settings, album.sound);
+    if (described) {
+      albums.push({
+        key,
+        title: album.title,
+        artist: album.artist,
+        ...described,
+      });
+    }
+  });
   return {
     songs,
-    albums: Object.entries(settings.albums).map(([key, album]) => ({
-      key,
-      title: album.title,
-      artist: album.artist,
-      presetId: album.sound.presetId,
-      isWhole: isWholeSound(album.sound),
-    })),
+    albums,
     otherCount,
     hasUnnamed,
+    eqs: settings.eqs.map((eq) => ({
+      id: eq.id,
+      name: eq.name,
+      sound: eq.sound,
+      songCount: songCounts.get(eq.id) ?? 0,
+      albumCount: albumCounts.get(eq.id) ?? 0,
+      updatedAt: eq.updatedAt,
+    })),
   };
 };
 

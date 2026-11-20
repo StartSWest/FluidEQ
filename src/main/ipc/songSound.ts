@@ -16,9 +16,11 @@ import {
   lookupAlbumSound,
   lookupSongSound,
   nameSongSound,
+  resolveStoredSound,
   saveSongSound,
   soundScopeOf,
 } from '../../common/songSoundMemory';
+import { isEqLink } from '../../common/savedEq';
 import {
   keepSongSound,
   putSongSoundOn,
@@ -30,6 +32,7 @@ import {
   isIdentity,
   replyInvalidParameter,
   replySuccess,
+  toKeptLink,
 } from './songSoundCheck';
 import onWindowMessage from './windowMessages';
 
@@ -103,16 +106,32 @@ const registerSongSoundIpc = ({
       scope === 'library' && stored.albumKey !== undefined
         ? lookupAlbumSound(settings, stored.albumKey)
         : undefined;
+    // A saved EQ is answered with its sound as it is now, and named, so the
+    // window plays what the EQ holds and says which one it is.
+    const song = entry && resolveStoredSound(settings, entry.sound);
+    const albumSound = album && resolveStoredSound(settings, album.sound);
     replySuccess<ISongSoundMatch>(event, channel, {
-      ...(entry ? { song: entry.sound } : {}),
-      ...(album ? { album: { sound: album.sound, title: album.title } } : {}),
+      ...(song ? { song } : {}),
+      ...(song && entry && isEqLink(entry.sound)
+        ? { songEqId: entry.sound.eqId }
+        : {}),
+      ...(album && albumSound
+        ? {
+            album: {
+              sound: albumSound,
+              title: album.title,
+              ...(isEqLink(album.sound) ? { eqId: album.sound.eqId } : {}),
+            },
+          }
+        : {}),
     });
   });
 
   onWindowMessage(ChannelEnum.SAVE_SONG_SOUND, (event, arg) => {
     const channel = ChannelEnum.SAVE_SONG_SOUND;
     const identity = arg?.[0];
-    const sound = toSongSound(arg?.[1]);
+    // What plays, or a saved EQ the song follows from here.
+    const sound = toSongSound(arg?.[1]) ?? toKeptLink(holder.read(), arg?.[1]);
     if (!isIdentity(identity) || !sound || !canKeepSongSound(identity)) {
       replyInvalidParameter(event, channel);
       return;

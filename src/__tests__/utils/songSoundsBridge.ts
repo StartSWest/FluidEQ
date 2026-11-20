@@ -28,6 +28,7 @@ export const EMPTY_SONG_SOUND_INDEX: ISongSoundIndex = {
   albums: [],
   otherCount: 0,
   hasUnnamed: false,
+  eqs: [],
 };
 
 const SONG_SOUND_CHANNELS: ReadonlySet<string> = new Set([

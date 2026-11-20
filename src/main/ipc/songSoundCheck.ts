@@ -6,7 +6,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import ChannelEnum from '../../common/channels';
 import { ErrorCode } from '../../common/errors';
+import { type IEqLink, toEqLink } from '../../common/savedEq';
 import type { ISongIdentity, TSongSource } from '../../common/songIdentity';
+import { toSavedSound } from '../../common/songSound';
+import {
+  type ISongSoundSettings,
+  type TStoredSound,
+  findSavedEq,
+} from '../../common/songSoundMemory';
 import { TError, TSuccess } from '../../renderer/utils/equalizerApi';
 
 /**
@@ -62,6 +69,23 @@ export const toTextList = (value: unknown): string[] | undefined =>
   value.every((one) => isText(one) && one !== '')
     ? (value as string[])
     : undefined;
+
+/** A link to a saved EQ the store keeps, or nothing: a link to an EQ that is
+ * gone would leave the song with no sound to play. */
+export const toKeptLink = (
+  settings: ISongSoundSettings,
+  value: unknown,
+): IEqLink | undefined => {
+  const link = toEqLink(value);
+  return link && findSavedEq(settings, link.eqId) ? link : undefined;
+};
+
+/** A sound picked in the Library: a sound, a preset alone, or a saved EQ. */
+export const toPickedSound = (
+  settings: ISongSoundSettings,
+  value: unknown,
+): TStoredSound | undefined =>
+  toKeptLink(settings, value) ?? toSavedSound(value);
 
 export const replyInvalidParameter = (
   event: Electron.IpcMainEvent,

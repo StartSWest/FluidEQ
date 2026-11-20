@@ -512,63 +512,6 @@ $auto-eq-pad: $spacing-s + $spacing-xs;
   gap: $spacing-s;
 }
 
-// What a song's saved sound holds (`AutoEqSongHolds`): label beside value, a
-// line each, flat on the panel like everything in it.
-.eq-auto-holds {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: $spacing-xs ($spacing-s + $spacing-xs);
-  align-items: center;
-  margin: 0;
-
-  dt {
-    color: $text-faint;
-  }
-
-  dd {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: $spacing-xs $spacing-s;
-    min-width: 0;
-    margin: 0;
-    color: $text-primary;
-  }
-
-  small {
-    color: $text-faint;
-    font-size: $text-micro;
-  }
-}
-
-// The Tone's three values, whose digits stand still as they change.
-.eq-auto-holds__tone {
-  font-variant-numeric: tabular-nums;
-}
-
-// Your EQ's curve, the size of a word.
-.eq-auto-holds__curve {
-  flex: 0 0 auto;
-  width: 92px;
-  height: 22px;
-  overflow: visible;
-}
-
-.eq-auto-holds__zero {
-  fill: none;
-  stroke: color-mix(in srgb, $edge-tint 18%, transparent);
-  stroke-dasharray: 2 3;
-  stroke-width: 1;
-}
-
-.eq-auto-holds__line {
-  fill: none;
-  stroke: $secondary-default;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.6;
-}
-
 // "Changed, not saved", in the colour the app gives a change waiting.
 .eq-auto-part__changed {
   color: $sound-album;

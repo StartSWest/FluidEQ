@@ -5,7 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import ChannelEnum from '../../common/channels';
-import { toSavedSound } from '../../common/songSound';
 import {
   type ISongSoundSettings,
   forgetAlbumSounds,
@@ -26,9 +25,11 @@ import {
   isText,
   replyInvalidParameter,
   replySuccess,
+  toPickedSound,
   toTextList,
 } from './songSoundCheck';
 import onWindowMessage from './windowMessages';
+import registerSavedEqIpc from './savedEqs';
 
 /**
  * The Library's side of Auto EQ (Ivan, 2026-11-19: "I should be able to pick
@@ -40,12 +41,15 @@ import onWindowMessage from './windowMessages';
  * a sound while they play (`ipc/songSound.ts`).
  */
 const registerSongSoundLibraryIpc = (holder: ISongSoundHolder): void => {
+  // The saved EQs the Library's menus pick from live in the same store.
+  registerSavedEqIpc(holder);
   onWindowMessage(ChannelEnum.PICK_LIBRARY_SONG_SOUNDS, (event, arg) => {
     const channel = ChannelEnum.PICK_LIBRARY_SONG_SOUNDS;
     const identities: unknown = arg?.[0];
     const raw: unknown = arg?.[1];
-    // `null` forgets their own sounds; anything else has to be a sound.
-    const sound = raw === null ? null : toSavedSound(raw);
+    // `null` forgets their own sounds; anything else has to be a sound, a
+    // preset alone or a saved EQ the store keeps.
+    const sound = raw === null ? null : toPickedSound(holder.read(), raw);
     if (
       !Array.isArray(identities) ||
       identities.length > MAX_SONGS_AT_ONCE ||
@@ -87,7 +91,7 @@ const registerSongSoundLibraryIpc = (holder: ISongSoundHolder): void => {
     const title: unknown = arg?.[1];
     const artist: unknown = arg?.[2];
     const raw: unknown = arg?.[3];
-    const sound = raw === null ? null : toSavedSound(raw);
+    const sound = raw === null ? null : toPickedSound(holder.read(), raw);
     if (
       !isText(albumKey) ||
       !isAlbumKey(albumKey) ||

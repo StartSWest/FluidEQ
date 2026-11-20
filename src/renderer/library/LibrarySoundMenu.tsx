@@ -8,16 +8,18 @@ import { useState } from 'react';
 import log from 'electron-log/renderer';
 import { libraryTrackIdentity } from 'common/songIdentity';
 import type { TSavedSound } from 'common/songSound';
+import type { IEqLink } from 'common/savedEq';
 import { normalizeForSearch } from 'common/library/grouping';
 import MenuIcon from '../icons/MenuIcon';
 import TextInput from '../widgets/TextInput';
 import { useTranslation } from '../utils/I18nContext';
 import { useSongSoundIndex } from '../audio/songSoundIndex';
 import { useLiveSongSound } from '../audio/songSoundSession';
-import songSoundPresetName from '../components/songSoundPresetName';
 import useDspChainEntries from '../dsp/useDspChainEntries';
 import { pickLibrarySongSounds, setAlbumSound } from '../utils/songSoundApi';
 import { countText } from './libraryFormat';
+import { eqNameOf, savedSoundName } from './librarySoundTag';
+import AutoEqMiniCurve from '../eq/autoEq/AutoEqMiniCurve';
 
 /** What the menu gives a sound to: Library songs, or a whole album. */
 export type TLibrarySoundSubject =
@@ -53,6 +55,9 @@ const identitiesOf = async (trackIds: readonly string[]) => {
  * and sounds"): for one song, a selection or a whole album — the same choices
  * for each. "Choose a preset…" keeps the preset alone, played with the
  * listener's own Tone and EQ; "Use what's playing now" keeps the whole sound.
+ * The listener's saved EQs stand first in that list, above the presets, with
+ * one search for both (the mockup Ivan approved, 2026-11-20): a song given one
+ * follows it, and plays it whole whatever the listener's EQ is that day.
  * A song picked here is the song's own, exactly as a save while it plays
  * makes, and beats its album's.
  *
@@ -72,11 +77,15 @@ const LibrarySoundMenu = ({
   const { t } = useTranslation();
   const [isChoosing, setIsChoosing] = useState(false);
   const [search, setSearch] = useState('');
-  const { songs, albums } = useSongSoundIndex();
+  const soundIndex = useSongSoundIndex();
+  const { songs, albums, eqs } = soundIndex;
   const live = useLiveSongSound();
   const { entries, groupLabel } = useDspChainEntries('music');
-  const presetOf = (id: string) =>
-    songSoundPresetName(id, t) ?? t('songSound.noPresetName');
+  const nameOf = (sound: { presetId: string; eqId?: string }) =>
+    savedSoundName(
+      { presetId: sound.presetId, eqName: eqNameOf(soundIndex, sound.eqId) },
+      t,
+    );
 
   const { trackIds } = subject;
   const isOne = subject.kind === 'songs' && trackIds.length === 1;
@@ -85,7 +94,7 @@ const LibrarySoundMenu = ({
     subject.kind === 'album' ? albums.get(subject.album.key) : undefined;
   const single = isOne ? songs.get(trackIds[0]) : undefined;
 
-  const keep = (sound: TSavedSound | null) => {
+  const keep = (sound: TSavedSound | IEqLink | null) => {
     onClose();
     if (subject.kind === 'album' && sound !== null) {
       const { key, title, artist } = subject.album;
@@ -99,10 +108,12 @@ const LibrarySoundMenu = ({
 
   if (isChoosing) {
     const needle = normalizeForSearch(search);
-    const shown = entries.filter(
-      (entry) =>
-        needle === '' || normalizeForSearch(entry.name).includes(needle),
-    );
+    const isFound = (name: string) =>
+      needle === '' || normalizeForSearch(name).includes(needle);
+    const shown = entries.filter((entry) => isFound(entry.name));
+    const shownEqs = [...eqs]
+      .filter((eq) => isFound(eq.name))
+      .sort((a, b) => b.updatedAt - a.updatedAt);
     let lastGroup: string | undefined;
     return (
       <>
@@ -127,9 +138,34 @@ const LibrarySoundMenu = ({
           />
         </div>
         <div className="library-sound-menu__list">
+          {shownEqs.length > 0 && (
+            <p className="library-list__menu-subject">
+              {t('autoEq.eqs.title')}
+            </p>
+          )}
+          {shownEqs.map((eq) => (
+            <div key={eq.id} role="none">
+              <button type="button" onClick={() => keep({ eqId: eq.id })}>
+                <AutoEqMiniCurve
+                  filters={eq.sound.filters}
+                  width={40}
+                  height={16}
+                  className="library-sound-menu__curve"
+                />
+                <span>{eq.name}</span>
+              </button>
+            </div>
+          ))}
           {shown.map((entry) => {
-            const heading =
+            const isFirst = lastGroup === undefined;
+            let heading =
               entry.group !== lastGroup ? groupLabel(entry.group) : '';
+            // Under the saved EQs, the presets start under a heading of their
+            // own even where their first group has none (None's), or None
+            // reads as one more saved EQ.
+            if (isFirst && heading === '' && shownEqs.length > 0) {
+              heading = t('dsp.presets');
+            }
             lastGroup = entry.group;
             return (
               <div key={`${entry.group}:${entry.id}`} role="none">
@@ -159,10 +195,10 @@ const LibrarySoundMenu = ({
   let current: string;
   if (subject.kind === 'album') {
     current = album
-      ? t('library.sound.albumIs', { preset: presetOf(album.presetId) })
+      ? t('library.sound.albumIs', { preset: nameOf(album) })
       : t('library.sound.albumNone');
   } else if (single) {
-    current = t('library.sound.ownIs', { preset: presetOf(single.presetId) });
+    current = t('library.sound.ownIs', { preset: nameOf(single) });
   } else if (isOne) {
     current = t('library.sound.noOwn');
   } else {

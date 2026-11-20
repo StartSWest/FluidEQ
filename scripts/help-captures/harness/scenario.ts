@@ -221,6 +221,7 @@ export const REQUESTS: Record<string, TAnswer> = {
     albums: [],
     otherCount: 0,
     hasUnnamed: false,
+    eqs: [],
   }),
 };
 

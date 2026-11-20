@@ -9,6 +9,7 @@ import log from 'electron-log/renderer';
 import ChannelEnum from 'common/channels';
 import type {
   ILibrarySongSound,
+  ISavedEqSummary,
   ISongSoundIndex,
 } from 'common/songSoundMemory';
 import {
@@ -31,6 +32,9 @@ export interface ISongSoundIndexView {
   index?: ISongSoundIndex;
   songs: ReadonlyMap<string, ILibrarySongSound>;
   albums: ReadonlyMap<string, ISongSoundIndex['albums'][number]>;
+  /** The saved EQs, newest saved last, and each by its id. */
+  eqs: readonly ISavedEqSummary[];
+  eqById: ReadonlyMap<string, ISavedEqSummary>;
 }
 
 /** One request names at most this many; main bounds what it takes. */
@@ -39,7 +43,12 @@ const NAMING_BATCH = 20000;
 /** Every song the Library can list, which is what main is asked about. */
 const NAMING_QUERY_LIMIT = 100000;
 
-const EMPTY: ISongSoundIndexView = { songs: new Map(), albums: new Map() };
+const EMPTY: ISongSoundIndexView = {
+  songs: new Map(),
+  albums: new Map(),
+  eqs: [],
+  eqById: new Map(),
+};
 
 const listeners = new Set<() => void>();
 let view: ISongSoundIndexView = EMPTY;
@@ -53,6 +62,8 @@ const toView = (index: ISongSoundIndex): ISongSoundIndexView => ({
   index,
   songs: new Map(index.songs.map((song) => [song.trackId, song])),
   albums: new Map(index.albums.map((album) => [album.key, album])),
+  eqs: index.eqs,
+  eqById: new Map(index.eqs.map((eq) => [eq.id, eq])),
 });
 
 /** The Library's track ids, handed to main in batches it accepts. */

@@ -12,9 +12,16 @@ import songSoundPresetName from '../../components/songSoundPresetName';
 /**
  * The song that plays, at the top of Auto EQ's panel, and what decides its
  * sound: its own saved sound, its album's, or the listener's own — the
- * answer of the ladder the mockup drew, in one line.
+ * answer of the ladder the mockup drew, in one line. A saved EQ that plays
+ * is named in the preset's place: it is the whole sound, preset and all.
  */
-const AutoEqNowPlaying = ({ now }: { now: ISongSoundNow }) => {
+const AutoEqNowPlaying = ({
+  now,
+  eqName,
+}: {
+  now: ISongSoundNow;
+  eqName?: string;
+}) => {
   const { t } = useTranslation();
   const { identity } = now;
   if (!identity) {
@@ -28,9 +35,11 @@ const AutoEqNowPlaying = ({ now }: { now: ISongSoundNow }) => {
     );
   }
   const preset =
+    eqName ??
     (now.presetId === undefined
       ? undefined
-      : songSoundPresetName(now.presetId, t)) ?? t('songSound.noPresetName');
+      : songSoundPresetName(now.presetId, t)) ??
+    t('songSound.noPresetName');
   let from = t('autoEq.now.yours');
   let why = t('autoEq.now.yoursWhy');
   if (now.owner === 'song') {

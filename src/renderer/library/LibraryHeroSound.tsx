@@ -9,7 +9,7 @@ import Chevron from '../icons/Chevron';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import { useTranslation } from '../utils/I18nContext';
 import { useSongSoundIndex } from '../audio/songSoundIndex';
-import songSoundPresetName from '../components/songSoundPresetName';
+import { eqNameOf, savedSoundName } from './librarySoundTag';
 import LibrarySoundMenu from './LibrarySoundMenu';
 
 interface ILibraryHeroSoundProps {
@@ -29,7 +29,8 @@ interface ILibraryHeroSoundProps {
  */
 const LibraryHeroSound = ({ album, loadTrackIds }: ILibraryHeroSoundProps) => {
   const { t } = useTranslation();
-  const { albums } = useSongSoundIndex();
+  const soundIndex = useSongSoundIndex();
+  const { albums } = soundIndex;
   const trigger = useRef<HTMLButtonElement>(null);
   const [trackIds, setTrackIds] = useState<readonly string[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -62,7 +63,10 @@ const LibraryHeroSound = ({ album, loadTrackIds }: ILibraryHeroSoundProps) => {
 
   const set = albums.get(album.key);
   const name = set
-    ? (songSoundPresetName(set.presetId, t) ?? t('songSound.noPresetName'))
+    ? savedSoundName(
+        { presetId: set.presetId, eqName: eqNameOf(soundIndex, set.eqId) },
+        t,
+      )
     : t('library.sound.none');
 
   return (

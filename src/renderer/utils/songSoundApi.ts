@@ -14,6 +14,7 @@ import type {
   TSongSoundLanded,
 } from 'common/songSound';
 import type { ISongSoundIndex, ISongSoundMatch } from 'common/songSoundMemory';
+import type { IEqLink } from 'common/savedEq';
 import {
   sendRequest,
   setterResponseHandler,
@@ -34,10 +35,11 @@ export const lookupSongSound = (
     simpleResponseHandler<ISongSoundMatch>(),
   );
 
-/** File what plays as the song's own: "Save for this song", Save changes. */
+/** File what plays as the song's own ("Save for this song", Save changes),
+ * or a saved EQ the song follows from here ("Use a saved EQ"). */
 export const saveSongSound = (
   identity: ISongIdentity,
-  sound: ISongSound,
+  sound: ISongSound | IEqLink,
 ): Promise<void> =>
   sendRequest(
     ChannelEnum.SAVE_SONG_SOUND,
@@ -52,7 +54,7 @@ export const forgetSongSound = (identity: ISongIdentity): Promise<void> =>
 /** Library songs given a sound of their own, or theirs forgotten (`null`). */
 export const pickLibrarySongSounds = (
   identities: readonly ISongIdentity[],
-  sound: TSavedSound | null,
+  sound: TSavedSound | IEqLink | null,
 ): Promise<void> =>
   sendRequest(
     ChannelEnum.PICK_LIBRARY_SONG_SOUNDS,
@@ -65,7 +67,7 @@ export const setAlbumSound = (
   albumKey: string,
   title: string,
   artist: string,
-  sound: TSavedSound | null,
+  sound: TSavedSound | IEqLink | null,
 ): Promise<void> =>
   sendRequest(
     ChannelEnum.SET_ALBUM_SOUND,
@@ -96,6 +98,29 @@ export const forgetSongSoundsOf = (
   what: 'library' | 'other' | 'albums',
 ): Promise<void> =>
   sendRequest(ChannelEnum.FORGET_SONG_SOUNDS_OF, [what], setterResponseHandler);
+
+/** A saved EQ kept under a name; answers with the name used, numbered when
+ * another saved EQ has it. */
+export const saveEq = (
+  name: string,
+  sound: ISongSound,
+): Promise<{ id: string; name: string }> =>
+  sendRequest(
+    ChannelEnum.SAVE_EQ,
+    [name, sound],
+    simpleResponseHandler<{ id: string; name: string }>(),
+  );
+
+/** A saved EQ updated with what plays: its songs and albums follow it. */
+export const updateEq = (id: string, sound: ISongSound): Promise<void> =>
+  sendRequest(ChannelEnum.UPDATE_EQ, [id, sound], setterResponseHandler);
+
+export const renameEq = (id: string, name: string): Promise<void> =>
+  sendRequest(ChannelEnum.RENAME_EQ, [id, name], setterResponseHandler);
+
+/** Deleted; every song and album on it keeps its sound as its own. */
+export const deleteEq = (id: string): Promise<void> =>
+  sendRequest(ChannelEnum.DELETE_EQ, [id], setterResponseHandler);
 
 /**
  * Put a sound's bands, Tone and preset curve on in one write.

@@ -114,4 +114,33 @@ export default {
     '„Klang jedes Songs merken“ ist zu Auto-EQ auf der EQ-Seite umgezogen. Ihr gespeicherter Song ist mitgekommen.',
   'autoEq.moved.open': 'Auto-EQ öffnen',
   'autoEq.moved.dismiss': 'Verstanden',
+  'autoEq.eqs.title': 'Gespeicherte EQs',
+  'autoEq.eqs.hint':
+    'Behalten Sie einen EQ, der Ihnen gefällt. Legen Sie ihn auf oder geben Sie ihn Songs und Alben.',
+  'autoEq.eqs.saveThis': 'Diesen EQ speichern',
+  'autoEq.eqs.empty': 'Noch nichts gespeichert',
+  'autoEq.eqs.name': 'Name',
+  'autoEq.eqs.defaultName': 'Mein EQ {count}',
+  'autoEq.eqs.keepPreset': 'Preset mitspeichern',
+  'autoEq.eqs.anyPreset': 'Klingt über jedem Preset',
+  'autoEq.eqs.stays':
+    'Kopfhörerkorrektur und Smart-Korrektur bleiben, wo sie sind.',
+  'autoEq.eqs.cancel': 'Abbrechen',
+  'autoEq.eqs.save': 'Speichern',
+  'autoEq.eqs.saveFailed':
+    'Speichern ist fehlgeschlagen. Bitte erneut versuchen.',
+  'autoEq.eqs.putOn': 'Auflegen',
+  'autoEq.eqs.update': 'Aktualisieren',
+  'autoEq.eqs.updateWithLive': 'Mit dem Laufenden aktualisieren',
+  'autoEq.eqs.playing': 'Läuft',
+  'autoEq.eqs.more': 'Mehr für {name}',
+  'autoEq.eqs.renameLabel': 'Neuer Name für {name}',
+  'autoEq.eqs.deleteAsk': '{name} löschen?',
+  'autoEq.eqs.deleteKeeps':
+    'Songs und Alben darauf behalten seinen Klang als eigenen.',
+  'autoEq.eqs.usedBy': 'auf {what}',
+  'autoEq.eqs.moreCount': '{count} weitere',
+  'autoEq.eqs.seeAll': 'Alle {count} zeigen',
+  'autoEq.eqs.use': 'Gespeicherten EQ verwenden',
+  'autoEq.songs.follows': 'Folgt {name}',
 };

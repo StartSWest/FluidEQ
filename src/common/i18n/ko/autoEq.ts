@@ -109,6 +109,33 @@ const autoEq = {
     '각 노래의 사운드 기억이 EQ 페이지의 Auto EQ로 옮겨졌습니다. 저장된 노래도 함께 옮겨졌습니다.',
   'autoEq.moved.open': 'Auto EQ 열기',
   'autoEq.moved.dismiss': '알았어요',
+  'autoEq.eqs.title': '저장한 EQ',
+  'autoEq.eqs.hint':
+    '마음에 드는 EQ를 남겨 두세요. 적용하거나 노래와 앨범에 지정할 수 있습니다.',
+  'autoEq.eqs.saveThis': '이 EQ 저장',
+  'autoEq.eqs.empty': '아직 저장한 것이 없습니다',
+  'autoEq.eqs.name': '이름',
+  'autoEq.eqs.defaultName': '내 EQ {count}',
+  'autoEq.eqs.keepPreset': '프리셋도 함께 저장',
+  'autoEq.eqs.anyPreset': '어떤 프리셋 위에서도 재생',
+  'autoEq.eqs.stays': '헤드폰 보정과 스마트 보정은 그대로 남습니다.',
+  'autoEq.eqs.cancel': '취소',
+  'autoEq.eqs.save': '저장',
+  'autoEq.eqs.saveFailed': '저장하지 못했습니다. 다시 시도하세요.',
+  'autoEq.eqs.putOn': '적용',
+  'autoEq.eqs.update': '업데이트',
+  'autoEq.eqs.updateWithLive': '재생 중인 소리로 업데이트',
+  'autoEq.eqs.playing': '재생 중',
+  'autoEq.eqs.more': '{name} 더 보기',
+  'autoEq.eqs.renameLabel': '{name}의 새 이름',
+  'autoEq.eqs.deleteAsk': '{name}을(를) 삭제할까요?',
+  'autoEq.eqs.deleteKeeps':
+    '이것을 쓰는 노래와 앨범은 그 사운드를 자기 것으로 유지합니다.',
+  'autoEq.eqs.usedBy': '{what}에 사용',
+  'autoEq.eqs.moreCount': '{count}개 더',
+  'autoEq.eqs.seeAll': '{count}개 모두 보기',
+  'autoEq.eqs.use': '저장한 EQ 사용',
+  'autoEq.songs.follows': '{name} 따름',
 } satisfies Partial<Dictionary>;
 
 export default autoEq;

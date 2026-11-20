@@ -10,9 +10,8 @@ import Chevron from '../icons/Chevron';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import { useTranslation } from '../utils/I18nContext';
 import { useSongSoundIndex } from '../audio/songSoundIndex';
-import songSoundPresetName from '../components/songSoundPresetName';
 import LibrarySoundMenu from './LibrarySoundMenu';
-import librarySoundTag from './librarySoundTag';
+import librarySoundTag, { savedSoundName } from './librarySoundTag';
 
 /**
  * A song's sound in its Details (Ivan, 2026-11-19: "from the song's row in
@@ -51,9 +50,7 @@ const LibraryTrackSound = ({ track }: { track: ILibraryTrack }) => {
   }, [isOpen]);
 
   const tag = librarySoundTag(track, index);
-  const preset = tag
-    ? (songSoundPresetName(tag.presetId, t) ?? t('songSound.noPresetName'))
-    : undefined;
+  const preset = tag ? savedSoundName(tag, t) : undefined;
   let where = t('library.sound.detailsYours');
   if (tag?.kind === 'own' && preset) {
     where = t('library.sound.tagOwn', { preset });

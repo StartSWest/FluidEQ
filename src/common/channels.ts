@@ -168,8 +168,8 @@ enum ChannelEnum {
   // output (`songSoundMemory.ts`). Looked up on every settled track: the
   // song's own and its album's.
   LOOKUP_SONG_SOUND = 'lookupSongSound',
-  // Filed when a saved song the listener changed ends (counts the play), or
-  // at "Save for this song" (does not).
+  // Filed at "Save for this song" or Save changes: what plays, or a saved EQ
+  // the song then follows.
   SAVE_SONG_SOUND = 'saveSongSound',
   FORGET_SONG_SOUND = 'forgetSongSound',
   // Library songs given a sound of their own, or have theirs forgotten, one
@@ -185,6 +185,13 @@ enum ChannelEnum {
   NAME_LIBRARY_SONG_SOUNDS = 'nameLibrarySongSounds',
   // Manage's "Forget all", for one world: the Library's or other players'.
   FORGET_SONG_SOUNDS_OF = 'forgetSongSoundsOf',
+  // Auto EQ's saved EQs (`savedEq.ts`): saved under a name (replying with the
+  // name used, numbered on a clash), updated with what plays, renamed, and
+  // deleted, which leaves every song and album on it its sound as its own.
+  SAVE_EQ = 'saveEq',
+  UPDATE_EQ = 'updateEq',
+  RENAME_EQ = 'renameEq',
+  DELETE_EQ = 'deleteEq',
   // Main to the window: what is kept changed, so whatever shows it asks again
   // and a playing song is looked up again.
   SONG_SOUNDS_CHANGED = 'songSoundsChanged',

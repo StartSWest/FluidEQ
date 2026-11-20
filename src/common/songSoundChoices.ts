@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { sameSongSound } from './songSound';
+import { ISongSound, sameSongSound } from './songSound';
 import { ISongSoundParts, ISongSoundState } from './songSoundEvents';
 import { TStep, giveEverythingBack, lookupOpen } from './songSoundSteps';
 
@@ -77,6 +77,17 @@ export const revert = (state: ISongSoundState): TStep => {
     [{ kind: 'apply', sound, isLent: session.handBack !== undefined }],
   ];
 };
+
+/**
+ * A saved EQ put on by the listener. While a song plays a sound it borrowed,
+ * the EQ is lent too, as an edit made over that sound is kept out of the
+ * output's profile, and the song's end hands back the listener's own sound as
+ * it always does; over the listener's own sound it simply is their sound now.
+ */
+export const putOn = (state: ISongSoundState, sound: ISongSound): TStep => [
+  { ...state, pending: sound },
+  [{ kind: 'apply', sound, isLent: state.session?.handBack !== undefined }],
+];
 
 /** Look the playing song up again, for an answer changed elsewhere. */
 export const reconsider = (state: ISongSoundState): TStep => [

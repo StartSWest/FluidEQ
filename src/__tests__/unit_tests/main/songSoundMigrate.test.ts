@@ -230,7 +230,8 @@ const stored = (dir: string) =>
         { scope: string; plays: number; updatedAt: number; title: string }
       >;
     };
-    albums: Record<string, unknown>;
+    albums: Record<string, { sound: unknown }>;
+    eqs?: Array<{ id: string; name: string; sound: unknown }>;
   };
 
 describe.each(['by name', 'by fingerprint'] as const)(
@@ -257,9 +258,11 @@ describe.each(['by name', 'by fingerprint'] as const)(
 
       const text = fs.readFileSync(fileIn(dir), 'utf8');
       const file = stored(dir);
-      expect(file.version).toBe(2);
+      // Straight to the newest version: no saved EQs yet, nothing else lost.
+      expect(file.version).toBe(3);
       expect(file.outputs).toBeUndefined();
       expect(file.albums).toEqual({});
+      expect(file.eqs).toEqual([]);
       // Three songs and the karaoke song; the broken one is left out.
       expect(Object.keys(file.songs.entries)).toHaveLength(4);
       expect(text).not.toMatch(/spotify|chrome/i);
@@ -376,7 +379,7 @@ describe.each(['by name', 'by fingerprint'] as const)(
         ]),
       ).toEqual({ song: headphoneSound });
 
-      // The next launch reads version 2 as it is: nothing written, nothing told.
+      // The next launch reads version 3 as it is: nothing written, nothing told.
       const next = await launch(dir);
       expect(fs.readFileSync(fileIn(dir), 'utf8')).toBe(afterSave);
       expect(next.notify).not.toHaveBeenCalled();

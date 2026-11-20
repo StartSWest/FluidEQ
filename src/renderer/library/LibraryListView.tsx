@@ -756,6 +756,7 @@ const LibraryListView = ({
           isFavorite={isFavorite(track.id)}
           soundKind={soundTag?.kind}
           soundPresetId={soundTag?.presetId}
+          soundEqName={soundTag?.eqName}
           duration={formatDuration(track.durationMs)}
           onPlay={onPlayTrack}
           onRestart={onRestartTrack ?? onPlayTrack}

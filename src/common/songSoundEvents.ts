@@ -85,6 +85,8 @@ export interface ISongSoundState {
 export interface IAlbumSoundMatch {
   sound: TSavedSound;
   title: string;
+  /** The saved EQ the album's sound is, when it follows one. */
+  eqId?: string;
 }
 
 export type TSongSoundEvent =
@@ -115,6 +117,11 @@ export type TSongSoundEvent =
   | { kind: 'saveNow' }
   /** "Back to saved": the saved sound on again, the changes left. */
   | { kind: 'revert' }
+  /**
+   * A saved EQ's Put on: the listener's own choice, played as any edit of
+   * theirs is — over a saved song's sound it is a change to that sound.
+   */
+  | { kind: 'putOn'; sound: ISongSound }
   /**
    * What is kept for the playing song changed elsewhere — picked in the
    * Library while it plays: it is looked up again and plays the new answer.

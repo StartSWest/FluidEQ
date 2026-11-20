@@ -58,6 +58,8 @@ export interface ISongSoundNow {
   /** It plays a saved sound, changed since and not saved: Save changes and
    * Back to saved are offered. */
   isChanged: boolean;
+  /** The saved EQ the saved sound playing follows, when it follows one. */
+  eqId?: string;
 }
 
 const listeners = new Set<() => void>();
@@ -80,6 +82,9 @@ let now: ISongSoundNow = {
 };
 /** The album named by the last lookup, for the song it was about. */
 let lastAlbum: { key: string; title: string } | undefined;
+/** The saved EQs the last lookup's answers follow, for the song it was
+ * about: the song's own, and its album's. */
+let lastEqs: { key: string; song?: string; album?: string } | undefined;
 let queue: Promise<void> = Promise.resolve();
 let stateEditor: IOutputEditor | undefined;
 
@@ -141,6 +146,13 @@ const performEffects = (effects: TSongSoundEffect[]): Promise<void> => {
             lastAlbum = match.album
               ? { key: identity.key, title: match.album.title }
               : undefined;
+            lastEqs = {
+              key: identity.key,
+              ...(match.songEqId === undefined ? {} : { song: match.songEqId }),
+              ...(match.album?.eqId === undefined
+                ? {}
+                : { album: match.album.eqId }),
+            };
             return dispatchSongSound(matchedEvent(identity, match, state.live));
           })
           .catch(() => {
@@ -249,6 +261,8 @@ const readNow = (): ISongSoundNow => {
       : undefined;
   const saved = owner ? session?.baseline : undefined;
   const isChanged = isSongSoundChanged(state) && !isHeld;
+  const eqId =
+    owner && lastEqs?.key === identity?.key ? lastEqs?.[owner] : undefined;
   return now.identity?.key === identity?.key &&
     now.owner === owner &&
     now.canSave === canSave &&
@@ -256,7 +270,8 @@ const readNow = (): ISongSoundNow => {
     now.presetId === presetId &&
     now.albumTitle === albumTitle &&
     now.saved === saved &&
-    now.isChanged === isChanged
+    now.isChanged === isChanged &&
+    now.eqId === eqId
     ? now
     : {
         ...(identity ? { identity } : {}),
@@ -264,6 +279,7 @@ const readNow = (): ISongSoundNow => {
         ...(presetId === undefined ? {} : { presetId }),
         ...(albumTitle === undefined ? {} : { albumTitle }),
         ...(saved ? { saved } : {}),
+        ...(eqId === undefined ? {} : { eqId }),
         canSave,
         isPlaying,
         isChanged,
@@ -405,6 +421,9 @@ export const useSongSoundHeld = (): boolean =>
     () => false,
   );
 
+/** What the panel says now, read outside a component. */
+export const readSongSoundNow = (): ISongSoundNow => now;
+
 export const useSongSoundNow = (): ISongSoundNow =>
   useSyncExternalStore(
     subscribe,
@@ -439,6 +458,7 @@ export const resetSongSoundSession = (): void => {
   state = getInitialSongSoundState(chosenParts);
   dismissSongSoundNotice();
   lastAlbum = undefined;
+  lastEqs = undefined;
   now = { isPlaying: false, canSave: false, isChanged: false };
   queue = Promise.resolve();
   stateEditor = undefined;
