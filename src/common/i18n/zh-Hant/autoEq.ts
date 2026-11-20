@@ -127,6 +127,10 @@ const autoEq = {
   'autoEq.eqs.moreCount': '還有 {count} 個',
   'autoEq.eqs.seeAll': '查看全部 {count} 個',
   'autoEq.eqs.use': '使用已儲存的等化器',
+  'autoEq.eqs.saveNew': '另存為新的等化器…',
+  'autoEq.eqs.updateNamed': '用正在播放的聲音更新「{name}」',
+  'autoEq.eqs.manageAll': '管理已儲存的等化器…',
+  'autoEq.eqs.putOnNamed': '套用 {name}',
   'autoEq.songs.follows': '跟隨 {name}',
 } satisfies Partial<Dictionary>;
 

@@ -787,6 +787,7 @@ const eq: Partial<Dictionary> = {
   'eq.tools.view': 'दृश्य',
   'eq.tools.add': 'जोड़ें',
   'eq.tools.clear': 'ख़ाली करें',
+  'eq.tools.saveEq': 'EQ सहेजें',
   'eq.addBandAria': 'EQ बैंड जोड़ें',
   'eq.quickLayouts': 'तेज़ लेआउट',
   'eq.bandCount': '{count} बैंड',

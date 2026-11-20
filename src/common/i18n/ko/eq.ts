@@ -758,6 +758,7 @@ const eq = {
   'eq.tools.view': '보기',
   'eq.tools.add': '추가',
   'eq.tools.clear': '지우기',
+  'eq.tools.saveEq': 'EQ 저장',
   'eq.addBandAria': 'EQ 밴드 추가',
   'eq.quickLayouts': '빠른 레이아웃',
   'eq.bandCount': '{count} 밴드',

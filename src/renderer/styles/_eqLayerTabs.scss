@@ -296,12 +296,27 @@ $eq-row-ink-quiet: color-mix(in srgb, $text-primary 62%, transparent);
 // only a glyph then are square.
 .eq-layer-tabs:is(
     [data-fit='uncaptioned'],
+    [data-fit='quiet-save'],
     [data-fit='bare-tabs'],
     [data-fit='icons'],
     [data-fit='icon-tabs']
   )
   .eq-tool-group__caption {
   display: none;
+}
+
+// Save EQ gives its word up next, before the tabs give up what they hold: the
+// newest tool's word is the one a tab's "15" or "Off" is worth more than.
+// From the glyphs-only fit on, the rule below covers it with the others.
+.eq-layer-tabs:is([data-fit='quiet-save'], [data-fit='bare-tabs'])
+  .eq-save-trigger {
+  justify-content: center;
+  width: 32px;
+  padding-inline: 0;
+
+  .eq-toolbar__word {
+    @include words-hidden;
+  }
 }
 
 .eq-layer-tabs:is(
@@ -334,6 +349,7 @@ $eq-row-ink-quiet: color-mix(in srgb, $text-primary 62%, transparent);
   }
 
   .clear-eq-trigger,
+  .eq-save-trigger,
   .eq-toolbar__add {
     justify-content: center;
     width: 32px;

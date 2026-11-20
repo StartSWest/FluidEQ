@@ -137,5 +137,9 @@ export default {
   'autoEq.eqs.moreCount': 'Ещё {count}',
   'autoEq.eqs.seeAll': 'Показать все: {count}',
   'autoEq.eqs.use': 'Выбрать сохранённый эквалайзер',
+  'autoEq.eqs.saveNew': 'Сохранить как новый…',
+  'autoEq.eqs.updateNamed': 'Обновить «{name}» тем, что играет',
+  'autoEq.eqs.manageAll': 'Управлять сохранёнными…',
+  'autoEq.eqs.putOnNamed': 'Включить {name}',
   'autoEq.songs.follows': 'Следует за {name}',
 };

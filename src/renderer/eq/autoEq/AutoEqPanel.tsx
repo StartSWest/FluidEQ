@@ -24,6 +24,7 @@ import type { TAutoEqButton } from './useAutoEqButton';
 import AutoEqNowPlaying from './AutoEqNowPlaying';
 import AutoEqSmartPart from './AutoEqSmartPart';
 import AutoEqManage, { type TManageTab } from './AutoEqManage';
+import { takeAutoEqManageRequest } from './autoEqOpen';
 import AutoEqMeasureOnce from './AutoEqMeasureOnce';
 import AutoEqSongHolds from './AutoEqSongHolds';
 import AutoEqSavedEqs from './AutoEqSavedEqs';
@@ -77,7 +78,10 @@ const AutoEqPart = ({
  */
 const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
   const { t } = useTranslation();
-  const [managing, setManaging] = useState<TManageTab | undefined>();
+  // An ask from elsewhere may name Manage's tab to open on.
+  const [managing, setManaging] = useState<TManageTab | undefined>(
+    takeAutoEqManageRequest,
+  );
   const parts = useSongSoundParts();
   const isHeld = useSongSoundHeld();
   const now = useSongSoundNow();

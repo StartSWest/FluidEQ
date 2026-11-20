@@ -305,3 +305,75 @@ SPDX-License-Identifier: GPL-3.0-or-later
   width: 40px;
   height: 16px;
 }
+
+// Save EQ's menu in the bands toolbar (`SaveEqMenu`): the band menu's rows,
+// wide enough for a saved EQ's name and what it says beside it, and the
+// panel's own form in its place while saving.
+.band-menu.eq-save-menu {
+  width: 300px;
+
+  &.is-form {
+    width: 340px;
+  }
+
+  button:disabled:not(.button) {
+    opacity: 0.45;
+    cursor: default;
+
+    &:hover {
+      background: transparent;
+    }
+  }
+
+  .eq-save-menu__update {
+    grid-template-columns: 16px minmax(0, 1fr) auto;
+  }
+
+  .eq-save-menu__eq {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+}
+
+.eq-save-menu__curve {
+  width: 44px;
+  height: 18px;
+}
+
+.eq-save-menu__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// "Put on", quiet until the row is pointed at.
+.eq-save-menu__put {
+  color: $text-faint;
+  font-size: $text-micro;
+
+  button:hover > &,
+  button:focus-visible > & {
+    color: $secondary-light;
+  }
+}
+
+.eq-save-menu__empty {
+  margin: 0;
+  padding: 6px 10px;
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+// The form at the panel's own size and ink, as it is drawn there.
+.eq-save-menu__form {
+  display: grid;
+  gap: 6px;
+  padding: 0 6px 6px;
+  color: $text-muted;
+  font-size: $text-small;
+
+  .band-menu__subject {
+    padding-inline: 4px;
+  }
+}

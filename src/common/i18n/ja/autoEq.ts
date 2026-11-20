@@ -137,5 +137,9 @@ export default {
   'autoEq.eqs.moreCount': 'ほか {count} 件',
   'autoEq.eqs.seeAll': '{count} 件すべて表示',
   'autoEq.eqs.use': '保存したEQを使う',
+  'autoEq.eqs.saveNew': '新しいEQとして保存…',
+  'autoEq.eqs.updateNamed': '「{name}」を再生中の音で更新',
+  'autoEq.eqs.manageAll': '保存したEQを管理…',
+  'autoEq.eqs.putOnNamed': '{name} をかける',
   'autoEq.songs.follows': '{name} に従う',
 };

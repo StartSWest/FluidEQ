@@ -87,7 +87,8 @@ const AutoEqSavedEqs = ({ onSeeAll }: { onSeeAll: () => void }) => {
           suggestedName={t('autoEq.eqs.defaultName', {
             count: eqs.length + 1,
           })}
-          onDone={() => setIsSaving(false)}
+          onCancel={() => setIsSaving(false)}
+          onSaved={() => setIsSaving(false)}
         />
       )}
       {!isSaving && eqs.length === 0 && (

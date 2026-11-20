@@ -202,6 +202,11 @@ const PATHS: Record<string, string> = {
     'M12 3.5l7 2.8V12c0 4.3-2.9 7.3-7 8.5-4.1-1.2-7-4.2-7-8.5V6.3l7-2.8zM9 12l2 2 4-4',
   // A disk with its label and shutter: keep this as a named thing.
   save: 'M5 4.5h11l3 3V19a.5.5 0 0 1-.5.5h-13A.5.5 0 0 1 5 19V4.5zM8 4.5v4.5h7V4.5M8 19.5v-6h8v6',
+  // The same disk with a curve where its label goes: keep an EQ (the bands
+  // toolbar's Save EQ), told apart from the song's plain Save beside Auto EQ
+  // when the row is down to glyphs.
+  saveEq:
+    'M5 4.5h11l3 3V19a.5.5 0 0 1-.5.5h-13A.5.5 0 0 1 5 19V4.5zM8 4.5v4.5h7V4.5M7.5 16c1.5-3 3-3 4.5 0s3 3 4.5 0',
   // A screen on its stand: the desktop.
   monitor: 'M3.5 5h17v11h-17zM9 20h6M12 16v4',
   // An arrow coming in from the right: sound arriving from another computer.

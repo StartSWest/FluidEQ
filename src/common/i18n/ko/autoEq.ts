@@ -135,6 +135,10 @@ const autoEq = {
   'autoEq.eqs.moreCount': '{count}개 더',
   'autoEq.eqs.seeAll': '{count}개 모두 보기',
   'autoEq.eqs.use': '저장한 EQ 사용',
+  'autoEq.eqs.saveNew': '새 EQ로 저장…',
+  'autoEq.eqs.updateNamed': '“{name}”을(를) 재생 중인 소리로 업데이트',
+  'autoEq.eqs.manageAll': '저장한 EQ 관리…',
+  'autoEq.eqs.putOnNamed': '{name} 적용',
   'autoEq.songs.follows': '{name} 따름',
 } satisfies Partial<Dictionary>;
 

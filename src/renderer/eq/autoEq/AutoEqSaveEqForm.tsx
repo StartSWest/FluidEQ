@@ -25,10 +25,13 @@ import AutoEqSongHolds, { presetLine } from './AutoEqSongHolds';
  */
 const AutoEqSaveEqForm = ({
   suggestedName,
-  onDone,
+  onCancel,
+  onSaved,
 }: {
   suggestedName: string;
-  onDone: () => void;
+  onCancel: () => void;
+  /** Saved, with the name main kept it under. */
+  onSaved: (name: string) => void;
 }) => {
   const { t } = useTranslation();
   const live = useLiveSongSound();
@@ -53,7 +56,7 @@ const AutoEqSaveEqForm = ({
     setIsSaving(true);
     setHasFailed(false);
     saveCurrentEq(name, keepPreset)
-      .then(() => onDone())
+      .then((kept) => onSaved(kept ?? name))
       .catch((error: unknown) => {
         log.error('A saved EQ could not be kept', error);
         setIsSaving(false);
@@ -72,7 +75,7 @@ const AutoEqSaveEqForm = ({
         errorMessage={hasFailed ? t('autoEq.eqs.saveFailed') : ''}
         handleChange={setName}
         handleSubmit={save}
-        handleEscape={onDone}
+        handleEscape={onCancel}
       />
       {live && (
         <AutoEqSongHolds
@@ -97,7 +100,11 @@ const AutoEqSaveEqForm = ({
         />
       )}
       <div className="eq-auto-part__line eq-auto-save-eq__actions">
-        <button type="button" className="button small subtle" onClick={onDone}>
+        <button
+          type="button"
+          className="button small subtle"
+          onClick={onCancel}
+        >
           {t('autoEq.eqs.cancel')}
         </button>
         <button

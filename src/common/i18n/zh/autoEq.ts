@@ -129,5 +129,9 @@ export default {
   'autoEq.eqs.moreCount': '还有 {count} 个',
   'autoEq.eqs.seeAll': '查看全部 {count} 个',
   'autoEq.eqs.use': '使用已保存的均衡器',
+  'autoEq.eqs.saveNew': '另存为新的均衡器…',
+  'autoEq.eqs.updateNamed': '用正在播放的声音更新“{name}”',
+  'autoEq.eqs.manageAll': '管理已保存的均衡器…',
+  'autoEq.eqs.putOnNamed': '使用 {name}',
   'autoEq.songs.follows': '跟随 {name}',
 };

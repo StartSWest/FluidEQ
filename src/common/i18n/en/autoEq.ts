@@ -138,5 +138,9 @@ export default {
   'autoEq.eqs.moreCount': '{count} more',
   'autoEq.eqs.seeAll': 'See all {count}',
   'autoEq.eqs.use': 'Use a saved EQ',
+  'autoEq.eqs.saveNew': 'Save as new EQ…',
+  'autoEq.eqs.updateNamed': 'Update “{name}” with what’s playing',
+  'autoEq.eqs.manageAll': 'Manage saved EQs…',
+  'autoEq.eqs.putOnNamed': 'Put on {name}',
   'autoEq.songs.follows': 'Follows {name}',
 };

@@ -808,6 +808,7 @@ const eq: Partial<Dictionary> = {
   'eq.tools.view': 'Ansicht',
   'eq.tools.add': 'Hinzufügen',
   'eq.tools.clear': 'Zurücksetzen',
+  'eq.tools.saveEq': 'EQ speichern',
   'eq.addBandAria': 'EQ-Band hinzufügen',
   'eq.quickLayouts': 'Schnelle Anordnungen',
   'eq.bandCount': '{count} Bänder',

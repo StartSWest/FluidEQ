@@ -726,6 +726,7 @@ const eq = {
   'eq.tools.view': '檢視',
   'eq.tools.add': '新增',
   'eq.tools.clear': '清除',
+  'eq.tools.saveEq': '儲存等化器',
   'eq.addBandAria': '新增 EQ 頻段',
   'eq.quickLayouts': '快速佈局',
   'eq.bandCount': '{count} 頻段',

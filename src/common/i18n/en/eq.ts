@@ -806,6 +806,7 @@ const eq = {
   'eq.tools.view': 'View',
   'eq.tools.add': 'Add',
   'eq.tools.clear': 'Clear',
+  'eq.tools.saveEq': 'Save EQ',
   'eq.addBandAria': 'Add EQ band',
   'eq.quickLayouts': 'Quick layouts',
   'eq.bandCount': '{count} Band',

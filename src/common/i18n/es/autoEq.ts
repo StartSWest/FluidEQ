@@ -141,5 +141,9 @@ export default {
   'autoEq.eqs.moreCount': '{count} más',
   'autoEq.eqs.seeAll': 'Ver los {count}',
   'autoEq.eqs.use': 'Usar un EQ guardado',
+  'autoEq.eqs.saveNew': 'Guardar como EQ nuevo…',
+  'autoEq.eqs.updateNamed': 'Actualizar «{name}» con lo que suena',
+  'autoEq.eqs.manageAll': 'Gestionar EQ guardados…',
+  'autoEq.eqs.putOnNamed': 'Poner {name}',
   'autoEq.songs.follows': 'Sigue {name}',
 };

@@ -140,5 +140,9 @@ export default {
   'autoEq.eqs.moreCount': 'mais {count}',
   'autoEq.eqs.seeAll': 'Ver todos os {count}',
   'autoEq.eqs.use': 'Usar um EQ salvo',
+  'autoEq.eqs.saveNew': 'Salvar como novo EQ…',
+  'autoEq.eqs.updateNamed': 'Atualizar “{name}” com o que está tocando',
+  'autoEq.eqs.manageAll': 'Gerenciar EQs salvos…',
+  'autoEq.eqs.putOnNamed': 'Colocar {name}',
   'autoEq.songs.follows': 'Segue {name}',
 };

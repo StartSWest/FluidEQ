@@ -134,5 +134,9 @@ export default {
   'autoEq.eqs.moreCount': '{count} और',
   'autoEq.eqs.seeAll': 'सभी {count} देखें',
   'autoEq.eqs.use': 'सहेजा गया EQ इस्तेमाल करें',
+  'autoEq.eqs.saveNew': 'नए EQ के रूप में सहेजें…',
+  'autoEq.eqs.updateNamed': '“{name}” को जो बज रहा है उससे अपडेट करें',
+  'autoEq.eqs.manageAll': 'सहेजे गए EQ प्रबंधित करें…',
+  'autoEq.eqs.putOnNamed': '{name} लगाएँ',
   'autoEq.songs.follows': '{name} के अनुसार',
 };

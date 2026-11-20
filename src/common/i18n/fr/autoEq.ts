@@ -141,5 +141,9 @@ export default {
   'autoEq.eqs.moreCount': '{count} de plus',
   'autoEq.eqs.seeAll': 'Voir les {count}',
   'autoEq.eqs.use': 'Utiliser un EQ enregistré',
+  'autoEq.eqs.saveNew': 'Enregistrer comme nouvel EQ…',
+  'autoEq.eqs.updateNamed': 'Mettre à jour « {name} » avec ce qui joue',
+  'autoEq.eqs.manageAll': 'Gérer les EQ enregistrés…',
+  'autoEq.eqs.putOnNamed': 'Appliquer {name}',
   'autoEq.songs.follows': 'Suit {name}',
 };
