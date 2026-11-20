@@ -67,6 +67,23 @@ export default {
   'autoEq.smart.savesIn': '{remaining} में इस गाने के लिए सहेजा जाएगा',
   'autoEq.smart.onceHint': 'जो बज रहा है उसका एक माप, एक ही बार में लागू',
   'autoEq.smart.once': 'एक बार मापें',
+  'autoEq.smart.phase.listening': 'सुन रहा है',
+  'autoEq.smart.phase.settling': 'स्थिर हो रहा है',
+  'autoEq.smart.phase.held': 'इस गाने के लिए तय',
+  'autoEq.smart.phase.paused': 'रुका हुआ',
+  'autoEq.smart.heard': '{seconds} से.',
+  'autoEq.smart.note.listening':
+    'इस गाने का सुधार तय होने तक जो अभी चल रहा है वही चलता रहेगा।',
+  'autoEq.smart.note.waitingOn':
+    'इंतज़ार: {ranges}। इस गाने का सुधार तय होने तक जो अभी चल रहा है वही चलता रहेगा।',
+  'autoEq.smart.note.settling': 'लिखने से पहले जाँच रहा है कि कर्व रुक गया है।',
+  'autoEq.smart.note.held': 'मापना रुक गया है। अगले गाने पर फिर से सुनेगा।',
+  'autoEq.smart.note.heldMissing':
+    'इस रिकॉर्डिंग में नहीं है, इसलिए छोड़ दिया: {ranges}। मापना रुक गया है।',
+  'autoEq.smart.note.heldShort':
+    'सुधार के लिए रिकॉर्डिंग का बहुत कम हिस्सा, इसलिए आवाज़ वैसी ही रहती है।',
+  'autoEq.smart.again': 'फिर से मापें',
+  'autoEq.smart.againHint': 'इस गाने को फिर से सुनें और इसका सुधार बदलें',
   'autoEq.savedCount': 'सहेजे गए: {songs} · {albums}',
   'autoEq.manage': 'प्रबंधित करें',
   'autoEq.manage.title': 'सहेजी गई आवाज़ें',

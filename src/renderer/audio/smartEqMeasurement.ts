@@ -35,7 +35,7 @@ import { IRawSourceFrame, TRawSourceKind, openRawSource } from './rawSource';
  * the graph reads what it publishes through the store below.
  *
  * Nothing here samples on a clock. A frame arriving is what advances the
- * measurement; a checkpoint is due after a second of LISTENED time, which
+ * measurement; a checkpoint is due after half a second of LISTENED time, which
  * only frames can add; silence is told to it by whoever knows the transport
  * (`setSilent`), because a tap that has gone quiet sends nothing at all, and
  * nothing is not an event.
@@ -62,6 +62,32 @@ export interface IMeasurementOptions extends IBalanceListenBounds {
   onProgress?: (progress: IBalanceProgress) => void;
   /** Every checkpoint's full report, for a running mode to solve from. */
   onReport?: (report: IBalanceReport) => void;
+  /**
+   * The best-evidenced report there is, every half second of music, for the
+   * curve the graph draws while it forms — see `ISmartEqPreviewReport`.
+   */
+  onPreview?: (preview: ISmartEqPreviewReport) => void;
+}
+
+/**
+ * What the forming curve is drawn from.
+ *
+ * Two accumulators hear every frame. The measurement's own stops learning
+ * while the full-band gate holds (`fullBandGate.ts`: a filtered intro, a
+ * record with no air), for up to twenty seconds, and nothing is ever written
+ * from anything but it. A second one learns through those holds, so the
+ * curve on the graph keeps forming while the measurement waits. Whichever of
+ * the two has the more confident ranges stands for the preview: with no hold
+ * they are the same numbers and the measurement's own is taken, so the curve
+ * that forms is the curve that is written.
+ */
+export interface ISmartEqPreviewReport {
+  report: IBalanceReport;
+  /** The measurement's own latest report, which every decision is made on. */
+  measured: IBalanceReport | undefined;
+  /** Music heard, holds included. */
+  heardMs: number;
+  isSilent: boolean;
 }
 
 export interface IMeasurement {
@@ -86,7 +112,6 @@ export interface IMeasurement {
 
 /** What the graph draws of a running measurement. */
 export interface IMeasurementView {
-  progress: IBalanceProgress | undefined;
   /** Each range's live level, on the plot's own axis — the mark in the band. */
   presenceLevels: number[];
   /** The same levels followed slowly, which is where the lines sit. */
@@ -95,7 +120,6 @@ export interface IMeasurementView {
 
 const NO_LEVELS: number[] = [];
 let view: IMeasurementView = {
-  progress: undefined,
   presenceLevels: NO_LEVELS,
   presenceTypical: NO_LEVELS,
 };
@@ -159,6 +183,10 @@ export const measureSource = (
 ): IMeasurement => {
   let state: IBalanceCaptureState | undefined;
   let presenceGate: Float64Array | undefined;
+  /** The preview's accumulator — see `ISmartEqPreviewReport`. */
+  let shadow: IBalanceCaptureState | undefined;
+  let shadowGate: Float64Array | undefined;
+  let lastReport: IBalanceReport | undefined;
   let { halfLifeMs } = options;
   let sampleRate = 0;
   let lastPercent = 0;
@@ -182,7 +210,6 @@ export const measureSource = (
     close?.();
     close = undefined;
     publish({
-      progress: undefined,
       presenceLevels: NO_LEVELS,
       presenceTypical: NO_LEVELS,
     });
@@ -199,8 +226,23 @@ export const measureSource = (
   const publishProgress = (progress: IBalanceProgress) => {
     lastPercent = progress.percent;
     lastProgress = progress;
-    publish({ ...view, progress });
     options.onProgress?.(progress);
+  };
+
+  const evaluatePreview = () => {
+    if (!shadow || !options.onPreview || !isBalanceCheckDue(shadow)) {
+      return;
+    }
+    const heard = evaluateBalanceCapture(shadow, options);
+    options.onPreview({
+      report:
+        lastReport && lastReport.meanCoverage >= heard.meanCoverage
+          ? lastReport
+          : heard,
+      measured: lastReport,
+      heardMs: shadow.listenedMs,
+      isSilent,
+    });
   };
 
   const evaluate = () => {
@@ -209,6 +251,7 @@ export const measureSource = (
     }
     const bandLimited = state.fullBand.isHolding;
     if (!isBalanceCheckDue(state)) {
+      evaluatePreview();
       if (
         lastProgress &&
         (isSilent !== lastProgress.isSilent ||
@@ -227,6 +270,10 @@ export const measureSource = (
       return;
     }
     const report = evaluateBalanceCapture(state, options);
+    lastReport = report;
+    // Before the report is acted on, so the curve a hold writes has been
+    // drawn first.
+    evaluatePreview();
     publishProgress(
       buildBalanceProgress(report, lastPercent, {
         isSilent,
@@ -248,6 +295,10 @@ export const measureSource = (
       sampleRate = frame.sampleRate;
       state = createBalanceCaptureState(frame.axis, halfLifeMs);
       presenceGate = new Float64Array(state.regions.length);
+      if (options.onPreview) {
+        shadow = createBalanceCaptureState(frame.axis, halfLifeMs, true);
+        shadowGate = new Float64Array(shadow.regions.length);
+      }
     } else if (frame.sampleRate !== sampleRate) {
       // Index-to-frequency changed underneath the accumulator. Mixing two
       // axes yields frequency-shifted garbage, which is the worst possible
@@ -259,14 +310,19 @@ export const measureSource = (
       if (isSilent) {
         isSilent = false;
       }
-      accumulateBalanceFrame(state, {
+      const heard = {
         levels: frame.levels,
         peakDb: frame.peakDb,
         timestampMs: performance.now(),
-      });
+      };
+      accumulateBalanceFrame(state, heard);
       // The gate depends on where somebody has dragged the lines, which can
       // happen mid-capture, so it is refreshed every frame rather than held.
       state.presenceGate = gateOf(state, presenceGate as Float64Array);
+      if (shadow && shadowGate) {
+        accumulateBalanceFrame(shadow, heard);
+        shadow.presenceGate = gateOf(shadow, shadowGate);
+      }
       publish({
         ...view,
         presenceLevels: Array.from(state.liveDb),
@@ -305,10 +361,12 @@ export const measureSource = (
       halfLifeMs = nextHalfLifeMs;
       state = undefined;
       presenceGate = undefined;
+      shadow = undefined;
+      shadowGate = undefined;
+      lastReport = undefined;
       lastPercent = 0;
       lastProgress = undefined;
       publish({
-        progress: undefined,
         presenceLevels: NO_LEVELS,
         presenceTypical: NO_LEVELS,
       });

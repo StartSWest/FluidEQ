@@ -21,6 +21,7 @@ import {
   useSongSoundParts,
 } from '../../audio/songSoundSession';
 import { useContinuousEq } from '../../utils/continuousEq';
+import { useSmartEqPhase } from '../../utils/smartEqPreview';
 import useAutoEqButton from './useAutoEqButton';
 import AutoEqPanel from './AutoEqPanel';
 import '../../styles/EqAutoPanel.scss';
@@ -129,10 +130,14 @@ const AutoEqButton = () => {
   const now = useSongSoundNow();
   const isSmartOn = useContinuousEq();
   const isAnyOn = parts.songs || parts.albums || isSmartOn;
+  // A held song is measured no further (`smartEqHold.ts`): the button says
+  // whose sound plays, as it does with Smart correction off.
+  const isSmartHeld = useSmartEqPhase() === 'held';
+  const isMeasuring = isBalancing || (isContinuousRunning && !isSmartHeld);
 
   // What decides the sound now, in a word after the name.
   let state = '';
-  if (isBalancing || isContinuousRunning) {
+  if (isMeasuring) {
     state = t('autoEq.state.measuring');
   } else if (isHeld && (parts.songs || parts.albums)) {
     state = t('autoEq.state.paused');
@@ -164,7 +169,7 @@ const AutoEqButton = () => {
         aria-haspopup="dialog"
         // Running gets the breathing outline and nothing else.
         className={`button small eq-mode__main${isAnyOn ? '' : ' subtle'}${
-          isBalancing || isContinuousRunning ? ' is-running' : ''
+          isMeasuring ? ' is-running' : ''
         }`}
         onClick={() => setIsOpen((wasOpen) => !wasOpen)}
       >

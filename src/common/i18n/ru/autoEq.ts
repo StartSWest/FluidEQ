@@ -66,6 +66,26 @@ export default {
   'autoEq.smart.savesIn': 'Сохранится для этой песни через {remaining}',
   'autoEq.smart.onceHint': 'Одно измерение того, что играет, применяется сразу',
   'autoEq.smart.once': 'Измерить один раз',
+  'autoEq.smart.phase.listening': 'Слушаем',
+  'autoEq.smart.phase.settling': 'Стабилизация',
+  'autoEq.smart.phase.held': 'Зафиксировано для этой песни',
+  'autoEq.smart.phase.paused': 'Пауза',
+  'autoEq.smart.heard': '{seconds} с',
+  'autoEq.smart.note.listening':
+    'То, что играет сейчас, играет дальше, пока коррекция этой песни не зафиксируется.',
+  'autoEq.smart.note.waitingOn':
+    'Ждём: {ranges}. То, что играет сейчас, играет дальше, пока коррекция этой песни не зафиксируется.',
+  'autoEq.smart.note.settling':
+    'Проверяем, что кривая перестала двигаться, прежде чем записать её.',
+  'autoEq.smart.note.held':
+    'Измерение остановлено. Слушаем снова на следующей песне.',
+  'autoEq.smart.note.heldMissing':
+    'Нет в этой записи, поэтому оставлено как есть: {ranges}. Измерение остановлено.',
+  'autoEq.smart.note.heldShort':
+    'Слишком мало записи для коррекции, звук остаётся прежним.',
+  'autoEq.smart.again': 'Измерить снова',
+  'autoEq.smart.againHint':
+    'Прослушать эту песню снова и заменить её коррекцию',
   'autoEq.savedCount': 'Сохранено: {songs} · {albums}',
   'autoEq.manage': 'Управление',
   'autoEq.manage.title': 'Сохранённые звуки',

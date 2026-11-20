@@ -26,6 +26,7 @@ import {
   usePresenceLines,
 } from '../utils/presenceThreshold';
 import { useSmartEqMode } from '../utils/smartEqMode';
+import { useSmartEqPreview } from '../utils/smartEqPreview';
 
 /**
  * How strongly a range's bar is lit by the boost it has earned right now, by
@@ -73,12 +74,14 @@ const CoverageOverlay = ({
 }) => {
   // What Smart EQ is hearing of the source, published by the measurement
   // itself rather than by the loopback the graph draws (`smartEqMeasurement`).
-  const {
-    progress: balanceProgress,
-    presenceLevels,
-    presenceTypical,
-  } = useSmartEqMeasurement();
-  const coverage = balanceProgress?.regions;
+  const { presenceLevels, presenceTypical } = useSmartEqMeasurement();
+  // The ranges the dust over them is drawn from (`smartEqPreview.ts`), so
+  // the foot and the forming curve always agree; gone once the song is held,
+  // when nothing is measured any more.
+  const preview = useSmartEqPreview();
+  const isMeasuring =
+    preview.phase === 'listening' || preview.phase === 'settling';
+  const coverage = isMeasuring ? preview.regions : undefined;
   // The tint reads the presence lines, which one store holds per mode.
   usePresenceLines();
   useSmartEqMode();

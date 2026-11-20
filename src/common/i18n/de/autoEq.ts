@@ -69,6 +69,26 @@ export default {
   'autoEq.smart.onceHint':
     'Eine Messung dessen, was läuft, auf einmal angewendet',
   'autoEq.smart.once': 'Einmal messen',
+  'autoEq.smart.phase.listening': 'Hört zu',
+  'autoEq.smart.phase.settling': 'Pendelt sich ein',
+  'autoEq.smart.phase.held': 'Für diesen Song festgelegt',
+  'autoEq.smart.phase.paused': 'Pausiert',
+  'autoEq.smart.heard': '{seconds} s',
+  'autoEq.smart.note.listening':
+    'Was jetzt spielt, spielt weiter, bis die Korrektur dieses Songs feststeht.',
+  'autoEq.smart.note.waitingOn':
+    'Wartet auf {ranges}. Was jetzt spielt, spielt weiter, bis die Korrektur dieses Songs feststeht.',
+  'autoEq.smart.note.settling':
+    'Prüft, ob die Kurve stillsteht, bevor sie geschrieben wird.',
+  'autoEq.smart.note.held':
+    'Die Messung ist beendet. Beim nächsten Song hört sie wieder zu.',
+  'autoEq.smart.note.heldMissing':
+    'Nicht auf dieser Aufnahme, daher unverändert: {ranges}. Die Messung ist beendet.',
+  'autoEq.smart.note.heldShort':
+    'Zu wenig von der Aufnahme für eine Korrektur, der Klang bleibt, wie er war.',
+  'autoEq.smart.again': 'Erneut messen',
+  'autoEq.smart.againHint':
+    'Diesen Song noch einmal anhören und seine Korrektur ersetzen',
   'autoEq.savedCount': 'Gespeichert: {songs} · {albums}',
   'autoEq.manage': 'Verwalten',
   'autoEq.manage.title': 'Gespeicherte Klänge',

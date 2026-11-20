@@ -66,6 +66,26 @@ export default {
   'autoEq.smart.savesIn': 'Saved for this song in {remaining}',
   'autoEq.smart.onceHint': 'One measurement of what plays, applied at once',
   'autoEq.smart.once': 'Measure once',
+  'autoEq.smart.phase.listening': 'Listening',
+  'autoEq.smart.phase.settling': 'Settling',
+  'autoEq.smart.phase.held': 'Held for this song',
+  'autoEq.smart.phase.paused': 'Paused',
+  'autoEq.smart.heard': '{seconds} s',
+  'autoEq.smart.note.listening':
+    'What plays now keeps playing until this song’s correction holds.',
+  'autoEq.smart.note.waitingOn':
+    'Waiting on {ranges}. What plays now keeps playing until this song’s correction holds.',
+  'autoEq.smart.note.settling':
+    'Checking the curve has stopped moving before it is written.',
+  'autoEq.smart.note.held':
+    'Measuring has stopped. It listens again on the next song.',
+  'autoEq.smart.note.heldMissing':
+    'Not on this record, so left alone: {ranges}. Measuring has stopped.',
+  'autoEq.smart.note.heldShort':
+    'Too little of the record to correct, so the sound stays as it was.',
+  'autoEq.smart.again': 'Measure again',
+  'autoEq.smart.againHint':
+    'Listen to this song again and replace its correction',
   'autoEq.savedCount': 'Saved: {songs} · {albums}',
   'autoEq.manage': 'Manage',
   'autoEq.manage.title': 'Saved sounds',

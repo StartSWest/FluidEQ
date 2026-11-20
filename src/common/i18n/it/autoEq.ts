@@ -68,6 +68,26 @@ export default {
   'autoEq.smart.onceHint':
     'Una misurazione di ciò che suona, applicata in una volta',
   'autoEq.smart.once': 'Misura una volta',
+  'autoEq.smart.phase.listening': 'In ascolto',
+  'autoEq.smart.phase.settling': 'Si assesta',
+  'autoEq.smart.phase.held': 'Fissata per questo brano',
+  'autoEq.smart.phase.paused': 'In pausa',
+  'autoEq.smart.heard': '{seconds} s',
+  'autoEq.smart.note.listening':
+    'Ciò che suona ora continua finché la correzione di questo brano non è fissata.',
+  'autoEq.smart.note.waitingOn':
+    'In attesa: {ranges}. Ciò che suona ora continua finché la correzione di questo brano non è fissata.',
+  'autoEq.smart.note.settling':
+    'Verifica che la curva abbia smesso di muoversi prima di scriverla.',
+  'autoEq.smart.note.held':
+    'La misura si è fermata. Riprende al prossimo brano.',
+  'autoEq.smart.note.heldMissing':
+    'Assente in questa registrazione, quindi lasciato com’è: {ranges}. La misura si è fermata.',
+  'autoEq.smart.note.heldShort':
+    'Troppo poco della registrazione per correggere, il suono resta com’era.',
+  'autoEq.smart.again': 'Misura di nuovo',
+  'autoEq.smart.againHint':
+    'Riascolta questo brano e sostituisci la sua correzione',
   'autoEq.savedCount': 'Salvati: {songs} · {albums}',
   'autoEq.manage': 'Gestisci',
   'autoEq.manage.title': 'Suoni salvati',

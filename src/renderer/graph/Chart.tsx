@@ -50,6 +50,7 @@ import {
 } from '../utils/graphStyle';
 import { toggleChromeNow } from '../utils/idleChrome';
 import CoverageOverlay from './CoverageOverlay';
+import SmartEqDust from './SmartEqDust';
 import SlopeLine from './SlopeLine';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
@@ -482,6 +483,21 @@ const Chart = ({
             onLegendPlace={setLegendPlace}
           />
         ))}
+      {/* Smart correction's curve forming, where the coverage bars are: over
+          the curves' plot, and not while the response is off it. */}
+      {!isLiveOutputForeground && (
+        <SmartEqDust
+          xScale={xScaleFreq}
+          yScale={yScaleEq}
+          width={svgWidth}
+          height={svgHeight}
+          offsetLeft={margins.left}
+          offsetTop={margins.top}
+          plotLeft={padding.left}
+          plotRight={padding.left + plotWidth}
+          plotBottom={drawingFloor}
+        />
+      )}
       <svg
         ref={svgRef}
         width={svgWidth}

@@ -68,6 +68,24 @@ export default {
   'autoEq.smart.savesIn': 'あと {remaining} でこの曲用に保存されます',
   'autoEq.smart.onceHint': '再生中の音を 1 回測定して、すぐに適用',
   'autoEq.smart.once': '1 回測定',
+  'autoEq.smart.phase.listening': '聴取中',
+  'autoEq.smart.phase.settling': '安定待ち',
+  'autoEq.smart.phase.held': 'この曲で確定',
+  'autoEq.smart.phase.paused': '一時停止中',
+  'autoEq.smart.heard': '{seconds} 秒',
+  'autoEq.smart.note.listening':
+    'この曲の補正が確定するまで、今の音のまま再生されます。',
+  'autoEq.smart.note.waitingOn':
+    '{ranges}を待っています。この曲の補正が確定するまで、今の音のまま再生されます。',
+  'autoEq.smart.note.settling':
+    '書き込む前に、カーブが動かなくなったか確認しています。',
+  'autoEq.smart.note.held': '測定は終了しました。次の曲で再び聴取します。',
+  'autoEq.smart.note.heldMissing':
+    'この録音にないため、そのままにしました：{ranges}。測定は終了しました。',
+  'autoEq.smart.note.heldShort':
+    '補正するには録音が少なすぎるため、音はそのままです。',
+  'autoEq.smart.again': 'もう一度測定',
+  'autoEq.smart.againHint': 'この曲をもう一度聴いて補正を置き換えます',
   'autoEq.savedCount': '保存済み：{songs} · {albums}',
   'autoEq.manage': '管理',
   'autoEq.manage.title': '保存したサウンド',

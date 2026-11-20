@@ -68,6 +68,26 @@ export default {
   'autoEq.smart.savesIn': 'Enregistrée pour cette chanson dans {remaining}',
   'autoEq.smart.onceHint': 'Une mesure de ce qui joue, appliquée en une fois',
   'autoEq.smart.once': 'Mesurer une fois',
+  'autoEq.smart.phase.listening': 'Écoute',
+  'autoEq.smart.phase.settling': 'Stabilisation',
+  'autoEq.smart.phase.held': 'Figée pour cette chanson',
+  'autoEq.smart.phase.paused': 'En pause',
+  'autoEq.smart.heard': '{seconds} s',
+  'autoEq.smart.note.listening':
+    'Ce qui joue maintenant continue jusqu’à ce que la correction de cette chanson soit figée.',
+  'autoEq.smart.note.waitingOn':
+    'En attente : {ranges}. Ce qui joue maintenant continue jusqu’à ce que la correction de cette chanson soit figée.',
+  'autoEq.smart.note.settling':
+    'Vérifie que la courbe ne bouge plus avant de l’écrire.',
+  'autoEq.smart.note.held':
+    'La mesure est terminée. Elle reprend à la chanson suivante.',
+  'autoEq.smart.note.heldMissing':
+    'Absent de cet enregistrement, donc laissé tel quel : {ranges}. La mesure est terminée.',
+  'autoEq.smart.note.heldShort':
+    'Trop peu de l’enregistrement pour corriger, le son reste tel quel.',
+  'autoEq.smart.again': 'Mesurer à nouveau',
+  'autoEq.smart.againHint':
+    'Réécouter cette chanson et remplacer sa correction',
   'autoEq.savedCount': 'Enregistrés : {songs} · {albums}',
   'autoEq.manage': 'Gérer',
   'autoEq.manage.title': 'Sons enregistrés',

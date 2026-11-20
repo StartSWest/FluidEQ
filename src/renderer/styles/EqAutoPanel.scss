@@ -231,8 +231,107 @@ $auto-eq-pad: $spacing-s + $spacing-xs;
   max-width: 100%;
 }
 
-.eq-auto-smart__status > span:first-child {
-  color: $text-muted;
+// Smart correction's song (`AutoEqSmartStatus`): the phase and the music
+// heard, a bar per range, the line under them. No box: the part's own
+// spacing and one step of ink.
+.eq-auto-smart__status {
+  display: grid;
+  gap: $spacing-xs + 2px;
+  min-width: 0;
+}
+
+.eq-auto-smart__row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-xs $spacing-s;
+  min-height: 26px;
+}
+
+// Breathes while it measures, still once the song is held: the same sign the
+// graph's chip carries.
+.eq-auto-smart__dot {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: $secondary-default;
+  animation: eq-auto-smart-breathe 1.4s ease-in-out infinite;
+
+  .is-held &,
+  .is-silent & {
+    animation: none;
+  }
+
+  .is-silent & {
+    opacity: 0.45;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes eq-auto-smart-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.eq-auto-smart__word {
+  color: $text-primary;
+  font-weight: $weight-semibold;
+}
+
+.eq-auto-smart__heard {
+  color: $text-faint;
+  font-variant-numeric: tabular-nums;
+}
+
+.eq-auto-smart__again {
+  margin-left: auto;
+}
+
+// One short bar per range, the plot's foot in small.
+.eq-auto-smart__ranges {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.eq-auto-smart__range {
+  position: relative;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: color-mix(in srgb, $edge-tint 14%, transparent);
+
+  > span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: color-mix(in srgb, $secondary-default 55%, transparent);
+    transition: width $motion-slow $ease-out;
+  }
+
+  &.is-covered > span {
+    background: $secondary-default;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    > span {
+      transition: none;
+    }
+  }
+}
+
+.eq-auto-smart__note {
+  margin: 0;
+  color: $text-faint;
 }
 
 .eq-auto-smart__track {

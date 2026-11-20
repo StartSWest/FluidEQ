@@ -299,17 +299,27 @@ export const REGION_ACTIVE_WEIGHT = REGION_TARGET_WEIGHT * 0.15;
 export const MIN_LISTEN_MS = 4000;
 export const MAX_LISTEN_MS = 25000;
 
-/** One convergence checkpoint per second of listened time. */
-export const CONVERGENCE_CHECK_MS = 1000;
+/**
+ * One convergence checkpoint per half second of listened time.
+ *
+ * It was a second, with three holds: three seconds of a curve standing still
+ * before anything was written, on top of the time to cover it. Each
+ * checkpoint is also when the graph's forming curve is redrawn
+ * (`smartEqPreview.ts`), and a curve that moves once a second reads as
+ * stuck. Half a second with two holds keeps the same tolerance and the same
+ * coverage rules and asks one second of stillness instead of three (Ivan,
+ * 2026-11-20: "it needs to create the curve faster").
+ */
+export const CONVERGENCE_CHECK_MS = 500;
 
 /**
  * Maximum drift of the smoothed, tilt-removed residual between checkpoints.
  * 0.4 dB moves a band by about 0.26 dB after `strength` — below audibility. If
- * another second of listening cannot move a band further than that, more
- * listening is pointless.
+ * another half second of listening cannot move a band further than that, the
+ * estimate has settled.
  */
 export const CONVERGENCE_TOLERANCE_DB = 0.4;
-export const CONVERGENCE_HOLDS = 3;
+export const CONVERGENCE_HOLDS = 2;
 
 /**
  * How long BOTH the weakest region and the mean must fail to improve before we

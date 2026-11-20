@@ -22,6 +22,7 @@ import {
 import { useSongEqRecording } from '../../audio/songEqSession';
 import { formatDuration } from '../../library/player/NowPlayingBar';
 import type { TAutoEqButton } from './useAutoEqButton';
+import AutoEqSmartStatus from './AutoEqSmartStatus';
 
 /** The mode Smart correction starts in when it was never chosen. */
 const FIRST_MODE: TSmartEqMode = 'balance';
@@ -40,7 +41,7 @@ const FIRST_MODE: TSmartEqMode = 'balance';
  */
 const AutoEqSmartPart = ({ button }: { button: TAutoEqButton }) => {
   const { t } = useTranslation();
-  const { isBalancing, isContinuousRunning, listeningFor } = button;
+  const { isBalancing, isContinuousRunning } = button;
   const isOn = useContinuousEq();
   const mode = useSmartEqMode();
   const recording = useSongEqRecording();
@@ -97,22 +98,16 @@ const AutoEqSmartPart = ({ button }: { button: TAutoEqButton }) => {
             }))}
             onChange={(next) => setSmartEqMode(next as TSmartEqMode)}
           />
-          {isContinuousRunning && (
-            <div className="eq-auto-part__line eq-auto-smart__status">
-              <span role="status">
-                {listeningFor || t('autoEq.smart.waiting')}
+          {isContinuousRunning && <AutoEqSmartStatus />}
+          {isContinuousRunning && saving && (
+            <div className="eq-auto-part__line eq-auto-smart__saving">
+              <span className="eq-auto-smart__track" aria-hidden="true">
+                <span
+                  className="eq-auto-smart__fill"
+                  style={{ width: `${progress * 100}%` }}
+                />
               </span>
-              {saving && (
-                <>
-                  <span className="eq-auto-smart__track" aria-hidden="true">
-                    <span
-                      className="eq-auto-smart__fill"
-                      style={{ width: `${progress * 100}%` }}
-                    />
-                  </span>
-                  <span>{saving}</span>
-                </>
-              )}
+              <span>{saving}</span>
             </div>
           )}
         </>

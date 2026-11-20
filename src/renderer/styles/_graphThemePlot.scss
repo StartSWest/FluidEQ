@@ -69,6 +69,102 @@ it under the terms of the GNU General Public License version 3 or later.
   pointer-events: none;
 }
 
+// Smart correction's curve forming (`SmartEqDust`): over the chart's SVG,
+// because under it the EQ's own fill dimmed every point below the curve to
+// nothing. It takes no pointer, so the handles under it still drag; it is
+// there for the few seconds of a measurement and fades with the hold.
+.chart-smart-dust {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+}
+
+// What the dust is doing, at the top of the plot and centred on it - the top
+// left is the corner legend's: a step of the accent's light, no box and no
+// shadow. Held, it leaves with the dust.
+.chart-smart-chip {
+  position: absolute;
+  z-index: 2;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  padding: 3px 10px 3px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, $secondary-default 13%, transparent);
+  color: $text-primary;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+  white-space: nowrap;
+  pointer-events: none;
+  @include animate(chart-smart-chip-in, $motion-base);
+
+  &.is-held {
+    @include animate(chart-smart-chip-out, 2.4s, ease-in, 0ms, forwards);
+  }
+}
+
+.chart-smart-chip__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: $secondary-default;
+  animation: chart-smart-chip-breathe 1.4s ease-in-out infinite;
+
+  .is-held &,
+  .is-silent & {
+    animation: none;
+  }
+
+  .is-silent & {
+    opacity: 0.45;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.chart-smart-chip__word {
+  font-weight: $weight-semibold;
+}
+
+.chart-smart-chip__heard {
+  color: $text-faint;
+}
+
+@keyframes chart-smart-chip-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes chart-smart-chip-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+
+// Read, then gone with the dust: held for three quarters, faded in the last.
+@keyframes chart-smart-chip-out {
+  0%,
+  70% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
 // A premium scene fills the card behind the toolbar and all four SVG gutters.
 // The plot clips it to the card's rounded corners. The two canvases are never
 // mounted together. No euphoria keyframe here on purpose: that

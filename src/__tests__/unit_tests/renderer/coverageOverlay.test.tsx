@@ -18,25 +18,29 @@ import { render } from '@testing-library/react';
 import { scaleLog } from 'd3';
 import CoverageOverlay from '../../../renderer/graph/CoverageOverlay';
 
+// The ranges come from what the dust over them is drawn from
+// (`smartEqPreview.ts`); the levels for their tint from the measurement.
 jest.mock('../../../renderer/audio/smartEqMeasurement', () => ({
   useSmartEqMeasurement: () => ({
-    progress: {
-      regions: [
-        {
-          label: 'bass',
-          lowFrequency: 60,
-          highFrequency: 250,
-          centreFrequency: 122,
-          confidence: 0.5,
-          isCovered: false,
-          liveDb: -30,
-          typicalDb: -30,
-          weight: 1,
-        },
-      ],
-    },
     presenceLevels: [],
     presenceTypical: [],
+  }),
+}));
+jest.mock('../../../renderer/utils/smartEqPreview', () => ({
+  useSmartEqPreview: () => ({
+    phase: 'listening',
+    regions: [
+      {
+        label: 'bass',
+        lowFrequency: 60,
+        highFrequency: 250,
+        centreFrequency: 122,
+        confidence: 0.5,
+        isCovered: false,
+        liveDb: -30,
+        typicalDb: -30,
+      },
+    ],
   }),
 }));
 jest.mock('../../../renderer/utils/presenceThreshold', () => ({

@@ -228,6 +228,13 @@ export interface IBalanceCaptureState {
    */
   fullBand: IFullBandState;
   /**
+   * Learns from every frame, the gate's holds included: the graph's forming
+   * curve, which must not stand still for the twenty seconds a filtered
+   * intro or a record with no air holds the measurement (`smartEqPreview`).
+   * Never what a correction is written from.
+   */
+  learnsThroughHolds?: boolean;
+  /**
    * What each range TYPICALLY does on this record, on the plot own axis.
    *
    * Where the presence lines place themselves from. Distinct from liveDb, which
@@ -427,11 +434,14 @@ export const createBalanceCaptureState = (
    * its own accord — see `CONTINUOUS_HALF_LIFE_MS`.
    */
   halfLifeMs?: number,
+  /** See `learnsThroughHolds`. */
+  learnsThroughHolds = false,
 ): IBalanceCaptureState => {
   const regions = createBalanceRegions(axis);
   return {
     axis: [...axis],
     halfLifeMs,
+    learnsThroughHolds,
     regions,
     power: new Float64Array(axis.length),
     weight: new Float64Array(axis.length),
@@ -606,11 +616,9 @@ export const accumulateBalanceFrame = (
    * music come back, and it can only see that through them — but they buy no
    * listened time, age nothing, and teach nothing.
    */
-  const isLearning = advanceFullBandGate(
-    state.fullBand,
-    state.presenceGate,
-    dt,
-  );
+  const isLearning =
+    advanceFullBandGate(state.fullBand, state.presenceGate, dt) ||
+    state.learnsThroughHolds === true;
 
   // The frame's own mean-power level is the reference. It is the
   // minimum-variance choice, and the tilt fit plus centring absorb the

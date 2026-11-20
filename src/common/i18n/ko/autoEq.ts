@@ -66,6 +66,24 @@ const autoEq = {
   'autoEq.smart.savesIn': '{remaining} 후 이 노래에 저장됩니다',
   'autoEq.smart.onceHint': '재생 중인 소리를 한 번 측정해 바로 적용',
   'autoEq.smart.once': '한 번 측정',
+  'autoEq.smart.phase.listening': '듣는 중',
+  'autoEq.smart.phase.settling': '안정화 중',
+  'autoEq.smart.phase.held': '이 노래에 고정됨',
+  'autoEq.smart.phase.paused': '일시중지됨',
+  'autoEq.smart.heard': '{seconds}초',
+  'autoEq.smart.note.listening':
+    '이 노래의 보정이 고정될 때까지 지금 소리가 그대로 재생됩니다.',
+  'autoEq.smart.note.waitingOn':
+    '{ranges} 기다리는 중. 이 노래의 보정이 고정될 때까지 지금 소리가 그대로 재생됩니다.',
+  'autoEq.smart.note.settling':
+    '기록하기 전에 곡선이 멈췄는지 확인하는 중입니다.',
+  'autoEq.smart.note.held': '측정이 끝났습니다. 다음 노래에서 다시 듣습니다.',
+  'autoEq.smart.note.heldMissing':
+    '이 녹음에 없어 그대로 두었습니다: {ranges}. 측정이 끝났습니다.',
+  'autoEq.smart.note.heldShort':
+    '보정하기에는 녹음이 너무 적어 소리는 그대로입니다.',
+  'autoEq.smart.again': '다시 측정',
+  'autoEq.smart.againHint': '이 노래를 다시 듣고 보정을 바꿉니다',
   'autoEq.savedCount': '저장됨: {songs} · {albums}',
   'autoEq.manage': '관리',
   'autoEq.manage.title': '저장된 사운드',
