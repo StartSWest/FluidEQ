@@ -381,6 +381,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     svg {
       fill: currentcolor;
     }
+
+    // The yellow is a light: on the white window it stood at 1.2:1, a star
+    // given that could hardly be seen. A deep gold there, the same hue, past
+    // the 3:1 a mark needs.
+    :root[data-window-ink='dark'] &:not(.is-pin) {
+      color: oklch(from #{$neon-yellow} 0.62 0.15 h);
+    }
   }
 
   // A pin is an outline drawn open at its foot, so filled it reads as a

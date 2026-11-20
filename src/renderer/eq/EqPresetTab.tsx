@@ -21,6 +21,8 @@ import {
   useDspSettings,
 } from '../dsp/store';
 import { useDspPresetSelection } from '../dsp/useDspPresetSelection';
+import { toggleFavouriteDspPreset } from '../dsp/favouriteDspPresets';
+import MenuIcon from '../icons/MenuIcon';
 import GenreNotesPreview from '../dsp/GenreNotesPreview';
 import { genreNotesFor } from '../dsp/genreNotesModel';
 import GameSoundPresetButton from '../games/GameSoundPresetButton';
@@ -76,6 +78,7 @@ const EqPresetTab = () => {
   const activeId =
     chosen === undefined || chosen === NONE_CHAIN_ID ? 'none' : chosen;
   const sounding = useSoundingGame();
+  const favourites = new Set(favorites.map((preset) => preset.id));
 
   const members: Record<TPresetGroup, IDspCatalogEntry[]> = {
     favorites,
@@ -187,31 +190,64 @@ const EqPresetTab = () => {
                 </span>
               </button>
             )}
-            {shown.map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                className="eq-preset-tab__tile"
-                aria-pressed={preset.id === activeId}
-                disabled={isDisabled}
-                onPointerEnter={() => setPointedAt(preset.id)}
-                onFocus={() => setPointedAt(preset.id)}
-                onClick={() => {
-                  apply(preset.id).catch(() => undefined);
-                }}
-              >
-                <VoicingIcon
-                  profileId={preset.id}
-                  className="eq-preset-tab__glyph"
-                />
-                <span className="eq-preset-tab__words">
-                  <strong>{preset.name}</strong>
-                  <span>
-                    {isApo ? t('dsp.quick.apo') : dspPresetRowHint(preset, t)}
-                  </span>
-                </span>
-              </button>
-            ))}
+            {shown.map((preset) => {
+              const isFavourite = favourites.has(preset.id);
+              const starLabel = t(
+                isFavourite
+                  ? 'library.playlist.removeFromFavorites'
+                  : 'library.playlist.addToFavorites',
+              );
+              // The star beside the tile, never inside it: a button cannot
+              // hold a button, and starring must not put the preset on. The
+              // same star, list and labels as the preset picks' menus, so a
+              // star given here files the preset first there too (Ivan,
+              // 2026-11-20: "on presets how do I add one to fav or remove").
+              return (
+                <div key={preset.id} className="eq-preset-tab__cell">
+                  <button
+                    type="button"
+                    className="eq-preset-tab__tile"
+                    aria-pressed={preset.id === activeId}
+                    disabled={isDisabled}
+                    onPointerEnter={() => setPointedAt(preset.id)}
+                    onFocus={() => setPointedAt(preset.id)}
+                    onClick={() => {
+                      apply(preset.id).catch(() => undefined);
+                    }}
+                  >
+                    <VoicingIcon
+                      profileId={preset.id}
+                      className="eq-preset-tab__glyph"
+                    />
+                    <span className="eq-preset-tab__words">
+                      <strong>{preset.name}</strong>
+                      <span>
+                        {isApo
+                          ? t('dsp.quick.apo')
+                          : dspPresetRowHint(preset, t)}
+                      </span>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`rich-pick__star eq-preset-tab__star${
+                      isFavourite ? ' is-on' : ''
+                    }`}
+                    aria-pressed={isFavourite}
+                    aria-label={`${starLabel}: ${preset.name}`}
+                    title={starLabel}
+                    onClick={() =>
+                      toggleFavouriteDspPreset(
+                        preset.id,
+                        catalog.map((one) => one.id),
+                      )
+                    }
+                  >
+                    <MenuIcon name="star" />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

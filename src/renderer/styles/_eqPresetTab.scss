@@ -184,6 +184,37 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
+// A tile and its star: the star at the tile's right end, shown while the
+// pointer or the focus is on the tile and always once given, as the preset
+// picks' menus show theirs (`.rich-pick__star`).
+.eq-preset-tab__cell {
+  position: relative;
+  display: grid;
+  min-width: 0;
+
+  > .eq-preset-tab__tile {
+    padding-right: 40px;
+  }
+
+  &:hover .eq-preset-tab__star,
+  &:focus-within .eq-preset-tab__star {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    .eq-preset-tab__star {
+      opacity: 1;
+    }
+  }
+}
+
+.eq-preset-tab__star {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+}
+
 .eq-preset-tab__glyph {
   width: 18px;
   height: 18px;
