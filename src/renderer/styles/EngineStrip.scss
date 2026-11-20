@@ -21,8 +21,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // where they appear together.
 
 @use 'color' as *;
-@use 'glass' as *;
-@use 'motion' as *;
 @use 'theme' as *;
 
 .engine-strip {
@@ -129,92 +127,4 @@ SPDX-License-Identifier: GPL-3.0-or-later
   > .latency-readout.is-game {
     border-left-color: $border-field;
   }
-}
-
-// THE ENGINE CHIP (`EngineChip` in `WorkspacePages.tsx`): the engine's name
-// and this strip, held together. On the window's own face it is no box at
-// all, and the two stand in the head's row as they always did.
-.eq-engine-chip {
-  display: contents;
-}
-
-// Over a scene, one crystal (Ivan, 2026-11-19, round 3 of the graph's
-// options, where the engine's row was one of the things circled as weak on
-// a bright picture). While the engine is working and the delay is known, only
-// the delay shows; the name and Game mode open from it under the pointer or
-// the keyboard, on their own widths (`interpolate-size`). Checking, part of
-// it off or not on this output keeps the name out: that is something to be
-// read.
-:root.is-scene-column
-  .center-workspace.is-graph-first
-  > .center-head--eq
-  .eq-engine-chip {
-  @include crystal-face;
-
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 2px 2px 10px;
-  gap: 8px;
-  interpolate-size: allow-keywords;
-
-  // No engine to name (neither is installed and usable): no crystal either.
-  &:empty {
-    display: none;
-  }
-
-  // The crystal is the face: the strip draws none of its own inside it.
-  .engine-strip {
-    padding: 0;
-    border-color: transparent;
-    background: none;
-    box-shadow: none;
-  }
-
-  > .eq-engine-line,
-  .engine-strip > .game-mode-switch {
-    overflow: hidden;
-    transition:
-      width $motion-base $ease-unfold,
-      padding $motion-base $ease-unfold,
-      opacity $motion-base ease;
-    white-space: nowrap;
-  }
-
-  // Inside the crystal its words carry no halo: the picture behind them is
-  // what the crystal holds off.
-  :is(.eq-engine-label, .game-mode-switch__label, .latency-readout__value) {
-    text-shadow: none;
-  }
-
-  svg {
-    filter: none;
-  }
-
-  // Only with a delay to show: folded round nothing, the crystal was an empty
-  // sliver.
-  &:has(> .eq-engine-line--working):has(.latency-readout):not(
-      :hover,
-      :focus-within
-    ) {
-    padding-left: 2px;
-
-    > .eq-engine-line,
-    .engine-strip > .game-mode-switch {
-      width: 0;
-      padding-inline: 0;
-      opacity: 0;
-    }
-
-    // The seam had the switch on its other side.
-    .engine-strip > .latency-readout {
-      border-left-color: transparent;
-    }
-  }
-}
-
-:root.is-scene-column[data-scene-head-ink='dark']
-  .center-workspace.is-graph-first
-  > .center-head--eq
-  .eq-engine-chip {
-  @include crystal-dark-ink;
 }

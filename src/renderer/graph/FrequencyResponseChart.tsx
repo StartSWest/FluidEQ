@@ -156,7 +156,7 @@ import GraphViewMenu from './GraphViewMenu';
 import useResponseCurves from './useResponseCurves';
 import shownCurves from './shownCurves';
 import isOwnAnimationEnd from '../utils/ownAnimationEnd';
-import GraphGallery, { GraphGalleryKeys } from './GraphGallery';
+import LookPicker from './LookPicker';
 import liveTraceCurves from './liveTraceCurves';
 import { useWindowMode } from '../player/windowModeStore';
 import { hasHeadphoneLayer } from '../../common/headphone';
@@ -777,6 +777,37 @@ const FrequencyResponseChart = ({
       curve === 'total' ? ROW_ORDER.length : ROW_ORDER.indexOf(curve);
     curveChips.sort((a, b) => rank(a.curve) - rank(b.curve));
   }
+  /**
+   * Whether the look's cluster fits on the row, measured rather than guessed
+   * at a breakpoint: the row is right-aligned over the plot, and the plot is
+   * whatever is left after the sidebar. The natural width is remembered from
+   * the last time it was laid out on one line and compared against the room
+   * there is now — which is also what stops it oscillating, since the folded
+   * cluster is narrower than the threshold that folded it. The curves' names
+   * are not in it any more (`GraphCornerLegend`).
+   */
+  const legendGroup = useRef<HTMLSpanElement>(null);
+  const naturalLegendWidth = useRef(0);
+  const [isClusterFolded, setIsClusterFolded] = useState(false);
+
+  useLayoutEffect(() => {
+    const group = legendGroup.current;
+    const row = group?.parentElement;
+    if (!group || !row || typeof ResizeObserver === 'undefined') {
+      return undefined;
+    }
+    const measure = () => {
+      if (!isClusterFolded) {
+        naturalLegendWidth.current = group.scrollWidth;
+      }
+      setIsClusterFolded(naturalLegendWidth.current > row.clientWidth);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(row);
+    observer.observe(group);
+    return () => observer.disconnect();
+  }, [isClusterFolded]);
   // Read by the window key handler, which is registered once and must not be
   // torn down and rebuilt every time a band moves.
   const filtersRef = useRef(filters);
@@ -1554,211 +1585,278 @@ const FrequencyResponseChart = ({
           isWaveHidden={isDisplayedWaveHidden}
           isWaveLocked={!isEngineUsable}
         />
-        {/* The looks as a gallery (`GraphGallery`; Ivan, 2026-11-19): the
-            ones either side at the plot's edges, a press there stepping to
-            them, and this one's credit at the plot's foot, with the switches
-            that belong to it opening from the credit. It replaced the row
-            across the top of the plot, which stood over the picture for as
-            long as the options were out.
+        {/* One pane for the look's cluster. Folded, it wraps
+            (`GraphTheme.scss`): it is right-aligned over the plot, so a row
+            wider than the plot did not stop at an edge — it ran off the
+            graph's left. */}
+        <span
+          className={`graph-legend-group${isClusterFolded ? ' is-folded' : ''}`}
+          ref={legendGroup}
+        >
+          {/* How to edit on the plot, behind a mark rather than spelled out
+              along the row (Ivan, 2026-11-16, moving the legend: the drag
+              hint text went with it). Only while there is something to drag:
+              solo and a hidden EQ curve both take the band handles off the
+              plot, and instructions for controls that are not on screen read
+              as controls that have stopped working. */}
+          {!isLiveOutputForeground && !areHandlesHidden && (
+            <span
+              className="graph-edit-hint-mark"
+              role="img"
+              aria-label={t('graph.editHint')}
+              title={t('graph.editHint')}
+            >
+              ?
+            </span>
+          )}
+          {/* The picker needed its own place, since clicking the plot itself
+            drags bands. Forty looks is more than a cycle can reasonably walk,
+            hence a searchable list. Its caption, the live output's switch,
+            is the corner legend's last entry now. */}
+          <span
+            className={`graph-legend graph-legend--live graph-legend--picker${
+              isDisplayedWaveHidden ? ' is-hidden' : ''
+            }`}
+          >
+            {/* The arrows either side of the look's name: what the folded
+                row never splits. */}
+            <span className="graph-look-walk">
+              {/* Arrows either side of the name, so walking the looks never
+                  depends on where the keyboard is pointing.
 
-            The edges are the arrows, so walking the looks never depends on
-            where the keyboard is pointing. Space and Ctrl+Space still do it,
-            and stop the moment somebody clicks the video: the guest takes
-            focus and every key after that belongs to the page. */}
-        <GraphGallery
-          // The selection, not the resolved look: while the designer is open
-          // the chart draws an unsaved draft whose id is in no list.
-          selectedLookId={selectedLookId}
-          isDisabled={isDisplayedWaveHidden}
-          isIdle={isChromeIdle}
-          onStep={cycleGraphLook}
-          onChoose={chooseGraphLook}
-          like={
-            // A member's scene has somebody to thank (Ivan, 2026-09-29).
-            // Keyed on the scene so the count never carries over from the
-            // last one.
-            selectedMemberScene && (
+                  Space and Ctrl+Space still do it, and stop the moment somebody
+                  clicks the video: the guest takes focus and every key after that
+                  belongs to the page, so Space pauses the video instead of
+                  changing the drawing. That is exactly when somebody is most
+                  likely to want a different one, and a mouse is already in their
+                  hand. */}
+              <span className="graph-look-walk__steps">
+                <button
+                  type="button"
+                  className="graph-look-step"
+                  aria-label={t('graph.style.previous')}
+                  title={`${t('graph.style.previous')} (Ctrl+Space)`}
+                  disabled={isDisplayedWaveHidden}
+                  onClick={() => cycleGraphLook(-1)}
+                >
+                  <svg viewBox="0 0 16 16" aria-hidden>
+                    <path d="M10 3.5l-4 4.5 4 4.5" />
+                  </svg>
+                </button>
+                {/* The selection, not the resolved look: while the designer is
+                    open the chart draws an unsaved draft whose id is in no
+                    list, and a picker handed that id would go blank. */}
+                <LookPicker
+                  value={selectedLookId}
+                  disabled={isDisplayedWaveHidden}
+                  onChoose={chooseGraphLook}
+                />
+                <button
+                  type="button"
+                  className="graph-look-step"
+                  aria-label={t('graph.style.next')}
+                  title={`${t('graph.style.next')} (Space)`}
+                  disabled={isDisplayedWaveHidden}
+                  onClick={() => cycleGraphLook(1)}
+                >
+                  <svg viewBox="0 0 16 16" aria-hidden>
+                    <path d="M6 3.5l4 4.5-4 4.5" />
+                  </svg>
+                </button>
+              </span>
+            </span>
+            <GraphAutoCycle
+              selectedLookId={selectedLookId}
+              isWaveHidden={isDisplayedWaveHidden}
+              isEditing={isDesignerOpen}
+            />
+            {/* A member's scene has somebody to thank, beside the desk lights,
+                which follow the same scene (Ivan, 2026-09-29). Keyed on the
+                scene so the count never carries over from the last one. */}
+            {selectedMemberScene && (
               <SceneLikeButton
                 key={selectedMemberScene.lookId}
                 scene={selectedMemberScene}
               />
-            )
-          }
-          tools={
-            <>
-              <GraphAutoCycle
-                selectedLookId={selectedLookId}
-                isWaveHidden={isDisplayedWaveHidden}
-                isEditing={isDesignerOpen}
-              />
-              {/* How the chosen form is coloured: one control cycling the
-                  three palettes. Disabled on a look somebody built, which
-                  carries the palette it was designed with. A Plus scene
-                  brings its own colours and has none to cycle; what it lends
-                  the window is chosen in the actions menu (Ivan,
-                  2026-11-16). */}
-              {!isPremiumSceneSelected && (
-                <button
-                  type="button"
-                  className="graph-look-step graph-look-step--toggle"
-                  aria-pressed={graphPalette !== 'signal'}
-                  aria-label={`${t('look.palette.cycle')}: ${t(
-                    PALETTE_LABEL_KEYS[graphPalette],
-                  )}`}
-                  title={`${t('look.palette.cycle')}: ${t(
-                    PALETTE_LABEL_KEYS[graphPalette],
-                  )}`}
-                  disabled={isDisplayedWaveHidden || !isPaletteSelectable}
-                  onClick={() =>
-                    setGraphPalette(
-                      GRAPH_PALETTES[
-                        (GRAPH_PALETTES.indexOf(graphPalette) + 1) %
-                          GRAPH_PALETTES.length
-                      ],
-                    )
-                  }
-                >
-                  <PaletteIcon palette={graphPalette} />
-                </button>
-              )}
-              {/* Make one of your own: the list answers "which of these",
-                  and this answers "none of these, quite". The label says
-                  which of the two things it will do, since opening it on a
-                  look somebody made edits that look rather than starting
-                  another. */}
-              {!isPremiumSceneSelected && (
-                <button
-                  type="button"
-                  className={`graph-solo${isDesignerOpen ? ' is-on' : ''}`}
-                  // Nothing to design against with the wave switched off.
-                  disabled={isDisplayedWaveHidden}
-                  onClick={() =>
-                    isDesignerOpen ? closeDesigner() : openDesigner()
-                  }
-                  aria-pressed={isDesignerOpen}
-                  title={(() => {
-                    if (isDisplayedWaveHidden) {
-                      return t('graph.design.showWave');
-                    }
-                    return isDesignerOpen
-                      ? t('graph.design.closeHint')
-                      : t('graph.design.createHint');
-                  })()}
-                >
-                  {(() => {
-                    if (isDesignerOpen) {
-                      return t('graph.design.close');
-                    }
-                    return customLooks.some(
-                      (look) => look.id === selectedLookId,
-                    )
-                      ? t('graph.design.edit')
-                      : t('graph.design.new');
-                  })()}
-                </button>
-              )}
-              {/* The desk lights follow a Plus scene, so their switch is
-                  here only while one is on the graph. */}
-              {isPremiumSceneSelected && <LightingToggle />}
-              {/* And the desktop background, for the scene actually drawn: a
-                  fallback or a draft has nothing to put there. */}
-              {drawnScene && (
-                <GraphWallpaperToggle lookId={drawnScene.lookId} />
-              )}
+            )}
+            {/* How the chosen form is coloured.
+
+                It used to be three rows of every form in the list itself, so
+                the picker was a hundred and forty-one entries and stepping to
+                the next FORM took three clicks. One control cycling the three
+                palettes says the same thing in the space of a button.
+
+                Disabled on a look somebody built, which carries the palette it
+                was designed with — a control that quietly did nothing when it
+                was pressed would be worse than one that says it cannot.
+
+                A Plus visualizer brings its own colours and has none to
+                cycle. What it lends the window is chosen in the actions
+                menu, with everything else about the window's look (Ivan,
+                2026-11-16: "we can remove the options from the graph since
+                they will exist only on the app main menu"). */}
+            {!isPremiumSceneSelected && (
               <button
                 type="button"
                 className="graph-look-step graph-look-step--toggle"
-                aria-pressed={!isDisplayedGridHidden}
-                aria-label={t(
-                  isDisplayedGridHidden ? 'graph.show' : 'graph.hide',
-                  { item: t('graph.item.grid') },
-                )}
-                title={t(isDisplayedGridHidden ? 'graph.show' : 'graph.hide', {
-                  item: t('graph.item.grid'),
-                })}
-                onClick={toggleGraphGrid}
-              >
-                <svg viewBox="0 0 16 16" aria-hidden>
-                  <path d="M2.5 2.5h11v11h-11zM2.5 6.2h11M2.5 9.8h11M6.2 2.5v11M9.8 2.5v11" />
-                </svg>
-              </button>
-              {/* How to edit on the plot, behind a mark (Ivan, 2026-11-16).
-                  Only while there is something to drag: solo and a hidden EQ
-                  curve both take the band handles off the plot. */}
-              {!isLiveOutputForeground && !areHandlesHidden && (
-                <span
-                  className="graph-edit-hint-mark"
-                  role="img"
-                  aria-label={t('graph.editHint')}
-                  title={t('graph.editHint')}
-                >
-                  ?
-                </span>
-              )}
-            </>
-          }
-        />
-        {/* View and full screen, in the corner every page's row ends in
-            (`FullScreenToggles`; Ivan, 2026-11-16: "the same as the Karaoke,
-            with the same icons"). The window's restore button in the header
-            still leaves too, and Escape, and a double-click on the plot. */}
-        <GraphGalleryKeys>
-          <GraphViewMenu
-            view={graphView}
-            onChangeView={setGraphView}
-            onCycleLook={cycleGraphLook}
-            isWaveHidden={isDisplayedWaveHidden}
-            onToggleWave={toggleGraphWave}
-            isResponseAvailable={isEngineUsable}
-            curveToggles={curveChips}
-            hiddenCurves={
-              isSolo ? curveChips.map(({ curve }) => curve) : hiddenCurves
-            }
-            // In solo every curve is off; turning one on leaves solo with
-            // that curve drawn, rather than switching a curve nobody sees.
-            onToggleCurve={(curve) => {
-              if (isSolo) {
-                setGraphContents('everything');
-                if (hiddenCurves.includes(curve)) {
-                  toggleGraphCurve(curve);
+                aria-pressed={graphPalette !== 'signal'}
+                aria-label={`${t('look.palette.cycle')}: ${t(
+                  PALETTE_LABEL_KEYS[graphPalette],
+                )}`}
+                title={`${t('look.palette.cycle')}: ${t(
+                  PALETTE_LABEL_KEYS[graphPalette],
+                )}`}
+                disabled={isDisplayedWaveHidden || !isPaletteSelectable}
+                onClick={() =>
+                  setGraphPalette(
+                    GRAPH_PALETTES[
+                      (GRAPH_PALETTES.indexOf(graphPalette) + 1) %
+                        GRAPH_PALETTES.length
+                    ],
+                  )
                 }
-                return;
+              >
+                <PaletteIcon palette={graphPalette} />
+              </button>
+            )}
+            {/* Make one of your own.
+
+                Next to the picker because it is the same decision carried one
+                step further: the list answers "which of these", and this answers
+                "none of these, quite". The label says which of the two things it
+                will do, since opening it on a look somebody made edits that look
+                rather than starting another. */}
+            {!isPremiumSceneSelected && (
+              <button
+                type="button"
+                className={`graph-solo${isDesignerOpen ? ' is-on' : ''}`}
+                // There is nothing to design against with the wave switched off:
+                // every control in the panel is judged by what it does to a
+                // drawing that is not there.
+                disabled={isDisplayedWaveHidden}
+                onClick={() =>
+                  isDesignerOpen ? closeDesigner() : openDesigner()
+                }
+                aria-pressed={isDesignerOpen}
+                title={(() => {
+                  if (isDisplayedWaveHidden) {
+                    return t('graph.design.showWave');
+                  }
+                  return isDesignerOpen
+                    ? t('graph.design.closeHint')
+                    : t('graph.design.createHint');
+                })()}
+              >
+                {(() => {
+                  if (isDesignerOpen) {
+                    return t('graph.design.close');
+                  }
+                  return customLooks.some((look) => look.id === selectedLookId)
+                    ? t('graph.design.edit')
+                    : t('graph.design.new');
+                })()}
+              </button>
+            )}
+            {/* The desk lights follow a Plus scene, so their switch is here
+                only while one is on the graph. */}
+            {isPremiumSceneSelected && <LightingToggle />}
+            {/* And the desktop background, for the scene actually drawn: a
+                fallback or a draft has nothing to put there. */}
+            {drawnScene && <GraphWallpaperToggle lookId={drawnScene.lookId} />}
+            {/* Solo — the wave with every curve dropped — had a button here and
+              no longer does. It is the last stop of Ctrl+W, and as a control
+              of its own it was the odd one in a row where everything else names
+              a single drawing and switches that: this one took away five and
+              was labelled for the one it kept. The row is also the thing that
+              runs out of width first, and this was a whole pill of it. */}
+            {/* The see-through and blur sliders used to sit here, between this
+              and the menu. They are in the menu now — they only exist in full
+              screen, they are the widest things the row ever held, and the row
+              is right-aligned, so arriving in the mode shoved everything else
+              left and on a narrow window pushed it under the waveform. */}
+            <button
+              type="button"
+              className="graph-look-step graph-look-step--toggle"
+              aria-pressed={!isDisplayedGridHidden}
+              aria-label={t(
+                isDisplayedGridHidden ? 'graph.show' : 'graph.hide',
+                { item: t('graph.item.grid') },
+              )}
+              title={t(isDisplayedGridHidden ? 'graph.show' : 'graph.hide', {
+                item: t('graph.item.grid'),
+              })}
+              onClick={toggleGraphGrid}
+            >
+              <svg viewBox="0 0 16 16" aria-hidden>
+                <path d="M2.5 2.5h11v11h-11zM2.5 6.2h11M2.5 9.8h11M6.2 2.5v11M9.8 2.5v11" />
+              </svg>
+            </button>
+            {/* Last, at the right-hand end of the row, in every mode. Both sizes
+              live here, and every shortcut that reaches them; Escape gets back
+              from either. */}
+            <GraphViewMenu
+              view={graphView}
+              onChangeView={setGraphView}
+              onCycleLook={cycleGraphLook}
+              isWaveHidden={isDisplayedWaveHidden}
+              onToggleWave={toggleGraphWave}
+              isResponseAvailable={isEngineUsable}
+              curveToggles={curveChips}
+              hiddenCurves={
+                isSolo ? curveChips.map(({ curve }) => curve) : hiddenCurves
               }
-              toggleGraphCurve(curve);
-            }}
-            isGridHidden={isDisplayedGridHidden}
-            onToggleGrid={toggleGraphGrid}
-            isMeterHidden={isMeterHidden}
-            onToggleMeter={toggleGraphMeter}
-            isMeterOffered={!isAppFullScreen}
-            waveHeight={waveHeight}
-            onChangeWaveHeight={setWaveHeight}
-            wavePosition={wavePosition}
-            onChangeWavePosition={setWavePosition}
-            onRestoreWave={
-              listenerWave && sceneLookId
-                ? () => clearListenerWave(sceneLookId, graphView)
-                : undefined
-            }
-            waveOrientation={waveOrientation}
-            onCycleOrientation={cycleWaveOrientation}
-            overlayOpacity={overlayOpacity}
-            onChangeOverlayOpacity={setOverlayOpacity}
-            overlayBlur={overlayBlur}
-            onChangeOverlayBlur={setOverlayBlur}
-            minOverlayOpacity={MIN_OVERLAY_OPACITY}
-            maxOverlayBlur={MAX_OVERLAY_BLUR}
-            sceneLookId={drawnScene?.lookId}
-            hasPlaybackBackdrop={hasPlaybackBackdrop}
-            backdropControls={backdropControls}
-          />
+              // In solo every curve is off; turning one on leaves solo with
+              // that curve drawn, rather than switching a curve nobody sees.
+              onToggleCurve={(curve) => {
+                if (isSolo) {
+                  setGraphContents('everything');
+                  if (hiddenCurves.includes(curve)) {
+                    toggleGraphCurve(curve);
+                  }
+                  return;
+                }
+                toggleGraphCurve(curve);
+              }}
+              isGridHidden={isDisplayedGridHidden}
+              onToggleGrid={toggleGraphGrid}
+              isMeterHidden={isMeterHidden}
+              onToggleMeter={toggleGraphMeter}
+              isMeterOffered={!isAppFullScreen}
+              waveHeight={waveHeight}
+              onChangeWaveHeight={setWaveHeight}
+              wavePosition={wavePosition}
+              onChangeWavePosition={setWavePosition}
+              onRestoreWave={
+                listenerWave && sceneLookId
+                  ? () => clearListenerWave(sceneLookId, graphView)
+                  : undefined
+              }
+              waveOrientation={waveOrientation}
+              onCycleOrientation={cycleWaveOrientation}
+              overlayOpacity={overlayOpacity}
+              onChangeOverlayOpacity={setOverlayOpacity}
+              overlayBlur={overlayBlur}
+              onChangeOverlayBlur={setOverlayBlur}
+              minOverlayOpacity={MIN_OVERLAY_OPACITY}
+              maxOverlayBlur={MAX_OVERLAY_BLUR}
+              sceneLookId={drawnScene?.lookId}
+              hasPlaybackBackdrop={hasPlaybackBackdrop}
+              backdropControls={backdropControls}
+            />
+          </span>
+          {/* The row's end on every page (`FullScreenToggles`): the
+              header's pin and the transport's in full screen, and full
+              screen itself, in and out (Ivan, 2026-11-16: "the toggles ...
+              the same as the Karaoke, with the same icons"). The window's
+              restore button in the header still leaves too, and Escape, and
+              a double-click on the plot. */}
           <FullScreenToggles
             isFullScreen={graphView === 'fullscreen'}
             hasTopBar={hasTopBar}
             onToggleTopBar={toggleFullScreenTopBar}
             onToggleFullScreen={toggleGraphFullScreen}
           />
-        </GraphGalleryKeys>
+        </span>
         {/* Its own subscriber, so that a badge which is absent almost all of the
             time does not wake the graph up to say so. */}
         <LiveClipWarning />

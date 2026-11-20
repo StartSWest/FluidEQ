@@ -4339,38 +4339,24 @@ $graph-controls-past-fold: calc(
   z-index: 3;
   top: 9px;
   right: 10px;
-  // Over the whole plot: the looks' gallery is placed in it
-  // (`GraphGallery.scss`) — the reel of looks along its foot, View and full
-  // screen in the top corner. It was one row across the top (Ivan,
-  // 2026-11-19: round 3's "I").
-  //
-  // Its foot stands clear of the key a measuring view paints at the plot's
-  // foot-left ("Live · Peak", `paintLegend` in `channelInk.ts`): that chip
-  // spans 30 to 51px above the plot's foot on every view, ruled or not
-  // (`LEGEND_FLOOR` 30, plus 11px of text and 5px of padding either side),
-  // and at 26 the reel's left neighbour stood on "Peak" at 700px wide
-  // (session 0's review, 2026-11-19). Six pixels above the chip, so the two
-  // never touch at any width, in any language, whichever view keys itself.
-  // The frequency names lie under the key, and so clear of the reel too.
-  bottom: 57px;
   left: 10px;
-  // What the credit asks to know: whether its switches fit beside it.
-  container: graph-gallery / inline-size;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $spacing-s;
   font-size: $text-small;
-  // No shadow round the letters: each piece is a crystal, whose picture
-  // behind is what holds its words off the scene, and a dark halo blurred
-  // every word in the row (Ivan, 2026-09-27: "text with dropshadow not good
-  // ... text needs to be clear").
+  // No shadow round the letters: the veil under the row
+  // (`.live-output-controls::before`) is what holds them off the picture, and
+  // a dark halo on top of it blurred every word in the row (Ivan,
+  // 2026-09-27: "text with dropshadow not good ... text needs to be clear").
   pointer-events: none;
 
   > * {
     pointer-events: auto;
   }
 
-  // Not the gallery's edges or its credit's title: the crystal is their
-  // face. In `:where`, so the rule weighs what it always did and every rule
-  // written against it still wins.
-  button:not(:where(.graph-gallery-edge, .graph-gallery-credit__title)) {
+  button {
     @include ghost-button;
     min-height: $graph-strip-button;
     padding: 5px 9px;
@@ -4388,6 +4374,87 @@ $graph-controls-past-fold: calc(
 .graph-wrapper:not(.is-gridless) > .live-output-controls {
   right: 56px;
   left: 58px;
+}
+
+// Over a bright part of a Plus scene the row's bare controls — the hint's
+// mark, the style arrows and switches, Auto, View and full screen — turn
+// dark with a light shadow, as the EQ head's words do (Ivan, 2026-11-17,
+// after the head turned: "we still need some stuff to do"). The row is
+// marked by the picture behind those controls (`useSceneInk.ts`). The style
+// picker and the legend keep their own faces; a disabled Auto keeps its
+// greyed box.
+//
+// Otherwise they stand on the picture in its light ink, whichever way the
+// window's words run: they wore the window's, which on a light window put
+// dark glyphs on a night sky.
+:root.is-scene-column
+  .graph-wrapper
+  > .live-output-controls:not([data-scene-ink='dark']) {
+  .graph-edit-hint-mark,
+  .graph-look-step,
+  .graph-auto-cycle > [role='menu']:not([aria-disabled='true']),
+  .graph-solo,
+  .view-bar__icon {
+    @include over-picture-text;
+
+    border-color: color-mix(in srgb, #{$picture-ink-light} 35%, transparent);
+    color: $picture-ink-light;
+
+    svg {
+      @include over-picture-shape;
+    }
+
+    &:hover {
+      color: $picture-accent-light;
+    }
+  }
+
+  .graph-look-step--toggle[aria-pressed='true'],
+  .graph-auto-cycle:is(.is-on, .dropdown--open) > [role='menu'],
+  .graph-solo.is-on {
+    color: $picture-accent-light;
+  }
+
+  .graph-look-step,
+  .view-bar__icon {
+    border-color: transparent;
+  }
+}
+
+:root.is-scene-column
+  .graph-wrapper
+  > .live-output-controls[data-scene-ink='dark'] {
+  .graph-edit-hint-mark,
+  .graph-look-step,
+  .graph-auto-cycle > [role='menu']:not([aria-disabled='true']),
+  .graph-solo,
+  .view-bar__icon {
+    @include over-bright-picture-text;
+
+    border-color: color-mix(in srgb, #{$picture-ink-dark} 35%, transparent);
+    color: $picture-ink-dark;
+
+    svg {
+      @include over-bright-picture-shape;
+    }
+
+    &:hover {
+      color: $secondary-darker;
+    }
+  }
+
+  // What says a switch is on keeps saying it, in the accent's deep step.
+  .graph-look-step--toggle[aria-pressed='true'],
+  .graph-auto-cycle:is(.is-on, .dropdown--open) > [role='menu'],
+  .graph-solo.is-on {
+    color: $secondary-darker;
+  }
+
+  // A borderless glyph keeps no edge.
+  .graph-look-step,
+  .view-bar__icon {
+    border-color: transparent;
+  }
 }
 
 // The bar stays put when the sound panel opens over it. From 2026-09-25 it
@@ -4552,12 +4619,12 @@ button.graph-legend {
  */
 .live-output-controls .graph-clip-warning {
   position: absolute;
-  // Centred on the corner's row, View's and full screen's, now that the
-  // strip runs the plot's height.
-  top: calc(#{$graph-strip-button} / 2);
+  top: 0;
+  bottom: 0;
   left: 0;
+  height: fit-content;
+  margin: auto 0;
   pointer-events: none;
-  translate: 0 -50%;
 }
 
 @keyframes clip-pulse {

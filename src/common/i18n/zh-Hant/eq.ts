@@ -337,7 +337,6 @@ const eq = {
   'graph.style.next': '下一個樣式',
   'graph.style.previous': '上一個樣式',
   'graph.picker.label': '樣式和場景',
-  'graph.gallery.place': '第 {index} 個，共 {count} 個',
   'graph.picker.search': '搜尋樣式和場景',
   'graph.picker.styles': '樣式',
   'graph.picker.plus': '場景',

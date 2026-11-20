@@ -394,7 +394,6 @@ const eq = {
   'graph.style.next': 'Next style',
   'graph.style.previous': 'Previous style',
   'graph.picker.label': 'Styles and scenes',
-  'graph.gallery.place': '{index} of {count}',
   'graph.picker.search': 'Search styles and scenes',
   'graph.picker.styles': 'Styles',
   'graph.picker.plus': 'Scenes',

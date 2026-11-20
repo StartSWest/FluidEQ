@@ -347,9 +347,9 @@ it under the terms of the GNU General Public License version 3 or later.
 // Only the shape of the strip, never its surface.
 //
 // This used to carry a `panel-surface` of its own, from when the controls
-// inside it had none and needed something to sit on over a video. Each piece
-// is a crystal of its own now (`GraphGallery.scss`), and a surface under them
-// gave full screen a card inside a card, with two borders a few pixels apart.
+// inside it had none and needed something to sit on over a video. Each has a
+// face of its own now (`.graph-legend-group`), and a surface under them gave
+// full screen a card inside a card, with two borders a few pixels apart.
 //
 // The positioning that used to live here has gone with the absolute layout.
 // `left: auto` existed to let a strip pinned to both edges shrink back to its
@@ -651,16 +651,7 @@ it under the terms of the GNU General Public License version 3 or later.
   top: $graph-strip-inset;
   transition:
     opacity $motion-base ease,
-    top $motion-base ease,
-    bottom $motion-base ease;
-}
-
-// The look's credit at the plot's foot stands clear of the floating
-// transport, which comes and goes with it on the frame's one clock.
-#root.has-now-playing.is-floating-bar:not(.is-bar-idle)
-  .app-workspace.is-app-full
-  .live-output-controls {
-  bottom: calc(var(--now-playing-bar-height, 0px) + #{$spacing-s});
+    top $motion-base ease;
 }
 
 // THE BAND UNDER THE OPTIONS is every page's (`ViewBar.scss`), from the
@@ -679,15 +670,10 @@ it under the terms of the GNU General Public License version 3 or later.
   content: none;
 }
 
-// It ends under the corner's row, as it ended under the whole strip when the
-// strip was that row: the strip runs the plot's height now, for the gallery
-// (`GraphGallery.scss`), and a band to its foot would cover the picture.
 .center-workspace.is-graph-full .graph-wrapper > .live-output-controls::before {
   top: -100vh;
   right: -100vw;
-  bottom: auto;
   left: -100vw;
-  height: calc(100vh + #{$graph-strip-button} + var(--view-bar-foot, 0px));
   content: '';
 }
 

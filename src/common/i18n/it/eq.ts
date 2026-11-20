@@ -383,7 +383,6 @@ const eq: Partial<Dictionary> = {
   'graph.style.next': 'Stile successivo',
   'graph.style.previous': 'Stile precedente',
   'graph.picker.label': 'Stili e scene',
-  'graph.gallery.place': '{index} di {count}',
   'graph.picker.search': 'Cerca stili e scene',
   'graph.picker.styles': 'Stili',
   'graph.picker.plus': 'Scene',
