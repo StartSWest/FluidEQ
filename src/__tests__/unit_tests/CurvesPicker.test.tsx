@@ -84,7 +84,7 @@ describe('Curves, the applied layers', () => {
     mockRefreshState.mockResolvedValue(undefined);
   });
 
-  it('is not there while nothing is applied, and is once something is', () => {
+  it('is not there while nothing is applied, and is once something is', async () => {
     const band = shapedBand(0);
     const view = (gain: number) => (
       <FluidEqProviderWrapper
@@ -96,7 +96,16 @@ describe('Curves, the applied layers', () => {
         <CurvesPicker />
       </FluidEqProviderWrapper>
     );
-    const { container, rerender } = render(view(0));
+    // Mounted, the chip's names ask main for the listener's own presets
+    // (`useUserDspPresetsState`); the reply lands before anything is read.
+    let shown: ReturnType<typeof render> | undefined;
+    await act(async () => {
+      shown = render(view(0));
+    });
+    if (!shown) {
+      throw new Error('not rendered');
+    }
+    const { container, rerender } = shown;
     expect(container).toBeEmptyDOMElement();
     rerender(view(2));
     expect(curves()).toBeInTheDocument();
