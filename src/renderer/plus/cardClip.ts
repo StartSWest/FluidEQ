@@ -70,30 +70,50 @@ export const resetCardClips = () => {
   announce();
 };
 
+/** A published scene's clip is asked for by these, and kept by version. */
+export interface ISceneClipRef {
+  authorId: string;
+  sceneId: string;
+  version: number;
+  /** When that version went up; main keeps clips by version alone. */
+  updatedAt?: string;
+}
+
 /**
- * The clip's object URL while this card is hovered or focused, holds the
- * playing slot, motion is welcome and the scene has a clip; undefined
- * otherwise. The URL is revoked the moment any of that stops being true.
+ * A published scene's clip as an object URL while `active` holds, motion is
+ * welcome and the scene has one; undefined otherwise. Asked for only once
+ * active, used only if still active when it lands, and revoked the moment
+ * any of that stops being true - so nothing that only passed by keeps a
+ * clip, without a timer to guess how long passing takes. A gallery card and
+ * a look picker tile both play through it (`useCardClip`, `lookTileClips.ts`).
  */
-export const useCardClip = (
-  scene: Pick<IGalleryScene, 'authorId' | 'sceneId' | 'version' | 'updatedAt'>,
+export const useSceneClip = (
+  scene: ISceneClipRef | undefined,
   me: string | undefined,
-  card: symbol,
-  wanted: boolean,
+  active: boolean,
 ): string | undefined => {
-  const playing = useSyncExternalStore(subscribe, currentHolder) === card;
   const [url, setUrl] = useState<string>();
-  const { authorId, sceneId, version, updatedAt } = scene;
+  const authorId = scene?.authorId;
+  const sceneId = scene?.sceneId;
+  const version = scene?.version;
+  const updatedAt = scene?.updatedAt;
 
   useEffect(() => {
     const ask = window.electron?.ipcRenderer?.galleryClip;
+    if (
+      authorId === undefined ||
+      sceneId === undefined ||
+      version === undefined
+    ) {
+      return undefined;
+    }
     const key = clipKey(me, { authorId, sceneId, version });
     if (
-      !wanted ||
-      !playing ||
+      !active ||
       !ask ||
       withoutClip.has(key) ||
-      // Read at the hover, so the app's own Animations switch counts at once.
+      // Read as it becomes active, so the app's own Animations switch counts
+      // at once.
       prefersReducedMotion()
     ) {
       return undefined;
@@ -124,7 +144,22 @@ export const useCardClip = (
         URL.revokeObjectURL(made);
       }
     };
-  }, [wanted, playing, me, authorId, sceneId, version, updatedAt]);
+  }, [active, me, authorId, sceneId, version, updatedAt]);
 
   return url;
+};
+
+/**
+ * The clip's object URL while this card is hovered or focused, holds the
+ * playing slot, motion is welcome and the scene has a clip; undefined
+ * otherwise.
+ */
+export const useCardClip = (
+  scene: Pick<IGalleryScene, 'authorId' | 'sceneId' | 'version' | 'updatedAt'>,
+  me: string | undefined,
+  card: symbol,
+  wanted: boolean,
+): string | undefined => {
+  const playing = useSyncExternalStore(subscribe, currentHolder) === card;
+  return useSceneClip(scene, me, wanted && playing);
 };

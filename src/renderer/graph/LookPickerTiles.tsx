@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { useState } from 'react';
 import { BRAND_MARK } from 'common/branding';
 import LookIcon from '../icons/LookIcon';
 import LibraryPlayingBars from '../library/LibraryPlayingBars';
@@ -13,6 +14,8 @@ import GraphSceneReport from './GraphSceneReport';
 import { originOf, type TFreshness } from './lookPickerFilter';
 import { FAMILY_KEYS, type IPlusRow, type IStyleRow } from './lookPickerRows';
 import { LockBadge, SceneThumbnail } from './lookPickerParts';
+import { useTileClip } from './lookTileClips';
+import SceneClip from '../plus/SceneClip';
 
 /**
  * The picker's tiles: a scene's picture or a style's drawing, its name, and
@@ -122,6 +125,10 @@ export function LookPickerSceneTile({
 }: ISceneTileProps) {
   const { t } = useTranslation();
   const caption = useSceneCaption(row, fresh);
+  // The scene's published clip over its picture while the tile is in view
+  // (`lookTileClips.ts`); the picture stays under it until a frame is painted.
+  const [art, setArt] = useState<HTMLSpanElement | null>(null);
+  const clip = useTileClip(row.thumbnail, art);
   return (
     <div className="look-picker__item">
       <button
@@ -134,8 +141,9 @@ export function LookPickerSceneTile({
         title={row.locked ? t('graph.scene.locked') : row.name}
         onClick={() => onChoose(row.id)}
       >
-        <span className="look-picker__art">
+        <span ref={setArt} className="look-picker__art">
           <SceneThumbnail row={row} />
+          {clip && <SceneClip url={clip} className="look-picker__clip" />}
           {fresh === 'new' && (
             <span className="look-picker__flag">{t('graph.version.new')}</span>
           )}

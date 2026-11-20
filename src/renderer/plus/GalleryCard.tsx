@@ -16,7 +16,7 @@ import {
   ScenePicture,
 } from './GalleryParts';
 import { claimCardClip, releaseCardClip, useCardClip } from './cardClip';
-import GalleryCardClip from './GalleryCardClip';
+import SceneClip from './SceneClip';
 import GalleryMoveTag from './GalleryMoveTag';
 import type { IMakerRef } from './plusNavigation';
 import SceneGet, { officialLine } from './SceneGet';
@@ -128,7 +128,7 @@ export default function GalleryCard({
         onClick={() => onOpen(scene)}
       >
         <ScenePicture scene={scene} />
-        {clip && <GalleryCardClip url={clip} />}
+        {clip && <SceneClip url={clip} className="gallery-card__clip" />}
         <span className="gallery-card__tag">
           {t(categoryKey(scene.category))}
         </span>

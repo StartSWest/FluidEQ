@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'color' as *;
 @use 'theme' as *;
 @use 'libraryTokens' as *;
+@use 'motion' as *;
 
 // The look picker's tiles and its Details rows (`LookPickerTiles.tsx`,
 // `LookPickerDetails.tsx`): flat, as the Library's shelves are - a picture,
@@ -123,8 +124,30 @@ SPDX-License-Identifier: GPL-3.0-or-later
     padding: 0;
     border-radius: $radius-xs;
 
-    &:hover .look-picker__art img {
+    &:hover .look-picker__art :is(img, .look-picker__clip) {
       scale: 1.04;
+    }
+  }
+
+  // The scene's clip over its picture while the tile is in view
+  // (`lookTileClips.ts`): laid over it so the tile keeps its size and the
+  // flags stay on top, and transparent until its first frame is painted, so
+  // the picture never gives way to a black box while the file is read.
+  .look-picker__clip {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity $motion-fast $ease-out,
+      scale 220ms ease;
+
+    &.is-playing {
+      opacity: 1;
     }
   }
 
@@ -177,7 +200,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     height: 50%;
   }
 
-  .look-picker__tile.is-locked img {
+  .look-picker__tile.is-locked :is(img, .look-picker__clip) {
     filter: saturate(0.55) brightness(0.8);
   }
 
@@ -483,7 +506,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .look-picker__thumb img {
+    .look-picker__thumb img,
+    .look-picker__clip {
       transition: none;
     }
   }
