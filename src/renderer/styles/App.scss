@@ -5147,6 +5147,15 @@ button.graph-legend {
   > .eq-engine-label {
     margin: 6px 0 6px auto;
   }
+
+  // On every EQ page, Bands above its graph as much as the three under the
+  // card, the first pill's glyph stands on the page's own line, 16px from the
+  // card's edge (`.workspace-tab-panel__scroll`), and not a pill's inset
+  // further in (Ivan, 2026-11-19, circling "Bands": "fix this too").
+  .workspace-tab-panel > & > .workspace-tab-group,
+  .center-head--eq & > .workspace-tab-group {
+    margin-left: 4px - $workspace-pill-inline;
+  }
 }
 
 .workspace-tab-group {
