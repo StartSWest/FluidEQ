@@ -175,14 +175,17 @@ it under the terms of the GNU General Public License version 3 or later.
   fill: rgba(216, 210, 255, 0.12);
 }
 
+// The accent, lit by how much boost the range has earned (`presenceStrength`)
+// and whole once the range is heard (`is-covered`): the window's own colour,
+// never a fixed green, and its strongest step so it reads on any plot.
 .chart-coverage__fill {
-  fill: color-mix(in srgb, var(--coverage-band) 55%, transparent);
+  fill: $secondary-default;
   transition:
     width 400ms ease,
-    fill 400ms ease;
+    fill-opacity 400ms ease;
 
   &.is-covered {
-    fill: #54ff8a;
+    fill-opacity: 1;
   }
 }
 

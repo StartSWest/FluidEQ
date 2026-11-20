@@ -28,22 +28,17 @@ import {
 import { useSmartEqMode } from '../utils/smartEqMode';
 
 /**
- * Red at nothing earned, green at everything, blended in between: how much
- * boost a range has earned right now, by the presence gate. Mixed here rather
- * than in CSS because it varies per range and per frame.
+ * How strongly a range's bar is lit by the boost it has earned right now, by
+ * the presence gate: the window's accent at a third at nothing earned, whole
+ * at everything (`chart-coverage__fill`). It was red to green, and a covered
+ * range a fixed green, whatever the window's colours (Ivan, 2026-11-20: "make
+ * those green bars the accent or second colour, more vivid, not green
+ * always"). Per range and per frame, so it rides each bar as a number.
  */
-const PRESENCE_TINT_LOW = [255, 90, 110];
-const PRESENCE_TINT_HIGH = [84, 255, 138];
+const PRESENCE_FLOOR = 0.34;
 
-const presenceTint = (allowance: number): string => {
-  const t = Math.max(0, Math.min(1, allowance));
-  const channel = (index: number) =>
-    Math.round(
-      PRESENCE_TINT_LOW[index] +
-        (PRESENCE_TINT_HIGH[index] - PRESENCE_TINT_LOW[index]) * t,
-    );
-  return `rgb(${channel(0)}, ${channel(1)}, ${channel(2)})`;
-};
+const presenceStrength = (allowance: number): number =>
+  PRESENCE_FLOOR + (1 - PRESENCE_FLOOR) * Math.max(0, Math.min(1, allowance));
 
 /**
  * What Smart EQ has heard of each range so far, as one thin bar per range
@@ -137,7 +132,11 @@ const CoverageOverlay = ({
               width={width * Math.min(1, region.confidence)}
               height={4}
               rx={2}
-              fill={region.isCovered ? undefined : presenceTint(allowance)}
+              style={
+                region.isCovered
+                  ? undefined
+                  : { fillOpacity: presenceStrength(allowance) }
+              }
             />
           </g>
         );
