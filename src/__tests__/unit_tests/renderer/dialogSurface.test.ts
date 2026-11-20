@@ -216,10 +216,6 @@ describe('what stands on the floor', () => {
   // floor — never lighter than a pane ("fix those pane too light").
   it.each([
     ['Library.scss', '.library-grid__tile'],
-    // The Gaming Lab's games are rail rows now (`GamingLab.scss`); its
-    // profiles are the grid's tiles, as the Library's are.
-    ['Games.scss', '.gaming-profile'],
-    ['ConfigInspector.scss', '.config-card'],
     ['StudioMaker.scss', '.studio-maker'],
     ['RemoteAudio.scss', '.remote-audio__link-form'],
     ['RemoteAudio.scss', '.remote-audio__link'],
@@ -229,6 +225,25 @@ describe('what stands on the floor', () => {
       'color-mix(in srgb, color-mix(in srgb, var(--accent) 4%, var(--surface-panel)) 34%, transparent)',
     );
     expect(card).toContain('radial-gradient(');
+  });
+
+  // The Gaming Lab's profiles and Config's output tiles are flat tiles on
+  // the page's card, with no card inside the card (2026-11-19, the Gaming
+  // Lab and the EQ sub-pages laid out like the Library): the Library's step
+  // of light (`$studio-surface`), no edge, and none of the card's glow.
+  it.each([
+    ['Games.scss', '.gaming-profile'],
+    ['ConfigInspector.scss', '.config-card'],
+  ])('%s stands %s on the Library’s step of light', (sheet, selector) => {
+    const tile = declarationsOf(compiledCss(sheet), selector);
+    // The control: the rule read is the tile's, with its layout in it.
+    expect(tile).toContain('flex-direction: column');
+    expect(tile).toContain(
+      'background: color-mix(in srgb, var(--edge-tint) 5%, transparent)',
+    );
+    expect(tile).not.toContain('radial-gradient(');
+    expect(tile).not.toMatch(SLAB);
+    expect(tile).not.toMatch(/(?:^|;)\s*border:\s*1px/);
   });
 
   // The Library is one panel with no card inside it - the mockups' "Library
@@ -257,30 +272,51 @@ describe('what stands on the floor', () => {
     expect(list).not.toContain('radial-gradient(');
   });
 
+  // The Library's shelves stand in the studio rail every page with one
+  // shares (`StudioRail`, 2026-11-19), whose column carries the tone and the
+  // hairline; the shelves paint nothing of their own over it.
   it('stands the whole Library on one panel, the rail on its tone', () => {
-    const rail = declarationsOf(compiledCss('Library.scss'), '.library-rail');
+    const rail = declarationsOf(compiledCss('StudioRail.scss'), '.studio-rail');
     expect(rail).toContain('background: none');
     expect(rail).toContain('border-right: 1px solid');
+    const shelves = declarationsOf(
+      compiledCss('Library.scss'),
+      '.library-rail',
+    );
+    // The control: the rule read is the shelves', with their layout in it.
+    expect(shelves).toContain('flex-direction: column');
+    expect(shelves).not.toMatch(/(?:^|;)\s*(background|border)(-color)?:/);
     // No second card drawn behind the shelf and the queue.
     expect(compiledCss('Library.scss')).not.toContain(
       '.library-workspace::before',
     );
   });
 
-  // The Scenes page's rail, pinned, is its place's card too ("same colour,
-  // different"); folded open over the place it takes the menus' opaque floor.
+  // The Scenes tab is laid out as the Library is: its rail, pinned, and the
+  // place beside it both stand on the tab's one card with no tone of their
+  // own ("same colour, different"); folded open over the place, the shared
+  // rail takes the menus' opaque floor, and gives it back at rest.
   it('stands the Scenes rail on the same card as the Scenes place', () => {
+    const plus = compiledCss('PlusRail.scss');
     const rail = surfaceOf(
-      declarationsOf(compiledCss('CommunityRail.scss'), '.community__rail'),
+      declarationsOf(plus, '.community--plus .community__rail'),
     );
     const place = surfaceOf(
-      declarationsOf(compiledCss('Community.scss'), '.community__main'),
+      declarationsOf(plus, '.community--plus > .community__main'),
     );
     expect(place.every((value) => value !== undefined)).toBe(true);
+    expect(place[0]).toBe('none');
     expect(rail).toEqual(place);
-    expect(compiledCss('PlusRail.scss')).toMatch(
-      /\.community--rail-folded \.community__rail \{[^}]*background: var\(--surface-menu-floor\)/,
-    );
+    const shared = compiledCss('StudioRail.scss');
+    expect(
+      declarationsOf(shared, '.studio-rail-slot.is-folded > .studio-rail'),
+    ).toContain('background: var(--surface-menu-floor)');
+    expect(
+      declarationsOf(
+        shared,
+        '.studio-rail-slot.is-folded > .studio-rail:not(:hover):not(:has(:focus-visible))',
+      ),
+    ).toContain('background: none');
   });
 
   // The empty Library stands straight on that card, as the A design draws

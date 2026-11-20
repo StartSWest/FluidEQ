@@ -75,10 +75,13 @@ describe('the stylesheet cascade', () => {
   it('keeps the order the rules were written against', () => {
     // Two written down in the sheets and App.tsx: the rainbow accents win
     // against the cyan ones by coming after them, not by `!important`; and
-    // the error screen, the last thing the window can show, comes last.
+    // the error screen, the last thing the window can show, comes last. The
+    // full-screen cover's sheet stands between the two: it answers App.scss
+    // and carries no accent of its own for the rainbow to beat.
     const at = (name: string) => cascade.indexOf(join(STYLES, name));
     expect(at('App.scss')).toBeGreaterThanOrEqual(0);
-    expect(at('Rainbow.scss')).toBe(at('App.scss') + 1);
+    expect(at('WindowRefit.scss')).toBe(at('App.scss') + 1);
+    expect(at('Rainbow.scss')).toBe(at('App.scss') + 2);
     expect(at('ErrorBoundary.scss')).toBe(cascade.length - 1);
   });
 });

@@ -5,8 +5,10 @@
  * surface, accent, glow - beside the Brightness slider and the Tint, and no
  * two of them may answer to one word. In Spanish the Glow role and the
  * Brightness slider were both "Brillo" in the same menu (5cebe7d82: the role
- * is "Resplandor"), and Portuguese ("Brilho") and Hindi ("चमक") had the
- * same clash.
+ * became "Resplandor"), and Portuguese ("Brilho") and Hindi ("चमक") had the
+ * same clash. Since 14c44f6d5 the third colour is the Second colour in every
+ * locale (Ivan, 2026-11-18: "no glow, we don't have glows here, it's accent
+ * and second colour"); its role keeps the name glow in the code.
  */
 
 import {
@@ -38,10 +40,11 @@ const clashes = (names: readonly string[]) =>
       ) !== index,
   );
 
-it('calls the glow in Spanish Resplandor, and its line says so', () => {
-  expect(translate('es', 'graph.sceneColours.glow')).toBe('Resplandor');
+it('calls the third colour in Spanish Segundo color, apart from the Brillo slider, and its line says what it colours', () => {
+  expect(translate('es', 'graph.sceneColours.glow')).toBe('Segundo color');
+  expect(translate('en', 'graph.sceneColours.glow')).toBe('Second colour');
   expect(translate('es', 'graph.sceneColours.glowAbout')).toBe(
-    '«Activado» y el resplandor',
+    'Lo que está activado',
   );
   expect(translate('es', 'graph.sceneTint.brightness')).toBe('Brillo');
 });

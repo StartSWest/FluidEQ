@@ -382,7 +382,7 @@ it('sends the reader to the Pointer sparks switch by its own label', () => {
   goTo('Scenes that answer your mouse');
   expect(
     screen.getByText(
-      'One switch for every scene: Pointer sparks, in Window colours under Colourful mode.',
+      'One switch for every scene: Pointer sparks, in Window colours.',
     ),
   ).toBeInTheDocument();
   expect(

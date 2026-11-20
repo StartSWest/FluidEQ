@@ -44,13 +44,25 @@ beforeEach(() => {
   mockRemember.mockReset();
 });
 
+// A pack read from disk carries the points beside the one set
+// (`readScenePack`, `sceneWindowColourStopsOf`), and the colours a point
+// names are what is taken for it: here the day's, the one set a scene has
+// since 58d70ea7e, remembered under the day's key.
 it('takes the colours a scene names, draws nothing, and remembers them', async () => {
-  mockPack = memberPack({ windowColours: NAMED });
-  const sky = await measureSceneSky('premium:named', nextVersion());
+  mockPack = memberPack({
+    windowColours: NAMED,
+    windowColourStops: { '100': NAMED },
+  });
+  const sky = await measureSceneSky(
+    'premium:named',
+    nextVersion(),
+    undefined,
+    '100',
+  );
   expect(mockSample).not.toHaveBeenCalled();
   expect(sky).toMatchObject({ chroma: expect.any(Number) });
   expect(mockRemember).toHaveBeenCalledWith(
-    'premium:named',
+    'premium:named@100',
     String(version),
     sky,
   );

@@ -10,21 +10,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * the publish screen ... we need them to test it first before publishing on
  * all modes"). Held here on the dialog's real stage, with the scene and the
  * clip mocked: each view frames the scene as the app does and lays its own
- * parts over it, the covers and the clip stay the Normal view's, a take that
- * holds the canvas is let go on leaving Normal and taken again on the way
- * back, and the view is never locked behind a clip waiting for music. Each
+ * parts over it, the covers and the clip stay the Normal view's, a take
+ * waits through the other views and carries on in Normal (Ivan, 2026-11-18:
+ * "We need to keep the video displayed"), only a frame drawn as the Normal
+ * view at the clip's size reaches the clip, the clip's tabs stand in every
+ * view, and the view is never locked behind a clip waiting for music. Each
  * case beside the view, or the phase, that must not.
  */
 
 interface IPreviewProps {
   shapeFrame?: (frame: unknown) => { view?: unknown };
-  onDrawn?: (frame: unknown) => void;
+  onDrawn?: (frame: unknown, canvas?: unknown, report?: unknown) => void;
   captureSize?: unknown;
   captureFrames?: boolean;
 }
 let preview: IPreviewProps = {};
 const video = {
   phase: 'waiting' as string,
+  frame: jest.fn(),
   input: jest.fn(),
   cancel: jest.fn(),
   retry: jest.fn(),
@@ -38,7 +41,7 @@ jest.mock('../../../renderer/plus/ScenePreview', () => {
 });
 jest.mock('../../../renderer/studio/usePublishVideo', () => () => ({
   state: { phase: video.phase },
-  frame: jest.fn(),
+  frame: video.frame,
   input: video.input,
   fail: jest.fn(),
   cancel: video.cancel,
@@ -98,6 +101,7 @@ const QUIET = {
 
 const open = (phase = 'waiting') => {
   video.phase = phase;
+  video.frame.mockClear();
   video.input.mockClear();
   video.cancel.mockClear();
   video.retry.mockClear();
@@ -140,10 +144,16 @@ describe('the publish dialog’s views', () => {
     expect(document.querySelector('.studio-ultra-frame__band')).not.toBeNull();
     // Drawn at its own shape, never at the clip's size.
     expect(preview.captureSize).toBeUndefined();
-    // The clip's tabs belong to Normal: over the band they covered it.
+    // The clip's tabs stand on the bar over the frame, not on the picture,
+    // so they are there in every view and cover no band.
     expect(
-      screen.queryByRole('button', { name: 'studio.publish.viewLive' }),
-    ).toBeNull();
+      screen.getByRole('button', { name: 'studio.publish.viewLive' }),
+    ).toBeInTheDocument();
+    expect(
+      screen
+        .getByRole('button', { name: 'studio.publish.viewLive' })
+        .closest('.studio-publish__stage-bar'),
+    ).not.toBeNull();
   });
 
   it('Amp: the player’s column, framed to its panel, the player over it', () => {
@@ -179,13 +189,73 @@ describe('the publish dialog’s views', () => {
 });
 
 describe('a take of the preview clip', () => {
-  it('holding the canvas is let go on leaving Normal, and taken again on coming back', () => {
+  // Leaving Normal used to cancel a take under way and take it again from
+  // nothing on the way back, so a look at Amp mid-take threw the recording
+  // away (2026-11-18). It now waits there as through a quiet moment.
+  it('holding the canvas waits in the other views and carries on in Normal', () => {
     open('recording');
+    expect(preview.captureFrames).toBe(true);
+    preview.shapeFrame?.({ playing: true });
+    expect(video.input).toHaveBeenLastCalledWith(true);
+
     choose('studio.publish.shapeAmp');
-    expect(video.cancel).toHaveBeenCalledTimes(1);
-    expect(video.retry).not.toHaveBeenCalled();
+    preview.shapeFrame?.({ playing: true });
+    // Told nothing plays, and the canvas let rest: the take waits.
+    expect(video.input).toHaveBeenLastCalledWith(false);
+    expect(preview.captureFrames).toBe(false);
+
     choose('studio.publish.shapeNormal');
-    expect(video.retry).toHaveBeenCalledTimes(1);
+    preview.shapeFrame?.({ playing: true });
+    expect(video.input).toHaveBeenLastCalledWith(true);
+    expect(preview.captureFrames).toBe(true);
+    // Never thrown away, never begun again.
+    expect(video.cancel).not.toHaveBeenCalled();
+    expect(video.retry).not.toHaveBeenCalled();
+  });
+
+  // On the way back from another view the first frames are still that
+  // view's, at its size: one of them kept would be a squashed frame in the
+  // clip. Only a frame drawn as the Normal view, at the clip's size, is fed.
+  it('is fed only frames drawn as the Normal view at the clip’s size', () => {
+    open('recording');
+    const size = preview.captureSize;
+    if (
+      typeof size !== 'object' ||
+      size === null ||
+      !('width' in size) ||
+      !('height' in size)
+    ) {
+      throw new Error('Normal draws at the clip’s size');
+    }
+    const canvas = document.createElement('canvas');
+    const atClipSize = { outputWidth: size.width, outputHeight: size.height };
+    const drawn = (view?: unknown) => ({
+      fade: 1,
+      level: 0.5,
+      deltaMs: 16,
+      view,
+      spectrum: new Float32Array(8),
+      waveform: new Float32Array(8),
+    });
+
+    act(() => preview.onDrawn?.(drawn(), canvas, atClipSize));
+    expect(video.frame).toHaveBeenCalledTimes(1);
+    expect(video.frame).toHaveBeenLastCalledWith(canvas);
+
+    // Back in Normal, a frame still drawn as Amp, and one at Amp's size.
+    act(() => preview.onDrawn?.(drawn(PLAYER_PANEL_VIEW), canvas, atClipSize));
+    act(() =>
+      preview.onDrawn?.(drawn(), canvas, {
+        outputWidth: 480,
+        outputHeight: 966,
+      }),
+    );
+    expect(video.frame).toHaveBeenCalledTimes(1);
+
+    // In Amp, nothing at all.
+    choose('studio.publish.shapeAmp');
+    act(() => preview.onDrawn?.(drawn(), canvas, atClipSize));
+    expect(video.frame).toHaveBeenCalledTimes(1);
   });
 
   it('still waiting for music holds nothing, and simply waits', () => {

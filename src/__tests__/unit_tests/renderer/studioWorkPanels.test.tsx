@@ -136,10 +136,17 @@ describe('the Tune tab', () => {
     );
     expect(blocks).toHaveLength(4);
     const [app, colours, wave, scene] = blocks;
-    // What the whole app does with the scene while it is made.
-    expect(
-      within(app).getByRole('button', { name: 'studio.tint.theme' }),
-    ).toBeInTheDocument();
+    // What the whole app does with the scene while it is made: Colours and
+    // Ambient, and no Theme, since the Studio always tints as the scene on
+    // its bench (1219791c4, Ivan 2026-11-18: "we should actually remove
+    // that").
+    const tiles = within(
+      within(app).getByRole('group', { name: 'studio.tint.label' }),
+    ).getAllByRole('button');
+    expect(tiles.map((tile) => tile.getAttribute('aria-label'))).toEqual([
+      'graph.sceneTint.mode.tint',
+      'graph.sceneTint.mode.pulse',
+    ]);
     expect(colours).toBe(
       screen.getByRole('region', { name: 'window colours' }),
     );

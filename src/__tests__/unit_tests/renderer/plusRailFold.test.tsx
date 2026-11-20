@@ -5,13 +5,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The Plus tab's rail, pinned beside the place or folded to its pictures.
+ * The Scenes tab's rail, pinned beside the place or folded to its pictures.
  *
- * The press and the memory are checked on the component; how the fold moves
- * — which jsdom neither lays out nor animates — on the compiled stylesheet,
- * where the things that went wrong while it was built can be seen: the fold
- * reaching the Forum's rail, reduced motion making the width jump, and a
- * pass of the pointer on the way to the place opening the rail.
+ * Scenes stands on the shared studio rail (`StudioRail`, 2026-11-19), so the
+ * pin, the fold and its motion are that rail's (`StudioRail.scss`) and the
+ * Scenes sheet (`PlusRail.scss`) keeps only its rows. The press and the
+ * memory are checked on the component; how the fold moves — which jsdom
+ * neither lays out nor animates — on the compiled stylesheets, where the
+ * things that went wrong while it was built can be seen: the fold reaching
+ * the Forum's rail, reduced motion making the width jump, and a pass of the
+ * pointer on the way to the place opening the rail.
  */
 
 import '@testing-library/jest-dom';
@@ -126,16 +129,28 @@ const press = async (button: HTMLElement) => {
   });
 };
 
-const panelOf = (container: HTMLElement) =>
-  container.querySelector('.community') as HTMLElement;
+/** The shared rail's slot inside the Scenes tab, which carries the fold. */
+const slotOf = (container: HTMLElement) => {
+  const slot = container.querySelector('.community--plus > .studio-rail-slot');
+  if (!(slot instanceof HTMLElement)) {
+    throw new Error('the Scenes tab has no studio rail');
+  }
+  return slot;
+};
 
-describe('the Plus rail', () => {
+describe('the Scenes rail', () => {
   it('starts pinned, as the rail always was, with the press offered as collapsing it', async () => {
     const { container } = await renderFreshPanel();
     const pin = screen.getByRole('button', { name: 'plus.rail.collapse' });
     expect(pin).toHaveAttribute('aria-pressed', 'true');
-    expect(panelOf(container)).toHaveClass('community--plus');
-    expect(panelOf(container)).not.toHaveClass('community--rail-folded');
+    expect(slotOf(container)).not.toHaveClass('is-folded');
+    // The head is the page's name beside the pin, as on every page's rail.
+    expect(
+      slotOf(container).querySelector('.studio-rail__head'),
+    ).toContainElement(pin);
+    expect(
+      slotOf(container).querySelector('.studio-rail__heading'),
+    ).toHaveTextContent('tabs.plus');
   });
 
   it('folds on a press, pins again on the next, and remembers each', async () => {
@@ -143,21 +158,21 @@ describe('the Plus rail', () => {
     await press(screen.getByRole('button', { name: 'plus.rail.collapse' }));
     const pin = screen.getByRole('button', { name: 'plus.rail.pin' });
     expect(pin).toHaveAttribute('aria-pressed', 'false');
-    expect(panelOf(container)).toHaveClass('community--rail-folded');
+    expect(slotOf(container)).toHaveClass('is-folded');
     expect(window.localStorage.getItem(PINNED_KEY)).toBe('false');
 
     await press(pin);
     expect(
       screen.getByRole('button', { name: 'plus.rail.collapse' }),
     ).toHaveAttribute('aria-pressed', 'true');
-    expect(panelOf(container)).not.toHaveClass('community--rail-folded');
+    expect(slotOf(container)).not.toHaveClass('is-folded');
     expect(window.localStorage.getItem(PINNED_KEY)).toBe('true');
   });
 
   it('opens folded when it was left folded', async () => {
     window.localStorage.setItem(PINNED_KEY, 'false');
     const { container } = await renderFreshPanel();
-    expect(panelOf(container)).toHaveClass('community--rail-folded');
+    expect(slotOf(container)).toHaveClass('is-folded');
     expect(screen.getByRole('button', { name: 'plus.rail.pin' })).toBeVisible();
     // Folded is still the whole rail: every place and the account are there
     // to open it over the place.
@@ -169,11 +184,11 @@ describe('the Plus rail', () => {
 });
 
 describe('how the rail folds', () => {
-  const css = compileStylesheet('PlusRail.scss');
-  const rules = styleRules(css);
-  // A card as narrow as the Library's is when its rail keeps only glyphs:
-  // `$bp-lg` and the 10px the panel keeps at each side.
-  const NARROW_CARD = '@container eq-panel (max-width: 1044px)';
+  const rules = styleRules(compileStylesheet('StudioRail.scss'));
+  // A page as narrow as the Library's card is when its rail keeps only
+  // glyphs: `$bp-lg`, measured on the box a rail's page is measured by.
+  const NARROW_PAGE = '@container studio-page (max-width: 1024px)';
+  const FOLDED_SLOT = '.studio-rail-slot.is-folded';
   const slotWidth = (selector: string, within: string[]) =>
     rules
       .find(
@@ -183,43 +198,42 @@ describe('how the rail folds', () => {
       )
       ?.declarations.get('width');
 
-  it('folds at every width, said through the Scenes tab alone, never the Forum’s rail', () => {
+  it('folds at every width on the shared rail, and never reaches the Forum’s rail', () => {
     // The narrow strip of pills is gone from the Scenes tab (2026-11-17): the
     // rail folds to its glyphs as the Library's does, at every width, so the
-    // fold is no longer kept behind a wide panel's query.
-    const moving = rules.filter(
-      ({ selectors, declarations }) =>
-        selectors.some((selector) =>
-          /community__rail-slot|community--rail-folded|community--plus/.test(
-            selector,
-          ),
-        ) &&
-        (declarations.has('width') || declarations.has('transition')),
+    // fold is kept behind no query — the slot and the rail at rest both
+    // narrow.
+    const folding = rules.filter(
+      ({ selectors, declarations, within }) =>
+        within.length === 0 &&
+        declarations.has('width') &&
+        selectors.some((selector) => selector.startsWith(FOLDED_SLOT)),
     );
-    expect(moving.length).toBeGreaterThan(3);
-    expect(moving.some(({ within }) => within.length === 0)).toBe(true);
-    // The Forum borrows the rail's markup and keeps its own look: nothing
-    // here moves a rail that is not the Scenes tab's.
-    moving.forEach(({ selectors }) =>
-      selectors.forEach((selector) =>
-        expect(selector).toMatch(/community--plus|community--rail-folded/),
-      ),
+    expect(folding.map(({ selectors }) => selectors.join())).toEqual([
+      FOLDED_SLOT,
+      `${FOLDED_SLOT} > .studio-rail:not(:hover):not(:has(:focus-visible))`,
+    ]);
+    // The Forum borrows the Scenes rail's markup (`.community__rail`) and
+    // keeps its own look: what is left of the Scenes sheet styles that markup
+    // only inside the Scenes tab or the shared rail, which the Forum has not.
+    const borrowed = styleRules(compileStylesheet('PlusRail.scss'))
+      .flatMap(({ selectors }) => selectors)
+      .filter((selector) => selector.includes('.community__'));
+    expect(borrowed.length).toBeGreaterThan(10);
+    borrowed.forEach((selector) =>
+      expect(selector).toMatch(/community--plus|studio-rail/),
     );
   });
 
-  it('folds by itself on a card too narrow for a rail, to the folded column', () => {
-    const folded = slotWidth(
-      '.community--rail-folded > .community__rail-slot',
-      [],
-    );
+  it('folds by itself on a page too narrow for a rail, to the folded column', () => {
+    const folded = slotWidth(FOLDED_SLOT, []);
     expect(folded).toMatch(/^\d+px$/);
-    expect(
-      slotWidth('.community--plus > .community__rail-slot', [NARROW_CARD]),
-    ).toBe(folded);
-    // The control: on a card with room, the slot is the rail's own width.
-    expect(slotWidth('.community--plus > .community__rail-slot', [])).toMatch(
-      /^var\(--rail-width/,
+    // Every rail but Share Audio's, which never folds (`FixedStudioRail`).
+    expect(slotWidth('.studio-rail-slot:not(.is-fixed)', [NARROW_PAGE])).toBe(
+      folded,
     );
+    // The control: on a page with room, the slot is the rail's own width.
+    expect(slotWidth('.studio-rail-slot', [])).toMatch(/^var\(--rail-width/);
   });
 
   it('still slides under reduced motion, shorter, instead of jumping', () => {
@@ -236,15 +250,12 @@ describe('how the rail folds', () => {
   });
 
   it('waits a moment before opening over the place, so a pass on the way there opens nothing', () => {
-    const opening = rules.find(({ selectors }) =>
-      selectors.some(
-        (selector) =>
-          selector.includes('community--rail-folded') &&
-          selector.includes(':hover') &&
-          selector.endsWith(
-            '.community__rail:is(:hover, :has(:focus-visible))',
-          ),
-      ),
+    const opening = rules.find(
+      ({ selectors, within }) =>
+        within.length === 0 &&
+        selectors.includes(
+          `${FOLDED_SLOT} > .studio-rail:is(:hover, :has(:focus-visible))`,
+        ),
     );
     const transition = opening?.declarations.get('transition') ?? '';
     // "width <duration> <easing> <delay>": the delay is the pointer's intent.

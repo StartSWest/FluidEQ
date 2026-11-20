@@ -56,10 +56,25 @@ jest.mock('renderer/audio/LiveAudioContext', () => {
   };
 });
 
-/** A canvas that takes every call, counting the frames it is cleared for. */
+/**
+ * A canvas that takes every call, counting the frames it is cleared for.
+ *
+ * It paints nothing, so reading it back (the meter samples its unlit lamp's
+ * luminance off a one-pixel canvas, `unlitLuminance`) gives what an untouched
+ * canvas gives: transparent black, four bytes per pixel of the region asked.
+ */
 const gradient = { addColorStop: () => undefined };
 const cleared = jest.fn();
-const drawing: Record<string | symbol, unknown> = { clearRect: cleared };
+const readBack = (_x: number, _y: number, width: number, height: number) => ({
+  data: new Uint8ClampedArray(Math.abs(width * height) * 4),
+  width: Math.abs(width),
+  height: Math.abs(height),
+  colorSpace: 'srgb' as const,
+});
+const drawing: Record<string | symbol, unknown> = {
+  clearRect: cleared,
+  getImageData: readBack,
+};
 const context = new Proxy(drawing, {
   get: (target, property) =>
     property in target ? target[property] : () => gradient,

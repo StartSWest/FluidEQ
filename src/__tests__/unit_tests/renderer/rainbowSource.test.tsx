@@ -188,13 +188,17 @@ describe('Colourful mode with a standard look', () => {
     expect(new Set(stops).size).toBe(1);
   });
 
+  // Both ends read on the dark window's floor as they are, so the stops worn
+  // are the stops chosen: a dark end (#8800ff) is lifted there, hue kept,
+  // until a line in it reads (`paletteOnDark`, b96dae4b9), which is the
+  // palette's rule and not what this file is about.
   it('draws a gradient once the Tint is given a second colour', () => {
     const stops = stopsWith(undefined, {
       'fluideq.windowTintColour': '#ff8800',
       'fluideq.windowTint': '50',
-      'fluideq.windowTintSecondary': '#8800ff',
+      'fluideq.windowTintSecondary': '#b080ff',
     });
-    expect(stops).toEqual(rainbowBetween('#ff8800', '#8800ff'));
+    expect(stops).toEqual(rainbowBetween('#ff8800', '#b080ff'));
     expect(new Set(stops).size).toBeGreaterThan(2);
   });
 });

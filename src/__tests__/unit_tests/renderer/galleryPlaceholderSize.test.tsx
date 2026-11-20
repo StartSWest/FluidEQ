@@ -78,7 +78,11 @@ const published: IPublishedScene = {
 };
 
 /** The parts that lay other parts out: opened; every other part is a line. */
-const CONTAINERS = new Set(['gallery-card__foot', 'gallery-row__text']);
+const CONTAINERS = new Set([
+  'gallery-card__title',
+  'gallery-card__foot',
+  'gallery-row__text',
+]);
 
 /**
  * What a box is made of: each child's own part of the card or row (its
@@ -137,9 +141,11 @@ it('builds a placeholder card from the rows of the card that replaces it', async
   const cardParts = partsOf(card);
   // The control: the card has the four rows and the foot's controls, so an
   // empty comparison cannot pass for a match. The add count left the foot
-  // for the facts line (2026-11-17), where it is no longer cut.
+  // for the facts line (2026-11-17), where it is no longer cut. The name
+  // stands in a row of its own, with a 3D scene's label at its far end
+  // (2026-11-19).
   expect(cardParts).toEqual([
-    'gallery-card__name',
+    { 'gallery-card__title': ['gallery-card__name'] },
     'gallery-card__byline',
     'gallery-card__version',
     { 'gallery-card__foot': ['gallery-card__controls'] },

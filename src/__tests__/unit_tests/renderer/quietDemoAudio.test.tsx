@@ -1,8 +1,10 @@
 /**
  * The Gallery's preview moves to the demo song, silently, only while nothing
  * plays, and goes back to the music the moment there is some
- * (`useQuietDemoAudio`). Quiet is a state - nothing heard AND no player
- * playing - so the silence between two songs keeps the music.
+ * (`useQuietDemoAudio`). Music is what the capture hears, never what a
+ * player says (2026-11-19): a player reporting that it plays keeps music that
+ * was heard through the silence between two songs, and never stands for music
+ * on its own.
  */
 import { act, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
@@ -11,6 +13,7 @@ import {
   type ISceneAudio,
 } from 'renderer/audio/SceneAudioContext';
 import useQuietDemoAudio from 'renderer/audio/useQuietDemoAudio';
+import { LEVEL_FLOOR_DB } from 'renderer/graph/outputLevel';
 
 const mockControl = { isActive: true, error: '' };
 // The output meter's held peak: music at -12 dBFS unless a test says.
@@ -135,18 +138,59 @@ it('goes back to the music the moment it is heard, and stops the demo', () => {
 });
 
 it('keeps the music through the silence between two songs', () => {
-  // The control: the same silence with no player playing starts the demo.
-  const control = render(music(0));
-  expect(control.hook.result.current.demo).toBe(true);
-  control.hook.unmount();
-  mockDemos.length = 0;
-
   mockSources = { library: { isPlaying: true } };
+  const { hook, hear } = render(music(320));
+  expect(hook.result.current.demo).toBe(false);
+
+  // The gap: nothing heard, the meter at its floor, the player still playing.
+  mockMeter.peakDb = LEVEL_FLOOR_DB;
   const between = music(0);
-  const { hook } = render(between);
+  hear(between);
   expect(mockDemos).toHaveLength(0);
   expect(hook.result.current.demo).toBe(false);
   expect(hook.result.current.audio).toBe(between);
+
+  // The control: the same silence once the player has stopped starts the demo.
+  mockSources = { library: { isPlaying: false } };
+  hear(music(0));
+  expect(mockDemos).toHaveLength(1);
+  expect(hook.result.current.demo).toBe(true);
+});
+
+it('moves to the demo while a player says it plays but nothing was heard', () => {
+  // A game in front always says it plays, as a paused browser tab can: it
+  // used to keep the scene on silence under a tag that claimed the music.
+  mockSources = { game: { isPlaying: true } };
+  mockMeter.peakDb = LEVEL_FLOOR_DB;
+  const { hook, hear } = render(music(0));
+  expect(mockDemos).toHaveLength(1);
+  expect(hook.result.current.demo).toBe(true);
+  expect(hook.result.current.audio.points).toBe(mockDemos[0].points);
+
+  // The control: music heard under the same player takes the scene at once.
+  mockMeter.peakDb = -12;
+  const song = music(320);
+  hear(song);
+  expect(hook.result.current.demo).toBe(false);
+  expect(hook.result.current.audio).toBe(song);
+});
+
+it('gives the scene to the demo once only a faint sound under the meter is left', () => {
+  // Another program idling, or a device's hiss, after the music: the capture
+  // still hears something, but the meter shows nothing.
+  const { hook, hear } = render(music(320));
+  expect(hook.result.current.demo).toBe(false);
+
+  // The control: a whisper just over the meter's floor is still the music.
+  mockMeter.peakDb = LEVEL_FLOOR_DB + 1;
+  hear(music(4));
+  expect(hook.result.current.demo).toBe(false);
+  expect(mockDemos).toHaveLength(0);
+
+  mockMeter.peakDb = LEVEL_FLOOR_DB;
+  hear(music(4));
+  expect(hook.result.current.demo).toBe(true);
+  expect(mockDemos).toHaveLength(1);
 });
 
 it('opens no demo for a page that is not listening to the music', () => {

@@ -17,8 +17,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * The knee used to be Brightness 50; since the slider runs on into a light
  * window (2026-11-17) it is the middle of the dark stretch, and a stored
  * Brightness is on that scale (`fluideq.themeScale`). A scene with no named
- * colours lends the window the colours the app works out from its measured
- * picture (`windowColoursOfSky`), all day while only its night is measured.
+ * colours lends the window the one set the app works out from its picture
+ * measured by day (`automaticOfSky`, 58d70ea7e), all day.
  *
  * The scene is never drawn here: its measurement is stood in for by a
  * remembered sky, as in `sceneTintWindow.test.tsx`.
@@ -31,10 +31,16 @@ import {
   SCENE_SKY_MEASUREMENT,
   type ISceneSky,
 } from '../../../renderer/utils/sceneTint';
+import { skyFromWindowColours } from '../../../renderer/utils/sceneOwnColours';
 import {
-  skyFromWindowColours,
-  windowColoursOfSky,
-} from '../../../renderer/utils/sceneOwnColours';
+  automaticAt,
+  automaticOfSky,
+} from '../../../renderer/utils/automaticColours';
+import {
+  resolveStopColours,
+  SCENE_COLOURS_STOP,
+  stopKeyOf,
+} from '../../../renderer/utils/sceneDayColours';
 import {
   DARK_FLOOR_LIGHTNESS,
   DARK_KNEE,
@@ -81,8 +87,17 @@ const FAINT: ISceneSky = {
   active: null,
 };
 
-/** The sky the window is toned by: the colours the app works out of FAINT. */
-const LENT = skyFromWindowColours(windowColoursOfSky(FAINT));
+/**
+ * The sky the window is toned by: the scene's one set, worked out of FAINT
+ * measured by day, exactly as `useSceneWindowColours` resolves it.
+ */
+const LENT_COLOURS = resolveStopColours({
+  named: {},
+  measured: { '100': automaticOfSky(FAINT, '100') },
+  chosen: {},
+  within: automaticAt,
+}).sides[SCENE_COLOURS_STOP]?.colours;
+const LENT = LENT_COLOURS && skyFromWindowColours(LENT_COLOURS);
 
 const THEME = `:root { --surface-base: #0d2030; --surface-panel: #1a3a4e; --accent: #00e5cf; --active: #54ff8a; }`;
 
@@ -94,7 +109,8 @@ beforeEach(() => {
     'fluideq.sceneTint.skies',
     JSON.stringify({
       measurement: SCENE_SKY_MEASUREMENT,
-      rows: [['premium:fireflies', '3', FAINT]],
+      // By day: the one picture a scene's single set is worked out of.
+      rows: [[stopKeyOf('premium:fireflies', SCENE_COLOURS_STOP), '3', FAINT]],
     }),
   );
   const style = document.createElement('style');

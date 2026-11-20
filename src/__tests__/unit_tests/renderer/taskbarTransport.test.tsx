@@ -76,6 +76,7 @@ it('disables an empty toolbar and releases its listener on unmount', () => {
     canToggle: false,
     canNext: false,
     canPrevious: false,
+    canSurprise: false,
   });
   // A player that only describes itself — a page loaded, nothing pressed —
   // is not a thing to control from a tab that is not its own.
@@ -170,20 +171,28 @@ it('keeps a paused remote sender available to resume and follows tab changes', (
   view.unmount();
 });
 
+/** The Library player, paused on a song, its every command recorded. */
+const libraryPlayer = (
+  isUnplayable: boolean,
+): Parameters<typeof usePublishedTransport>[0] => ({
+  track: { id: 'song', title: 'Song', artist: 'Artist' } as ILibraryTrack,
+  isPlaying: false,
+  retainWhenHidden: false,
+  publishedPositionMs: 0,
+  publishedDurationMs: 1000,
+  toggle: () => actions.push('play'),
+  skip: (direction) => actions.push(`skip:${direction}`),
+  seek: () => undefined,
+  surprise: async () => {
+    actions.push('surprise');
+    return null;
+  },
+  isUnplayable,
+});
+
 it('uses Library queue commands and disables play for an unplayable track', () => {
   const player = renderHook(
-    ({ isUnplayable }) =>
-      usePublishedTransport({
-        track: { id: 'song', title: 'Song', artist: 'Artist' } as ILibraryTrack,
-        isPlaying: false,
-        retainWhenHidden: false,
-        publishedPositionMs: 0,
-        publishedDurationMs: 1000,
-        toggle: () => actions.push('play'),
-        skip: (direction) => actions.push(`skip:${direction}`),
-        seek: () => undefined,
-        isUnplayable,
-      }),
+    ({ isUnplayable }) => usePublishedTransport(libraryPlayer(isUnplayable)),
     { initialProps: { isUnplayable: false } },
   );
   const view = render(<TaskbarTransport tabOwner="library" />);
@@ -198,6 +207,29 @@ it('uses Library queue commands and disables play for an unplayable track', () =
   expect(actions).toHaveLength(2);
   view.unmount();
   player.unmount();
+});
+
+it('offers Surprise me only while the Library owns the transport', () => {
+  const library = renderHook(() => usePublishedTransport(libraryPlayer(false)));
+  const view = render(<TaskbarTransport tabOwner="library" />);
+  expect(latest().canSurprise).toBe(true);
+  act(() => listener?.('surprise'));
+  expect(actions).toEqual(['surprise']);
+
+  // An audible player elsewhere takes the buttons, and it has no Surprise me.
+  act(() => setTransportSource(source('system', true)));
+  expect(latest().canSurprise).toBe(false);
+  act(() => listener?.('surprise'));
+  expect(actions).toEqual(['surprise']);
+
+  // The control: that player stops, the Library has the buttons back, and
+  // Surprise me with them.
+  act(() => setTransportSource(source('system', false)));
+  expect(latest().canSurprise).toBe(true);
+  act(() => listener?.('surprise'));
+  expect(actions).toEqual(['surprise', 'surprise']);
+  view.unmount();
+  library.unmount();
 });
 
 it('does not register or publish Windows controls on other platforms', () => {

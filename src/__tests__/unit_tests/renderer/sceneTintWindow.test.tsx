@@ -28,8 +28,9 @@ let mockLookId = 'premium:bloom';
 let mockSwatch: string[] = [];
 // The colours the scene names for the window, when a test gives it some.
 let mockWindowColours: Record<string, string> | undefined;
-// And for its day (2026-11-18), when a test gives it some.
-let mockWindowColoursDay: Record<string, string> | undefined;
+// The sets it names at its points (`windowColourStops`, as a listing reads
+// them from a pack), when a test gives it some.
+let mockWindowColourStops: Record<string, Record<string, string>> | undefined;
 const mockMeasureScene = jest.fn();
 const mockMeasureStudio = jest.fn();
 
@@ -44,8 +45,8 @@ jest.mock('../../../renderer/utils/scenePacks', () => ({
       version: 3,
       swatch: mockSwatch,
       ...(mockWindowColours ? { windowColours: mockWindowColours } : {}),
-      ...(mockWindowColoursDay
-        ? { windowColoursDay: mockWindowColoursDay }
+      ...(mockWindowColourStops
+        ? { windowColourStops: mockWindowColourStops }
         : {}),
     },
   ],
@@ -103,7 +104,7 @@ beforeEach(() => {
   mockLookId = 'premium:bloom';
   mockSwatch = [];
   mockWindowColours = undefined;
-  mockWindowColoursDay = undefined;
+  mockWindowColourStops = undefined;
   mockMeasureScene.mockReset().mockResolvedValue(undefined);
   mockMeasureStudio.mockReset().mockResolvedValue(undefined);
   const style = document.createElement('style');
@@ -148,45 +149,65 @@ const mount = () => {
   return { store, fresh: library };
 };
 
-// A scene's colour is measured, and remembered, once per version for each
-// time of day it names nothing for: its night (Daylight 0) under the look's
-// id, its day (100) under id@day (2026-11-18, `sceneDayColours.ts`). The
+// A scene has one set of window colours, the day's (58d70ea7e, Ivan,
+// 2026-11-19: "pick one colour for the scene ... and when it darks, it simply
+// darks"): where it names none, its picture is measured by day (the 100
+// point, remembered under id@100) once per version, and never at night. The
 // Brightness tones what was found and never chooses it (Ivan, 2026-10-14:
 // "each scene has their colors cant be like that due to day or night just
 // darker or lighter").
 describe('the graph’s visualizer', () => {
-  /** The times of day the scene was drawn to measure. */
+  /** The points of the day the scene was drawn to measure. */
   const measuredTimes = () =>
     mockMeasureScene.mock.calls.map((call: unknown[]) => call[3]);
+
+  /** A colour's OKLCH hue, in degrees. */
+  const hueOf = (hex: string) => {
+    const parsed = parseCssColour(hex);
+    if (!parsed) {
+      throw new Error(`not a colour: ${hex}`);
+    }
+    const { a, b } = rgbToLab(parsed.rgb);
+    return ((Math.atan2(b, a) * 180) / Math.PI + 360) % 360;
+  };
 
   const NIGHT = {
     surface: '#1d2b4f',
     accent: '#5fd4ff',
     glow: '#7dffb0',
   };
+  /** A day of another hue altogether: a violet floor. */
+  const DAY = { ...NIGHT, surface: '#3a1d4f' };
 
   // A scene that names its window colours (Ivan, 2026-11-14: "we want the
   // agent to give those colours") is shown in them as it is chosen, on every
   // computer the same, and never drawn to second-guess them.
-  it('wears the colours a scene names at once, and never draws it to measure', () => {
+  it('wears the day’s set a scene names, at night too, and never draws it to measure', () => {
     mockWindowColours = NIGHT;
-    mockWindowColoursDay = { ...NIGHT, surface: '#1d3a4f' };
+    mockWindowColourStops = { '0': NIGHT, '100': DAY };
     // Even over a remembered measurement of another colour.
-    remember([['premium:bloom', '3', sky(30)]]);
-    // At Black, whose hour is night: the night's set is what is worn.
+    remember([['premium:bloom@100', '3', sky(30)]]);
+    // At Black, whose hour is night: still the day's set, darkened.
     const { store } = mount();
     expect(root).toHaveAttribute('data-scene-tint');
     const shown = store.getShownSceneSky();
-    expect(Math.abs((shown?.hue ?? 0) - 266.3)).toBeLessThan(1);
+    expect(Math.abs((shown?.hue ?? 0) - hueOf(DAY.surface))).toBeLessThan(1);
+    // CONTROL: the night's set is another hue, which is not what is worn.
+    expect(Math.abs(hueOf(NIGHT.surface) - hueOf(DAY.surface))).toBeGreaterThan(
+      20,
+    );
     expect(mockMeasureScene).not.toHaveBeenCalled();
   });
 
-  // A scene published with its night's colours alone: the app works out its
-  // day from a drawing at that hour, and never redraws the night it names.
-  it('draws a scene naming only its night at its day alone', () => {
+  // A scene published before the points, with one set: that set is its
+  // colours all day, and nothing is drawn to find a day it does not name.
+  it('wears one set a scene names all day, and never draws it', () => {
     mockWindowColours = NIGHT;
-    mount();
-    expect(measuredTimes()).toEqual(['day']);
+    const { store } = mount();
+    expect(
+      Math.abs((store.getShownSceneSky()?.hue ?? 0) - hueOf(NIGHT.surface)),
+    ).toBeLessThan(1);
+    expect(measuredTimes()).toEqual([]);
   });
 
   // The listener's own colours for a scene, from the Window colours menu,
@@ -211,32 +232,22 @@ describe('the graph’s visualizer', () => {
     // #3a1d12 is a red-brown, nowhere near the scene's own blue (266).
     const shown = store.getShownSceneSky();
     expect(shown?.hue).toBeLessThan(60);
-    // The night is the listener's and the scene's: never drawn for.
-    expect(measuredTimes()).not.toContain('night');
+    // The listener's and the scene's own: never drawn for.
+    expect(mockMeasureScene).not.toHaveBeenCalled();
   });
 
-  it('control: a scene naming none is measured, at night and at day', () => {
-    remember([['premium:bloom', '2', sky(30)]]);
+  it('control: a scene naming none is measured, by day alone', () => {
+    remember([['premium:bloom@100', '2', sky(30)]]);
     mount();
-    expect(mockMeasureScene).toHaveBeenCalledWith(
-      'premium:bloom',
-      '3',
-      undefined,
-      'night',
-    );
-    expect(mockMeasureScene).toHaveBeenCalledWith(
-      'premium:bloom',
-      '3',
-      undefined,
-      'day',
-    );
+    expect(mockMeasureScene.mock.calls).toEqual([
+      ['premium:bloom', '3', undefined, '100'],
+    ]);
   });
 
+  // Remembered under the two-point model's day key, which reads as the day's
+  // point (`migrateStopKey`): a launch after the update opens in it as well.
   it('opens the window in the colour it was last measured, before anything is drawn', () => {
-    remember([
-      ['premium:bloom', '3', sky(300)],
-      ['premium:bloom@day', '3', sky(300)],
-    ]);
+    remember([['premium:bloom@day', '3', sky(300)]]);
     mount();
     expect(root).toHaveAttribute('data-scene-tint');
     expect(root.style.getPropertyValue('--surface-base')).toMatch(/^#/);
@@ -255,7 +266,7 @@ describe('the graph’s visualizer', () => {
       'premium:bloom',
       '3',
       undefined,
-      'night',
+      '100',
     );
   });
 
@@ -267,18 +278,28 @@ describe('the graph’s visualizer', () => {
       'premium:bloom',
       '3',
       undefined,
-      'night',
+      '100',
     );
   });
 
   it('measures a version it has not seen, keeping the colour it had meanwhile', () => {
+    remember([['premium:bloom@100', '2', sky(300)]]);
+    mount();
+    // The day's version is old: drawn again, and its old colour worn
+    // meanwhile.
+    expect(measuredTimes()).toEqual(['100']);
+    expect(root).toHaveAttribute('data-scene-tint');
+  });
+
+  // The night's picture is no longer asked for (58d70ea7e): one of an old
+  // version beside a current day is never redrawn.
+  it('leaves a stale night alone while the day is current', () => {
     remember([
       ['premium:bloom', '2', sky(300)],
-      ['premium:bloom@day', '3', sky(300)],
+      ['premium:bloom@100', '3', sky(300)],
     ]);
     mount();
-    // The night's version is old; the day's is this one.
-    expect(measuredTimes()).toEqual(['night']);
+    expect(measuredTimes()).toEqual([]);
   });
 
   // Brightness tones the colour; it is not a new measurement. Under the old
@@ -286,24 +307,28 @@ describe('the graph’s visualizer', () => {
   // from green to purple as it was dimmed.
   it('keeps the colour measured for a version at any Brightness', () => {
     window.localStorage.setItem('fluideq.theme', 'ocean');
-    remember([
-      ['premium:bloom', '3', sky(300)],
-      ['premium:bloom@day', '3', sky(300)],
-    ]);
+    remember([['premium:bloom@100', '3', sky(300)]]);
     mount();
     expect(root).toHaveAttribute('data-scene-tint');
     expect(mockMeasureScene).not.toHaveBeenCalled();
   });
 
   it('forgets every sky measured the way it used to be measured', () => {
-    remember([['premium:bloom', '3', sky(300)]], MEASUREMENT - 1);
+    remember(
+      [
+        ['premium:bloom', '3', sky(300)],
+        ['premium:bloom@100', '3', sky(300)],
+      ],
+      MEASUREMENT - 1,
+    );
     const { store } = mount();
     expect(store.recallSceneSky('premium:bloom')).toBeUndefined();
+    expect(store.recallSceneSky('premium:bloom@100')).toBeUndefined();
     expect(mockMeasureScene).toHaveBeenCalledWith(
       'premium:bloom',
       '3',
       undefined,
-      'night',
+      '100',
     );
   });
 

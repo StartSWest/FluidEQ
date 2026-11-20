@@ -10,13 +10,18 @@
  * Each colour is a button that opens FluidEQ's own colour picker (Ivan,
  * 2026-11-18: "que maché con el estilo de Fluid ... y que tenga un botón de
  * aceptar"): the window follows the picker while it moves, Accept keeps the
- * colour, and Cancel, Escape or a press outside put back the one it opened
- * with.
+ * colour, and Cancel or Escape put back the one it opened with. A press
+ * outside closes nothing (c4789af21, Ivan, 2026-11-18: "it only closes with
+ * Accept or Cancel").
+ *
+ * A scene has one set, kept at its day's point (58d70ea7e,
+ * `SCENE_COLOURS_STOP`), so that is where a choice is kept.
  */
 
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import SceneWindowColours from 'renderer/graph/SceneWindowColours';
+import { SCENE_COLOURS_STOP } from 'renderer/utils/sceneDayColours';
 import {
   clearChosenWindowColours,
   getChosenWindowColours,
@@ -104,18 +109,22 @@ it('keeps the colour the picker is accepted on for this scene, and marks it your
   const picker = pickInto('accent', '#ffd23f');
   // The picker moving changes only what is shown; Accept keeps it.
   expect(shownOn('accent')).toBe('#FFD23F');
-  expect(getChosenWindowColours(LOOK)).toBeUndefined();
+  expect(getChosenWindowColours(LOOK, SCENE_COLOURS_STOP)).toBeUndefined();
   fireEvent.click(
     within(picker).getByRole('button', { name: 'graph.sceneColours.accept' }),
   );
-  expect(getChosenWindowColours(LOOK)).toEqual({ ...OWN, accent: '#ffd23f' });
+  expect(getChosenWindowColours(LOOK, SCENE_COLOURS_STOP)).toEqual({
+    ...OWN,
+    accent: '#ffd23f',
+  });
   expect(screen.getByText('graph.sceneColours.yours')).toBeInTheDocument();
   expect(swatch('accent')).toHaveClass('is-changed');
   expect(swatch('surface')).not.toHaveClass('is-changed');
-  // Kept across a launch, on this computer.
-  expect(window.localStorage.getItem('fluideq.sceneWindowColours')).toContain(
-    '#ffd23f',
+  // Kept across a launch, on this computer, under the day's point.
+  const stored: unknown = JSON.parse(
+    window.localStorage.getItem('fluideq.sceneWindowColours') ?? '{}',
   );
+  expect(stored).toEqual({ [`${LOOK}@100`]: { ...OWN, accent: '#ffd23f' } });
 });
 
 it.each([
@@ -129,7 +138,6 @@ it.each([
       ),
   ],
   ['Escape', () => fireEvent.keyDown(document, { key: 'Escape' })],
-  ['a press outside', () => fireEvent.mouseDown(document.body)],
 ])('puts back the colour it opened with on %s', (_name, leave) => {
   render(<SceneWindowColours />);
   const picker = pickInto('accent', '#ffd23f');
@@ -137,8 +145,21 @@ it.each([
   expect(shownOn('accent')).toBe('#FFD23F');
   leave(picker);
   expect(shownOn('accent')).toBe(OWN.accent.toUpperCase());
-  expect(getChosenWindowColours(LOOK)).toBeUndefined();
+  expect(getChosenWindowColours(LOOK, SCENE_COLOURS_STOP)).toBeUndefined();
   expect(screen.queryByRole('dialog')).toBeNull();
+});
+
+it('keeps the picker and its colour through a press outside', () => {
+  render(<SceneWindowColours />);
+  pickInto('accent', '#ffd23f');
+  fireEvent.mouseDown(document.body);
+  fireEvent.click(document.body);
+  expect(
+    screen.getByRole('dialog', { name: 'graph.sceneColours.accent' }),
+  ).toBeInTheDocument();
+  expect(shownOn('accent')).toBe('#FFD23F');
+  // Nothing kept until Accept.
+  expect(getChosenWindowColours(LOOK, SCENE_COLOURS_STOP)).toBeUndefined();
 });
 
 it('offers the screen’s eyedropper only where the window has one', () => {
@@ -171,7 +192,7 @@ it("goes back to the scene's own with one press", () => {
   });
   expect(reset).toBeEnabled();
   fireEvent.click(reset);
-  expect(getChosenWindowColours(LOOK)).toBeUndefined();
+  expect(getChosenWindowColours(LOOK, SCENE_COLOURS_STOP)).toBeUndefined();
   expect(screen.getByText('graph.sceneColours.own')).toBeInTheDocument();
   expect(shownOn('surface')).toBe(OWN.surface.toUpperCase());
 });

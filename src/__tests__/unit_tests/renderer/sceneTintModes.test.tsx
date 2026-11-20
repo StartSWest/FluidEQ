@@ -265,11 +265,12 @@ describe('the window’s colours in the tray', () => {
 
 describe('the Studio’s tiles', () => {
   // The Studio's own choice, never the app's (Ivan, 2026-09-27: "the studio
-  // options are independent of the global ones"): Theme, and the app's
-  // Colours and Ambient with the project on the bench as the scene — never a
-  // Backdrop (2026-09-28: "remove backdrop option from studio only").
+  // options are independent of the global ones"): the app's Colours and
+  // Ambient with the project on the bench as the scene — never a Backdrop
+  // (2026-09-28: "remove backdrop option from studio only"), and no Theme
+  // since 1219791c4 (2026-11-18: "the Studio always tints as the scene").
   // Neither sets the other.
-  it('shows all three at once, the Studio’s own mode pressed, each named in a word', async () => {
+  it('shows both at once, the Studio’s own mode pressed, each named in a word', async () => {
     const { Tiles, library: fresh } = load();
     fresh.render(<Tiles />);
     // The tiles' own group: the card's head carries an info button too
@@ -278,15 +279,14 @@ describe('the Studio’s tiles', () => {
       .within(fresh.screen.getByRole('group', { name: 'studio.tint.label' }))
       .getAllByRole('button');
     expect(tiles.map((tile) => tile.textContent)).toEqual([
-      'studio.tint.theme',
       'graph.sceneTint.short.tint',
       'graph.sceneTint.short.pulse',
     ]);
-    // Theme for somebody new, whatever the app's mode is (Ambient).
+    // Ambient for somebody new (2026-11-18: "Ambient should be selected by
+    // default in the Studio").
     expect(tiles.map((tile) => tile.getAttribute('aria-pressed'))).toEqual([
+      'false',
       'true',
-      'false',
-      'false',
     ]);
     await userEvent.click(
       fresh.screen.getByRole('button', { name: 'graph.sceneTint.mode.tint' }),
@@ -305,14 +305,35 @@ describe('the Studio’s tiles', () => {
 
   it('never shows the app’s mode as the Studio’s', () => {
     const { Tiles, library: fresh } = load({
-      'fluideq.sceneTintMode': 'pulse',
+      'fluideq.sceneTintMode': 'tint',
     });
     fresh.render(<Tiles />);
     expect(
-      fresh.screen.getByRole('button', { name: 'graph.sceneTint.mode.pulse' }),
+      fresh.screen.getByRole('button', { name: 'graph.sceneTint.mode.tint' }),
     ).toHaveAttribute('aria-pressed', 'false');
     expect(
-      fresh.screen.getByRole('button', { name: 'studio.tint.theme' }),
+      fresh.screen.getByRole('button', { name: 'graph.sceneTint.mode.pulse' }),
+    ).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('reads a Theme an earlier version stored as Ambient, and keeps a stored Colours', () => {
+    const first = load({ 'fluideq.studioWindowMode': 'theme' });
+    expect(first.store.STUDIO_TINT_MODES).toEqual(['tint', 'pulse']);
+    first.library.render(<first.Tiles />);
+    expect(
+      first.library.screen.getByRole('button', {
+        name: 'graph.sceneTint.mode.pulse',
+      }),
+    ).toHaveAttribute('aria-pressed', 'true');
+    first.library.cleanup();
+    window.localStorage.clear();
+    // CONTROL: a mode the tiles still offer is read as stored.
+    const second = load({ 'fluideq.studioWindowMode': 'tint' });
+    second.library.render(<second.Tiles />);
+    expect(
+      second.library.screen.getByRole('button', {
+        name: 'graph.sceneTint.mode.tint',
+      }),
     ).toHaveAttribute('aria-pressed', 'true');
   });
 
@@ -326,9 +347,12 @@ describe('the Studio’s tiles', () => {
         name: 'graph.sceneTint.mode.cover',
       }),
     ).toBeNull();
-    // POSITIVE CONTROL: the tiles are there, the Studio's own on Theme.
+    // POSITIVE CONTROL: the tiles are there, the Studio's own on Ambient.
     expect(
-      fresh.screen.getByRole('button', { name: 'studio.tint.theme' }),
+      fresh.screen.getByRole('button', { name: 'graph.sceneTint.mode.pulse' }),
     ).toHaveAttribute('aria-pressed', 'true');
+    expect(
+      fresh.screen.getByRole('button', { name: 'graph.sceneTint.mode.tint' }),
+    ).toHaveAttribute('aria-pressed', 'false');
   });
 });

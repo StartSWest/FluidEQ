@@ -31,6 +31,53 @@ const valuesFor = (css: string, fragment: string, property: string) =>
     .map(({ declarations }) => declarations.get(property))
     .filter((value): value is string => value !== undefined);
 
+/** The rules for a selector containing `fragment`, on one window's ink. */
+const badgeRules = (css: string, fragment: string, onWhite: boolean) =>
+  styleRules(css).filter(({ selectors }) =>
+    selectors.some(
+      (selector) =>
+        selector.includes(fragment) &&
+        selector.includes('[data-window-ink=dark]') === onWhite,
+    ),
+  );
+
+/** Every value of `property` among `rules`, each once. */
+const valuesIn = (rules: ReturnType<typeof badgeRules>, property: string) => [
+  ...new Set(
+    rules
+      .map(({ declarations }) => declarations.get(property))
+      .filter((value): value is string => value !== undefined),
+  ),
+];
+
+/** The inks and fills `selector` is given on each side of the window. */
+const badgeFace = (css: string, selector: string) => {
+  const dark = badgeRules(css, selector, false);
+  const white = badgeRules(css, selector, true);
+  return {
+    darkInk: valuesIn(dark, 'color'),
+    darkFill: valuesIn(dark, 'background'),
+    whiteInk: valuesIn(white, 'color'),
+    whiteFill: valuesIn(white, 'background'),
+  };
+};
+
+/**
+ * The "on" badge: the token's lit tint and the token lit toward the text's
+ * ink on a dark window, the token and its own label on the white one - and,
+ * being exactly these, the lime itself written nowhere in it.
+ */
+const ON_BADGE = {
+  darkInk: ['color-mix(in oklab, var(--active), var(--text-primary))'],
+  darkFill: [
+    expect.stringMatching(
+      /^color-mix\(in srgb, var\(--active\) \d+%, transparent\)$/,
+    ),
+  ],
+  whiteInk: ['var(--on-active)'],
+  whiteFill: ['var(--active)'],
+};
+
 describe('the "on" colour', () => {
   it('defaults to the lime it always was, on the root', () => {
     const app = compileStylesheet('App.scss');
@@ -41,26 +88,16 @@ describe('the "on" colour', () => {
     expect(root?.declarations.get('--active')).toBe(LIME);
   });
 
-  // A badge says "on" as the shared badge face does (2026-11-17, `badge` in
-  // `_themeMixins.scss`): the token's own ink over the token's lit tint.
+  // A badge says "on" as the shared "on" badge does (`badge-on` in
+  // `_themeMixins.scss`): on a dark window the token's lit tint with its
+  // words the token lit halfway to the text's ink (in the token alone they
+  // stood at 2.3:1 once "on" could be a deep colour); on the white window
+  // the token itself with its own label on it (fad25fea4).
   it.each([
     ['DeviceProfiles.scss', '.default-badge'],
     ['PresetsBar.scss', '.preset-attached'],
   ])('%s says "on" with the token in the badge %s', (file, selector) => {
-    const css = compileStylesheet(file);
-    const inks = valuesFor(css, selector, 'color');
-    const fills = valuesFor(css, selector, 'background');
-    expect(inks).toContain('var(--active)');
-    expect(fills.length).toBeGreaterThan(0);
-    fills.forEach((fill) => {
-      expect(fill).toMatch(
-        /^color-mix\(in srgb, var\(--active\) \d+%, transparent\)$/,
-      );
-    });
-    // CONTROL: the lime itself is written nowhere in it.
-    [...inks, ...fills].forEach((value) => {
-      expect(value.toLowerCase()).not.toContain(LIME);
-    });
+    expect(badgeFace(compileStylesheet(file), selector)).toEqual(ON_BADGE);
   });
 
   it.each([
@@ -100,13 +137,17 @@ describe('the "on" colour', () => {
     },
   );
 
+  // The output being played through says so in its badge alone since
+  // acfe5916b (a second left-hand line beside the Library's mark could not
+  // be told apart), and the "applied" line is its dot and its colour.
   it('marks Equalizer APO’s configuration as applied, and the output playing, with the token', () => {
     const css = compileStylesheet('ConfigInspector.scss');
-    expect(valuesFor(css, '.config-card__badge', 'color')).toEqual([
+    expect(badgeFace(css, '.config-card__badge')).toEqual(ON_BADGE);
+    expect(valuesFor(css, '.config-status--on', 'color')).toEqual([
       'var(--active)',
     ]);
-    expect(
-      valuesFor(css, '.config-card.is-current', 'box-shadow').join(),
-    ).toContain('var(--active)');
+    expect(valuesFor(css, '.config-status--on::before', 'background')).toEqual([
+      'var(--active)',
+    ]);
   });
 });

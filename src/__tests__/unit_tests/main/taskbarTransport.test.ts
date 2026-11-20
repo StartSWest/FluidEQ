@@ -20,6 +20,11 @@ const theme = Object.assign(new EventEmitter(), {
   shouldUseDarkColorsForSystemIntegratedUI: true,
 });
 jest.mock('../../../main/taskbarMessages', () => jest.fn());
+// No listening group unless a case says so, as the real module answers
+// before a group has installed its forwarder.
+jest.mock('../../../main/groupMediaKeys', () => ({
+  forwardGroupMediaCommand: jest.fn(() => false),
+}));
 jest.mock('electron', () => ({
   ipcMain: {
     handle: (
@@ -40,6 +45,8 @@ jest.mock('electron', () => ({
 import installTaskbarTransport from '../../../main/taskbarTransport';
 // eslint-disable-next-line import/first -- the mock installed above
 import allowTaskbarMessages from '../../../main/taskbarMessages';
+// eslint-disable-next-line import/first -- the mock installed above
+import { forwardGroupMediaCommand } from '../../../main/groupMediaKeys';
 
 /** What reached the shell, in order: the message filter and each toolbar. */
 let shellCalls: string[];
@@ -57,6 +64,8 @@ const state: ITaskbarTransportState = {
   canPrevious: true,
   canNext: true,
   isPlaying: false,
+  // The Library owns the transport: all four buttons do something.
+  canSurprise: true,
   locale: 'en',
   navigation: 'tracks',
 };
@@ -72,6 +81,8 @@ const publish = (next: unknown = state, event: unknown = undefined) =>
 beforeEach(() => {
   shellCalls = [];
   (allowTaskbarMessages as jest.Mock).mockReset();
+  (forwardGroupMediaCommand as jest.Mock).mockReset();
+  (forwardGroupMediaCommand as jest.Mock).mockReturnValue(false);
   (allowTaskbarMessages as jest.Mock).mockImplementation(() => {
     shellCalls.push('allow');
   });
@@ -132,7 +143,7 @@ afterEach(() => {
 
 it('draws native controls with real packaged assets and dispatches only enabled actions', () => {
   window.emit('ready-to-show');
-  expect(buttons).toHaveLength(3);
+  expect(buttons).toHaveLength(4);
   buttons.forEach((button) => button.click?.());
   expect(delivered).toEqual([]);
   publish();
@@ -141,14 +152,51 @@ it('draws native controls with real packaged assets and dispatches only enabled 
     ['taskbar-transport-action', 'previous'],
     ['taskbar-transport-action', 'toggle'],
     ['taskbar-transport-action', 'next'],
+    ['taskbar-transport-action', 'surprise'],
   ]);
   expect(buttons[1].tooltip).toBe('Play');
+  expect(buttons[3].tooltip).toBe('Surprise me');
+  expect(buttons[3].icon).toMatchObject({
+    file: expect.stringContaining('surprise-light.png'),
+  });
   const oldToggle = buttons[1].click;
   publish({ ...state, canToggle: false, canNext: false, isPlaying: true });
   expect(buttons[1].tooltip).toBe('Pause');
   expect(buttons[2].flags).toEqual(['disabled']);
   oldToggle?.();
-  expect(delivered).toHaveLength(3);
+  expect(delivered).toHaveLength(4);
+});
+
+it('hides Surprise me, never greys it, while the Library does not own the transport', () => {
+  // Another player owns the transport: its three buttons work, the fourth
+  // keeps its place in the shell's list but is not shown.
+  publish({ ...state, canSurprise: false });
+  expect(buttons).toHaveLength(4);
+  expect(
+    buttons.slice(0, 3).every((button) => button.flags?.length === 0),
+  ).toBe(true);
+  expect(buttons[3].flags).toEqual(['hidden']);
+  buttons[3].click?.();
+  expect(delivered).toEqual([]);
+
+  // The control: the Library takes the transport and the button is shown.
+  publish();
+  expect(buttons[3].flags).toEqual([]);
+  buttons[3].click?.();
+  expect(delivered).toEqual([['taskbar-transport-action', 'surprise']]);
+});
+
+it('forwards the transport to a listening group, but never Surprise me', () => {
+  publish();
+  (forwardGroupMediaCommand as jest.Mock).mockReturnValue(true);
+  buttons[1].click?.();
+  // The control: the group took the toggle, so the window heard nothing.
+  expect(forwardGroupMediaCommand).toHaveBeenCalledWith({ command: 'toggle' });
+  expect(delivered).toEqual([]);
+
+  buttons[3].click?.();
+  expect(forwardGroupMediaCommand).toHaveBeenCalledTimes(1);
+  expect(delivered).toEqual([['taskbar-transport-action', 'surprise']]);
 });
 
 it('rejects other frames and malformed state without changing the toolbar', () => {
@@ -166,6 +214,7 @@ it('rejects other frames and malformed state without changing the toolbar', () =
     {},
     { ...state, canToggle: 'yes' },
     { ...state, navigation: 'arbitrary' },
+    { ...state, canSurprise: 'yes' },
   ].forEach((invalid) => publish(invalid));
   expect(updates).toBe(1);
   expect(buttons[1].tooltip).toBe('Play');
@@ -174,7 +223,7 @@ it('rejects other frames and malformed state without changing the toolbar', () =
 it('registers enabled controls using flags accepted by the Electron native parser', () => {
   publish();
   expect(updates).toBe(1);
-  expect(buttons).toHaveLength(3);
+  expect(buttons).toHaveLength(4);
   expect(buttons.every((button) => button.flags?.length === 0)).toBe(true);
 });
 
@@ -193,7 +242,7 @@ it('waits for a taskbar entry and reinstalls unchanged controls after hiding to 
   expect(updates).toBe(1);
   visible = true;
   window.emit('show');
-  expect(buttons).toHaveLength(3);
+  expect(buttons).toHaveLength(4);
   expect(buttons[1].tooltip).toBe('Pause');
   expect(updates).toBe(2);
   visible = false;
@@ -201,7 +250,7 @@ it('waits for a taskbar entry and reinstalls unchanged controls after hiding to 
   buttons = [];
   visible = true;
   window.emit('show');
-  expect(buttons).toHaveLength(3);
+  expect(buttons).toHaveLength(4);
   expect(updates).toBe(3);
 });
 
@@ -239,6 +288,19 @@ it('deduplicates state, changes glyph contrast with Windows, and localizes karao
   expect(buttons[2].tooltip).not.toBe('Next');
 });
 
+/**
+ * The toolbar a dead or navigating page leaves: the transport greyed, and
+ * Surprise me hidden, as it always is while nothing offers it.
+ */
+const expectClearedToolbar = () => {
+  expect(buttons.map((button) => button.flags)).toEqual([
+    ['disabled'],
+    ['disabled'],
+    ['disabled'],
+    ['hidden'],
+  ]);
+};
+
 it('retries a refused shell write on show and clears stale controls on navigation/crash', () => {
   accept = false;
   publish();
@@ -254,14 +316,10 @@ it('retries a refused shell write on show and clears stale controls on navigatio
     isMainFrame: true,
     isSameDocument: false,
   });
-  expect(buttons.every((button) => button.flags?.includes('disabled'))).toBe(
-    true,
-  );
+  expectClearedToolbar();
   publish();
   window.webContents.emit('render-process-gone');
-  expect(buttons.every((button) => button.flags?.includes('disabled'))).toBe(
-    true,
-  );
+  expectClearedToolbar();
   window.emit('closed');
   expect(handlers.size).toBe(0);
   expect(theme.listenerCount('updated')).toBe(0);

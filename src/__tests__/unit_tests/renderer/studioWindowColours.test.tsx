@@ -2,11 +2,18 @@
 
 /**
  * The Tune tab's Window colours card (Ivan, 2026-11-14: "implement that",
- * the tuning mockup; 2026-11-18, the night and day editing mockup): who
- * chose each time's colours, each one written into the scene when FluidEQ's
- * colour picker is accepted, "Automatic" and "Reset" in the head for the
- * open time, and, as the publish dialog opens, every time left to the app
- * written in as the app works it out, so a published scene carries both.
+ * the tuning mockup). A scene has one set of window colours, the day's
+ * (58d70ea7e; 2026-11-19: "pick one colour for the scene ... and when it
+ * darks, it simply darks"), kept at its day's point (`SCENE_COLOURS_STOP`):
+ * who chose it, each colour written into the scene there when FluidEQ's
+ * colour picker is accepted, Automatic, which looks at the scene by day and
+ * writes the colours it finds there at every press (4800c9c65), Reset in
+ * the head, and, as the publish dialog opens, the set left to the app
+ * written in as the app works it out, so a published scene carries it.
+ *
+ * The cases for the night and the day edited apart, and for Automatic
+ * giving a time back to the app, went with the points and the old
+ * Automatic.
  */
 
 import '@testing-library/jest-dom';
@@ -19,10 +26,18 @@ import {
   within,
 } from '@testing-library/react';
 import type { IScenePack } from 'common/scenePacks';
-import type { ISceneWindowColours } from 'common/sceneWindowColours';
+import type {
+  ISceneWindowColours,
+  ISceneWindowColourStops,
+} from 'common/sceneWindowColours';
 import StudioWindowColours from 'renderer/studio/StudioWindowColours';
 import useStudioWindowColours from 'renderer/studio/useStudioWindowColours';
+import { sceneColourCandidates } from 'renderer/utils/automaticColours';
+import { SCENE_COLOURS_STOP } from 'renderer/utils/sceneDayColours';
+import type { ISceneSky } from 'renderer/utils/sceneTint';
 import { memberPack } from '../../utils/memberSceneFixtures';
+
+const mockScan = jest.fn();
 
 jest.mock('renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
@@ -31,18 +46,33 @@ jest.mock('renderer/utils/I18nContext', () => ({
       vars ? `${key}:${Object.values(vars).join(',')}` : key,
   }),
 }));
+// The scene is never drawn here: Automatic's look at it by day is stood in
+// for, and nothing else measures.
+jest.mock('renderer/graph/sceneSky', () => ({
+  measureStudioSky: () => Promise.resolve(undefined),
+  scanStudioSky: (...args: unknown[]) => mockScan(...args),
+}));
 
 const AI = { surface: '#1d2b4f', accent: '#5fd4ff', glow: '#7dffb0' };
-const AI_DAY = { surface: '#2b4f6d', accent: '#3fa4d0', glow: '#5fdf90' };
 const PALETTE = {
   id: 'colours',
   names: { en: 'Colours' },
   stops: ['#2a1650', '#3b1d70', '#4a2590', '#20d8ff'],
 };
+/** What Automatic finds by day: a violet scene with an amber in it. */
+const SKY: ISceneSky = {
+  lightness: 0.3,
+  chroma: 0.08,
+  hue: 300,
+  share: 0.6,
+  accent: { lightness: 0.75, chroma: 0.14, hue: 70, share: 0.05 },
+  active: null,
+};
 const send = jest.fn();
 
 beforeEach(() => {
   window.localStorage.clear();
+  mockScan.mockReset().mockResolvedValue(SKY);
   send
     .mockReset()
     .mockResolvedValue({ written: 'written', lookUpdated: false });
@@ -52,8 +82,28 @@ beforeEach(() => {
   });
 });
 
-const useCard = (pack: IScenePack) =>
-  useStudioWindowColours(pack, 'project-1', {}, undefined);
+/**
+ * A pack naming `stops` as a pack read from disk carries them: the points,
+ * and the first one as the set an older FluidEQ reads.
+ */
+const named = (
+  stops: ISceneWindowColourStops,
+  over: Partial<IScenePack> = {},
+): IScenePack => {
+  const first = stops['0'] ?? stops[SCENE_COLOURS_STOP];
+  return memberPack({
+    ...(first ? { windowColours: first } : {}),
+    windowColourStops: stops,
+    palettes: [PALETTE],
+    ...over,
+  });
+};
+
+/** As the Studio's AI is told to write it: the same set at "0" and "100". */
+const aiPack = () => named({ '0': AI, '100': AI });
+
+const useCard = (pack: IScenePack, build?: string) =>
+  useStudioWindowColours(pack, 'project-1', {}, build);
 
 function Card({ pack }: { pack: IScenePack }) {
   return <StudioWindowColours state={useCard(pack)} idle={false} />;
@@ -69,12 +119,15 @@ const card = (pack: IScenePack) => {
 
 const sent = () =>
   send.mock.calls.map(
-    ([written]: [Record<string, ISceneWindowColours | null>]) => written,
+    ([written]: [
+      { windowColourStops: Record<string, ISceneWindowColours | null> },
+    ]) => written,
   );
 
-it("shows the AI's colours and writes an accepted one into the scene", async () => {
-  const { hook } = card(memberPack({ windowColours: AI, palettes: [PALETTE] }));
-  expect(hook.result.current.sourceOf('night')).toBe('ai');
+it("shows the AI's colours and writes an accepted one into the scene, at its day's point", async () => {
+  const { hook } = card(aiPack());
+  expect(hook.result.current.editing).toBe(SCENE_COLOURS_STOP);
+  expect(hook.result.current.sourceOf(SCENE_COLOURS_STOP)).toBe('ai');
   expect(
     screen.getByRole('button', { name: 'studio.settings.reset' }),
   ).toBeDisabled();
@@ -97,71 +150,101 @@ it("shows the AI's colours and writes an accepted one into the scene", async () 
       within(picker).getByRole('button', { name: 'graph.sceneColours.accept' }),
     );
   });
-  expect(sent()).toEqual([{ windowColours: { ...AI, accent: '#ffd23f' } }]);
+  expect(sent()).toEqual([
+    {
+      windowColourStops: { [SCENE_COLOURS_STOP]: { ...AI, accent: '#ffd23f' } },
+    },
+  ]);
 });
 
-it('gives a time back to the app with Automatic, and resets it to what the AI chose', async () => {
-  const pack = memberPack({ windowColours: AI, palettes: [PALETTE] });
+it('resets the member’s change to what the AI chose', async () => {
+  const pack = aiPack();
   const { hook } = card(pack);
-  // The AI's own: nothing to reset, and Automatic would take them away.
+  // The AI's own: nothing to reset.
   expect(hook.result.current.canReset).toBe(false);
-  expect(hook.result.current.canAutomatic).toBe(true);
   // The scene rebuilt with the member's change.
   const mine = { ...AI, accent: '#ffd23f' };
-  hook.rerender({ at: { ...pack, windowColours: mine } });
-  expect(hook.result.current.sourceOf('night')).toBe('member');
+  hook.rerender({
+    at: { ...pack, windowColourStops: { '0': AI, '100': mine } },
+  });
+  expect(hook.result.current.sourceOf(SCENE_COLOURS_STOP)).toBe('member');
+  expect(hook.result.current.colours).toEqual(mine);
   expect(hook.result.current.canReset).toBe(true);
   await act(async () => hook.result.current.reset());
-  expect(sent()).toEqual([{ windowColours: AI }]);
-  await act(async () => hook.result.current.automatic());
-  expect(sent()[1]).toEqual({ windowColours: null });
-  // Neither touches the day, which is its own (Ivan: "any changes I do on
-  // night or in day separated").
-  sent().forEach((written) =>
-    expect(written).not.toHaveProperty('windowColoursDay'),
-  );
+  expect(sent()).toEqual([{ windowColourStops: { [SCENE_COLOURS_STOP]: AI } }]);
+});
+
+it('looks at the scene by day at every press of Automatic, and writes another of its colours each time', async () => {
+  const pack = aiPack();
+  const hook = renderHook(({ at }) => useCard(at, 'build-1'), {
+    initialProps: { at: pack },
+  });
+  expect(hook.result.current.finder.canFind).toBe(true);
+  await act(async () => hook.result.current.finder.find());
+  expect(mockScan).toHaveBeenCalledWith('build-1', pack, SCENE_COLOURS_STOP);
+  const candidates = sceneColourCandidates(SKY, SCENE_COLOURS_STOP);
+  // CONTROL: the scene gives more than one set, so a second press can move.
+  expect(candidates.length).toBeGreaterThan(1);
+  expect(sent()).toEqual([
+    { windowColourStops: { [SCENE_COLOURS_STOP]: candidates[0] } },
+  ]);
+  // The scene rebuilt with it: the next press lands on the next one.
+  hook.rerender({
+    at: { ...pack, windowColourStops: { '0': AI, '100': candidates[0] } },
+  });
+  await act(async () => hook.result.current.finder.find());
+  expect(sent()[1]).toEqual({
+    windowColourStops: { [SCENE_COLOURS_STOP]: candidates[1] },
+  });
+});
+
+it('cannot look for colours before the scene has a build to draw', () => {
+  card(aiPack());
+  expect(
+    screen.getByRole('button', { name: 'graph.sceneColours.find' }),
+  ).toBeDisabled();
 });
 
 it("plays a scene that names none in its palette's colours, and says so", () => {
   const { hook } = card(memberPack({ palettes: [PALETTE] }));
-  expect(hook.result.current.sourceOf('night')).toBe('palette');
-  expect(hook.result.current.sourceOf('day')).toBe('palette');
+  expect(hook.result.current.sourceOf(SCENE_COLOURS_STOP)).toBe('palette');
   expect(hook.result.current.colours).toBeDefined();
-  // Already the app's: nothing for Automatic to give back.
   expect(
-    screen.getByRole('button', { name: 'studio.windowColours.automatic' }),
-  ).toBeDisabled();
+    screen.getByText('graph.sceneColours.sourcePalette'),
+  ).toBeInTheDocument();
 });
 
 describe('the colours publishing writes in', () => {
-  it('writes every time the scene names nothing for, as the app works it out', async () => {
+  it('writes the set the scene names nothing for, at its day’s point, as the app works it out', async () => {
     const { hook } = card(memberPack({ palettes: [PALETTE] }));
     const automatic = hook.result.current.colours;
+    expect(automatic).toBeDefined();
     await act(async () => hook.result.current.fillAutomatic());
     expect(sent()).toEqual([
-      { windowColours: automatic, windowColoursDay: automatic },
+      { windowColourStops: { [SCENE_COLOURS_STOP]: automatic } },
     ]);
   });
 
-  it('writes only the time left to the app', async () => {
-    const { hook } = card(
-      memberPack({ windowColours: AI, palettes: [PALETTE] }),
-    );
-    await act(async () => hook.result.current.fillAutomatic());
-    expect(sent()).toHaveLength(1);
-    expect(Object.keys(sent()[0])).toEqual(['windowColoursDay']);
-  });
-
-  it('writes nothing for a scene that names both', async () => {
-    const { hook } = card(
-      memberPack({
-        windowColours: AI,
-        windowColoursDay: AI_DAY,
-        palettes: [PALETTE],
-      }),
-    );
+  it('writes nothing for a scene that names its day’s set', async () => {
+    const { hook } = card(named({ [SCENE_COLOURS_STOP]: AI }));
     await act(async () => hook.result.current.fillAutomatic());
     expect(send).not.toHaveBeenCalled();
+  });
+
+  // A project naming only its "0" - written before the points, or by an AI
+  // that set only `windowColours` - wears those as its one set: publishing
+  // wrote the app's own at "100", which then won, and the card called the
+  // AI's colours the palette (2026-11-20).
+  it('keeps the set of a scene that names only its night, and calls it the AI’s', async () => {
+    const { hook } = card(named({ '0': AI }));
+    expect(hook.result.current.sourceOf(SCENE_COLOURS_STOP)).toBe('ai');
+    await act(async () => hook.result.current.fillAutomatic());
+    expect(send).not.toHaveBeenCalled();
+    // CONTROL: the same scene naming nothing is filled at its day's point.
+    send.mockClear();
+    const empty = card(memberPack({ palettes: [PALETTE] }));
+    await act(async () => empty.hook.result.current.fillAutomatic());
+    expect(send).toHaveBeenCalledTimes(1);
   });
 
   // Colours written that way are still the app's on the card, never the
@@ -172,18 +255,12 @@ describe('the colours publishing writes in', () => {
     if (!automatic) {
       throw new Error('no automatic colours');
     }
-    hook.rerender({
-      at: memberPack({
-        windowColours: automatic,
-        windowColoursDay: automatic,
-        palettes: [PALETTE],
-      }),
-    });
-    expect(hook.result.current.sourceOf('night')).toBe('palette');
+    hook.rerender({ at: named({ [SCENE_COLOURS_STOP]: automatic }) });
+    expect(hook.result.current.sourceOf(SCENE_COLOURS_STOP)).toBe('palette');
     // CONTROL: a set unlike the app's, named, is somebody's.
-    hook.rerender({
-      at: memberPack({ windowColours: AI, palettes: [PALETTE] }),
-    });
-    expect(hook.result.current.sourceOf('night')).not.toBe('palette');
+    hook.rerender({ at: aiPack() });
+    expect(hook.result.current.sourceOf(SCENE_COLOURS_STOP)).not.toBe(
+      'palette',
+    );
   });
 });

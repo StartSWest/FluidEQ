@@ -44,19 +44,33 @@ it('pressing Google leaves the untouched email box without an error', async () =
   );
   expect(signInWithGoogle).toHaveBeenCalled();
   expect(email).not.toHaveFocus();
-  // Main answers that Google's page is open in the browser.
+  // Main answers that Google's page is open in the browser. Since the
+  // 2026-11-19 sign-in redesign the whole form side is then the waiting
+  // card, so nothing of the email form is there to carry an error.
   view.rerender(
     <SignInForms account={{ status: 'busy', waiting: 'google' }} />,
   );
   await act(async () => undefined);
 
+  expect(screen.getByRole('status')).toHaveTextContent(
+    en['account.google.waitingTitle'],
+  );
   expect(screen.queryByText(invalidEmail)).toBeNull();
-  expect(email).toHaveAttribute('aria-invalid', 'false');
-  // The email form waits, quietly: held, not "One moment…".
-  const signIn = screen.getByRole('button', {
-    name: en['account.signIn.withEmail'],
-  });
-  expect(signIn).toBeDisabled();
+  expect(screen.queryByText(en['account.working'])).toBeNull();
+
+  // Google is cancelled and the email form comes back. The form's state
+  // outlived the card, so a blur that had marked the box as attempted would
+  // show the error now.
+  view.rerender(<SignInForms account={{ status: 'signed-out' }} />);
+  await act(async () => undefined);
+
+  expect(screen.queryByText(invalidEmail)).toBeNull();
+  expect(
+    screen.getByRole('textbox', { name: en['account.field.email'] }),
+  ).toHaveAttribute('aria-invalid', 'false');
+  expect(
+    screen.getByRole('button', { name: en['account.signIn.withEmail'] }),
+  ).toBeEnabled();
   expect(screen.queryByText(en['account.working'])).toBeNull();
   expect(signInAccount).not.toHaveBeenCalled();
 });

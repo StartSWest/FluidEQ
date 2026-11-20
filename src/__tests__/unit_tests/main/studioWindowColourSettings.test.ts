@@ -58,27 +58,40 @@ beforeEach(() => {
 
 afterEach(() => fs.rmSync(folder, { recursive: true, force: true }));
 
+// The Tune tab writes the scene's one set at its day's point (58d70ea7e,
+// `SCENE_COLOURS_STOP`); the writer keeps every key a reader of any age
+// reads: the points, the one set an older FluidEQ reads (the first point,
+// here the scene's own written before the points) and the day under its
+// two-point name.
 it('writes the colours the member chose, and nothing else changes', async () => {
-  expect(await writeProjectSettings(folder, { windowColours: NAMED })).toBe(
-    'written',
-  );
-  expect(manifest().windowColours).toEqual(NAMED);
+  const before = manifest().windowColours;
+  expect(
+    await writeProjectSettings(folder, { windowColourStops: { '100': NAMED } }),
+  ).toBe('written');
+  expect(manifest().windowColourStops).toEqual({ '0': before, '100': NAMED });
+  expect(manifest().windowColoursDay).toEqual(NAMED);
+  expect(manifest().windowColours).toEqual(before);
   expect(manifest().params[0].value).toBe(0.5);
   expect(manifest().id).toBe('neon-city');
 });
 
 it('takes them out for null, leaving the window to the palette', async () => {
-  expect(await writeProjectSettings(folder, { windowColours: null })).toBe(
-    'written',
-  );
+  expect(
+    await writeProjectSettings(folder, { windowColourStops: { '0': null } }),
+  ).toBe('written');
   expect(manifest()).not.toHaveProperty('windowColours');
+  expect(manifest()).not.toHaveProperty('windowColoursDay');
+  expect(manifest()).not.toHaveProperty('windowColourStops');
 });
 
 it('keeps the scene’s colours when the set sent is not three colours', async () => {
   const before = manifest().windowColours;
   expect(before).toBeDefined();
   await writeProjectSettings(folder, {
-    windowColours: { surface: '#1d2b4f', accent: 'blue', glow: '#7dffb0' },
+    windowColourStops: {
+      '0': { surface: '#1d2b4f', accent: 'blue', glow: '#7dffb0' },
+    },
   });
   expect(manifest().windowColours).toEqual(before);
+  expect(manifest().windowColourStops?.['0']).toEqual(before);
 });

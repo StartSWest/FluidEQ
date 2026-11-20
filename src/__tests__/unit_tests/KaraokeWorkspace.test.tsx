@@ -230,7 +230,11 @@ describe('KaraokeWorkspace', () => {
   // The stage bar's Pitch / Chords / Words only (the K1 mockup), which
   // replaced the pitch guide's own Hide and Show; the microphone is not
   // touched by it.
-  it('shows the pitch strip, the chords alone or the words alone, and remembers which', async () => {
+  // Pitch and Chords are each a toggle of its own, both off included; the
+  // words are always shown, never a choice (214d1aec8, Ivan 2026-11-18:
+  // "words is not an option, it is a karaoke"). Saved as the names of those
+  // on.
+  it('shows the pitch strip and the chords each by its own toggle, and remembers which', async () => {
     const { container } = render(<KaraokeWorkspace isHidden={false} />);
     fireEvent.change(
       container.querySelector('input[type="file"]') as HTMLInputElement,
@@ -244,36 +248,48 @@ describe('KaraokeWorkspace', () => {
     const shows = within(
       screen.getByRole('group', { name: 'What the stage shows' }),
     );
-    expect(shows.getByRole('button', { name: 'Pitch' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
+    const SHOWN_KEY = 'fluideq-karaoke-stage-guides-shown';
+    const pitch = shows.getByRole('button', { name: 'Pitch' });
+    const chords = shows.getByRole('button', { name: 'Chords' });
+    // Two toggles and nothing else: no Words only.
+    expect(shows.getAllByRole('button')).toEqual([pitch, chords]);
+    expect(pitch).toHaveAttribute('aria-pressed', 'true');
+    expect(chords).toHaveAttribute('aria-pressed', 'true');
     expect(container.querySelector('.karaoke-pitch')).toBeInTheDocument();
     expect(
       screen.getByRole('separator', { name: 'Resize pitch lane' }),
     ).toBeInTheDocument();
 
-    fireEvent.click(shows.getByRole('button', { name: 'Words only' }));
+    // The lane off leaves the chords' row under the words (no chords are
+    // found here: the analysis never runs in jsdom, so the row is empty).
+    fireEvent.click(pitch);
+    expect(pitch).toHaveAttribute('aria-pressed', 'false');
     expect(container.querySelector('.karaoke-pitch')).not.toBeInTheDocument();
-    expect(
-      container.querySelector('.karaoke-stage__guides'),
-    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('separator', { name: 'Resize pitch lane' }),
     ).not.toBeInTheDocument();
-    expect(window.localStorage.getItem('fluideq-karaoke-stage-guides')).toBe(
-      'words',
-    );
+    expect(
+      container.querySelector('.karaoke-stage__guides'),
+    ).toBeInTheDocument();
+    expect(window.localStorage.getItem(SHOWN_KEY)).toBe('chords');
+
+    // Both off: the words alone, with nothing under them.
+    fireEvent.click(chords);
+    expect(chords).toHaveAttribute('aria-pressed', 'false');
+    expect(
+      container.querySelector('.karaoke-stage__guides'),
+    ).not.toBeInTheDocument();
+    expect(window.localStorage.getItem(SHOWN_KEY)).toBe('');
     // The microphone keeps its own switch.
     expect(
       screen.getByRole('button', { name: 'Microphone settings' }),
     ).toBeVisible();
 
-    fireEvent.click(shows.getByRole('button', { name: 'Pitch' }));
+    // The lane alone, without the chords.
+    fireEvent.click(pitch);
     expect(container.querySelector('.karaoke-pitch')).toBeInTheDocument();
-    expect(window.localStorage.getItem('fluideq-karaoke-stage-guides')).toBe(
-      'pitch',
-    );
+    expect(chords).toHaveAttribute('aria-pressed', 'false');
+    expect(window.localStorage.getItem(SHOWN_KEY)).toBe('pitch');
   });
 
   const background = () =>
