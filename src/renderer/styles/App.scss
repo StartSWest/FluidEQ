@@ -3364,8 +3364,9 @@ $graph-card-pages: list.join(
 //
 // Then the DSP pages' gaps (Ivan, 2026-11-19: "all views on EQ, the EQ
 // Presets, Convolution and Config, same standard gap as the other views like
-// the DSP pages"): the page 12px in from the card's left edge and 12 from
-// its right, as a DSP stage stands 12 from its hairlines, and every list that
+// the DSP pages"): the page 16px in from the card's left edge, as a DSP
+// stage stands 16 from the rail's hairline (`.dsp-studio__main`; at 12 "the
+// left gap is too small compared to the DSP"), 12 from its right, and every list that
 // scrolls by itself - Convolution's results, the preset's details - with its
 // scrollbar out on the card's edge, its rows still ending on the page's line.
 // The page keeps no gutter of its own, so nothing stands between such a list
@@ -3378,7 +3379,8 @@ $graph-card-pages: list.join(
   > .workspace-tab-panel__scroll {
   margin-right: -12px;
   padding-right: 12px;
-  padding-left: 0;
+  // The card's own 12 plus 4.
+  padding-left: 4px;
   scrollbar-gutter: auto;
 }
 
