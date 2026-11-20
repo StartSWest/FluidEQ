@@ -47,15 +47,15 @@ const helpDetails = {
     'Um jogo com áudio 3D próprio pode usar um perfil que mantenha Room desligado para evitar posicionamento duplo. Room é para fones. Ao descarregar o som do jogo, o som da música volta.',
   'help.gamefilter.keywords':
     'game filter, footsteps, lift, calm, environment, ambience, dialogue, voices, make room, hooves, heavy steps, isolate, hrtf, spatial audio',
-  'help.songs.title': 'Lembrar o som de cada música',
+  'help.songs.title': 'EQ automático: o som de cada música',
   'help.songs.intro':
-    'Uma música pode lembrar preset, Tone e EQ por saída. O ajuste dos fones não muda a memória dos alto-falantes.',
+    'O EQ automático, na página EQ, decide o som de cada música: o som salvo para a música, o som do álbum dela vindo da Biblioteca ou o seu. A Correção inteligente adiciona por cima uma correção medida. O som de uma música a acompanha em todas as saídas; a correção de fones continua sendo da saída.',
   'help.songs.steps':
-    'Abaixo dos perfis da saída, ative Lembrar o som de cada música. Essa opção começa desligada.\nToque uma música identificável e mude preset, Tone ou EQ. Um aviso informa que será salvo; use a opção de não salvar se era só um teste.\nNa próxima reprodução nessa saída, o ajuste volta temporariamente. Desfazer ignora nesta reprodução; Esquecer esta música também apaga a memória.\nAo terminar, o som anterior da saída retorna. Escolher outro perfil devolve o controle explicitamente.\nO Smart EQ tem seu próprio controle para salvar a música enquanto mede. Ele guarda a correção medida, separadamente da regulagem manual lembrada.',
+    'Abra o EQ automático, o botão preenchido nas ferramentas de Seu EQ, e ative Sons das músicas, Sons dos álbuns e Correção inteligente como preferir. Cada um desliga separadamente.\nEnquanto uma música toca, pressione Salvar para esta música para guardar o som que você está ouvindo. Quando ela tocar de novo, o som volta; e quando vier uma música sem nada salvo, o seu próprio som volta.\nMude o preset enquanto toca uma música salva e a música guarda a mudança. Um aviso informa isso; Não salvar deixa como estava. Uma mudança numa música sem nada salvo vira o seu som.\nNa Biblioteca, clique com o botão direito numa música, numa seleção ou num álbum, ou use o Som do álbum de um álbum, para escolher um preset ou manter o que está tocando agora. O som próprio de uma música vale mais que o do álbum; os álbuns só mudam na Biblioteca.\nGerenciar lista todas as músicas e álbuns salvos, com Esquecer. Redefinir todas as configurações desliga o EQ automático e os mantém.',
   'help.songs.tip':
-    'A identificação vem do arquivo ou dos dados do player. Títulos ausentes ou errados podem impedir o reconhecimento. O pré-amplificador não é salvo; um jogo com som carregado tem prioridade.',
+    'Músicas do Spotify, do YouTube ou do navegador são reconhecidas pelo título e pelo artista que o player informa, e guardam os sons separados dos da Biblioteca. Filmes e vídeos nunca recebem o som de uma música. O EQ automático fica de lado enquanto o DSP está desligado, uma cadeia de Jogos está ativa ou um jogo toca o próprio som.',
   'help.songs.keywords':
-    'per song, song sound, song memory, remember song, save song eq, smart eq, undo, forget this song, preset per song, tone per song',
+    'auto eq, eq automático, por música, som da música, som do álbum, lembrar música, salvar para esta música, correção inteligente, smart correction, smart eq, preset por música, preset por álbum, esquecer, gerenciar',
   'help.mycurves.title': 'Minhas curvas: importar, editar e compartilhar',
   'help.mycurves.intro':
     'Sua coleção de curvas fica ao lado da biblioteca de medições. Confira a resposta e escolha entre camada de correção e bandas de EQ editáveis.',

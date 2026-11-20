@@ -105,7 +105,7 @@ const app = {
     '將顯示器的桌面場景放在圖示後面，並在視窗覆蓋螢幕時通知它。每臺顯示器顯示一個。',
   'app.processes.name.shareCapture': '音訊捕捉',
   'app.processes.what.shareCapture':
-    '擷取該電腦在等化器之前播放的內容，用於「共享音訊」標籤、第二個輸出和 Smart EQ。僅當其中之一正在使用時執行。',
+    '擷取該電腦在等化器之前播放的內容，用於「共享音訊」標籤、第二個輸出和智慧校正。僅當其中之一正在使用時執行。',
   'app.processes.name.sharePlayback': '共享音訊播放',
   'app.processes.what.sharePlayback':
     '播放另一個 FluidEQ 與該 PC 共享的聲音，並開始音訊捕獲，因此該 PC 傳送的內容永遠不會帶回該聲音。僅當其中之一正在使用時執行。',

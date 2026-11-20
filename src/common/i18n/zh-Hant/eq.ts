@@ -53,7 +53,7 @@ const eq = {
   'eq.mode.precise': '精確',
   'eq.mode.classic': '經典',
   'eq.mode.trebleEqPrecise':
-    '精確：您的頻段、音調、預設、驅動器型別和 Smart EQ 完全按照繪製的方式播放，最高可達 20 kHz。',
+    '精確：您的頻段、音調、預設、驅動器型別和智慧校正完全按照繪製的方式播放，最高可達 20 kHz。',
   'eq.mode.trebleEqClassic':
     '經典：Equalizer APO 的演奏方式。高音訊段比您設定的更窄、更低，最重要的是接近 20 kHz。',
   'eq.mode.trebleCurvesPrecise':
@@ -404,7 +404,7 @@ const eq = {
   'eq.channels.letter.left': 'L',
   'eq.channels.letter.right': 'R',
   'graph.curve.voicing': '預設組',
-  'graph.curve.smart': 'Smart EQ',
+  'graph.curve.smart': '智慧校正',
   'graph.curve.custom': '客製化FX',
   'graph.curve.tone': '音色',
   'graph.curve.total': '最終輸出',
@@ -688,12 +688,11 @@ const eq = {
   'squigImport.emptyHint':
     '在繼續在 EQ 中對其進行微調之前，請貼上匯出以檢視其形狀。',
   'eq.title': '參數等化器',
-  'eq.smart': 'Smart EQ',
+  'eq.smart': '智慧校正',
   'eq.smart.cancel': '取消',
-  'eq.smart.stopAria': '停止 Smart EQ',
-  'eq.smart.aria': '來自源頭的 Smart EQ',
-  'eq.smart.continuousAria': '在音樂播放時保持 Smart EQ 測量和調整',
-  'eq.smart.modeAria': '選擇 Smart EQ 的測量方式',
+  'eq.smart.aria': '來自音源的智慧校正',
+  'eq.smart.continuousAria': '在音樂播放時讓智慧校正持續測量和調整',
+  'eq.smart.modeAria': '選擇智慧校正的測量方式',
   'eq.smart.mode.once.note': '一次測量，一次應用',
   'eq.smart.mode.detail': '詳情',
   'eq.smart.mode.detail.note': '僅持續測量峰值和谷值',
@@ -712,7 +711,7 @@ const eq = {
   'eq.layers.custom': '客製化FX',
   'eq.layers.disable': '關閉 {layer} 而不將其移除',
   'eq.layers.enable': '重新開啟 {layer}',
-  'eq.layers.smart': 'Smart EQ',
+  'eq.layers.smart': '智慧校正',
   'eq.layers.remove': '刪除 {layer} 層',
   'eq.layers.clearBands': '將每個頻段重設為 0 dB',
   'eq.layers.clearTone': '將低音、中音和高音重設為 0 dB',

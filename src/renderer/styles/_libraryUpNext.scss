@@ -482,9 +482,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// Same recipe as `.song-eq-save__label`, which is the app's other switch with
-// its name beside it — including the pointer, without which the words look
-// like a caption rather than half the control.
+// The words beside a switch are half the control: the pointer, without which
+// they look like a caption.
 .library-up-next__keep-label {
   min-width: 0;
   color: $text-muted;

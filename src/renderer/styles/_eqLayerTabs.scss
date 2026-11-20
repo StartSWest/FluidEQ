@@ -276,9 +276,8 @@ $eq-row-ink-quiet: color-mix(in srgb, $text-primary 62%, transparent);
     @include words-hidden;
   }
 
-  // Smart EQ, the suggested action's button at the flat tools' height and
-  // corner. Its own slot (`EqSmartEqButton`), so what comes after it — Auto
-  // EQ — can take the place whole.
+  // Auto EQ, the suggested action's button at the flat tools' height and
+  // corner (`AutoEqButton`).
   .button.small.eq-mode__main:not(.subtle) {
     min-height: 32px;
     height: 32px;

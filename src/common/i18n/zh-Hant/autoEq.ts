@@ -1,0 +1,76 @@
+/* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
+
+import type { Dictionary } from '../en';
+
+/** Auto EQ on the EQ page: its button, its panel, Manage, and the note that
+ * took the Output panel’s old switch’s place. */
+const autoEq = {
+  'autoEq.title': 'Auto EQ',
+  'autoEq.aria': 'Auto EQ：決定每首歌的聲音',
+  'autoEq.tagline': '為您挑選每首歌的聲音',
+  'autoEq.state.measuring': '測量中',
+  'autoEq.state.paused': '已暫停',
+  'autoEq.state.song': '歌曲',
+  'autoEq.state.album': '專輯',
+  'autoEq.state.yours': '您的',
+  'autoEq.aside':
+    '在 DSP 關閉、遊戲鏈開啟或遊戲播放自己的聲音時，它會暫時讓開，之後恢復原狀。',
+  'autoEq.now.nothing': '沒有播放',
+  'autoEq.now.yours': '您的聲音',
+  'autoEq.now.yoursWhy': '這首歌沒有儲存任何聲音：播放您最後選擇的聲音。',
+  'autoEq.now.song': '這首歌的聲音',
+  'autoEq.now.songWhy': '每次播放這首歌時都會恢復。',
+  'autoEq.now.album': '{album} 的聲音',
+  'autoEq.now.albumUnnamed': '所屬專輯的聲音',
+  'autoEq.now.albumWhy': '已在媒體庫中為整張專輯設定。',
+  'autoEq.songs.title': '歌曲聲音',
+  'autoEq.songs.hint':
+    '儲存了聲音的歌曲會使用它。播放時修改，這首歌會保留修改。其他歌曲使用您的聲音。',
+  'autoEq.songs.nothing': '播放一首歌即可儲存它的聲音',
+  'autoEq.songs.saved': '已為這首歌儲存',
+  'autoEq.songs.none': '這首歌沒有儲存任何聲音',
+  'autoEq.songs.save': '為這首歌儲存',
+  'autoEq.songs.forget': '忘記',
+  'autoEq.albums.title': '專輯聲音',
+  'autoEq.albums.hint':
+    '僅限媒體庫。專輯中的每首歌都使用它，有自己預設的歌曲除外。',
+  'autoEq.albums.nothing': '在媒體庫中專輯的頁面上設定專輯聲音',
+  'autoEq.albums.libraryOnly': '僅限媒體庫：不適用於其他播放器',
+  'autoEq.albums.set': '{album}：{preset}',
+  'autoEq.albums.none': '這張專輯沒有設定聲音',
+  'autoEq.smart.title': '智慧校正',
+  'autoEq.smart.hint':
+    '從音源測量每首歌，並為這首歌保留其校正。疊加在任何預設之上。',
+  'autoEq.smart.modes': '校正方式',
+  'autoEq.smart.waiting': '等待歌曲',
+  'autoEq.smart.willSave': '歌曲結束時為這首歌儲存',
+  'autoEq.smart.savesIn': '{remaining} 後為這首歌儲存',
+  'autoEq.smart.onceHint': '對正在播放的內容測量一次，立即套用',
+  'autoEq.smart.once': '測量一次',
+  'autoEq.savedCount': '已儲存：{songs} · {albums}',
+  'autoEq.manage': '管理',
+  'autoEq.manage.title': '已儲存的聲音',
+  'autoEq.manage.back': '返回 Auto EQ',
+  'autoEq.manage.songs': '歌曲',
+  'autoEq.manage.albums': '專輯',
+  'autoEq.manage.search': '搜尋已儲存的聲音',
+  'autoEq.manage.wholeSound': '{preset}，含音色與 EQ',
+  'autoEq.manage.forget': '忘記',
+  'autoEq.manage.others': '來自其他播放器的歌曲：{count}',
+  'autoEq.manage.othersHint': 'Spotify、YouTube 與瀏覽器。絕不保留它們的名稱。',
+  'autoEq.manage.empty': '尚未儲存任何內容',
+  'autoEq.manage.noMatch': '沒有相符項目',
+  'autoEq.manage.resetKeeps':
+    '「重設所有設定」會保留這些。只有「忘記」會刪除它們。',
+  'autoEq.manage.forgetAll': '全部忘記',
+  'autoEq.manage.forgetAllConfirm': '永久全部忘記',
+  'autoEq.moved.title': '每首歌的聲音現在位於 Auto EQ',
+  'autoEq.moved.body':
+    '「記住每首歌的聲音」已移到 EQ 頁面的 Auto EQ。您儲存的 {count} 首歌也一併移過來了。',
+  'autoEq.moved.bodyOne':
+    '「記住每首歌的聲音」已移到 EQ 頁面的 Auto EQ。您儲存的歌曲也一併移過來了。',
+  'autoEq.moved.open': '開啟 Auto EQ',
+  'autoEq.moved.dismiss': '明白了',
+} satisfies Partial<Dictionary>;
+
+export default autoEq;

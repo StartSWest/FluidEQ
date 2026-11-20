@@ -55,7 +55,7 @@ const eq = {
   'eq.mode.precise': '정밀',
   'eq.mode.classic': '클래식',
   'eq.mode.trebleEqPrecise':
-    '정밀함: 밴드, 톤, 프리셋, 드라이버 유형 및 Smart EQ가 최대 20kHz까지 그려진 대로 정확하게 재생됩니다.',
+    '정밀함: 밴드, 톤, 프리셋, 드라이버 유형 및 스마트 보정이 최대 20kHz까지 그려진 대로 정확하게 재생됩니다.',
   'eq.mode.trebleEqClassic':
     '클래식: Equalizer APO가 재생하는 방식. 고음 대역은 설정한 것보다 더 좁고 낮게 나오며, 대부분 20kHz에 가깝습니다.',
   'eq.mode.trebleCurvesPrecise':
@@ -423,7 +423,7 @@ const eq = {
   'eq.channels.letter.left': 'L',
   'eq.channels.letter.right': 'R',
   'graph.curve.voicing': '프리셋',
-  'graph.curve.smart': 'Smart EQ',
+  'graph.curve.smart': '스마트 보정',
   'graph.curve.custom': '맞춤형 FX',
   'graph.curve.tone': '톤',
   'graph.curve.total': '최종 출력',
@@ -717,13 +717,12 @@ const eq = {
   'squigImport.emptyHint':
     'EQ에서 계속해서 미세 조정하기 전에 내보내기를 붙여넣어 모양을 확인하세요.',
   'eq.title': '파라메트릭 EQ',
-  'eq.smart': 'Smart EQ',
+  'eq.smart': '스마트 보정',
   'eq.smart.cancel': '취소',
-  'eq.smart.stopAria': 'Smart EQ 중지',
-  'eq.smart.aria': '소스의 Smart EQ',
+  'eq.smart.aria': '소스의 스마트 보정',
   'eq.smart.continuousAria':
-    '음악이 재생되는 동안 Smart EQ를 계속 측정하고 조정하세요.',
-  'eq.smart.modeAria': 'Smart EQ의 측정 방법 선택',
+    '음악이 재생되는 동안 스마트 보정이 계속 측정하고 조정하도록 유지',
+  'eq.smart.modeAria': '스마트 보정의 측정 방법 선택',
   'eq.smart.mode.once.note': '한 번에 하나의 측정값 적용',
   'eq.smart.mode.detail': '세부정보',
   'eq.smart.mode.detail.note': '계속 측정함 · 최고점과 최저점만 측정',
@@ -743,7 +742,7 @@ const eq = {
   'eq.layers.custom': '맞춤형 FX',
   'eq.layers.disable': '{layer}를 제거하지 않고 끄기',
   'eq.layers.enable': '{layer}를 다시 켜세요.',
-  'eq.layers.smart': 'Smart EQ',
+  'eq.layers.smart': '스마트 보정',
   'eq.layers.remove': '{layer} 레이어 제거',
   'eq.layers.clearBands': '모든 대역을 0dB로 재설정',
   'eq.layers.clearTone': '저음, 중음, 고음을 0dB로 재설정',

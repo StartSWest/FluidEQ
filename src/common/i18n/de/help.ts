@@ -153,7 +153,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.heart':
     'Fügt einen Song aus der Bibliothek zu Ihren Favoriten hinzu oder entfernt ihn wieder.',
   'help.player.soundFold':
-    'Klappt die Klangregler bis auf diese Zeile ein, in der Preset, Smart-EQ und der Schalter griffbereit bleiben, und öffnet sie wieder.',
+    'Klappt die Klangregler bis auf diese Zeile ein, in der Preset, Smart-Korrektur und der Schalter griffbereit bleiben, und öffnet sie wieder.',
   'help.player.mode':
     'Öffnet den EQ-Modus: wie stark Ihr EQ und die Kurven wirken, ihr Band-Q, ihre Phase und ihre Höhen.',
   'help.player.save': 'Speichert „Als Nächstes“ als eigene Playlist.',
@@ -209,7 +209,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.gameMode':
     'Verkürzt für Spiele und Anrufe die Verzögerung durch FluidEQ. Gaming-Presets schalten ihn ein.',
   'help.eq.layers':
-    'Was diesen Ausgang sonst noch formt – eine Kopfhörerkorrektur, Smart-EQ, eine Faltung –, jeweils mit Stärke, Schalter und ×.',
+    'Was diesen Ausgang sonst noch formt – eine Kopfhörerkorrektur, Smart-Korrektur, eine Faltung –, jeweils mit Stärke, Schalter und ×.',
   'help.eq.bandName': 'Ein Band',
   'help.eq.band':
     'Ziehen Sie seinen Punkt, um anzuheben oder abzusenken, oder verstellen Sie ihn mit den Pfeiltasten. Klicken Sie auf seine Frequenz, um es auszuwählen.',
@@ -226,7 +226,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.voicing':
     'Eine fertige Kette für den Klang, etwa Musik oder ein Genre. Keine lässt nur Ihre Bänder übrig.',
   'help.eq.smart':
-    'Hört, was läuft, und korrigiert es: Detail, Balance oder Ziel.',
+    'Auto-EQ: der gespeicherte Klang jedes Songs, der Klang seines Albums aus der Bibliothek und darüber die Smart-Korrektur – Detail, Balance oder Ziel.',
   'help.eq.clear':
     'Setzt jede Verstärkung auf 0 dB und behält Ihre Bänder. Fragt vorher nach.',
   'help.eq.mode':
@@ -252,7 +252,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.eqmode.title': 'EQ-Modus und Band-Designs',
   'help.eqmode.intro':
-    'Der EQ-Modus ändert, wie Ihr Klang geformt wird, ohne etwas zu bearbeiten. Seine Einstellungen sind die erste Karte der Seitenleiste auf der EQ-Seite, neben den Kurven, die sie verändern, in zwei Tabs: Ihr EQ umfasst Ihre Bänder, die Klang-Regler, Presets, den Treibertyp und Smart-EQ; Korrekturen umfasst Kopfhörerkorrekturen sowie importierte oder eigene Kurven. Band-Designs bewahren die Frequenzen und das Q eines Layouts, das Ihnen gefällt, bereit für jeden Ausgang.',
+    'Der EQ-Modus ändert, wie Ihr Klang geformt wird, ohne etwas zu bearbeiten. Seine Einstellungen sind die erste Karte der Seitenleiste auf der EQ-Seite, neben den Kurven, die sie verändern, in zwei Tabs: Ihr EQ umfasst Ihre Bänder, die Klang-Regler, Presets, den Treibertyp und die Smart-Korrektur; Korrekturen umfasst Kopfhörerkorrekturen sowie importierte oder eigene Kurven. Band-Designs bewahren die Frequenzen und das Q eines Layouts, das Ihnen gefällt, bereit für jeden Ausgang.',
   'help.eqmode.steps':
     'Drücken Sie EQ-Modus über dem Diagramm. Die Karte kommt ins Bild, und die Seitenleiste öffnet sich, falls sie geschlossen war.\nWählen Sie den Tab Ihr EQ oder Korrekturen und probieren Sie bei laufender Musik eine Einstellung unter Stärke oder Band-Q. Wählen Sie unter der FluidEQ-Engine für jeden Tab die Phase Minimal oder Linear und unter Höhen Präzise oder Klassisch.\nUnter Korrekturen kann die Kurvenglättung abgetastete Kurven mit 1/12 oder 1/3 Oktave glätten; sie steht auf Aus, bis Sie etwas wählen. Zurücksetzen stellt alles auf Normal und die Glättung auf Aus zurück.\nLieber ein Menü? Drücken Sie die Stecknadel auf der Karte: Der EQ-Modus öffnet sich dann als Menü über dem Diagramm, und die Stecknadel in diesem Menü holt die Karte zurück.\nÖffnen Sie neben Band hinzufügen den Knopf Schnelle Anordnungen. Wählen Sie 6, 10, 15, 20 oder 31 Bänder oder drücken Sie Design speichern…, um das aktuelle Layout zu benennen.',
   'help.eqmode.tip':
@@ -336,9 +336,9 @@ const help: Record<keyof typeof en, string> = {
   'help.profiles.intro':
     'Jeder Ausgang behält seinen eigenen Klang: EQ, Preset, Klang-Regler, Tiefen- und Höhensperre, DSP-Rack, Raum und Lautheitsausgleich werden mit ihm gespeichert und sind sofort wieder da, wenn Sie zu ihm wechseln. Profile bewahren weitere Klänge für denselben Ausgang. Zweite Ausgabe spielt gleichzeitig auf einem anderen Gerät, mit eigenem Klang und eigenem Pegel.',
   'help.profiles.steps':
-    'Prüfen Sie vor dem Bearbeiten den Ausgang oben auf der Karte Ausgabe; bei Bluetooth-Kopfhörern steht daneben ihr Akku. Nutzen Sie Neues Profil für einen Klang, den Sie behalten wollen; Aktualisieren speichert Änderungen in diesem Profil, und Zurücksetzen holt seine gespeicherten Einstellungen zurück.\nSchalten Sie Klang jedes Songs merken ein, dann kommen Preset, Klang-Regler und EQ, die Sie während eines Songs einstellen, wieder, sobald dieser Song hier läuft. Ein Hinweis sagt es Ihnen, mit Rückgängig und Diesen Song vergessen.\nÖffnen Sie Zweite Ausgabe, aktivieren Sie ein Gerät und stellen Sie seinen Pegel ein. Wählen Sie darunter sein Profil oder drücken Sie Klang bearbeiten, um seinen Klang auf der EQ-Seite zu ändern, ohne die Hauptausgabe zu wechseln; Fertig oder Hauptausgabe bearbeiten bringt Sie zurück.\nJede zweite Ausgabe hält selbst Schritt und zeigt ihre Verzögerung in Millisekunden; mit Audio teilen zeigt der Ton eines anderen Computers seine eigene Verzögerung, das Netzwerk eingerechnet.',
+    'Prüfen Sie vor dem Bearbeiten den Ausgang oben auf der Karte Ausgabe; bei Bluetooth-Kopfhörern steht daneben ihr Akku. Nutzen Sie Neues Profil für einen Klang, den Sie behalten wollen; Aktualisieren speichert Änderungen in diesem Profil, und Zurücksetzen holt seine gespeicherten Einstellungen zurück.\nDer eigene Klang jedes Songs liegt jetzt in Auto-EQ auf der EQ-Seite: Ein Song behält Preset, Klang-Regler und EQ auf jedem Ausgang, und die Bibliothek legt einen Klang für ein Album fest.\nÖffnen Sie Zweite Ausgabe, aktivieren Sie ein Gerät und stellen Sie seinen Pegel ein. Wählen Sie darunter sein Profil oder drücken Sie Klang bearbeiten, um seinen Klang auf der EQ-Seite zu ändern, ohne die Hauptausgabe zu wechseln; Fertig oder Hauptausgabe bearbeiten bringt Sie zurück.\nJede zweite Ausgabe hält selbst Schritt und zeigt ihre Verzögerung in Millisekunden; mit Audio teilen zeigt der Ton eines anderen Computers seine eigene Verzögerung, das Netzwerk eingerechnet.',
   'help.profiles.tip':
-    'Unter der FluidEQ-Engine spielt eine zweite Ausgabe direkt aus der Engine, und der Hauptausgang wartet nie auf sie. Klang jedes Songs merken ist anfangs ausgeschaltet und merkt sich die Songs je Ausgang. Auf der EQ-Seite beginnt die Seitenleiste mit der Karte EQ-Modus; klappen Sie sie ein, um schneller zu Ihren Ausgängen zu kommen.',
+    'Unter der FluidEQ-Engine spielt eine zweite Ausgabe direkt aus der Engine, und der Hauptausgang wartet nie auf sie. Auto-EQ ist anfangs ausgeschaltet. Auf der EQ-Seite beginnt die Seitenleiste mit der Karte EQ-Modus; klappen Sie sie ein, um schneller zu Ihren Ausgängen zu kommen.',
   'help.profiles.keywords':
     'lautsprecher, boxen, audiogerät, wiedergabegerät, standardgerät, gerätewechsel, gerät umschalten, Bluetooth, gleichzeitig, mehrere ausgänge, einstellungen speichern, synchronisieren, verzögerung, klangprofil, ausgang, ausgabe, zweite ausgabe, zwei ausgänge, je ausgang, pro gerät, eigener klang, akku, batterie, akkustand, klang bearbeiten, hauptausgabe bearbeiten, song, lied, titel, pro song, klang jedes songs merken, song merken, song vergessen',
   'help.profiles.list':
@@ -348,8 +348,6 @@ const help: Record<keyof typeof en, string> = {
   'help.profiles.new': 'Legt aus Ihrem aktuellen EQ ein neues Profil an.',
   'help.profiles.eqMode':
     'Die Einstellungen des EQ-Modus, zuerst auf der EQ-Seite. Klappen Sie die Karte ein, damit sie nicht im Weg ist.',
-  'help.profiles.songSound':
-    'Holt Preset, Klang-Regler und EQ eines Songs zurück, sobald er hier läuft. Aus, bis Sie es einschalten.',
   'help.profiles.editSound':
     'Bearbeitet den Klang dieses Ausgangs auf der EQ-Seite, ohne die Hauptausgabe zu wechseln.',
   'help.profiles.output':

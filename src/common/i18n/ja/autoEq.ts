@@ -1,0 +1,80 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+/** Auto EQ on the EQ page: its button, its panel, Manage, and the note that
+ * took the Output panel’s old switch’s place. */
+export default {
+  'autoEq.title': 'オート EQ',
+  'autoEq.aria': 'オート EQ：曲ごとのサウンドを決める機能',
+  'autoEq.tagline': '曲ごとのサウンドを自動で選びます',
+  'autoEq.state.measuring': '測定中',
+  'autoEq.state.paused': '一時停止中',
+  'autoEq.state.song': '曲',
+  'autoEq.state.album': 'アルバム',
+  'autoEq.state.yours': 'あなたの音',
+  'autoEq.aside':
+    'DSP がオフのとき、ゲームのチェーンがオンのとき、ゲームが独自のサウンドを鳴らしているときは一時的に退きます。終わると元どおりに戻ります。',
+  'autoEq.now.nothing': '再生していません',
+  'autoEq.now.yours': 'あなたのサウンド',
+  'autoEq.now.yoursWhy':
+    'この曲には何も保存されていません。最後に選んだサウンドで再生します。',
+  'autoEq.now.song': 'この曲のサウンド',
+  'autoEq.now.songWhy': 'この曲を再生するたびに戻ってきます。',
+  'autoEq.now.album': '{album} のサウンド',
+  'autoEq.now.albumUnnamed': 'アルバムのサウンド',
+  'autoEq.now.albumWhy': 'ライブラリでアルバム全体に設定されています。',
+  'autoEq.songs.title': '曲のサウンド',
+  'autoEq.songs.hint':
+    'サウンドを保存した曲は、そのサウンドで再生されます。再生中に変えると、その変更が曲に残ります。ほかの曲はあなたのサウンドで再生されます。',
+  'autoEq.songs.nothing': '曲を再生すると、そのサウンドを保存できます',
+  'autoEq.songs.saved': 'この曲用に保存済み',
+  'autoEq.songs.none': 'この曲には何も保存されていません',
+  'autoEq.songs.save': 'この曲用に保存',
+  'autoEq.songs.forget': '消去',
+  'autoEq.albums.title': 'アルバムのサウンド',
+  'autoEq.albums.hint':
+    'ライブラリのみ。アルバムのすべての曲がこのサウンドで再生されます。独自のプリセットがある曲は除きます。',
+  'autoEq.albums.nothing':
+    'アルバムのサウンドは、ライブラリのアルバムのページで設定します',
+  'autoEq.albums.libraryOnly':
+    'ライブラリのみ：ほかのプレーヤーには適用されません',
+  'autoEq.albums.set': '{album}：{preset}',
+  'autoEq.albums.none': 'このアルバムにはサウンドが設定されていません',
+  'autoEq.smart.title': 'スマート補正',
+  'autoEq.smart.hint':
+    '曲ごとにソースから測定し、その補正を曲ごとに保存します。どのプリセットにも上乗せされます。',
+  'autoEq.smart.modes': '補正の方法',
+  'autoEq.smart.waiting': '曲を待っています',
+  'autoEq.smart.willSave': '曲が終わるとこの曲用に保存されます',
+  'autoEq.smart.savesIn': 'あと {remaining} でこの曲用に保存されます',
+  'autoEq.smart.onceHint': '再生中の音を 1 回測定して、すぐに適用',
+  'autoEq.smart.once': '1 回測定',
+  'autoEq.savedCount': '保存済み：{songs} · {albums}',
+  'autoEq.manage': '管理',
+  'autoEq.manage.title': '保存したサウンド',
+  'autoEq.manage.back': 'オート EQ に戻る',
+  'autoEq.manage.songs': '曲',
+  'autoEq.manage.albums': 'アルバム',
+  'autoEq.manage.search': '保存したサウンドを検索',
+  'autoEq.manage.wholeSound': '{preset}（トーンと EQ を含む）',
+  'autoEq.manage.forget': '消去',
+  'autoEq.manage.others': 'ほかのプレーヤーの曲：{count}',
+  'autoEq.manage.othersHint':
+    'Spotify、YouTube、ブラウザー。曲名は保存されません。',
+  'autoEq.manage.empty': 'まだ何も保存されていません',
+  'autoEq.manage.noMatch': '一致するものがありません',
+  'autoEq.manage.resetKeeps':
+    '「すべての設定をリセット」してもこれらは残ります。削除できるのは「消去」だけです。',
+  'autoEq.manage.forgetAll': 'すべて消去',
+  'autoEq.manage.forgetAllConfirm': 'すべて完全に消去',
+  'autoEq.moved.title': '曲ごとのサウンドはオート EQ に移りました',
+  'autoEq.moved.body':
+    '「曲ごとのサウンドを記憶」は EQ ページのオート EQ に移りました。保存した {count} 曲もそのまま引き継がれています。',
+  'autoEq.moved.bodyOne':
+    '「曲ごとのサウンドを記憶」は EQ ページのオート EQ に移りました。保存した曲もそのまま引き継がれています。',
+  'autoEq.moved.open': 'オート EQ を開く',
+  'autoEq.moved.dismiss': 'OK',
+};

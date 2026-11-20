@@ -38,6 +38,8 @@ interface ILibraryListGroupRowProps {
    * them the title spans the table. */
   cells?: ReactNode;
   onOpen: (id: string) => void;
+  /** A right-click: an album row's menu (`useAlbumTileMenu`). */
+  onContextMenu?: (anchor: HTMLElement) => void;
 }
 
 const LibraryListGroupRow = ({
@@ -52,6 +54,7 @@ const LibraryListGroupRow = ({
   isBuiltIn = false,
   cells,
   onOpen,
+  onContextMenu,
 }: ILibraryListGroupRowProps) => {
   const { t } = useTranslation();
   const activate = () => onOpen(id);
@@ -71,6 +74,14 @@ const LibraryListGroupRow = ({
       }${isSelected ? ' library-list__row--selected' : ''}`}
       onClick={activate}
       onKeyDown={onKeyDown}
+      onContextMenu={
+        onContextMenu
+          ? (event) => {
+              event.preventDefault();
+              onContextMenu(event.currentTarget);
+            }
+          : undefined
+      }
     >
       <span role="cell" className="library-list__col library-list__col--art">
         {isFolder ? (

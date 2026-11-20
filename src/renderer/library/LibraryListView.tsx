@@ -42,6 +42,9 @@ import LibraryListGroupRow, {
 } from './LibraryListGroupRow';
 import { LibrarySectionRow } from './LibrarySectionHeading';
 import LibraryTrackMenu from './LibraryTrackMenu';
+import { useSongSoundIndex } from '../audio/songSoundIndex';
+import librarySoundTag from './librarySoundTag';
+import useAlbumTileMenu from './useAlbumTileMenu';
 import LibraryTrackRow from './LibraryTrackRow';
 import { usePlaylists } from './PlaylistContext';
 import { libraryRows } from './libraryRows';
@@ -200,6 +203,12 @@ const LibraryListView = ({
 }: ILibraryListViewProps) => {
   const { t } = useTranslation();
   const { playlists, isFavorite } = usePlaylists();
+  // Where each row's sound comes from (Auto EQ), read once per index.
+  const soundIndex = useSongSoundIndex();
+  const soundTagOf = (track: ILibraryTrack) =>
+    librarySoundTag(track, soundIndex);
+  // An album row's menu, as a grid tile's (Auto EQ).
+  const albumMenu = useAlbumTileMenu();
   const covers = usePlaylistCovers(browseMode === 'playlist' ? playlists : []);
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const rows = useMemo(
@@ -732,6 +741,7 @@ const LibraryListView = ({
     }
     if (item.kind === 'track') {
       const { track } = item;
+      const soundTag = soundTagOf(track);
       return (
         <LibraryTrackRow
           key={keyFor(track.id)}
@@ -744,6 +754,8 @@ const LibraryListView = ({
           isSelected={activeId === track.id || selectedIds.has(track.id)}
           isPlaying={playingTrackId === track.id}
           isFavorite={isFavorite(track.id)}
+          soundKind={soundTag?.kind}
+          soundPresetId={soundTag?.presetId}
           duration={formatDuration(track.durationMs)}
           onPlay={onPlayTrack}
           onRestart={onRestartTrack ?? onPlayTrack}
@@ -767,6 +779,14 @@ const LibraryListView = ({
           isPending={item.isPending}
           isSelected={activeId === item.id}
           onOpen={openGroup(onOpenAlbum)}
+          onContextMenu={(anchor) =>
+            albumMenu.open(anchor, {
+              id: item.id,
+              title,
+              artist: item.artist,
+              trackCount: item.trackCount,
+            })
+          }
           cells={
             <>
               <span role="cell" className="library-list__col">
@@ -923,6 +943,7 @@ const LibraryListView = ({
             onClose={() => setTrackMenu(undefined)}
           />
         )}
+      {albumMenu.menu}
       {editTags && selectedIds.size > 1 && (
         <LibrarySelectionBar
           trackIds={Array.from(selectedIds)}

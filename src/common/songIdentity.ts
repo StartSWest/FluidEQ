@@ -30,6 +30,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * store; importing across that line to save four words would put a renderer
  * module in main's bundle.
  */
+import type { ILibraryTrack } from './library/types';
+import { albumKey as libraryAlbumKey } from './library/grouping';
+
 export type TSongSource = 'library' | 'karaoke' | 'media' | 'system' | 'remote';
 
 export interface ISongIdentity {
@@ -40,6 +43,13 @@ export interface ISongIdentity {
   title: string;
   artist?: string;
   source: TSongSource;
+  /**
+   * Library only: the album it is on, by the Library's own album key
+   * (`albumKey`), which is what an album's sound is filed under.
+   */
+  albumKey?: string;
+  /** A film or a video file, which never plays a song's sound (Auto EQ). */
+  isVideo?: boolean;
 }
 
 /**
@@ -247,5 +257,32 @@ export const buildSongIdentity = (
     title: cleanTitle,
     artist: cleanArtist,
     source,
+  };
+};
+
+/**
+ * A Library track as a song: its id is the exact key, and it carries its
+ * album and whether it is a video, which Auto EQ needs and no other player
+ * can say.
+ */
+export const libraryTrackIdentity = (
+  track: Pick<
+    ILibraryTrack,
+    'id' | 'title' | 'artist' | 'album' | 'albumArtist' | 'kind'
+  >,
+): ISongIdentity | undefined => {
+  const identity = buildSongIdentity(
+    'library',
+    track.id,
+    track.title,
+    track.artist,
+  );
+  if (!identity) {
+    return undefined;
+  }
+  return {
+    ...identity,
+    ...(track.album ? { albumKey: libraryAlbumKey(track) } : {}),
+    ...(track.kind === 'video' ? { isVideo: true } : {}),
   };
 };

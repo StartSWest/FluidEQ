@@ -336,16 +336,13 @@ export const commitSongEq = (
  * The whole identity, not its key: the entry is very often filed under a
  * different key from the one playing — that is what the alias index is for —
  * and main resolves it the same way a lookup does.
- * @param { string } deviceId - the output to forget it on
+ * Every output's copy goes: a correction is found from any output.
  * @param { ISongIdentity } identity - the song to forget
  * @returns { Promise<void> } exception if the payload is not an identity
  */
-export const forgetSongEq = (
-  deviceId: string,
-  identity: ISongIdentity,
-): Promise<void> => {
+export const forgetSongEq = (identity: ISongIdentity): Promise<void> => {
   const channel = ChannelEnum.FORGET_SONG_EQ;
-  return sendRequest(channel, [deviceId, identity], setterResponseHandler);
+  return sendRequest(channel, [identity], setterResponseHandler);
 };
 
 export const resetEqMode = (): Promise<void> => {

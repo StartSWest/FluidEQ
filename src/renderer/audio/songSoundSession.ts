@@ -8,36 +8,28 @@ import { useSyncExternalStore } from 'react';
 import log from 'electron-log/renderer';
 import type { ISongIdentity } from 'common/songIdentity';
 import type { IOutputEditor } from 'common/outputSettings';
-import type { ISongSound, ISongSoundEntry } from 'common/songSound';
+import type { ISongSound } from 'common/songSound';
 import {
+  ISongSoundParts,
   ISongSoundState,
   TSongSoundEffect,
   TSongSoundEvent,
+  TSongSoundOwner,
   getInitialSongSoundState,
   reduceSongSound,
 } from 'common/songSoundRecorder';
+import { endDspLoan } from '../dsp/store';
 import {
-  applyDspSettings,
-  endDspLoan,
-  isDspLent,
-  lendDspSettings,
-  persistDspSettings,
-  readDspSettings,
-} from '../dsp/store';
-import {
-  resolveDspPreset,
-  resolveDspPresetCurve,
-} from '../dsp/dspPresetCatalog';
-import {
-  applySongSound,
   forgetSongSound,
   keepSongSound as keepSongSoundApi,
   lookupSongSound,
   returnSongSound,
   saveSongSound,
 } from '../utils/songSoundApi';
-import songSoundOf from './songSoundOf';
+import { matchedEvent, putSongSoundOn } from './songSoundPutOn';
 import { readOutputEditor } from '../utils/outputEditor';
+import { readAutoEqParts, writeAutoEqParts } from './autoEqParts';
+import { dismissSongSoundNotice, showSongSoundNotice } from './songSoundNotice';
 
 /**
  * Runs songSoundRecorder effects in order, bound to their original editor.
@@ -45,23 +37,19 @@ import { readOutputEditor } from '../utils/outputEditor';
  * hand-backs overtaking a new song; yieldSongSound waits for that queue.
  */
 
-/** The latest notice belongs to the current song and editor. */
-type TNoticeContent =
-  | { kind: 'lent'; identity: ISongIdentity; entry: ISongSoundEntry }
-  | { kind: 'willSave'; identity: ISongIdentity; presetId: string };
-
-export type TSongSoundNotice = TNoticeContent & { id: number };
-
-/** The switch, remembered on this machine. Off until the listener opts in. */
-const STORAGE_KEY = 'fluideq.songSound';
-
-const readIsOn = (): boolean => {
-  try {
-    return window.localStorage.getItem(STORAGE_KEY) === 'true';
-  } catch {
-    return false;
-  }
-};
+/** What Auto EQ's panel says about the song that plays. */
+export interface ISongSoundNow {
+  identity?: ISongIdentity;
+  isPlaying: boolean;
+  /** Whose saved sound plays, or nothing for the listener's own. */
+  owner?: TSongSoundOwner;
+  /** The preset playing, as the picker names it (`songSoundOf`). */
+  presetId?: string;
+  /** The album whose sound plays, when it is its album's. */
+  albumTitle?: string;
+  /** "Save for this song" would file what plays now. */
+  canSave: boolean;
+}
 
 const listeners = new Set<() => void>();
 const emit = (): void => listeners.forEach((listener) => listener());
@@ -72,12 +60,13 @@ const subscribe = (listener: () => void): (() => void) => {
   };
 };
 
-/** The listener's switch, and whether a game's sound is holding it off. */
-let isChosenOn = readIsOn();
+/** The listener's switches, and whether something is holding them off. */
+let chosenParts: ISongSoundParts = readAutoEqParts();
 let isHeld = false;
-let state: ISongSoundState = getInitialSongSoundState(isChosenOn);
-let notice: TSongSoundNotice | undefined;
-let lastNoticeId = 0;
+let state: ISongSoundState = getInitialSongSoundState(chosenParts);
+let now: ISongSoundNow = { isPlaying: false, canSave: false };
+/** The album named by the last lookup, for the song it was about. */
+let lastAlbum: { key: string; title: string } | undefined;
 let queue: Promise<void> = Promise.resolve();
 let stateEditor: IOutputEditor | undefined;
 
@@ -116,83 +105,6 @@ const enqueue = (task: () => Promise<void> | void): Promise<void> => {
   return queue;
 };
 
-/** A missing remembered preset lends only its Tone/bands, keeping this rack. */
-const playable = (
-  entry: ISongSoundEntry | undefined,
-): ISongSoundEntry | undefined => {
-  if (
-    !entry ||
-    !state.live ||
-    resolveDspPreset(entry.sound.presetId, readDspSettings())
-  ) {
-    return entry;
-  }
-  return {
-    ...entry,
-    sound: { ...entry.sound, presetId: state.live.presetId },
-  };
-};
-
-/**
- * A hand-back restores the exact borrowed rack, including manual changes,
- * rather than preset defaults. Main restores the matching curve. Other sounds
- * follow the picker, with the rack held off under Equalizer APO.
- */
-const putOn = async (
-  sound: ISongSound,
-  isLent: boolean,
-  target: IOutputEditor,
-): Promise<ISongSound | undefined> => {
-  const isRestoring = !isLent && isDspLent();
-  const rack = isRestoring
-    ? undefined
-    : resolveDspPreset(sound.presetId, readDspSettings());
-  // None, or a preset with no curve, takes a preset's curve away (`null`); a
-  // hand-back main puts back from its loan, or a preset nobody can name,
-  // leaves the voicing alone (`undefined`).
-  const curve = rack
-    ? (resolveDspPresetCurve(sound.presetId) ?? null)
-    : undefined;
-  const landed = await applySongSound(sound, isLent, curve, target);
-  if (!isCurrentEditor(target)) {
-    return undefined;
-  }
-  if (isRestoring) {
-    endDspLoan(true);
-  } else if (rack) {
-    const next =
-      isApo() && sound.presetId !== 'none'
-        ? { ...rack, enabled: false, gameMode: false }
-        : rack;
-    if (isLent) {
-      lendDspSettings(next);
-    } else {
-      applyDspSettings(next);
-      persistDspSettings();
-    }
-  }
-  await refresh();
-  return isCurrentEditor(target)
-    ? songSoundOf(landed, readDspSettings())
-    : undefined;
-};
-
-const showNotice = (next: TNoticeContent): void => {
-  // The same preset again for the same song — the picker's curve and its rack
-  // landing a render apart — is the same news, and keeps the card it has.
-  if (
-    next.kind === 'willSave' &&
-    notice?.kind === 'willSave' &&
-    notice.identity.key === next.identity.key &&
-    notice.presetId === next.presetId
-  ) {
-    return;
-  }
-  lastNoticeId += 1;
-  notice = { ...next, id: lastNoticeId };
-  emit();
-};
-
 const performEffects = (effects: TSongSoundEffect[]): Promise<void> => {
   // Capture when requested, before the queue waits for another sound. Reading
   // the editor inside a queued task would address an old request to a new output.
@@ -201,23 +113,22 @@ const performEffects = (effects: TSongSoundEffect[]): Promise<void> => {
   effects.forEach((effect) => {
     switch (effect.kind) {
       case 'lookup': {
-        const { deviceId, identity } = effect;
-        if (!isCurrentEditor(target) || deviceId !== target.device.id) {
+        const { identity } = effect;
+        if (!isCurrentEditor(target)) {
           break;
         }
-        lookupSongSound(deviceId, identity)
+        lookupSongSound(identity)
           // The identity the lookup was asked about, never whatever plays
           // when the answer lands: the reducer turns a stale answer away by
           // it.
-          .then((entry) => {
+          .then((match) => {
             if (!isCurrentEditor(target)) {
               return undefined;
             }
-            return dispatchSongSound({
-              kind: 'matched',
-              identity,
-              entry: playable(entry),
-            });
+            lastAlbum = match.album
+              ? { key: identity.key, title: match.album.title }
+              : undefined;
+            return dispatchSongSound(matchedEvent(identity, match, state.live));
           })
           .catch(() => {
             // No answer is no memory of this song, and a hand-back held over
@@ -236,7 +147,11 @@ const performEffects = (effects: TSongSoundEffect[]): Promise<void> => {
             return;
           }
           try {
-            const landed = await putOn(sound, isLent, target);
+            const landed = await putSongSoundOn(sound, isLent, target, {
+              isCurrent: isCurrentEditor,
+              isApo,
+              refresh,
+            });
             if (isCurrentEditor(target)) {
               dispatchSongSound({ kind: 'applied', asked: sound, landed });
             }
@@ -266,34 +181,40 @@ const performEffects = (effects: TSongSoundEffect[]): Promise<void> => {
         // would put the outgoing output's loan onto it, or end its own loan.
         break;
       case 'save':
-        saveSongSound(effect.deviceId, effect.identity, effect.sound).catch(
+        saveSongSound(effect.identity, effect.sound, effect.isPlay).catch(
           (error: unknown) => {
             log.error('A song’s sound could not be saved', error);
           },
         );
         break;
       case 'notice':
-        showNotice({
+        showSongSoundNotice({
           kind: 'lent',
           identity: effect.identity,
-          entry: effect.entry,
+          owner: effect.owner,
+          presetId: effect.sound.presetId,
+          ...(effect.albumTitle === undefined
+            ? {}
+            : { albumTitle: effect.albumTitle }),
         });
         break;
       case 'willSave':
-        showNotice({
+        showSongSoundNotice({
           kind: 'willSave',
           identity: effect.identity,
           presetId: effect.presetId,
+          owner: effect.owner,
         });
         break;
       case 'forget':
-        forgetSongSound(effect.deviceId, effect.identity).catch(
-          (error: unknown) => {
-            // Left standing, which is the safe way to fail: claiming a song
-            // forgotten while its sound still comes back would not be.
-            log.error('A song’s sound could not be forgotten', error);
-          },
-        );
+        // Main tells the window once it is forgotten (`SONG_SOUNDS_CHANGED`),
+        // and the song is looked up again then: one with an album's sound
+        // takes it.
+        forgetSongSound(effect.identity).catch((error: unknown) => {
+          // Left standing, which is the safe way to fail: claiming a song
+          // forgotten while its sound still comes back would not be.
+          log.error('A song’s sound could not be forgotten', error);
+        });
         break;
       default: {
         const exhaustive: never = effect;
@@ -306,10 +227,47 @@ const performEffects = (effects: TSongSoundEffect[]): Promise<void> => {
   return last;
 };
 
+/** What the panel shows, kept as one object while nothing it says changes. */
+const readNow = (): ISongSoundNow => {
+  const { session, playing, live, pending } = state;
+  const identity = session?.identity ?? playing?.identity;
+  const owner = session?.owner;
+  const canSave =
+    !!session &&
+    session.phase !== 'settling' &&
+    !session.isLoaded &&
+    state.parts.songs &&
+    !isHeld &&
+    !pending &&
+    live !== undefined;
+  const isPlaying = playing?.isPlaying ?? false;
+  const presetId = live?.presetId;
+  const albumTitle =
+    owner === 'album' && lastAlbum?.key === identity?.key
+      ? lastAlbum?.title
+      : undefined;
+  return now.identity?.key === identity?.key &&
+    now.owner === owner &&
+    now.canSave === canSave &&
+    now.isPlaying === isPlaying &&
+    now.presetId === presetId &&
+    now.albumTitle === albumTitle
+    ? now
+    : {
+        ...(identity ? { identity } : {}),
+        ...(owner ? { owner } : {}),
+        ...(presetId === undefined ? {} : { presetId }),
+        ...(albumTitle === undefined ? {} : { albumTitle }),
+        canSave,
+        isPlaying,
+      };
+};
+
 const dispatchSongSound = (event: TSongSoundEvent): Promise<void> => {
   const [next, effects] = reduceSongSound(state, event, Date.now());
   const isNews = next !== state || effects.length > 0;
   state = next;
+  now = readNow();
   // The reducer advances old timers before a switch; their hand-back cannot
   // be addressed to the editor that the switch has just opened.
   const done = performEffects(
@@ -347,7 +305,7 @@ export const feedSongSound = (event: TSongSoundEvent): void => {
       emit();
     }
     stateEditor = current;
-    dismissNotice();
+    dismissSongSoundNotice();
   }
   dispatchSongSound(event).catch(() => {
     // Reported where the effect failed (`enqueue`).
@@ -393,99 +351,91 @@ export const returnLeftoverSongSound = (): void => {
   });
 };
 
-/* --- the switch --- */
+/* --- the switches --- */
 
 const feedSwitch = (): void =>
-  feedSongSound({ kind: 'switched', isOn: isChosenOn && !isHeld });
+  feedSongSound({
+    kind: 'switched',
+    parts: isHeld ? { songs: false, albums: false } : chosenParts,
+  });
 
-/** The listener's switch, whatever a game is doing. */
-export const isSongSoundOn = (): boolean => isChosenOn;
+/** The listener's switches, whatever is holding them off. */
+export const readSongSoundParts = (): ISongSoundParts => chosenParts;
 
-export const setSongSoundOn = (isOn: boolean): void => {
-  if (isOn === isChosenOn) {
+export const setSongSoundParts = (parts: ISongSoundParts): void => {
+  if (
+    parts.songs === chosenParts.songs &&
+    parts.albums === chosenParts.albums
+  ) {
     return;
   }
-  isChosenOn = isOn;
-  try {
-    window.localStorage.setItem(STORAGE_KEY, String(isOn));
-  } catch {
-    // Keep the choice for this window when storage is unavailable.
-  }
+  chosenParts = parts;
+  writeAutoEqParts(parts);
   feedSwitch();
   emit();
 };
 
-/** Games yield the song loan first, then hold background song recalls off. */
+/**
+ * Held off while a game's sound plays, DSP is off or a Gaming chain is on
+ * (Auto EQ steps aside; the switches come back as they were).
+ */
 export const holdSongSound = (held: boolean): void => {
   if (held === isHeld) {
     return;
   }
   isHeld = held;
   feedSwitch();
+  emit();
 };
 
-/** A game remembers the owned preset, excluding a song loan. */
-export const ownPresetId = (current: string): string => {
-  const own = state.session?.handBack ?? state.owed?.sound;
-  if (!own) {
-    return current;
-  }
-  return own.presetId === 'none' ? '' : own.presetId;
-};
+export const useSongSoundParts = (): ISongSoundParts =>
+  useSyncExternalStore(subscribe, readSongSoundParts, readSongSoundParts);
 
-export const useSongSoundOn = (): boolean =>
-  useSyncExternalStore(subscribe, isSongSoundOn, () => false);
-
-/* --- the notice --- */
-
-export const useSongSoundNotice = (): TSongSoundNotice | undefined =>
+export const useSongSoundHeld = (): boolean =>
   useSyncExternalStore(
     subscribe,
-    () => notice,
-    () => undefined,
+    () => isHeld,
+    () => false,
   );
 
-/** The notice named by `id` has been up for its whole moment. */
-export const endSongSoundNotice = (id: number): void => {
-  if (notice?.id !== id) {
-    return;
-  }
-  notice = undefined;
-  emit();
-};
+export const useSongSoundNow = (): ISongSoundNow =>
+  useSyncExternalStore(
+    subscribe,
+    () => now,
+    () => now,
+  );
 
-const dismissNotice = (): void => {
-  if (notice === undefined) {
-    return;
-  }
-  notice = undefined;
-  emit();
-};
+/** "Save for this song": what plays is the song's own from now. */
+export const saveSongSoundNow = (): void => feedSongSound({ kind: 'saveNow' });
+
+/** What is kept changed elsewhere: the playing song is looked up again. */
+export const reconsiderSongSound = (): void =>
+  feedSongSound({ kind: 'reconsider' });
+
+/** The playing song's own sound forgotten, and taken off it. */
+export const forgetPlayingSongSound = (): void =>
+  feedSongSound({ kind: 'forget' });
 
 /** This play only: the listener's own sound back, the memory kept. */
 export const undoSongSound = (): void => {
   feedSongSound({ kind: 'undo' });
-  dismissNotice();
+  dismissSongSoundNotice();
 };
 
 /** This song not filed this play, whatever it ends with. */
 export const dontSaveSongSound = (): void => {
   feedSongSound({ kind: 'dontSave' });
-  dismissNotice();
-};
-
-/** The song the notice names forgotten, and its sound taken off it. */
-export const forgetNoticedSongSound = (): void => {
-  feedSongSound({ kind: 'forget', identity: notice?.identity });
-  dismissNotice();
+  dismissSongSoundNotice();
 };
 
 /** Reset module ownership between isolated sessions. */
 export const resetSongSoundSession = (): void => {
-  isChosenOn = readIsOn();
+  chosenParts = readAutoEqParts();
   isHeld = false;
-  state = getInitialSongSoundState(isChosenOn);
-  notice = undefined;
+  state = getInitialSongSoundState(chosenParts);
+  dismissSongSoundNotice();
+  lastAlbum = undefined;
+  now = { isPlaying: false, canSave: false };
   queue = Promise.resolve();
   stateEditor = undefined;
   hasReturned = false;
@@ -493,3 +443,10 @@ export const resetSongSoundSession = (): void => {
   refresh = () => Promise.resolve();
   emit();
 };
+
+/** The sound playing now, as the window holds it: the Library's "Use what's
+ * playing now" keeps it. Nothing while the window has not heard one yet. */
+export const readLiveSongSound = (): ISongSound | undefined => state.live;
+
+export const useLiveSongSound = (): ISongSound | undefined =>
+  useSyncExternalStore(subscribe, readLiveSongSound, readLiveSongSound);

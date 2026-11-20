@@ -47,15 +47,15 @@ const helpDetails = {
     'Un jeu qui possède son propre son 3D peut garder Room désactivé pour éviter un double placement. Room est destiné au casque. Le son de votre musique revient lorsque celui du jeu est déchargé.',
   'help.gamefilter.keywords':
     'game filter, footsteps, lift, calm, environment, ambience, dialogue, voices, make room, hooves, heavy steps, isolate, hrtf, spatial audio',
-  'help.songs.title': 'Mémoriser le son de chaque morceau',
+  'help.songs.title': 'Égalisation auto : le son de chaque chanson',
   'help.songs.intro':
-    'Un morceau peut retenir son préréglage, son Tone et son EQ pour chaque sortie. Les réglages du casque ne remplacent pas la mémoire des enceintes.',
+    'L’Égalisation auto, dans la page Égaliseur, décide du son de chaque chanson : le son enregistré pour la chanson, le son de son album depuis la Bibliothèque, ou le vôtre. La Correction intelligente ajoute par-dessus une correction mesurée. Le son d’une chanson la suit sur chaque sortie ; la correction du casque reste celle de la sortie.',
   'help.songs.steps':
-    'Sous les profils de sortie, activez Mémoriser le son de chaque chanson. Cette option est désactivée au départ.\nLisez un morceau identifiable et changez son préréglage, Tone ou EQ. Une notification annonce l’enregistrement ; refusez-le si ce n’était qu’un essai.\nÀ la prochaine lecture sur cette sortie, son réglage revient temporairement. Annuler l’ignore cette fois ; Oublier ce morceau efface aussi sa mémoire.\nÀ sa fin, le son précédent de la sortie revient. Choisir un autre profil vous rend explicitement la main.\nSmart EQ dispose de son propre bouton d’enregistrement pendant la mesure. Il conserve la correction mesurée, indépendamment des réglages manuels mémorisés.',
+    'Ouvrez l’Égalisation auto, le bouton plein des outils de Votre égaliseur, et activez Sons des chansons, Sons des albums et Correction intelligente comme vous le souhaitez. Chacun se désactive séparément.\nPendant qu’une chanson joue, appuyez sur Enregistrer pour cette chanson pour garder le son que vous entendez. Quand elle rejoue, son son revient ; et quand une chanson sans rien d’enregistré suit, votre propre son revient.\nChangez le préréglage pendant qu’une chanson enregistrée joue, et la chanson garde le changement. Une notification le signale ; Ne pas enregistrer laisse tout comme avant. Un changement sur une chanson sans rien d’enregistré devient plutôt votre son.\nDans la Bibliothèque, faites un clic droit sur une chanson, une sélection ou un album, ou utilisez le Son de l’album d’un album, pour choisir un préréglage ou garder ce qui joue maintenant. Le son propre d’une chanson l’emporte sur celui de son album ; les albums ne changent que dans la Bibliothèque.\nGérer liste chaque chanson et chaque album enregistrés, avec Oublier. Réinitialiser tous les réglages désactive l’Égalisation auto et les conserve.',
   'help.songs.tip':
-    'L’identité vient du fichier ou des informations du lecteur. Un titre absent ou incorrect peut empêcher la reconnaissance. Le préampli n’est pas mémorisé ; le son chargé d’un jeu est prioritaire.',
+    'Les chansons de Spotify, YouTube ou du navigateur sont reconnues par le titre et l’artiste qu’annonce le lecteur, et gardent leurs sons à part de ceux de la Bibliothèque. Les films et les vidéos ne reçoivent jamais le son d’une chanson. L’Égalisation auto se met en retrait tant que le DSP est désactivé, qu’une chaîne Jeux est active ou qu’un jeu joue son propre son.',
   'help.songs.keywords':
-    'per song, song sound, song memory, remember song, save song eq, smart eq, undo, forget this song, preset per song, tone per song',
+    'auto eq, égalisation auto, par chanson, son de chanson, son d’album, mémoriser chanson, enregistrer pour cette chanson, correction intelligente, smart correction, smart eq, préréglage par chanson, préréglage par album, oublier, gérer',
   'help.mycurves.title': 'Mes courbes : importer, modifier et partager',
   'help.mycurves.intro':
     'Votre collection de courbes côtoie la bibliothèque de mesures. Vérifiez une réponse puis choisissez une couche de correction ou des bandes EQ modifiables.',

@@ -65,7 +65,7 @@ const tour: Partial<Dictionary> = {
   'tour.player.lead':
     'Ein Schalter in der Titelleiste klappt FluidEQ zu einer Spalte zusammen: oben die Szene mit dem Song, darunter die Bedienung, Ihr Klang und was als Nächstes läuft. Derselbe Player in allen Fensterfarben, und eine gewählte Szene läuft hinter allem, im Modus {backdrop}.',
   'tour.player.point1':
-    'Unter {sound}: Regler für Bass, Mitten und Höhen oder Ihre EQ-Bänder, daneben Preset, Smart-EQ und EQ-Modus.',
+    'Unter {sound}: Regler für Bass, Mitten und Höhen oder Ihre EQ-Bänder, daneben Preset, Auto-EQ und EQ-Modus.',
   'tour.player.point2':
     '„{upNext}“ und {playlists} stehen unten; klappen Sie sie für ein größeres Bild ein. Musik, die Sie irgendwo auf dem Player ablegen, kommt in die Warteschlange.',
   'tour.player.point3':
@@ -409,7 +409,7 @@ const tour: Partial<Dictionary> = {
   'tour.library.point3':
     'Playlists und eine feste Favoritenliste. Rechtsklick auf einen Song, um ihn dort oder in die Warteschlange zu legen.',
   'tour.library.point4':
-    'Smart-EQ-Songgedächtnis: „Für diesen Song speichern“ umlegen, während Smart-EQ laufend misst, und nach zwei Minuten bleibt seine Korrektur für diesen Titel gespeichert und kommt zurück, wenn er wieder läuft.',
+    'Auto-EQ: Geben Sie einem Song, einer Auswahl oder einem ganzen Album in der Bibliothek ein eigenes Preset, und es spielt jedes Mal, wenn diese Musik läuft.',
   'tour.library.how':
     'Öffnen Sie den Tab Bibliothek, drücken Sie „Ordner hinzufügen“ oder ziehen Sie einen Ordner auf die Seite und warten Sie, bis das Einlesen fertig ist. Wählen Sie Alben, Interpreten, Genres, Songs, Ordner oder Baum und drücken Sie dann Wiedergeben.',
   'tour.library.open': 'Bibliothek öffnen',

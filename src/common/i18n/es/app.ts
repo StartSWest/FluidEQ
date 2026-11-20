@@ -126,7 +126,7 @@ const app: Partial<Dictionary> = {
     'Coloca la escena de escritorio de ese monitor detrás de los iconos y le avisa cuando las ventanas cubren la pantalla. Uno por cada monitor que la muestra.',
   'app.processes.name.shareCapture': 'Captura de audio',
   'app.processes.what.shareCapture':
-    'Captura lo que suena en este PC, antes del ecualizador, para la pestaña Compartir audio, una segunda salida y EQ inteligente. Solo funciona mientras alguno de ellos está en uso.',
+    'Captura lo que suena en este PC, antes del ecualizador, para la pestaña Compartir audio, una segunda salida y la Corrección inteligente. Solo funciona mientras alguno de ellos está en uso.',
   'app.processes.name.sharePlayback': 'Reproducción del audio compartido',
   'app.processes.what.sharePlayback':
     'Reproduce el sonido que otro FluidEQ comparte con este PC y arranca las capturas de audio, para que lo que envía este PC nunca devuelva ese sonido. Solo funciona mientras alguno de ellos está en uso.',

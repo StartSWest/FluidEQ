@@ -1,0 +1,78 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+/** Auto EQ on the EQ page: its button, its panel, Manage, and the note that
+ * took the Output panel’s old switch’s place. */
+export default {
+  'autoEq.title': 'Авто EQ',
+  'autoEq.aria': 'Авто EQ: что определяет звук каждой песни',
+  'autoEq.tagline': 'Звук каждой песни, подобранный для вас',
+  'autoEq.state.measuring': 'Измерение',
+  'autoEq.state.paused': 'Пауза',
+  'autoEq.state.song': 'Песня',
+  'autoEq.state.album': 'Альбом',
+  'autoEq.state.yours': 'Ваш',
+  'autoEq.aside':
+    'Отходит в сторону, пока DSP выключен, включена цепочка «Игры» или игра воспроизводит собственный звук. Потом всё возвращается как было.',
+  'autoEq.now.nothing': 'Ничего не играет',
+  'autoEq.now.yours': 'ваш звук',
+  'autoEq.now.yoursWhy':
+    'Для этой песни ничего не сохранено: она звучит с последним выбранным вами звуком.',
+  'autoEq.now.song': 'звук этой песни',
+  'autoEq.now.songWhy': 'Возвращается каждый раз, когда играет эта песня.',
+  'autoEq.now.album': 'звук альбома «{album}»',
+  'autoEq.now.albumUnnamed': 'звук её альбома',
+  'autoEq.now.albumWhy': 'Задан в Библиотеке для всего альбома.',
+  'autoEq.songs.title': 'Звук песен',
+  'autoEq.songs.hint':
+    'Песня с сохранённым звуком играет с ним. Измените его во время воспроизведения, и песня сохранит изменение. Остальные песни звучат с вашим.',
+  'autoEq.songs.nothing': 'Включите песню, чтобы сохранить её звук',
+  'autoEq.songs.saved': 'Сохранено для этой песни',
+  'autoEq.songs.none': 'Для этой песни ничего не сохранено',
+  'autoEq.songs.save': 'Сохранить для этой песни',
+  'autoEq.songs.forget': 'Забыть',
+  'autoEq.albums.title': 'Звук альбомов',
+  'autoEq.albums.hint':
+    'Только в Библиотеке. Все песни альбома играют с ним, кроме песни со своим пресетом.',
+  'autoEq.albums.nothing': 'Задайте звук альбома на его странице в Библиотеке',
+  'autoEq.albums.libraryOnly': 'Только Библиотека: не для других плееров',
+  'autoEq.albums.set': '{album}: {preset}',
+  'autoEq.albums.none': 'Для этого альбома звук не задан',
+  'autoEq.smart.title': 'Умная коррекция',
+  'autoEq.smart.hint':
+    'Измеряет каждую песню по исходному сигналу и сохраняет её коррекцию для этой песни. Поверх любого пресета.',
+  'autoEq.smart.modes': 'Как корректирует',
+  'autoEq.smart.waiting': 'Ожидание песни',
+  'autoEq.smart.willSave': 'Сохранится для этой песни, когда она закончится',
+  'autoEq.smart.savesIn': 'Сохранится для этой песни через {remaining}',
+  'autoEq.smart.onceHint': 'Одно измерение того, что играет, применяется сразу',
+  'autoEq.smart.once': 'Измерить один раз',
+  'autoEq.savedCount': 'Сохранено: {songs} · {albums}',
+  'autoEq.manage': 'Управление',
+  'autoEq.manage.title': 'Сохранённые звуки',
+  'autoEq.manage.back': 'Назад к «Авто EQ»',
+  'autoEq.manage.songs': 'Песни',
+  'autoEq.manage.albums': 'Альбомы',
+  'autoEq.manage.search': 'Поиск сохранённых звуков',
+  'autoEq.manage.wholeSound': '{preset} с «Тембром» и эквалайзером',
+  'autoEq.manage.forget': 'Забыть',
+  'autoEq.manage.others': 'Песни из других плееров: {count}',
+  'autoEq.manage.othersHint':
+    'Spotify, YouTube и браузер. Их названия никогда не сохраняются.',
+  'autoEq.manage.empty': 'Пока ничего не сохранено',
+  'autoEq.manage.noMatch': 'Ничего не найдено',
+  'autoEq.manage.resetKeeps':
+    '«Сбросить все настройки» их сохраняет. Удаляет их только «Забыть».',
+  'autoEq.manage.forgetAll': 'Забыть всё',
+  'autoEq.manage.forgetAllConfirm': 'Забыть всё навсегда',
+  'autoEq.moved.title': 'Звук каждой песни теперь в «Авто EQ»',
+  'autoEq.moved.body':
+    '«Запоминать звук каждой песни» переехало в «Авто EQ» на странице эквалайзера. Сохранённые песни перенесены вместе с ним, всего: {count}.',
+  'autoEq.moved.bodyOne':
+    '«Запоминать звук каждой песни» переехало в «Авто EQ» на странице эквалайзера. Ваша сохранённая песня перенесена вместе с ним.',
+  'autoEq.moved.open': 'Открыть «Авто EQ»',
+  'autoEq.moved.dismiss': 'Понятно',
+};

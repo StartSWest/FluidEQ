@@ -20,9 +20,9 @@ import { fingerprintSongMemory } from './songMemoryNames';
  */
 
 /** A song memory's file as read, before anything is done about it. */
-export interface ISongMemoryLoad<Entry> {
+export interface ISongMemoryLoad<Settings> {
   /** What is held from here on: filed by fingerprints (`songMemoryNames`). */
-  settings: ISongMemorySettings<Entry>;
+  settings: Settings;
   /** The file says more than it may, or holds what was left out of it, and
    * is written again. */
   rewrite: boolean;
@@ -65,7 +65,7 @@ export const settleSongMemory = <Entry extends ISongMemoryEntryBase>(
   text: string | undefined,
   parse: TParseSongMemory<Entry>,
   empty: () => ISongMemorySettings<Entry>,
-): ISongMemoryLoad<Entry> => {
+): ISongMemoryLoad<ISongMemorySettings<Entry>> => {
   if (text === undefined) {
     return { settings: empty(), rewrite: false, dropped: 0, damaged: false };
   }
@@ -97,12 +97,12 @@ export const settleSongMemory = <Entry extends ISongMemoryEntryBase>(
  * `myCurvesFile.ts` keeps My curves). The log names the file and the count,
  * never a song.
  */
-export const keepSongMemory = <Entry extends ISongMemoryEntryBase>(
+export const keepSongMemory = <Settings>(
   filePath: string,
-  loaded: ISongMemoryLoad<Entry>,
-  save: (settings: ISongMemorySettings<Entry>) => void,
+  loaded: ISongMemoryLoad<Settings>,
+  save: (settings: Settings) => void,
   now: () => number = Date.now,
-): ISongMemorySettings<Entry> => {
+): Settings => {
   const name = path.basename(filePath, '.json');
   if (loaded.damaged) {
     const aside = path.join(

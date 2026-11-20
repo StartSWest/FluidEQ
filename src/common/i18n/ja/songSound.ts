@@ -4,18 +4,21 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-/** The memory of each song's sound — the switch and the notice. */
+/** Auto EQ’s song and album sounds — the notices. The switch’s two words stay
+ * for the 2.1 tour, which shows the Output panel as it was then. */
 export default {
   'songSound.switch': '曲ごとのサウンドを記憶',
-  'songSound.switchHint':
-    '曲の再生中に設定したプリセット、トーン、EQ は、その曲がここで再生されるたびに戻ります。',
-  'songSound.noticeTitle': 'この曲専用のサウンド',
-  'songSound.noticeBody': '{title} — {preset}、この曲のトーンと EQ',
-  'songSound.noticeBodyNoPreset': '{title} — この曲のトーンと EQ',
-  'songSound.undo': '元に戻す',
   'songSound.forget': 'この曲の記憶を消す',
+  'songSound.noticeTitle': 'この曲の保存済みサウンド',
+  'songSound.noticeBody': '{title} · {preset}',
+  'songSound.albumNoticeTitle': 'アルバムのサウンド：{album}',
+  'songSound.albumNoticeBody': '{title} はアルバムの {preset} で再生されます',
+  'songSound.noPresetName': 'あなたのプリセット',
+  'songSound.undo': '元に戻す',
   'songSound.willSaveTitle': 'この曲用に保存',
-  'songSound.willSaveBody': '{preset} を「{title}」用に保存します。',
-  'songSound.willSaveBodyNoPreset': 'このサウンドを「{title}」用に保存します。',
+  'songSound.willSaveBody': '{title} は {preset} を保持します。',
+  'songSound.willSaveAlbumTitle': 'この曲だけに保存',
+  'songSound.willSaveAlbumBody':
+    '{title} は {preset} を保持します。アルバムは独自のサウンドのままです。',
   'songSound.dontSave': '保存しない',
 };

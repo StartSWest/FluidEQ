@@ -69,7 +69,7 @@ const eq = {
   'eq.mode.precise': 'Precise',
   'eq.mode.classic': 'Classic',
   'eq.mode.trebleEqPrecise':
-    'Precise: your bands, Tone, Preset, Driver type and Smart EQ play exactly as drawn, up to 20\u00a0kHz.',
+    'Precise: your bands, Tone, Preset, Driver type and Smart correction play exactly as drawn, up to 20\u00a0kHz.',
   'eq.mode.trebleEqClassic':
     'Classic: the way Equalizer APO plays them. Treble bands come out narrower and lower than you set them, most of all near 20\u00a0kHz.',
   'eq.mode.trebleCurvesPrecise':
@@ -472,7 +472,7 @@ const eq = {
   'eq.channels.letter.left': 'L',
   'eq.channels.letter.right': 'R',
   'graph.curve.voicing': 'Preset',
-  'graph.curve.smart': 'Smart EQ',
+  'graph.curve.smart': 'Smart correction',
   'graph.curve.custom': 'Custom FX',
   'graph.curve.tone': 'Tone',
   'graph.curve.total': 'Final output',
@@ -764,13 +764,12 @@ const eq = {
   'squigImport.emptyHint':
     'Paste an export to see its shape before you continue fine-tuning it in the EQ.',
   'eq.title': 'Parametric EQ',
-  'eq.smart': 'Smart EQ',
+  'eq.smart': 'Smart correction',
   'eq.smart.cancel': 'Cancel',
-  'eq.smart.stopAria': 'Stop Smart EQ',
-  'eq.smart.aria': 'Smart EQ from the source',
+  'eq.smart.aria': 'Smart correction from the source',
   'eq.smart.continuousAria':
-    'Keep Smart EQ measuring and adjusting while music plays',
-  'eq.smart.modeAria': 'Choose how Smart EQ measures',
+    'Keep Smart correction measuring and adjusting while music plays',
+  'eq.smart.modeAria': 'Choose how Smart correction measures',
   'eq.smart.mode.once.note': 'One measurement, applied at once',
   'eq.smart.mode.detail': 'Detail',
   'eq.smart.mode.detail.note': 'Keeps measuring · peaks and dips only',
@@ -791,7 +790,7 @@ const eq = {
   'eq.layers.custom': 'Custom FX',
   'eq.layers.disable': 'Switch {layer} off without removing it',
   'eq.layers.enable': 'Switch {layer} back on',
-  'eq.layers.smart': 'Smart EQ',
+  'eq.layers.smart': 'Smart correction',
   'eq.layers.remove': 'Remove the {layer} layer',
   'eq.layers.clearBands': 'Reset every band to 0 dB',
   'eq.layers.clearTone': 'Reset Bass, Mid and Treble to 0 dB',

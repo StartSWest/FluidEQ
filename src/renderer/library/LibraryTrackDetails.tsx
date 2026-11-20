@@ -22,6 +22,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { formatOf } from './libraryColumns';
 import { formatCount } from './libraryFormat';
 import { useTrackFacts } from './useTrackFacts';
+import LibraryTrackSound from './LibraryTrackSound';
 
 /** One decimal for a rate or a size, none where it would only say ".0". */
 const trim = (value: number, locale: string): string =>
@@ -190,6 +191,7 @@ const LibraryTrackDetails = ({
           </dl>
         </section>
       )}
+      {track.kind === 'audio' && <LibraryTrackSound track={track} />}
       <section className="library-facts__group">
         <h3 className="library-pane__heading">{t('library.facts.location')}</h3>
         <p className="library-facts__path" title={track.path}>

@@ -1,0 +1,412 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'theme' as *;
+@use 'spacing' as *;
+@use 'color' as *;
+
+// AUTO EQ'S PANEL (`AutoEqButton`, `AutoEqPanel`), flat on the app's menu
+// surface: no ground under a part and no box in a box, the parts parted by
+// one hairline and their headings, as the DSP page's blocks are (Ivan,
+// 2026-11-19: "flat and clean", "no dropshadow always clean"). The file is
+// named for the EQ page because `AutoEQ.scss` and `AutoEQPanel.scss` are the
+// headphone corrections', and Windows does not tell the cases apart.
+
+$auto-eq-rule: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
+// The panel's inset, which its foot spans back out over to reach the edges.
+$auto-eq-pad: $spacing-s + $spacing-xs;
+
+// The word after the button's name, quieter than the name: what decides the
+// sound now.
+.eq-auto__state {
+  padding-left: 7px;
+  border-left: 1px solid color-mix(in srgb, currentcolor 35%, transparent);
+  font-weight: $weight-regular;
+}
+
+// Down to glyphs (`useToolRowFit`), the state goes before the name does.
+.eq-layer-tabs:is([data-fit='icons'], [data-fit='icon-tabs']) .eq-auto__state {
+  display: none;
+}
+
+.eq-auto-panel {
+  @include menu-surface;
+  z-index: 1000;
+  width: 440px;
+  max-width: calc(100vw - 16px);
+  box-sizing: border-box;
+}
+
+.eq-auto-panel__content {
+  display: grid;
+  gap: $spacing-s;
+  padding: $auto-eq-pad;
+  color: $text-muted;
+  font-size: $text-small;
+}
+
+.eq-auto-panel__head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: $spacing-xs $spacing-s;
+
+  strong {
+    margin-right: auto;
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+  }
+
+  span {
+    color: $text-faint;
+  }
+}
+
+.eq-auto-panel__aside {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-s;
+  margin: 0;
+  color: $text-muted;
+
+  svg {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    color: $secondary-light;
+  }
+}
+
+// The song that plays: a glyph where a cover would be, its name, and what
+// decides its sound in one line.
+.eq-auto-now {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: start;
+  gap: $spacing-s + $spacing-xs;
+  padding-bottom: $spacing-s;
+  border-bottom: $auto-eq-rule;
+
+  &.is-empty {
+    align-items: center;
+  }
+}
+
+.eq-auto-now__tile {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: $radius-s;
+  color: $secondary-light;
+  background: color-mix(in srgb, $secondary-default 16%, transparent);
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.eq-auto-now__words {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.eq-auto-now__title {
+  overflow: hidden;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eq-auto-now__artist {
+  overflow: hidden;
+  color: $text-faint;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eq-auto-now__plays {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-xs $spacing-s;
+  margin-top: $spacing-xs;
+
+  strong {
+    color: $text-primary;
+    font-weight: $weight-semibold;
+  }
+
+  span:last-child {
+    color: $text-faint;
+  }
+}
+
+// Whose sound plays, in the colour Auto EQ gives it everywhere: the song's
+// own, its album's, or the listener's own in the accent.
+.eq-auto-now__dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: $secondary-default;
+
+  .is-song & {
+    background: $sound-own;
+  }
+
+  .is-album & {
+    background: $sound-album;
+  }
+}
+
+.eq-auto-now__why {
+  color: $text-faint;
+}
+
+.eq-auto-part {
+  display: grid;
+  gap: $spacing-xs + 2px;
+  padding-bottom: $spacing-s;
+  border-bottom: $auto-eq-rule;
+
+  // The foot under it draws the rule (`.eq-auto-panel__foot`).
+  &:last-of-type {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+}
+
+.eq-auto-part__head {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-s + $spacing-xs;
+}
+
+.eq-auto-part__words {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 2px;
+  min-width: 0;
+
+  strong {
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+  }
+
+  span {
+    color: $text-faint;
+  }
+}
+
+// What a part holds for the song now, and the one thing to do about it.
+// Wraps rather than squeezes: a German line and its button take two rows.
+.eq-auto-part__line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-s;
+  min-width: 0;
+
+  > span:first-child {
+    flex: 1 1 160px;
+    min-width: 0;
+  }
+}
+
+// A segmented track the panel's width allows, never wider.
+.eq-auto-part .segmented {
+  justify-self: start;
+  max-width: 100%;
+}
+
+.eq-auto-smart__status > span:first-child {
+  color: $text-muted;
+}
+
+.eq-auto-smart__track {
+  position: relative;
+  flex: 1 1 60px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: color-mix(in srgb, $edge-tint 14%, transparent);
+}
+
+.eq-auto-smart__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: $secondary-default;
+}
+
+// Held on the panel's bottom edge while the rest scrolls under it: where the
+// panel is capped to the room above its button (1100 by 800 on the white
+// window's taller rows), Manage and Measure once fell below the fold and the
+// panel read as cut off. The part above it gives up its rule for the foot's,
+// which stays visible as the parts pass beneath.
+.eq-auto-panel__foot {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-s;
+  margin: 0 (-$auto-eq-pad) (-$auto-eq-pad);
+  padding: $spacing-s $auto-eq-pad $auto-eq-pad;
+  border-top: $auto-eq-rule;
+  background: $surface-menu-floor;
+  color: $text-faint;
+
+  > span {
+    flex: 1 1 160px;
+    min-width: 0;
+  }
+}
+
+// Manage, in the same surface.
+.eq-auto-manage__back {
+  width: 28px;
+  height: 28px;
+  justify-content: center;
+  padding: 0;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.eq-auto-manage .eq-auto-panel__head {
+  align-items: center;
+}
+
+.eq-auto-manage__tabs {
+  display: flex;
+  gap: $spacing-s;
+  border-bottom: $auto-eq-rule;
+}
+
+.eq-auto-manage__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs + 2px;
+  margin-bottom: -1px;
+  padding: $spacing-xs + 2px $spacing-xs;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: $text-muted;
+  background: none;
+  font: inherit;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  cursor: pointer;
+
+  &.is-active {
+    color: $text-primary;
+    border-bottom-color: $secondary-default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $secondary-light;
+    outline-offset: 1px;
+  }
+}
+
+.eq-auto-manage__count {
+  padding: 0 5px;
+  border-radius: $radius-2xs;
+  color: $secondary-light;
+  background: color-mix(in srgb, $secondary-default 18%, transparent);
+  font-size: $text-micro;
+}
+
+.eq-auto-manage__list {
+  display: grid;
+  max-height: 280px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: $spacing-s;
+    padding: $spacing-xs + 2px $spacing-xs;
+    border-radius: $radius-s;
+
+    &:hover {
+      background: color-mix(in srgb, $edge-tint 5%, transparent);
+    }
+  }
+}
+
+.eq-auto-manage__words {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 1px;
+  min-width: 0;
+
+  strong,
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  strong {
+    color: $text-primary;
+    font-weight: $weight-semibold;
+  }
+
+  span {
+    color: $text-faint;
+  }
+}
+
+.eq-auto-manage__list li.eq-auto-manage__empty {
+  justify-content: center;
+  padding: $spacing-m $spacing-s;
+  color: $text-faint;
+
+  &:hover {
+    background: none;
+  }
+}
+
+// Where the Output panel's "Remember each song's sound" stood: the note that
+// it moved, once (`AutoEqMovedNote`). Under the profiles' hairline, like the
+// rule rows around it, and nothing round it.
+.eq-auto-moved {
+  display: grid;
+  gap: $spacing-xs + 2px;
+  padding-top: $spacing-s + $spacing-xs;
+  border-top: $auto-eq-rule;
+  color: $text-muted;
+  font-size: $text-small;
+
+  strong {
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.eq-auto-moved__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-s;
+}

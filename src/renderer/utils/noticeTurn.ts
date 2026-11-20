@@ -39,6 +39,13 @@ import { useLayoutEffect, useReducer, useSyncExternalStore } from 'react';
  *   reviewed, then an add-on's own corner notices in the add-on's order
  *   (`renderer/addons.ts`), then new scenes announced.
  *
+ * - **Auto EQ's panel**, open, holds every notice back, in both places:
+ *   it opens above its button when the page has no room below, up to the
+ *   titlebar, and a card arriving while it is open covered its top — the
+ *   song's own notice over its Forget (2026-11-20). A notice waits, never
+ *   drops: the song notices carry an Undo or a Don't save the panel does not
+ *   offer, and they show, lingering in full, once it closes.
+ *
  * Everything not named as waiting for something above never waits.
  */
 export type TNoticeClaim =
@@ -75,6 +82,8 @@ export type TNoticeClaim =
   | 'appNews'
   /** The window is full screen: graph or media (`useAppFullMark`). */
   | 'appFull'
+  /** Auto EQ's panel is open (`useAutoEqButton`). */
+  | 'autoEqPanel'
   /**
    * An `aria-modal="true"` element anywhere in the document. Not claimed by
    * anybody: the dialogs that carry it do not know about notices, so this
@@ -86,6 +95,7 @@ export type TNoticeClaim =
 /** Everything the corner waits for, before the corner's own order. */
 const CORNER_WAITS_FOR: readonly TNoticeClaim[] = [
   'modal',
+  'autoEqPanel',
   'output',
   'room',
   'engineTrouble',
@@ -101,14 +111,14 @@ const CORNER_WAITS_FOR: readonly TNoticeClaim[] = [
 export const NOTICE_WAITS_FOR: Readonly<
   Record<TNoticeClaim, readonly TNoticeClaim[]>
 > = {
-  output: [],
-  room: [],
-  engineTrouble: ['output', 'room'],
-  engineUpdate: ['output', 'room', 'engineTrouble'],
-  audioRestart: [],
-  prereq: [],
-  songEq: [],
-  songSound: ['songEq'],
+  output: ['autoEqPanel'],
+  room: ['autoEqPanel'],
+  engineTrouble: ['autoEqPanel', 'output', 'room'],
+  engineUpdate: ['autoEqPanel', 'output', 'room', 'engineTrouble'],
+  audioRestart: ['autoEqPanel'],
+  prereq: ['autoEqPanel'],
+  songEq: ['autoEqPanel'],
+  songSound: ['autoEqPanel', 'songEq'],
   // About the sound being heard, so before anything else in the corner.
   profiles: CORNER_WAITS_FOR,
   plusTerms: [...CORNER_WAITS_FOR, 'profiles'],
@@ -161,6 +171,7 @@ export const NOTICE_WAITS_FOR: Readonly<
     'starterWelcome',
   ],
   appFull: [],
+  autoEqPanel: [],
   appNews: [
     ...CORNER_WAITS_FOR,
     'profiles',

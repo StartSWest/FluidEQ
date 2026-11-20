@@ -162,15 +162,31 @@ export const reduceSongEq = (
       ];
 
     case 'autoEqChanged':
-      // Off in both directions, and neither is an oversight.
+      // Saving follows the measurement (Auto EQ, 2026-11-20): Smart correction
+      // keeps each song's correction whenever it runs, because a correction
+      // not kept for its song is measured again every play. It had a switch of
+      // its own beside the button, and that switch is gone.
       //
-      // Switched ON: a mode that has just started has measured nothing yet,
-      // and saving found already ticked would file whatever curve happened to
-      // be left in the chain under the first song that plays. Switched OFF:
-      // nothing refines the layer any more, so an on switch would go on
-      // promising a save behind a control that is no longer on screen.
+      // Switched ON: a mode that has just started has measured nothing yet, so
+      // the song already playing starts its two minutes again from now — or
+      // the curve left in the chain, refined for a few seconds, would be filed
+      // under it. Switched OFF: nothing refines the layer any more, and
+      // nothing is filed.
       return [
-        { ...state, isAutoEqRunning: event.isRunning, isSaveOn: false },
+        {
+          ...state,
+          isAutoEqRunning: event.isRunning,
+          isSaveOn: event.isRunning,
+          session:
+            event.isRunning && session
+              ? {
+                  ...session,
+                  listenedMs: 0,
+                  playingSince:
+                    session.playingSince === undefined ? undefined : now,
+                }
+              : session,
+        },
         timed,
       ];
 
@@ -261,7 +277,6 @@ export const reduceSongEq = (
       }
       const forgetEffect: TSongEqEffect = {
         kind: 'forget',
-        deviceId: state.deviceId,
         identity: target,
       };
       // Only the open session's OWN song hands its loan back and stops being

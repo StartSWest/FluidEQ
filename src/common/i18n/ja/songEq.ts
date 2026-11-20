@@ -16,17 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/** Smart EQ song memory — the tick, its progress, and the notice. */
+/** Smart correction’s song memory — its progress, and the notice. */
 export default {
-  'songEq.save': 'この曲用に保存',
-  'songEq.saveAria': '今流れているものへのスマート EQ 補正を記憶する',
-  'songEq.waiting': '再生なし',
-  'songEq.listening': '残り {remaining}',
-  'songEq.willSave': '保存されます — {title}',
+  'songEq.saveAria': '今流れているものへのスマート補正を記憶する',
   'songEq.noticeTitle': 'この曲の保存済み EQ を使用中',
   'songEq.noticeBody': '{title} — {plays} 回の再生で学習',
   'songEq.noticeBodyOnce': '{title} — 1 回で学習',
   'songEq.undo': '元に戻す',
   'songEq.forget': 'この曲の記憶を消す',
-  'songEq.badgeAria': 'スマート EQ がこの曲を学習中',
+  'songEq.badgeAria': 'スマート補正がこの曲を学習中',
 };

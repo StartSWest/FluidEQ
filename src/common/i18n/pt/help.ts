@@ -148,7 +148,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.heart':
     'Adiciona uma música da Biblioteca aos seus Favoritos, ou a tira de lá.',
   'help.player.soundFold':
-    'Recolhe os controles de som até esta linha, que deixa à mão o preset, o EQ inteligente e o botão, e os abre de novo.',
+    'Recolhe os controles de som até esta linha, que deixa à mão o preset, a Correção inteligente e o botão, e os abre de novo.',
   'help.player.mode':
     'Abre o Modo EQ: com que força seu EQ e as curvas atuam, o Q de banda, a fase e os agudos deles.',
   'help.player.save': 'Guarda A seguir como uma playlist própria.',
@@ -203,7 +203,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.gameMode':
     'Reduz o atraso que o FluidEQ acrescenta, para jogos e chamadas. Os presets de jogo o ativam.',
   'help.eq.layers':
-    'As outras camadas que moldam esta saída (uma correção de fones, o EQ inteligente, uma convolução), cada uma com sua intensidade, seu interruptor e o ×.',
+    'As outras camadas que moldam esta saída (uma correção de fones, a Correção inteligente, uma convolução), cada uma com sua intensidade, seu interruptor e o ×.',
   'help.eq.bandName': 'Uma banda',
   'help.eq.band':
     'Arraste o ponto dela para reforçar ou cortar, ou ajuste-a passo a passo com as setas. Clique na frequência dela para selecioná-la.',
@@ -221,7 +221,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.voicing':
     'Uma cadeia pronta para o som, como Música ou um gênero. Nenhum deixa só as suas bandas.',
   'help.eq.smart':
-    'Ouve o que está tocando e corrige: Detalhe, Equilíbrio ou Alvo.',
+    'EQ automático: o som salvo de cada música, o som do álbum vindo da Biblioteca e, por cima, a Correção inteligente: Detalhe, Equilíbrio ou Alvo.',
   'help.eq.clear':
     'Define todos os ganhos em 0 dB e mantém suas bandas. Pergunta antes.',
   'help.eq.mode':
@@ -244,7 +244,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.eqmode.title': 'Modo EQ e designs de bandas',
   'help.eqmode.intro':
-    'O Modo EQ muda como o seu som é moldado, sem editar nada. Os ajustes dele são o primeiro cartão do painel lateral na página EQ, ao lado das curvas que eles mudam, em duas abas: Seu EQ reúne suas bandas, o Tom, os presets, o Tipo de driver e o EQ inteligente; Correções reúne as correções de fones e as curvas importadas ou personalizadas. Os designs de bandas armazenam as frequências e o Q de um layout de que você gosta, prontos para qualquer saída.',
+    'O Modo EQ muda como o seu som é moldado, sem editar nada. Os ajustes dele são o primeiro cartão do painel lateral na página EQ, ao lado das curvas que eles mudam, em duas abas: Seu EQ reúne suas bandas, o Tom, os presets, o Tipo de driver e a Correção inteligente; Correções reúne as correções de fones e as curvas importadas ou personalizadas. Os designs de bandas armazenam as frequências e o Q de um layout de que você gosta, prontos para qualquer saída.',
   'help.eqmode.steps':
     'Pressione Modo EQ acima do gráfico. O cartão aparece, e o painel lateral se abre se estiver fechado.\nEscolha a aba Seu EQ ou Correções e experimente uma opção de Intensidade ou Q das bandas com a música tocando. Com o Motor FluidEQ, escolha a fase Mínima ou Linear, e Preciso ou Clássico nos agudos, para cada aba.\nEm Correções, Suavização das curvas pode suavizar as curvas amostradas em 1/12 ou 1/3 de oitava; fica em Desativada até você escolher. Redefinir volta tudo ao Normal, e a suavização a Desativada.\nPrefere um menu? Pressione o alfinete do cartão: o Modo EQ passa a abrir como um menu sobre o gráfico, e o alfinete desse menu traz o cartão de volta.\nAbra o botão de layouts ao lado de Adicionar banda. Escolha 6, 10, 15, 20 ou 31 bandas, ou pressione Salvar design… para dar nome ao layout atual.',
   'help.eqmode.tip':
@@ -327,9 +327,9 @@ const help: Record<keyof typeof en, string> = {
   'help.profiles.intro':
     'Cada saída guarda o seu próprio som: o EQ, o preset, o Tom, os cortes, o rack DSP, a Sala e o nivelamento são salvos com ela e voltam no momento em que você muda para ela. Perfis guardam outros sons para a mesma saída. Segunda saída toca em outro dispositivo ao mesmo tempo, com som e nível próprios.',
   'help.profiles.steps':
-    'Confira a saída no topo do cartão Saída antes de editar; fones Bluetooth mostram a bateria ao lado dela. Use Novo perfil para um som que quer manter; Atualizar salva as mudanças nesse perfil e Restaurar traz de volta os ajustes salvos dele.\nAtive Lembrar o som de cada música, e o preset, o Tom e o EQ que você ajustar durante uma música voltam sempre que ela tocar aqui. Um aviso informa isso, com Desfazer e Esquecer esta música.\nAbra Segunda saída, ative um dispositivo e ajuste o nível. Escolha o perfil dele logo abaixo, ou pressione Editar som para mudar o som dele na página EQ sem trocar a saída principal; Concluído ou Editar saída principal leva você de volta.\nCada segunda saída acompanha o ritmo sozinha e mostra o atraso em milissegundos; com Compartilhar áudio, o som de outro computador mostra o próprio atraso, rede incluída.',
+    'Confira a saída no topo do cartão Saída antes de editar; fones Bluetooth mostram a bateria ao lado dela. Use Novo perfil para um som que quer manter; Atualizar salva as mudanças nesse perfil e Restaurar traz de volta os ajustes salvos dele.\nO som próprio de cada música agora está no EQ automático, na página EQ: uma música mantém o preset, o Tom e o EQ em todas as saídas, e a Biblioteca define um para um álbum.\nAbra Segunda saída, ative um dispositivo e ajuste o nível. Escolha o perfil dele logo abaixo, ou pressione Editar som para mudar o som dele na página EQ sem trocar a saída principal; Concluído ou Editar saída principal leva você de volta.\nCada segunda saída acompanha o ritmo sozinha e mostra o atraso em milissegundos; com Compartilhar áudio, o som de outro computador mostra o próprio atraso, rede incluída.',
   'help.profiles.tip':
-    'Com o Motor FluidEQ, uma segunda saída toca direto do motor, e a saída principal nunca espera por ela. Lembrar o som de cada música começa desligado e guarda a memória por saída. Na página EQ, o painel começa com o cartão Modo EQ; recolha-o para chegar mais rápido às suas saídas.',
+    'Com o Motor FluidEQ, uma segunda saída toca direto do motor, e a saída principal nunca espera por ela. O EQ automático começa desligado. Na página EQ, o painel começa com o cartão Modo EQ; recolha-o para chegar mais rápido às suas saídas.',
   'help.profiles.keywords':
     'caixas de som, alternar saída, salvar configurações, saída secundária, múltiplas saídas, dois fones, Bluetooth, delay, atraso, DAC, saída, dispositivo de saída, dispositivo, troca automática, perfil, perfis, segunda saída, espelhar, duas saídas, sincronia, latência, por dispositivo, por saída, cada saída, som próprio, bateria, editar som, editar saída principal, música, por música, lembrar música, som da música, esquecer música',
   'help.profiles.list':
@@ -339,8 +339,6 @@ const help: Record<keyof typeof en, string> = {
   'help.profiles.new': 'Cria um perfil novo a partir do EQ que você tem agora.',
   'help.profiles.eqMode':
     'Os ajustes do Modo EQ, primeiro na página EQ. Recolha o cartão para tirá-lo do caminho.',
-  'help.profiles.songSound':
-    'Traz de volta o preset, o Tom e o EQ de uma música sempre que ela tocar aqui. Desligado até você ativar.',
   'help.profiles.editSound':
     'Edita o som dessa saída na página EQ sem trocar a saída principal.',
   'help.profiles.output':

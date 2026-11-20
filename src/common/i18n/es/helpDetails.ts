@@ -47,15 +47,15 @@ const helpDetails = {
     'Un juego con audio 3D propio puede usar un perfil que mantenga Room apagado para no posicionar dos veces. Room es para auriculares. Al descargar el sonido del juego vuelve el de tu música.',
   'help.gamefilter.keywords':
     'game filter, footsteps, lift, calm, environment, ambience, dialogue, voices, make room, hooves, heavy steps, isolate, hrtf, spatial audio',
-  'help.songs.title': 'Recordar el sonido de cada canción',
+  'help.songs.title': 'EQ automático: el sonido de cada canción',
   'help.songs.intro':
-    'Cada canción puede recordar su preset, Tone y EQ por dispositivo de salida. Lo que ajustas con auriculares no cambia la memoria de los altavoces.',
+    'EQ automático, en la página EQ, decide el sonido de cada canción: el sonido guardado para la canción, el sonido de su álbum desde la Biblioteca o el tuyo. La Corrección inteligente añade encima una corrección medida. El sonido de una canción la sigue a todas las salidas; la corrección de auriculares sigue siendo la de la salida.',
   'help.songs.steps':
-    'Bajo los perfiles de la salida, activa Recordar el sonido de cada canción. Al principio está desactivado.\nReproduce una canción identificable y cambia su preset, Tone o EQ. Un aviso confirma que se guardará; usa la acción de no guardar si solo estabas probando.\nAl volver a sonar en la misma salida, se carga temporalmente su ajuste. Deshacer lo omite esta vez; Olvidar esta canción también borra la memoria.\nAl terminar vuelve el sonido anterior de la salida. Elegir otro perfil te devuelve el control de forma explícita.\nSmart EQ tiene su propio control para guardar esta canción mientras mide. Conserva la corrección medida y es independiente de recordar tus ajustes manuales.',
+    'Abre EQ automático, el botón relleno de las herramientas de Tu EQ, y activa Sonidos de canciones, Sonidos de álbumes y Corrección inteligente como prefieras. Cada uno se apaga por separado.\nMientras suena una canción, pulsa Guardar para esta canción para conservar el sonido que oyes. Cuando vuelva a sonar, su sonido regresa; y cuando le siga una canción sin nada guardado, regresa tu propio sonido.\nCambia el preset mientras suena una canción guardada y la canción conserva el cambio. Un aviso lo indica; No guardar lo deja como estaba. Un cambio en una canción sin nada guardado pasa a ser tu sonido.\nEn la Biblioteca, haz clic derecho en una canción, una selección o un álbum, o usa el Sonido del álbum de un álbum, para elegir un preset o conservar lo que suena ahora. El sonido propio de una canción manda sobre el de su álbum; los álbumes solo cambian en la Biblioteca.\nAdministrar muestra todas las canciones y álbumes guardados, con Olvidar. Restablecer todos los ajustes apaga EQ automático y los conserva.',
   'help.songs.tip':
-    'La identidad viene del archivo o de la información del reproductor. Los títulos ausentes o incorrectos pueden impedir reconocer la canción. El preamplificador no se guarda; un juego cargado tiene prioridad.',
+    'Las canciones de Spotify, YouTube o el navegador se reconocen por el título y el artista que indica el reproductor, y guardan sus sonidos aparte de los de la Biblioteca. Las películas y los vídeos nunca reciben el sonido de una canción. EQ automático se aparta mientras el DSP está apagado, hay una cadena de Juegos activa o un juego usa su propio sonido.',
   'help.songs.keywords':
-    'per song, song sound, song memory, remember song, save song eq, smart eq, undo, forget this song, preset per song, tone per song',
+    'auto eq, eq automático, por canción, sonido de canción, sonido de álbum, recordar canción, guardar para esta canción, corrección inteligente, smart correction, smart eq, preset por canción, preset por álbum, olvidar, administrar',
   'help.mycurves.title': 'Mis curvas: importar, editar y compartir',
   'help.mycurves.intro':
     'Tu colección de curvas está junto a la biblioteca de mediciones. Guarda una curva, revisa su respuesta y elige si se aplica como corrección o como bandas editables.',

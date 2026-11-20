@@ -152,7 +152,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.heart':
     'Ajoute un morceau de la Bibliothèque à vos Favoris, ou l’en retire.',
   'help.player.soundFold':
-    'Replie les réglages du son sur cette ligne, qui garde à portée le préréglage, l’égalisation auto et l’interrupteur, et les rouvre.',
+    'Replie les réglages du son sur cette ligne, qui garde à portée le préréglage, la correction intelligente et l’interrupteur, et les rouvre.',
   'help.player.mode':
     'Ouvre le Mode EQ : la force avec laquelle votre EQ et les courbes s’appliquent, leur Q de bande, leur phase et leurs aigus.',
   'help.player.save': 'Garde À suivre comme une playlist à part entière.',
@@ -208,7 +208,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.gameMode':
     'Réduit la latence qu’ajoute FluidEQ, pour les jeux et les appels. Les préréglages Jeux l’activent.',
   'help.eq.layers':
-    'Les autres couches qui façonnent cette sortie — une correction du casque, l’Égalisation auto, une convolution — chacune avec son intensité, son interrupteur et son ×.',
+    'Les autres couches qui façonnent cette sortie — une correction du casque, la Correction intelligente, une convolution — chacune avec son intensité, son interrupteur et son ×.',
   'help.eq.bandName': 'Une bande',
   'help.eq.band':
     'Faites glisser son point pour amplifier ou atténuer, ou avancez-le pas à pas avec les touches fléchées. Cliquez sur sa fréquence pour la sélectionner.',
@@ -225,7 +225,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.voicing':
     'Une chaîne toute prête pour le son, comme Musique ou un genre. Aucun ne laisse que vos bandes.',
   'help.eq.smart':
-    'Écoute ce qui joue et le corrige : Détail, Équilibre ou Cible.',
+    'Égalisation auto : le son enregistré de chaque chanson, le son de son album depuis la Bibliothèque, et la Correction intelligente par-dessus — Détail, Équilibre ou Cible.',
   'help.eq.clear':
     'Met chaque gain à 0 dB et garde vos bandes. Demande d’abord confirmation.',
   'help.eq.mode':
@@ -248,7 +248,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.eqmode.title': 'Mode EQ et dispositions de bandes',
   'help.eqmode.intro':
-    'Mode EQ change la façon dont votre son est façonné, sans rien modifier. Ses réglages forment la première carte du panneau latéral de la page Égaliseur, à côté des courbes qu’ils changent, en deux onglets : Votre EQ regroupe vos bandes, la Tonalité, les préréglages, le Type de transducteur et l’Égalisation auto ; Corrections regroupe les corrections du casque et les courbes importées ou personnalisées. Les dispositions de bandes conservent les fréquences et le Q d’un agencement qui vous plaît, prêtes pour n’importe quelle sortie.',
+    'Mode EQ change la façon dont votre son est façonné, sans rien modifier. Ses réglages forment la première carte du panneau latéral de la page Égaliseur, à côté des courbes qu’ils changent, en deux onglets : Votre EQ regroupe vos bandes, la Tonalité, les préréglages, le Type de transducteur et la Correction intelligente ; Corrections regroupe les corrections du casque et les courbes importées ou personnalisées. Les dispositions de bandes conservent les fréquences et le Q d’un agencement qui vous plaît, prêtes pour n’importe quelle sortie.',
   'help.eqmode.steps':
     'Appuyez sur Mode EQ au-dessus du graphique. La carte apparaît, et le panneau latéral s’ouvre s’il était fermé.\nChoisissez l’onglet Votre EQ ou Corrections, puis essayez un choix d’Intensité ou de Q des bandes pendant que la musique joue. Avec le moteur FluidEQ, choisissez la phase Minimale ou Linéaire, et Précis ou Classique pour les aigus, pour chaque onglet.\nDans Corrections, Lissage des courbes peut adoucir les courbes échantillonnées à 1/12 ou 1/3 d’octave ; il reste sur Désactivé tant que vous ne choisissez rien. Réinitialiser ramène tout à Normal, et le lissage à Désactivé.\nVous préférez un menu ? Appuyez sur l’épingle de la carte : Mode EQ s’ouvre alors en menu par-dessus le graphique, et l’épingle de ce menu ramène la carte.\nCliquez sur le bouton des dispositions, à côté d’Ajouter une bande. Choisissez 6, 10, 15, 20 ou 31 bandes, ou appuyez sur Enregistrer… pour nommer la disposition actuelle.',
   'help.eqmode.tip':
@@ -332,9 +332,9 @@ const help: Record<keyof typeof en, string> = {
   'help.profiles.intro':
     'Chaque sortie garde son propre son : l’égaliseur, le préréglage, la Tonalité, les filtres, le rack DSP, la Salle et le nivellement sont enregistrés avec elle et reviennent dès que vous passez dessus. Les profils gardent d’autres sons pour la même sortie. Deuxième sortie joue en même temps sur un autre appareil, avec un son et un niveau bien à lui.',
   'help.profiles.steps':
-    'Vérifiez la sortie en haut de la carte Sortie avant toute modification ; un casque Bluetooth affiche sa batterie à côté. Utilisez Nouveau profil pour un son à garder ; Mettre à jour enregistre les changements dans ce profil, et Restaurer rétablit ses réglages enregistrés.\nActivez Mémoriser le son de chaque chanson, et le préréglage, la Tonalité et l’EQ réglés pendant une chanson reviennent chaque fois qu’elle joue ici. Une notification le signale, avec Annuler et Oublier cette chanson.\nOuvrez Deuxième sortie, activez un appareil et réglez son niveau. Choisissez son profil juste en dessous, ou appuyez sur Modifier le son pour changer son son dans la page Égaliseur sans changer de sortie principale ; Terminé ou Modifier la sortie principale vous ramène.\nChaque deuxième sortie suit le rythme toute seule et affiche son retard en millisecondes ; avec Partager l’audio, le son d’un autre ordinateur affiche le sien, réseau compris.',
+    'Vérifiez la sortie en haut de la carte Sortie avant toute modification ; un casque Bluetooth affiche sa batterie à côté. Utilisez Nouveau profil pour un son à garder ; Mettre à jour enregistre les changements dans ce profil, et Restaurer rétablit ses réglages enregistrés.\nLe son propre de chaque chanson est maintenant dans l’Égalisation auto de la page Égaliseur : une chanson garde son préréglage, sa Tonalité et son EQ sur chaque sortie, et la Bibliothèque en définit un pour un album.\nOuvrez Deuxième sortie, activez un appareil et réglez son niveau. Choisissez son profil juste en dessous, ou appuyez sur Modifier le son pour changer son son dans la page Égaliseur sans changer de sortie principale ; Terminé ou Modifier la sortie principale vous ramène.\nChaque deuxième sortie suit le rythme toute seule et affiche son retard en millisecondes ; avec Partager l’audio, le son d’un autre ordinateur affiche le sien, réseau compris.',
   'help.profiles.tip':
-    'Avec le moteur FluidEQ, une deuxième sortie joue directement depuis le moteur, et la sortie principale ne l’attend jamais. Mémoriser le son de chaque chanson est désactivé au départ, et mémorise par sortie. Dans la page Égaliseur, le panneau commence par la carte Mode EQ ; repliez-la pour atteindre vos sorties plus vite.',
+    'Avec le moteur FluidEQ, une deuxième sortie joue directement depuis le moteur, et la sortie principale ne l’attend jamais. L’Égalisation auto est désactivée au départ. Dans la page Égaliseur, le panneau commence par la carte Mode EQ ; repliez-la pour atteindre vos sorties plus vite.',
   'help.profiles.keywords':
     'enceintes, haut-parleurs, sortie audio, périphérique par défaut, plusieurs sorties, sorties multiples, miroir, simultanément, décalage, désynchronisation, délai, sauvegarder mes réglages, par appareil, Bluetooth, DAC, buffer, deuxième sortie, profil, par sortie, chaque sortie, son propre, batterie, niveau de batterie, modifier le son, modifier la sortie principale, chanson, morceau, par chanson, mémoriser la chanson, son de la chanson, oublier cette chanson',
   'help.profiles.list':
@@ -345,8 +345,6 @@ const help: Record<keyof typeof en, string> = {
     'Crée un nouveau profil à partir de l’égalisation actuelle.',
   'help.profiles.eqMode':
     'Les réglages de Mode EQ, en tête de la page Égaliseur. Repliez la carte pour qu’elle ne gêne pas.',
-  'help.profiles.songSound':
-    'Ramène le préréglage, la Tonalité et l’EQ d’une chanson chaque fois qu’elle joue ici. Désactivé tant que vous ne l’activez pas.',
   'help.profiles.editSound':
     'Modifie le son de cette sortie dans la page Égaliseur sans changer de sortie principale.',
   'help.profiles.output':

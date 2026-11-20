@@ -908,3 +908,51 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // draws. `auto-fill` rather than a fixed count, same reasoning as
 // `.voicing-grid` in Voicing.scss: the column count is whatever the panel's
 // width allows, never chosen up front.
+
+// A row's Sound (Auto EQ): the song's own in the "added" ink, its album's in
+// the "tuned" one, the same two Auto EQ's panel names them in.
+.library-list__sound {
+  @include truncate;
+  min-width: 0;
+  color: $text-faint;
+
+  &.is-own {
+    color: $sound-own;
+    font-weight: $weight-semibold;
+  }
+
+  &.is-album {
+    color: $sound-album;
+  }
+}
+
+// The Sound page of a Library menu (`LibrarySoundMenu`): where the sound
+// comes from now, as a line rather than an item, and the chain list, which
+// scrolls inside the menu rather than the menu outgrowing the window.
+.library-sound-menu__current {
+  margin: 0;
+  padding: 2px 10px 6px;
+  color: $text-muted;
+  font-size: $text-small;
+}
+
+.library-sound-menu__list {
+  display: grid;
+  max-height: 320px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  > div {
+    display: grid;
+  }
+}
+
+.library-sound-menu__glyph {
+  display: inline-flex;
+  flex: 0 0 auto;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+}

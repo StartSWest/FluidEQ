@@ -111,3 +111,11 @@ $ink-removed: var(--ink-removed, #{$red});
 // meaning (7:1 on white), where the lavender measured 1.4:1 and the word
 // could hardly be seen beside its stage (2026-11-19).
 $ink-tuned: var(--ink-tuned, #{$primary-lighter});
+
+// Auto EQ's two kinds of saved sound, wherever one is named (its panel, the
+// Library's rows and menus): a song's own in the green, its album's in the
+// amber, as the mockup Ivan approved drew them (2026-11-20). The lavender
+// "tuned" ink was tried for albums and read as plain text beside the rows'
+// own. Both inks already read on a white window as on a dark one.
+$sound-own: $ink-added;
+$sound-album: $ink-caution;

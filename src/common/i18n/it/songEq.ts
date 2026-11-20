@@ -16,18 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/** Smart EQ song memory — the tick, its progress, and the notice. */
+/** Smart correction’s song memory — its progress, and the notice. */
 export default {
-  'songEq.save': 'Salva per questo brano',
   'songEq.saveAria':
-    'Ricorda la correzione EQ intelligente per ciò che sta suonando',
-  'songEq.waiting': 'Niente in riproduzione',
-  'songEq.listening': 'Ancora {remaining}',
-  'songEq.willSave': 'Verrà salvato — {title}',
+    'Ricorda la correzione intelligente per ciò che sta suonando',
   'songEq.noticeTitle': 'Uso dell’EQ salvato per questo brano',
   'songEq.noticeBody': '{title} — appreso in {plays} riproduzioni',
   'songEq.noticeBodyOnce': '{title} — appreso una volta',
   'songEq.undo': 'Annulla',
   'songEq.forget': 'Dimentica questo brano',
-  'songEq.badgeAria': 'L’EQ intelligente sta imparando questo brano',
+  'songEq.badgeAria': 'La correzione intelligente sta imparando questo brano',
 };

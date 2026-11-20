@@ -48,15 +48,15 @@ const helpDetails = {
     'Un gioco con audio 3D proprio può mantenere Room spento per non posizionare due volte. Room è per cuffie. Quando scarichi il suono del gioco ritorna quello della musica.',
   'help.gamefilter.keywords':
     'game filter, footsteps, lift, calm, environment, ambience, dialogue, voices, make room, hooves, heavy steps, isolate, hrtf, spatial audio',
-  'help.songs.title': 'Ricordare il suono di ogni brano',
+  'help.songs.title': 'EQ automatico: il suono di ogni brano',
   'help.songs.intro':
-    'Un brano può ricordare preset, Tone ed EQ separatamente per ogni uscita. La regolazione delle cuffie non cambia la memoria degli altoparlanti.',
+    'EQ automatico, nella pagina EQ, decide il suono di ogni brano: il suono salvato per il brano, il suono del suo album dalla Libreria o il tuo. La Correzione intelligente aggiunge sopra una correzione misurata. Il suono di un brano lo segue su ogni uscita; la correzione delle cuffie resta quella dell’uscita.',
   'help.songs.steps':
-    'Sotto i profili dell’uscita attiva Ricorda il suono di ogni brano. All’inizio è disattivato.\nRiproduci un brano riconoscibile e cambia preset, Tone o EQ. Un avviso annuncia il salvataggio; rifiutalo se era solo una prova.\nAlla prossima riproduzione sulla stessa uscita il suono ritorna temporaneamente. Annulla lo salta per questa volta; Dimentica il brano elimina anche la memoria.\nAlla fine torna il suono precedente dell’uscita. Scegliere un altro profilo ti restituisce esplicitamente il controllo.\nSmart EQ ha un comando separato per salvare il brano mentre misura. Conserva la correzione misurata, indipendentemente dalle regolazioni manuali ricordate.',
+    'Apri EQ automatico, il pulsante pieno tra gli strumenti di Il tuo EQ, e attiva Suoni dei brani, Suoni degli album e Correzione intelligente come preferisci. Ognuno si spegne da solo.\nMentre suona un brano, premi Salva per questo brano per conservare il suono che senti. Quando suona di nuovo, il suo suono torna; e quando segue un brano senza niente di salvato, torna il tuo suono.\nCambia il preset mentre suona un brano salvato e il brano mantiene la modifica. Un avviso te lo dice; Non salvare lo lascia com’era. Una modifica su un brano senza niente di salvato diventa invece il tuo suono.\nNella Libreria, fai clic destro su un brano, una selezione o un album, oppure usa il Suono dell’album di un album, per scegliere un preset o tenere ciò che suona ora. Il suono proprio di un brano vince su quello del suo album; gli album cambiano solo nella Libreria.\nGestisci elenca ogni brano e album salvato, con Dimentica. Ripristina tutte le impostazioni spegne EQ automatico e li conserva.',
   'help.songs.tip':
-    'L’identità viene dal file o dalle informazioni del lettore. Titoli mancanti o errati possono impedire il riconoscimento. Il preamplificatore non viene memorizzato; il suono di un gioco caricato ha la precedenza.',
+    'I brani da Spotify, YouTube o dal browser si riconoscono dal titolo e dall’artista che il lettore comunica, e tengono i loro suoni separati da quelli della Libreria. Film e video non ricevono mai il suono di un brano. EQ automatico si fa da parte mentre il DSP è spento, è attiva una catena Gaming o un gioco riproduce il proprio suono.',
   'help.songs.keywords':
-    'per song, song sound, song memory, remember song, save song eq, smart eq, undo, forget this song, preset per song, tone per song',
+    'auto eq, eq automatico, per brano, suono del brano, suono dell’album, ricorda brano, salva per questo brano, correzione intelligente, smart correction, smart eq, preset per brano, preset per album, dimentica, gestisci',
   'help.mycurves.title': 'Le mie curve: importare, modificare e condividere',
   'help.mycurves.intro':
     'La tua raccolta di curve affianca la libreria delle misurazioni. Controlla la risposta e scegli tra livello di correzione e bande EQ modificabili.',

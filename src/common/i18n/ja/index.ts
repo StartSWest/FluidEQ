@@ -27,6 +27,7 @@ import video from './video';
 import library from './library';
 import songEq from './songEq';
 import songSound from './songSound';
+import autoEq from './autoEq';
 import dsp from './dsp';
 import dspDeEsser from './dspDeEsser';
 import dspFootsteps from './dspFootsteps';
@@ -85,6 +86,7 @@ const ja: Partial<Dictionary> = {
   ...library,
   ...songEq,
   ...songSound,
+  ...autoEq,
   ...dsp,
   ...dspDeEsser,
   ...dspFootsteps,

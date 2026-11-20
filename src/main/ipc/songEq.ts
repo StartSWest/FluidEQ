@@ -142,9 +142,8 @@ const registerSongEqHandlers = (userDataDir: string): Promise<void> => {
 
   onWindowMessage(ChannelEnum.FORGET_SONG_EQ, (event, arg) => {
     const channel = ChannelEnum.FORGET_SONG_EQ;
-    const deviceId = arg?.[0];
-    const identity = arg?.[1];
-    if (typeof deviceId !== 'string' || !isIdentity(identity)) {
+    const identity = arg?.[0];
+    if (!isIdentity(identity)) {
       replyInvalidParameter(event, channel);
       return;
     }
@@ -152,7 +151,6 @@ const registerSongEqHandlers = (userDataDir: string): Promise<void> => {
     // `common/songEq.ts`'s decision, exactly as it is for a lookup.
     cached = forgetSongEq(
       settingsOf(userDataDir),
-      deviceId,
       storedSongIdentity(identity),
     );
     saveSongEqSettings(userDataDir, cached);

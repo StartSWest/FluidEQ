@@ -4,18 +4,21 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-/** The memory of each song's sound — the switch and the notice. */
+/** Auto EQ’s song and album sounds — the notices. The switch’s two words stay
+ * for the 2.1 tour, which shows the Output panel as it was then. */
 export default {
   'songSound.switch': 'हर गाने की आवाज़ याद रखें',
-  'songSound.switchHint':
-    'गाने के दौरान लगाया गया प्रीसेट, टोन या EQ हर बार लौट आता है जब वह गाना यहाँ चलता है।',
-  'songSound.noticeTitle': 'इस गाने की अपनी आवाज़',
-  'songSound.noticeBody': '{title} — {preset}, अपने टोन और EQ के साथ',
-  'songSound.noticeBodyNoPreset': '{title} — इसका टोन और EQ',
-  'songSound.undo': 'पूर्ववत',
   'songSound.forget': 'इस गाने को भुला दें',
+  'songSound.noticeTitle': 'इस गाने की सहेजी गई आवाज़',
+  'songSound.noticeBody': '{title} · {preset}',
+  'songSound.albumNoticeTitle': 'एल्बम की आवाज़: {album}',
+  'songSound.albumNoticeBody': '{title} एल्बम के {preset} से बजता है',
+  'songSound.noPresetName': 'आपका प्रीसेट',
+  'songSound.undo': 'पूर्ववत',
   'songSound.willSaveTitle': 'इस गाने के लिए सहेजा जा रहा है',
-  'songSound.willSaveBody': '{preset} {title} के लिए सहेजा जाएगा।',
-  'songSound.willSaveBodyNoPreset': 'यह आवाज़ {title} के लिए सहेजी जाएगी।',
+  'songSound.willSaveBody': '{title} {preset} रखेगा।',
+  'songSound.willSaveAlbumTitle': 'सिर्फ़ इस गाने के लिए सहेजा जा रहा है',
+  'songSound.willSaveAlbumBody':
+    '{title} {preset} रखेगा। एल्बम अपनी आवाज़ रखता है।',
   'songSound.dontSave': 'न सहेजें',
 };

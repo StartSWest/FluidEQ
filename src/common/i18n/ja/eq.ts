@@ -74,7 +74,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.precise': '精密',
   'eq.mode.classic': 'クラシック',
   'eq.mode.trebleEqPrecise':
-    '精密：バンド、トーン、プリセット、ドライバー種別、スマート EQ を描いたとおりに、20\u00a0kHz まで鳴らします。',
+    '精密：バンド、トーン、プリセット、ドライバー種別、スマート補正を描いたとおりに、20\u00a0kHz まで鳴らします。',
   'eq.mode.trebleEqClassic':
     'クラシック：Equalizer APO と同じ鳴り方です。高音域のバンドは設定より狭く小さくなり、20\u00a0kHz に近いほど差が大きくなります。',
   'eq.mode.trebleCurvesPrecise':
@@ -458,7 +458,7 @@ const eq: Partial<Dictionary> = {
   'eq.channels.letter.left': '左',
   'eq.channels.letter.right': '右',
   'graph.curve.voicing': 'プリセット',
-  'graph.curve.smart': 'スマート EQ',
+  'graph.curve.smart': 'スマート補正',
   'graph.curve.custom': 'カスタム FX',
   'graph.curve.tone': 'トーン',
   'graph.curve.total': '最終出力',
@@ -749,12 +749,11 @@ const eq: Partial<Dictionary> = {
   'squigImport.emptyHint':
     'エクスポートを貼り付けると、EQで微調整を続ける前にその形を確認できます。',
   'eq.title': 'パラメトリック EQ',
-  'eq.smart': 'スマート EQ',
+  'eq.smart': 'スマート補正',
   'eq.smart.cancel': 'キャンセル',
-  'eq.smart.stopAria': 'スマート EQ を停止',
-  'eq.smart.aria': 'ソースからスマート EQ を作成',
-  'eq.smart.continuousAria': '再生中もスマート EQ の測定と調整を続ける',
-  'eq.smart.modeAria': 'スマート EQ の測定方法を選ぶ',
+  'eq.smart.aria': 'ソースからスマート補正を作成',
+  'eq.smart.continuousAria': '再生中もスマート補正の測定と調整を続ける',
+  'eq.smart.modeAria': 'スマート補正の測定方法を選ぶ',
   'eq.smart.mode.once.note': '1 回の測定を一度に適用',
   'eq.smart.mode.detail': 'ディテール',
   'eq.smart.mode.detail.note': '測定を続ける · 山と谷のみ',
@@ -773,7 +772,7 @@ const eq: Partial<Dictionary> = {
   'eq.layers.custom': 'カスタム FX',
   'eq.layers.disable': '{layer} を削除せずにオフにします',
   'eq.layers.enable': '{layer} をもう一度オンにします',
-  'eq.layers.smart': 'スマート EQ',
+  'eq.layers.smart': 'スマート補正',
   'eq.layers.remove': '{layer} のレイヤーを外す',
   'eq.layers.clearBands': 'すべてのバンドを 0 dB に戻す',
   'eq.layers.clearTone': '低音・中音・高音を 0 dB に戻す',

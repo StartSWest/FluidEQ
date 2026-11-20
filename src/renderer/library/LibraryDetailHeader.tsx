@@ -23,6 +23,7 @@ import LibraryCoverArt from './LibraryCoverArt';
 import LibraryFolderArt from './LibraryFolderArt';
 import LibrarySearchField from './LibrarySearchField';
 import LibraryTrackMenu from './LibraryTrackMenu';
+import LibraryHeroSound from './LibraryHeroSound';
 import { type TTagSetScope, useTagEditorIfAny } from './tags/TagEditorContext';
 
 /** A playlist the reader may rename and remove — never Favourites. */
@@ -69,6 +70,10 @@ interface ILibraryDetailHeaderProps {
   /** What "Edit tags" edits from this header: the album, the folder, or the
    * record's songs as a selection (an artist, a genre, a playlist). */
   tagScope?: { scope: TTagSetScope; title: string; place?: string };
+  /** The album the record is, for its sound (Auto EQ). */
+  album?: { key: string; title: string; artist: string };
+  /** "Has a saved sound", narrowing the table (Auto EQ). */
+  soundFilter?: { isOn: boolean; onToggle: () => void };
 }
 
 /**
@@ -100,6 +105,8 @@ const LibraryDetailHeader = ({
   filter,
   onFilter,
   tagScope,
+  album,
+  soundFilter,
 }: ILibraryDetailHeaderProps) => {
   const { t } = useTranslation();
   const tagEditor = useTagEditorIfAny();
@@ -385,6 +392,7 @@ const LibraryDetailHeader = ({
                 anchor={containerMenuRef.current}
                 isOpen={isContainerMenuOpen}
                 trackIds={menuTrackIds}
+                album={album}
                 track={onlyTrack}
                 openPlaylistId={openPlaylistId}
                 // Add to up next and Show in Explorer are buttons beside this
@@ -460,6 +468,13 @@ const LibraryDetailHeader = ({
                 {t('library.playlist.delete')}
               </button>
             </>
+          )}
+          {hasTracks && (
+            <LibraryHeroSound
+              album={album}
+              loadTrackIds={loadTrackIds}
+              soundFilter={soundFilter}
+            />
           )}
           {/* The record's own filter, at the far end of the actions: it
               narrows this record and nothing else, where the top bar's

@@ -16,20 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/** Smart EQ song memory — the tick, its progress, and the notice. */
+/** Smart correction’s song memory — its progress, and the notice. */
 export default {
-  'songEq.save': 'Save for this song',
-  'songEq.saveAria': 'Remember the Smart EQ correction for whatever is playing',
-  // Short on purpose: these sit in a fixed-width slot inside the toolbar chip
-  // (see `SongEqSaveSwitch.scss`), and the progress bar beside them already
-  // says "learning" — the word was carrying nothing the bar did not.
-  'songEq.waiting': 'Nothing playing',
-  'songEq.listening': '{remaining} to go',
-  'songEq.willSave': 'Will save — {title}',
+  'songEq.saveAria': 'Remember the Smart correction for whatever is playing',
   'songEq.noticeTitle': 'Using saved EQ for this song',
   'songEq.noticeBody': '{title} — learned over {plays} plays',
   'songEq.noticeBodyOnce': '{title} — learned once',
   'songEq.undo': 'Undo',
   'songEq.forget': 'Forget this song',
-  'songEq.badgeAria': 'Smart EQ is learning this song',
+  'songEq.badgeAria': 'Smart correction is learning this song',
 };

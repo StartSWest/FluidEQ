@@ -151,7 +151,7 @@ const help = {
   'help.player.heart':
     'Adds a song from the Library to your Favourites, or takes it out.',
   'help.player.soundFold':
-    'Folds the sound controls down to this row, which keeps the preset, Smart EQ and the switch at hand, and opens them again.',
+    'Folds the sound controls down to this row, which keeps the preset, Smart correction and the switch at hand, and opens them again.',
   'help.player.mode':
     'Opens EQ mode: how strongly your EQ and the curves apply, their band Q, phase and treble.',
   'help.player.save': 'Keeps Up next as a playlist of its own.',
@@ -206,7 +206,7 @@ const help = {
   'help.eq.gameMode':
     'Cuts the delay FluidEQ adds, for games and calls. Gaming presets turn it on.',
   'help.eq.layers':
-    'What else shapes this output — a headphone correction, Smart EQ, a convolution — each with its strength, its switch and ×.',
+    'What else shapes this output — a headphone correction, Smart correction, a convolution — each with its strength, its switch and ×.',
   'help.eq.bandName': 'A band',
   'help.eq.band':
     'Drag its point to boost or cut, or step it with the arrow keys. Click its frequency to select it.',
@@ -222,7 +222,7 @@ const help = {
   'help.eq.voicing':
     'A ready-made chain for the sound, such as Music or a genre. None leaves only your own bands.',
   'help.eq.smart':
-    'Listens to what plays and corrects it: Detail, Balance or Target.',
+    'Auto EQ: each song’s saved sound, its album’s sound from the Library, and Smart correction on top — Detail, Balance or Target.',
   'help.eq.clear': 'Sets every gain to 0 dB and keeps your bands. Asks first.',
   'help.eq.mode':
     'Brings the EQ mode card into view: how strongly your EQ and curves apply, band Q, phase and treble.',
@@ -242,7 +242,7 @@ const help = {
 
   'help.eqmode.title': 'EQ mode and band designs',
   'help.eqmode.intro':
-    'EQ mode changes how your sound is shaped, without editing anything. Its settings are the first card of the side panel on the EQ page, beside the curves they change, in two tabs: Your EQ covers your bands, the Tone, presets, Driver type and Smart EQ; Corrections covers headphone corrections and imported or custom curves. Band designs keep the frequencies and Q of a layout you like, ready for any output.',
+    'EQ mode changes how your sound is shaped, without editing anything. Its settings are the first card of the side panel on the EQ page, beside the curves they change, in two tabs: Your EQ covers your bands, the Tone, presets, Driver type and Smart correction; Corrections covers headphone corrections and imported or custom curves. Band designs keep the frequencies and Q of a layout you like, ready for any output.',
   'help.eqmode.steps':
     'Press EQ mode above the graph. The card comes into view, and the side panel opens if it was closed.\nPick the Your EQ or Corrections tab, then try a Strength or Band Q choice while music plays. Under the FluidEQ Engine, choose Minimum or Linear phase, and Precise or Classic treble, for each tab.\nOn Corrections, Curve smoothing can soften sampled curves at 1/12 or 1/3 octave; it is Off until you choose. Reset puts everything back to Normal, and smoothing back to Off.\nWould you rather have a menu? Press the pin on the card: EQ mode then opens as a menu over the graph, and the pin in that menu brings the card back.\nOpen the layouts button beside Add band. Pick 6, 10, 15, 20 or 31 bands, or press Save design… to name the current layout.',
   'help.eqmode.tip':
@@ -325,9 +325,9 @@ const help = {
   'help.profiles.intro':
     'Every output keeps its own sound: the EQ, the preset, the Tone, the cuts, the DSP rack, the Room and the leveling are saved with it and come back the moment you switch to it. Profiles keep other sounds for the same output. Second output plays on another device at the same time, with a sound and a level of its own.',
   'help.profiles.steps':
-    'Check the output at the top of the Output card before editing; Bluetooth headphones show their battery beside it. Use New profile for a sound you want to keep; Update saves changes to that profile, and Restore brings its saved settings back.\nSwitch on Remember each song’s sound, and the preset, Tone and EQ you set during a song come back whenever that song plays here. A notice says so, with Undo and Forget this song.\nOpen Second output, switch on a device and set its level. Choose its profile beneath it, or press Edit sound to change its sound on the EQ page without switching the main output; Done or Edit main takes you back.\nEach second output keeps itself in time and shows its delay in milliseconds; with Share Audio, another computer’s sound shows its own delay, the network included.',
+    'Check the output at the top of the Output card before editing; Bluetooth headphones show their battery beside it. Use New profile for a sound you want to keep; Update saves changes to that profile, and Restore brings its saved settings back.\nEach song’s own sound is in Auto EQ on the EQ page now: a song keeps its preset, Tone and EQ on every output, and the Library sets one for an album.\nOpen Second output, switch on a device and set its level. Choose its profile beneath it, or press Edit sound to change its sound on the EQ page without switching the main output; Done or Edit main takes you back.\nEach second output keeps itself in time and shows its delay in milliseconds; with Share Audio, another computer’s sound shows its own delay, the network included.',
   'help.profiles.tip':
-    'Under the FluidEQ Engine a second output plays straight from the engine, and the main output never waits for it. Remember each song’s sound starts switched off, and remembers per output. On the EQ page the panel starts with the EQ mode card; fold it to reach your outputs sooner.',
+    'Under the FluidEQ Engine a second output plays straight from the engine, and the main output never waits for it. Auto EQ starts switched off. On the EQ page the panel starts with the EQ mode card; fold it to reach your outputs sooner.',
   'help.profiles.keywords':
     'output, output device, device, speakers, switch device, device switching, auto switch, profile, save settings, named profile, second output, mirror, multiple outputs, two outputs, bluetooth, sync, delay, latency, per device, per output, every output, own sound, battery, edit sound, edit main, song, per song, remember song, song sound, forget song',
   'help.profiles.list':
@@ -337,8 +337,6 @@ const help = {
   'help.profiles.new': 'Starts a new profile from the EQ you have now.',
   'help.profiles.eqMode':
     'EQ mode’s settings, first on the EQ page. Fold the card to keep it out of the way.',
-  'help.profiles.songSound':
-    'Brings back a song’s preset, Tone and EQ whenever it plays here. Off until you switch it on.',
   'help.profiles.editSound':
     'Edits that output’s sound on the EQ page without switching the main output.',
   'help.profiles.output':

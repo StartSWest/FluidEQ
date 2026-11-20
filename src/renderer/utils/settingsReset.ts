@@ -101,7 +101,14 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.soundPaneFolded',
   'fluideq.eqModePinned',
   'fluideq.singlePlayer',
+  // Auto EQ's switches, and the Output panel's old one they took over from:
+  // reset turns Auto EQ off and keeps every saved song and album, which live
+  // in main's `song-sound.json` and are the listener's, like playlists.
+  'fluideq.autoEq.parts',
+  // Smart correction, Auto EQ's third switch (`continuousEq.ts`).
+  'fluideq.continuousEq',
   'fluideq.songSound',
+  'fluideq.autoEq.movedNoteSeen',
   'fluideq.dsp.phaseView',
   // The amp.
   'fluideq.player.decks',

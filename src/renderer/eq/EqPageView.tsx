@@ -31,7 +31,6 @@ import BandMenu from '../components/BandMenu';
 import OutputEditingNotice from '../OutputEditingNotice';
 import Button from '../widgets/Button';
 import MenuIcon from '../icons/MenuIcon';
-import SongEqSaveSwitch from '../components/SongEqSaveSwitch';
 import EqPageModeSelect from '../components/eqMode/EqPageModeSelect';
 import BandLayoutMenu from '../components/BandLayoutMenu';
 import CurvesPicker from '../components/CurvesPicker';
@@ -46,7 +45,7 @@ import { type TEqPageActions } from './useEqPageActions';
 import { type TEqLayerTab } from './eqLayerTab';
 import EqLayerTabs, { eqLayerPanelId, eqLayerTabId } from './EqLayerTabs';
 import { useEqRowSlot } from './eqRowSlot';
-import EqSmartEqButton from './EqSmartEqButton';
+import AutoEqButton from './autoEq/AutoEqButton';
 import EqToolGroup from './EqToolGroup';
 import {
   EqBandPopoverOnBand,
@@ -85,7 +84,6 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
     hoveredFilterId,
     bypassed,
     t,
-    isContinuousRunning,
     frequencySortedFilters,
     density,
     bandsElement,
@@ -133,7 +131,7 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
 
   // Each tab's tools, flat (Ivan, 2026-11-17, B1 "grouped by job"). Your
   // EQ's are in two groups under captions — BANDS: how many, add one, clear
-  // them; VIEW: the curves the graph draws, the EQ mode — and Smart EQ alone
+  // them; VIEW: the curves the graph draws, the EQ mode — and Auto EQ alone
   // at the end, the one filled button, the action the page recommends. Clear
   // EQ undoes every tab's work and stands at the end of the other two.
   const rule = <span className="eq-layer-tabs__rule" aria-hidden="true" />;
@@ -163,12 +161,7 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
           <CurvesPicker />
           <EqPageModeSelect />
         </EqToolGroup>
-        {/* Only while an automatic mode is actually measuring. Saving a song
-          means filing the Smart EQ layer being refined for it, and nothing
-          but that measurement ever writes one — so with the loop stopped
-          the switch was a promise the app had no way to keep. */}
-        {isContinuousRunning && <SongEqSaveSwitch id="songEqSave" />}
-        <EqSmartEqButton bands={bands} />
+        <AutoEqButton />
       </>
     ),
     preset: (

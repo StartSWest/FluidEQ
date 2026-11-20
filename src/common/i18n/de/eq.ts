@@ -75,7 +75,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.precise': 'Präzise',
   'eq.mode.classic': 'Klassisch',
   'eq.mode.trebleEqPrecise':
-    'Präzise: Ihre Bänder, Klang, Preset, Treibertyp und Smart-EQ klingen genau so, wie sie gezeichnet sind, bis 20\u00a0kHz.',
+    'Präzise: Ihre Bänder, Klang, Preset, Treibertyp und Smart-Korrektur klingen genau so, wie sie gezeichnet sind, bis 20\u00a0kHz.',
   'eq.mode.trebleEqClassic':
     'Klassisch: so, wie Equalizer APO sie wiedergibt. Höhenbänder fallen schmaler und schwächer aus als eingestellt, am stärksten nahe 20\u00a0kHz.',
   'eq.mode.trebleCurvesPrecise':
@@ -470,7 +470,7 @@ const eq: Partial<Dictionary> = {
   'eq.channels.letter.left': 'L',
   'eq.channels.letter.right': 'R',
   'graph.curve.voicing': 'Preset',
-  'graph.curve.smart': 'Smart-EQ',
+  'graph.curve.smart': 'Smart-Korrektur',
   'graph.curve.custom': 'Benutzerdefinierte FX',
   'graph.curve.tone': 'Klang',
   'graph.curve.total': 'Endausgabe',
@@ -766,13 +766,12 @@ const eq: Partial<Dictionary> = {
   'squigImport.emptyHint':
     'Fügen Sie einen Export ein, um seine Form zu sehen, bevor Sie mit der Feinabstimmung im EQ weitermachen.',
   'eq.title': 'Parametrischer EQ',
-  'eq.smart': 'Smart-EQ',
+  'eq.smart': 'Smart-Korrektur',
   'eq.smart.cancel': 'Abbrechen',
-  'eq.smart.stopAria': 'Smart EQ stoppen',
-  'eq.smart.aria': 'Smart-EQ aus dem Quellsignal',
+  'eq.smart.aria': 'Smart-Korrektur aus dem Quellsignal',
   'eq.smart.continuousAria':
-    'Smart-EQ misst und justiert weiter, solange Musik läuft',
-  'eq.smart.modeAria': 'Wählen, wie Smart-EQ misst',
+    'Smart-Korrektur misst und justiert weiter, solange Musik läuft',
+  'eq.smart.modeAria': 'Wählen, wie die Smart-Korrektur misst',
   'eq.smart.mode.once.note': 'Eine Messung, auf einmal angewendet',
   'eq.smart.mode.detail': 'Detail',
   'eq.smart.mode.detail.note': 'Misst weiter · nur Spitzen und Senken',
@@ -793,7 +792,7 @@ const eq: Partial<Dictionary> = {
   'eq.layers.custom': 'Benutzerdefinierte FX',
   'eq.layers.disable': '{layer} ausschalten, ohne sie zu entfernen',
   'eq.layers.enable': '{layer} wieder einschalten',
-  'eq.layers.smart': 'Smart-EQ',
+  'eq.layers.smart': 'Smart-Korrektur',
   'eq.layers.remove': 'Ebene {layer} entfernen',
   'eq.layers.clearBands': 'Alle Bänder auf 0 dB zurücksetzen',
   'eq.layers.clearTone': 'Bass, Mitten und Höhen auf 0 dB zurücksetzen',

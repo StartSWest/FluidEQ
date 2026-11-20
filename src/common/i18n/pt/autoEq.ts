@@ -1,0 +1,80 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+/** Auto EQ on the EQ page: its button, its panel, Manage, and the note that
+ * took the Output panel’s old switch’s place. */
+export default {
+  'autoEq.title': 'EQ automático',
+  'autoEq.aria': 'EQ automático: o que decide o som de cada música',
+  'autoEq.tagline': 'O som de cada música, escolhido para você',
+  'autoEq.state.measuring': 'Medindo',
+  'autoEq.state.paused': 'Em pausa',
+  'autoEq.state.song': 'Música',
+  'autoEq.state.album': 'Álbum',
+  'autoEq.state.yours': 'O seu',
+  'autoEq.aside':
+    'Fica de lado enquanto o DSP está desligado, uma cadeia de Jogos está ativa ou um jogo toca o próprio som. Depois volta como estava.',
+  'autoEq.now.nothing': 'Nada tocando',
+  'autoEq.now.yours': 'o seu som',
+  'autoEq.now.yoursWhy':
+    'Nada salvo para esta música: ela toca o último som que você escolheu.',
+  'autoEq.now.song': 'o som desta música',
+  'autoEq.now.songWhy': 'Volta toda vez que esta música toca.',
+  'autoEq.now.album': 'o som de {album}',
+  'autoEq.now.albumUnnamed': 'o som do álbum dela',
+  'autoEq.now.albumWhy': 'Definido na Biblioteca para o álbum inteiro.',
+  'autoEq.songs.title': 'Sons das músicas',
+  'autoEq.songs.hint':
+    'Uma música com um som salvo toca com ele. Mude-o enquanto ela toca e a música guarda a mudança. As outras músicas tocam com o seu.',
+  'autoEq.songs.nothing': 'Toque uma música para salvar o som dela',
+  'autoEq.songs.saved': 'Salvo para esta música',
+  'autoEq.songs.none': 'Nada salvo para esta música',
+  'autoEq.songs.save': 'Salvar para esta música',
+  'autoEq.songs.forget': 'Esquecer',
+  'autoEq.albums.title': 'Sons dos álbuns',
+  'autoEq.albums.hint':
+    'Só na Biblioteca. Todas as músicas do álbum tocam com ele, exceto uma música com preset próprio.',
+  'autoEq.albums.nothing':
+    'Defina o som de um álbum na página dele na Biblioteca',
+  'autoEq.albums.libraryOnly': 'Só na Biblioteca: não vale para outros players',
+  'autoEq.albums.set': '{album}: {preset}',
+  'autoEq.albums.none': 'Este álbum não tem som definido',
+  'autoEq.smart.title': 'Correção inteligente',
+  'autoEq.smart.hint':
+    'Mede cada música a partir da fonte e guarda a correção para aquela música. Por cima de qualquer preset.',
+  'autoEq.smart.modes': 'Como corrige',
+  'autoEq.smart.waiting': 'Aguardando uma música',
+  'autoEq.smart.willSave': 'Salva para esta música quando ela terminar',
+  'autoEq.smart.savesIn': 'Salva para esta música em {remaining}',
+  'autoEq.smart.onceHint':
+    'Uma medição do que está tocando, aplicada de uma vez',
+  'autoEq.smart.once': 'Medir uma vez',
+  'autoEq.savedCount': 'Salvos: {songs} · {albums}',
+  'autoEq.manage': 'Gerenciar',
+  'autoEq.manage.title': 'Sons salvos',
+  'autoEq.manage.back': 'Voltar ao EQ automático',
+  'autoEq.manage.songs': 'Músicas',
+  'autoEq.manage.albums': 'Álbuns',
+  'autoEq.manage.search': 'Pesquisar sons salvos',
+  'autoEq.manage.wholeSound': '{preset} com o Tom e o EQ',
+  'autoEq.manage.forget': 'Esquecer',
+  'autoEq.manage.others': 'Músicas de outros players: {count}',
+  'autoEq.manage.othersHint':
+    'Spotify, YouTube e o navegador. Os nomes delas nunca são guardados.',
+  'autoEq.manage.empty': 'Nada salvo ainda',
+  'autoEq.manage.noMatch': 'Nada corresponde',
+  'autoEq.manage.resetKeeps':
+    'Redefinir todas as configurações mantém estes. Só Esquecer os remove.',
+  'autoEq.manage.forgetAll': 'Esquecer tudo',
+  'autoEq.manage.forgetAllConfirm': 'Esquecer tudo, para sempre',
+  'autoEq.moved.title': 'O som de cada música agora está no EQ automático',
+  'autoEq.moved.body':
+    'Lembrar o som de cada música foi para o EQ automático, na página EQ. Suas {count} músicas salvas foram junto.',
+  'autoEq.moved.bodyOne':
+    'Lembrar o som de cada música foi para o EQ automático, na página EQ. Sua música salva foi junto.',
+  'autoEq.moved.open': 'Abrir EQ automático',
+  'autoEq.moved.dismiss': 'Entendi',
+};

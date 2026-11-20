@@ -72,7 +72,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.precise': 'Preciso',
   'eq.mode.classic': 'Classico',
   'eq.mode.trebleEqPrecise':
-    'Preciso: le tue bande, Tono, Preset, Tipo di driver ed EQ intelligente suonano esattamente come sono disegnati, fino a 20\u00a0kHz.',
+    'Preciso: le tue bande, Tono, Preset, Tipo di driver e Correzione intelligente suonano esattamente come sono disegnati, fino a 20\u00a0kHz.',
   'eq.mode.trebleEqClassic':
     'Classico: come le riproduce Equalizer APO. Le bande degli alti risultano più strette e più basse di come le imposti, soprattutto vicino a 20\u00a0kHz.',
   'eq.mode.trebleCurvesPrecise':
@@ -462,7 +462,7 @@ const eq: Partial<Dictionary> = {
   'eq.channels.letter.left': 'S',
   'eq.channels.letter.right': 'D',
   'graph.curve.voicing': 'Preset',
-  'graph.curve.smart': 'EQ intelligente',
+  'graph.curve.smart': 'Correzione intelligente',
   'graph.curve.custom': 'FX personalizzati',
   'graph.curve.tone': 'Tono',
   'graph.curve.total': 'Uscita finale',
@@ -757,13 +757,12 @@ const eq: Partial<Dictionary> = {
   'squigImport.emptyHint':
     'Incolla un’esportazione per vederne la forma prima di continuare a rifinirla nell’EQ.',
   'eq.title': 'EQ parametrico',
-  'eq.smart': 'EQ intelligente',
+  'eq.smart': 'Correzione intelligente',
   'eq.smart.cancel': 'Annulla',
-  'eq.smart.stopAria': 'Ferma l’EQ intelligente',
-  'eq.smart.aria': 'EQ intelligente dalla sorgente',
+  'eq.smart.aria': 'Correzione intelligente dalla sorgente',
   'eq.smart.continuousAria':
-    'Continua a misurare e regolare l’EQ mentre suona la musica',
-  'eq.smart.modeAria': 'Scegli come misura l’EQ intelligente',
+    'Continua a misurare e regolare la correzione intelligente mentre suona la musica',
+  'eq.smart.modeAria': 'Scegli come misura la correzione intelligente',
   'eq.smart.mode.once.note': 'Una misurazione, applicata in una volta',
   'eq.smart.mode.detail': 'Dettaglio',
   'eq.smart.mode.detail.note': 'Continua a misurare · solo picchi e buchi',
@@ -784,7 +783,7 @@ const eq: Partial<Dictionary> = {
   'eq.layers.custom': 'FX personalizzati',
   'eq.layers.disable': 'Disattiva {layer} senza rimuoverlo',
   'eq.layers.enable': 'Riattiva {layer}',
-  'eq.layers.smart': 'EQ intelligente',
+  'eq.layers.smart': 'Correzione intelligente',
   'eq.layers.remove': 'Rimuovi il livello {layer}',
   'eq.layers.clearBands': 'Riporta tutte le bande a 0 dB',
   'eq.layers.clearTone': 'Riporta Bassi, Medi e Alti a 0 dB',

@@ -29,6 +29,7 @@ import type { TLibrarySort } from '../../common/library/types';
 export const OPTIONAL_COLUMNS = [
   'artist',
   'album',
+  'sound',
   'year',
   'genre',
   'format',
@@ -42,6 +43,7 @@ export type TLibraryColumn = (typeof OPTIONAL_COLUMNS)[number];
 const DEFAULT_COLUMNS: readonly TLibraryColumn[] = [
   'artist',
   'album',
+  'sound',
   'format',
   'plays',
   'time',
@@ -50,6 +52,7 @@ const DEFAULT_COLUMNS: readonly TLibraryColumn[] = [
 export const COLUMN_LABEL_KEYS = {
   artist: 'library.column.artist',
   album: 'library.column.album',
+  sound: 'library.column.sound',
   year: 'library.column.year',
   genre: 'library.column.genre',
   format: 'library.column.format',
@@ -88,6 +91,7 @@ export const NUMERIC_COLUMNS: ReadonlySet<TLibraryColumn> = new Set([
 const TRACKS: Record<TLibraryColumn, string> = {
   artist: 'minmax(0, 1.8fr)',
   album: 'minmax(0, 2fr)',
+  sound: 'minmax(0, 1.4fr)',
   year: 'minmax(72px, 0.8fr)',
   genre: 'minmax(0, 1.2fr)',
   format: 'minmax(80px, 1.6fr)',
@@ -108,6 +112,7 @@ export const columnTemplate = (columns: readonly TLibraryColumn[]): string =>
 const MIN_WIDTHS: Record<TLibraryColumn, number> = {
   artist: 120,
   album: 120,
+  sound: 110,
   year: 72,
   genre: 100,
   format: 80,
@@ -122,6 +127,7 @@ const FIXED_WIDTH = 44 + 180 + 34;
 const STEP_ASIDE: readonly TLibraryColumn[] = [
   'genre',
   'year',
+  'sound',
   'plays',
   'format',
   'album',

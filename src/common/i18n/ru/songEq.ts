@@ -16,14 +16,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/** Smart EQ song memory — the tick, its progress, and the notice. */
+/** Smart correction’s song memory — its progress, and the notice. */
 export default {
-  'songEq.save': 'Сохранять для этой песни',
-  'songEq.saveAria':
-    'Запоминать коррекцию умного EQ для того, что сейчас играет',
-  'songEq.waiting': 'Ничего не играет',
-  'songEq.listening': 'Осталось {remaining}',
-  'songEq.willSave': 'Будет сохранено — {title}',
+  'songEq.saveAria': 'Запоминать умную коррекцию для того, что сейчас играет',
   'songEq.noticeTitle': 'Для этой песни используется сохранённый EQ',
   // Phrased as a label rather than a count, so the numeral never has to agree
   // with the noun: `{plays} прослушиваний` is right for 0 and 5+ and wrong for
@@ -32,5 +27,5 @@ export default {
   'songEq.noticeBodyOnce': '{title} — изучено за одно прослушивание',
   'songEq.undo': 'Отменить',
   'songEq.forget': 'Забыть эту песню',
-  'songEq.badgeAria': 'Умный EQ изучает эту песню',
+  'songEq.badgeAria': 'Умная коррекция изучает эту песню',
 };

@@ -124,7 +124,7 @@ const app = {
     'Puts that monitor’s desktop scene behind the icons and tells it when windows cover the screen. One for each monitor showing one.',
   'app.processes.name.shareCapture': 'Audio capture',
   'app.processes.what.shareCapture':
-    'Captures what this PC plays, before the equalizer, for the Share Audio tab, a second output and Smart EQ. Runs only while one of them is in use.',
+    'Captures what this PC plays, before the equalizer, for the Share Audio tab, a second output and Smart correction. Runs only while one of them is in use.',
   'app.processes.name.sharePlayback': 'Shared audio playback',
   'app.processes.what.sharePlayback':
     'Plays the sound another FluidEQ shares with this PC, and starts the audio captures, so what this PC sends never carries that sound back. Runs only while one of them is in use.',

@@ -23,8 +23,8 @@ import {
   ISongMemoryOutput,
   ISongMemorySettings,
   emptySongMemory,
-  forgetSongMemory,
-  lookupSongMemory,
+  forgetInSongMemory,
+  lookupSongMemoryAnywhere,
   putSongMemory,
 } from './songMemory';
 
@@ -71,11 +71,18 @@ export const stripSongEqLayer = (layer: ISmartEqSettings): ISmartEqSettings => {
   return rest;
 };
 
+/**
+ * The correction for a song: this output's, or the newest any other output
+ * learned. Smart correction measures the source, before any output's own
+ * effects, so it is the record's and follows it everywhere (Auto EQ,
+ * 2026-11-20). Learning still files under the output it was heard on.
+ */
 export const lookupSongEq = (
   settings: ISongEqSettings,
   deviceId: string,
   identity: ISongIdentity,
-): ISongEqEntry | undefined => lookupSongMemory(settings, deviceId, identity);
+): ISongEqEntry | undefined =>
+  lookupSongMemoryAnywhere(settings, deviceId, identity);
 
 const put = (
   settings: ISongEqSettings,
@@ -125,11 +132,21 @@ export const commitSongEq = (
 ): ISongEqSettings => put(settings, deviceId, identity, layer, now, 1);
 
 /**
- * Forget one song on one output — exactly the entry `lookupSongEq` would have
- * handed back, alias and all (`songMemory.ts`).
+ * Forget one song on every output — every entry `lookupSongEq` could hand
+ * back, alias and all (`songMemory.ts`). One output alone would leave the
+ * copy another output learned, and a lookup that reaches across outputs would
+ * bring the forgotten song straight back.
  */
 export const forgetSongEq = (
   settings: ISongEqSettings,
-  deviceId: string,
   identity: ISongIdentity,
-): ISongEqSettings => forgetSongMemory(settings, deviceId, identity);
+): ISongEqSettings => {
+  let isChanged = false;
+  const outputs: ISongEqSettings['outputs'] = {};
+  Object.entries(settings.outputs).forEach(([deviceId, output]) => {
+    const next = forgetInSongMemory(output, identity) ?? output;
+    isChanged ||= next !== output;
+    outputs[deviceId] = next;
+  });
+  return isChanged ? { ...settings, outputs } : settings;
+};

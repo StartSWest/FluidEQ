@@ -17,24 +17,14 @@ import {
   isBandChannel,
   isBandEnabled,
 } from './constants';
-import { ISongIdentity } from './songIdentity';
-import {
-  ISongMemoryEntryBase,
-  ISongMemorySettings,
-  emptySongMemory,
-  forgetSongMemory,
-  lookupSongMemory,
-  putSongMemory,
-} from './songMemory';
 import { ITone, TONE_KNOBS, toTone } from './tone';
 
 /**
- * The sound a song was played with, remembered so it comes back with the song
+ * The sound a song plays with, as Auto EQ keeps it for the song or its album
  * (Ivan, 2026-10-02: "save also the Preset per song ... when that song is on
  * play again it automatically load that preset for it", and "should include
  * also the tone curve and the EQ"): the preset chosen on the equaliser, Bass,
- * Mid and Treble, and the bands. Per output, like everything the equaliser
- * holds — a song tuned on the headphones is not tuned for the speakers.
+ * Mid and Treble, and the bands. Where it is kept is `songSoundMemory.ts`.
  *
  * The preamp is not part of it. Auto normalize sets it from the curve, and a
  * level stored with a song would be an hour-old reading of a curve that
@@ -51,17 +41,32 @@ export interface ISongSound {
   filters: IFiltersMap;
 }
 
-export interface ISongSoundEntry extends ISongMemoryEntryBase {
-  sound: ISongSound;
+/**
+ * A preset picked for a song or an album in the Library, with nothing else:
+ * it plays with the listener's own Tone and bands (Ivan, 2026-11-19: "pick
+ * the sound preset from the lib"). "Use what's playing now" keeps a whole
+ * sound instead.
+ */
+export interface IPresetPick {
+  presetId: string;
 }
 
-export type ISongSoundSettings = ISongMemorySettings<ISongSoundEntry>;
+/** What Auto EQ keeps for a song or an album. */
+export type TSavedSound = ISongSound | IPresetPick;
+
+export const isWholeSound = (sound: TSavedSound): sound is ISongSound =>
+  'filters' in sound;
 
 /**
- * A ceiling per output, as the Smart EQ memory keeps (`SONG_EQ_MAX_ENTRIES`):
- * an entry is about a kilobyte for a fifteen-band EQ.
+ * The sound a saved one plays as: itself when whole, or its preset over the
+ * sound it would otherwise play with — the listener's own, never a song's
+ * that happened to be playing before.
  */
-export const SONG_SOUND_MAX_ENTRIES = 2000;
+export const soundToPlay = (
+  saved: TSavedSound,
+  base: ISongSound,
+): ISongSound =>
+  isWholeSound(saved) ? saved : { ...base, presetId: saved.presetId };
 
 /** Longer than any preset id the app or a saved chain has. */
 const PRESET_ID_MAX_LENGTH = 120;
@@ -69,9 +74,6 @@ const PRESET_ID_MAX_LENGTH = 120;
 const FILTER_TYPES: ReadonlySet<string> = new Set(
   Object.values(FilterTypeEnum),
 );
-
-export const getDefaultSongSoundSettings = (): ISongSoundSettings =>
-  emptySongMemory<ISongSoundEntry>();
 
 const toFilter = (id: string, value: unknown): IFilter | undefined => {
   if (typeof value !== 'object' || value === null) {
@@ -125,6 +127,9 @@ export const toSongFilters = (value: unknown): IFiltersMap | undefined => {
   return whole ? filters : undefined;
 };
 
+const isPresetId = (value: unknown): value is string =>
+  typeof value === 'string' && value.length <= PRESET_ID_MAX_LENGTH;
+
 /** A song's sound as stored or sent, or nothing when any part fails to read. */
 export const toSongSound = (value: unknown): ISongSound | undefined => {
   if (typeof value !== 'object' || value === null) {
@@ -132,15 +137,28 @@ export const toSongSound = (value: unknown): ISongSound | undefined => {
   }
   const { presetId, tone, filters } = value as Record<string, unknown>;
   const bands = toSongFilters(filters);
-  if (
-    typeof presetId !== 'string' ||
-    presetId.length > PRESET_ID_MAX_LENGTH ||
-    !bands
-  ) {
+  if (!isPresetId(presetId) || !bands) {
     return undefined;
   }
   const dials = toTone(tone);
   return { presetId, ...(dials ? { tone: dials } : {}), filters: bands };
+};
+
+/**
+ * A saved sound as stored or sent, or nothing. Bands that are there and do
+ * not read fail the whole of it: a whole sound with its bands lost is not the
+ * preset alone the listener picked, and must not quietly play as one.
+ */
+export const toSavedSound = (value: unknown): TSavedSound | undefined => {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return undefined;
+  }
+  if ('filters' in value) {
+    return toSongSound(value);
+  }
+  const { presetId } = value as Record<string, unknown>;
+  // An empty id names no preset, and a pick of nothing is not a pick.
+  return isPresetId(presetId) && presetId !== '' ? { presetId } : undefined;
 };
 
 const sameBand = (a: IFilter, b: IFilter): boolean =>
@@ -175,74 +193,6 @@ export const sameSongSound = (a: ISongSound, b: ISongSound): boolean => {
       return other !== undefined && sameBand(a.filters[id], other);
     })
   );
-};
-
-export const lookupSongSound = (
-  settings: ISongSoundSettings,
-  deviceId: string,
-  identity: ISongIdentity,
-): ISongSoundEntry | undefined =>
-  lookupSongMemory(settings, deviceId, identity);
-
-/** File the sound a song ended with, and count the play. */
-export const saveSongSound = (
-  settings: ISongSoundSettings,
-  deviceId: string,
-  identity: ISongIdentity,
-  sound: ISongSound,
-  now: number,
-): ISongSoundSettings =>
-  putSongMemory(
-    settings,
-    deviceId,
-    identity,
-    (existing) => ({
-      sound,
-      title: identity.title,
-      artist: identity.artist,
-      alias: identity.alias,
-      plays: (existing?.plays ?? 0) + 1,
-      updatedAt: now,
-    }),
-    SONG_SOUND_MAX_ENTRIES,
-  );
-
-export const forgetSongSound = (
-  settings: ISongSoundSettings,
-  deviceId: string,
-  identity: ISongIdentity,
-): ISongSoundSettings => forgetSongMemory(settings, deviceId, identity);
-
-/** A stored entry as it may be played, or nothing when any part fails. */
-export const toSongSoundEntry = (
-  value: unknown,
-): ISongSoundEntry | undefined => {
-  if (typeof value !== 'object' || value === null) {
-    return undefined;
-  }
-  const { sound, title, artist, alias, plays, updatedAt } = value as Record<
-    string,
-    unknown
-  >;
-  const played = toSongSound(sound);
-  if (
-    !played ||
-    typeof title !== 'string' ||
-    typeof plays !== 'number' ||
-    !Number.isFinite(plays) ||
-    typeof updatedAt !== 'number' ||
-    !Number.isFinite(updatedAt)
-  ) {
-    return undefined;
-  }
-  return {
-    sound: played,
-    title,
-    ...(typeof artist === 'string' ? { artist } : {}),
-    ...(typeof alias === 'string' ? { alias } : {}),
-    plays,
-    updatedAt,
-  };
 };
 
 /** What a song's sound put on left in the state, as main replies with it. */

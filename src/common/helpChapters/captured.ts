@@ -206,11 +206,6 @@ const CAPTURED = {
         text: 'help.profiles.update',
       },
       {
-        box: [21, 309, 287, 65],
-        name: 'songSound.switch',
-        text: 'help.profiles.songSound',
-      },
-      {
         box: [21, 485, 287, 54],
         name: 'extraOutput.singlePlayer',
         text: 'help.profiles.onePlayer',

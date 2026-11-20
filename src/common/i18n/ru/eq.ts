@@ -71,7 +71,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.precise': 'Точный',
   'eq.mode.classic': 'Классический',
   'eq.mode.trebleEqPrecise':
-    'Точный: ваши полосы, «Тембр», «Пресет», «Тип излучателя» и «Умный EQ» звучат ровно так, как нарисованы, вплоть до 20\u00a0кГц.',
+    'Точный: ваши полосы, «Тембр», «Пресет», «Тип излучателя» и «Умная коррекция» звучат ровно так, как нарисованы, вплоть до 20\u00a0кГц.',
   'eq.mode.trebleEqClassic':
     'Классический: так их воспроизводит Equalizer APO. Полосы высоких выходят уже и тише, чем заданы, сильнее всего около 20\u00a0кГц.',
   'eq.mode.trebleCurvesPrecise':
@@ -461,7 +461,7 @@ const eq: Partial<Dictionary> = {
   'eq.channels.letter.left': 'Л',
   'eq.channels.letter.right': 'П',
   'graph.curve.voicing': 'Пресет',
-  'graph.curve.smart': 'Умный EQ',
+  'graph.curve.smart': 'Умная коррекция',
   'graph.curve.custom': 'Пользовательский FX',
   'graph.curve.tone': 'Тембр',
   'graph.curve.total': 'Итоговый выход',
@@ -755,13 +755,12 @@ const eq: Partial<Dictionary> = {
   'squigImport.emptyHint':
     'Вставьте экспорт, чтобы увидеть его форму, прежде чем продолжить точную настройку в EQ.',
   'eq.title': 'Параметрический эквалайзер',
-  'eq.smart': 'Умный EQ',
+  'eq.smart': 'Умная коррекция',
   'eq.smart.cancel': 'Отмена',
-  'eq.smart.stopAria': 'Остановить умный EQ',
-  'eq.smart.aria': 'Умный EQ по исходному сигналу',
+  'eq.smart.aria': 'Умная коррекция по исходному сигналу',
   'eq.smart.continuousAria':
-    'Продолжать измерять и подстраивать эквалайзер во время музыки',
-  'eq.smart.modeAria': 'Выбрать способ измерения',
+    'Продолжать измерять и подстраивать умную коррекцию во время музыки',
+  'eq.smart.modeAria': 'Выбрать, как измеряет умная коррекция',
   'eq.smart.mode.once.note': 'Одно измерение, применяется сразу',
   'eq.smart.mode.detail': 'Детали',
   'eq.smart.mode.detail.note': 'Измеряет постоянно · только пики и провалы',
@@ -782,7 +781,7 @@ const eq: Partial<Dictionary> = {
   'eq.layers.custom': 'Пользовательский FX',
   'eq.layers.disable': 'Отключить «{layer}», не удаляя',
   'eq.layers.enable': 'Снова включить «{layer}»',
-  'eq.layers.smart': 'Умный EQ',
+  'eq.layers.smart': 'Умная коррекция',
   'eq.layers.remove': 'Убрать слой «{layer}»',
   'eq.layers.clearBands': 'Вернуть все полосы к 0 дБ',
   'eq.layers.clearTone': 'Вернуть «Низкие», «Средние» и «Высокие» к 0 дБ',

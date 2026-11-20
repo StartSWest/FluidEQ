@@ -5,12 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import MenuIcon from '../icons/MenuIcon';
+import { undoSongSound } from '../audio/songSoundSession';
 import {
   endSongSoundNotice,
-  forgetNoticedSongSound,
-  undoSongSound,
   useSongSoundNotice,
-} from '../audio/songSoundSession';
+} from '../audio/songSoundNotice';
 import { useTranslation } from '../utils/I18nContext';
 import isOwnAnimationEnd from '../utils/ownAnimationEnd';
 import { useNoticeTurn } from '../utils/noticeTurn';
@@ -19,15 +18,16 @@ import songSoundPresetName from './songSoundPresetName';
 import '../styles/SongEqNotice.scss';
 
 /**
- * Says that a song's own sound just went on, and offers it back.
+ * Says that a saved sound just went on — the song's own, or its album's — and
+ * offers it back.
  *
  * The Smart EQ memory's notice in every respect but its words
  * (`SongEqNotice.tsx`): the same corner, the same card and the same linger,
  * whose end takes it down — so it wears that notice's class, and waits its
  * turn behind it when both have something to say. Fading is not undoing: the
- * song's sound plays on for the song. Neither button is the recommendation —
- * doing nothing is — so both are the quiet style. Undo is this play only;
- * Forget is Undo and the memory gone.
+ * song's sound plays on for the song. Undo is not the recommendation — doing
+ * nothing is — so it is the quiet style, and it is this play only. Forgetting
+ * a song's sound is Auto EQ's panel's and the Library's.
  */
 const SongSoundNotice = () => {
   const { t } = useTranslation();
@@ -39,14 +39,19 @@ const SongSoundNotice = () => {
     return null;
   }
 
-  const { entry } = notice;
   // The song playing, never the memory's own name for it: the memory keeps no
   // name for anything but the listener's own files (`songMemoryNames.ts`).
   const { title } = notice.identity;
-  const preset = songSoundPresetName(entry.sound.presetId, t);
-  const body = preset
-    ? t('songSound.noticeBody', { title, preset })
-    : t('songSound.noticeBodyNoPreset', { title });
+  const preset =
+    songSoundPresetName(notice.presetId, t) ?? t('songSound.noPresetName');
+  const isAlbum = notice.owner === 'album';
+  const album = notice.albumTitle ?? '';
+  const heading = isAlbum
+    ? t('songSound.albumNoticeTitle', { album })
+    : t('songSound.noticeTitle');
+  const body = isAlbum
+    ? t('songSound.albumNoticeBody', { title, preset })
+    : t('songSound.noticeBody', { title, preset });
 
   return (
     <CompactFrame
@@ -63,27 +68,18 @@ const SongSoundNotice = () => {
       aria-modal="false"
       aria-describedby="song-sound-notice-body"
       icon={<MenuIcon name="song" />}
-      title={t('songSound.noticeTitle')}
+      title={heading}
       titleId="song-sound-notice-title"
       closeLabel={t('support.close')}
       onClose={() => endSongSoundNotice(notice.id)}
       actions={
-        <>
-          <button
-            type="button"
-            className="button small subtle"
-            onClick={undoSongSound}
-          >
-            {t('songSound.undo')}
-          </button>
-          <button
-            type="button"
-            className="button small subtle"
-            onClick={forgetNoticedSongSound}
-          >
-            {t('songSound.forget')}
-          </button>
-        </>
+        <button
+          type="button"
+          className="button small subtle"
+          onClick={undoSongSound}
+        >
+          {t('songSound.undo')}
+        </button>
       }
     >
       <p id="song-sound-notice-body">{body}</p>

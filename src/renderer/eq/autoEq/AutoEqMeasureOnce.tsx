@@ -1,0 +1,40 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+import { useTranslation } from '../../utils/I18nContext';
+import { runSmartEq } from '../../utils/smartEqRun';
+import { getSmartEqMode, setSmartEqMode } from '../../utils/smartEqMode';
+
+/**
+ * One measurement of what plays, applied at once — Smart EQ's first mode, in
+ * Auto EQ's foot beside Manage (the mockup's place for it), so the panel
+ * keeps its height for the parts above.
+ */
+const AutoEqMeasureOnce = ({ isBalancing }: { isBalancing: boolean }) => {
+  const { t } = useTranslation();
+  return (
+    <button
+      type="button"
+      className="button small subtle"
+      title={t('autoEq.smart.onceHint')}
+      disabled={isBalancing}
+      onClick={() => {
+        // A different mode starts through the engine's own transition, and
+        // asking it to run again would toggle the freshly started one back
+        // off.
+        if (getSmartEqMode() === 'smart') {
+          runSmartEq();
+        } else {
+          setSmartEqMode('smart');
+        }
+      }}
+    >
+      {t('autoEq.smart.once')}
+    </button>
+  );
+};
+
+export default AutoEqMeasureOnce;

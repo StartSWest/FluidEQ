@@ -75,7 +75,7 @@ const tour = {
   'tour.player.lead':
     'One switch in the title bar folds FluidEQ into one column: the scene at the top with the song over it, the controls, your sound and what plays next. It is the same player in every window colour, and a scene you pick plays behind all of it, on the {backdrop}.',
   'tour.player.point1':
-    '{sound} holds the Bass, Mid and Treble knobs or your EQ’s own bands, with the preset, Smart EQ and EQ mode beside them.',
+    '{sound} holds the Bass, Mid and Treble knobs or your EQ’s own bands, with the preset, Auto EQ and EQ mode beside them.',
   'tour.player.point2':
     '{upNext} and {playlists} wait at the foot. Fold either part away for a bigger picture, and drop music anywhere on the player to add it to the queue.',
   'tour.player.point3':
@@ -422,7 +422,7 @@ const tour = {
   'tour.library.point3':
     'Playlists and a permanent Favourites list. Right-click any song to add it to either, or to the queue.',
   'tour.library.point4':
-    'Smart EQ song memory: while Smart EQ keeps measuring, flip “Save for this song”, and after two minutes its correction is kept for that track and comes back when it plays again.',
+    'Auto EQ: give a song, a selection or a whole album its own preset from the Library, and it plays every time that music does.',
   'tour.library.how':
     'Open the Library tab, press "Add folder" or drop a folder on the page, and let the scan finish. Pick Albums, Artists, Genres, Songs, Folders or Tree, then press Play.',
   'tour.library.open': 'Open Library',

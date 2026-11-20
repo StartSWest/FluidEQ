@@ -24,6 +24,7 @@ import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import { usePlaylists } from './PlaylistContext';
 import LibraryPlaylistPicker from './LibraryPlaylistPicker';
+import LibrarySoundMenu from './LibrarySoundMenu';
 import { canSendTrackToKaraoke, trackAsKaraokeFile } from './libraryToKaraoke';
 import { sendFilesToKaraoke } from './karaokeHandoff';
 import { countText } from './libraryFormat';
@@ -93,6 +94,11 @@ interface ILibraryTrackMenuProps {
   onFixTags?: (trackIds: readonly string[]) => void;
   /** The record header's "Fix this album…". */
   fixTagsLabel?: string;
+  /**
+   * The album the menu is about, when it is a whole album's (the record
+   * header): its Sound page sets the album's sound rather than each song's.
+   */
+  album?: { key: string; title: string; artist: string };
   onClose: () => void;
 }
 
@@ -101,7 +107,7 @@ interface ILibraryTrackMenuProps {
  * submenu hanging off a portalled menu is a positioning problem with no good
  * answer at the edge of the window. A page swap has no edge cases and is one
  * press either way. */
-type TMenuPage = 'actions' | 'playlists';
+type TMenuPage = 'actions' | 'playlists' | 'sound';
 
 /**
  * What a song row offers besides being played.
@@ -128,6 +134,7 @@ const LibraryTrackMenu = ({
   onChangeCover,
   onFixTags,
   fixTagsLabel,
+  album,
   onClose,
 }: ILibraryTrackMenuProps) => {
   const { t } = useTranslation();
@@ -319,6 +326,28 @@ const LibraryTrackMenu = ({
           )}
         </>
       )}
+      {/* What it plays with (Auto EQ): a sound of its own for a song or a
+          selection, or the album's sound for a whole album — the same
+          choices for each (`LibrarySoundMenu`). Not for part of a folder,
+          which would give a sound to its first songs and say the folder. */}
+      {!isPart && (
+        <>
+          <div className="library-list__menu-rule" role="none" />
+          <button
+            type="button"
+            aria-haspopup="menu"
+            onClick={() => setPage('sound')}
+          >
+            <MenuIcon name="eqBars" className="library-list__menu-icon" />
+            <span>
+              {t(album ? 'library.sound.albumTitle' : 'library.sound.title')}
+            </span>
+            <span className="library-list__menu-more" aria-hidden="true">
+              ›
+            </span>
+          </button>
+        </>
+      )}
       {/* The song's own words: its tags, edited in the side panel for one,
           on the editor page for a set. Ctrl+I opens the same from a row. */}
       {onEditTags && (
@@ -436,6 +465,17 @@ const LibraryTrackMenu = ({
       {page === 'playlists' && (
         <LibraryPlaylistPicker
           trackIds={trackIds}
+          onBack={() => setPage('actions')}
+          onClose={onClose}
+        />
+      )}
+      {page === 'sound' && (
+        <LibrarySoundMenu
+          subject={
+            album
+              ? { kind: 'album', album, trackIds }
+              : { kind: 'songs', trackIds }
+          }
           onBack={() => setPage('actions')}
           onClose={onClose}
         />

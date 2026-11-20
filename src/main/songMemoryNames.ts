@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { createHash } from 'crypto';
 import type { ISongIdentity, TSongSource } from '../common/songIdentity';
+import { type TSoundScope, soundScopeOf } from '../common/songSoundMemory';
 import type {
   ISongMemoryEntryBase,
   ISongMemoryOutput,
@@ -61,8 +62,35 @@ export const storedSongIdentity = (identity: ISongIdentity): ISongIdentity => {
       ? { artist: identity.artist }
       : {}),
     source: identity.source,
+    // An album key names the listener's own files and nothing else.
+    ...(isOwn && identity.albumKey !== undefined
+      ? { albumKey: identity.albumKey }
+      : {}),
+    ...(identity.isVideo ? { isVideo: true } : {}),
   };
 };
+
+/** A fingerprinted alias filed with its world (`songSoundMemory.ts`), so the
+ * Library and other players never meet through one. The fingerprint of the
+ * fingerprint: what a file already filed by fingerprints can be moved to. */
+export const scopedSongAlias = (scope: TSoundScope, alias: string): string =>
+  fingerprint(`${scope}|${fingerprint(alias)}`);
+
+/** The song as Auto EQ's sounds file it: `storedSongIdentity`, its alias
+ * filed with its world. */
+export const storedSoundIdentity = (identity: ISongIdentity): ISongIdentity => {
+  const stored = storedSongIdentity(identity);
+  return stored.alias === undefined
+    ? stored
+    : {
+        ...stored,
+        alias: scopedSongAlias(soundScopeOf(identity.source), stored.alias),
+      };
+};
+
+/** The key a Library track is filed under, as `storedSongIdentity` files it. */
+export const libraryTrackKey = (trackId: string): string =>
+  fingerprint(`library:${trackId}`);
 
 /** An entry the conversion can carry over: an object whose alias, if it
  * has one, is text. Anything else came from a hand edit or half a write. */
@@ -75,7 +103,7 @@ const isConvertible = (entry: unknown): boolean => {
 };
 
 /**
- * A memory as builds before 2026-10-26 wrote it, filed again by fingerprints
+ * One store as builds before 2026-10-26 wrote it, filed again by fingerprints
  * and with the names of every song not the listener's own taken out.
  *
  * Every entry keeps what it holds — its settings or its sound, its plays and
@@ -85,12 +113,50 @@ const isConvertible = (entry: unknown): boolean => {
  * gives the same fingerprint. Only an entry that is not one at all is left
  * out, and counted in `dropped`.
  *
- * `rewrite` says the file has to be written again; a memory already filed
+ * `rewrite` says the file has to be written again; a store already filed
  * this way comes back as it went in. The source of a key written as text is
  * the word before its first colon, which is how `buildSongIdentity` spells
  * every one; a key already a fingerprint was filed by this module, with the
  * name already gone where it had to go.
  */
+export const fingerprintSongMemoryOutput = <Entry extends ISongMemoryEntryBase>(
+  output: ISongMemoryOutput<Entry>,
+): { output: ISongMemoryOutput<Entry>; rewrite: boolean; dropped: number } => {
+  let rewrite = false;
+  let dropped = 0;
+  const entries: Record<string, Entry> = {};
+  Object.entries(output.entries).forEach(([key, entry]) => {
+    if (!isConvertible(entry)) {
+      dropped += 1;
+      return;
+    }
+    const isWritten = !FINGERPRINT.test(key);
+    const isOwn = OWN_SOURCES.has(key.slice(0, key.indexOf(':')));
+    const isNamed = isWritten && !isOwn;
+    const alias =
+      entry.alias === undefined ? undefined : fingerprint(entry.alias);
+    rewrite ||= isWritten || alias !== entry.alias;
+    entries[fingerprint(key)] = {
+      ...entry,
+      alias,
+      ...(isNamed ? { title: '', artist: undefined } : {}),
+    };
+  });
+  const aliases: Record<string, string> = {};
+  Object.entries(output.aliases).forEach(([alias, key]) => {
+    // A pointer that is not text points at nothing a lookup could find.
+    if (typeof key !== 'string') {
+      rewrite = true;
+      return;
+    }
+    rewrite ||= !FINGERPRINT.test(alias) || !FINGERPRINT.test(key);
+    aliases[fingerprint(alias)] = fingerprint(key);
+  });
+  rewrite ||= dropped > 0;
+  return { output: rewrite ? { entries, aliases } : output, rewrite, dropped };
+};
+
+/** Every output of a memory, as `fingerprintSongMemoryOutput` files one. */
 export const fingerprintSongMemory = <Entry extends ISongMemoryEntryBase>(
   settings: ISongMemorySettings<Entry>,
 ): {
@@ -102,37 +168,11 @@ export const fingerprintSongMemory = <Entry extends ISongMemoryEntryBase>(
   let dropped = 0;
   const outputs: Record<string, ISongMemoryOutput<Entry>> = {};
   Object.entries(settings.outputs).forEach(([deviceId, output]) => {
-    const entries: Record<string, Entry> = {};
-    Object.entries(output.entries).forEach(([key, entry]) => {
-      if (!isConvertible(entry)) {
-        dropped += 1;
-        return;
-      }
-      const isWritten = !FINGERPRINT.test(key);
-      const isOwn = OWN_SOURCES.has(key.slice(0, key.indexOf(':')));
-      const isNamed = isWritten && !isOwn;
-      const alias =
-        entry.alias === undefined ? undefined : fingerprint(entry.alias);
-      rewrite ||= isWritten || alias !== entry.alias;
-      entries[fingerprint(key)] = {
-        ...entry,
-        alias,
-        ...(isNamed ? { title: '', artist: undefined } : {}),
-      };
-    });
-    const aliases: Record<string, string> = {};
-    Object.entries(output.aliases).forEach(([alias, key]) => {
-      // A pointer that is not text points at nothing a lookup could find.
-      if (typeof key !== 'string') {
-        rewrite = true;
-        return;
-      }
-      rewrite ||= !FINGERPRINT.test(alias) || !FINGERPRINT.test(key);
-      aliases[fingerprint(alias)] = fingerprint(key);
-    });
-    outputs[deviceId] = { entries, aliases };
+    const named = fingerprintSongMemoryOutput(output);
+    rewrite ||= named.rewrite;
+    dropped += named.dropped;
+    outputs[deviceId] = named.output;
   });
-  rewrite ||= dropped > 0;
   return {
     settings: rewrite ? { ...settings, outputs } : settings,
     rewrite,

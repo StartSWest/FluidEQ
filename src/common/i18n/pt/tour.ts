@@ -65,7 +65,7 @@ const tour: Partial<Dictionary> = {
   'tour.player.lead':
     'Um botão na barra de título recolhe o FluidEQ em uma coluna: a cena no topo com a música, os controles, o seu som e o que toca a seguir. É o mesmo player em todas as cores de janela, e a cena que você escolher aparece atrás de tudo, em {backdrop}.',
   'tour.player.point1':
-    '{sound} traz os controles de Graves, Médios e Agudos ou as bandas do seu EQ, com o preset, o EQ inteligente e o Modo EQ ao lado.',
+    '{sound} traz os controles de Graves, Médios e Agudos ou as bandas do seu EQ, com o preset, o EQ automático e o Modo EQ ao lado.',
   'tour.player.point2':
     '{upNext} e {playlists} ficam embaixo; recolha-os para ter uma imagem maior. Músicas soltas em qualquer lugar do player vão para a fila.',
   'tour.player.point3':
@@ -405,7 +405,7 @@ const tour: Partial<Dictionary> = {
   'tour.library.point3':
     'Playlists e uma lista de Favoritos permanente. Clique com o botão direito em qualquer música para adicioná-la a uma delas, ou à fila.',
   'tour.library.point4':
-    'Memória por música do EQ inteligente: enquanto o EQ inteligente continua medindo, ligue “Salvar para esta música”, e depois de dois minutos a correção dele fica salva para aquela faixa e volta quando ela tocar de novo.',
+    'EQ automático: dê a uma música, a uma seleção ou a um álbum inteiro um preset próprio pela Biblioteca, e ele toca toda vez que essas faixas tocarem.',
   'tour.library.how':
     'Abra a aba Biblioteca, pressione “Adicionar pasta” ou solte uma pasta na página e espere a leitura terminar. Escolha Álbuns, Artistas, Gêneros, Músicas, Pastas ou Árvore e pressione Reproduzir.',
   'tour.library.open': 'Abrir Biblioteca',

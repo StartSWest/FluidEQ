@@ -6,36 +6,36 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import ChannelEnum from '../../common/channels';
 import { IState } from '../../common/constants';
-import { ErrorCode } from '../../common/errors';
-import type { ISongIdentity, TSongSource } from '../../common/songIdentity';
 import type { IOutputEditor } from '../../common/outputSettings';
+import { TSongSoundLanded, toSongSound } from '../../common/songSound';
 import {
-  ISongSoundEntry,
-  TSongSoundLanded,
-  ISongSoundSettings,
+  type ISongSoundMatch,
+  canKeepSongSound,
   forgetSongSound,
+  libraryTrackIdOf,
+  lookupAlbumSound,
   lookupSongSound,
+  nameSongSound,
   saveSongSound,
-  toSongSound,
-} from '../../common/songSound';
-import { TError, TSuccess } from '../../renderer/utils/equalizerApi';
+  soundScopeOf,
+} from '../../common/songSoundMemory';
 import {
   keepSongSound,
   putSongSoundOn,
   returnSongSound,
 } from '../songSoundLoan';
-import { storedSongIdentity } from '../songMemoryNames';
+import { storedSoundIdentity } from '../songMemoryNames';
+import type { ISongSoundHolder } from '../songSoundHolder';
 import {
-  keepSongSoundSettings,
-  loadSongSoundSettings,
-  readSongSoundSettings,
-  saveSongSoundSettings,
-} from '../songSoundStore';
+  isIdentity,
+  replyInvalidParameter,
+  replySuccess,
+} from './songSoundCheck';
 import onWindowMessage from './windowMessages';
 
 export interface ISongSoundIpcDeps {
   state: IState;
-  userDataDir: string;
+  holder: ISongSoundHolder;
   getOutputEditor: () => IOutputEditor | undefined;
   handleUpdateHelper: <T>(
     event: Electron.IpcMainEvent,
@@ -46,100 +46,24 @@ export interface ISongSoundIpcDeps {
   ) => Promise<void>;
 }
 
-/** Longer than any path, title or artist a player reports; a cap, not a fit. */
-const MAX_TEXT = 2048;
-const SOURCES: readonly string[] = [
-  'library',
-  'karaoke',
-  'media',
-  'system',
-  'remote',
-] satisfies readonly TSongSource[];
-
-const isText = (value: unknown, isOptional = false): boolean =>
-  (isOptional && value === undefined) ||
-  (typeof value === 'string' && value.length <= MAX_TEXT);
-
 /**
- * A song as the window names it, every string bounded and the source one of
- * the five, before any of it is kept in a file that lives for good.
- */
-const isIdentity = (value: unknown): value is ISongIdentity => {
-  if (typeof value !== 'object' || value === null) {
-    return false;
-  }
-  const { key, alias, title, artist, source } = value as Record<
-    string,
-    unknown
-  >;
-  return (
-    isText(key) &&
-    key !== '' &&
-    isText(title) &&
-    isText(alias, true) &&
-    isText(artist, true) &&
-    typeof source === 'string' &&
-    SOURCES.includes(source)
-  );
-};
-
-/** An output id, as short and printable as Windows makes one. */
-const isDeviceId = (value: unknown): value is string =>
-  typeof value === 'string' && value !== '' && value.length <= 256;
-
-const replyInvalidParameter = (
-  event: Electron.IpcMainEvent,
-  channel: ChannelEnum,
-): void => {
-  const reply: TError = { errorCode: ErrorCode.INVALID_PARAMETER };
-  event.reply(channel, reply);
-};
-
-/**
- * The memory of each song's sound, and putting one on.
+ * The song that plays and its sound: what is kept for it, filing it, and
+ * putting one on.
  *
- * The memory is a file and three channels to it with no rules of their own —
- * what a lookup returns and what a save changes live in
- * `common/songSound.ts` — held in memory between writes, as the Smart EQ
- * memory's is (`songEq.ts`): nothing else writes the file, and a song ending
- * is not a moment for a disk read.
+ * What a lookup answers and what a save changes live in
+ * `common/songSoundMemory.ts`; the store is held by `songSoundHolder.ts`.
  *
  * Putting a sound on is one write of the bands, the Tone and the preset's
  * curve together, so the engine hears the song's sound arrive in one piece
  * rather than band by band. Whether it is lent, and what that keeps out of
  * the output's profile, is `songSoundLoan.ts`.
- *
- * Settles once the read just after launch has been taken in. Main does not
- * wait for it; the tests do.
  */
 const registerSongSoundIpc = ({
   state,
-  userDataDir,
+  holder,
   getOutputEditor,
   handleUpdateHelper,
-}: ISongSoundIpcDeps): Promise<void> => {
-  let cached: ISongSoundSettings | undefined;
-  const settings = (): ISongSoundSettings => {
-    if (!cached) {
-      cached = loadSongSoundSettings(userDataDir);
-    }
-    return cached;
-  };
-  // Read once just after launch, off the main thread, rather than at the
-  // first song: a file written before 2026-10-26 names the songs in it, and
-  // reading it is what writes it again without them (`songMemoryNames.ts`).
-  // A lookup that lands first has read the file itself and written it then,
-  // and may have saved a song since, so this then leaves both alone.
-  const launchRead = readSongSoundSettings(userDataDir).then((loaded) => {
-    if (cached === undefined) {
-      cached = keepSongSoundSettings(userDataDir, loaded);
-    }
-    return undefined;
-  });
-  const replySuccess = (event: Electron.IpcMainEvent, channel: ChannelEnum) => {
-    const reply: TSuccess<void> = { result: undefined };
-    event.reply(channel, reply);
-  };
+}: ISongSoundIpcDeps): void => {
   const matchesEditor = (value: unknown): boolean => {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
       return false;
@@ -156,59 +80,80 @@ const registerSongSoundIpc = ({
 
   onWindowMessage(ChannelEnum.LOOKUP_SONG_SOUND, (event, arg) => {
     const channel = ChannelEnum.LOOKUP_SONG_SOUND;
-    const deviceId = arg?.[0];
-    const identity = arg?.[1];
-    if (!isDeviceId(deviceId) || !isIdentity(identity)) {
+    const identity = arg?.[0];
+    if (!isIdentity(identity)) {
       replyInvalidParameter(event, channel);
       return;
     }
-    const reply: TSuccess<ISongSoundEntry | undefined> = {
-      result: lookupSongSound(
-        settings(),
-        deviceId,
-        storedSongIdentity(identity),
-      ),
-    };
-    event.reply(channel, reply);
+    if (!canKeepSongSound(identity)) {
+      replySuccess<ISongSoundMatch>(event, channel, {});
+      return;
+    }
+    const scope = soundScopeOf(identity.source);
+    const stored = storedSoundIdentity(identity);
+    const trackId = libraryTrackIdOf(identity);
+    if (trackId !== undefined) {
+      // A song kept before Auto EQ, known from now on by its track id.
+      holder.write(nameSongSound(holder.read(), stored.key, trackId));
+    }
+    const settings = holder.read();
+    const entry = lookupSongSound(settings, stored, scope);
+    // Albums are the Library's alone.
+    const album =
+      scope === 'library' && stored.albumKey !== undefined
+        ? lookupAlbumSound(settings, stored.albumKey)
+        : undefined;
+    replySuccess<ISongSoundMatch>(event, channel, {
+      ...(entry ? { song: entry.sound } : {}),
+      ...(album ? { album: { sound: album.sound, title: album.title } } : {}),
+    });
   });
 
   onWindowMessage(ChannelEnum.SAVE_SONG_SOUND, (event, arg) => {
     const channel = ChannelEnum.SAVE_SONG_SOUND;
-    const deviceId = arg?.[0];
-    const identity = arg?.[1];
-    const sound = toSongSound(arg?.[2]);
-    if (!isDeviceId(deviceId) || !isIdentity(identity) || !sound) {
+    const identity = arg?.[0];
+    const sound = toSongSound(arg?.[1]);
+    const isPlay = arg?.[2];
+    if (
+      !isIdentity(identity) ||
+      !sound ||
+      typeof isPlay !== 'boolean' ||
+      !canKeepSongSound(identity)
+    ) {
       replyInvalidParameter(event, channel);
       return;
     }
-    cached = saveSongSound(
-      settings(),
-      deviceId,
-      storedSongIdentity(identity),
-      sound,
-      Date.now(),
+    const trackId = libraryTrackIdOf(identity);
+    holder.write(
+      saveSongSound(
+        holder.read(),
+        storedSoundIdentity(identity),
+        soundScopeOf(identity.source),
+        sound,
+        Date.now(),
+        { isPlay, ...(trackId === undefined ? {} : { trackId }) },
+      ),
     );
-    saveSongSoundSettings(userDataDir, cached);
-    replySuccess(event, channel);
+    replySuccess(event, channel, undefined);
   });
 
   onWindowMessage(ChannelEnum.FORGET_SONG_SOUND, (event, arg) => {
     const channel = ChannelEnum.FORGET_SONG_SOUND;
-    const deviceId = arg?.[0];
-    const identity = arg?.[1];
-    if (!isDeviceId(deviceId) || !isIdentity(identity)) {
+    const identity = arg?.[0];
+    if (!isIdentity(identity)) {
       replyInvalidParameter(event, channel);
       return;
     }
     // The identity, not a key: which entry this removes is
-    // `common/songMemory.ts`'s decision, exactly as it is for a lookup.
-    cached = forgetSongSound(
-      settings(),
-      deviceId,
-      storedSongIdentity(identity),
+    // `common/songSoundMemory.ts`'s decision, exactly as it is for a lookup.
+    holder.write(
+      forgetSongSound(
+        holder.read(),
+        storedSoundIdentity(identity),
+        soundScopeOf(identity.source),
+      ),
     );
-    saveSongSoundSettings(userDataDir, cached);
-    replySuccess(event, channel);
+    replySuccess(event, channel, undefined);
   });
 
   onWindowMessage(ChannelEnum.APPLY_SONG_SOUND, async (event, arg) => {
@@ -248,7 +193,7 @@ const registerSongSoundIpc = ({
       return;
     }
     if (!state.songSoundLoan) {
-      replySuccess(event, channel);
+      replySuccess(event, channel, undefined);
       return;
     }
     keepSongSound(state);
@@ -263,13 +208,11 @@ const registerSongSoundIpc = ({
       return;
     }
     if (!returnSongSound(state)) {
-      replySuccess(event, channel);
+      replySuccess(event, channel, undefined);
       return;
     }
     await handleUpdateHelper(event, channel, undefined, false, true);
   });
-
-  return launchRead;
 };
 
 export default registerSongSoundIpc;

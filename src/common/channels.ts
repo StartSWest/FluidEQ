@@ -160,12 +160,30 @@ enum ChannelEnum {
   // Written when the song ends. Counts the play.
   COMMIT_SONG_EQ = 'commitSongEq',
   FORGET_SONG_EQ = 'forgetSongEq',
-  // The sound each song was played with — its preset, Tone and bands — per
-  // output (`songSound.ts`). Looked up on every settled track.
+  // Auto EQ's song and album sounds — a preset, Tone and bands — for every
+  // output (`songSoundMemory.ts`). Looked up on every settled track: the
+  // song's own and its album's.
   LOOKUP_SONG_SOUND = 'lookupSongSound',
-  // Filed when a song the listener changed ends. Counts the play.
+  // Filed when a saved song the listener changed ends (counts the play), or
+  // at "Save for this song" (does not).
   SAVE_SONG_SOUND = 'saveSongSound',
   FORGET_SONG_SOUND = 'forgetSongSound',
+  // Library songs given a sound of their own, or have theirs forgotten, one
+  // or a selection at once.
+  PICK_LIBRARY_SONG_SOUNDS = 'pickLibrarySongSounds',
+  // An album's sound set or taken away, in the Library.
+  SET_ALBUM_SOUND = 'setAlbumSound',
+  // What the Library and Manage show: which Library songs and albums have a
+  // sound, and how many of other players' songs do.
+  GET_SONG_SOUND_INDEX = 'getSongSoundIndex',
+  // The Library's track ids, for the songs kept before Auto EQ to be known
+  // by them (`nameLibrarySongSounds`).
+  NAME_LIBRARY_SONG_SOUNDS = 'nameLibrarySongSounds',
+  // Manage's "Forget all", for one world: the Library's or other players'.
+  FORGET_SONG_SOUNDS_OF = 'forgetSongSoundsOf',
+  // Main to the window: what is kept changed, so whatever shows it asks again
+  // and a playing song is looked up again.
+  SONG_SOUNDS_CHANGED = 'songSoundsChanged',
   // Put a song's sound on: lent for the song, or the listener's own handed
   // back (`songSoundLoan.ts`).
   APPLY_SONG_SOUND = 'applySongSound',

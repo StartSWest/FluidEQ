@@ -72,7 +72,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.precise': 'सटीक',
   'eq.mode.classic': 'क्लासिक',
   'eq.mode.trebleEqPrecise':
-    'सटीक: आपके बैंड, टोन, प्रीसेट, ड्राइवर प्रकार और स्मार्ट EQ ठीक वैसे ही बजते हैं जैसे बनाए गए हैं, 20\u00a0kHz तक।',
+    'सटीक: आपके बैंड, टोन, प्रीसेट, ड्राइवर प्रकार और स्मार्ट सुधार ठीक वैसे ही बजते हैं जैसे बनाए गए हैं, 20\u00a0kHz तक।',
   'eq.mode.trebleEqClassic':
     'क्लासिक: जैसे Equalizer APO उन्हें बजाता है। ट्रेबल बैंड आपकी सेटिंग से संकरे और धीमे निकलते हैं, 20\u00a0kHz के पास सबसे ज़्यादा।',
   'eq.mode.trebleCurvesPrecise':
@@ -454,7 +454,7 @@ const eq: Partial<Dictionary> = {
   'eq.channels.letter.left': 'बा',
   'eq.channels.letter.right': 'दा',
   'graph.curve.voicing': 'प्रीसेट',
-  'graph.curve.smart': 'स्मार्ट EQ',
+  'graph.curve.smart': 'स्मार्ट सुधार',
   'graph.curve.custom': 'कस्टम FX',
   'graph.curve.tone': 'टोन',
   'graph.curve.total': 'अंतिम आउटपुट',
@@ -747,13 +747,12 @@ const eq: Partial<Dictionary> = {
   'squigImport.emptyHint':
     'कोई एक्सपोर्ट पेस्ट करें, ताकि EQ में उसे आगे बारीक़ी से सेट करने से पहले आप उसका आकार देख सकें।',
   'eq.title': 'पैरामीट्रिक EQ',
-  'eq.smart': 'स्मार्ट EQ',
+  'eq.smart': 'स्मार्ट सुधार',
   'eq.smart.cancel': 'रद्द करें',
-  'eq.smart.stopAria': 'स्मार्ट EQ रोकें',
-  'eq.smart.aria': 'स्रोत से स्मार्ट EQ बनाएँ',
+  'eq.smart.aria': 'स्रोत से स्मार्ट सुधार',
   'eq.smart.continuousAria':
-    'संगीत चलते समय स्मार्ट EQ मापता और समायोजित करता रहे',
-  'eq.smart.modeAria': 'चुनें कि स्मार्ट EQ कैसे मापे',
+    'संगीत चलते समय स्मार्ट सुधार मापता और समायोजित करता रहे',
+  'eq.smart.modeAria': 'चुनें कि स्मार्ट सुधार कैसे मापे',
   'eq.smart.mode.once.note': 'एक माप, एक ही बार में लागू',
   'eq.smart.mode.detail': 'डिटेल',
   'eq.smart.mode.detail.note': 'मापता रहे · केवल चोटियाँ और गड्ढे',
@@ -772,7 +771,7 @@ const eq: Partial<Dictionary> = {
   'eq.layers.custom': 'कस्टम FX',
   'eq.layers.disable': '{layer} हटाए बिना बंद करें',
   'eq.layers.enable': '{layer} फिर से चालू करें',
-  'eq.layers.smart': 'स्मार्ट EQ',
+  'eq.layers.smart': 'स्मार्ट सुधार',
   'eq.layers.remove': '{layer} परत हटाएँ',
   'eq.layers.clearBands': 'सभी बैंड 0 dB पर लौटाएँ',
   'eq.layers.clearTone': 'बास, मिड और ट्रेबल 0 dB पर लौटाएँ',

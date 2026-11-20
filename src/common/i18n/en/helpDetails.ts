@@ -47,15 +47,15 @@ const helpDetails = {
     'A profile for a game with its own 3D audio can keep the Room off to avoid processing its positioning twice. Room profiles are for headphones. Your music sound returns when the game’s sound is unloaded.',
   'help.gamefilter.keywords':
     'game filter, footsteps, lift, calm, environment, ambience, dialogue, voices, make room, hooves, heavy steps, isolate, hrtf, spatial audio',
-  'help.songs.title': 'Remember each song’s sound',
+  'help.songs.title': 'Auto EQ: each song’s sound',
   'help.songs.intro':
-    'A song can remember its preset, Tone and EQ separately for each output. A song tuned on headphones does not change the sound saved for your speakers.',
+    'Auto EQ, on the EQ page, decides each song’s sound: the sound saved for the song, its album’s sound from the Library, or yours. Smart correction adds a measured correction on top. A song’s sound follows it to every output; the headphone correction stays the output’s.',
   'help.songs.steps':
-    'Under the output’s profiles, turn on Remember each song’s sound. It is off until you choose to use it.\nPlay an identifiable song, then change its preset, Tone or EQ. A notice tells you that the sound will be kept; use its do-not-save action if this was only an experiment.\nWhen that song plays again on the same output, its sound comes back temporarily. Undo skips it for this play; Forget this song also removes the saved memory.\nWhen the song ends, the output’s previous sound comes back. Choosing a different profile deliberately lets you take control again.\nSmart EQ has its own Save for this song control while it measures. That remembers the measured Smart EQ correction; it is separate from remembering your hand-tuned preset, Tone and bands.',
+    'Open Auto EQ, the filled button in the Your EQ tools, and switch on Song sounds, Album sounds and Smart correction as you like. Each one turns off on its own.\nWhile a song plays, press Save for this song to keep the sound you hear. When it plays again its sound comes back, and when a song with nothing saved follows, your own sound comes back.\nChange the preset while a saved song plays and the song keeps the change. A notice says so; Don’t save leaves it as it was. A change on a song with nothing saved becomes your sound instead.\nIn the Library, right-click a song, a selection or an album, or use an album’s Album sound, to choose a preset or keep what is playing now. A song’s own sound beats its album’s; albums change only in the Library.\nManage lists every saved song and album, with Forget. Reset all settings turns Auto EQ off and keeps them.',
   'help.songs.tip':
-    'Song identity comes from the local file or the player’s media information. Missing or wrong titles can prevent a match. The preamp is not stored with a song, and a game’s own sound takes priority while it is loaded.',
+    'Songs from Spotify, YouTube or the browser are known by the title and artist the player reports, and keep their sounds apart from the Library’s. Films and videos never get a song’s sound. Auto EQ steps aside while DSP is off, a Gaming chain is on or a game plays its own sound.',
   'help.songs.keywords':
-    'per song, song sound, song memory, remember song, save song eq, smart eq, undo, forget this song, preset per song, tone per song',
+    'auto eq, per song, song sound, album sound, remember song, save for this song, smart correction, smart eq, preset per song, preset per album, forget, manage',
   'help.mycurves.title': 'My curves: import, edit and share',
   'help.mycurves.intro':
     'My curves is your own library beside the headphone measurement library. Keep a curve once, inspect its response and choose whether it becomes a correction layer or editable EQ bands.',

@@ -16,17 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/** Smart EQ song memory — the tick, its progress, and the notice. */
+/** Smart correction’s song memory — its progress, and the notice. */
 export default {
-  'songEq.save': 'इस गाने के लिए सहेजें',
-  'songEq.saveAria': 'जो भी बज रहा है, उसके लिए स्मार्ट EQ सुधार याद रखें',
-  'songEq.waiting': 'कुछ नहीं बज रहा',
-  'songEq.listening': '{remaining} बाकी',
-  'songEq.willSave': 'सहेजा जाएगा — {title}',
+  'songEq.saveAria': 'जो भी बज रहा है, उसके लिए स्मार्ट सुधार याद रखें',
   'songEq.noticeTitle': 'इस गाने के लिए सहेजा गया EQ इस्तेमाल हो रहा है',
   'songEq.noticeBody': '{title} — {plays} बार सुनकर सीखा गया',
   'songEq.noticeBodyOnce': '{title} — एक बार में सीखा गया',
   'songEq.undo': 'पूर्ववत',
   'songEq.forget': 'इस गाने को भुला दें',
-  'songEq.badgeAria': 'स्मार्ट EQ यह गाना सीख रहा है',
+  'songEq.badgeAria': 'स्मार्ट सुधार यह गाना सीख रहा है',
 };

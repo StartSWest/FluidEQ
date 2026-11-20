@@ -255,11 +255,6 @@ export const FIGURES: readonly IFigureSpec[] = [
         text: 'help.profiles.update',
       },
       {
-        find: `$('#song-sound').closest('.extra-outputs__rule')`,
-        name: 'songSound.switch',
-        text: 'help.profiles.songSound',
-      },
-      {
         find: `$('#single-player').closest('.extra-outputs__rule')`,
         name: 'extraOutput.singlePlayer',
         text: 'help.profiles.onePlayer',

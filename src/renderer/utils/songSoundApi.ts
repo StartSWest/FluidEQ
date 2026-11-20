@@ -10,52 +10,93 @@ import type { ISongIdentity } from 'common/songIdentity';
 import type { IOutputEditor } from 'common/outputSettings';
 import type {
   ISongSound,
-  ISongSoundEntry,
+  TSavedSound,
   TSongSoundLanded,
 } from 'common/songSound';
+import type { ISongSoundIndex, ISongSoundMatch } from 'common/songSoundMemory';
 import {
   sendRequest,
   setterResponseHandler,
   simpleResponseHandler,
 } from './ipcRequest';
 
-// The requests behind the memory of each song's sound (`songSound.ts`) and
-// putting one on (`main/songSoundLoan.ts`). A file of their own: the edit
+// The requests behind Auto EQ's song and album sounds (`songSoundMemory.ts`)
+// and putting one on (`main/songSoundLoan.ts`). A file of their own: the edit
 // requests' file is near its line ceiling.
 
-/** What this output remembers of a song's sound, or nothing. */
+/** What is kept for a song, for every output: its own sound, and its album's. */
 export const lookupSongSound = (
-  deviceId: string,
   identity: ISongIdentity,
-): Promise<ISongSoundEntry | undefined> =>
+): Promise<ISongSoundMatch> =>
   sendRequest(
     ChannelEnum.LOOKUP_SONG_SOUND,
-    [deviceId, identity],
-    simpleResponseHandler<ISongSoundEntry | undefined>(),
+    [identity],
+    simpleResponseHandler<ISongSoundMatch>(),
   );
 
-/** File the sound a song ended with, and count the play. */
+/** File what plays as the song's own; `isPlay` counts a play at its end. */
 export const saveSongSound = (
-  deviceId: string,
   identity: ISongIdentity,
   sound: ISongSound,
+  isPlay: boolean,
 ): Promise<void> =>
   sendRequest(
     ChannelEnum.SAVE_SONG_SOUND,
-    [deviceId, identity, sound],
+    [identity, sound, isPlay],
     setterResponseHandler,
   );
 
-/** Forget one song on one output — the entry a lookup would have answered. */
-export const forgetSongSound = (
-  deviceId: string,
-  identity: ISongIdentity,
+/** Forget a song's own sound — the entry a lookup would have answered. */
+export const forgetSongSound = (identity: ISongIdentity): Promise<void> =>
+  sendRequest(ChannelEnum.FORGET_SONG_SOUND, [identity], setterResponseHandler);
+
+/** Library songs given a sound of their own, or theirs forgotten (`null`). */
+export const pickLibrarySongSounds = (
+  identities: readonly ISongIdentity[],
+  sound: TSavedSound | null,
 ): Promise<void> =>
   sendRequest(
-    ChannelEnum.FORGET_SONG_SOUND,
-    [deviceId, identity],
+    ChannelEnum.PICK_LIBRARY_SONG_SOUNDS,
+    [identities, sound],
     setterResponseHandler,
   );
+
+/** An album's sound set, or taken away (`null`). */
+export const setAlbumSound = (
+  albumKey: string,
+  title: string,
+  artist: string,
+  sound: TSavedSound | null,
+): Promise<void> =>
+  sendRequest(
+    ChannelEnum.SET_ALBUM_SOUND,
+    [albumKey, title, artist, sound],
+    setterResponseHandler,
+  );
+
+/** Which Library songs and albums have a sound, and how many other songs do. */
+export const getSongSoundIndex = (): Promise<ISongSoundIndex> =>
+  sendRequest(
+    ChannelEnum.GET_SONG_SOUND_INDEX,
+    [],
+    simpleResponseHandler<ISongSoundIndex>(),
+  );
+
+/** The Library's track ids, for songs kept before Auto EQ to be known by. */
+export const nameLibrarySongSounds = (
+  trackIds: readonly string[],
+): Promise<void> =>
+  sendRequest(
+    ChannelEnum.NAME_LIBRARY_SONG_SOUNDS,
+    [trackIds],
+    setterResponseHandler,
+  );
+
+/** Manage's "Forget all": the Library's songs, other players', or albums. */
+export const forgetSongSoundsOf = (
+  what: 'library' | 'other' | 'albums',
+): Promise<void> =>
+  sendRequest(ChannelEnum.FORGET_SONG_SOUNDS_OF, [what], setterResponseHandler);
 
 /**
  * Put a sound's bands, Tone and preset curve on in one write.

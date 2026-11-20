@@ -39,6 +39,7 @@ import {
 import GameSound from './games/GameSound';
 import EngineKeySwitch from './components/EngineKeySwitch';
 import { OPEN_GAMING_LAB_EVENT } from './games/gamingLabEvents';
+import { OPEN_AUTO_EQ_EVENT } from './eq/autoEq/autoEqOpen';
 import RackFollowsEngine from './dsp/RackFollowsEngine';
 import useMainEditorWhile from './utils/useMainEditorWhile';
 import PresetToneFeed from './dsp/PresetToneFeed';
@@ -202,6 +203,14 @@ const AppContent = () => {
     window.addEventListener(OPEN_GAMING_LAB_EVENT, open);
     return () => window.removeEventListener(OPEN_GAMING_LAB_EVENT, open);
   }, [selectTopWorkspaceTab, windowMode]);
+
+  // Asked for Auto EQ (the Output panel's note about the old switch): the EQ
+  // page, where its button opens its panel (`autoEqOpen.ts`).
+  useEffect(() => {
+    const open = () => selectTopWorkspaceTab('eq');
+    window.addEventListener(OPEN_AUTO_EQ_EVENT, open);
+    return () => window.removeEventListener(OPEN_AUTO_EQ_EVENT, open);
+  }, [selectTopWorkspaceTab]);
   usePerformanceContext(activeWorkspaceTab, windowMode);
   /**
    * THE AMP'S QUEUE DECK NEEDS THE LIBRARY'S PLAYER, whether or not anything

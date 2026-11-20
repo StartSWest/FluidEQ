@@ -7,12 +7,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { ISongIdentity } from './songIdentity';
 
 /**
- * Something remembered about a song, per output: the store both song
- * memories keep — the Smart EQ correction (`songEq.ts`) and the sound a song
- * was played with (`songSound.ts`). One set of rules for finding, filing,
- * evicting and forgetting a song, because the alias bookkeeping is where the
- * bugs in either live, and a second copy of it would be a second place to get
- * them.
+ * Something remembered about a song: the store both song memories keep — the
+ * Smart EQ correction (`songEq.ts`, one store per output) and the sound a song
+ * plays with (`songSound.ts`, one store for every output). One set of rules
+ * for finding, filing, evicting and forgetting a song, because the alias
+ * bookkeeping is where the bugs in either live, and a second copy of it would
+ * be a second place to get them.
+ *
+ * The rules are written for one store (`ISongMemoryOutput`); the per-output
+ * functions below apply them to an output's.
  *
  * Pure: every function takes the whole store and returns a new one.
  */
@@ -42,8 +45,13 @@ export const emptySongMemory = <Entry>(): ISongMemorySettings<Entry> => ({
   outputs: {},
 });
 
+export const emptySongMemoryOutput = <Entry>(): ISongMemoryOutput<Entry> => ({
+  entries: {},
+  aliases: {},
+});
+
 /**
- * Which key this output actually holds this song under, if any.
+ * Which key this store actually holds this song under, if any.
  *
  * The one resolution rule, so lookup and forget cannot disagree about it.
  * They did: a curve learned from a library file was matched from Spotify
@@ -71,17 +79,52 @@ const resolveKey = <Entry>(
   return aliased !== undefined && output.entries[aliased] ? aliased : undefined;
 };
 
-export const lookupSongMemory = <Entry>(
-  settings: ISongMemorySettings<Entry>,
-  deviceId: string,
+/** What one store holds for the song, if anything. */
+export const lookupInSongMemory = <Entry>(
+  output: ISongMemoryOutput<Entry> | undefined,
   identity: ISongIdentity,
 ): Entry | undefined => {
-  const output = settings.outputs[deviceId];
   const key = resolveKey(output, identity);
   return output && key !== undefined ? output.entries[key] : undefined;
 };
 
-/** Drop the lowest `updatedAt` entries until the output is inside the cap,
+export const lookupSongMemory = <Entry>(
+  settings: ISongMemorySettings<Entry>,
+  deviceId: string,
+  identity: ISongIdentity,
+): Entry | undefined =>
+  lookupInSongMemory(settings.outputs[deviceId], identity);
+
+/**
+ * What this output holds for the song, or else what any other output does —
+ * the newest of them.
+ *
+ * For what is about the record and not the output it plays on: Smart
+ * correction measures the source, before any output's effects, so a song
+ * measured on the headphones is measured for the speakers too (Auto EQ,
+ * 2026-11-20: a song's sound follows it to every output).
+ */
+export const lookupSongMemoryAnywhere = <Entry extends ISongMemoryEntryBase>(
+  settings: ISongMemorySettings<Entry>,
+  deviceId: string,
+  identity: ISongIdentity,
+): Entry | undefined => {
+  const own = lookupSongMemory(settings, deviceId, identity);
+  if (own) {
+    return own;
+  }
+  let newest: Entry | undefined;
+  Object.entries(settings.outputs).forEach(([id, output]) => {
+    const entry =
+      id === deviceId ? undefined : lookupInSongMemory(output, identity);
+    if (entry && (!newest || entry.updatedAt > newest.updatedAt)) {
+      newest = entry;
+    }
+  });
+  return newest;
+};
+
+/** Drop the lowest `updatedAt` entries until the store is inside the cap,
  * taking each one's alias with it. */
 const evict = <Entry extends ISongMemoryEntryBase>(
   output: ISongMemoryOutput<Entry>,
@@ -116,48 +159,71 @@ const evict = <Entry extends ISongMemoryEntryBase>(
  * there, and evict down to `maxEntries`. `make` is handed what was filed under
  * that key before, for whatever it carries on (the play count).
  */
+export const putInSongMemory = <Entry extends ISongMemoryEntryBase>(
+  output: ISongMemoryOutput<Entry> | undefined,
+  identity: ISongIdentity,
+  make: (existing: Entry | undefined) => Entry,
+  maxEntries: number,
+): ISongMemoryOutput<Entry> => {
+  const current = output ?? emptySongMemoryOutput<Entry>();
+  return evict(
+    {
+      entries: {
+        ...current.entries,
+        [identity.key]: make(current.entries[identity.key]),
+      },
+      aliases: identity.alias
+        ? { ...current.aliases, [identity.alias]: identity.key }
+        : { ...current.aliases },
+    },
+    maxEntries,
+  );
+};
+
 export const putSongMemory = <Entry extends ISongMemoryEntryBase>(
   settings: ISongMemorySettings<Entry>,
   deviceId: string,
   identity: ISongIdentity,
   make: (existing: Entry | undefined) => Entry,
   maxEntries: number,
-): ISongMemorySettings<Entry> => {
-  const output = settings.outputs[deviceId] ?? { entries: {}, aliases: {} };
-  const next: ISongMemoryOutput<Entry> = {
-    entries: {
-      ...output.entries,
-      [identity.key]: make(output.entries[identity.key]),
-    },
-    aliases: identity.alias
-      ? { ...output.aliases, [identity.alias]: identity.key }
-      : { ...output.aliases },
-  };
-  return {
-    ...settings,
-    outputs: { ...settings.outputs, [deviceId]: evict(next, maxEntries) },
-  };
-};
+): ISongMemorySettings<Entry> => ({
+  ...settings,
+  outputs: {
+    ...settings.outputs,
+    [deviceId]: putInSongMemory(
+      settings.outputs[deviceId],
+      identity,
+      make,
+      maxEntries,
+    ),
+  },
+});
 
 /**
- * Forget one song on one output.
+ * Forget one song in one store.
  *
  * Takes the identity rather than a key, because the key the caller is holding
  * is the key of whatever is *playing* and the entry may well be filed under
  * another one — that is what the alias index is for. Resolved through
  * `resolveKey`, so this deletes exactly the entry a lookup would have handed
- * back.
+ * back. The same store comes back when there was nothing to forget.
  */
-export const forgetSongMemory = <Entry>(
-  settings: ISongMemorySettings<Entry>,
-  deviceId: string,
+export const forgetInSongMemory = <Entry>(
+  output: ISongMemoryOutput<Entry> | undefined,
   identity: ISongIdentity,
-): ISongMemorySettings<Entry> => {
-  const output = settings.outputs[deviceId];
+): ISongMemoryOutput<Entry> | undefined => {
   const key = resolveKey(output, identity);
   if (!output || key === undefined) {
-    return settings;
+    return output;
   }
+  return forgetKeyInSongMemory(output, key);
+};
+
+/** Forget the entry filed under `key`, and every alias still pointing at it. */
+export const forgetKeyInSongMemory = <Entry>(
+  output: ISongMemoryOutput<Entry>,
+  key: string,
+): ISongMemoryOutput<Entry> => {
   const entries = { ...output.entries };
   delete entries[key];
   const aliases: Record<string, string> = {};
@@ -168,8 +234,18 @@ export const forgetSongMemory = <Entry>(
       aliases[alias] = target;
     }
   });
-  return {
-    ...settings,
-    outputs: { ...settings.outputs, [deviceId]: { entries, aliases } },
-  };
+  return { entries, aliases };
+};
+
+export const forgetSongMemory = <Entry>(
+  settings: ISongMemorySettings<Entry>,
+  deviceId: string,
+  identity: ISongIdentity,
+): ISongMemorySettings<Entry> => {
+  const output = settings.outputs[deviceId];
+  const next = forgetInSongMemory(output, identity);
+  if (!next || next === output) {
+    return settings;
+  }
+  return { ...settings, outputs: { ...settings.outputs, [deviceId]: next } };
 };

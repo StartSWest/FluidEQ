@@ -128,7 +128,7 @@ const app: Partial<Dictionary> = {
     "Place la scène du Bureau de cet écran derrière les icônes et la prévient quand des fenêtres couvrent l'écran. Un pour chaque écran qui en affiche une.",
   'app.processes.name.shareCapture': 'Capture audio',
   'app.processes.what.shareCapture':
-    "Capture ce que joue ce PC, avant l'égaliseur, pour l'onglet Partager l’audio, une deuxième sortie et l'Égalisation auto. Ne tourne que pendant que l'un d'eux est utilisé.",
+    "Capture ce que joue ce PC, avant l'égaliseur, pour l'onglet Partager l’audio, une deuxième sortie et la Correction intelligente. Ne tourne que pendant que l'un d'eux est utilisé.",
   'app.processes.name.sharePlayback': 'Lecture de l’audio partagé',
   'app.processes.what.sharePlayback':
     'Joue le son qu’un autre FluidEQ partage avec ce PC, et lance les captures audio, pour que ce qu’envoie ce PC ne renvoie jamais ce son. Ne tourne que pendant que l’un d’eux est utilisé.',

@@ -36,20 +36,6 @@ import { selectionModeFromEvent } from 'common/bandSelection';
 import { FilterActionEnum, useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { labelledFilterOptions } from '../icons/FilterTypeIcon';
-import { useSmartEqRun, useSmartEqStatus } from '../utils/smartEqRun';
-import { useContinuousEq } from '../utils/continuousEq';
-import {
-  SMART_EQ_MODE_NAME,
-  SMART_EQ_MODE_NOTE,
-  TSmartEqMode,
-  useSmartEqMode,
-} from '../utils/smartEqMode';
-import useIsAutoEqRunning from '../utils/autoEqRunning';
-import {
-  endCorrectionFlash,
-  useCorrectionFlash,
-} from '../utils/correctionFlash';
-import useBubblePlacement from './useBubblePlacement';
 import { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import { sortHelper, useLatestCall } from '../utils/utils';
 import { useOverflowScroll } from '../utils/useOverflowScroll';
@@ -92,149 +78,6 @@ const useEqPageBands = () => {
   } = useFluidEqContext();
   const { t } = useTranslation();
   const filterOptions = useMemo(() => labelledFilterOptions(t), [t]);
-  /**
-   * What Smart EQ is doing, read from where it is actually happening.
-   *
-   * Not this component's state any more, and that is the whole of the fix: the
-   * measurements used to live here, so leaving the EQ tab unmounted them
-   * mid-capture. They are hosted in `SmartEqEngine` now, above the tabs, and
-   * this reads the same three values it used to own.
-   */
-  const { listeningFor, isRunning: isBalancing } = useSmartEqRun();
-  const balanceStatus = useSmartEqStatus();
-  const isContinuousOn = useContinuousEq();
-  const smartEqMode = useSmartEqMode();
-  const [isModeMenuOpen, setIsModeMenuOpen] = useState(false);
-  const modeMenuHolder = useRef<HTMLSpanElement>(null);
-  const modeMenuTrigger = useRef<HTMLButtonElement>(null);
-  const modeMenuEntry = useRef<HTMLButtonElement | null>(null);
-  const closeModeMenu = useCallback(() => {
-    setIsModeMenuOpen(false);
-    modeMenuTrigger.current?.focus({ preventScroll: true });
-  }, []);
-  // AnchoredMenu mounts its portal after measuring the anchor. A callback ref
-  // focuses the remembered choice when it exists, without guessing a delay.
-  const attachModeMenuEntry = useCallback(
-    (button: HTMLButtonElement | null) => {
-      modeMenuEntry.current = button;
-      if (button && isModeMenuOpen && !isBalancing && !isContinuousOn) {
-        button.focus({ preventScroll: true });
-        button.scrollIntoView?.({ block: 'nearest' });
-      }
-    },
-    [isModeMenuOpen, isBalancing, isContinuousOn],
-  );
-  // A run can start from another surface while this chooser is open. It
-  // must close with that transition and stay closed when the run finishes.
-  useEffect(() => {
-    if (isBalancing || isContinuousOn) {
-      setIsModeMenuOpen(false);
-    }
-  }, [isBalancing, isContinuousOn]);
-  /**
-   * On, chosen, and not held up by a switch on the other side of the screen.
-   *
-   * The mode staying on through a bypass is right — it is a preference, and the
-   * layer comes back — but a lit button over a stopped loop is the app claiming
-   * to be doing something it is not.
-   *
-   * Read from `useIsAutoEqRunning` rather than restated here: the save switch
-   * below and the song recorder behind it stand or fall on the same three
-   * conditions, and three copies of them is how the switch came to be offered
-   * over a stopped loop.
-   */
-  const isContinuousRunning = useIsAutoEqRunning();
-  /**
-   * A correction landing, for as long as the bubble's text holds the applied
-   * colour — its own animation, whose end is what clears the flash.
-   */
-  const correctionFlash = useCorrectionFlash();
-  /**
-   * What the bubble says: an announcement if there is one, the measurement
-   * otherwise.
-   *
-   * `balanceStatus` is a remark held for a moment — a correction landing, a
-   * voicing change rebuilding the layer, a run finishing — and outranks the rest
-   * because somebody is waiting to hear about it. Underneath is the running
-   * measurement, which is the truth for almost all of the time and is worth
-   * saying: the capture really is open, the pet really is nodding along to it,
-   * and the percentage moving is the difference between a mode working quietly
-   * and a mode that has stopped.
-   */
-  const bubbleText =
-    balanceStatus?.text || (isContinuousRunning ? listeningFor : '');
-  // The bubble is the only thing that shows a flash, and its animation is the
-  // only thing that ends one. A correction landing after the mode was stopped
-  // finds no bubble, so nothing would ever end it, and the next bubble would
-  // arrive green over a write minutes old. Nothing can show it, so it is over.
-  const flashId = correctionFlash?.id;
-  useEffect(() => {
-    if (flashId !== undefined && !bubbleText) {
-      endCorrectionFlash(flashId);
-    }
-  }, [bubbleText, flashId]);
-  // Somewhere free around the button, chosen from what the header holds at
-  // this width: see `eq/bubblePlacement.ts`.
-  const bubbleRef = useRef<HTMLSpanElement>(null);
-  const bubbleSpot = useBubblePlacement(modeMenuHolder, bubbleRef, bubbleText);
-  const modeLabel = (entry: TSmartEqMode) => t(SMART_EQ_MODE_NAME[entry]);
-  const modeNote = (entry: TSmartEqMode) => t(SMART_EQ_MODE_NOTE[entry]);
-
-  // Closes on a click elsewhere and on Escape, like every other menu here.
-  useEffect(() => {
-    if (!isModeMenuOpen) {
-      return undefined;
-    }
-    const onPointerDown = (event: MouseEvent) => {
-      // The menu itself is not inside the trigger any more — it is portalled
-      // out of the panel that clips — so it has to be asked about separately.
-      if (
-        !modeMenuHolder.current?.contains(event.target as Node) &&
-        !isInsideAnchoredMenu(event.target)
-      ) {
-        setIsModeMenuOpen(false);
-      }
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        closeModeMenu();
-        return;
-      }
-      const menu = modeMenuEntry.current?.closest('[data-anchored-menu]');
-      if (!menu?.contains(document.activeElement)) {
-        return;
-      }
-      const items = Array.from(
-        menu.querySelectorAll<HTMLButtonElement>('[role="menuitemradio"]'),
-      );
-      const current = items.findIndex(
-        (item) => item === document.activeElement,
-      );
-      let next: number;
-      if (event.key === 'ArrowDown') {
-        next = (current + 1) % items.length;
-      } else if (event.key === 'ArrowUp') {
-        next = (current - 1 + items.length) % items.length;
-      } else if (event.key === 'Home') {
-        next = 0;
-      } else if (event.key === 'End') {
-        next = items.length - 1;
-      } else {
-        return;
-      }
-      event.preventDefault();
-      items[next]?.focus({ preventScroll: true });
-      items[next]?.scrollIntoView?.({ block: 'nearest' });
-    };
-    window.addEventListener('mousedown', onPointerDown);
-    window.addEventListener('keydown', onKeyDown);
-    return () => {
-      window.removeEventListener('mousedown', onPointerDown);
-      window.removeEventListener('keydown', onKeyDown);
-    };
-  }, [isModeMenuOpen, closeModeMenu]);
-
   const frequencySortedFilters = useMemo(
     () => Object.values(filters).sort(sortHelper),
     [filters],
@@ -668,23 +511,6 @@ const useEqPageBands = () => {
     bypassed,
     t,
     filterOptions,
-    isBalancing,
-    balanceStatus,
-    isContinuousOn,
-    smartEqMode,
-    isModeMenuOpen,
-    setIsModeMenuOpen,
-    modeMenuHolder,
-    modeMenuTrigger,
-    attachModeMenuEntry,
-    closeModeMenu,
-    isContinuousRunning,
-    correctionFlash,
-    bubbleText,
-    bubbleRef,
-    bubbleSpot,
-    modeLabel,
-    modeNote,
     frequencySortedFilters,
     density,
     selectedFilter,

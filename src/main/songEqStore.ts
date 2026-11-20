@@ -142,7 +142,7 @@ const settle = (text: string | undefined) =>
  * songs, and what to hold handed back. */
 export const keepSongEqSettings = (
   userDataDir: string,
-  loaded: ISongMemoryLoad<ISongEqEntry>,
+  loaded: ISongMemoryLoad<ISongEqSettings>,
 ): ISongEqSettings =>
   keepSongMemory(fileOf(userDataDir), loaded, (settings) =>
     saveSongEqSettings(userDataDir, settings),
@@ -162,5 +162,5 @@ export const loadSongEqSettings = (userDataDir: string): ISongEqSettings =>
  */
 export const readSongEqSettings = async (
   userDataDir: string,
-): Promise<ISongMemoryLoad<ISongEqEntry>> =>
+): Promise<ISongMemoryLoad<ISongEqSettings>> =>
   settle(await readSongMemoryTextSoon(fileOf(userDataDir)));

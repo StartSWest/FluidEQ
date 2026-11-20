@@ -72,7 +72,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.precise': 'Preciso',
   'eq.mode.classic': 'Clássico',
   'eq.mode.trebleEqPrecise':
-    'Preciso: suas bandas, Tom, Preset, Tipo de driver e EQ inteligente soam exatamente como estão desenhados, até 20\u00a0kHz.',
+    'Preciso: suas bandas, Tom, Preset, Tipo de driver e Correção inteligente soam exatamente como estão desenhados, até 20\u00a0kHz.',
   'eq.mode.trebleEqClassic':
     'Clássico: como o Equalizer APO as reproduz. As bandas de agudos saem mais estreitas e mais baixas do que você ajustou, principalmente perto de 20\u00a0kHz.',
   'eq.mode.trebleCurvesPrecise':
@@ -465,7 +465,7 @@ const eq: Partial<Dictionary> = {
   'eq.channels.letter.left': 'E',
   'eq.channels.letter.right': 'D',
   'graph.curve.voicing': 'Preset',
-  'graph.curve.smart': 'EQ inteligente',
+  'graph.curve.smart': 'Correção inteligente',
   'graph.curve.custom': 'FX personalizados',
   'graph.curve.tone': 'Tom',
   'graph.curve.total': 'Saída final',
@@ -759,13 +759,12 @@ const eq: Partial<Dictionary> = {
   'squigImport.emptyHint':
     'Cole uma exportação para ver a forma dela antes de continuar o ajuste fino no EQ.',
   'eq.title': 'EQ paramétrico',
-  'eq.smart': 'EQ inteligente',
+  'eq.smart': 'Correção inteligente',
   'eq.smart.cancel': 'Cancelar',
-  'eq.smart.stopAria': 'Parar o EQ inteligente',
-  'eq.smart.aria': 'EQ inteligente a partir da fonte',
+  'eq.smart.aria': 'Correção inteligente a partir da fonte',
   'eq.smart.continuousAria':
-    'Continuar medindo e ajustando o EQ enquanto a música toca',
-  'eq.smart.modeAria': 'Escolher como o EQ inteligente mede',
+    'Continuar medindo e ajustando a correção inteligente enquanto a música toca',
+  'eq.smart.modeAria': 'Escolher como a correção inteligente mede',
   'eq.smart.mode.once.note': 'Uma medição, aplicada de uma vez',
   'eq.smart.mode.detail': 'Detalhe',
   'eq.smart.mode.detail.note': 'Continua medindo · apenas picos e falhas',
@@ -786,7 +785,7 @@ const eq: Partial<Dictionary> = {
   'eq.layers.custom': 'FX personalizado',
   'eq.layers.disable': 'Desligar {layer} sem remover a camada',
   'eq.layers.enable': 'Ligar {layer} novamente',
-  'eq.layers.smart': 'EQ inteligente',
+  'eq.layers.smart': 'Correção inteligente',
   'eq.layers.remove': 'Remover a camada de {layer}',
   'eq.layers.clearBands': 'Redefinir todas as bandas para 0 dB',
   'eq.layers.clearTone': 'Redefinir Graves, Médios e Agudos para 0 dB',

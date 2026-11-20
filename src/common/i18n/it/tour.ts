@@ -64,7 +64,7 @@ const tour: Partial<Dictionary> = {
   'tour.player.lead':
     'Un interruttore nella barra del titolo racchiude FluidEQ in una colonna: in alto la scena con il brano sopra, poi i comandi, il tuo suono e cosa viene dopo. È lo stesso lettore in ogni colore della finestra, e la scena che scegli scorre dietro a tutto, in {backdrop}.',
   'tour.player.point1':
-    '{sound} contiene le manopole di Bassi, Medi e Alti o le bande del tuo EQ, con il preset, l’EQ intelligente e la modalità EQ accanto.',
+    '{sound} contiene le manopole di Bassi, Medi e Alti o le bande del tuo EQ, con il preset, l’EQ automatico e la modalità EQ accanto.',
   'tour.player.point2':
     '{upNext} e {playlists} stanno in fondo. Riduci una delle due parti per avere un’immagine più grande, e trascina la musica in qualsiasi punto del lettore per aggiungerla alla coda.',
   'tour.player.point3':
@@ -403,7 +403,7 @@ const tour: Partial<Dictionary> = {
   'tour.library.point3':
     'Playlist e una lista Preferiti permanente. Clic destro su un brano per aggiungerlo a una delle due, o alla coda.',
   'tour.library.point4':
-    'Memoria dell’EQ intelligente per brano: mentre l’EQ intelligente continua a misurare, attiva «Salva per questo brano», e dopo due minuti la sua correzione resta memorizzata per quella traccia e torna quando la riascolti.',
+    'EQ automatico: dai a un brano, a una selezione o a un intero album un preset suo dalla Libreria, e suonerà così ogni volta che parte quella musica.',
   'tour.library.how':
     'Apri la scheda Libreria, premi «Aggiungi cartella» o trascina una cartella sulla pagina e lascia finire la scansione. Scegli Album, Artisti, Generi, Brani, Cartelle o Albero, poi premi Riproduci.',
   'tour.library.open': 'Apri la Libreria',

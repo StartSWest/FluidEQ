@@ -1,0 +1,81 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+/** Auto EQ on the EQ page: its button, its panel, Manage, and the note that
+ * took the Output panel’s old switch’s place. */
+export default {
+  'autoEq.title': 'Auto-EQ',
+  'autoEq.aria': 'Auto-EQ: was den Klang jedes Songs bestimmt',
+  'autoEq.tagline': 'Der Klang jedes Songs, für Sie gewählt',
+  'autoEq.state.measuring': 'Misst',
+  'autoEq.state.paused': 'Pausiert',
+  'autoEq.state.song': 'Song',
+  'autoEq.state.album': 'Album',
+  'autoEq.state.yours': 'Ihrer',
+  'autoEq.aside':
+    'Hält sich zurück, solange DSP aus ist, eine Gaming-Kette läuft oder ein Spiel seinen eigenen Klang spielt. Danach geht es weiter wie zuvor.',
+  'autoEq.now.nothing': 'Nichts läuft',
+  'autoEq.now.yours': 'Ihr Klang',
+  'autoEq.now.yoursWhy':
+    'Für diesen Song ist nichts gespeichert: Er spielt den zuletzt gewählten Klang.',
+  'autoEq.now.song': 'Klang dieses Songs',
+  'autoEq.now.songWhy': 'Kommt jedes Mal zurück, wenn dieser Song läuft.',
+  'autoEq.now.album': 'Klang von {album}',
+  'autoEq.now.albumUnnamed': 'Klang seines Albums',
+  'autoEq.now.albumWhy': 'In der Bibliothek für das ganze Album festgelegt.',
+  'autoEq.songs.title': 'Song-Klänge',
+  'autoEq.songs.hint':
+    'Ein Song mit gespeichertem Klang spielt ihn. Ändern Sie ihn während der Wiedergabe, behält der Song die Änderung. Andere Songs spielen Ihren Klang.',
+  'autoEq.songs.nothing':
+    'Spielen Sie einen Song ab, um seinen Klang zu speichern',
+  'autoEq.songs.saved': 'Für diesen Song gespeichert',
+  'autoEq.songs.none': 'Für diesen Song ist nichts gespeichert',
+  'autoEq.songs.save': 'Für diesen Song speichern',
+  'autoEq.songs.forget': 'Vergessen',
+  'autoEq.albums.title': 'Album-Klänge',
+  'autoEq.albums.hint':
+    'Nur in der Bibliothek. Jeder Song des Albums spielt ihn, außer einem Song mit eigenem Preset.',
+  'autoEq.albums.nothing':
+    'Legen Sie den Klang eines Albums auf seiner Seite in der Bibliothek fest',
+  'autoEq.albums.libraryOnly': 'Nur Bibliothek: nicht für andere Player',
+  'autoEq.albums.set': '{album}: {preset}',
+  'autoEq.albums.none': 'Für dieses Album ist kein Klang festgelegt',
+  'autoEq.smart.title': 'Smart-Korrektur',
+  'autoEq.smart.hint':
+    'Misst jeden Song an der Quelle und behält seine Korrektur für diesen Song. Zusätzlich zu jedem Preset.',
+  'autoEq.smart.modes': 'Wie sie korrigiert',
+  'autoEq.smart.waiting': 'Wartet auf einen Song',
+  'autoEq.smart.willSave': 'Wird am Ende für diesen Song gespeichert',
+  'autoEq.smart.savesIn': 'Wird in {remaining} für diesen Song gespeichert',
+  'autoEq.smart.onceHint':
+    'Eine Messung dessen, was läuft, auf einmal angewendet',
+  'autoEq.smart.once': 'Einmal messen',
+  'autoEq.savedCount': 'Gespeichert: {songs} · {albums}',
+  'autoEq.manage': 'Verwalten',
+  'autoEq.manage.title': 'Gespeicherte Klänge',
+  'autoEq.manage.back': 'Zurück zu Auto-EQ',
+  'autoEq.manage.songs': 'Songs',
+  'autoEq.manage.albums': 'Alben',
+  'autoEq.manage.search': 'Gespeicherte Klänge suchen',
+  'autoEq.manage.wholeSound': '{preset} mit Klang-Reglern und EQ',
+  'autoEq.manage.forget': 'Vergessen',
+  'autoEq.manage.others': 'Songs aus anderen Playern: {count}',
+  'autoEq.manage.othersHint':
+    'Spotify, YouTube und der Browser. Ihre Namen werden nie gespeichert.',
+  'autoEq.manage.empty': 'Noch nichts gespeichert',
+  'autoEq.manage.noMatch': 'Keine Treffer',
+  'autoEq.manage.resetKeeps':
+    '„Alle Einstellungen zurücksetzen“ behält sie. Nur „Vergessen“ entfernt sie.',
+  'autoEq.manage.forgetAll': 'Alle vergessen',
+  'autoEq.manage.forgetAllConfirm': 'Alle endgültig vergessen',
+  'autoEq.moved.title': 'Der Klang jedes Songs ist jetzt in Auto-EQ',
+  'autoEq.moved.body':
+    '„Klang jedes Songs merken“ ist zu Auto-EQ auf der EQ-Seite umgezogen. Ihre {count} gespeicherten Songs sind mitgekommen.',
+  'autoEq.moved.bodyOne':
+    '„Klang jedes Songs merken“ ist zu Auto-EQ auf der EQ-Seite umgezogen. Ihr gespeicherter Song ist mitgekommen.',
+  'autoEq.moved.open': 'Auto-EQ öffnen',
+  'autoEq.moved.dismiss': 'Verstanden',
+};

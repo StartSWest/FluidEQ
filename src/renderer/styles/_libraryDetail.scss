@@ -901,3 +901,63 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // capsule radius and the focus treatment. Kept under this file's own class
 // names so the two can diverge later without one silently restyling the
 // other.
+
+// THE RECORD'S SOUND (Auto EQ): the album's sound beside Play, named by a
+// caption the way the table's headers are, and "Has a saved sound", a switch
+// in the actions' own quiet face that lights while it narrows the table.
+.library-hero__sound {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.library-hero__sound-label {
+  color: $text-faint;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  @include tracking(0.08em);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.library-hero__sound-pick {
+  max-width: 220px;
+
+  > span {
+    @include truncate;
+    min-width: 0;
+  }
+
+  svg {
+    flex: 0 0 auto;
+    width: 10px;
+    height: 10px;
+    opacity: 0.8;
+  }
+
+  // An album that has a sound names it in the "tuned" ink Auto EQ gives an
+  // album's sound everywhere.
+  &.is-set > span {
+    color: $sound-album;
+  }
+}
+
+.library-hero__sound-filter svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  margin-left: -2px;
+}
+
+// The same in a song's Details: Change, under the fact row that says where
+// its sound comes from (`LibraryTrackSound`).
+.library-facts__sound {
+  display: flex;
+}
+
+.library-facts__sound-pick svg {
+  width: 10px;
+  height: 10px;
+  opacity: 0.8;
+}

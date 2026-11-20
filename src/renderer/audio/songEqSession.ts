@@ -263,7 +263,7 @@ const performEffects = (effects: TSongEqEffect[]): void => {
         showNotice(effect.identity, effect.entry);
         break;
       case 'forget':
-        forgetSongEq(effect.deviceId, effect.identity).catch(() => {
+        forgetSongEq(effect.identity).catch(() => {
           // Best-effort: a failed forget leaves the old entry standing,
           // which is the safe direction to fail in — the alternative is
           // claiming it is gone when it is not.

@@ -26,7 +26,7 @@ import {
 } from '../audio/songEqSession';
 import { useTranslation } from '../utils/I18nContext';
 import isOwnAnimationEnd from '../utils/ownAnimationEnd';
-import { useNoticeClaim } from '../utils/noticeTurn';
+import { useNoticeTurn } from '../utils/noticeTurn';
 import CompactFrame from './CompactFrame';
 import '../styles/SongEqNotice.scss';
 
@@ -72,10 +72,11 @@ import '../styles/SongEqNotice.scss';
 const SongEqNotice = () => {
   const { t } = useTranslation();
   const notice = useSongEqNotice();
-  // Shares its corner with the Plus notices, which step aside for it.
-  useNoticeClaim('songEq', Boolean(notice));
+  // Shares its corner with the Plus notices, which step aside for it, and
+  // waits while Auto EQ's panel is open over it (`noticeTurn.ts`).
+  const isShown = useNoticeTurn('songEq', Boolean(notice));
 
-  if (!notice) {
+  if (!notice || !isShown) {
     return null;
   }
 

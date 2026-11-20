@@ -109,7 +109,7 @@ const app = {
     '해당 모니터의 데스크탑 장면을 아이콘 뒤에 배치하고 창이 화면을 덮을 때 이를 알려줍니다. 각 모니터마다 하나씩 표시됩니다.',
   'app.processes.name.shareCapture': '오디오 캡처',
   'app.processes.what.shareCapture':
-    '오디오 공유 탭, 두 번째 출력 및 Smart EQ를 위해 이퀄라이저 이전에 이 PC가 재생하는 내용을 캡처합니다. 둘 중 하나가 사용 중인 동안에만 실행됩니다.',
+    '오디오 공유 탭, 두 번째 출력 및 스마트 보정을 위해 이퀄라이저 이전에 이 PC가 재생하는 내용을 캡처합니다. 둘 중 하나가 사용 중인 동안에만 실행됩니다.',
   'app.processes.name.sharePlayback': '공유 오디오 재생',
   'app.processes.what.sharePlayback':
     '다른 FluidEQ가 이 PC와 공유하는 사운드를 재생하고 오디오 캡처를 시작하므로 이 PC가 전송하는 내용은 해당 사운드를 다시 전달하지 않습니다. 둘 중 하나가 사용 중인 동안에만 실행됩니다.',

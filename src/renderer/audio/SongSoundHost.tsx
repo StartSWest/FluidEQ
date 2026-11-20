@@ -5,7 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useMemo, useRef } from 'react';
-import { useDspSettings } from '../dsp/store';
+import ChannelEnum from 'common/channels';
+import { DSP_PRESETS } from 'common/dsp/presets';
+import { canKeepSongSound } from 'common/songSoundMemory';
+import { isDspLent, useDspSettings } from '../dsp/store';
+import { GAMING_PRESET_GROUP } from '../dsp/presetScope';
 import { useSoundingGame } from '../games/useGameSound';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useOutputEditor } from '../utils/outputEditor';
@@ -14,15 +18,22 @@ import { useNowPlayingIdentity } from './nowPlayingIdentity';
 import {
   feedSongSound,
   holdSongSound,
+  reconsiderSongSound,
   registerSongSoundHost,
   returnLeftoverSongSound,
 } from './songSoundSession';
 import songSoundOf from './songSoundOf';
 import { useTransportSources } from './transportSource';
 
+/** Whether the rack the listener chose is one of the Gaming tab's chains. */
+const isGamingChain = (presetId: string): boolean =>
+  DSP_PRESETS.some(
+    (preset) => preset.id === presetId && preset.group === GAMING_PRESET_GROUP,
+  );
+
 /**
- * Tells the song sound memory (`songSoundSession.ts`) what plays, what is
- * heard and that time passes, and draws nothing.
+ * Tells Auto EQ's song and album sounds (`songSoundSession.ts`) what plays,
+ * what is heard and that time passes, and draws nothing.
  *
  * A component of its own beside the notices rather than a hook in the
  * window's root: it reads the bands, which change with every step of a band
@@ -40,7 +51,13 @@ const SongSoundHost = () => {
   const { editor } = useOutputEditor();
   const rack = useDspSettings();
   const status = useKnownAudioEngineStatus();
-  const { identity, isPlaying } = useNowPlayingIdentity();
+  const { identity: playingIdentity, isPlaying } = useNowPlayingIdentity();
+  // A film, a video or a page that is not a song plays the listener's own
+  // sound, as nothing playing does: the next song decides again.
+  const identity =
+    playingIdentity && canKeepSongSound(playingIdentity)
+      ? playingIdentity
+      : undefined;
   const sources = useTransportSources();
   const game = useSoundingGame();
 
@@ -58,11 +75,30 @@ const SongSoundHost = () => {
     });
   }, [refreshState]);
 
-  // A game's own sound holds the memory off for as long as it plays.
+  // Auto EQ steps aside while a game's own sound plays, while DSP is off, and
+  // while a Gaming chain is the listener's rack — never for a rack a song
+  // lent, which is Auto EQ's own. Under Equalizer APO the rack is always held
+  // off (`putOn`), which is not DSP being off.
   const isGameSounding = game !== undefined;
+  const isEngineApo = status?.engine === 'apo';
+  const isRackAside =
+    !isDspLent() &&
+    ((!rack.enabled && !isEngineApo) || isGamingChain(rack.presetId));
   useEffect(() => {
-    holdSongSound(isGameSounding);
-  }, [isGameSounding]);
+    holdSongSound(isGameSounding || isRackAside);
+  }, [isGameSounding, isRackAside]);
+
+  // What is kept changed — in the Library, in Manage, or a save that landed:
+  // the playing song is asked about again.
+  useEffect(() => {
+    const unsubscribe = window.electron.ipcRenderer.on(
+      ChannelEnum.SONG_SOUNDS_CHANGED,
+      () => reconsiderSongSound(),
+    );
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     feedSongSound({ kind: 'deviceChanged', deviceId: editor?.device.id ?? '' });

@@ -4,19 +4,21 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-/** The memory of each song's sound — the switch and the notice. */
+/** Auto EQ’s song and album sounds — the notices. The switch’s two words stay
+ * for the 2.1 tour, which shows the Output panel as it was then. */
 export default {
   'songSound.switch': 'Klang jedes Songs merken',
-  'songSound.switchHint':
-    'Preset, Klang oder EQ, während eines Songs eingestellt, kommen zurück, wann immer dieser Song hier läuft.',
-  'songSound.noticeTitle': 'Der eigene Klang dieses Songs',
-  'songSound.noticeBody': '{title} — {preset}, mit seinem Klang und EQ',
-  'songSound.noticeBodyNoPreset': '{title} — sein Klang und EQ',
-  'songSound.undo': 'Rückgängig',
   'songSound.forget': 'Diesen Song vergessen',
+  'songSound.noticeTitle': 'Gespeicherter Klang dieses Songs',
+  'songSound.noticeBody': '{title} · {preset}',
+  'songSound.albumNoticeTitle': 'Album-Klang: {album}',
+  'songSound.albumNoticeBody': '{title} spielt {preset}, den Klang des Albums',
+  'songSound.noPresetName': 'Ihr Preset',
+  'songSound.undo': 'Rückgängig',
   'songSound.willSaveTitle': 'Wird für diesen Song gespeichert',
-  'songSound.willSaveBody': '{preset} wird für {title} gespeichert.',
-  'songSound.willSaveBodyNoPreset':
-    'Diese Einstellung wird für {title} gespeichert.',
+  'songSound.willSaveBody': '{title} behält {preset}.',
+  'songSound.willSaveAlbumTitle': 'Wird nur für diesen Song gespeichert',
+  'songSound.willSaveAlbumBody':
+    '{title} behält {preset}. Das Album behält seinen eigenen Klang.',
   'songSound.dontSave': 'Nicht speichern',
 };

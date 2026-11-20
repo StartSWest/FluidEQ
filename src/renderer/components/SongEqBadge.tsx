@@ -21,15 +21,17 @@ import { useTranslation } from '../utils/I18nContext';
 import '../styles/SongEqBadge.scss';
 
 /**
- * The same recording state `SongEqSaveSwitch` draws, legible on whichever tab
- * you are on rather than only the one the switch lives on.
+ * The same recording state Auto EQ's Smart correction line draws
+ * (`AutoEqSmartPart`), legible on whichever tab you are on rather than only
+ * the EQ page.
  *
- * Presence and the one distinction it draws are read exactly as that switch
+ * Presence and the one distinction it draws are read exactly as that line
  * reads them, and nothing here is re-derived: `title` is the one honest
- * "a session is actually open" signal (see `SongEqSaveSwitch`'s own comment —
- * `listenedMs` alone would misread a session that just started as nothing
- * playing), and `willSave` is taken as-is. A second opinion on either is the
- * exact mistake this feature has already shipped twice.
+ * "a session is actually open" signal (`computeRecording` in
+ * `songEqSession.ts` sets it only while a session is open; `listenedMs`
+ * alone would misread a session that just started as nothing playing), and
+ * `willSave` is taken as-is. A second opinion on either is the exact mistake
+ * this feature has already shipped twice.
  */
 const SongEqBadge = () => {
   const { t } = useTranslation();

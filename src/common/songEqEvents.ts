@@ -161,9 +161,10 @@ export type TSongEqEffect =
    * filed under a different one: a curve learned from a library file and
    * matched from Spotify lives under `library:<id>`, and a key-only delete
    * asked the store to remove a `system:` entry that was never there — and
-   * was answered with a success.
+   * was answered with a success. Every output's copy: a correction is the
+   * record's, and is found from any output (`lookupSongEq`).
    */
-  | { kind: 'forget'; deviceId: string; identity: ISongIdentity };
+  | { kind: 'forget'; identity: ISongIdentity };
 
 export const getInitialRecorderState = (): ISongEqRecorderState => ({
   deviceId: '',

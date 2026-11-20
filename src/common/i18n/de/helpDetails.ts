@@ -47,15 +47,15 @@ const helpDetails = {
     'Für Spiele mit eigenem 3D-Audio kann ein Profil Room ausgeschaltet lassen, damit die Ortung nicht doppelt erfolgt. Room ist für Kopfhörer gedacht. Nach dem Entladen des Spielklangs kehrt Ihr Musikklang zurück.',
   'help.gamefilter.keywords':
     'game filter, footsteps, lift, calm, environment, ambience, dialogue, voices, make room, hooves, heavy steps, isolate, hrtf, spatial audio',
-  'help.songs.title': 'Den Klang jedes Titels merken',
+  'help.songs.title': 'Auto-EQ: der Klang jedes Songs',
   'help.songs.intro':
-    'Ein Titel kann seine Vorgabe, Tone und EQ getrennt für jede Ausgabe merken. Eine Kopfhörerabstimmung verändert nicht die gespeicherte Lautsprecherfassung.',
+    'Auto-EQ auf der EQ-Seite bestimmt den Klang jedes Songs: den für den Song gespeicherten Klang, den Klang seines Albums aus der Bibliothek oder Ihren. Die Smart-Korrektur legt eine gemessene Korrektur darüber. Der Klang eines Songs folgt ihm auf jeden Ausgang; die Kopfhörerkorrektur bleibt die des Ausgangs.',
   'help.songs.steps':
-    'Aktivieren Sie unter den Ausgabeprofilen Klang jedes Songs merken. Anfangs ist diese Option ausgeschaltet.\nSpielen Sie einen erkennbaren Titel und ändern Sie Vorgabe, Tone oder EQ. Ein Hinweis kündigt das Speichern an; lehnen Sie es bei einem bloßen Versuch ab.\nBeim nächsten Abspielen auf derselben Ausgabe wird der Klang vorübergehend geladen. Rückgängig überspringt ihn für diese Wiedergabe; Titel vergessen löscht zusätzlich die Erinnerung.\nNach dem Titel kehrt der vorherige Ausgabeklang zurück. Mit einer bewussten Profilwahl übernehmen Sie wieder selbst.\nSmart EQ hat während der Messung einen eigenen Schalter zum Speichern für den Titel. Die gemessene Korrektur ist von Ihrer manuell gespeicherten Abstimmung getrennt.',
+    'Öffnen Sie Auto-EQ, die gefüllte Schaltfläche in den Werkzeugen von Ihr EQ, und schalten Sie Song-Klänge, Album-Klänge und Smart-Korrektur nach Wunsch ein. Jedes lässt sich einzeln ausschalten.\nDrücken Sie während eines Songs Für diesen Song speichern, um den Klang zu behalten, den Sie hören. Läuft der Song wieder, kommt sein Klang zurück; folgt ein Song ohne gespeicherten Klang, kommt Ihr eigener Klang zurück.\nÄndern Sie das Preset, während ein gespeicherter Song läuft, behält der Song die Änderung. Ein Hinweis sagt es Ihnen; Nicht speichern lässt alles, wie es war. Eine Änderung bei einem Song ohne gespeicherten Klang wird stattdessen zu Ihrem Klang.\nKlicken Sie in der Bibliothek mit der rechten Maustaste auf einen Song, eine Auswahl oder ein Album, oder nutzen Sie den Album-Klang eines Albums, um ein Preset zu wählen oder das gerade Laufende zu behalten. Der eigene Klang eines Songs geht dem seines Albums vor; Alben ändern sich nur in der Bibliothek.\nVerwalten listet jeden gespeicherten Song und jedes gespeicherte Album auf, mit Vergessen. Alle Einstellungen zurücksetzen schaltet Auto-EQ aus und behält sie.',
   'help.songs.tip':
-    'Die Identität stammt aus der Datei oder den Medieninformationen des Players. Fehlende oder falsche Titel können einen Treffer verhindern. Der Vorverstärker wird nicht gespeichert; ein geladener Spielklang hat Vorrang.',
+    'Songs aus Spotify, YouTube oder dem Browser werden an Titel und Interpret erkannt, die der Player meldet, und halten ihre Klänge von denen der Bibliothek getrennt. Filme und Videos bekommen nie den Klang eines Songs. Auto-EQ hält sich zurück, solange DSP aus ist, eine Gaming-Kette läuft oder ein Spiel seinen eigenen Klang spielt.',
   'help.songs.keywords':
-    'per song, song sound, song memory, remember song, save song eq, smart eq, undo, forget this song, preset per song, tone per song',
+    'auto eq, auto-eq, pro song, song-klang, album-klang, song merken, für diesen song speichern, smart-korrektur, smart correction, smart eq, preset pro song, preset pro album, vergessen, verwalten',
   'help.mycurves.title': 'Meine Kurven: importieren, bearbeiten und teilen',
   'help.mycurves.intro':
     'Ihre eigene Kurvensammlung liegt neben der Messbibliothek. Prüfen Sie die Antwort und entscheiden Sie zwischen Korrekturebene und bearbeitbaren EQ-Bändern.',

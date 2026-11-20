@@ -25,7 +25,7 @@ const tour = {
   'tour.player.lead':
     '標題列中的一個開關將 FluidEQ 折疊成一欄：頂部的場景，上面有歌曲、控制、聲音以及接下來播放的內容。在 {backdrop} 上，每個視窗顏色都是相同的播放器，並且您選擇的場景在所有播放器後面播放。',
   'tour.player.point1':
-    '{sound} 擁有低音、中音和高音旋鈕或 EQ 自己的頻段，旁邊還有預設、Smart EQ 和 EQ 模式。',
+    '{sound} 擁有低音、中音和高音旋鈕或 EQ 自己的頻段，旁邊還有預設、Auto EQ 和 EQ 模式。',
   'tour.player.point2':
     '{upNext} 和 {playlists} 就在腳下等候。將任一部分折疊起來以獲得更大的圖片，並將音樂放在播放器上的任何位置以將其新增到佇列中。',
   'tour.player.point3':
@@ -338,7 +338,7 @@ const tour = {
   'tour.library.point3':
     '播放清單和永久收藏清單。右鍵單擊任何歌曲將其新增到任何歌曲或佇列中。',
   'tour.library.point4':
-    'Smart EQ 歌曲記憶：當 Smart EQ 持續測量時，翻轉“儲存這首歌曲”，兩分鐘後，該曲目的校正將保留，並在再次播放時返回。',
+    'Auto EQ：在媒體庫中為一首歌、一組選取的歌曲或整張專輯設定專屬預設，每次播放這些音樂時都會使用它。',
   'tour.library.how':
     '開啟「庫」分頁，按「新增資料夾」或將資料夾拖曳到頁面上，然後完成掃描。選擇專輯、藝人、流派、歌曲、資料夾或樹，然後按「播放」。',
   'tour.library.open': '開放媒體庫',

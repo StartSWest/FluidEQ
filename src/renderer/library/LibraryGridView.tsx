@@ -49,6 +49,7 @@ import {
 import { ILibraryRows, libraryRows, TLibraryRow } from './libraryRows';
 import type { ILibraryList } from './useLibraryList';
 import usePlaylistCovers from './usePlaylistCovers';
+import useAlbumTileMenu from './useAlbumTileMenu';
 
 interface ILibraryGridViewProps {
   /** What the grid holds, a page at a time (`useLibraryList`). Every shelf
@@ -547,6 +548,10 @@ const LibraryGridView = ({
     onPlayTrack(id);
   };
 
+  // An album's menu from its tile, the record header's own (Auto EQ: an
+  // album's sound is picked from here too).
+  const albumMenu = useAlbumTileMenu();
+
   const renderTile = (
     row: number,
     keyFor: (id: string) => string,
@@ -596,6 +601,19 @@ const LibraryGridView = ({
         title={isOffline ? t('library.root.offline') : undefined}
         onClick={(event) =>
           openItem(tile.id, event.detail, tile.isFolder === true)
+        }
+        onContextMenu={
+          item?.kind === 'album'
+            ? (event) => {
+                event.preventDefault();
+                albumMenu.open(event.currentTarget, {
+                  id: item.id,
+                  title: item.title,
+                  artist: item.artist,
+                  trackCount: item.trackCount,
+                });
+              }
+            : undefined
         }
       >
         <span
@@ -689,6 +707,7 @@ const LibraryGridView = ({
       {gridWindow.below > 0 && (
         <div aria-hidden="true" style={spacer(gridWindow.below)} />
       )}
+      {albumMenu.menu}
     </div>
   );
 };

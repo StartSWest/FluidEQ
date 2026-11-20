@@ -89,6 +89,8 @@ import registerBandDesignsIpc from './ipc/bandDesigns';
 import { registerLayersIpc } from './ipc/layers';
 import registerSongEqHandlers from './ipc/songEq';
 import registerSongSoundIpc from './ipc/songSound';
+import registerSongSoundLibraryIpc from './ipc/songSoundLibrary';
+import { createSongSoundHolder } from './songSoundHolder';
 import { registerPreampIpc } from './ipc/preamp';
 import registerVideoIpc from './ipc/video';
 import { registerKaraokeSeparation } from './karaokeSeparation';
@@ -601,12 +603,18 @@ registerGameSoundIpc({
 });
 
 registerSongEqHandlers(userDataDir);
+// One store for Auto EQ's song and album sounds, read by the song that plays
+// and by the Library; every change is told to the window.
+const songSounds = createSongSoundHolder(userDataDir, () =>
+  getMainWindow()?.webContents.send(ChannelEnum.SONG_SOUNDS_CHANGED),
+);
 registerSongSoundIpc({
   state,
-  userDataDir,
+  holder: songSounds,
   handleUpdateHelper,
   getOutputEditor: () => outputEditorOf(session),
 });
+registerSongSoundLibraryIpc(songSounds);
 
 onWindowMessage(ChannelEnum.SET_WINDOW_SIZE, async (event, arg) => {
   const channel = ChannelEnum.SET_WINDOW_SIZE;

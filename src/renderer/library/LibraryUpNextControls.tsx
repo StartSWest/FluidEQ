@@ -32,9 +32,8 @@ export const LibraryUpNextKeepRow = () => {
           handleToggle={() => setIsContinuationOn(!isContinuationOn)}
           ariaLabel={t('library.upNext.keepPlaying')}
         />
-        {/* A label pointed at the same checkbox, for the reason
-            `SongEqSaveSwitch` gives: without it only the switch itself
-            answers a press and the words beside it are dead. */}
+        {/* A label pointed at the same checkbox: without it only the
+            switch itself answers a press and the words beside it are dead. */}
         <label
           className="library-up-next__keep-label"
           htmlFor="library-up-next-keep-playing"

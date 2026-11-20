@@ -493,9 +493,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// The save-for-this-song control has its own stylesheet
-// (`SongEqSaveSwitch.scss`), and deliberately does not reuse
-// `.eq-toolbar__option` above: that rule reaches every bare `input` descendant
+// A switch in the toolbar must never sit inside `.eq-toolbar__option`
+// above: that rule reaches every bare `input` descendant
 // to size a native checkbox at 13px, which would override `Switch`'s own
 // `.switch-checkbox` (zero size, hidden behind the pill it draws instead) the
 // moment the switch sat inside it — a real specificity collision

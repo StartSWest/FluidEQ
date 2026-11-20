@@ -408,7 +408,7 @@ const tour: Partial<Dictionary> = {
   'tour.library.point3':
     'Des playlists et une liste Favoris permanente. Clic droit sur un morceau pour l’ajouter à l’une ou l’autre, ou à la file.',
   'tour.library.point4':
-    'Mémoire de l’Égalisation auto par morceau : tant qu’elle continue de mesurer, activez « Enregistrer pour cette chanson » ; au bout de deux minutes, sa correction est retenue pour ce titre et revient quand il repasse.',
+    'Égalisation auto : donnez à une chanson, une sélection ou un album entier son propre préréglage depuis la Bibliothèque, et il joue chaque fois que cette musique passe.',
   'tour.library.how':
     'Ouvrez l’onglet Bibliothèque, appuyez sur « Ajouter un dossier » ou déposez un dossier sur la page, et laissez l’analyse se terminer. Choisissez Albums, Artistes, Genres, Chansons, Dossiers ou Arborescence, puis appuyez sur Lire.',
   'tour.library.open': 'Ouvrir la Bibliothèque',

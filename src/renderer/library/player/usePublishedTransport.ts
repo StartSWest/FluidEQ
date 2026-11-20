@@ -18,7 +18,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * with nothing loaded would win the arbitration and then have nothing to show.
  */
 import { useEffect } from 'react';
-import { buildSongIdentity } from 'common/songIdentity';
+import { libraryTrackIdentity } from 'common/songIdentity';
 import { libraryMediaUrl } from '../../../common/library/mediaUrl';
 import { ILibraryTrack } from '../../../common/library/types';
 import {
@@ -93,12 +93,7 @@ const usePublishedTransport = (options: {
         });
       },
       seek,
-      identity: buildSongIdentity(
-        'library',
-        track.id,
-        track.title,
-        track.artist,
-      ),
+      identity: libraryTrackIdentity(track),
     });
   }, [
     track,

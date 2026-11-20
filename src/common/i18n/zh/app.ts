@@ -122,7 +122,7 @@ const app: Partial<Dictionary> = {
     '把该显示器的桌面场景放在图标后面，并在窗口盖住屏幕时通知它。每个显示它的显示器各一个。',
   'app.processes.name.shareCapture': '音频采集',
   'app.processes.what.shareCapture':
-    '在均衡器之前采集这台电脑播放的声音，供“共享音频”标签页、第二路输出和智能均衡使用。只在其中之一使用时运行。',
+    '在均衡器之前采集这台电脑播放的声音，供“共享音频”标签页、第二路输出和智能校正使用。只在其中之一使用时运行。',
   'app.processes.name.sharePlayback': '共享音频播放',
   'app.processes.what.sharePlayback':
     '播放另一个 FluidEQ 共享给这台电脑的声音，并启动音频采集，确保这台电脑发出的声音中绝不会带回那个声音。只在其中之一使用时运行。',

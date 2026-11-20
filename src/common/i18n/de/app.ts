@@ -127,7 +127,7 @@ const app: Partial<Dictionary> = {
     'Legt die Desktop-Szene dieses Monitors hinter die Symbole und meldet ihr, wenn Fenster den Bildschirm verdecken. Einer für jeden Monitor, der eine zeigt.',
   'app.processes.name.shareCapture': 'Audioaufnahme',
   'app.processes.what.shareCapture':
-    'Nimmt auf, was dieser PC abspielt, vor dem Equalizer – für den Tab „Audio teilen“, eine zweite Ausgabe und Smart-EQ. Läuft nur, solange eines davon genutzt wird.',
+    'Nimmt auf, was dieser PC abspielt, vor dem Equalizer – für den Tab „Audio teilen“, eine zweite Ausgabe und die Smart-Korrektur. Läuft nur, solange eines davon genutzt wird.',
   'app.processes.name.sharePlayback': 'Wiedergabe des geteilten Audios',
   'app.processes.what.sharePlayback':
     'Spielt den Klang ab, den ein anderes FluidEQ mit diesem PC teilt, und startet die Audioaufnahmen, damit das, was dieser PC sendet, diesen Klang nie zurückträgt. Läuft nur, solange eines davon genutzt wird.',
