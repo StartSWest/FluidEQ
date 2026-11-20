@@ -3361,6 +3361,15 @@ $graph-card-pages: list.join(
 // gutter is on the right alone, out in the card's 12px padding with the
 // scrollbar on the card's edge (as Share Audio's, below), so the last text
 // ends where the engine's name does and a scrollbar arriving moves nothing.
+//
+// Then the DSP pages' gaps (Ivan, 2026-11-19: "all views on EQ, the EQ
+// Presets, Convolution and Config, same standard gap as the other views like
+// the DSP pages"): the page 12px in from the card's left edge and 12 from
+// its right, as a DSP stage stands 12 from its hairlines, and every list that
+// scrolls by itself - Convolution's results, the preset's details - with its
+// scrollbar out on the card's edge, its rows still ending on the page's line.
+// The page keeps no gutter of its own, so nothing stands between such a list
+// and the edge; a page that scrolls as a whole still shows its bar there.
 .workspace-tab-panel:is(
     .workspace-tab-panel--presets,
     .workspace-tab-panel--convolution,
@@ -3368,9 +3377,15 @@ $graph-card-pages: list.join(
   )
   > .workspace-tab-panel__scroll {
   margin-right: -12px;
+  padding-right: 12px;
+  padding-left: 0;
+  scrollbar-gutter: auto;
+}
+
+.workspace-tab-panel--convolution .convolution-results,
+.workspace-tab-panel--presets .eq-preset-tab__detail {
+  margin-right: -12px;
   padding-right: 12px - $scrollbar-size;
-  padding-left: $workspace-pill-inline;
-  scrollbar-gutter: stable;
 }
 
 // The player is a tab like the others, and was the only one without the card.
