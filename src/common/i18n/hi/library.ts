@@ -397,7 +397,6 @@ const library: Partial<Dictionary> = {
   'library.sound.forgetOwn': 'इसकी अपनी आवाज़ भुला दें',
   'library.sound.forgetTheirs': 'गानों की अपनी आवाज़ें भुला दें',
   'library.sound.noAlbumSound': 'एल्बम की कोई आवाज़ नहीं',
-  'library.sound.filter': 'सहेजी गई आवाज़ वाले',
   'library.sound.tagOwn': 'अपनी · {preset}',
   'library.sound.tagAlbum': 'एल्बम · {preset}',
   'library.sound.detailsYours': 'आपकी आवाज़',

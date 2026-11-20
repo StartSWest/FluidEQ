@@ -403,7 +403,6 @@ const library: Partial<Dictionary> = {
   'library.sound.forgetOwn': '独自のサウンドを消去',
   'library.sound.forgetTheirs': '曲の独自のサウンドを消去',
   'library.sound.noAlbumSound': 'アルバムのサウンドなし',
-  'library.sound.filter': 'サウンドを保存済み',
   'library.sound.tagOwn': '独自 · {preset}',
   'library.sound.tagAlbum': 'アルバム · {preset}',
   'library.sound.detailsYours': 'あなたのサウンド',

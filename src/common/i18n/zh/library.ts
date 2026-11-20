@@ -382,7 +382,6 @@ const library: Partial<Dictionary> = {
   'library.sound.forgetOwn': '忘记它自己的声音',
   'library.sound.forgetTheirs': '忘记这些歌曲自己的声音',
   'library.sound.noAlbumSound': '无专辑声音',
-  'library.sound.filter': '有已保存的声音',
   'library.sound.tagOwn': '自有 · {preset}',
   'library.sound.tagAlbum': '专辑 · {preset}',
   'library.sound.detailsYours': '你的声音',

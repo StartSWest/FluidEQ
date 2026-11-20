@@ -395,7 +395,6 @@ const library = {
   'library.sound.forgetOwn': 'Forget its own sound',
   'library.sound.forgetTheirs': 'Forget the songs’ own sounds',
   'library.sound.noAlbumSound': 'No album sound',
-  'library.sound.filter': 'Has a saved sound',
   'library.sound.tagOwn': 'Own · {preset}',
   'library.sound.tagAlbum': 'Album · {preset}',
   'library.sound.detailsYours': 'Your sound',

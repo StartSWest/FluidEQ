@@ -367,7 +367,6 @@ const library = {
   'library.sound.forgetOwn': '자체 사운드 잊기',
   'library.sound.forgetTheirs': '노래별 자체 사운드 잊기',
   'library.sound.noAlbumSound': '앨범 사운드 없음',
-  'library.sound.filter': '저장된 사운드 있음',
   'library.sound.tagOwn': '자체 · {preset}',
   'library.sound.tagAlbum': '앨범 · {preset}',
   'library.sound.detailsYours': '내 사운드',

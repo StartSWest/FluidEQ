@@ -72,8 +72,6 @@ interface ILibraryDetailHeaderProps {
   tagScope?: { scope: TTagSetScope; title: string; place?: string };
   /** The album the record is, for its sound (Auto EQ). */
   album?: { key: string; title: string; artist: string };
-  /** "Has a saved sound", narrowing the table (Auto EQ). */
-  soundFilter?: { isOn: boolean; onToggle: () => void };
 }
 
 /**
@@ -106,7 +104,6 @@ const LibraryDetailHeader = ({
   onFilter,
   tagScope,
   album,
-  soundFilter,
 }: ILibraryDetailHeaderProps) => {
   const { t } = useTranslation();
   const tagEditor = useTagEditorIfAny();
@@ -469,12 +466,8 @@ const LibraryDetailHeader = ({
               </button>
             </>
           )}
-          {hasTracks && (
-            <LibraryHeroSound
-              album={album}
-              loadTrackIds={loadTrackIds}
-              soundFilter={soundFilter}
-            />
+          {hasTracks && album && (
+            <LibraryHeroSound album={album} loadTrackIds={loadTrackIds} />
           )}
           {/* The record's own filter, at the far end of the actions: it
               narrows this record and nothing else, where the top bar's

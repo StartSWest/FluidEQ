@@ -402,7 +402,6 @@ const library: Partial<Dictionary> = {
   'library.sound.forgetOwn': 'Dimentica il suo suono',
   'library.sound.forgetTheirs': 'Dimentica i suoni propri dei brani',
   'library.sound.noAlbumSound': 'Nessun suono dell’album',
-  'library.sound.filter': 'Con un suono salvato',
   'library.sound.tagOwn': 'Proprio · {preset}',
   'library.sound.tagAlbum': 'Album · {preset}',
   'library.sound.detailsYours': 'Il tuo suono',

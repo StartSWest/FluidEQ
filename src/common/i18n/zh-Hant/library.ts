@@ -350,7 +350,6 @@ const library = {
   'library.sound.forgetOwn': '忘記它自己的聲音',
   'library.sound.forgetTheirs': '忘記這些歌曲自己的聲音',
   'library.sound.noAlbumSound': '無專輯聲音',
-  'library.sound.filter': '有已儲存的聲音',
   'library.sound.tagOwn': '自有 · {preset}',
   'library.sound.tagAlbum': '專輯 · {preset}',
   'library.sound.detailsYours': '您的聲音',

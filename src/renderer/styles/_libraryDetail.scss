@@ -903,8 +903,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // other.
 
 // THE RECORD'S SOUND (Auto EQ): the album's sound beside Play, named by a
-// caption the way the table's headers are, and "Has a saved sound", a switch
-// in the actions' own quiet face that lights while it narrows the table.
+// caption the way the table's headers are.
 .library-hero__sound {
   display: inline-flex;
   align-items: center;
@@ -941,13 +940,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &.is-set > span {
     color: $sound-album;
   }
-}
-
-.library-hero__sound-filter svg {
-  width: 13px;
-  height: 13px;
-  flex: 0 0 auto;
-  margin-left: -2px;
 }
 
 // The same in a song's Details: Change, under the fact row that says where

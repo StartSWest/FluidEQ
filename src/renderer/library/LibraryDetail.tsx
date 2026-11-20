@@ -44,7 +44,6 @@ import LibraryListView from './LibraryListView';
 import type { TTagSetScope } from './tags/TagEditorContext';
 import { usePlaylists } from './PlaylistContext';
 import { useLibraryList } from './useLibraryList';
-import { useSongSoundIndex } from '../audio/songSoundIndex';
 import libraryFoldersAhead from './libraryFoldersAhead';
 import { useLibraryAnswer } from './useLibraryAnswer';
 import { useLibraryPlayerSessionIfAny } from './player/LibraryPlayerContext';
@@ -184,16 +183,6 @@ const LibraryDetail = ({
   /** Narrows this table and nothing else: a question about one record, not
    * a standing filter the way the toolbar's search is. */
   const [filter, setFilter] = useState('');
-  /** "Has a saved sound" (Auto EQ): the table narrowed to the songs that
-   * keep a sound of their own. */
-  const [isSoundOnly, setIsSoundOnly] = useState(false);
-  const { songs: ownSounds } = useSongSoundIndex();
-  // Only while the filter is on: the index changes with every save, and the
-  // table is asked again only when what it shows would change.
-  const soundIds = useMemo(
-    () => (isSoundOnly ? [...ownSounds.keys()] : undefined),
-    [isSoundOnly, ownSounds],
-  );
 
   /** The current column reverses; a different one starts ascending. */
   const handleSort = useCallback((key: TLibrarySort) => {
@@ -298,28 +287,16 @@ const LibraryDetail = ({
     if (record === undefined) {
       return undefined;
     }
-    // The songs with a sound of their own, as ids the store already narrows a
-    // playlist by; a playlist's own ids are kept to those of them.
-    const listed = record.scope.ids && new Set(record.scope.ids);
-    const withSound = soundIds?.filter((id) => !listed || listed.has(id));
     return {
       shelf: 'tracks',
-      scope: withSound ? { ...record.scope, ids: withSound } : record.scope,
+      scope: record.scope,
       natural: record.natural,
       direction: sortDirection,
       ...(sort === undefined ? {} : { sort }),
       ...(filter.trim() === '' ? {} : { search: filter }),
       ...(isQueryTheContainer ? {} : { mark: query }),
     };
-  }, [
-    record,
-    sort,
-    sortDirection,
-    filter,
-    isQueryTheContainer,
-    query,
-    soundIds,
-  ]);
+  }, [record, sort, sortDirection, filter, isQueryTheContainer, query]);
   const table = useLibraryList(tableQuery);
 
   /**
@@ -755,10 +732,6 @@ const LibraryDetail = ({
               ? { key: albumId, title: album.title, artist: album.artist }
               : undefined
           }
-          soundFilter={{
-            isOn: isSoundOnly,
-            onToggle: () => setIsSoundOnly((was) => !was),
-          }}
         />
       )}
       {/* A folder of nothing but folders: those folders, drawn by the same
