@@ -44,7 +44,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 300px;
   flex: 1 1 auto;
   flex-direction: column;
-  overflow: hidden;
+  // Clipped with the 6px the album's table reaches past the column on each
+  // side (`.library-list`): a plain `hidden` cut its scrollbar off (Ivan,
+  // 2026-11-19: "in the Cover Flow view the list doesn't show the scroller").
+  overflow: clip;
+  overflow-clip-margin: 6px;
 }
 
 // *** Expanded: the songs under the row ****************************************
