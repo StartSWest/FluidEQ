@@ -37,7 +37,7 @@ import {
   usePresetEditSession,
 } from './presetEditSession';
 
-/** A handle switched off: the amber, held back. */
+/** A handle switched off: the violet, held back. */
 const PRESET_EDIT_INK_MUTED = `color-mix(in srgb, ${ColorEnum.PRESET_EDIT} 45%, transparent)`;
 
 const roundGain = (gain: number) =>
@@ -57,7 +57,7 @@ interface IDrag {
 
 /**
  * The graph's handles while one of the listener's presets is open: one per
- * band of the preset's curve, standing on that curve, in its amber, and
+ * band of the preset's curve, standing on that curve, in its violet, and
  * moved the way Your EQ's handles move — a drag measured from the press
  * (`pointDragState` in the graph says why), Ctrl for a bell round the
  * grabbed band, Ctrl+scroll for Q, the arrows for gain. Undefined while no

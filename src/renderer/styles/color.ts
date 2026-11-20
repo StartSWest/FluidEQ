@@ -97,12 +97,12 @@ export enum ColorEnum {
   TONE = '#ddff1a',
   /**
    * A preset's curve while it is being edited on the graph (own presets,
-   * 2026-11-20): the app's caution amber, `$ink-caution` in the
-   * stylesheets, light on a dark window and a deep amber at 5:1 on a white
-   * one (`--ink-caution`, App.scss), so the line and its handles read on
-   * both. Resolved by the SVG itself, as TOTAL is.
+   * 2026-11-20): the Preset layer's violet (`--ink-preset`, App.scss),
+   * lifted on a dark window and deep on a white one, so the line and its
+   * handles read on both. It was the caution amber, the driver's line.
+   * Resolved by the SVG itself, as TOTAL is.
    */
-  PRESET_EDIT = 'var(--ink-caution, #ffb059)',
+  PRESET_EDIT = 'var(--ink-preset, #8b5cff)',
 }
 
 export enum GrayScaleEnum {

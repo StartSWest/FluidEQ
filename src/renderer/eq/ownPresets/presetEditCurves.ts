@@ -23,7 +23,7 @@ const YOUR_EQ_WHILE_EDITING = 0.32;
 
 /**
  * The graph's lines while one of the listener's presets is open: the
- * preset's curve at full strength in its amber, the line its handles stand
+ * preset's curve at full strength in its violet, the line its handles stand
  * on, and Your EQ's drawn back and thin, without its spectrum shading, as
  * the context it is. Everything else as it was.
  */

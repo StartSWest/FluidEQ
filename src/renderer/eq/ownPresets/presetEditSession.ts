@@ -29,7 +29,7 @@ import {
 /**
  * A preset of the listener's own, open for editing (Ivan, 2026-11-20, own
  * presets, Direction A): its curve shaped on the EQ page's graph and band
- * rail, drawn in amber while Your EQ stays as it is, and its rack on the DSP
+ * rail, drawn in violet while Your EQ stays as it is, and its rack on the DSP
  * page. Nothing is kept until Save; Discard puts back what played before.
  *
  * The draft plays as it is shaped: as the Preset layer, through the same

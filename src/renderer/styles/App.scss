@@ -75,6 +75,11 @@ html {
   // How light a colour worn as words may be (`readable-ink` in _color.scss):
   // any lightness on a dark window, where the colours are lights already.
   --ink-ceiling: 1;
+  // A preset being made or changed (own presets): the Preset layer's violet,
+  // lifted to read on a dark window. It wore the caution amber first, the
+  // driver correction's colour on the graph, and the two lines could be
+  // taken for each other (Ivan, 2026-11-20: "change its colour").
+  --ink-preset: oklch(from #8b5cff 0.74 c h);
 
   // A light window (`data-window-ink`, `themeInk.ts`): the native controls
   // that are left - a date field, the caret, a select's own list - in light.
@@ -82,6 +87,8 @@ html {
     color-scheme: light;
     // OKLCH lightness 0.5 stands about 6:1 on the white pane, past AA's 4.5.
     --ink-ceiling: 0.5;
+    // The same violet, deep enough to read on white.
+    --ink-preset: oklch(from #8b5cff 0.5 c h);
     // The output curve, a near-white on a dark window, in the muted ink.
     --curve-total: var(--text-muted);
     // Light under its dark words.

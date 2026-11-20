@@ -41,7 +41,7 @@ import {
 } from './presetEditSession';
 import PresetBandMenu from './PresetBandMenu';
 
-/** Every slider in the preset's amber, the graph's handles' ink. */
+/** Every slider in the preset's violet, the graph's handles' ink. */
 const PRESET_BAND_INK: IBandColor = {
   color: ColorEnum.PRESET_EDIT,
   muted: `color-mix(in srgb, ${ColorEnum.PRESET_EDIT} 62%, transparent)`,
@@ -59,7 +59,7 @@ const densityOf = (count: number): TBandDensity => {
 /**
  * The preset's bands as sliders, under the graph where Your EQ's stand,
  * while one of the listener's presets is open: the same band, slider, scale
- * and level light as Your EQ's rail, every one in the preset's amber (Add
+ * and level light as Your EQ's rail, every one in the preset's violet (Add
  * band is in the strip above). Your EQ's bands are not here and nothing
  * here touches them.
  */

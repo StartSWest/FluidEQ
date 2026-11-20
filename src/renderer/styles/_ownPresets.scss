@@ -14,14 +14,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // *** The listener's own presets (own presets, Direction A, 2026-11-20) ****
 //
-// A preset being made or changed wears the caution amber, `$ink-caution`:
-// light on a dark window and a deep amber at 5:1 on a white one, so the one
-// ink reads on both. The graph draws its curve and handles in the same ink
+// A preset being made or changed wears the Preset layer's violet,
+// `--ink-preset` (App.scss): lifted on a dark window and deep on a white
+// one, so the one ink reads on both. It was the caution amber, which is the
+// driver correction's line on the graph. The graph draws its curve and handles in the same ink
 // (`ColorEnum.PRESET_EDIT`). Flat surfaces parted by light, no shadows.
 
-$own-ink: $ink-caution;
-$own-tint: color-mix(in srgb, $ink-caution 13%, transparent);
-$own-edge: color-mix(in srgb, $ink-caution 55%, transparent);
+$own-ink: var(--ink-preset);
+$own-tint: color-mix(in srgb, var(--ink-preset) 13%, transparent);
+$own-edge: color-mix(in srgb, var(--ink-preset) 55%, transparent);
 
 // --- New preset, among the Preset tab's tools: its word in the accent, the
 // one tool on the row that makes something. Over the row's flat tool ink.
@@ -327,8 +328,8 @@ $own-edge: color-mix(in srgb, $ink-caution 55%, transparent);
 }
 
 // --- The strip: where the EQ page's tab row stood, and over the DSP page,
-// while a preset is open. The row's own height, on the amber's tint, with
-// the amber's hairline under it: the page is in another mode, plainly.
+// while a preset is open. The row's own height, on the violet's tint, with
+// the violet's hairline under it: the page is in another mode, plainly.
 .own-preset-strip {
   display: flex;
   min-width: 0;
@@ -379,7 +380,7 @@ $own-edge: color-mix(in srgb, $ink-caution 55%, transparent);
   flex: none;
 }
 
-// Curve and Rack: the segmented track, the part lit in the amber.
+// Curve and Rack: the segmented track, the part lit in the violet.
 .segmented.own-preset-strip__parts {
   flex: none;
   border-color: $own-edge;
@@ -440,7 +441,7 @@ $own-edge: color-mix(in srgb, $ink-caution 55%, transparent);
   }
 }
 
-// The graph's key names the preset's line in the amber it is drawn in while
+// The graph's key names the preset's line in the violet it is drawn in while
 // it is the one being shaped (`presetEditCurves`).
 .graph-wrapper.is-editing-preset .graph-legend--voicing {
   --curve-color: #{$own-ink};

@@ -35,7 +35,7 @@ const HIGH_HZ = 20_000;
 
 /**
  * A preset's curve as it plays — its bands at the Q its model builds them
- * with (`dspPresetVoicing`) — drawn small in the preset's amber, glowing
+ * with (`dspPresetVoicing`) — drawn small in the preset's violet, glowing
  * above the line for a boost and below it for a cut. Nothing for no curve.
  */
 const PresetCurveSpark = ({
