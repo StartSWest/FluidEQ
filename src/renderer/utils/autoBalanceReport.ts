@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
+  ABSENT_PRESENCE,
   BALANCE_MAX_FREQUENCY,
   BALANCE_MIN_FREQUENCY,
   CONVERGENCE_HOLDS,
@@ -27,6 +28,7 @@ import {
   REGION_COVERED_CONFIDENCE,
   REGION_SE_TARGET_DB,
   REGION_TARGET_WEIGHT,
+  SETTLE_TOLERANCE_DB,
   STALL_GRACE_MS,
   STALL_IMPROVEMENT,
 } from './autoBalanceTuning';
@@ -67,7 +69,57 @@ import type {
 export interface IBalanceListenBounds {
   minListenMs?: number;
   maxListenMs?: number;
+  /**
+   * Also require the estimate to have moved no more than
+   * `SETTLE_TOLERANCE_DB` over this much listening, on every covered range.
+   *
+   * The two-checkpoint rule asks for one second of stillness, and a running
+   * mean of a whole song is still between two checkpoints long before it has
+   * heard what the song is: held on that rule at twenty to twenty-five
+   * seconds, six records came out 2-6 dB from the curve their first two
+   * minutes give. A mean moves over a window by roughly the window's share
+   * of what it has heard times how far the song's sections differ, so asking
+   * for stillness over ten seconds lets an even record hold early and makes a
+   * record with a different chorus wait until the chorus has been counted.
+   * Absent for the one-shot, which is a press waiting for an answer.
+   */
+  settleWindowMs?: number;
 }
+
+/**
+ * Whether every covered range's probe has moved no more than
+ * `SETTLE_TOLERANCE_DB` since `windowMs` of listening ago. Records `probe`
+ * first, keeping only what the window still needs; false until there has
+ * been a window of listening at all.
+ */
+const isStillOverWindow = (
+  state: IBalanceCaptureState,
+  regions: IBalanceRegionReport[],
+  probe: Float64Array,
+  windowMs: number,
+): boolean => {
+  const history = state.probeHistory ?? [];
+  history.push({ probe, atListenedMs: state.listenedMs });
+  const start = state.listenedMs - windowMs;
+  // The newest entry at or before the window's start stays: it is the
+  // reference.
+  while (history.length > 1 && history[1].atListenedMs <= start) {
+    history.shift();
+  }
+  // eslint-disable-next-line no-param-reassign -- the capture's own bookkeeping, like `checkpoint`
+  state.probeHistory = history;
+  const reference = history[0];
+  if (reference.atListenedMs > start) {
+    return false;
+  }
+  let drift = -Infinity;
+  regions.forEach((region, index) => {
+    if (region.isCovered) {
+      drift = Math.max(drift, Math.abs(probe[index] - reference.probe[index]));
+    }
+  });
+  return drift >= 0 && drift <= SETTLE_TOLERANCE_DB;
+};
 
 /**
  * Score the capture so far: per-region confidence, the averaged spectrum, and
@@ -78,6 +130,7 @@ export const evaluateBalanceCapture = (
   {
     minListenMs = MIN_LISTEN_MS,
     maxListenMs = MAX_LISTEN_MS,
+    settleWindowMs,
   }: IBalanceListenBounds = {},
 ): IBalanceReport => {
   const regions: IBalanceRegionReport[] = state.regions.map((region, index) => {
@@ -102,6 +155,10 @@ export const evaluateBalanceCapture = (
       levelDb: s.mean,
       liveDb: state.liveDb[index],
       typicalDb: state.typicalDb[index],
+      presence:
+        state.presenceWeight[index] > 0
+          ? state.presenceSum[index] / state.presenceWeight[index]
+          : Number.NaN,
       weight: s.weight,
       standardErrorDb,
       confidence,
@@ -195,7 +252,11 @@ export const evaluateBalanceCapture = (
     holds = drift <= CONVERGENCE_TOLERANCE_DB ? state.checkpoint.holds + 1 : 0;
   }
   state.checkpoint = { probe, holds, atListenedMs: state.listenedMs };
-  const isConverged = holds >= CONVERGENCE_HOLDS;
+  // Recorded at every checkpoint, so it is asked before the holds are.
+  const isSettled =
+    settleWindowMs === undefined ||
+    isStillOverWindow(state, regions, probe, settleWindowMs);
+  const isConverged = holds >= CONVERGENCE_HOLDS && isSettled;
 
   if (coverage > state.bestWeakest + STALL_IMPROVEMENT) {
     state.bestWeakest = coverage;
@@ -205,11 +266,22 @@ export const evaluateBalanceCapture = (
     state.bestMean = meanCoverage;
     state.bestMeanAtMs = state.listenedMs;
   }
+  // The gate has already watched the missing ranges stay missing for twenty
+  // seconds and called the record band-limited, and every other range is
+  // heard: nothing is left for the stall rule's eight seconds to find out.
+  // See `ABSENT_PRESENCE`.
+  const isKnownBandLimited =
+    state.fullBand.hasExpired &&
+    coverage < REGION_COVERED_CONFIDENCE &&
+    regions.every(
+      (region) => region.isCovered || !(region.presence > ABSENT_PRESENCE),
+    );
   const isStalled =
     state.listenedMs >= minListenMs &&
     coverage < REGION_COVERED_CONFIDENCE &&
-    state.listenedMs - state.bestWeakestAtMs >= STALL_GRACE_MS &&
-    state.listenedMs - state.bestMeanAtMs >= STALL_GRACE_MS;
+    (isKnownBandLimited ||
+      (state.listenedMs - state.bestWeakestAtMs >= STALL_GRACE_MS &&
+        state.listenedMs - state.bestMeanAtMs >= STALL_GRACE_MS));
 
   // Order matters. The goal is tested before the ceiling so a capture that
   // reaches full coverage on its very last allowed frame is reported as the

@@ -56,25 +56,6 @@ export const SMART_EQ_MAX_BOOST_DB = 6;
 export const SMART_EQ_MAX_CUT_DB = 9;
 
 /**
- * How far a fresh solve has to differ from the layer already written before
- * a running mode writes it, in dB — measured on the layer's curve, not on
- * one band.
- *
- * A running mode solves again at every checkpoint the measurement settles
- * on, and the estimate of a record keeps sharpening as more of it is heard:
- * an intro, then a chorus, then the average of both. Each solve is right for
- * what has been heard so far, and most of them differ from the last by a
- * fraction of a decibel nobody could hear. Writing every one would rewrite
- * the engine's configuration a dozen times a song for nothing audible, and
- * each write is a reload on the engine's side.
- *
- * One decibel is about where a broad change to a curve becomes audible at
- * all. Under it the layer stands; over it the new answer replaces the old
- * whole, and the mode says what changed.
- */
-export const SMART_EQ_REWRITE_DB = 1;
-
-/**
  * Turn a solved set of gains into the layer to store.
  *
  * Every band is kept, including the ones that came out at 0 dB: the map is
@@ -140,26 +121,6 @@ export const smartEqResponse = (
       (sum, coefficients) => sum + gainAtFrequency(frequency, coefficients),
       0,
     ),
-  );
-};
-
-/**
- * Whether a fresh solve is far enough from the written layer to be worth
- * writing — see `SMART_EQ_REWRITE_DB`. Compared as curves, because bells
- * overlap: two bands moving a half decibel each in the same direction is a
- * decibel in the sound, and one band moving a decibel against its neighbour
- * is nearly nothing.
- */
-export const isSmartEqRewriteDue = (
-  bands: IFilter[],
-  written: Record<string, number>,
-  solved: Record<string, number>,
-  thresholdDb: number = SMART_EQ_REWRITE_DB,
-): boolean => {
-  const before = smartEqResponse(bands, written);
-  const after = smartEqResponse(bands, solved);
-  return before.some(
-    (level, index) => Math.abs(after[index] - level) >= thresholdDb,
   );
 };
 

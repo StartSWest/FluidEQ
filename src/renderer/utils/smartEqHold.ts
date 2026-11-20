@@ -4,7 +4,10 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { IBalanceReport } from './autoBalanceCapture';
+import type {
+  IBalanceListenBounds,
+  IBalanceReport,
+} from './autoBalanceCapture';
 import { shouldFinishBalanceCapture } from './autoBalanceCapture';
 import { REGION_COVERED_CONFIDENCE } from './autoBalanceTuning';
 import type { ISmartEqPreviewRegion, TSmartEqPhase } from './smartEqPreview';
@@ -21,6 +24,27 @@ import type { ISmartEqPreviewRegion, TSmartEqPhase } from './smartEqPreview';
  * stall rule saying the rest of the record will never come. The rules that
  * decide it are the one-shot's, unchanged (`evaluateBalanceCapture`).
  */
+
+/**
+ * How a running mode listens to a song: until every covered range has moved
+ * less than `SETTLE_TOLERANCE_DB` over the last ten seconds of listening
+ * (`settleWindowMs`), so what is held is the song's long-term balance and not
+ * its first verse, with a sixty-second backstop in place of the one-shot's
+ * twenty-five.
+ *
+ * Measured on six records through the real spectrum path, three plays each,
+ * against the curve their first two minutes give (2026-11-20). Held on the
+ * one-shot's rule alone they came out 1.3-5.4 dB from it (3.1 on average) at
+ * 21-27 s; on this rule 1.1-2.2 dB for seven of eight, 6.5 for one whose
+ * second minute differs from its first (2.2 on average), held at 31-44 s for
+ * most and at about a minute for records that keep changing. A 0.5 dB
+ * tolerance came closer still (1.4 on average) but held anywhere from 31 to
+ * 90 s, the same song forty seconds apart from one play to the next.
+ */
+export const SONG_LISTEN_BOUNDS: IBalanceListenBounds = {
+  settleWindowMs: 10000,
+  maxListenMs: 60000,
+};
 
 /** The measurement is done with this song, by the one-shot's own rule. */
 export const isReadyToHold = (report: IBalanceReport): boolean =>

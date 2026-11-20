@@ -322,6 +322,12 @@ export const CONVERGENCE_TOLERANCE_DB = 0.4;
 export const CONVERGENCE_HOLDS = 2;
 
 /**
+ * How far a covered range's estimate may move over a running mode's settle
+ * window and still count as the song's own (`settleWindowMs`), in dB.
+ */
+export const SETTLE_TOLERANCE_DB = 0.75;
+
+/**
  * How long BOTH the weakest region and the mean must fail to improve before we
  * accept the source is genuinely band-limited. Requiring both matters: during a
  * quiet intro the weakest region sits still while everything else fills in, and
@@ -330,12 +336,34 @@ export const CONVERGENCE_HOLDS = 2;
 export const STALL_GRACE_MS = 8000;
 export const STALL_IMPROVEMENT = 0.02;
 
+/**
+ * A range whose presence over everything learned (`presence` in the report:
+ * the mean of its allowance, weighted by each frame's loudness) is at or
+ * under this is absent from the record, not slow to fill. Once the full-band
+ * gate has waited out its twenty seconds and called the record band-limited,
+ * such a range has already been shown missing for longer than the stall
+ * rule's eight seconds, so the stall rule is not asked again for it: a record
+ * with no air held at about thirty seconds, twenty of them the gate's wait and
+ * eight more the stall's, and now holds about a second after the wait.
+ * A tenth of the ramp between the two presence lines is under anything a
+ * playing range averages: at its own typical level a range sits about seven
+ * tenths of the way up, and a bar of quiet takes it to a third.
+ */
+export const ABSENT_PRESENCE = 0.1;
+
 /* -------------------------------------------------------------------------
  * Correction limits
  * ---------------------------------------------------------------------- */
 
 /** Below this confidence a band holds its current gain instead of guessing. */
 export const MIN_BAND_CONFIDENCE = 0.4;
+
+/**
+ * How far above `MIN_BAND_CONFIDENCE` a band's confidence is eased in to its
+ * full weight, so a band crossing the floor moves its gain by a little
+ * rather than by four tenths of its correction at once.
+ */
+export const CONFIDENCE_EASE = 0.2;
 
 /**
  * The tilt fit needs leverage. Below a four-octave trusted span straddling the

@@ -125,6 +125,15 @@ export interface IFullBandState {
    * is recoverable, and it recovers by itself the moment the band arrives.
    */
   armed: boolean;
+  /**
+   * The last hold ran out its budget, so the absence is the record itself,
+   * until the full band is seen clear again. What it was waiting on has been
+   * heard missing for `FULL_BAND_HOLD_MS`, which is what lets the capture
+   * stop waiting on that range a second time (`ABSENT_PRESENCE`), and what
+   * makes the frames of that hold evidence about the record after all
+   * (`heldEvidence` in the capture).
+   */
+  hasExpired: boolean;
   isHolding: boolean;
   holdingMs: number;
   presentMs: number;
@@ -133,6 +142,7 @@ export interface IFullBandState {
 
 export const createFullBandState = (): IFullBandState => ({
   armed: true,
+  hasExpired: false,
   isHolding: false,
   holdingMs: 0,
   presentMs: 0,
@@ -170,6 +180,7 @@ export const advanceFullBandGate = (
   state.presentMs = isAbsent ? 0 : state.presentMs + dt;
   if (state.clearMs >= FULL_BAND_STEADY_MS) {
     state.armed = true;
+    state.hasExpired = false;
   }
 
   if (state.isHolding) {
@@ -184,6 +195,7 @@ export const advanceFullBandGate = (
       state.isHolding = false;
       state.holdingMs = 0;
       state.armed = false;
+      state.hasExpired = true;
     }
   } else if (isAbsent && state.armed) {
     state.isHolding = true;

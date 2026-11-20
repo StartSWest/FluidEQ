@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useEffect, useRef, useState } from 'react';
 import { describeSmartEqLayer, getSmartEqBands } from 'common/smartEq';
-import { isSmartEqRewriteDue } from 'common/smartEqContinuous';
 import {
   describeBalanceProgress,
   describeBalanceResult,
@@ -31,6 +30,7 @@ import { setSmartEq as setSmartEqApi } from './utils/equalizerApi';
 import { noteSmartEqWrite } from './audio/songEqSession';
 import { useNowPlayingIdentity } from './audio/nowPlayingIdentity';
 import { usePlaybackOwner } from './audio/playbackOwner';
+import { useLastPlayingOwner } from './audio/transportSource';
 import {
   IMeasurement,
   ISmartEqPreviewReport,
@@ -44,7 +44,6 @@ import {
   IBalanceReport,
 } from './utils/autoBalanceCapture';
 import {
-  SMART_EQ_LAYOUT,
   gainsOf,
   movedRanges,
   smartEqLayerOf,
@@ -67,7 +66,9 @@ import {
   startSmartEqPreview,
   useSmartEqRemeasures,
 } from './utils/smartEqPreview';
+import { THeldSongs, createHeldSongs } from './utils/heldSongs';
 import {
+  SONG_LISTEN_BOUNDS,
   atStrength,
   isReadyToHold,
   missingRangesOf,
@@ -134,9 +135,17 @@ const SmartEqEngine = () => {
    * Which tap hears the source. The Library plays through FluidEQ's own host,
    * whose input tap is the decoded file; everything else is heard through the
    * process loopback, which Windows delivers ahead of the endpoint's effects.
+   *
+   * Asked of whoever last played, not of who owns playback this instant: the
+   * Library gives up ownership the moment it pauses, so a pause flipped the
+   * tap to the process loopback and a resume flipped it back — each flip a
+   * new session, the song heard again from nothing and written again
+   * mid-song.
    */
   const owner = usePlaybackOwner();
-  const sourceKind: TRawSourceKind = owner === 'library' ? 'host' : 'process';
+  const lastPlayingOwner = useLastPlayingOwner();
+  const sourceKind: TRawSourceKind =
+    (owner ?? lastPlayingOwner) === 'library' ? 'host' : 'process';
   /**
    * Which song is playing, and whether anything is.
    *
@@ -173,10 +182,24 @@ const SmartEqEngine = () => {
    * nothing measures; a session counted up opens a new tap.
    */
   const isHeldRef = useRef(false);
-  /** What the hold was written from, so a change of mode re-solves it. */
-  const heldReportRef = useRef<IBalanceReport | undefined>(undefined);
+  /**
+   * The songs that are done, kept apart from the session that heard them
+   * (`heldSongs.ts`).
+   *
+   * The hold used to live and die with the measuring effect, so anything
+   * that re-ran that effect — the Smart chip switched off and on, the tap
+   * changing, the running mode toggled — forgot the song was done and heard
+   * it again from nothing, writing a second curve from a different stretch
+   * of it. And a player whose title flickered (an ad, a media session
+   * dropping for a moment) counted as two song changes, so the same song
+   * came back as a new one. A song now stays done until Measure again is
+   * pressed on it: coming back to it resumes its hold and measures nothing.
+   */
+  const heldSongsRef = useRef<THeldSongs>(createHeldSongs());
   const [session, setSession] = useState(0);
   const remeasures = useSmartEqRemeasures();
+  /** The Measure again count the held songs were last checked against. */
+  const remeasuredRef = useRef(remeasures);
   /**
    * A new song is a different record: the accumulator starts again, on the
    * same tap while it is still listening. Not a restart of the whole session
@@ -191,8 +214,12 @@ const SmartEqEngine = () => {
     if (previousSongRef.current === songKey) {
       return;
     }
+    heldSongsRef.current.leave(previousSongRef.current);
     previousSongRef.current = songKey;
-    if (isHeldRef.current) {
+    // Held, a new session opens a tap for the new song or resumes it if it
+    // was held before; on a held song, it closes whatever was measuring
+    // meanwhile. The session effect decides which.
+    if (isHeldRef.current || heldSongsRef.current.get(songKey)) {
       setSession((count) => count + 1);
       return;
     }
@@ -376,6 +403,10 @@ const SmartEqEngine = () => {
 
     setSmartEqRunning(true);
     isHeldRef.current = false;
+    // A press is a fresh answer for this song: a running mode coming back
+    // after it measures the song again rather than putting the old hold back
+    // over what the press wrote.
+    heldSongsRef.current.forget(previousSongRef.current);
     startSmartEqPreview();
 
     try {
@@ -536,10 +567,13 @@ const SmartEqEngine = () => {
   /**
    * Write what a held song was measured to, once — see `smartEqHold.ts`.
    *
-   * Two conditions still stand between the answer and the engine: the fresh
-   * answer has to differ from the written layer by an audible amount
-   * (`isSmartEqRewriteDue`), so the same song played again is not a reload
-   * on the engine's side, and the tilt fit needs a wide trusted span.
+   * Written whenever it is not exactly what plays. It also had to differ by
+   * a decibel somewhere on the curve, which kept a song on the LAST song's
+   * curve whenever the two were close, so what a song played under depended
+   * on what played before it. That rule was for a loop rewriting one song
+   * all evening; a hold writes once per song, and the same song played again
+   * resumes its own hold (`heldSongs.ts`), which describes the same layer and
+   * writes nothing. The tilt fit still needs a wide trusted span.
    */
   const writeHeld = (
     report: IBalanceReport,
@@ -558,7 +592,6 @@ const SmartEqEngine = () => {
     });
     if (
       isApplyingRef.current ||
-      !isSmartEqRewriteDue(SMART_EQ_LAYOUT, written, gains) ||
       describeSmartEqLayer(measured) === describeSmartEqLayer(layer)
     ) {
       return { outcome: 'unchanged', gains };
@@ -622,8 +655,12 @@ const SmartEqEngine = () => {
       return;
     }
     isHeldRef.current = true;
-    heldReportRef.current = report;
     const { outcome, gains } = writeHeld(report);
+    heldSongsRef.current.set(previousSongRef.current, {
+      report,
+      outcome,
+      gains,
+    });
     showHeld(report, outcome, gains);
     listeningForRef.current = '';
     setSmartEqListening('');
@@ -636,6 +673,8 @@ const SmartEqEngine = () => {
   // take every region's accumulated evidence with it.
   const applyReportRef = useRef(applyReport);
   applyReportRef.current = applyReport;
+  const writeHeldRef = useRef(writeHeld);
+  writeHeldRef.current = writeHeld;
 
   /**
    * A mode chosen while a song is held: the evidence is of the record and as
@@ -643,12 +682,17 @@ const SmartEqEngine = () => {
    * again at once rather than heard again.
    */
   useEffect(() => {
-    const report = heldReportRef.current;
-    if (!isHeldRef.current || !report || !isContinuousMode(smartEqMode)) {
+    const held = heldSongsRef.current.get(previousSongRef.current);
+    if (!isHeldRef.current || !held || !isContinuousMode(smartEqMode)) {
       return;
     }
-    const { outcome, gains } = writeHeld(report);
-    showHeld(report, outcome, gains);
+    const { outcome, gains } = writeHeld(held.report);
+    heldSongsRef.current.set(previousSongRef.current, {
+      ...held,
+      outcome,
+      gains,
+    });
+    showHeld(held.report, outcome, gains);
     // Only the mode: everything else the write reads is current through refs.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- see above
   }, [smartEqMode]);
@@ -661,11 +705,48 @@ const SmartEqEngine = () => {
       return undefined;
     }
 
+    const songs = heldSongsRef.current;
+    if (remeasuredRef.current !== remeasures) {
+      // Measure again: this song is heard afresh.
+      remeasuredRef.current = remeasures;
+      songs.forget(previousSongRef.current);
+    }
+    const held = songs.get(previousSongRef.current);
+    if (held) {
+      // Done with this song already: nothing to hear. Written again only if
+      // the layer playing is not this song's curve (another song's, or one
+      // put on while the mode was off) — the same solve of the same report,
+      // so the same curve every time. The same holdId, so the graph does not
+      // play the arrival again.
+      isHeldRef.current = true;
+      const again = writeHeldRef.current(held.report);
+      const outcome = again.outcome === 'written' ? 'written' : held.outcome;
+      songs.set(previousSongRef.current, {
+        ...held,
+        outcome,
+        gains: again.gains,
+      });
+      publishSmartEqPreview({
+        phase: 'held',
+        outcome,
+        isSilent: false,
+        missing: missingRangesOf(held.report),
+        regions: previewRegionsOf(held.report),
+        gains:
+          again.gains && atStrength(again.gains, smartEqRef.current?.intensity),
+      });
+      listeningForRef.current = '';
+      setSmartEqListening('');
+      return () => {
+        isHeldRef.current = false;
+        endSmartEqPreview();
+      };
+    }
+
     const controller = new AbortController();
     continuousAbortRef.current = controller;
     isApplyingRef.current = false;
     isHeldRef.current = false;
-    heldReportRef.current = undefined;
     startSmartEqPreview();
     // A fresh session has heard nothing yet, and saying otherwise would leave
     // the bubble asserting a condition from the last one.
@@ -677,6 +758,7 @@ const SmartEqEngine = () => {
         source: sourceKind,
         signal: controller.signal,
         isContinuous: true,
+        ...SONG_LISTEN_BOUNDS,
         // One song where something names the song; a forgetting window
         // where nothing does. See `songKey` above. Read here for the first
         // song; a later one still listening arrives by `restart`.
@@ -714,7 +796,8 @@ const SmartEqEngine = () => {
     // different sound and everything heard through the old one is of a
     // source no longer playing. So does a new song after a hold, whose tap is
     // closed (`session`), and Measure again (`remeasures`). The mode does
-    // not: see the effect above.
+    // not: see the effect above. A song already held is never measured
+    // again by any of these but Measure again: see `heldSongsRef`.
   }, [
     isRunning,
     isContinuousOn,

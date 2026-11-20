@@ -13,9 +13,12 @@ import {
 import { windowPrimary } from '../utils/windowInk';
 import { isLightWindow } from '../utils/windowSide';
 import {
+  HOLD_CLOSE_S,
+  HOLD_SWEEP_S,
   IDustFrame,
   IDustPaint,
   clamp01,
+  closedOf,
   confidenceAt,
   createDustField,
   drawDust,
@@ -37,11 +40,14 @@ import SmartEqChip from './SmartEqChip';
 const CURVE_EASE_S = 0.22;
 const CONFIDENCE_EASE_S = 0.35;
 const ARRIVE_S = 0.45;
-/** The arrival once held: points out, the light along it, the hand-over. */
-const HELD_DOTS_OUT_S = 0.9;
-const HELD_PASS_FROM_S = 0.1;
+/**
+ * The arrival once held: the points close into the line in one sweep from the
+ * bass up (`HOLD_SWEEP_S`, `HOLD_CLOSE_S`), the light runs along the
+ * finished line, it stands a moment and hands over to the layer's own line.
+ */
+const HELD_PASS_FROM_S = HOLD_SWEEP_S + HOLD_CLOSE_S;
 const HELD_PASS_S = 0.85;
-const HELD_LINE_FROM_S = 1.25;
+const HELD_LINE_FROM_S = HELD_PASS_FROM_S + HELD_PASS_S + 0.6;
 const HELD_LINE_OUT_S = 0.75;
 const HELD_DONE_S = HELD_LINE_FROM_S + HELD_LINE_OUT_S;
 
@@ -144,8 +150,7 @@ const SmartEqDust = ({
       confidence: new Float64Array(count),
       seconds: 0,
       presence: 0,
-      dots: 1,
-      solid: 0,
+      closed: new Float64Array(count),
       line: 1,
       pass: -1,
     };
@@ -196,14 +201,11 @@ const SmartEqDust = ({
         active || sinceHeld !== undefined
           ? Math.min(1, frame.presence + dt / ARRIVE_S)
           : Math.max(0, frame.presence - dt / ARRIVE_S);
+      closedOf(frame.confidence, sinceHeld, reduced, frame.closed);
       if (sinceHeld === undefined) {
-        frame.dots = 1;
-        frame.solid = 0;
         frame.line = 1;
         frame.pass = -1;
       } else {
-        frame.dots = 1 - smoothstep(0, HELD_DOTS_OUT_S, sinceHeld);
-        frame.solid = smoothstep(0, 0.35, sinceHeld);
         frame.line = 1 - smoothstep(HELD_LINE_FROM_S, HELD_DONE_S, sinceHeld);
         frame.pass = reduced
           ? -1
@@ -264,9 +266,8 @@ const SmartEqDust = ({
       }
       if (preview.phase === 'held' && preview.holdId !== heldId) {
         heldId = preview.holdId;
-        // Held: every range as sure as it will be, so the points have
-        // somewhere to go before they fade.
-        targetConfidence.fill(1);
+        // The sweep closes what the measurement had not: confidence is left
+        // where it was, or every range would close at once ahead of it.
         isHeldNew = true;
       } else if (preview.phase !== 'held') {
         heldAt = undefined;

@@ -33,8 +33,8 @@ export const SMART_EQ_LAYOUT = getSmartEqLayout();
  * How much boost each frequency has earned, read off the lines on the plot.
  *
  * Built here rather than inside the solver, because it joins two things the
- * solver has no business knowing about: what each range is doing at this
- * moment, which comes off the capture, and where somebody has dragged that
+ * solver has no business knowing about: how much of the record each range
+ * plays in, which comes off the capture, and where somebody has dragged that
  * range's two lines, which is a preference. The solver is handed one number
  * per frequency and stays a function of its own measurement.
  *
@@ -63,6 +63,20 @@ const allowanceFrom =
        */
       return 1;
     }
+    /*
+     * THE RECORD'S PRESENCE, NOT THIS SECOND'S. This read the allowance off
+     * `liveDb` — the range in the last second — so the curve a hold wrote
+     * depended on which bar it landed in: a bass that rested for a beat at
+     * the hold took the whole bass lift off that song, and two plays of one
+     * song held two curves. `presence` is the allowance averaged over every
+     * frame learned, weighted by loudness: a range that played half the song
+     * may be lifted half as far, whenever the hold lands.
+     */
+    if (Number.isFinite(region.presence)) {
+      return region.presence;
+    }
+    // Nothing learned yet (the forming curve's first checkpoints): the bar
+    // is all there is to go on.
     return presenceAllowance(
       region.liveDb,
       getPresenceLine(

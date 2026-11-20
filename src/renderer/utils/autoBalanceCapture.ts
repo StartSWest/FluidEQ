@@ -41,6 +41,7 @@ import {
   advanceFullBandGate,
   createFullBandState,
 } from './fullBandGate';
+import mergeHeldEvidence from './heldEvidence';
 
 export {
   buildBalanceProgress,
@@ -235,6 +236,23 @@ export interface IBalanceCaptureState {
    */
   learnsThroughHolds?: boolean;
   /**
+   * Everything heard while the full-band gate holds, kept aside: thrown away
+   * if the record comes back (it was an effect), added to the evidence if the
+   * hold runs out (it was the record all along — see `mergeHeldEvidence`).
+   * Without it a record missing a whole range started learning from nothing
+   * after the gate's twenty-second wait.
+   */
+  heldEvidence?: IBalanceCaptureState;
+  /**
+   * Per range, each learned frame's presence allowance weighted by the
+   * frame's loudness, and the loudness weight behind it: how much of the song
+   * the range was playing, which is what a correction may lift by
+   * (`presence` in the report). The allowance at the moment of a solve is a
+   * fact about one bar; this is a fact about the record.
+   */
+  presenceSum: Float64Array;
+  presenceWeight: Float64Array;
+  /**
    * What each range TYPICALLY does on this record, on the plot own axis.
    *
    * Where the presence lines place themselves from. Distinct from liveDb, which
@@ -249,6 +267,12 @@ export interface IBalanceCaptureState {
   lastTimestampMs: number;
   checkpoint:
     { probe: Float64Array; holds: number; atListenedMs: number } | undefined;
+  /**
+   * The checkpoints' probes over the last `settleWindowMs` of listening, for
+   * a caller that wants the estimate still over a window rather than between
+   * two checkpoints (`IBalanceListenBounds.settleWindowMs`).
+   */
+  probeHistory?: Array<{ probe: Float64Array; atListenedMs: number }>;
   bestWeakest: number;
   bestWeakestAtMs: number;
   bestMean: number;
@@ -286,6 +310,13 @@ export interface IBalanceRegionReport {
   /** The same level followed slowly, which is where the lines place
    * themselves from. See PRESENCE_TYPICAL_DB_PER_S. */
   typicalDb: number;
+  /**
+   * 0..1: the range's presence allowance averaged over every frame learned
+   * from, weighted by loudness — the share of the song it was playing. NaN
+   * before any frame was learned. What a solve lifts a range by; see
+   * `presenceSum`.
+   */
+  presence: number;
   weight: number;
   standardErrorDb: number;
   confidence: number;
@@ -446,6 +477,8 @@ export const createBalanceCaptureState = (
     power: new Float64Array(axis.length),
     weight: new Float64Array(axis.length),
     regionStates: regions.map(() => ({ weight: 0, mean: 0, m2: 0 })),
+    presenceSum: new Float64Array(regions.length),
+    presenceWeight: new Float64Array(regions.length),
     // Starts below anything real, so a range is absent until a frame says
     // otherwise rather than being trusted before it has been heard at all.
     liveDb: new Float64Array(regions.length).fill(PRESENCE_SILENT_DB),
@@ -461,6 +494,26 @@ export const createBalanceCaptureState = (
     bestMean: 0,
     bestMeanAtMs: 0,
   };
+};
+
+/**
+ * A capture for what the gate's hold is about to hear: empty of evidence, its
+ * followers where the measurement's are, so a frame taught to it reads the
+ * same against the lines as it does in the measurement. `previousTimestampMs`
+ * is the measurement's clock before the frame that started the hold, so that
+ * frame counts its own listened time.
+ */
+const startHeldEvidence = (
+  state: IBalanceCaptureState,
+  previousTimestampMs: number,
+): IBalanceCaptureState => {
+  const held = createBalanceCaptureState(state.axis, state.halfLifeMs, true);
+  held.trackReferenceDb = state.trackReferenceDb;
+  held.liveDb.set(state.liveDb);
+  held.typicalDb.set(state.typicalDb);
+  held.frames = state.frames;
+  held.lastTimestampMs = previousTimestampMs;
+  return held;
 };
 
 /**
@@ -489,6 +542,8 @@ export const resetBalanceRegion = (
     state.weight[index] = 0;
   }
   state.regionStates[regionIndex] = { weight: 0, mean: 0, m2: 0 };
+  state.presenceSum[regionIndex] = 0;
+  state.presenceWeight[regionIndex] = 0;
   state.checkpoint = undefined;
 };
 
@@ -616,9 +671,26 @@ export const accumulateBalanceFrame = (
    * music come back, and it can only see that through them — but they buy no
    * listened time, age nothing, and teach nothing.
    */
+  const wasHolding = state.fullBand.isHolding;
   const isLearning =
     advanceFullBandGate(state.fullBand, state.presenceGate, dt) ||
     state.learnsThroughHolds === true;
+  if (state.learnsThroughHolds !== true) {
+    if (wasHolding && !state.fullBand.isHolding) {
+      // The hold is over: the record came back, and what was heard meanwhile
+      // was an effect, or it ran out and that was the record.
+      if (state.fullBand.hasExpired && state.heldEvidence) {
+        mergeHeldEvidence(state, state.heldEvidence);
+      }
+      state.heldEvidence = undefined;
+    } else if (state.fullBand.isHolding) {
+      const held =
+        state.heldEvidence ?? startHeldEvidence(state, frame.timestampMs - dt);
+      state.heldEvidence = held;
+      held.presenceGate = state.presenceGate;
+      accumulateBalanceFrame(held, frame);
+    }
+  }
 
   // The frame's own mean-power level is the reference. It is the
   // minimum-variance choice, and the tilt fit plus centring absorb the
@@ -658,6 +730,10 @@ export const accumulateBalanceFrame = (
       region.m2 *= keep;
       /* eslint-enable no-param-reassign */
     });
+    for (let index = 0; index < state.presenceSum.length; index += 1) {
+      state.presenceSum[index] *= keep;
+      state.presenceWeight[index] *= keep;
+    }
   }
 
   if (isLearning) {
@@ -783,6 +859,12 @@ export const accumulateBalanceFrame = (
     if (!isLearning) {
       return;
     }
+
+    // Before the floor below: a range under it is a range not playing, which
+    // is exactly what its presence has to count.
+    state.presenceSum[regionIndex] +=
+      w * (state.presenceGate ? clamp01(state.presenceGate[regionIndex]) : 1);
+    state.presenceWeight[regionIndex] += w;
 
     if (!Number.isFinite(sourceDb) || sourceDb < ABS_FLOOR_DBFS) {
       return;

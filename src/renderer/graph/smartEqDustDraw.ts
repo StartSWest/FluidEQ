@@ -12,10 +12,17 @@ import type { ISmartEqPreviewRegion } from '../utils/smartEqPreview';
 /**
  * Settling dust (Ivan, 2026-11-20, Direction D of the Smart EQ curve
  * mockup): the correction forming on the EQ graph as a spray of points, three
- * per slice of the spectrum, scattered by how unsure each range still is. As
- * a range's confidence rises its points gather onto the line and the line
- * draws itself through them; when the song is held the points fade, a light
- * runs once along the finished curve, and the layer's own line is left.
+ * per slice of the spectrum, scattered by how unsure each range still is.
+ *
+ * The points BECOME the line (Ivan, same day: "when it finds it those dots
+ * become more like a solid line"). As a range is found its points stop
+ * wandering, spread out evenly along the curve and grow until each touches
+ * its neighbours — a bead chain lying on the line — and only then does the
+ * stroke come up under them and the beads go, so what the eye follows is
+ * points closing into a line, never points fading while a separate line
+ * appears. At the hold the rest closes the same way in one sweep from the
+ * bass up, a light runs once along the finished line, and it hands over to
+ * the layer's own line.
  *
  * Pure drawing: the component owns the frame loop and the easing.
  */
@@ -30,6 +37,8 @@ interface IDot {
   speed: number;
   /** Where across its slice it sits, -0.5..0.5 of a slice. */
   across: number;
+  /** Where across its slice it lies once closed: evenly, by its copy. */
+  closedAcross: number;
   radius: number;
 }
 
@@ -50,10 +59,11 @@ export interface IDustFrame {
   seconds: number;
   /** 0..1: the whole drawing's arrival. */
   presence: number;
-  /** 0..1: the points, fading once held. */
-  dots: number;
-  /** 0..1: the line from confidence-lit to whole, as it holds. */
-  solid: number;
+  /**
+   * Per slice, 0..1: how far its points have closed into the line — 0 a
+   * wandering spray, 1 the solid stroke. See `closedOf`.
+   */
+  closed: Float64Array;
   /** 0..1: the line itself, handing over to the layer's own line. */
   line: number;
   /** The light along the held curve, 0..1, or below 0 for none. */
@@ -129,6 +139,7 @@ export const createDustField = (
           g1: gauss(),
           speed: 0.6 + random() * 1.4,
           across: random() - 0.5,
+          closedAcross: (copy + 0.5) / DOTS_PER_SLICE - 0.5,
           radius: 0.85 + random() * 0.6,
         });
       }
@@ -203,23 +214,62 @@ const spreadDb = (confidence: number) => 0.3 + 4.6 * (1 - confidence);
 const rgba = (rgb: readonly number[], alpha: number) =>
   `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${clamp01(alpha).toFixed(3)})`;
 
-/** A horizontal gradient whose alpha follows each slice's confidence. */
-const confidenceStroke = (
+/**
+ * How closed a slice's points are, from what the measurement knows of it and
+ * from the hold's sweep: a range closes as it is found — from about two
+ * thirds sure to covered — and the hold closes everything else, the bass
+ * first and the top last, `HOLD_SWEEP_S` from one end to the other.
+ * `sinceHeld` is undefined while measuring, and `reduced` closes the hold at
+ * once.
+ */
+export const HOLD_SWEEP_S = 0.55;
+export const HOLD_CLOSE_S = 0.4;
+
+export const closedOf = (
+  confidence: Float64Array,
+  sinceHeld: number | undefined,
+  reduced: boolean,
+  into: Float64Array,
+): Float64Array => {
+  const last = Math.max(1, into.length - 1);
+  for (let index = 0; index < into.length; index += 1) {
+    const found = smoothstep(0.62, 0.92, confidence[index]);
+    let held = 0;
+    if (sinceHeld !== undefined) {
+      held = reduced
+        ? 1
+        : smoothstep(
+            0,
+            HOLD_CLOSE_S,
+            sinceHeld - HOLD_SWEEP_S * (index / last),
+          );
+    }
+    // eslint-disable-next-line no-param-reassign -- the scratch buffer is the point
+    into[index] = Math.max(found, held);
+  }
+  return into;
+};
+
+/** The stroke's share of a slice: it comes up once the beads touch. */
+const strokeShare = (closed: number) => smoothstep(0.78, 0.97, closed);
+
+/** The beads' share: they go once the stroke under them is whole. */
+const beadShare = (closed: number) => 1 - smoothstep(0.9, 1, closed);
+
+/** A horizontal gradient whose alpha follows each slice. */
+const sliceStroke = (
   context: CanvasRenderingContext2D,
   field: IDustField,
-  frame: IDustFrame,
   paint: IDustPaint,
-  alphaOf: (confidence: number) => number,
+  alphaAt: (slice: number) => number,
 ) => {
   const { xs } = field;
   const gradient = context.createLinearGradient(xs[0], 0, xs[xs.length - 1], 0);
-  const stops = 32;
+  // A stop every few slices, so the sweep's front is sharp where it runs.
+  const stops = Math.min(xs.length - 1, 96);
   for (let stop = 0; stop <= stops; stop += 1) {
     const slice = Math.round((stop / stops) * (xs.length - 1));
-    gradient.addColorStop(
-      stop / stops,
-      rgba(paint.ink, alphaOf(frame.confidence[slice])),
-    );
+    gradient.addColorStop(stop / stops, rgba(paint.ink, alphaAt(slice)));
   }
   return gradient;
 };
@@ -236,6 +286,17 @@ const traceCurve = (
   }
 };
 
+/** The line's height at a point between slices, as the stroke draws it. */
+const lineYAt = (ys: Float64Array, position: number) => {
+  const clamped = Math.max(0, Math.min(ys.length - 1, position));
+  const low = Math.floor(clamped);
+  const high = Math.min(ys.length - 1, low + 1);
+  return ys[low] + (ys[high] - ys[low]) * (clamped - low);
+};
+
+/** The stroke's width, which a closed bead's diameter matches. */
+const LINE_WIDTH = 2.2;
+
 export const drawDust = (
   context: CanvasRenderingContext2D,
   field: IDustField,
@@ -248,28 +309,62 @@ export const drawDust = (
     // eslint-disable-next-line no-param-reassign -- the scratch buffer is the point
     ys[index] = yOf(frame.curve[index]);
   }
+  const lineAlpha = frame.line * frame.presence;
+
+  // The stroke first, so the beads closing onto it sit on top of it until
+  // they are gone into it.
+  if (lineAlpha > 0.003) {
+    context.lineJoin = 'round';
+    context.lineCap = 'round';
+    context.globalAlpha = lineAlpha;
+    context.lineWidth = LINE_WIDTH;
+    context.strokeStyle = sliceStroke(context, field, paint, (slice) =>
+      strokeShare(frame.closed[slice]),
+    );
+    traceCurve(context, field, ys);
+    context.stroke();
+    context.globalAlpha = 1;
+  }
 
   // The points, as light on the dark window and as ink on the white one.
-  const dotAlpha = frame.dots * frame.presence;
-  if (dotAlpha > 0.003) {
+  // Closing, each stops wandering, slides to its even place along its slice
+  // and onto the line's own height there, and grows to the stroke's width:
+  // three to a slice of five pixels, so neighbours overlap into a chain.
+  if (frame.presence > 0.003) {
     context.globalCompositeOperation = paint.blend;
     field.dots.forEach((dot) => {
+      const closed = frame.closed[dot.slice];
+      const beads = beadShare(closed);
+      const taper = field.taper[dot.slice];
+      // Once closed a bead belongs to the line, which runs the whole width.
+      const reach = taper + (1 - taper) * closed;
+      const alpha = beads * frame.presence * reach * frame.line;
+      if (alpha <= 0.003) {
+        return;
+      }
       const confidence = frame.confidence[dot.slice];
+      const open = 1 - closed;
+      const across = dot.across * open + dot.closedAcross * closed;
       const wander =
         dot.g0 * Math.cos(dot.speed * frame.seconds) +
         dot.g1 * Math.sin(dot.speed * frame.seconds);
-      const spread =
-        spreadDb(confidence) * (0.35 + 0.65 * field.taper[dot.slice]);
-      const y = yOf(frame.curve[dot.slice] + wander * spread * 0.95);
+      const spread = spreadDb(confidence) * (0.35 + 0.65 * taper) * open * open;
+      const scattered = yOf(frame.curve[dot.slice] + wander * spread * 0.95);
+      // On the stroke itself once closed, never on its slice's step.
+      const onLine = lineYAt(ys, dot.slice + across);
+      const y = scattered + (onLine - scattered) * closed;
+      const radius =
+        dot.radius * (1.25 + 0.55 * confidence) * open +
+        (LINE_WIDTH / 2 + 0.25) * closed;
       context.fillStyle = rgba(
         paint.ink,
-        (0.3 + 0.6 * confidence) * dotAlpha * field.taper[dot.slice],
+        ((0.3 + 0.6 * confidence) * open + 0.85 * closed) * alpha,
       );
       context.beginPath();
       context.arc(
-        field.xs[dot.slice] + dot.across * field.step,
+        field.xs[dot.slice] + across * field.step,
         y,
-        dot.radius * (1.25 + 0.55 * confidence),
+        radius,
         0,
         Math.PI * 2,
       );
@@ -278,39 +373,22 @@ export const drawDust = (
     context.globalCompositeOperation = 'source-over';
   }
 
-  // The line, drawing itself in where a range is sure, whole once held.
-  const lineAlpha = frame.line * frame.presence;
-  if (lineAlpha > 0.003) {
+  // The one moment: once closed, a light runs along the finished line.
+  if (lineAlpha > 0.003 && frame.pass > 0 && frame.pass < 1) {
+    const left = field.xs[0];
+    const width = field.xs[field.xs.length - 1] - left;
+    const head = left + frame.pass * width * 1.15 - width * 0.075;
+    const light = context.createLinearGradient(head - 90, 0, head + 30, 0);
+    light.addColorStop(0, rgba(paint.light, 0));
+    light.addColorStop(0.8, rgba(paint.light, 0.95));
+    light.addColorStop(1, rgba(paint.light, 0));
+    context.globalAlpha = lineAlpha;
     context.lineJoin = 'round';
     context.lineCap = 'round';
-    context.globalAlpha = lineAlpha;
-    context.lineWidth = 1.8 + 0.6 * frame.solid;
-    context.strokeStyle = confidenceStroke(
-      context,
-      field,
-      frame,
-      paint,
-      (confidence) =>
-        frame.solid +
-        (1 - frame.solid) * smoothstep(0.45, 1, confidence) * 0.95,
-    );
+    context.strokeStyle = light;
+    context.lineWidth = LINE_WIDTH + 1.4;
     traceCurve(context, field, ys);
     context.stroke();
-
-    // The one moment: as it holds, a light runs along the finished curve.
-    if (frame.pass > 0 && frame.pass < 1) {
-      const left = field.xs[0];
-      const width = field.xs[field.xs.length - 1] - left;
-      const head = left + frame.pass * width * 1.15 - width * 0.075;
-      const light = context.createLinearGradient(head - 90, 0, head + 30, 0);
-      light.addColorStop(0, rgba(paint.light, 0));
-      light.addColorStop(0.8, rgba(paint.light, 0.95));
-      light.addColorStop(1, rgba(paint.light, 0));
-      context.strokeStyle = light;
-      context.lineWidth = 3.4;
-      traceCurve(context, field, ys);
-      context.stroke();
-    }
     context.globalAlpha = 1;
   }
 };

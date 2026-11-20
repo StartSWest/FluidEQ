@@ -27,6 +27,7 @@ import { clamp } from './utils';
 import {
   BALANCE_MAX_FREQUENCY,
   BALANCE_MIN_FREQUENCY,
+  CONFIDENCE_EASE,
   EDGE_ROLLOFF_DB,
   MAX_TILT_SPAN_DB,
   MIN_BAND_CONFIDENCE,
@@ -366,7 +367,13 @@ export const buildBalancedGains = (
     const measured = inBand
       ? clamp01(sampleSpectrumAt(deviation, filter.frequency, 'confidence'))
       : 0;
-    const confidence = measured >= minConfidence ? measured : 0;
+    // Eased in over the first CONFIDENCE_EASE above the floor, not switched
+    // on at it. A gain is its correction times its confidence, so the switch
+    // was a cliff of four tenths of the correction: two plays of one song
+    // whose treble landed at 0.39 and 0.46 held curves 1-2 dB apart there
+    // (measured on six records, 2026-11-20). Unchanged from 0.6 up.
+    const ease = clamp01((measured - minConfidence) / CONFIDENCE_EASE);
+    const confidence = measured * ease * ease * (3 - 2 * ease);
     return {
       id: filter.id,
       gain: filter.gain,
