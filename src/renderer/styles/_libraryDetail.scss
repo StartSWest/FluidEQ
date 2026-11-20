@@ -457,7 +457,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex-direction: column;
   // The mockup's 14px between the hero and the table.
   gap: 14px;
-  overflow: hidden;
+  // Clipped, but 6px wider than its box: the table reaches 6px past it on
+  // both sides, as it does in the column (`.library-list`), and a plain
+  // `hidden` cut its scrollbar off there (Ivan, 2026-11-19: "the scroller on
+  // the Library list, you removed it").
+  overflow: clip;
+  overflow-clip-margin: 6px;
 }
 
 // The Library's one Back, on the place bar over every view

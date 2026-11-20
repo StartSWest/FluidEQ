@@ -111,19 +111,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // floor, a faint zebra so the eye keeps its row, a step of light under the
 // pointer, the accent faint under the song that plays. Header 11px capitals
 // at 0.1em in the quietest ink; rows 14px, 10px 12px round each cell.
-// The list reaches into the column's gutters, as the grid does
-// (`.library-grid`): on the left to the rail's hairline, so its first words
-// stand 12px from it - the cells' own inset - where they stood a second
-// gutter in; on the right to 6px short of the queue's, so its scrollbar
-// stands where the grid's does, beside the splitter's grip and never under
-// it (Ivan, 2026-11-19: "the grid view has the right gap, I want that for
-// lists too", "the splitter will be in the middle of the scroll").
+// The list reaches into the column's gutters as the grid does
+// (`.library-grid`), 6px short of each hairline: its scrollbar stands where
+// the grid's does, beside the splitter's grip and never under it, and the
+// same 6px on the rail's side (Ivan, 2026-11-19: "the grid view has the right
+// gap, I want that for lists too", "the splitter will be in the middle of
+// the scroll", "the list needs the same gap on the left too").
 .library-list {
   display: flex;
   min-height: 220px;
   flex: 1 1 auto;
   flex-direction: column;
-  margin: 0 -6px 0 (-$library-gutter);
+  margin-inline: -6px;
   overflow: hidden;
   border-top: 1px solid $studio-hair;
 }

@@ -90,8 +90,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-content: start;
   gap: 1px;
   // Straight under the rail's head and its name, where the first shelf
-  // stands as close as the DSP's first group does.
-  padding: 4px 10px 8px;
+  // stands as close as the DSP's first group does. On the right 2px plus
+  // the scrollbar's kept 8: the rows end 10px from the rail's edge, as every
+  // other rail's do (`.studio-rail__body`), where 10 plus the 8 stood them
+  // 18px off it (Ivan, 2026-11-19: "the side pane's right gap same as in the
+  // Gallery").
+  padding: 4px 2px 8px 10px;
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-gutter: stable;
