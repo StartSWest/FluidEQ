@@ -168,7 +168,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   // Inside the crystal its words carry no halo: the picture behind them is
   // what the crystal holds off.
-  :is(.eq-engine-label, .game-mode-switch__label, .latency-readout__value) {
+  :is(
+    .eq-engine-label,
+    .game-mode-switch__label,
+    .latency-readout__name,
+    .latency-readout__value
+  ) {
     text-shadow: none;
   }
 

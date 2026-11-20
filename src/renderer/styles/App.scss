@@ -2326,7 +2326,8 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
     > & {
     .workspace-pill,
     .eq-engine-label,
-    .engine-strip .game-mode-switch__label {
+    .engine-strip .game-mode-switch__label,
+    .engine-strip .latency-readout__name {
       @include over-picture-text;
     }
 
@@ -2345,6 +2346,7 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
 
     .eq-engine-label,
     .engine-strip .game-mode-switch__label,
+    .engine-strip .latency-readout__name,
     .engine-strip > .game-mode-switch:hover .game-mode-switch__label,
     .engine-strip
       > .latency-readout:hover:not(:disabled)
@@ -2414,7 +2416,8 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
     > & {
     .workspace-pill,
     .eq-engine-label,
-    .engine-strip .game-mode-switch__label {
+    .engine-strip .game-mode-switch__label,
+    .engine-strip .latency-readout__name {
       @include over-bright-picture-text;
     }
 
@@ -2433,6 +2436,7 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
 
     .eq-engine-label,
     .engine-strip .game-mode-switch__label,
+    .engine-strip .latency-readout__name,
     .engine-strip > .game-mode-switch:hover .game-mode-switch__label,
     .engine-strip
       > .latency-readout:hover:not(:disabled)
