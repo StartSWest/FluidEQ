@@ -256,6 +256,15 @@ $coin-deep: color-mix(in srgb, $secondary-default 55%, $black);
   border-radius: $radius-pill;
   box-shadow: 0 4px 12px rgba($black, 0.4);
 
+  // On the white window the accent's light is its deep ink, not a paler
+  // accent, so the badge runs from white into the accent alone and wears the
+  // accent's label: a light accent there carries the dark ink, which the
+  // deep middle of the dark window's gradient would have swallowed.
+  :root[data-window-ink='dark'] & {
+    color: $on-accent;
+    background: linear-gradient(160deg, $white -40%, $secondary-default 45%);
+  }
+
   svg {
     width: 55%;
     height: 55%;

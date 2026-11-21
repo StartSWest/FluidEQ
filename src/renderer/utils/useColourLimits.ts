@@ -10,7 +10,7 @@ import type {
   TSceneWindowColourRole,
 } from 'common/sceneWindowColours';
 import type { TColourLimit } from './colourLimitField';
-import { pickedFilled, pickedFloor } from './pickedWindow';
+import { pickedFilled, pickedFillGround, pickedFloor } from './pickedWindow';
 import { hourOfStop, type TWindowColourStop } from './sceneDayColours';
 
 export type TColourLimits = Record<TSceneWindowColourRole, TColourLimit>;
@@ -27,9 +27,12 @@ const asIs: TColourLimit = (hex) => hex;
  *
  * - the surface, on a dark point: no lighter than the dark window's words
  *   allow (`pickedFloor`). On the white point it is white and not picked.
- * - the accent and the second colour: far enough from that point's floor for
- *   a filled control's label to read - lighter on a dark point, darker on the
- *   white one (`pickedFilled`).
+ * - the accent and the second colour: a colour a filled control's label
+ *   reads on - the floor's colour on a dark point; on the white one the
+ *   floor's colour or, on a light colour, the dark ink, and never one almost
+ *   as white as the window (`pickedFilled`). There the field can hold two
+ *   runs down one column, deep and pastel, with the mid-tones between them
+ *   (`allowedSpans`).
  *
  * A colour inside its limit is worn exactly as picked; the pickers keep the
  * pick inside (`ColourPickerPopover`'s `limit`).
@@ -43,8 +46,10 @@ export default function useColourLimits(
   return useMemo(() => {
     // Walked by the points: what is picked at a point is worn there exactly.
     const floor = pickedFloor(surface, accent, shade, 'points');
+    const ground =
+      floor === undefined ? undefined : pickedFillGround(floor, shade);
     const filled: TColourLimit = (hex) =>
-      (floor && pickedFilled(hex, floor, shade)) ?? hex;
+      (ground && pickedFilled(hex, ground)) ?? hex;
     return {
       surface:
         editing === '100'

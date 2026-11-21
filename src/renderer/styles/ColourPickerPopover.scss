@@ -86,8 +86,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
   pointer-events: none;
 }
 
+// The whole field with every run that can be picked cut out of it
+// (`outsideOf`): the cuts are holes only under the even-odd rule.
 .colour-picker__outside-fill {
   fill: color-mix(in srgb, $surface-menu 80%, transparent);
+  fill-rule: evenodd;
 }
 
 .colour-picker__outside-edge {

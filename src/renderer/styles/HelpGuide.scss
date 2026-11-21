@@ -388,7 +388,7 @@
   display: grid;
   width: 76px;
   height: 76px;
-  color: $surface-base;
+  color: $on-accent;
   border-radius: 50%;
   background: $secondary-default var(--accent-fill);
   box-shadow:
@@ -629,7 +629,7 @@ figcaption.help-film__line {
   width: 22px;
   height: 22px;
   place-items: center;
-  color: $surface-base;
+  color: $on-accent;
   border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
   border-radius: 50%;
   background: $secondary-default;
@@ -646,7 +646,10 @@ figcaption.help-film__line {
     background $motion-fast ease,
     transform $motion-fast ease;
 
+  // Lit in the accent's light, a deep ink on the white window whatever the
+  // accent: the floor's colour reads on it there and on every dark window.
   &.is-lit {
+    color: $surface-base;
     background: $secondary-light;
     transform: translate(-50%, -50%) scale(1.14);
   }
@@ -709,7 +712,7 @@ figcaption.help-film__line {
   height: 22px;
   margin-top: 1px;
   place-items: center;
-  color: $surface-base;
+  color: $on-accent;
   border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
   border-radius: 50%;
   background: $secondary-default;
@@ -720,7 +723,9 @@ figcaption.help-film__line {
   font-variant-numeric: tabular-nums;
   transition: background $motion-fast ease;
 
+  // The accent's light: the floor's colour reads on it on both windows.
   .help-control.is-lit & {
+    color: $surface-base;
     background: $secondary-light;
   }
 }

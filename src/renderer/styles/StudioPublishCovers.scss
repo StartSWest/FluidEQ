@@ -96,9 +96,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
   place-items: center;
   width: 18px;
   height: 18px;
-  // The floor's ink on the accent, as a chosen segment wears it: dark on
-  // the dark window's bright accent, white on the white window's deep one.
-  color: $surface-base;
+  // The accent's own label, as a chosen segment wears it: the floor's
+  // colour, or the white window's dark ink on a light accent.
+  color: $on-accent;
   border-radius: 50%;
   background: $secondary-default;
 

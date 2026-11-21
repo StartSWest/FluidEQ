@@ -45,3 +45,10 @@ export const WINDOW_ACCENTS = [
 
 /** What says a thing is on. */
 export const WINDOW_STATES = ['--active'] as const;
+
+/**
+ * The words on a filled accent and on a filled "on": the floor's colour
+ * (the stylesheet's default, `_shippedTheme.scss`), or the white window's
+ * dark ink on a light colour somebody picked (`filledFace`, `windowFill.ts`).
+ */
+export const WINDOW_LABELS = ['--on-accent', '--on-active'] as const;

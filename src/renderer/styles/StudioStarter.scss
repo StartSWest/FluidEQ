@@ -274,7 +274,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   .is-done & {
-    color: $surface-base;
+    color: $on-accent;
     border-color: $secondary-default;
     background: $secondary-default;
   }

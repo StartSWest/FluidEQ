@@ -25,7 +25,19 @@ import {
   type TInkToken,
 } from './themeInk';
 import {
+  ACCENT_DARK_STEP,
+  atL,
+  chromaOf,
+  clampL,
+  clearOf,
+  filledFace,
+  GREY_CHROMA,
+  labOf,
+  type IFillGround,
+} from './windowFill';
+import {
   WINDOW_EDGES,
+  WINDOW_LABELS,
   WINDOW_SURFACES,
   type TWindowSurface,
 } from './windowTokens';
@@ -91,9 +103,6 @@ const CARD_COLOURED: readonly TWindowSurface[] = [
   '--surface-menu-face',
 ];
 
-/** Below this chroma a colour is a grey: its hue says nothing. */
-export const GREY_CHROMA = 0.02;
-
 /**
  * The whisper of colour a grey surface's floor, wells and tracks take from
  * the accent, so white panes stand on a floor of their scene rather than on
@@ -103,22 +112,6 @@ export const GREY_CHROMA = 0.02;
 const GREY_SURFACE_CHROMA = 0.008;
 
 /**
- * The least a filled control's label (the floor, `$surface-base`) keeps on
- * the accent and on the glow: the WCAG AA level for words. A colour that
- * already clears it is worn exactly; one that does not - a yellow on a white
- * window - is moved in lightness only, away from the floor, until it does.
- */
-const LABEL_CONTRAST = 4.5;
-
-/**
- * Where a colour with no hue stands as a filled control (`filledOn`), in
- * OKLab lightness: the window's ink, a step off pure black and white so a
- * thumb or a switch still has an edge against the words beside it.
- */
-const MONO_ON_LIGHT_LIGHTNESS = 0.24;
-const MONO_ON_DARK_LIGHTNESS = 0.93;
-
-/**
  * The accent as ink and edge on a light window (`--accent-light`: the
  * kickers, the lit controls' words, the control edges): AA for words on the
  * panes. On a dark window it is the pale light every theme's is.
@@ -126,8 +119,10 @@ const MONO_ON_DARK_LIGHTNESS = 0.93;
 const ACCENT_INK_CONTRAST = 4.5;
 const DARK_ACCENT_LIGHT_LIGHTNESS = 0.88;
 
-/** The accent's pressed and deepest strengths, in OKLab lightness below it. */
-const ACCENT_DARK_STEP = 0.08;
+/**
+ * The accent's deepest strength, in OKLab lightness below it; its pressed one
+ * is `ACCENT_DARK_STEP`.
+ */
 const ACCENT_DARKER_STEP = 0.16;
 
 /** The light window's edge colour: a deep ink leaning to the window's hue. */
@@ -143,18 +138,6 @@ const DARK_TEXT_LIGHTNESS = {
 const DARK_INK_LIGHTNESS = 0.17;
 const DARK_TEXT_CHROMA = 0.03;
 
-export const labOf = (hex: string): ILab | undefined => {
-  const parsed = parseCssColour(hex);
-  return parsed ? rgbToLab(parsed.rgb) : undefined;
-};
-
-const lumOf = (hex: string) => {
-  const parsed = parseCssColour(hex);
-  return parsed ? luminance(parsed.rgb.map(toLinear)) : 0;
-};
-
-export const chromaOf = (lab: ILab) => Math.hypot(lab.a, lab.b);
-
 /** Whether `hex` has no hue to speak of: black, a grey, white. */
 export const isHueless = (hex: string): boolean => {
   const lab = labOf(hex);
@@ -169,73 +152,6 @@ export const withoutHue = (hex: string): string => {
 
 export const hueOf = (lab: ILab) =>
   ((Math.atan2(lab.b, lab.a) * 180) / Math.PI + 360) % 360;
-
-const clampL = (l: number) => Math.min(1, Math.max(0, l));
-
-/** `lab` at lightness `l`, keeping its colour. */
-export const atL = (lab: ILab, l: number): ILab => ({ ...lab, l: clampL(l) });
-
-/**
- * `colour` moved in lightness, away from `ground` (`darker` or not), until it
- * stands at `target` against it; `colour` itself where it already does, and
- * the end of the range where nothing on the way does.
- */
-const clearOf = (
-  colour: ILab,
-  ground: string,
-  target: number,
-  darker: boolean,
-): string => {
-  const groundLum = lumOf(ground);
-  const reaches = (l: number) =>
-    contrast(lumOf(labToHex(atL(colour, l))), groundLum) >= target;
-  if (reaches(colour.l)) {
-    return labToHex(colour);
-  }
-  const end = darker ? 0 : 1;
-  if (!reaches(end)) {
-    return labToHex(atL(colour, end));
-  }
-  // `near` never reaches, `far` always does.
-  let near = colour.l;
-  let far = end;
-  for (let step = 0; step < 24; step += 1) {
-    const middle = (near + far) / 2;
-    if (reaches(middle)) {
-      far = middle;
-    } else {
-      near = middle;
-    }
-  }
-  return labToHex(atL(colour, far));
-};
-
-/**
- * `colour` as a filled control wears it on a window whose floor is `floor`:
- * moved in lightness only, away from the floor, as far as the floor's ink
- * written on it needs (`LABEL_CONTRAST`) - darker on a light window, lighter
- * on a dark one. How the accent and "on" are both worn.
- *
- * A colour with no hue (black, a grey, white) is worn as monochrome: the
- * window's own ink, near black on a light window and near white on a dark
- * one. Moved only as far as its label needs, black on a dark window stopped
- * at a dead mid grey, and every switch and thumb went the colour of nothing
- * (Ivan, 2026-11-18, black picked with the Brightness down: "what should we
- * do instead"). A colour with a hue keeps it and moves as before.
- */
-export const filledOn = (
-  colour: ILab,
-  floor: string,
-  isLight: boolean,
-): string => {
-  if (chromaOf(colour) < GREY_CHROMA) {
-    const l = isLight
-      ? Math.min(colour.l, MONO_ON_LIGHT_LIGHTNESS)
-      : Math.max(colour.l, MONO_ON_DARK_LIGHTNESS);
-    return clearOf({ l, a: 0, b: 0 }, floor, LABEL_CONTRAST, isLight);
-  }
-  return clearOf(colour, floor, LABEL_CONTRAST, isLight);
-};
 
 /**
  * The hue a window's greys and inks lean to: the accent's when it has one,
@@ -319,6 +235,7 @@ export type TWindowToken =
   | '--accent-dark'
   | '--accent-darker'
   | '--active'
+  | (typeof WINDOW_LABELS)[number]
   | TInkToken;
 
 export interface IWindow {
@@ -327,9 +244,11 @@ export interface IWindow {
 }
 
 /**
- * Every token the window wears on `surfaces`, with `accent` and `glow` (each
- * moved only as far as a filled control's label needs) and the ink its
- * panes ask for. The menus become the card's own colour here.
+ * Every token the window wears on `surfaces`, with `accent` and `glow` worn
+ * as filled controls wear a picked colour (`filledFace`: as picked wherever
+ * a label reads on it, which on the white window may be its dark ink), the
+ * label each one carries, and the ink the panes ask for. The menus become
+ * the card's own colour here.
  */
 export const windowOn = (
   surfaces: Record<TWindowSurface, string>,
@@ -350,9 +269,10 @@ export const windowOn = (
   const ground = groundOf(floor, pane, set.toward);
   const groundHex = labToHex(rgbToLab(ground));
 
-  // Filled controls carry the floor as their label: the accent and the glow
-  // move away from it, darker on a light window and lighter on a dark one.
-  const accentHex = filledOn(accentPicked, floor, isLight);
+  const fillGround: IFillGround = { floor, pane, ink: set.ink, isLight };
+  const accentFace = filledFace(accentPicked, fillGround);
+  const activeFace = filledFace(glowPicked, fillGround);
+  const accentHex = accentFace.fill;
   const accent = labOf(accentHex) ?? accentPicked;
   const accentLight = isLight
     ? clearOf(accent, groundHex, ACCENT_INK_CONTRAST, true)
@@ -374,7 +294,9 @@ export const windowOn = (
       '--accent-light': accentLight,
       '--accent-dark': labToHex(atL(accent, accent.l - ACCENT_DARK_STEP)),
       '--accent-darker': labToHex(atL(accent, accent.l - ACCENT_DARKER_STEP)),
-      '--active': filledOn(glowPicked, floor, isLight),
+      '--active': activeFace.fill,
+      '--on-accent': accentFace.label,
+      '--on-active': activeFace.label,
       ...inkTokens(ground, accentLight, set),
     },
   };

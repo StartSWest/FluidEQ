@@ -351,7 +351,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: calc(#{$u} * 0.3) calc(#{$u} * 0.65);
   border-radius: $radius-xs;
   background: $secondary-default;
-  color: $surface-base;
+  color: $on-accent;
   font-size: calc(#{$u} * 0.62);
   font-weight: $weight-bold;
   gap: calc(#{$u} * 0.35);

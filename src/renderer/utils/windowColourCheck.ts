@@ -108,8 +108,9 @@ export const windowColourFaults = (
   if (accent.chroma < POINTING_CHROMA) {
     faults.push('accent-grey');
   }
-  // On a light ground the accent is worn deep, as far as its label needs
-  // (`windowOn`), so a bright one of the ground's own hue still stands apart.
+  // On a light ground the window is white and the accent is worn deep, or
+  // light and held apart from the white panes (`filledFace`), so a bright one
+  // of the ground's own hue still stands apart.
   if (
     surface.lightness < LIGHT_SURFACE_LEAST &&
     surface.chroma >= HUE_CHROMA &&

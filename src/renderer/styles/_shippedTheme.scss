@@ -104,6 +104,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // colour by the tint (`sceneTint.ts`) — never the rainbow the music is
   // drawn in, which stays `$analogous-2` and its neighbours.
   --active: #{$analogous-2};
+  // The words on a filled accent and on a filled "on": the floor's colour, as
+  // on every theme and every dark window. On the white window a light colour
+  // somebody picked keeps its colour and takes the window's dark ink for its
+  // words instead (`filledFace` in `windowFill.ts`, Ivan, 2026-11-18: "filled
+  // buttons switch to dark text when the accent is light"), written inline
+  // over these.
+  --on-accent: var(--surface-base);
+  --on-active: var(--surface-base);
   // The DSP page's second and third drawing colours, beside the accent: the
   // teal a stage's output curve is drawn in, and the amber that stands for
   // "the other side" of a pair — the crossfade's outgoing track, the

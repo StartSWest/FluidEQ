@@ -113,9 +113,9 @@ it under the terms of the GNU General Public License version 3 or later.
 
   // As specific as the rule above, and after it: written `> .is-lit` it lost
   // to that rule, so the lit glyph was drawn in the idle ink, pale on the
-  // accent, where the title bar gives it the filled buttons' dark ink.
+  // accent, where the title bar gives it the filled buttons' own label.
   > span.is-lit {
-    color: $surface-base;
+    color: $on-accent;
     background: $secondary-default var(--accent-fill);
   }
 }

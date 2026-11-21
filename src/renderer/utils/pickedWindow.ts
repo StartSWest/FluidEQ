@@ -16,11 +16,15 @@ import {
 } from './themeShade';
 import {
   chromaOf,
-  filledOn,
+  filledFace,
   GREY_CHROMA,
+  labOf,
+  type IFillGround,
+} from './windowFill';
+import {
+  darkInkSet,
   greyRung,
   hueOf,
-  labOf,
   leanOf,
   lightSurfaces,
   windowOn,
@@ -41,8 +45,10 @@ import { WINDOW_SURFACES, type TWindowSurface } from './windowTokens';
  * or the three a scene's pack names (`windowColours`) - are worn here as
  * named:
  *
- * - The accent and the glow are worn at their own colour, moved only as far
- *   as a filled control's label needs to read on them (`windowOn`).
+ * - The accent and the glow are worn at their own colour wherever a filled
+ *   control's label reads on them - on the white window, a light one with
+ *   the window's dark ink for its words - and moved only where none does
+ *   (`filledFace`).
  * - A dark surface is worn as named as a dark window's floor, the panes a
  *   step up as every theme shade has them.
  *
@@ -259,18 +265,41 @@ export const pickedFloor = (
 
 /**
  * What the window paints for a filled control's `colour` - the accent, or
- * the second colour - over the window's `floor` at `brightness`: moved only
- * as far from the floor as the control's label needs, darker on the white
- * window and lighter on a dark one (`windowOn`'s `filledOn`). What the
- * pickers show an accent and a second colour as.
+ * the second colour - over the window's `floor` at `brightness`: as picked
+ * wherever a label reads on it, else moved only as far as one needs - on the
+ * white window darker for the floor's colour or lighter for the dark ink,
+ * whichever is nearer, and never as near white as the panes; on a dark one
+ * lighter for the floor's colour (`windowOn`'s `filledFace`). What the
+ * pickers show an accent and a second colour as, on `pickedFillGround`'s
+ * ground.
  */
 export const pickedFilled = (
   colour: string,
-  floor: string,
-  brightness: number,
+  ground: IFillGround,
 ): string | undefined => {
   const lab = labOf(colour);
-  return lab ? filledOn(lab, floor, isLightShade(brightness)) : undefined;
+  return lab ? filledFace(lab, ground).fill : undefined;
+};
+
+/**
+ * What a filled control stands on at `brightness` over the window's `floor`,
+ * worked out once for a picker's whole field. The white window is white
+ * whatever was picked (`surfacesOf`), so its panes and ink come from the
+ * Brightness alone, as `windowOn` builds them; a dark window's labels are
+ * its floor and it has no light fill to hold apart.
+ */
+export const pickedFillGround = (
+  floor: string,
+  brightness: number,
+): IFillGround => {
+  const isLight = isLightShade(brightness);
+  if (!isLight) {
+    return { floor, pane: floor, ink: floor, isLight };
+  }
+  const pane = lightSurfaces(WHITE, undefined, lightDimOf(brightness))[
+    '--surface-panel'
+  ];
+  return { floor, pane, ink: darkInkSet(undefined).ink, isLight };
 };
 
 export default pickedWindow;

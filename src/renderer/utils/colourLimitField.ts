@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { hexOfHsv } from './hsvColour';
-import { labOf } from './windowLight';
+import { labOf } from './windowFill';
 
 /**
  * WHERE A COLOUR PICKER CANNOT GO (Ivan, 2026-11-18: "whatever colours are
@@ -17,19 +17,35 @@ import { labOf } from './windowLight';
  * it would wear for it. A colour the limit leaves alone can be picked as it
  * is; the rest of the field is drawn over, with a vector edge, so it is
  * smooth at any size. For one hue, a column of the field (one saturation)
- * holds one run of colours a limit leaves alone - the rules lighten or darken
- * toward one end - so each column is sampled and its two ends found by
- * halving.
+ * can hold more than one run of colours a limit leaves alone: on the white
+ * window the deep colours that carry the floor's colour for a label and the
+ * pastels that carry the dark ink, with the mid-tones between them and the
+ * near-whites above them out (`filledFace`). Each column is sampled, every
+ * run's two ends found by halving, and each run joined to the one that
+ * continues it in the next column.
  */
 
 export type TColourLimit = (hex: string) => string;
 
 /** Columns across the field: enough that the edge reads as a curve. */
 const COLUMNS = 48;
-/** Samples down a column before its ends are halved toward. */
-const SAMPLES = 12;
+/**
+ * Samples down a column before its ends are halved toward: one every 31st
+ * of the value. The white window's mid-tones span about a fifth, but beside
+ * the greys the wedge where a near-grey is worn as monochrome (`filledOn`)
+ * and a colour a step more saturated keeps its hue narrows to nothing, and
+ * sampled at 16 it was found in one column and missed in the next, drawn as
+ * a row of drips.
+ */
+const SAMPLES = 32;
 /** Halvings of each end: 1/2^8 of a column's height, under a pixel. */
 const HALVINGS = 8;
+/**
+ * The least span of value a run or a gap between runs is drawn at: a 75th,
+ * two pixels of the 148px field. Under it are the rule's own rounding at
+ * `UNNOTICED`'s edge, which came out as specks in the black.
+ */
+const LEAST_SPAN = 1 / 75;
 
 /**
  * How far, in OKLab, the limit may move a colour and still leave it alone:
@@ -52,14 +68,19 @@ export const isWithinLimit = (limit: TColourLimit, hex: string): boolean => {
   );
 };
 
-/** One column's run of colours that can be picked, by value: 0 to 1. */
-interface ISpan {
-  s: number;
+/** A run of colours that can be picked down one column, by value: 0 to 1. */
+interface IRun {
   low: number;
   high: number;
 }
 
-/** `ok` and `not` straddle an end of the run: halved toward it. */
+/** One column of the field: its saturation and its runs, lowest first. */
+export interface IColumn {
+  s: number;
+  runs: IRun[];
+}
+
+/** `ok` and `not` straddle an end of a run: halved toward it. */
 const endBetween = (
   allowed: (v: number) => boolean,
   ok: number,
@@ -78,73 +99,158 @@ const endBetween = (
   return inside;
 };
 
-/**
- * Each column's run of values that `limit` leaves alone at hue `h`, from
- * no saturation to full; undefined for a column with none.
- */
-export const allowedSpans = (
-  limit: TColourLimit,
-  h: number,
-): (ISpan | undefined)[] =>
+const valueAt = (sample: number) => sample / (SAMPLES - 1);
+
+/** `runs` with every gap under `LEAST_SPAN` closed, then every run under it dropped. */
+const withoutSpecks = (runs: readonly IRun[]): IRun[] =>
+  runs
+    .reduce<IRun[]>((joined, run) => {
+      const before = joined[joined.length - 1];
+      if (before && run.low - before.high < LEAST_SPAN) {
+        before.high = run.high;
+      } else {
+        joined.push({ ...run });
+      }
+      return joined;
+    }, [])
+    .filter((run) => run.high - run.low >= LEAST_SPAN);
+
+/** Each column's runs of values that `limit` leaves alone at hue `h`. */
+export const allowedSpans = (limit: TColourLimit, h: number): IColumn[] =>
   Array.from({ length: COLUMNS }, (_, column) => {
     const s = column / (COLUMNS - 1);
     const allowed = (v: number) => isWithinLimit(limit, hexOfHsv({ h, s, v }));
-    const values = Array.from(
-      { length: SAMPLES },
-      (__, index) => index / (SAMPLES - 1),
+    const marks = Array.from({ length: SAMPLES }, (__, sample) =>
+      allowed(valueAt(sample)),
     );
-    const marks = values.map(allowed);
-    const first = marks.indexOf(true);
-    const last = marks.lastIndexOf(true);
-    if (first < 0) {
-      return undefined;
-    }
-    const low =
-      first === 0
-        ? 0
-        : endBetween(allowed, values[first] ?? 0, values[first - 1] ?? 0);
-    const high =
-      last === SAMPLES - 1
-        ? 1
-        : endBetween(allowed, values[last] ?? 1, values[last + 1] ?? 1);
-    return { s, low, high };
+    const runs: IRun[] = [];
+    let first: number | undefined;
+    marks.forEach((mark, sample) => {
+      if (!mark) {
+        return;
+      }
+      first ??= sample;
+      const last = sample === SAMPLES - 1;
+      if (!last && marks[sample + 1] === true) {
+        return;
+      }
+      runs.push({
+        low:
+          first === 0
+            ? 0
+            : endBetween(allowed, valueAt(first), valueAt(first - 1)),
+        high: last
+          ? 1
+          : endBetween(allowed, valueAt(sample), valueAt(sample + 1)),
+      });
+      first = undefined;
+    });
+    return { s, runs: withoutSpecks(runs) };
   });
 
 /**
- * The parts of the field outside the spans, in a 1 by 1 box with value up:
- * `fill` covers them, `edge` traces where they meet what can be picked.
+ * The runs of two neighbouring columns in groups that touch: a run with the
+ * runs of the other column it overlaps, and theirs, and so on. Within one
+ * column runs never overlap, so a group holds several of one column only
+ * where a run of the other spans them.
+ */
+const groupsOf = (
+  left: readonly IRun[],
+  right: readonly IRun[],
+): { left: IRun[]; right: IRun[] }[] => {
+  const all = [
+    ...left.map((run) => ({ run, isLeft: true })),
+    ...right.map((run) => ({ run, isLeft: false })),
+  ].sort((one, other) => one.run.low - other.run.low);
+  const groups: { left: IRun[]; right: IRun[]; high: number }[] = [];
+  all.forEach(({ run, isLeft }) => {
+    const open = groups[groups.length - 1];
+    const group =
+      open && run.low <= open.high
+        ? open
+        : { left: [] as IRun[], right: [] as IRun[], high: run.high };
+    if (group !== open) {
+      groups.push(group);
+    }
+    group.high = Math.max(group.high, run.high);
+    (isLeft ? group.left : group.right).push(run);
+  });
+  return groups;
+};
+
+const point = (x: number, v: number) => `${x.toFixed(4)} ${(1 - v).toFixed(4)}`;
+const shape = (corners: string[]) => `M${corners.join(' L')} Z`;
+const line = (from: string, to: string) => `M${from} L${to}`;
+
+/** The gaps between one column's runs inside a group, lowest first. */
+const gapsWithin = (runs: readonly IRun[]): IRun[] =>
+  runs.slice(1).map((run, index) => ({
+    low: runs[index]?.high ?? run.low,
+    high: run.low,
+  }));
+
+/**
+ * The field outside every run, in a 1 by 1 box with value up: `fill` covers
+ * it (the whole box, with what can be picked cut out of it and filled even-
+ * odd), `edge` traces where the two meet. Between two columns each group of
+ * touching runs is one band from the span of its runs in the first to their
+ * span in the second; a gap between runs of one column inside it narrows to a
+ * point halfway, and so does a run that touches nothing across.
  */
 export const outsideOf = (
-  spans: (ISpan | undefined)[],
+  columns: readonly IColumn[],
 ): { fill: string; edge: string } | undefined => {
-  if (spans.every((span) => span && span.low <= 0 && span.high >= 1)) {
+  if (
+    columns.every(
+      ({ runs }) =>
+        runs.length === 1 && runs.every((run) => run.low <= 0 && run.high >= 1),
+    )
+  ) {
     return undefined;
   }
-  const xs = spans.map((_, column) => column / (spans.length - 1));
-  // Down from the top to the run's top; a column with none is covered whole.
-  const tops = spans.map((span) => (span ? 1 - span.high : 1));
-  const bottoms = spans.map((span) => (span ? 1 - span.low : 1));
-  const along = (ys: number[]) =>
-    ys
-      .map((y, index) => `${(xs[index] ?? 0).toFixed(4)} ${y.toFixed(4)}`)
-      .reverse()
-      .join(' L');
-  const line = (ys: number[]) =>
-    ys
-      .map(
-        (y, index) =>
-          `${index === 0 ? 'M' : 'L'}${(xs[index] ?? 0).toFixed(4)} ${y.toFixed(4)}`,
-      )
-      .join(' ');
-  const fill = [
-    `M0 0 L1 0 L${along(tops)} Z`,
-    `M0 1 L1 1 L${along(bottoms)} Z`,
-  ].join(' ');
-  const edge = [
-    tops.some((y) => y > 0) ? line(tops) : '',
-    bottoms.some((y) => y < 1) ? line(bottoms) : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
-  return { fill, edge };
+  const cuts: string[] = [];
+  const edges: string[] = [];
+  const xOf = (column: number) => column / (columns.length - 1);
+  columns.slice(1).forEach(({ runs: next }, index) => {
+    const x0 = xOf(index);
+    const x1 = xOf(index + 1);
+    const middle = (x0 + x1) / 2;
+    // A wedge from `x`'s interval to a point halfway: a run that closes, cut
+    // out, or a gap that closes inside a band, filled back in.
+    const wedge = (x: number, { low, high }: IRun) => {
+      const top = point(x, high);
+      const bottom = point(x, low);
+      const tip = point(middle, (low + high) / 2);
+      cuts.push(shape([top, tip, bottom]));
+      edges.push(line(top, tip), line(tip, bottom));
+    };
+    groupsOf(columns[index]?.runs ?? [], next).forEach(({ left, right }) => {
+      const first = left[0];
+      const last = left[left.length - 1];
+      const nextFirst = right[0];
+      const nextLast = right[right.length - 1];
+      if (!first || !last || !nextFirst || !nextLast) {
+        left.forEach((run) => wedge(x0, run));
+        right.forEach((run) => wedge(x1, run));
+        return;
+      }
+      const top = point(x0, last.high);
+      const bottom = point(x0, first.low);
+      const nextTop = point(x1, nextLast.high);
+      const nextBottom = point(x1, nextFirst.low);
+      cuts.push(shape([top, nextTop, nextBottom, bottom]));
+      if (last.high < 1 || nextLast.high < 1) {
+        edges.push(line(top, nextTop));
+      }
+      if (first.low > 0 || nextFirst.low > 0) {
+        edges.push(line(bottom, nextBottom));
+      }
+      gapsWithin(left).forEach((gap) => wedge(x0, gap));
+      gapsWithin(right).forEach((gap) => wedge(x1, gap));
+    });
+  });
+  return {
+    fill: [shape(['0 0', '1 0', '1 1', '0 1']), ...cuts].join(' '),
+    edge: edges.join(' '),
+  };
 };

@@ -50,6 +50,19 @@ $analogous-2: #54ff8a;
 // property, so `rgba()` cannot take it: mix it with `color-mix()`.
 $active: var(--active);
 
+// The words on the accent and on "on" where they fill a control: the floor's
+// colour, or the white window's dark ink on a light colour somebody picked
+// (`--on-accent`, `--on-active`, `_shippedTheme.scss`). Only on those two
+// fills: the accent's light (`$secondary-light`) is a deep ink on the white
+// window whatever the accent, and keeps the floor's colour for its words.
+$on-accent: var(--on-accent);
+$on-active: var(--on-active);
+
+// Black under a light label, white under a dark one: where a control filled
+// with the accent goes to deepen without taking its words' contrast down.
+// A mix toward black under the white window's dark ink would.
+$on-accent-far: oklch(from var(--on-accent) clamp(0, (0.5 - l) * 1000, 1) 0 0);
+
 // The app icon's colours, aqua to periwinkle: its edge and its wave
 // (`assets/icon.svg`), and `LAGOON` in `rainbowPalette.ts`. Written out rather
 // than read from `--rainbow-*`, because those turn to a Plus visualizer's

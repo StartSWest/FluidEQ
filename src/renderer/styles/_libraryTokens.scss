@@ -283,5 +283,5 @@ $tags-added-fill: color-mix(
   transparent
 );
 
-// Ink on the accent: the filled button's own (`.button`), the window's floor.
-$studio-on-accent: $surface-base;
+// Ink on the accent: the filled button's own (`.button`), the accent's label.
+$studio-on-accent: $on-accent;

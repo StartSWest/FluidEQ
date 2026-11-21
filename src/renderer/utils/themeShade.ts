@@ -23,7 +23,8 @@ import {
   inkTokens,
   type TInkToken,
 } from './themeInk';
-import { labOf, lightSurfaces, windowOn, type IWindow } from './windowLight';
+import { filledOn, labOf } from './windowFill';
+import { lightSurfaces, windowOn, type IWindow } from './windowLight';
 import { WINDOW_SURFACES } from './windowTokens';
 
 /**
@@ -428,8 +429,12 @@ let lightWindows: Map<number, IWindow> | undefined;
 
 /**
  * The light stretch at `shade`: white panes on a soft grey floor, Ocean's
- * accent and the theme's green moved only as far as their labels need
- * (`windowOn`). Nothing in it leans to a hue - not the greys, the edges or
+ * accent and the theme's green moved only as far as the floor's colour
+ * written on them needs (`filledOn`), deep with light words, as the theme has
+ * always worn them there. Only a colour somebody picked may stay light and
+ * take the dark ink for its words (`filledFace`); handed the theme's cyan as
+ * it is, the white window's every button would have turned bright cyan with
+ * black words. Nothing in it leans to a hue - not the greys, the edges or
  * the words - because the light window stays white so its accent can be seen
  * (Ivan, 2026-11-17, `pickedWindow.ts`); it leaned to Ocean's cyan. Each
  * shade once, since the slider and every tinted repaint ask for the same few
@@ -445,16 +450,20 @@ export const lightWindowOf = (shade: number): IWindow | undefined => {
   if (known) {
     return known;
   }
-  const accent = labOf(OCEAN_THEME['--accent']);
-  const glow = labOf(THEME_ACTIVE);
-  if (!accent || !glow) {
-    return undefined;
-  }
   const surfaces = lightSurfaces(
     { l: 1, a: 0, b: 0 },
     undefined,
     lightDimOf(at),
   );
+  const deep = (colour: string) => {
+    const lab = labOf(colour);
+    return lab && labOf(filledOn(lab, surfaces['--surface-base'], true));
+  };
+  const accent = deep(OCEAN_THEME['--accent']);
+  const glow = deep(THEME_ACTIVE);
+  if (!accent || !glow) {
+    return undefined;
+  }
   const built = windowOn(surfaces, accent, glow, undefined);
   lightWindows.set(at, built);
   return built;

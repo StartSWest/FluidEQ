@@ -33,7 +33,8 @@ import {
   useWindowTintSecondary,
 } from '../utils/windowTint';
 import { isUsableGlow } from '../utils/pickedWindow';
-import { isHueless, labOf, withoutHue } from '../utils/windowLight';
+import { labOf } from '../utils/windowFill';
+import { isHueless, withoutHue } from '../utils/windowLight';
 import { skyFromSwatch } from '../utils/sceneTint';
 import {
   skyFromWindowColours,
