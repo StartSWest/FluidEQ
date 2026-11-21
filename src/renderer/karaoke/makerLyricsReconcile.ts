@@ -303,7 +303,15 @@ export const reconcileKaraokeMakerLyrics = (
     if (lineId) {
       usedLineIds.add(lineId);
     }
-    return withTokenRange({ ...line, id: lineId ?? line.id, tokens });
+    // A line that is still the same line keeps the window its lyric file gave
+    // it: correcting a word does not change when the line is sung.
+    const given = lineId
+      ? project.lyrics.lines.find((candidate) => candidate.id === lineId)?.given
+      : undefined;
+    return {
+      ...withTokenRange({ ...line, id: lineId ?? line.id, tokens }),
+      given,
+    };
   });
 
   const nextProject = synchronizeKaraokeMakerSections({

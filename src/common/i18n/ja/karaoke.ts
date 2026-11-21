@@ -422,6 +422,21 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.whisperComplete': '文字起こし完了',
   'karaoke.maker.whisperMatched':
     'Whisper が認識した {count} 語を対応付けました。エクスポート前に編集可能なタイミングを確認してください。',
+  'karaoke.maker.keptWordTimings': '単語ごとのタイミングはそのまま残しました。',
+  'karaoke.maker.keptWordTimingsOnly':
+    '単語ごとのタイミングはそのまま残しました。すべての単語にすでにタイミングがあるため、検出するものはありません。',
+  'karaoke.maker.timedInsideLines':
+    '{count} 行それぞれの中で単語のタイミングを合わせました。行の位置は歌詞ファイルのままです。',
+  'karaoke.maker.timedInsideLinesSpread':
+    '{count} 行それぞれの中で単語のタイミングを合わせました。行の位置は歌詞ファイルのままです。そのうち {spread} 行は歌声から位置を決められず、単語を均等に配置しました。',
+  'karaoke.maker.aligningInsideLines':
+    '行の中で単語のタイミングを合わせています · ブロック {chunk}/{chunks}',
+  'karaoke.maker.wizardStepNotes': '音符を追加(単語のタイミングはそのまま)',
+  'karaoke.maker.wizardStepLines': '行の中で単語のタイミングを合わせる',
+  'karaoke.maker.wizardIntroWords':
+    'この曲の歌詞には、すでに単語ごとのタイミングがあります。FluidEQ は歌声を伴奏から分離し、歌うための音符を追加できます。歌詞とそのタイミングは一切変わりません。すべてこのパソコン上で実行されます。',
+  'karaoke.maker.wizardIntroLines':
+    'この曲の歌詞には、行ごとのタイミングがあります。FluidEQ は歌声を伴奏から分離し、各単語のタイミングをその行の中で合わせ、歌うための音符を追加できます。歌詞と行のタイミングは一切変わりません。すべてこのパソコン上で実行されます。',
   'karaoke.maker.speechMemory': 'AIモデルのメモリ',
   'karaoke.maker.speechMemoryReady': 'RAM で準備完了',
   'karaoke.maker.speechMemoryCached': 'ディスクにキャッシュ済み',

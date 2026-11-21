@@ -421,6 +421,21 @@ const karaoke = {
   'karaoke.maker.whisperComplete': 'Lyric timing detected',
   'karaoke.maker.whisperMatched':
     'Whisper matched {count} recognized words. Review their editable timing before export.',
+  'karaoke.maker.keptWordTimings': 'Kept your word timings.',
+  'karaoke.maker.keptWordTimingsOnly':
+    'Kept your word timings. Every word already has its time, so there is nothing to detect.',
+  'karaoke.maker.timedInsideLines':
+    'Timed the words inside your {count} lines; the lines stay where your lyrics put them.',
+  'karaoke.maker.timedInsideLinesSpread':
+    'Timed the words inside your {count} lines; the lines stay where your lyrics put them. In {spread} the words could not be placed from the voice and are spread evenly.',
+  'karaoke.maker.aligningInsideLines':
+    'Timing the words inside your lines · block {chunk}/{chunks}',
+  'karaoke.maker.wizardStepNotes': 'Add the notes (your word timings stay)',
+  'karaoke.maker.wizardStepLines': 'Time the words inside your lines',
+  'karaoke.maker.wizardIntroWords':
+    'The lyrics of this song already have a time for every word. FluidEQ can separate the voice from the music and add the notes to sing. Your words and their timings stay exactly as they are. Everything runs on this computer.',
+  'karaoke.maker.wizardIntroLines':
+    'The lyrics of this song have a time for every line. FluidEQ can separate the voice from the music, time each word inside its own line and add the notes to sing. Your words and your line timings stay exactly as they are. Everything runs on this computer.',
   'karaoke.maker.speechMemory': 'AI model memory',
   'karaoke.maker.speechMemoryReady': 'Ready in RAM',
   'karaoke.maker.speechMemoryCached': 'Cached on disk',

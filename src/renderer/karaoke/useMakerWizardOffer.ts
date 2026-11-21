@@ -10,6 +10,8 @@ import { KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED } from './makerAi';
 import {
   type IKaraokeMakerProject,
   karaokeMakerHasCompleteTiming,
+  karaokeMakerLyricSyncKind,
+  karaokeMakerLyricSyncPlan,
 } from '../../common/karaoke/makerProject';
 import { type IKaraokeSong } from '../../common/karaoke/types';
 
@@ -44,16 +46,22 @@ const useMakerWizardOffer = ({ song, project }: IMakerWizardOfferInput) => {
       wizardOfferedRef.current = true;
       return;
     }
+    // A song whose every word came with a time is still not set up while it
+    // has no notes to sing: that is the one thing its file did not bring, and
+    // the run adds it without touching a word.
+    const onlyNotesMissing =
+      project.melody.notes.length === 0 &&
+      karaokeMakerLyricSyncKind(karaokeMakerLyricSyncPlan(project)) === 'word';
     if (
       !KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED ||
       wizardOfferedRef.current ||
-      karaokeMakerHasCompleteTiming(project.lyrics.lines)
+      (karaokeMakerHasCompleteTiming(project.lyrics.lines) && !onlyNotesMissing)
     ) {
       return;
     }
     wizardOfferedRef.current = true;
     setWizardOpen(true);
-  }, [project.lyrics.lines, song.assets, wizardStep]);
+  }, [project, song.assets, wizardStep]);
 
   return {
     wizardOpen,

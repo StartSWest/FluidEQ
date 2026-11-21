@@ -2,22 +2,25 @@
 
 import wasmUrl from '@fluideq/whisper-wasm';
 import runtimeUrl from '@fluideq/whisper-runtime';
-import { env, pipeline } from '@huggingface/transformers';
+import {
+  env,
+  LogitsProcessor,
+  LogitsProcessorList,
+  pipeline,
+} from '@huggingface/transformers';
 
 // One name, imported — this worker carried its own hardcoded copy once, and a
 // model upgrade in audio.ts silently did nothing: the app checked caches and
 // wrote provenance for a model the worker never loaded.
 import { WHISPER_MODEL as MODEL } from './makerAi/audio';
-
-interface IWhisperChunk {
-  text?: string;
-  timestamp?: [number | null, number | null];
-}
-
-interface IWhisperOutput {
-  text?: string;
-  chunks?: IWhisperChunk[];
-}
+import { IForcedAlignmentLine } from './makerAi/forcedAlignment';
+import {
+  alignLinesWithWhisperModel,
+  IForcedAlignRecognizer,
+  IForcedAlignRuntime,
+} from './makerAi/whisperForcedAlign';
+import whisperUnplacedWordCount from './makerAi/whisperTimestampHealth';
+import { IWhisperChunk, IWhisperOutput } from './makerAi/whisperProgress';
 
 interface IRecognizer {
   (
@@ -40,8 +43,13 @@ interface IRecognizer {
 
 interface IWorkerRequest {
   id: string;
-  type: 'transcribe' | 'release';
+  type: 'transcribe' | 'align' | 'release';
   samples?: Float32Array;
+  /**
+   * For `align`: the lines whose words are already known, each with the
+   * window its lyric file gave it. Nothing is transcribed on that path.
+   */
+  lines?: IForcedAlignmentLine[];
   downloadedAtStart?: boolean;
   language?: string;
   /**
@@ -65,65 +73,6 @@ let recognizer: IRecognizer | undefined;
 let recognizerTask: Promise<IRecognizer> | undefined;
 
 const WHISPER_SAMPLE_RATE = 16_000;
-
-/** One column of Whisper's cross-attention grid; every timestamp is a multiple. */
-const WHISPER_TIME_PRECISION = 0.02;
-
-/**
- * Words the timestamp head reported a position it does not have.
- *
- * When the DTW backtrack runs out of audio columns it parks every remaining
- * token on the window's last one, so the value is closed form: chunk k starts
- * at k*(chunkLength - 2*strideLength) and its final column sits chunkLength -
- * 0.02 s later. Measured before the library patch, one 253 s song put 27 of
- * 158 words on those columns and one word 13 s past the end of the audio.
- *
- * Counted here because only the worker knows the chunk geometry — by the time
- * a transcript reaches the project, 169.98 is just a number. Reported rather
- * than repaired: a run that quietly drops a third of its words still reads as
- * a successful detection, which is how this went unnoticed.
- */
-const unplacedWordCount = (
-  output: IWhisperOutput,
-  chunkLength: number,
-  strideLength: number,
-  durationSeconds: number,
-): { terminal: number; pastEnd: number; stacked: number; at: number[] } => {
-  const jump = chunkLength - strideLength * 2;
-  const terminalAt = chunkLength - WHISPER_TIME_PRECISION;
-  const starts = (output.chunks ?? []).flatMap((word) => {
-    const start = word.timestamp?.[0];
-    return typeof start === 'number' ? [start] : [];
-  });
-  const seen = new Map<number, number>();
-  starts.forEach((start) => seen.set(start, (seen.get(start) ?? 0) + 1));
-  const isTerminal = (start: number): boolean => {
-    if (jump <= 0) {
-      return false;
-    }
-    const offset = start - terminalAt;
-    return (
-      offset >= -WHISPER_TIME_PRECISION &&
-      Math.abs(offset - Math.round(offset / jump) * jump) <=
-        WHISPER_TIME_PRECISION
-    );
-  };
-  const at = [...seen.entries()]
-    .filter(([, count]) => count > 1)
-    .map(([start]) => Math.round(start * 100) / 100)
-    .sort((left, right) => left - right)
-    .slice(0, 12);
-  return {
-    // Three shapes, because they have different causes and one patch cannot
-    // answer for all of them: DTW walking off the end of its window, DTW
-    // placing a word past the audio entirely, and DTW piling many tokens onto
-    // one frame in the middle of a window.
-    terminal: starts.filter(isTerminal).length,
-    pastEnd: starts.filter((start) => start >= durationSeconds).length,
-    stacked: starts.filter((start) => (seen.get(start) ?? 0) > 1).length,
-    at,
-  };
-};
 
 const whisperChunkCount = (
   sampleCount: number,
@@ -384,7 +333,7 @@ const transcribe = async (request: IWorkerRequest) => {
     reportProgress(totalChunks);
     send(id, 'timestamp-health', {
       words: output.chunks?.length ?? 0,
-      ...unplacedWordCount(
+      ...whisperUnplacedWordCount(
         output,
         profile.chunkLength,
         profile.strideLength,
@@ -452,6 +401,39 @@ const transcribe = async (request: IWorkerRequest) => {
   send(id, 'complete', { results });
 };
 
+/**
+ * Time words the song already has, inside the line each belongs to.
+ *
+ * No transcript is produced: the model is made to write the given text, and
+ * only where it was listening is kept (`whisperForcedAlign.ts`).
+ */
+const align = async (request: IWorkerRequest) => {
+  const { id } = request;
+  if (!request.samples || !request.lines) {
+    throw new Error('The decoded audio samples are missing.');
+  }
+  const loaded = await loadRecognizer(id, request.downloadedAtStart === true);
+  send(id, 'ready');
+  const lines = await alignLinesWithWhisperModel(
+    loaded as unknown as IForcedAlignRecognizer,
+    { LogitsProcessor, LogitsProcessorList } as unknown as IForcedAlignRuntime,
+    request.samples,
+    request.lines,
+    request.language,
+    (completed, total) =>
+      send(id, 'progress', {
+        progress: 0.52 + 0.44 * (total ? completed / total : 1),
+        stage: 'transcribe',
+        message: 'Timing the words inside each line',
+        pass: 1,
+        totalPasses: 1,
+        completedChunks: completed,
+        totalChunks: Math.max(1, total),
+      }),
+  );
+  send(id, 'complete', { lines });
+};
+
 workerScope.addEventListener(
   'message',
   (event: MessageEvent<IWorkerRequest>) => {
@@ -466,8 +448,8 @@ workerScope.addEventListener(
         );
       return;
     }
-    transcribe(request).catch((error) =>
-      send(request.id, 'error', { error: errorDetail(error) }),
+    (request.type === 'align' ? align(request) : transcribe(request)).catch(
+      (error) => send(request.id, 'error', { error: errorDetail(error) }),
     );
   },
 );

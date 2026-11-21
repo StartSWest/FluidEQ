@@ -395,6 +395,21 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.whisperComplete': '转写完成',
   'karaoke.maker.whisperMatched':
     'Whisper 匹配了 {count} 个识别词。导出前请检查可编辑时间。',
+  'karaoke.maker.keptWordTimings': '已保留你的逐字时间。',
+  'karaoke.maker.keptWordTimingsOnly':
+    '已保留你的逐字时间。每个字都已有时间，无需检测。',
+  'karaoke.maker.timedInsideLines':
+    '已在你的 {count} 行歌词内为每个字对齐时间；各行仍在歌词文件给定的位置。',
+  'karaoke.maker.timedInsideLinesSpread':
+    '已在你的 {count} 行歌词内为每个字对齐时间；各行仍在歌词文件给定的位置。其中 {spread} 行无法根据人声定位，字已平均分布。',
+  'karaoke.maker.aligningInsideLines':
+    '正在各行内对齐每个字的时间 · 区块 {chunk}/{chunks}',
+  'karaoke.maker.wizardStepNotes': '添加音符（保留你的逐字时间）',
+  'karaoke.maker.wizardStepLines': '在各行内对齐每个字的时间',
+  'karaoke.maker.wizardIntroWords':
+    '这首歌的歌词已有逐字时间。FluidEQ 可以把人声从伴奏中分离出来，并添加演唱用的音符。你的歌词及其时间保持原样。全部在本机运行。',
+  'karaoke.maker.wizardIntroLines':
+    '这首歌的歌词有逐行时间。FluidEQ 可以把人声从伴奏中分离出来，在各行内对齐每个字的时间，并添加演唱用的音符。你的歌词和各行的时间保持原样。全部在本机运行。',
   'karaoke.maker.speechMemory': 'AI 模型内存',
   'karaoke.maker.speechMemoryReady': '已在内存中就绪',
   'karaoke.maker.speechMemoryCached': '已缓存到磁盘',

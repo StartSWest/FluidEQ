@@ -143,13 +143,21 @@ const makePlayableLines = (
       return [];
     }
     const timed = tokens.filter((token) => token.startMs !== undefined);
+    const firstWordOrLineStartMs = timed.length
+      ? Math.min(...timed.map((token) => token.startMs as number))
+      : line.startMs;
     return [
       {
         id: line.id,
         kind: karaokeMakerLineIsSection(line) ? 'section' : 'lyrics',
-        startMs: timed.length
-          ? Math.min(...timed.map((token) => token.startMs as number))
-          : line.startMs,
+        // A line its file timed starts where the file put it, however late
+        // the first word inside it is sung.
+        startMs: line.given
+          ? Math.min(
+              line.given.startMs,
+              ...timed.map((token) => token.startMs as number),
+            )
+          : firstWordOrLineStartMs,
         endMs: timed.length
           ? Math.max(...timed.map((token) => token.endMs ?? token.startMs ?? 0))
           : line.endMs,

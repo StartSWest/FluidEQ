@@ -58,6 +58,15 @@ export const shiftKaraokeMakerTimeline = (
         startMs:
           line.startMs === undefined ? undefined : line.startMs + deltaMs,
         endMs: line.endMs === undefined ? undefined : line.endMs + deltaMs,
+        // The window the lyric file gave travels with the performance: it is
+        // what words are timed inside on the next detection.
+        given: line.given && {
+          startMs: line.given.startMs + deltaMs,
+          endMs:
+            line.given.endMs === undefined
+              ? undefined
+              : line.given.endMs + deltaMs,
+        },
         tokens: line.tokens.map((token) => ({
           ...token,
           startMs:

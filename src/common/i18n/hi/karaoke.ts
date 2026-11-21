@@ -416,6 +416,23 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.whisperComplete': 'लिप्यंतरण पूरा हुआ',
   'karaoke.maker.whisperMatched':
     'Whisper ने {count} पहचाने शब्द मिलाए। निर्यात से पहले उनके संपादन योग्य समय की जाँच करें।',
+  'karaoke.maker.keptWordTimings': 'आपके शब्दों की टाइमिंग जस की तस रखी गई।',
+  'karaoke.maker.keptWordTimingsOnly':
+    'आपके शब्दों की टाइमिंग जस की तस रखी गई। हर शब्द का समय पहले से है, इसलिए पहचानने को कुछ नहीं है।',
+  'karaoke.maker.timedInsideLines':
+    'आपकी {count} पंक्तियों के भीतर शब्दों का समय तय किया गया; पंक्तियाँ वहीं हैं जहाँ आपके बोल ने उन्हें रखा है।',
+  'karaoke.maker.timedInsideLinesSpread':
+    'आपकी {count} पंक्तियों के भीतर शब्दों का समय तय किया गया; पंक्तियाँ वहीं हैं जहाँ आपके बोल ने उन्हें रखा है। {spread} में शब्द आवाज़ से नहीं रखे जा सके और बराबर बाँट दिए गए।',
+  'karaoke.maker.aligningInsideLines':
+    'आपकी पंक्तियों के भीतर शब्दों का समय तय हो रहा है · खंड {chunk}/{chunks}',
+  'karaoke.maker.wizardStepNotes':
+    'नोट्स जोड़ें (आपके शब्दों की टाइमिंग बनी रहती है)',
+  'karaoke.maker.wizardStepLines':
+    'आपकी पंक्तियों के भीतर शब्दों का समय तय करें',
+  'karaoke.maker.wizardIntroWords':
+    'इस गाने के बोल में हर शब्द का समय पहले से है। FluidEQ आवाज़ को संगीत से अलग कर सकता है और गाने के नोट्स जोड़ सकता है। आपके शब्द और उनकी टाइमिंग ठीक वैसी ही रहती है। सब कुछ इसी कंप्यूटर पर चलता है।',
+  'karaoke.maker.wizardIntroLines':
+    'इस गाने के बोल में हर पंक्ति का समय है। FluidEQ आवाज़ को संगीत से अलग कर सकता है, हर शब्द का समय उसकी अपनी पंक्ति के भीतर तय कर सकता है और गाने के नोट्स जोड़ सकता है। आपके शब्द और आपकी पंक्तियों की टाइमिंग ठीक वैसी ही रहती है। सब कुछ इसी कंप्यूटर पर चलता है।',
   'karaoke.maker.speechMemory': 'AI मॉडल मेमोरी',
   'karaoke.maker.speechMemoryReady': 'RAM में तैयार',
   'karaoke.maker.speechMemoryCached': 'डिस्क पर कैश',

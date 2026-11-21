@@ -43,6 +43,7 @@ const wizard = (over: Record<string, unknown> = {}) => {
       onHide={props.onHide}
       language={props.language}
       onLanguage={props.onLanguage}
+      lyricSync="open"
     />,
   );
   return props;

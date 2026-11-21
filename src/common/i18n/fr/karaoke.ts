@@ -432,6 +432,22 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.whisperComplete': 'Calage des paroles détecté',
   'karaoke.maker.whisperMatched':
     'Whisper a associé {count} mots reconnus. Vérifiez leur calage modifiable avant l’exportation.',
+  'karaoke.maker.keptWordTimings': 'Votre calage mot par mot a été conservé.',
+  'karaoke.maker.keptWordTimingsOnly':
+    'Votre calage mot par mot a été conservé. Chaque mot a déjà son temps, il n’y a donc rien à détecter.',
+  'karaoke.maker.timedInsideLines':
+    'Les mots ont été calés à l’intérieur de vos {count} lignes ; les lignes restent là où vos paroles les placent.',
+  'karaoke.maker.timedInsideLinesSpread':
+    'Les mots ont été calés à l’intérieur de vos {count} lignes ; les lignes restent là où vos paroles les placent. Dans {spread} d’entre elles, ils n’ont pas pu être placés d’après la voix et sont répartis régulièrement.',
+  'karaoke.maker.aligningInsideLines':
+    'Calage des mots à l’intérieur de vos lignes · bloc {chunk}/{chunks}',
+  'karaoke.maker.wizardStepNotes':
+    'Ajouter les notes (votre calage mot par mot est conservé)',
+  'karaoke.maker.wizardStepLines': 'Caler les mots à l’intérieur de vos lignes',
+  'karaoke.maker.wizardIntroWords':
+    'Les paroles de ce morceau ont déjà un temps pour chaque mot. FluidEQ peut séparer la voix de la musique et ajouter les notes à chanter. Vos mots et leur calage restent exactement tels quels. Tout s’exécute sur cet ordinateur.',
+  'karaoke.maker.wizardIntroLines':
+    'Les paroles de ce morceau ont un temps pour chaque ligne. FluidEQ peut séparer la voix de la musique, caler chaque mot à l’intérieur de sa propre ligne et ajouter les notes à chanter. Vos mots et le calage de vos lignes restent exactement tels quels. Tout s’exécute sur cet ordinateur.',
   'karaoke.maker.speechMemory': 'Mémoire des modèles IA',
   'karaoke.maker.speechMemoryReady': 'Prêt en mémoire vive',
   'karaoke.maker.speechMemoryCached': 'En cache sur le disque',

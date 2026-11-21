@@ -432,6 +432,24 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.whisperComplete': 'Trascrizione completata',
   'karaoke.maker.whisperMatched':
     'Whisper ha associato {count} parole riconosciute. Controlla i tempi modificabili prima dell’esportazione.',
+  'karaoke.maker.keptWordTimings':
+    'I tuoi tempi parola per parola sono stati mantenuti.',
+  'karaoke.maker.keptWordTimingsOnly':
+    'I tuoi tempi parola per parola sono stati mantenuti. Ogni parola ha già il suo tempo, quindi non c’è nulla da rilevare.',
+  'karaoke.maker.timedInsideLines':
+    'Le parole sono state sincronizzate all’interno delle tue {count} righe; le righe restano dove le ha messe il tuo testo.',
+  'karaoke.maker.timedInsideLinesSpread':
+    'Le parole sono state sincronizzate all’interno delle tue {count} righe; le righe restano dove le ha messe il tuo testo. In {spread} non è stato possibile collocarle in base alla voce e sono distribuite in modo uniforme.',
+  'karaoke.maker.aligningInsideLines':
+    'Sincronizzazione delle parole all’interno delle tue righe · blocco {chunk}/{chunks}',
+  'karaoke.maker.wizardStepNotes':
+    'Aggiungi le note (i tuoi tempi parola per parola restano)',
+  'karaoke.maker.wizardStepLines':
+    'Sincronizza le parole all’interno delle tue righe',
+  'karaoke.maker.wizardIntroWords':
+    'Il testo di questo brano ha già un tempo per ogni parola. FluidEQ può separare la voce dalla musica e aggiungere le note da cantare. Le tue parole e i loro tempi restano esattamente come sono. Tutto viene eseguito su questo computer.',
+  'karaoke.maker.wizardIntroLines':
+    'Il testo di questo brano ha un tempo per ogni riga. FluidEQ può separare la voce dalla musica, sincronizzare ogni parola all’interno della propria riga e aggiungere le note da cantare. Le tue parole e i tempi delle tue righe restano esattamente come sono. Tutto viene eseguito su questo computer.',
   'karaoke.maker.speechMemory': 'Memoria dei modelli IA',
   'karaoke.maker.speechMemoryReady': 'Pronto nella RAM',
   'karaoke.maker.speechMemoryCached': 'In cache sul disco',

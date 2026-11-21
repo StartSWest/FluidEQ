@@ -32,7 +32,22 @@ import {
   safeDate,
   safeSource,
 } from './model';
+import { karaokeMakerInferGivenWindows } from './lyricSync';
 import { isKaraokeSectionText } from '../sections';
+
+/** The line window a lyric file gave, read off untrusted JSON. */
+const givenWindow = (value: unknown): IKaraokeMakerLine['given'] => {
+  const raw = value as { startMs?: unknown; endMs?: unknown } | null;
+  const startMs = finiteOrUndefined(raw?.startMs);
+  if (startMs === undefined) {
+    return undefined;
+  }
+  const endMs = finiteOrUndefined(raw?.endMs);
+  return {
+    startMs,
+    endMs: endMs !== undefined && endMs > startMs ? endMs : undefined,
+  };
+};
 
 // The shape `sanitiseMakerLines` trusts nothing about: raw JSON off disk,
 // read defensively field by field below.
@@ -42,6 +57,7 @@ type TRawKaraokeMakerLine = {
   sourceLineId?: unknown;
   startMs?: unknown;
   endMs?: unknown;
+  given?: unknown;
   tokens?: unknown;
 };
 type TRawKaraokeMakerToken = {
@@ -99,6 +115,7 @@ const sanitiseMakerLines = (
           : undefined,
       startMs: finiteOrUndefined(line?.startMs),
       endMs: finiteOrUndefined(line?.endMs),
+      given: givenWindow(line?.given),
       tokens: (Array.isArray(line?.tokens) ? line.tokens : [])
         .slice(0, 2_000)
         .map((rawToken, tokenIndex) => {
@@ -185,10 +202,14 @@ const parseKaraokeMakerProject = (contents: string): IKaraokeMakerProject => {
     return !skippingRecommendations && !/^\d*\s*embed$/iu.test(text);
   });
   const clearedAutomaticTokenIds = new Set<string>();
-  const lines = sanitiseMakerLines(
-    rawLines,
-    legacyWhisperAlignment,
-    clearedAutomaticTokenIds,
+  // The original sheet only: a translation's lines are seeded from these and
+  // carry no window of their own.
+  const lines = karaokeMakerInferGivenWindows(
+    sanitiseMakerLines(
+      rawLines,
+      legacyWhisperAlignment,
+      clearedAutomaticTokenIds,
+    ),
   );
   const notes: IKaraokeMakerNote[] = (
     Array.isArray(value.melody?.notes) ? value.melody.notes : []

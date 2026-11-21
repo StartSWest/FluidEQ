@@ -10,6 +10,7 @@ import Dropdown from '../widgets/Dropdown';
 import MenuIcon from '../icons/MenuIcon';
 import DialogFrame from '../components/DialogFrame';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
+import { TKaraokeMakerLineSync } from '../../common/karaoke/makerProject';
 
 export type TKaraokeMakerWizardStep = 'separate' | 'transcribe';
 
@@ -36,7 +37,25 @@ interface IKaraokeMakerWizardProps {
    */
   language?: string;
   onLanguage: (language: string | undefined) => void;
+  /**
+   * What timing the song's lyrics arrived with, so the dialog says what the
+   * run will do before it is started: add only the notes to words that are
+   * already timed, time the words inside lines that are, or read both.
+   */
+  lyricSync: TKaraokeMakerLineSync;
 }
+
+const INTRO = {
+  word: 'karaoke.maker.wizardIntroWords',
+  line: 'karaoke.maker.wizardIntroLines',
+  open: 'karaoke.maker.wizardIntro',
+} as const;
+
+const SECOND_STEP = {
+  word: 'karaoke.maker.wizardStepNotes',
+  line: 'karaoke.maker.wizardStepLines',
+  open: 'karaoke.maker.wizardStepTranscribe',
+} as const;
 
 /**
  * The offer to set a song up automatically, and the progress once it is running.
@@ -61,6 +80,7 @@ const KaraokeMakerWizard = ({
   onHide,
   language,
   onLanguage,
+  lyricSync,
 }: IKaraokeMakerWizardProps) => {
   const { t } = useTranslation();
   const running = activeStep !== undefined;
@@ -72,8 +92,9 @@ const KaraokeMakerWizard = ({
   const steps: {
     id: TKaraokeMakerWizardStep;
     label:
-      'karaoke.maker.wizardStepSeparate' | 'karaoke.maker.wizardStepTranscribe';
-    icon: 'stem' | 'transcribe';
+      | 'karaoke.maker.wizardStepSeparate'
+      | (typeof SECOND_STEP)[TKaraokeMakerLineSync];
+    icon: 'stem' | 'transcribe' | 'melody';
   }[] = [
     {
       id: 'separate',
@@ -82,8 +103,8 @@ const KaraokeMakerWizard = ({
     },
     {
       id: 'transcribe',
-      label: 'karaoke.maker.wizardStepTranscribe',
-      icon: 'transcribe',
+      label: SECOND_STEP[lyricSync],
+      icon: lyricSync === 'word' ? 'melody' : 'transcribe',
     },
   ];
 
@@ -96,7 +117,7 @@ const KaraokeMakerWizard = ({
         icon={<MenuIcon name="smart" />}
         title={t('karaoke.maker.wizardTitle')}
         titleId="karaoke-maker-wizard-title"
-        description={t('karaoke.maker.wizardIntro')}
+        description={t(INTRO[lyricSync])}
         closeLabel={t('support.close')}
         // The quiet way out in both states: before the run it is "I will do
         // it myself", during it "Continue in background" — the dialog goes,

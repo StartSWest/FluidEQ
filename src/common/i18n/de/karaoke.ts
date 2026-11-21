@@ -431,6 +431,21 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.whisperComplete': 'Transkription abgeschlossen',
   'karaoke.maker.whisperMatched':
     'Whisper hat {count} erkannte Wörter zugeordnet. Prüfen Sie vor dem Export die bearbeitbaren Zeitangaben.',
+  'karaoke.maker.keptWordTimings': 'Ihr Wort-Timing wurde beibehalten.',
+  'karaoke.maker.keptWordTimingsOnly':
+    'Ihr Wort-Timing wurde beibehalten. Jedes Wort hat bereits seine Zeit, es gibt also nichts zu erkennen.',
+  'karaoke.maker.timedInsideLines':
+    'Die Wörter wurden innerhalb Ihrer {count} Zeilen getimt; die Zeilen bleiben, wo Ihr Liedtext sie hinsetzt.',
+  'karaoke.maker.timedInsideLinesSpread':
+    'Die Wörter wurden innerhalb Ihrer {count} Zeilen getimt; die Zeilen bleiben, wo Ihr Liedtext sie hinsetzt. In {spread} ließen sie sich nicht anhand der Stimme platzieren und sind gleichmäßig verteilt.',
+  'karaoke.maker.aligningInsideLines':
+    'Wörter werden innerhalb Ihrer Zeilen getimt · Block {chunk}/{chunks}',
+  'karaoke.maker.wizardStepNotes': 'Noten hinzufügen (Ihr Wort-Timing bleibt)',
+  'karaoke.maker.wizardStepLines': 'Wörter innerhalb Ihrer Zeilen timen',
+  'karaoke.maker.wizardIntroWords':
+    'Der Text dieses Songs hat bereits eine Zeit für jedes Wort. FluidEQ kann die Stimme von der Musik trennen und die Noten zum Singen hinzufügen. Ihre Wörter und deren Timing bleiben genau so, wie sie sind. Alles läuft auf diesem Computer.',
+  'karaoke.maker.wizardIntroLines':
+    'Der Text dieses Songs hat eine Zeit für jede Zeile. FluidEQ kann die Stimme von der Musik trennen, jedes Wort innerhalb seiner eigenen Zeile timen und die Noten zum Singen hinzufügen. Ihre Wörter und Ihr Zeilen-Timing bleiben genau so, wie sie sind. Alles läuft auf diesem Computer.',
   'karaoke.maker.speechMemory': 'KI-Modellspeicher',
   'karaoke.maker.speechMemoryReady': 'Im Arbeitsspeicher bereit',
   'karaoke.maker.speechMemoryCached': 'Auf Datenträger zwischengespeichert',

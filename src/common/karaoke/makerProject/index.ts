@@ -32,6 +32,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * - `model`      what a project is: tokens, lines, notes, and the line-range
  *                arithmetic everything else asks about
+ * - `lyricSync`  what timing the lyrics arrived with, and keeping it
  * - `syllables`  splitting one word into singable parts
  * - `timeline`   moving the whole performance, or one line's tail
  * - `boundaries` dragging one token edge, and the cascade that follows
@@ -42,6 +43,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 export * from './lineTokens';
 export * from './model';
+export * from './lyricSync';
 export { default as splitKaraokeMakerWordIntoSyllables } from './syllables';
 export * from './translationSeed';
 export * from './timeline';

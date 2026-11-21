@@ -8,6 +8,11 @@ import { Dispatch, MutableRefObject, SetStateAction, useRef } from 'react';
 import {
   IKaraokeMakerProject,
   IKaraokeMakerToken,
+  karaokeMakerCloseGivenWordEnds,
+  karaokeMakerKeepGivenLyrics,
+  karaokeMakerLockGivenTiming,
+  karaokeMakerLyricSyncKind,
+  karaokeMakerLyricSyncPlan,
   touchKaraokeMakerProject,
 } from '../../common/karaoke/makerProject';
 import { reportError, reportInfo } from '../utils/logger';
@@ -21,7 +26,6 @@ import {
 import {
   IKaraokeMakerDownloadSummary,
   IKaraokeMakerWhisperLogEntry,
-  IKaraokeMakerWhisperTranscribeProgress,
   KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED,
   TKaraokeMakerWhisperStage,
   applyBasicPitchMelody,
@@ -41,6 +45,14 @@ import {
 } from './makerAi';
 import { plainLyrics } from './useKaraokeMakerLyricsDraft';
 import { analyzeKaraokeWithSwiftF0 } from './makerAi/swiftF0Notes';
+import alignKaraokeLinesWithWhisper from './makerAi/whisperAlign';
+import createMakerSpeechProgress, {
+  IMakerDownloadSample,
+} from './makerSpeechProgress';
+import {
+  applyKaraokeMakerLineAlignment,
+  karaokeMakerLinesForAlignment,
+} from './makerAi/lineAlignment';
 import {
   mergeKaraokeMakerDetectionRepair,
   protectKaraokeMakerTimedWordsForDetection,
@@ -164,14 +176,7 @@ export const useMakerAnalysisRun = ({
    * Lives here because only this hook reads it: a rate is a property of the
    * run, not of the editor.
    */
-  const downloadSampleRef = useRef<
-    | {
-        loadedBytes: number;
-        sampledAt: number;
-        bytesPerSecond?: number;
-      }
-    | undefined
-  >(undefined);
+  const downloadSampleRef = useRef<IMakerDownloadSample | undefined>(undefined);
   /**
    * A normal Detect run is a repair pass once the user has usable timing.
    *
@@ -214,9 +219,29 @@ export const useMakerAnalysisRun = ({
     reportInfo(`[karaoke][whisper] ${formatted}`);
   };
 
+  /**
+   * The melody pass, held to what the song was given.
+   *
+   * A word with a given time is locked for the pass and put back exactly
+   * after it; the one thing added to it is an end the file left out, which a
+   * note needs to know how long the word is sung.
+   */
+  const melodyKeepingGivenLyrics = (
+    current: IKaraokeMakerProject,
+    apply: (locked: IKaraokeMakerProject) => IKaraokeMakerProject,
+  ): IKaraokeMakerProject => {
+    const given = karaokeMakerCloseGivenWordEnds(current);
+    return karaokeMakerKeepGivenLyrics(
+      given,
+      apply(karaokeMakerLockGivenTiming(given)),
+    );
+  };
+
   const runBasicPitch = async (
     baseProject?: IKaraokeMakerProject,
     preserveTranscriptSuccess = false,
+    /** Every word already had a given time: say so when the notes land. */
+    keptWordTimings = false,
   ) => {
     analysisAbortRef.current?.abort();
     const controller = new AbortController();
@@ -256,12 +281,14 @@ export const useMakerAnalysisRun = ({
           ? undefined
           : detectionRepairBaselineRef.current;
         const next = touchKaraokeMakerProject(
-          repairBaseline
-            ? mergeKaraokeMakerDetectionRepair(
-                repairBaseline,
-                applyBasicPitchMelody(publishBase, notes, true, provenance),
-              )
-            : applyBasicPitchMelody(publishBase, notes, true, provenance),
+          melodyKeepingGivenLyrics(publishBase, (locked) =>
+            repairBaseline
+              ? mergeKaraokeMakerDetectionRepair(
+                  repairBaseline,
+                  applyBasicPitchMelody(locked, notes, true, provenance),
+                )
+              : applyBasicPitchMelody(locked, notes, true, provenance),
+          ),
         );
         projectRef.current = next;
         pushHistory(publishBase);
@@ -273,8 +300,13 @@ export const useMakerAnalysisRun = ({
         reportInfo(
           `[karaoke][melody] melody.complete candidates=${notes.length} guideNotes=${generatedNoteCount}`,
         );
+        const found = t('karaoke.maker.basicPitchFound', {
+          count: generatedNoteCount,
+        });
         setNotice(
-          t('karaoke.maker.basicPitchFound', { count: generatedNoteCount }),
+          keptWordTimings
+            ? `${t('karaoke.maker.keptWordTimings')} ${found}`
+            : found,
         );
         if (lyricsWorkflowActiveRef.current) {
           lyricsWorkflowActiveRef.current = false;
@@ -305,42 +337,27 @@ export const useMakerAnalysisRun = ({
           ? undefined
           : detectionRepairBaselineRef.current;
         const next = touchKaraokeMakerProject(
-          repairBaseline
-            ? mergeKaraokeMakerDetectionRepair(
-                repairBaseline,
-                applyDetectedPitchMelody(
-                  {
-                    ...publishBase,
-                    audio: {
-                      ...publishBase.audio,
-                      durationMs: fallback.durationMs,
-                    },
-                    analysis: {
-                      ...publishBase.analysis,
-                      waveform: fallback.waveform,
-                      lastRunAt: new Date().toISOString(),
-                    },
-                  },
-                  fallback.notes,
-                  true,
-                ),
-              )
-            : applyDetectedPitchMelody(
-                {
-                  ...publishBase,
-                  audio: {
-                    ...publishBase.audio,
-                    durationMs: fallback.durationMs,
-                  },
-                  analysis: {
-                    ...publishBase.analysis,
-                    waveform: fallback.waveform,
-                    lastRunAt: new Date().toISOString(),
-                  },
-                },
-                fallback.notes,
-                true,
-              ),
+          melodyKeepingGivenLyrics(
+            {
+              ...publishBase,
+              audio: {
+                ...publishBase.audio,
+                durationMs: fallback.durationMs,
+              },
+              analysis: {
+                ...publishBase.analysis,
+                waveform: fallback.waveform,
+                lastRunAt: new Date().toISOString(),
+              },
+            },
+            (locked) =>
+              repairBaseline
+                ? mergeKaraokeMakerDetectionRepair(
+                    repairBaseline,
+                    applyDetectedPitchMelody(locked, fallback.notes, true),
+                  )
+                : applyDetectedPitchMelody(locked, fallback.notes, true),
+          ),
         );
         projectRef.current = next;
         pushHistory(publishBase);
@@ -352,8 +369,13 @@ export const useMakerAnalysisRun = ({
         reportInfo(
           `[karaoke][melody] local-fallback.complete candidates=${fallback.notes.length} guideNotes=${generatedNoteCount}`,
         );
+        const found = t('karaoke.maker.analysisFound', {
+          count: generatedNoteCount,
+        });
         setNotice(
-          t('karaoke.maker.analysisFound', { count: generatedNoteCount }),
+          keptWordTimings
+            ? `${t('karaoke.maker.keptWordTimings')} ${found}`
+            : found,
         );
         if (lyricsWorkflowActiveRef.current) {
           lyricsWorkflowActiveRef.current = false;
@@ -410,6 +432,37 @@ export const useMakerAnalysisRun = ({
       detectionRepairBaselineRef.current = undefined;
     }
     setToolPanel(undefined);
+    // A song whose every word came with a time has nothing for the speech
+    // model to do: no words to find and none to place. Asking it anyway is
+    // how those times were lost — it re-timed each word from what it heard.
+    // The notes are all that is missing, and they need no download.
+    if (
+      karaokeMakerLyricSyncKind(
+        karaokeMakerLyricSyncPlan(projectRef.current),
+      ) === 'word'
+    ) {
+      repairMissingTimingRef.current = false;
+      detectionRepairBaselineRef.current = undefined;
+      prepareAfterWhisperRef.current = false;
+      if (continueWithMelody) {
+        await runBasicPitch(undefined, false, true);
+        return;
+      }
+      setNotice(t('karaoke.maker.keptWordTimingsOnly'));
+      return;
+    }
+    // Lines that only lack a word between timed ones need no model either:
+    // the run fills them, and there is nothing to download for it.
+    const waiting = projectRef.current;
+    const waitingSync = karaokeMakerLyricSyncPlan(waiting);
+    if (
+      flattenTokens(waiting).length > 0 &&
+      waitingSync.open === 0 &&
+      karaokeMakerLinesForAlignment(waiting).length === 0
+    ) {
+      await runWhisper();
+      return;
+    }
     // The cache is the evidence. The session flag describes what was present
     // earlier and must not short-circuit this check after eviction or a manual
     // model reset.
@@ -487,117 +540,57 @@ export const useMakerAnalysisRun = ({
       ? beforeTranscript
       : undefined;
     const whisperProgressShare = includeMelody ? 0.72 : 1;
+    // What the lyrics arrived with decides what the speech model is asked.
+    // Lines the file timed have their words timed inside them, with the text
+    // given and nothing transcribed; only lines with no time at all, or a
+    // song with no lyrics, are transcribed. Words that already have a given
+    // time are asked about by neither.
+    const sync = karaokeMakerLyricSyncPlan(beforeTranscript);
+    const hasLyrics = flattenTokens(beforeTranscript).length > 0;
+    const needsAlignment = sync.line > 0;
+    const needsTranscript = !hasLyrics || sync.open > 0;
+    // A line that only lacks a word between timed ones is filled between
+    // them and asks the model nothing; the model is run for the lines that
+    // have no word timed at all.
+    const alignmentLines = needsAlignment
+      ? karaokeMakerLinesForAlignment(beforeTranscript)
+      : [];
+    let alignmentShare = 0;
+    if (alignmentLines.length) {
+      alignmentShare = needsTranscript ? 0.5 : 1;
+    }
+    const speechProgress = createMakerSpeechProgress({
+      t,
+      whisperProgressShare,
+      downloadSampleRef,
+      setAnalysisProgress,
+      setAnalysisMessage,
+      setWhisperStage,
+      setDownloadProgress,
+    });
     try {
-      const transcript = await transcribeKaraokeWithWhisper(
-        analysisFile,
-        (
-          progress,
-          message,
-          download,
-          stage,
-          transcription?: IKaraokeMakerWhisperTranscribeProgress,
-        ) => {
-          setAnalysisProgress(progress * whisperProgressShare);
-          if (download?.summary) {
-            const { summary } = download;
-            const complete =
-              summary.fileCount > 0 &&
-              summary.completeFiles === summary.fileCount;
-            const sampledAt = performance.now();
-            const previous = downloadSampleRef.current;
-            const elapsedSeconds = previous
-              ? (sampledAt - previous.sampledAt) / 1_000
-              : 0;
-            const instantaneousSpeed =
-              previous && elapsedSeconds > 0.12
-                ? Math.max(
-                    0,
-                    (summary.loadedBytes - previous.loadedBytes) /
-                      elapsedSeconds,
-                  )
-                : undefined;
-            let bytesPerSecond = complete
-              ? undefined
-              : previous?.bytesPerSecond;
-            if (!complete && instantaneousSpeed !== undefined) {
-              bytesPerSecond =
-                previous?.bytesPerSecond === undefined
-                  ? instantaneousSpeed
-                  : previous.bytesPerSecond * 0.72 + instantaneousSpeed * 0.28;
-            }
-            if (!previous || elapsedSeconds > 0.12 || complete) {
-              downloadSampleRef.current = {
-                loadedBytes: summary.loadedBytes,
-                sampledAt,
-                bytesPerSecond,
-              };
-            }
-            setDownloadProgress({
-              ...summary,
-              bytesPerSecond,
-            });
-          }
-          if (stage) {
-            // The file list belongs to the download and to nothing after it.
-            // It used to be set and never cleared, so seven completed rows sat
-            // over the transcription for the rest of the run, still claiming
-            // to be the thing in progress.
-            if (stage !== 'download') {
-              setDownloadProgress(undefined);
-              downloadSampleRef.current = undefined;
-            }
-            setWhisperStage(stage);
-            let localizedMessage = t('karaoke.maker.whisperComplete');
-            if (stage === 'decode') {
-              localizedMessage = t('karaoke.maker.whisperDecoding');
-            } else if (stage === 'download') {
-              localizedMessage = t('karaoke.maker.downloadingWhisper');
-            } else if (stage === 'load') {
-              localizedMessage = t('karaoke.maker.loadingWhisper');
-            } else if (stage === 'transcribe') {
-              localizedMessage = transcription
-                ? t('karaoke.maker.whisperTranscribingProgress', {
-                    pass: transcription.pass,
-                    passes: transcription.totalPasses,
-                    chunk: transcription.completedChunks,
-                    chunks: transcription.totalChunks,
-                  })
-                : t('karaoke.maker.whisperTranscribing');
-            }
-            setAnalysisMessage(localizedMessage);
-          } else if (message) {
-            const status = message.trim().toLowerCase();
-            let localizedMessage =
-              progress < 0.42
-                ? t('karaoke.maker.downloadingWhisper')
-                : t('karaoke.maker.whisperTranscribing');
-            if (
-              ['progress', 'download', 'downloading', 'initiate'].includes(
-                status,
-              )
-            ) {
-              localizedMessage = t('karaoke.maker.downloadingWhisper');
-            } else if (['done', 'ready'].includes(status)) {
-              localizedMessage = t('karaoke.maker.loadingWhisper');
-            } else if (status === 'decoding audio') {
-              localizedMessage = t('karaoke.maker.whisperDecoding');
-            } else if (status === 'loading the opt-in whisper model') {
-              localizedMessage = t('karaoke.maker.loadingWhisper');
-            } else if (status === 'transcribing locally') {
-              localizedMessage = t('karaoke.maker.whisperTranscribing');
-            } else if (status === 'transcription complete') {
-              localizedMessage = t('karaoke.maker.whisperComplete');
-            }
-            setAnalysisMessage(localizedMessage);
-          }
-        },
-        controller.signal,
-        receiveWhisperLog,
-        projectRef.current.lyrics.language,
-        // Only the authoring path chooses line breaks, so only it pays for the
-        // second decode that reveals them.
-        !flattenTokens(projectRef.current).length,
-      );
+      const lineResults = alignmentLines.length
+        ? await alignKaraokeLinesWithWhisper(
+            analysisFile,
+            alignmentLines,
+            speechProgress(0, alignmentShare, true),
+            controller.signal,
+            receiveWhisperLog,
+            beforeTranscript.lyrics.language,
+          )
+        : [];
+      const transcript = needsTranscript
+        ? await transcribeKaraokeWithWhisper(
+            analysisFile,
+            speechProgress(alignmentShare, 1 - alignmentShare, false),
+            controller.signal,
+            receiveWhisperLog,
+            projectRef.current.lyrics.language,
+            // Only the authoring path chooses line breaks, so only it pays
+            // for the second decode that reveals them.
+            !hasLyrics,
+          )
+        : undefined;
       // Where the singer actually stops, read from the isolated voice. The
       // decode is the one Whisper already paid for — `decodeMono` caches per
       // file — so this costs a pass over the samples and nothing else.
@@ -622,26 +615,49 @@ export const useMakerAnalysisRun = ({
       // and said so. On an ordinary song it is imperceptible; on one that
       // repeats a line a hundred times it was the only thing still running.
       setAnalysisMessage(t('karaoke.maker.whisperAligning'));
-      const alignmentProject = repairMissingTiming
-        ? protectKaraokeMakerTimedWordsForDetection(beforeTranscript)
-        : beforeTranscript;
-      let completedProject = flattenTokens(alignmentProject).length
-        ? applyWhisperTranscript(
-            alignmentProject,
-            transcript,
+      // The lines the file timed, with their words now timed inside them.
+      // From here on this is what the song was given: every later step is
+      // held to it by `karaokeMakerKeepGivenLyrics`.
+      const lineOutcome = needsAlignment
+        ? applyKaraokeMakerLineAlignment(
+            beforeTranscript,
+            lineResults,
             vocalRests,
-            voiceOnsets,
           )
-        : applyTranscriptAsLyrics(
-            alignmentProject,
-            transcript,
-            vocalRests,
-            transcript.segments ?? [],
-            voiceOnsets,
+        : undefined;
+      const givenProject = lineOutcome?.project ?? beforeTranscript;
+      if (lineOutcome) {
+        reportInfo(
+          `[karaoke][whisper] given-lines aligned=${lineOutcome.aligned} spread=${lineOutcome.spread}`,
+        );
+      }
+      let completedProject = givenProject;
+      if (transcript) {
+        const alignmentProject = repairMissingTiming
+          ? protectKaraokeMakerTimedWordsForDetection(givenProject)
+          : karaokeMakerLockGivenTiming(givenProject);
+        completedProject = hasLyrics
+          ? applyWhisperTranscript(
+              alignmentProject,
+              transcript,
+              vocalRests,
+              voiceOnsets,
+            )
+          : applyTranscriptAsLyrics(
+              alignmentProject,
+              transcript,
+              vocalRests,
+              transcript.segments ?? [],
+              voiceOnsets,
+            );
+        if (repairMissingTiming) {
+          completedProject = mergeKaraokeMakerDetectionRepair(
+            beforeTranscript,
+            completedProject,
           );
-      if (repairMissingTiming) {
-        completedProject = mergeKaraokeMakerDetectionRepair(
-          beforeTranscript,
+        }
+        completedProject = karaokeMakerKeepGivenLyrics(
+          givenProject,
           completedProject,
         );
       }
@@ -671,8 +687,16 @@ export const useMakerAnalysisRun = ({
           // left unplaced can be put on the pitch that was actually sung
           // rather than left for the user to drag. Words Whisper did place
           // are above the doubt threshold and are locked out of the repair.
+          // Words the song was given are not Whisper's to begin with: they
+          // are locked for the pass and put back exactly after it.
+          const beforeMelody = completedProject;
           completedProject = touchKaraokeMakerProject(
-            applyBasicPitchMelody(completedProject, notes, true, provenance),
+            applyBasicPitchMelody(
+              karaokeMakerLockGivenTiming(beforeMelody),
+              notes,
+              needsTranscript,
+              provenance,
+            ),
           );
           if (repairMissingTiming) {
             completedProject = touchKaraokeMakerProject(
@@ -682,6 +706,10 @@ export const useMakerAnalysisRun = ({
               ),
             );
           }
+          completedProject = karaokeMakerKeepGivenLyrics(
+            beforeMelody,
+            completedProject,
+          );
           generatedNoteCount = completedProject.melody.notes.filter(
             (note) => note.source !== 'manual',
           ).length;
@@ -707,12 +735,30 @@ export const useMakerAnalysisRun = ({
       if (melodyError) {
         setAnalysisError(localizeMakerError(melodyError, 'analysis'));
       }
+      // What was kept is said before what was found: a song that came with
+      // its own timing has to be told it still has it.
+      const sentences: string[] = [];
+      if (lineOutcome && sync.word > 0) {
+        sentences.push(t('karaoke.maker.keptWordTimings'));
+      }
+      if (lineOutcome) {
+        sentences.push(
+          lineOutcome.spread > 0
+            ? t('karaoke.maker.timedInsideLinesSpread', {
+                count: lineOutcome.aligned + lineOutcome.spread,
+                spread: lineOutcome.spread,
+              })
+            : t('karaoke.maker.timedInsideLines', {
+                count: lineOutcome.aligned,
+              }),
+        );
+      }
       if (generatedNoteCount !== undefined) {
-        setNotice(
+        sentences.push(
           t('karaoke.maker.basicPitchFound', { count: generatedNoteCount }),
         );
-      } else {
-        setNotice(
+      } else if (transcript) {
+        sentences.push(
           t('karaoke.maker.whisperMatched', {
             count: completedProject.lyrics.lines
               .filter((line) => line.kind !== 'section')
@@ -724,6 +770,7 @@ export const useMakerAnalysisRun = ({
           }),
         );
       }
+      setNotice(sentences.join(' '));
       if (lyricsWorkflowActiveRef.current) {
         lyricsWorkflowActiveRef.current = false;
         setLyricsWorkflowActive(false);

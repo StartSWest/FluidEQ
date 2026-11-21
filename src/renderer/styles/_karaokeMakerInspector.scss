@@ -439,7 +439,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // How long it stays: the Maker takes it down on this animation's end. It
   // changes nothing on screen — the notice looks as it always has for the
   // five seconds it was given by a timer before.
-  animation: karaoke-maker-notice-linger 5s linear;
+  // A notice with more to say sets the variable to the time it takes to
+  // read (`makerNoticeLingerSeconds`).
+  animation: karaoke-maker-notice-linger var(--karaoke-maker-notice-linger, 5s)
+    linear;
 
   &.is-error {
     color: #ffd8dc;
@@ -463,7 +466,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // take the notice down the moment it went up. Its linger is a hold that does
 // not move, and it has to stay long enough to read, so it keeps its length.
 :root[data-motion='reduced'] .karaoke-maker__notice {
-  animation-duration: 5s !important;
+  animation-duration: var(--karaoke-maker-notice-linger, 5s) !important;
 }
 
 // The idle-release prompt used to live here, pinned above the Maker's dock.

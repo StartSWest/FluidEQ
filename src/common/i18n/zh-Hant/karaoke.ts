@@ -374,6 +374,21 @@ const karaoke = {
   'karaoke.maker.whisperComplete': '偵測到歌詞定時',
   'karaoke.maker.whisperMatched':
     'Whisper 符合 {count} 辨識的單字。匯出前檢視其可編輯時間。',
+  'karaoke.maker.keptWordTimings': '已保留你的逐字時間。',
+  'karaoke.maker.keptWordTimingsOnly':
+    '已保留你的逐字時間。每個字都已有時間，無需偵測。',
+  'karaoke.maker.timedInsideLines':
+    '已在你的 {count} 行歌詞內為每個字對齊時間；各行仍在歌詞檔給定的位置。',
+  'karaoke.maker.timedInsideLinesSpread':
+    '已在你的 {count} 行歌詞內為每個字對齊時間；各行仍在歌詞檔給定的位置。其中 {spread} 行無法依人聲定位，字已平均分布。',
+  'karaoke.maker.aligningInsideLines':
+    '正在各行內對齊每個字的時間 · 區塊 {chunk}/{chunks}',
+  'karaoke.maker.wizardStepNotes': '加入音符（保留你的逐字時間）',
+  'karaoke.maker.wizardStepLines': '在各行內對齊每個字的時間',
+  'karaoke.maker.wizardIntroWords':
+    '這首歌的歌詞已有逐字時間。FluidEQ 可以將人聲與音樂分離，並加入演唱用的音符。你的歌詞及其時間維持原樣。一切都在這臺電腦上運作。',
+  'karaoke.maker.wizardIntroLines':
+    '這首歌的歌詞有逐行時間。FluidEQ 可以將人聲與音樂分離，在各行內對齊每個字的時間，並加入演唱用的音符。你的歌詞和各行的時間維持原樣。一切都在這臺電腦上運作。',
   'karaoke.maker.speechMemory': 'AI模型記憶',
   'karaoke.maker.speechMemoryReady': '記憶體中準備就緒',
   'karaoke.maker.speechMemoryCached': '快取在磁碟上',

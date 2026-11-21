@@ -22,9 +22,11 @@ import {
   IKaraokeMakerLine,
   IKaraokeMakerNote,
   IKaraokeMakerProject,
+  IKaraokeMakerToken,
   KARAOKE_MAKER_PROJECT_VERSION,
   karaokeMakerId,
 } from './model';
+import { karaokeMakerWordsOfUntimedToken } from './lyricSync';
 import { isKaraokeSectionText } from '../sections';
 
 const makerLinesFromSong = (song: IKaraokeSong): IKaraokeMakerLine[] =>
@@ -37,21 +39,45 @@ const makerLinesFromSong = (song: IKaraokeSong): IKaraokeMakerLine[] =>
           .join(' ')
           .trim(),
       );
+    const tokens = line.tokens
+      .filter((token) => token.text.trim())
+      .map((token): IKaraokeMakerToken => ({
+        id: karaokeMakerId('word'),
+        text: token.text.trim(),
+        startsWord: token.startsWord ?? true,
+        startMs: isSection ? undefined : token.startMs,
+        endMs: isSection ? undefined : token.endMs,
+        source: 'imported' as const,
+      }))
+      // A line-timed file hands over each line as one token. Its words are
+      // cut apart here so they can be timed inside the line later; a token
+      // that carries a time is a word or a syllable already.
+      .flatMap((token) =>
+        isSection || token.startMs !== undefined
+          ? [token]
+          : karaokeMakerWordsOfUntimedToken(token),
+      );
     return {
       id: line.id || karaokeMakerId('line'),
       kind: isSection ? ('section' as const) : ('lyrics' as const),
       startMs: line.startMs,
       endMs: line.endMs,
-      tokens: line.tokens
-        .filter((token) => token.text.trim())
-        .map((token) => ({
-          id: karaokeMakerId('word'),
-          text: token.text.trim(),
-          startsWord: token.startsWord ?? true,
-          startMs: isSection ? undefined : token.startMs,
-          endMs: isSection ? undefined : token.endMs,
-          source: 'imported' as const,
-        })),
+      // The file's own word on when this line is sung, kept apart from the
+      // range above, which every detector rewrites from the words.
+      given:
+        !isSection &&
+        tokens.length > 0 &&
+        line.startMs !== undefined &&
+        Number.isFinite(line.startMs)
+          ? {
+              startMs: line.startMs,
+              endMs:
+                line.endMs !== undefined && line.endMs > line.startMs
+                  ? line.endMs
+                  : undefined,
+            }
+          : undefined,
+      tokens,
     };
   });
 

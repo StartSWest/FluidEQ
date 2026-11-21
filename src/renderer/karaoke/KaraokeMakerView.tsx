@@ -4,7 +4,9 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import type { CSSProperties } from 'react';
 import KaraokeMakerTimingSliders from './KaraokeMakerTimingSliders';
+import makerNoticeLingerSeconds from './makerNoticeLinger';
 import KaraokeMakerWordInspector from './KaraokeMakerWordInspector';
 import KaraokeMakerSelectionInfo from './KaraokeMakerSelectionInfo';
 import KaraokeMakerEditTools from './KaraokeMakerEditTools';
@@ -18,6 +20,10 @@ import {
 import makerProgressView from './makerProgressView';
 import KaraokeMakerToolbar from './KaraokeMakerToolbar';
 import KaraokeMakerWizard from './KaraokeMakerWizard';
+import {
+  karaokeMakerLyricSyncKind,
+  karaokeMakerLyricSyncPlan,
+} from '../../common/karaoke/makerProject';
 import KaraokeMakerHeader from './KaraokeMakerHeader';
 import KaraokeMakerNavigator from './KaraokeMakerNavigator';
 import KaraokeMakerPitchScroller from './KaraokeMakerPitchScroller';
@@ -496,6 +502,9 @@ const KaraokeMakerView = ({
           }}
           onSkip={() => setWizardOpen(false)}
           onHide={() => setWizardOpen(false)}
+          lyricSync={karaokeMakerLyricSyncKind(
+            karaokeMakerLyricSyncPlan(project),
+          )}
           language={project.lyrics.language}
           onLanguage={(language) =>
             commit((current) => ({
@@ -879,13 +888,23 @@ const KaraokeMakerView = ({
           was a five-second timer, restarted whenever the analysis panel came
           and went; the element is mounted and unmounted with that panel, so
           the animation restarts with it all the same, and a new notice is a
-          new element (`key`) with its five seconds from the start. */}
+          new element (`key`) with its five seconds from the start. A long
+          one stays longer (`makerNoticeLingerSeconds`): what a detection
+          kept and what it found is three sentences, and five seconds reads
+          one. */}
       {analysisProgress === undefined && !analysisError && noticeEntry && (
         <div
           key={noticeEntry.id}
           className="karaoke-maker__notice"
           role="status"
           aria-live="polite"
+          style={
+            {
+              '--karaoke-maker-notice-linger': `${makerNoticeLingerSeconds(
+                noticeEntry.message,
+              )}s`,
+            } as CSSProperties
+          }
           onAnimationEnd={(event) => {
             if (
               event.target !== event.currentTarget ||

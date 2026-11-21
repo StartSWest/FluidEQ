@@ -429,6 +429,23 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.whisperComplete': 'Transcrição concluída',
   'karaoke.maker.whisperMatched':
     'O Whisper associou {count} palavras reconhecidas. Revise os tempos editáveis antes de exportar.',
+  'karaoke.maker.keptWordTimings': 'Seus tempos por palavra foram mantidos.',
+  'karaoke.maker.keptWordTimingsOnly':
+    'Seus tempos por palavra foram mantidos. Cada palavra já tem seu tempo, então não há nada para detectar.',
+  'karaoke.maker.timedInsideLines':
+    'As palavras foram sincronizadas dentro das suas {count} linhas; as linhas continuam onde a sua letra as colocou.',
+  'karaoke.maker.timedInsideLinesSpread':
+    'As palavras foram sincronizadas dentro das suas {count} linhas; as linhas continuam onde a sua letra as colocou. Em {spread} delas não foi possível posicioná-las a partir da voz, e foram distribuídas de forma uniforme.',
+  'karaoke.maker.aligningInsideLines':
+    'Sincronizando as palavras dentro das suas linhas · bloco {chunk}/{chunks}',
+  'karaoke.maker.wizardStepNotes':
+    'Adicionar as notas (seus tempos por palavra são mantidos)',
+  'karaoke.maker.wizardStepLines':
+    'Sincronizar as palavras dentro das suas linhas',
+  'karaoke.maker.wizardIntroWords':
+    'A letra desta música já tem um tempo para cada palavra. O FluidEQ pode separar a voz da música e adicionar as notas para cantar. Suas palavras e os tempos delas ficam exatamente como estão. Tudo roda neste computador.',
+  'karaoke.maker.wizardIntroLines':
+    'A letra desta música tem um tempo para cada linha. O FluidEQ pode separar a voz da música, sincronizar cada palavra dentro da própria linha e adicionar as notas para cantar. Suas palavras e os tempos das suas linhas ficam exatamente como estão. Tudo roda neste computador.',
   'karaoke.maker.speechMemory': 'Memória dos modelos de IA',
   'karaoke.maker.speechMemoryReady': 'Pronto na RAM',
   'karaoke.maker.speechMemoryCached': 'Em cache no disco',

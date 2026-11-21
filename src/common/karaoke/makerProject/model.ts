@@ -72,6 +72,17 @@ export interface IKaraokeMakerLine {
   kind?: 'lyrics' | 'section';
   startMs?: number;
   endMs?: number;
+  /**
+   * When the song's own lyric file says this line is sung: its start, and its
+   * end where the file gives one (the next line's start, in an LRC).
+   *
+   * Separate from `startMs`/`endMs` because those are rewritten from the
+   * words whenever a detector runs, and that is how a line-synced song lost
+   * its lines: the words were re-timed across the whole song and each line
+   * followed them. Automatic timing works inside this window and never moves
+   * it (`lyricSync.ts`).
+   */
+  given?: { startMs: number; endMs?: number };
   tokens: IKaraokeMakerToken[];
   /**
    * On a translated sheet's line only: the id of the `lyrics.lines` line it

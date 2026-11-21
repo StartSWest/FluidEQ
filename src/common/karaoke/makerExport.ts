@@ -11,6 +11,7 @@ import {
   karaokeMakerLineIsSection,
   serializeKaraokeMakerProject,
   sheetLines,
+  karaokeMakerLineStartMs,
 } from './makerProject';
 import { IWrittenKaraokeFile, countWords } from './makerExportText';
 import {
@@ -195,17 +196,14 @@ const writeLrc = (
       );
       return;
     }
-    const timedStarts = line.tokens.flatMap((token) =>
-      token.startMs === undefined ? [] : [token.startMs],
-    );
     // The line's own stamp is the fallback `lyricLineStarts` has always given
     // the UltraStar path, and requiring a timed *word* here threw away the
     // commonest LRC there is: `[00:20.00]words here` imported and exported
     // straight back out came out holding its section headings and none of its
     // lyrics, because no token in a line-timed file carries a time.
-    const startMs = timedStarts.length
-      ? Math.min(...timedStarts)
-      : line.startMs;
+    // A given line start goes back out as it came in: the first word timed
+    // inside the line may begin later, and the file's stamp is the file's.
+    const startMs = karaokeMakerLineStartMs(line);
     if (startMs === undefined) {
       // A line with no tokens has no lyrics to lose, and counting it would
       // raise the partial-export notice over a blank.

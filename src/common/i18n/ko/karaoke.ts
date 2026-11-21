@@ -402,6 +402,21 @@ const karaoke = {
   'karaoke.maker.whisperComplete': '가사 타이밍이 감지되었습니다.',
   'karaoke.maker.whisperMatched':
     '속삭임이 {count} 인식된 단어와 일치합니다. 내보내기 전에 편집 가능한 타이밍을 검토하세요.',
+  'karaoke.maker.keptWordTimings': '단어별 타이밍을 그대로 유지했습니다.',
+  'karaoke.maker.keptWordTimingsOnly':
+    '단어별 타이밍을 그대로 유지했습니다. 모든 단어에 이미 타이밍이 있어 감지할 것이 없습니다.',
+  'karaoke.maker.timedInsideLines':
+    '{count}개 줄 각각의 안에서 단어 타이밍을 맞췄습니다. 줄의 위치는 가사가 정한 그대로입니다.',
+  'karaoke.maker.timedInsideLinesSpread':
+    '{count}개 줄 각각의 안에서 단어 타이밍을 맞췄습니다. 줄의 위치는 가사가 정한 그대로입니다. 그중 {spread}개 줄은 목소리로 위치를 정할 수 없어 단어를 고르게 배치했습니다.',
+  'karaoke.maker.aligningInsideLines':
+    '줄 안에서 단어 타이밍을 맞추는 중 · 블록 {chunk}/{chunks}',
+  'karaoke.maker.wizardStepNotes': '음표 추가(단어별 타이밍은 그대로 유지)',
+  'karaoke.maker.wizardStepLines': '줄 안에서 단어 타이밍 맞추기',
+  'karaoke.maker.wizardIntroWords':
+    '이 노래의 가사에는 이미 단어마다 타이밍이 있습니다. FluidEQ는 음악에서 목소리를 분리하고 부를 음표를 추가할 수 있습니다. 가사와 그 타이밍은 그대로 유지됩니다. 모든 것이 이 컴퓨터에서 실행됩니다.',
+  'karaoke.maker.wizardIntroLines':
+    '이 노래의 가사에는 줄마다 타이밍이 있습니다. FluidEQ는 음악에서 목소리를 분리하고, 각 단어의 타이밍을 해당 줄 안에서 맞추고, 부를 음표를 추가할 수 있습니다. 가사와 줄 타이밍은 그대로 유지됩니다. 모든 것이 이 컴퓨터에서 실행됩니다.',
   'karaoke.maker.speechMemory': 'AI 모델 메모리',
   'karaoke.maker.speechMemoryReady': 'RAM에서 준비됨',
   'karaoke.maker.speechMemoryCached': '디스크에 캐시됨',
