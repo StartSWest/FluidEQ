@@ -23,6 +23,7 @@ const forum = {
   'forum.board.showAndTell': 'ショーケース',
   'forum.board.tips': 'ヒントと小技',
   'forum.board.support': 'FluidEQ を支援',
+  'forum.board.presets': 'プリセット',
   'forum.boardDescription.announcements': '作者からのお知らせ',
   'forum.boardDescription.general': 'FluidEQ についてなんでも',
   'forum.boardDescription.ideas': '次に欲しい機能',
@@ -31,6 +32,7 @@ const forum = {
   'forum.boardDescription.showAndTell': '自慢のチューニング',
   'forum.boardDescription.tips': '画面には出ていない機能',
   'forum.boardDescription.support': 'FluidEQ の開発を支える',
+  'forum.boardDescription.presets': 'ワンクリックで追加できるプリセット',
   'reading.textSize.label': '文字サイズ',
   'reading.textSize.smaller': '文字を小さく',
   'reading.textSize.larger': '文字を大きく',
@@ -165,6 +167,8 @@ const forum = {
     'GitHub に .fluideq のエクスポートを添付すると、あなたが聴いている音をほかの人もそのまま聴けます。',
   'forum.compose.guidance.tips':
     '1 つのトピックに 1 つの小技を。場所と押すキーを書き、必要なら GitHub で画像を添付してください。',
+  'forum.compose.guidance.presets':
+    '1 つのトピックに 1 つのプリセットを。用途と、何で聴いたかを書いてください。プリセット本体は下に添付されます。',
 
   'forum.error.network':
     'フォーラムに接続できません。接続を確認して、もう一度お試しください。',

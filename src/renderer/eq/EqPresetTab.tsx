@@ -39,6 +39,13 @@ import {
   OwnPresetsEmptyNotes,
 } from './ownPresets/OwnPresetNotes';
 import useOwnPresetActions from './ownPresets/useOwnPresetActions';
+import OwnPresetExportDialog from './ownPresets/share/OwnPresetExportDialog';
+import {
+  copyPresetLink,
+  sharePresetToForum,
+} from './ownPresets/share/presetShareActions';
+import SharedPresetImportDialog from './ownPresets/share/SharedPresetImportDialog';
+import type { ErrorDescription } from '../../common/errors';
 
 type TPresetGroup = 'favorites' | 'saved' | 'classic' | 'genre';
 
@@ -76,7 +83,8 @@ const EqPresetTab = () => {
   const { t } = useTranslation();
   const settings = useDspSettings();
   const { favorites, catalog } = useDspPresetCatalog(t);
-  const { isEnabled, isBlockingError, voicing } = useFluidEqLayers();
+  const { isEnabled, isBlockingError, voicing, setGlobalError } =
+    useFluidEqLayers();
   const status = useKnownAudioEngineStatus();
   const isApo = status?.engine === 'apo';
   const query = useEqPresetQuery().trim().toLocaleLowerCase();
@@ -114,6 +122,10 @@ const EqPresetTab = () => {
   const [pointedAt, setPointedAt] = useState<string | undefined>(undefined);
   const [renamingId, setRenamingId] = useState<string | undefined>(undefined);
   const [askingId, setAskingId] = useState<string | undefined>(undefined);
+  const [exporting, setExporting] = useState<IDspCatalogEntry | undefined>(
+    undefined,
+  );
+  const [isImporting, setImporting] = useState(false);
   const own = useOwnPresetActions();
 
   // A search looks in every group at once, each preset once.
@@ -189,6 +201,18 @@ const EqPresetTab = () => {
             {query ? t('eq.preset.results') : t(GROUP_LABEL[group])}
           </strong>
           <span>{t('eq.preset.count', { count: shown.length })}</span>
+          {/* A preset somebody shared comes in where the listener's own
+              live: a forum post, a link or a file. */}
+          {isYours && (
+            <button
+              type="button"
+              className="button small subtle eq-preset-tab__import"
+              onClick={() => setImporting(true)}
+            >
+              <MenuIcon name="download" />
+              {t('presetShare.import.button')}
+            </button>
+          )}
         </div>
         {shown.length === 0 && !isYours ? (
           <p className="eq-preset-tab__empty">{t('eq.preset.empty')}</p>
@@ -264,6 +288,13 @@ const EqPresetTab = () => {
                     }}
                     onDuplicate={() => own.duplicate(preset.id)}
                     onAskDelete={() => setAskingId(preset.id)}
+                    onShare={() => {
+                      sharePresetToForum(preset, t).catch((error: unknown) =>
+                        setGlobalError(error as ErrorDescription),
+                      );
+                    }}
+                    onCopyLink={() => copyPresetLink(preset)}
+                    onExport={() => setExporting(preset)}
                   />
                 );
               }
@@ -380,6 +411,18 @@ const EqPresetTab = () => {
           )}
         </div>
       </aside>
+      {exporting && (
+        <OwnPresetExportDialog
+          preset={exporting}
+          onClose={() => setExporting(undefined)}
+        />
+      )}
+      {isImporting && (
+        <SharedPresetImportDialog
+          mode="paste"
+          onClose={() => setImporting(false)}
+        />
+      )}
     </div>
   );
 };

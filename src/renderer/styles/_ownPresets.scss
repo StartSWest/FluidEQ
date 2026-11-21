@@ -48,10 +48,11 @@ $own-edge: color-mix(in srgb, var(--ink-preset) 55%, transparent);
 }
 
 // Yours holds wider tiles than the other groups: each carries its curve, its
-// star and its menu beside its words, and at the tab's 196px those three left
-// a name like "Podcast voice" cut to "Podcast vo…".
+// star, Share and its menu beside its words, and at the tab's 196px those
+// left a name like "Podcast voice" cut to "Podcast vo…". 290 since Share
+// joined the row (presets shared, 2026-11-20).
 .eq-preset-tab__grid.eq-preset-tab__grid--own {
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
 }
 
 // --- One of the listener's presets: the Preset tab's tile, as two controls

@@ -23,6 +23,7 @@ const forum = {
   'forum.board.showAndTell': '作品展示',
   'forum.board.tips': '技巧与窍门',
   'forum.board.support': '支持 FluidEQ',
+  'forum.board.presets': '预设',
   'forum.boardDescription.announcements': '来自作者的消息',
   'forum.boardDescription.general': '关于 FluidEQ 的一切',
   'forum.boardDescription.ideas': '它接下来该做什么',
@@ -31,6 +32,7 @@ const forum = {
   'forum.boardDescription.showAndTell': '你引以为傲的调音',
   'forum.boardDescription.tips': '屏幕上看不到的功能',
   'forum.boardDescription.support': '帮助 FluidEQ 继续发展',
+  'forum.boardDescription.presets': '一键添加的预设',
   'reading.textSize.label': '文字大小',
   'reading.textSize.smaller': '缩小文字',
   'reading.textSize.larger': '放大文字',
@@ -160,6 +162,8 @@ const forum = {
     '在 GitHub 上附上你的 .fluideq 导出文件，让大家听到和你完全一样的声音。',
   'forum.compose.guidance.tips':
     '每个主题一个技巧。写明它在哪里、按什么键，如有帮助可在 GitHub 上附图。',
+  'forum.compose.guidance.presets':
+    '每个主题一个预设。写明它的用途和你用什么设备听的；预设本身附在下方。',
 
   'forum.error.network': '无法连接论坛。请检查网络连接后重试。',
   'forum.error.signed_out': '你的 GitHub 登录已失效。请重新登录以继续发帖。',

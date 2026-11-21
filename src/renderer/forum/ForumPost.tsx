@@ -6,6 +6,7 @@ import ForumGlyph from './ForumGlyph';
 import { deletePost, editPost, markAnswer, vote } from './forumStore';
 import { absoluteTime, relativeTime } from './forumTime';
 import GithubHtml from './GithubHtml';
+import PostPresetCard from './PostPresetCard';
 import PostComposer from './PostComposer';
 
 interface IForumPostProps {
@@ -118,11 +119,18 @@ export default function ForumPost({
           onCancel={() => setEditing(false)}
         />
       ) : (
-        <PostBody
-          html={post.bodyHtml}
-          hidden={post.minimized && !revealed}
-          onReveal={() => setRevealed(true)}
-        />
+        <>
+          <PostBody
+            html={post.bodyHtml}
+            hidden={post.minimized && !revealed}
+            onReveal={() => setRevealed(true)}
+          />
+          {/* A shared preset in the post, as a card to take it with. Not on
+              a post a moderator hid until it is shown. */}
+          {!(post.minimized && !revealed) && (
+            <PostPresetCard html={post.bodyHtml} author={post.author.login} />
+          )}
+        </>
       )}
 
       {!editing && (

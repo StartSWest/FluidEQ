@@ -12,6 +12,7 @@ export type TForumGlyph =
   | 'question'
   | 'showcase'
   | 'tips'
+  | 'presets'
   | 'pin'
   | 'support'
   | 'issue'
@@ -122,6 +123,15 @@ export default function ForumGlyph({ name, className }: IForumGlyphProps) {
           <>
             <path d="M12.2 2.8 17.2 7.8M13.4 4l-3.9 3.9-3.3.4-1.2 1.2 6 6 1.2-1.2.4-3.3 3.9-3.9" />
             <path d="M7.7 12.3 3 17" />
+          </>
+        );
+      case 'presets':
+        // Three faders set at different heights: a sound somebody dialled
+        // in, which is what a preset is.
+        return (
+          <>
+            <path d="M5 3v14M10 3v14M15 3v14" opacity="0.45" />
+            <path d="M3 12h4M8 6h4M13 10h4" />
           </>
         );
       case 'tips':
@@ -287,6 +297,8 @@ export const boardGlyph = (slug: string): TForumGlyph => {
     case 'tips-tricks':
     case 'tips-and-tricks':
       return 'tips';
+    case 'presets':
+      return 'presets';
     case 'support-fluideq':
       return 'support';
     case FORUM_ISSUES_BOARD:

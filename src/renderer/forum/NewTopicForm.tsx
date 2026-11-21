@@ -10,8 +10,22 @@ import {
   readDraft,
   writeDraft,
 } from './forumDrafts';
-import { backToList, createTopic, type IForumState } from './forumStore';
+import PresetShareCard from '../eq/ownPresets/share/PresetShareCard';
+import { presetShareText } from '../eq/ownPresets/share/presetShareText';
+import useSharedPreset from '../eq/ownPresets/share/useSharedPreset';
+import {
+  backToList,
+  createTopic,
+  signIn,
+  type IForumState,
+} from './forumStore';
 import MarkdownEditor from './MarkdownEditor';
+import {
+  OPEN_FORUM_COMPOSE_EVENT,
+  boardForTopic,
+  readTopicPreset,
+  type ITopicPreset,
+} from './presetTopic';
 
 interface INewTopicFormProps {
   forum: IForumState;
@@ -21,6 +35,8 @@ interface ITopicDraft {
   board?: string;
   title: string;
   body: string;
+  /** A preset Share attached (`presetTopic.ts`). */
+  preset?: ITopicPreset;
 }
 
 /** The topic being started, as it was left (`forumDrafts.ts`). */
@@ -30,12 +46,14 @@ const savedTopic = (): ITopicDraft => {
     const draft = (
       typeof value === 'object' && value !== null ? value : {}
     ) as Record<string, unknown>;
+    const preset = readTopicPreset(draft.preset);
     return {
       ...(typeof draft.board === 'string' && draft.board
         ? { board: draft.board }
         : {}),
       title: typeof draft.title === 'string' ? draft.title : '',
       body: typeof draft.body === 'string' ? draft.body : '',
+      ...(preset ? { preset } : {}),
     };
   } catch {
     return { title: '', body: '' };
@@ -58,7 +76,7 @@ const LONGEST_BODY_IN_LINK = 4000;
  * there, because that is almost always where the person meant to post.
  */
 export default function NewTopicForm({ forum }: INewTopicFormProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const titleId = useId();
   // What the person picked, or else the board being browsed. Derived rather
   // than seeded: the list of boards a topic can go in may still be on its way
@@ -66,28 +84,62 @@ export default function NewTopicForm({ forum }: INewTopicFormProps) {
   const [saved] = useState(savedTopic);
   const [picked, setPicked] = useState<string | undefined>(saved.board);
   const board =
-    picked ?? (forum.canStartIn.includes(forum.board) ? forum.board : '');
+    boardForTopic(picked, forum.canStartIn) ??
+    (forum.canStartIn.includes(forum.board) ? forum.board : '');
   const [title, setTitle] = useState(saved.title);
   const [body, setBody] = useState(saved.body);
+  const [preset, setPreset] = useState(saved.preset);
   const [posting, setPosting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const shared = useSharedPreset(preset?.code ?? '');
+  const signedIn = forum.auth.status === 'signed-in';
+
+  // Share pressed while this form is already open: the topic it wrote
+  // replaces the one on screen (`startPresetTopic`).
+  useEffect(() => {
+    const reopen = () => {
+      const next = savedTopic();
+      setPicked(next.board);
+      setTitle(next.title);
+      setBody(next.body);
+      setPreset(next.preset);
+      setCopied(false);
+    };
+    window.addEventListener(OPEN_FORUM_COMPOSE_EVENT, reopen);
+    return () => window.removeEventListener(OPEN_FORUM_COMPOSE_EVENT, reopen);
+  }, []);
 
   // Kept while it is being written, so leaving the page loses nothing.
   useEffect(() => {
     writeDraft(
       NEW_TOPIC_DRAFT,
-      title.trim() || body.trim()
-        ? JSON.stringify({ board: picked, title, body })
+      title.trim() || body.trim() || preset
+        ? JSON.stringify({ board: picked, title, body, preset })
         : '',
     );
-  }, [picked, title, body]);
+  }, [picked, title, body, preset]);
   const guidance = board ? boardGuidance(board, t) : undefined;
+  // The words, then the preset as text GitHub shows and FluidEQ reads back:
+  // its name, the link that opens it and its code (`presetShareText`).
+  const presetBlock =
+    preset && shared?.ok
+      ? presetShareText(
+          { ...shared.preset, name: preset.name, code: preset.code },
+          'markdown',
+          true,
+          t,
+        )
+      : '';
+  const fullBody = [body.trim(), presetBlock].filter(Boolean).join('\n\n');
   const ready =
     board !== '' &&
     title.trim() !== '' &&
     title.length <= FORUM_TITLE_MAX &&
-    body.trim() !== '' &&
-    body.length <= FORUM_BODY_MAX;
+    fullBody !== '' &&
+    fullBody.length <= FORUM_BODY_MAX &&
+    // A preset still being read, or one that cannot be, is not posted
+    // half-attached.
+    (!preset || shared?.ok === true);
   const hasPolls = forum.boards.some((candidate) => candidate.slug === 'polls');
 
   const submit = async () => {
@@ -97,7 +149,7 @@ export default function NewTopicForm({ forum }: INewTopicFormProps) {
     setPosting(true);
     // The form stays with what was typed if GitHub refuses; on success the
     // store moves the panel to the new thread and this form goes away.
-    const posted = await createTopic(board, title.trim(), body.trim());
+    const posted = await createTopic(board, title.trim(), fullBody);
     setPosting(false);
     if (posted) {
       clearDraft(NEW_TOPIC_DRAFT);
@@ -105,7 +157,7 @@ export default function NewTopicForm({ forum }: INewTopicFormProps) {
   };
 
   const postOnGithub = async () => {
-    const text = body.trim();
+    const text = fullBody;
     const address = new URL(`${REPOSITORY_URL}/discussions/new`);
     if (board) {
       address.searchParams.set('category', board);
@@ -204,6 +256,40 @@ export default function NewTopicForm({ forum }: INewTopicFormProps) {
           />
         </div>
 
+        {preset && (
+          <div className="forum__field">
+            <span className="forum__label">
+              {t('presetShare.forum.attached')}
+            </span>
+            {shared?.ok ? (
+              <PresetShareCard
+                name={preset.name}
+                settings={shared.preset.settings}
+                curve={shared.preset.curve}
+                aside={
+                  <button
+                    type="button"
+                    className="forum__icon-button preset-share-card__remove"
+                    aria-label={t('presetShare.forum.remove')}
+                    title={t('presetShare.forum.remove')}
+                    disabled={posting}
+                    onClick={() => setPreset(undefined)}
+                  >
+                    <ForumGlyph name="close" />
+                  </button>
+                }
+              />
+            ) : (
+              shared &&
+              shared.problem !== 'reading' && (
+                <p className="preset-share-card__problem">
+                  {t('presetShare.import.damaged')}
+                </p>
+              )
+            )}
+          </div>
+        )}
+
         <div className="forum__compose-foot">
           <span className="forum__aside">{t('forum.compose.public')}</span>
           <span className="forum-composer__actions">
@@ -235,18 +321,33 @@ export default function NewTopicForm({ forum }: INewTopicFormProps) {
             >
               {t('forum.cancel')}
             </button>
-            <button
-              type="button"
-              className={`button small${posting ? ' is-running' : ''}`}
-              disabled={!ready || posting}
-              onClick={() => {
-                submit().catch(() => undefined);
-              }}
-            >
-              {posting
-                ? t('forum.composer.posting')
-                : t('forum.compose.submit')}
-            </button>
+            {signedIn ? (
+              <button
+                type="button"
+                className={`button small${posting ? ' is-running' : ''}`}
+                disabled={!ready || posting}
+                onClick={() => {
+                  submit().catch(() => undefined);
+                }}
+              >
+                {posting
+                  ? t('forum.composer.posting')
+                  : t('forum.compose.submit')}
+              </button>
+            ) : (
+              // Share opens this form for anybody; posting needs GitHub,
+              // and what was written waits here through the sign-in.
+              <button
+                type="button"
+                className="button small"
+                disabled={forum.auth.status === 'signing-in'}
+                onClick={() => {
+                  signIn(locale).catch(() => undefined);
+                }}
+              >
+                {t('forum.signInToPost')}
+              </button>
+            )}
           </span>
         </div>
       </div>

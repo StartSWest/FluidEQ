@@ -1,0 +1,353 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026> <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'mainContentTokens' as *;
+@use 'libraryTokens' as *;
+
+// *** Sharing the listener's presets (2026-11-20) ***************************
+//
+// Share on the Preset tab's tiles, the export, the import, a link's question
+// and the card a Forum post carries. One card everywhere, in the Preset
+// layer's violet, flat: surfaces parted by light, no shadows.
+
+$share-ink: var(--ink-preset);
+$share-tint: color-mix(in srgb, var(--ink-preset) 13%, transparent);
+
+// --- Share on a tile: the menu's own button, beside the star, shown where
+// the star is (under the pointer, the focus) and always on the preset that
+// plays, since that is the one somebody most often wants to send.
+.own-preset-tile__share {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  align-self: center;
+  padding: 0;
+  place-items: center;
+  color: $text-accent;
+  border: 0;
+  border-radius: $radius-s;
+  background: none;
+  cursor: pointer;
+  opacity: 0;
+  transition: $transition-control;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .own-preset-tile:hover &,
+  .own-preset-tile:focus-within &,
+  .own-preset-tile.is-playing & {
+    opacity: 1;
+  }
+
+  &:hover {
+    background: $studio-surface;
+  }
+
+  &:focus-visible {
+    @include focus-outline(-2px);
+  }
+
+  @media (hover: none) {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+// "Share link copied", in the hint's place until the pointer leaves.
+.own-preset-tile__done {
+  color: $text-accent;
+}
+
+// A menu icon has no size of its own (`.menu-icon` is sized by where it
+// stands): every button here that carries one gives it the button's.
+.eq-preset-tab__import,
+.preset-share-card__actions .button,
+.preset-share-dialog .button {
+  .menu-icon {
+    width: 14px;
+    height: 14px;
+    flex: none;
+  }
+}
+
+// Import, at the end of Yours' head line.
+.button.small.subtle.eq-preset-tab__import {
+  gap: 6px;
+  margin-left: auto;
+  align-self: center;
+}
+
+// --- The card ---------------------------------------------------------------
+.preset-share-card {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: $radius-m;
+  background: $studio-surface;
+
+  .own-preset-spark--wide {
+    width: 100%;
+    height: 64px;
+    padding: 4px 0;
+    box-sizing: border-box;
+    border-radius: $radius-s;
+    background: $share-tint;
+  }
+}
+
+.preset-share-card__head {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.preset-share-card__glyph {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  color: $share-ink;
+}
+
+.preset-share-card__words {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+
+  strong {
+    overflow: hidden;
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  span {
+    overflow: hidden;
+    color: $text-muted;
+    font-size: $text-small;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.preset-share-card__remove {
+  flex: none;
+}
+
+.preset-share-card__stages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.preset-share-card__chip {
+  padding: 2px 9px;
+  color: $text-muted;
+  border-radius: 999px;
+  background: color-mix(in srgb, $edge-tint 8%, transparent);
+  font-size: $text-small;
+  white-space: nowrap;
+
+  &.is-curve {
+    color: $share-ink;
+    background: $share-tint;
+  }
+}
+
+.preset-share-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  .button {
+    gap: 6px;
+  }
+}
+
+.preset-share-card__note {
+  flex: 1 1 180px;
+  color: $text-muted;
+  font-size: $text-small;
+}
+
+.preset-share-card__problem {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+}
+
+// A post's card sits under the post's words, the width of a reading column.
+.forum-post .preset-share-card {
+  max-width: 640px;
+  margin-top: 10px;
+}
+
+// --- The dialogs: export, import, a link's question ------------------------
+.dialog-frame.preset-share-dialog {
+  @include dialog.size(720px, 640px);
+
+  &.is-question {
+    @include dialog.size(560px, 460px);
+  }
+}
+
+.preset-share-dialog__tabs {
+  align-self: flex-start;
+}
+
+.preset-share-dialog__pane,
+.preset-share-dialog__paste,
+.preset-share-dialog__found {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+}
+
+.preset-share-dialog__paste > .button,
+.preset-share-dialog .dialog-frame__actions .button {
+  justify-self: start;
+  gap: 6px;
+}
+
+.preset-share-dialog__formats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.preset-share-dialog__format {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 12px;
+  color: $text-primary;
+  border: 1px solid $border-subtle;
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  font-size: $text-small;
+  cursor: pointer;
+  transition: $transition-control;
+
+  strong {
+    font-weight: $weight-semibold;
+  }
+
+  span {
+    color: $text-muted;
+  }
+
+  &:hover {
+    border-color: color-mix(in srgb, $secondary-default 60%, transparent);
+  }
+
+  &.is-selected {
+    color: $text-accent;
+    border-color: $secondary-default;
+    background: color-mix(in srgb, $secondary-default 12%, transparent);
+
+    span {
+      color: inherit;
+      opacity: 0.8;
+    }
+  }
+
+  &:focus-visible {
+    @include focus-outline(2px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+// The text that will be copied, exactly: a code block a long link wraps in.
+.preset-share-dialog__text {
+  max-height: 220px;
+  margin: 0;
+  padding: 10px 12px;
+  overflow: auto;
+  color: $text-primary;
+  border-radius: $radius-m;
+  background: $surface-field;
+  font-family: $font-mono;
+  font-size: $text-small;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-all;
+  @include slim-scrollbar;
+}
+
+textarea.preset-share-dialog__text {
+  min-height: 150px;
+  max-height: none;
+  resize: vertical;
+}
+
+.preset-share-dialog__check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: $text-muted;
+  font-size: $text-body;
+  cursor: pointer;
+
+  input {
+    accent-color: $secondary-default;
+  }
+}
+
+.preset-share-dialog__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+
+  .is-fit {
+    color: $ink-added;
+  }
+
+  .is-long {
+    color: $ink-caution;
+  }
+}
+
+.preset-share-dialog__found-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: $ink-added;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}

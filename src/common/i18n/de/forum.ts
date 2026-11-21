@@ -24,6 +24,7 @@ const forum = {
   'forum.board.showAndTell': 'Schaufenster',
   'forum.board.tips': 'Tipps & Tricks',
   'forum.board.support': 'FluidEQ unterstützen',
+  'forum.board.presets': 'Presets',
   'forum.boardDescription.announcements': 'Neues vom Macher',
   'forum.boardDescription.general': 'Alles rund um FluidEQ',
   'forum.boardDescription.ideas': 'Was es als Nächstes können soll',
@@ -33,6 +34,7 @@ const forum = {
   'forum.boardDescription.tips':
     'Funktionen, die nicht auf dem Bildschirm stehen',
   'forum.boardDescription.support': 'Helfen Sie, FluidEQ weiterzuführen',
+  'forum.boardDescription.presets': 'Presets zum Hinzufügen mit einem Klick',
   'reading.textSize.label': 'Textgröße',
   'reading.textSize.smaller': 'Kleinerer Text',
   'reading.textSize.larger': 'Größerer Text',
@@ -170,6 +172,8 @@ const forum = {
     'Fügen Sie auf GitHub Ihren .fluideq-Export hinzu, damit andere genau das hören, was Sie hören.',
   'forum.compose.guidance.tips':
     'Ein Trick pro Thema. Sagen Sie, wo er sich findet und was zu drücken ist; ein Bild fügen Sie bei Bedarf auf GitHub hinzu.',
+  'forum.compose.guidance.presets':
+    'Ein Preset pro Thema. Sagen Sie, wofür es gedacht ist und womit Sie es gehört haben; das Preset selbst ist unten angehängt.',
 
   'forum.error.network':
     'Das Forum war nicht erreichbar. Prüfen Sie die Verbindung und versuchen Sie es erneut.',

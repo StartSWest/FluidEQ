@@ -177,6 +177,7 @@ import registerMemberServices from './memberServices';
 import { applyLaunchSwitches, isDebug } from './launchSwitches';
 import claimTheOnlyCopy from './onlyCopy';
 import { registerAppLinks } from './appLinks';
+import { registerPresetLinks } from './presetLinks';
 import { chooseLaunchEngine, registerEngineServices } from './engineServices';
 
 /**
@@ -1107,6 +1108,8 @@ app.on('will-quit', () => {
 const isTheOnlyCopy = claimTheOnlyCopy({ userDataDir, getMainWindow });
 // `fluideq://` links, before `ready`: macOS delivers one at launch as an event.
 registerAppLinks();
+// `fluideq://preset/…`, the same way, and kept until the window asks for it.
+registerPresetLinks(getMainWindow);
 
 /**
  * Everything that runs once Electron is ready, as a function of its own.

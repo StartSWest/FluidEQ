@@ -13,6 +13,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'eqPresetTab';
 @use 'eqToneTab';
 @use 'ownPresets';
+// Sharing them: the tile's Share, the export and import, a post's card.
+@use 'presetShare';
 
 @media (prefers-reduced-motion: reduce) {
   .eq-layer-tabs__tab,

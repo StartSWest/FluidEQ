@@ -59,6 +59,7 @@ import { plusTermsNoticeBridge } from './plusTermsNoticeBridge';
 import { recoveredProfilesBridge } from './recoveredProfilesBridge';
 import { sceneInsightsBridge } from './sceneInsightsBridge';
 import { sceneStoreBridge } from './sceneStoreBridge';
+import { presetLinkBridge } from './presetLinkBridge';
 import { creatorBridge } from './creatorBridge';
 import { plusReviewBridge } from './plusReviewBridge';
 import { studioAgentBridge } from './studioAgentBridge';
@@ -426,6 +427,7 @@ export default {
     ...recoveredProfilesBridge,
     ...sceneInsightsBridge,
     ...sceneStoreBridge,
+    ...presetLinkBridge,
     ...creatorBridge,
     ...plusReviewBridge,
     ...studioAgentBridge,

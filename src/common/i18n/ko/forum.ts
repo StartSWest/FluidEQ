@@ -26,6 +26,7 @@ const forum = {
   'forum.board.showAndTell': '보여주고 말하라',
   'forum.board.tips': '팁과 요령',
   'forum.board.support': 'FluidEQ 후원',
+  'forum.board.presets': '프리셋',
   'forum.boardDescription.announcements': '메이커로부터의 소식',
   'forum.boardDescription.general': 'FluidEQ 무엇이든',
   'forum.boardDescription.ideas': '다음에 해야 할 일',
@@ -34,6 +35,7 @@ const forum = {
   'forum.boardDescription.showAndTell': '당신이 자랑스러워하는 튜닝',
   'forum.boardDescription.tips': '화면에 보이지 않는 기능',
   'forum.boardDescription.support': 'FluidEQ가 계속될 수 있도록 도와주세요',
+  'forum.boardDescription.presets': '한 번에 추가하는 프리셋',
   'reading.textSize.label': '글자 크기',
   'reading.textSize.smaller': '글자 작게',
   'reading.textSize.larger': '글자 크게',
@@ -159,6 +161,8 @@ const forum = {
     '다른 사람들이 귀하가 듣는 내용을 정확하게 들을 수 있도록 GitHub에 .fluideq 내보내기를 추가하세요.',
   'forum.compose.guidance.tips':
     '주제 하나에 요령 하나. 어디에 있고 무엇을 누르는지 적고, 도움이 되면 GitHub에서 이미지를 추가하세요.',
+  'forum.compose.guidance.presets':
+    '주제 하나에 프리셋 하나. 어디에 쓰는지, 무엇으로 들었는지 적어 주세요. 프리셋은 아래에 첨부됩니다.',
   'forum.error.network':
     '포럼에 접속할 수 없습니다. 연결을 확인하고 다시 시도해 보세요.',
   'forum.error.signed_out':

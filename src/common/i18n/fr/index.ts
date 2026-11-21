@@ -34,6 +34,7 @@ import dspFootsteps from './dspFootsteps';
 import dspDynamics from './dspDynamics';
 import dspStageSave from './dspStageSave';
 import ownPresets from './ownPresets';
+import presetShare from './presetShare';
 import gaming from './gaming';
 import remoteAudio from './remoteAudio';
 import tour from './tour';
@@ -94,6 +95,7 @@ const fr: Partial<Dictionary> = {
   ...dspDynamics,
   ...dspStageSave,
   ...ownPresets,
+  ...presetShare,
   ...gaming,
   ...remoteAudio,
   ...tour,

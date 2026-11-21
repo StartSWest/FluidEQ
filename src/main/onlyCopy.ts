@@ -21,6 +21,7 @@ import { app, BrowserWindow } from 'electron';
 import log from 'electron-log';
 import { sweepAbandonedWrites } from './asyncWriter';
 import { appLinkInArgs, deliverAppLink } from './appLinks';
+import { presetLinkInArgs, receivePresetLink } from './presetLinks';
 import { karaokeMakerDraftDir } from './karaokeMakerStorage';
 import { karaokeStemsDir } from './karaokeSeparation';
 import { START_IN_TRAY_ARG } from './startWithWindows';
@@ -144,6 +145,10 @@ const claimTheOnlyCopy = ({
     const link = appLinkInArgs(argv);
     if (link) {
       deliverAppLink(link);
+    }
+    const preset = presetLinkInArgs(argv);
+    if (preset) {
+      receivePresetLink(preset);
     }
   });
 

@@ -24,6 +24,7 @@ const forum = {
   'forum.board.showAndTell': 'Покажите своё',
   'forum.board.tips': 'Советы и приёмы',
   'forum.board.support': 'Поддержать FluidEQ',
+  'forum.board.presets': 'Пресеты',
   'forum.boardDescription.announcements': 'Новости от создателя',
   'forum.boardDescription.general': 'Всё о FluidEQ',
   'forum.boardDescription.ideas': 'Что добавить дальше',
@@ -32,6 +33,8 @@ const forum = {
   'forum.boardDescription.showAndTell': 'Настройка, которой вы гордитесь',
   'forum.boardDescription.tips': 'Функции, которых не видно на экране',
   'forum.boardDescription.support': 'Помогите FluidEQ развиваться',
+  'forum.boardDescription.presets':
+    'Пресеты, которые добавляются одним нажатием',
   'reading.textSize.label': 'Размер текста',
   'reading.textSize.smaller': 'Мельче',
   'reading.textSize.larger': 'Крупнее',
@@ -166,6 +169,8 @@ const forum = {
     'Приложите на GitHub свой экспорт .fluideq, чтобы другие услышали ровно то же, что и вы.',
   'forum.compose.guidance.tips':
     'Один приём на тему. Напишите, где он и что нажать, а при необходимости добавьте картинку на GitHub.',
+  'forum.compose.guidance.presets':
+    'Один пресет на тему. Напишите, для чего он и на чём вы его слушали; сам пресет прикреплён ниже.',
 
   'forum.error.network':
     'Не удалось связаться с форумом. Проверьте подключение и попробуйте снова.',

@@ -92,6 +92,9 @@ import MiniPlayer from './player/MiniPlayer';
 import type { TPlayerPage } from './player/PlayerTitleStrip';
 import { usePlayerVisFull } from './player/playerLayout';
 import { setWindowMode, useWindowMode } from './player/windowModeStore';
+import { startCompose } from './forum/forumStore';
+import { OPEN_FORUM_COMPOSE_EVENT } from './forum/presetTopic';
+import PresetLinkReceiver from './eq/ownPresets/share/PresetLinkReceiver';
 import { applyThemeScope } from './utils/theme';
 import {
   applyBackdropVeilScope,
@@ -228,6 +231,17 @@ const AppContent = () => {
     };
     window.addEventListener(OPEN_PRESET_EDIT_PAGE_EVENT, open);
     return () => window.removeEventListener(OPEN_PRESET_EDIT_PAGE_EVENT, open);
+  }, [selectTopWorkspaceTab]);
+
+  // Asked by a preset's Share: the Forum, on the topic it wrote
+  // (`presetTopic.ts`).
+  useEffect(() => {
+    const open = () => {
+      startCompose();
+      selectTopWorkspaceTab('forum');
+    };
+    window.addEventListener(OPEN_FORUM_COMPOSE_EVENT, open);
+    return () => window.removeEventListener(OPEN_FORUM_COMPOSE_EVENT, open);
   }, [selectTopWorkspaceTab]);
   usePerformanceContext(activeWorkspaceTab, windowMode);
   /**
@@ -840,6 +854,9 @@ const AppContent = () => {
               {/* A preset of the listener's own being edited, heard as it
                   is shaped, whichever page it is shaped on. */}
               <PresetEditLive />
+              {/* A shared preset opened from fluideq.com, asked about over
+                  whichever page is open. */}
+              <PresetLinkReceiver />
             </MiddleContent>
           </EqGraphAboveContext.Provider>
           {/* One divider, both tabs, always in the same place: the seam between
