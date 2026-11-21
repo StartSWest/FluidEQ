@@ -10,6 +10,7 @@
  * that, which costs a copy instead of a fill.
  */
 
+import { keepCanvasPicture, takeCanvasEmptied } from '../utils/canvasLoss';
 import { isLightWindow } from '../utils/windowSide';
 
 interface ISurface {
@@ -31,10 +32,12 @@ const surfaceFor = (
   height: number,
   paint: (context: CanvasRenderingContext2D) => void,
 ): ISurface | undefined => {
-  if (current && current.key === key) {
+  // Drawn again when a loss of the GPU emptied it (`canvasLoss.ts`).
+  if (current && current.key === key && !takeCanvasEmptied(current.canvas)) {
     return current;
   }
-  const canvas = current?.canvas ?? document.createElement('canvas');
+  const canvas =
+    current?.canvas ?? keepCanvasPicture(document.createElement('canvas'));
   canvas.width = Math.max(1, Math.ceil(width));
   canvas.height = Math.max(1, Math.ceil(height));
   const context = canvas.getContext('2d');

@@ -704,6 +704,11 @@ export default function useSceneRunner({
   // The earlier build being put up in place of a first version that would
   // not compile: drawn, but not the version the source names.
   const standInRef = useRef<IScenePack | null>(null);
+  /**
+   * A build the GPU context was lost under (a GPU process crash, a driver
+   * reset): built again the moment the worker says the context is back.
+   */
+  const lostBuildRef = useRef<IScenePack | null>(null);
   const shownRef = useRef(true);
   const buildRef = useRef<(pack: IScenePack) => Promise<void>>(() =>
     Promise.resolve(),
@@ -880,6 +885,11 @@ export default function useSceneRunner({
             ladderRef.current.resume(proved);
           }
           kick();
+          const lostBuild = lostBuildRef.current;
+          lostBuildRef.current = null;
+          if (lostBuild && lostBuild === wantedRef.current) {
+            buildRef.current(lostBuild).catch(() => undefined);
+          }
         },
         arrivalFadeRef.current === 1 ? 'at-once' : 'fade',
       );
@@ -973,7 +983,14 @@ export default function useSceneRunner({
       }
       setUpdating(false);
       drawnAtRef.current = undefined;
-      if (result.kind === 'unavailable') {
+      if (result.kind === 'lost') {
+        // Not the scene's failure, and nothing to give up on: the canvas
+        // shows the ground under it until the context is back, and the
+        // build runs again then (`lostBuildRef`). Reported as unavailable,
+        // a GPU process crash during a build put the look off for the rest
+        // of the session.
+        lostBuildRef.current = pack;
+      } else if (result.kind === 'unavailable') {
         logFailure('unavailable');
         dropProgram();
         setWaiting(false);

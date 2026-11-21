@@ -145,6 +145,22 @@ export const applyLaunchSwitches = () => {
    */
   app.commandLine.appendSwitch('disable-features', 'FedCm');
 
+  /*
+   * A GPU PROCESS CRASH MUST NOT TAKE WEBGL AWAY FOR THE SESSION.
+   *
+   * When the GPU process goes down, Chromium blames every "domain" that had a
+   * WebGL context alive and, after a couple of crashes close together, refuses
+   * new WebGL contexts to that domain until the browser restarts. Here there
+   * is one domain: the app. Measured in a scratch Electron 43.8.10 running the
+   * app with two real GPU process crashes (chrome://gpucrash) three seconds
+   * apart: every new WebGL context was refused afterwards, so every scene and
+   * look built after that fell back to the page or failed; with the blocking
+   * off they all came back. Chromium's own limit stays in force: after three
+   * crashes in a short time it gives up on the GPU and the app draws without
+   * it, which is the safety that matters and is not ours to remove.
+   */
+  app.disableDomainBlockingFor3DAPIs();
+
   if (isDebug) {
     /*
      * SHORTCUTS AND THE INSPECT MENU, BUT NOT AN INSPECTOR ON EVERY WINDOW.

@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useCallback, useEffect, useRef, type RefObject } from 'react';
 import { displayTickMs, isFrameDue, WINDOW_DRAWING_PACE_MS } from './framePace';
 import observeShown from './observeShown';
+import { watchCanvasLoss } from './canvasLoss';
 
 /**
  * Draw between measurements, at the display's rate rather than the analyser's.
@@ -104,7 +105,7 @@ const useSmoothFrames = (
           dispose: () => undefined,
         };
         watchRef.current = watch;
-        watch.dispose = observeShown(element, (shown) => {
+        const stopObserving = observeShown(element, (shown) => {
           shownRef.current = shown;
           if (shown) {
             kickRef.current();
@@ -112,6 +113,16 @@ const useSmoothFrames = (
             stop();
           }
         });
+        // A canvas comes back empty from a loss of the GPU and is drawn again
+        // at once, whether or not anything was moving (`canvasLoss.ts`).
+        const stopWatchingLoss =
+          element instanceof HTMLCanvasElement
+            ? watchCanvasLoss(element, () => kickRef.current())
+            : undefined;
+        watch.dispose = () => {
+          stopObserving();
+          stopWatchingLoss?.();
+        };
       }
     }
     return shownRef.current;

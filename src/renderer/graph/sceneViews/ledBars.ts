@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { IAnalysisBand } from '../analysis/analysisFrame';
+import { keepCanvasPicture, takeCanvasEmptied } from '../../utils/canvasLoss';
 import {
   figureInk,
   heatInk,
@@ -186,7 +187,7 @@ const printGhost = (
   row: IPieceRow,
 ): HTMLCanvasElement => {
   const { ratio, window, colours, plot, look } = frame;
-  const canvas = document.createElement('canvas');
+  const canvas = keepCanvasPicture(document.createElement('canvas'));
   canvas.width = Math.max(1, Math.round(window.width * ratio));
   canvas.height = Math.max(1, Math.round(window.height * ratio));
   const context = canvas.getContext('2d');
@@ -243,7 +244,12 @@ export const drawLedBars = (
   const { context, music, colours, look, plot } = frame;
   const row = layPieces(frame, state.row, MIN_PITCH);
   const panel = panelFor(frame, row);
-  if (!state.panel || state.panel.key !== panel.key) {
+  // Printed again when a loss of the GPU emptied it (`canvasLoss.ts`).
+  if (
+    !state.panel ||
+    state.panel.key !== panel.key ||
+    (state.ghost !== undefined && takeCanvasEmptied(state.ghost))
+  ) {
     state.panel = panel;
     state.ghost = printGhost(frame, panel, row);
   }

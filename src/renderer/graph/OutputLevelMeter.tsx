@@ -62,6 +62,7 @@ import { toggleGraphMeter, useGraphMeterHidden } from '../utils/graphStyle';
 import { useIsRootEuphoric } from '../utils/euphoriaMode';
 import { isLightWindow, useLightWindow } from '../utils/windowSide';
 import useSmoothFrames from '../utils/useSmoothFrames';
+import { keepCanvasPicture, takeCanvasEmptied } from '../utils/canvasLoss';
 import {
   LEVEL_FLOOR_DB,
   advanceLevel,
@@ -584,8 +585,14 @@ const OutputLevelMeter = ({ onReading }: IOutputLevelMeterProps) => {
         ceiling: inks.zones.over,
       };
       const printKey = `${backingWidth}x${backingHeight}@${ratio} ${JSON.stringify(print)}`;
-      if (printKey !== printKeyRef.current) {
-        printSheetRef.current ??= document.createElement('canvas');
+      // The sheet comes back empty from a loss of the GPU (`canvasLoss.ts`).
+      const isSheetEmptied =
+        printSheetRef.current !== null &&
+        takeCanvasEmptied(printSheetRef.current);
+      if (printKey !== printKeyRef.current || isSheetEmptied) {
+        printSheetRef.current ??= keepCanvasPicture(
+          document.createElement('canvas'),
+        );
         const sheet = printSheetRef.current;
         // Setting the size clears the sheet and its state, even at the
         // same size.

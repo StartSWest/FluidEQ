@@ -478,8 +478,12 @@ export const createSceneWorkerClient = (
   };
   return {
     load: (pack, unwatched) => {
-      if (disposed || lost) {
+      if (disposed) {
         return Promise.resolve({ kind: 'unavailable' });
+      }
+      // Between a loss and its restore: asked again on `recovered`.
+      if (lost) {
+        return Promise.resolve({ kind: 'lost' });
       }
       id += 1;
       const next = id;

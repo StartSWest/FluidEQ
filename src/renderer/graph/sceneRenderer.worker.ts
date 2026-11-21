@@ -151,8 +151,20 @@ const load = async (
   compilation = controller;
   const mine = generation;
   const startedWithLosses = losses;
-  if (!gl || gl.isContextLost() || ledger.spent()) {
+  // No context from the attach: asked for again here, once per load. A
+  // canvas handed over while the GPU process was going down got none —
+  // measured with a real GPU process crash under a scene's first build —
+  // and the look was then reported unavailable and put off for the session,
+  // though asked a moment later the GPU gives one at once. Still none, and
+  // the look is drawn on the page as before.
+  if (!gl && canvas) {
+    gl = createSceneContext(canvas);
+  }
+  if (!gl || ledger.spent()) {
     return { kind: 'unavailable' };
+  }
+  if (gl.isContextLost()) {
+    return { kind: 'lost' };
   }
   if (program && sameSceneProgramInputs(pack, next)) {
     pack = next;
@@ -165,7 +177,7 @@ const load = async (
   try {
     artwork = await decodeSceneArtwork(next);
     if (gl.isContextLost() || losses !== startedWithLosses) {
-      return { kind: 'unavailable' };
+      return { kind: 'lost' };
     }
     if (mine !== generation) {
       return { kind: 'cancelled' };
@@ -182,7 +194,7 @@ const load = async (
       return {
         kind:
           gl.isContextLost() || losses !== startedWithLosses
-            ? 'unavailable'
+            ? 'lost'
             : 'cancelled',
       };
     }
@@ -204,10 +216,10 @@ const load = async (
       ...(result.world ? { world: result.world } : {}),
     };
   } catch (error) {
-    // A lost first compile has no last-good pack to restore. Report it so
-    // Studio leaves loading and the next save can start a fresh worker.
+    // Lost under the load: the page loads it again once this worker says
+    // the context is back (`restored`), whatever was built before.
     if (gl.isContextLost() || losses !== startedWithLosses) {
-      return { kind: 'unavailable' };
+      return { kind: 'lost' };
     }
     if (error instanceof DOMException && error.name === 'AbortError') {
       return { kind: 'cancelled' };
@@ -309,14 +321,32 @@ const attach = (target: OffscreenCanvas) => {
     });
   });
   target.addEventListener('webglcontextrestored', () => {
-    if (!pack || ledger.spent()) {
+    if (ledger.spent()) {
       return;
     }
-    track(load(pack, unwatched)).then((result) => {
-      if (result.kind === 'ready') {
+    // Lost under the first load, nothing had been built: the page is told
+    // the context is back and loads its scene again. It used to be told
+    // nothing, and waited for good on a context that had come back.
+    //
+    // Said only once every load the loss cut short has answered, so the page
+    // hears which build was lost before it hears that it may build again.
+    const answered = Promise.allSettled(running);
+    if (!pack) {
+      answered.then(() => {
         ledger.restored();
         scope.postMessage({ kind: 'restored' });
-      } else if (result.kind !== 'cancelled') {
+        return undefined;
+      });
+      return;
+    }
+    track(load(pack, unwatched)).then(async (result) => {
+      if (result.kind === 'ready') {
+        await answered;
+        ledger.restored();
+        scope.postMessage({ kind: 'restored' });
+        // Lost again while it was being built is no failure: that loss
+        // brings its own restore, or the ledger's verdict that it is over.
+      } else if (result.kind !== 'cancelled' && result.kind !== 'lost') {
         scope.postMessage({
           kind: 'error',
           log: 'Scene context recovery failed.',

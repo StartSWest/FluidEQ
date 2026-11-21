@@ -16,6 +16,7 @@ import { pictureBearing, wingbeatPoses } from '../ambient/ambientPictureMotion';
 import { ambientSprite } from '../ambient/ambientSprites';
 import useAmbientPictures from '../ambient/useAmbientPictures';
 import { prefersReducedMotion } from '../utils/bandReveal';
+import { watchCanvasLoss } from '../utils/canvasLoss';
 import {
   flierAngle,
   flierDepth,
@@ -418,9 +419,16 @@ export default function ScenePointerLayer({
             dirty = [0, 0, canvas.width, canvas.height];
           });
     resized?.observe(canvas);
+    // Hidden through a loss of the GPU (`canvasLoss.ts`); it comes back
+    // empty, and the pieces still in the air are drawn on it from the next
+    // frame, which clears it all first.
+    const stopWatchingLoss = watchCanvasLoss(canvas, () => {
+      dirty = [0, 0, canvas.width, canvas.height];
+    });
 
     const stop = gestures(onGesture);
     return () => {
+      stopWatchingLoss();
       resized?.disconnect();
       stop();
       cancelAnimationFrame(frame);

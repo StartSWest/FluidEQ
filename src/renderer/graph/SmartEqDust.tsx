@@ -10,6 +10,7 @@ import {
   getSmartEqPreview,
   subscribeSmartEqPreview,
 } from '../utils/smartEqPreview';
+import { watchCanvasLoss } from '../utils/canvasLoss';
 import { windowPrimary } from '../utils/windowInk';
 import { isLightWindow } from '../utils/windowSide';
 import {
@@ -332,9 +333,14 @@ const SmartEqDust = ({
     };
 
     const unsubscribe = subscribeSmartEqPreview(sync);
+    // Hidden through a loss of the GPU, and drawn again when the canvas
+    // comes back empty: every frame lays the whole field down, so asking for
+    // one is all a restore needs (`canvasLoss.ts`).
+    const stopWatchingLoss = watchCanvasLoss(canvas, sync);
     sync();
     return () => {
       unsubscribe();
+      stopWatchingLoss();
       if (request) {
         cancelAnimationFrame(request);
       }

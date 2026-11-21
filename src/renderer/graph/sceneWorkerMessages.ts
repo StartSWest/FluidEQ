@@ -85,6 +85,12 @@ export type TSceneBuildResult =
     }
   | { kind: 'compile'; log: string }
   | { kind: 'unavailable' }
+  /**
+   * The context was lost under the load (a GPU process crash, a driver
+   * reset). Not the scene's failure: the page loads it again once the worker
+   * says `restored`.
+   */
+  | { kind: 'lost' }
   | { kind: 'cancelled' };
 
 export type TSceneWorkerReply =
