@@ -486,7 +486,7 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.intro':
     'Os estilos padrão são desenhos gratuitos do som ao vivo que você mesmo pode colorir e personalizar: Linha e Área para um traço limpo, Blocos LED e Picos para impacto, Treliça, Horizonte e Chamas dançantes para cenas inteiras. As cenas são imagens vivas desenhadas na placa de vídeo, como Alpino, Aurora, Floração e Cidade de neon, em que os graves, a batida e os agudos movem, cada um, algo diferente.',
   'help.looks.steps':
-    'Clique no nome do visual no gráfico. Pesquise ou filtre os estilos por Linhas, Preenchimentos, Barras, Pontos ou Cenas.\nEscolha uma cena à direita. Se ainda não for sua, ela fica bloqueada, e escolhê-la explica como obtê-la.\nEm um estilo padrão, pressione Novo visual para mudar as cores, o movimento e os picos, e depois salve; ele aparece em Seus.',
+    'Clique no nome do visual no gráfico. Escolha uma seção à esquerda, ou pesquise em tudo de uma vez.\nCom “De”, veja só os do FluidEQ, as cenas dos membros ou os seus. Se uma cena ainda não for sua, ela fica bloqueada, e escolhê-la explica como obtê-la.\nEm um estilo padrão, pressione Novo visual para mudar as cores, o movimento e os picos, e depois salve; ele aparece em “De: Seus”.',
   'help.looks.tip':
     'Uma cena traz as próprias cores: ajuste o ataque e a liberação dela em Visualização. Os estilos padrão têm ajustes gráficos próprios em Visualização, separados das cenas: resolução total e escala simples para começar. Se uma cena não puder rodar neste computador, o gráfico desenha um estilo gratuito em vez de ficar em branco.',
   'help.looks.keywords':
@@ -494,15 +494,15 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.searchName': 'Pesquisar',
   'help.looks.search':
     'Encontra estilos e cenas por nome, criador ou categoria.',
-  'help.looks.styles':
-    'Estilos gratuitos desenhados pelo FluidEQ e os visuais que você salvou.',
-  'help.looks.familiesName': 'Filtros de estilos',
-  'help.looks.families':
-    'Análise e Cenas, e Seus assim que você salvar um visual.',
+  'help.looks.placesName': 'Seções',
+  'help.looks.places':
+    'Tudo, Novas e atualizadas, os tipos de estilo e cada categoria de cenas, cada um com quantos tem.',
+  'help.looks.from': 'Quem fez: o FluidEQ, os membros ou você.',
+  'help.looks.viewName': 'Visualização e ordem',
+  'help.looks.view':
+    'Imagens ou uma lista detalhada, ordenadas por mais novas, atualizadas recentemente, nome ou mais usadas.',
   'help.looks.plus':
-    'Cenas do FluidEQ e dos membros, e as suas em Feitos por você.',
-  'help.looks.categoriesName': 'Categorias',
-  'help.looks.categories': 'Natureza, Cidades, Abstrato e mais.',
+    'Cada visual como uma imagem. Nova ou Atualizada marca o que mudou, e Tocando marca o visual do gráfico.',
 
   'help.plus.title': 'Sua conta, os créditos e a aba Cenas',
   'help.plus.intro':

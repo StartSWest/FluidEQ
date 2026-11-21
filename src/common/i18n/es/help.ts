@@ -492,7 +492,7 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.intro':
     'Los estilos estándar son dibujos gratuitos del sonido en directo que puedes colorear y diseñar a tu gusto: Línea y Área para un trazo limpio, Bloques LED y Picos para dar pegada, y Cercha, Horizonte y Llamas danzantes para escenas completas. Las escenas son imágenes vivas dibujadas en la tarjeta gráfica, como Alpino, Aurora, Floración y Ciudad de neón, en las que los graves, el ritmo y los agudos mueven cada uno algo distinto.',
   'help.looks.steps':
-    'Haz clic en el nombre del estilo que hay sobre la gráfica. Busca, o filtra los estilos por Líneas, Rellenos, Barras, Puntos o Escenas.\nElige una escena a la derecha. Si todavía no es tuya aparece bloqueada, y al elegirla se explica cómo conseguirla.\nCon un estilo estándar, pulsa Nuevo estilo para cambiar sus colores, su movimiento y sus picos, y guárdalo; aparecerá en Tuyos.',
+    'Haz clic en el nombre del estilo que hay sobre la gráfica. Elige una sección a la izquierda, o busca en todo a la vez.\nCon «De» ves solo los de FluidEQ, las escenas de los miembros o los tuyos. Si una escena todavía no es tuya aparece bloqueada, y al elegirla se explica cómo conseguirla.\nCon un estilo estándar, pulsa Nuevo estilo para cambiar sus colores, su movimiento y sus picos, y guárdalo; aparecerá en «De: Tuyos».',
   'help.looks.tip':
     'Una escena trae sus propios colores: ajusta su ataque y su liberación en Vista. Los estilos estándar tienen sus propios ajustes de gráficos en Vista, aparte de las escenas: de entrada, resolución completa y escalado simple. Si una escena no puede funcionar en este ordenador, la gráfica dibuja un estilo gratuito en lugar de quedarse en blanco.',
   'help.looks.keywords':
@@ -500,15 +500,15 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.searchName': 'Buscar',
   'help.looks.search':
     'Encuentra estilos y escenas por nombre, creador o categoría.',
-  'help.looks.styles':
-    'Estilos gratuitos que dibuja FluidEQ y los estilos que has guardado.',
-  'help.looks.familiesName': 'Filtros de estilo',
-  'help.looks.families':
-    'Análisis y Escenas, y Tuyos en cuanto hayas guardado un estilo.',
+  'help.looks.placesName': 'Secciones',
+  'help.looks.places':
+    'Todo, Nuevas y actualizadas, los tipos de estilo y cada categoría de escenas, cada uno con cuántos tiene.',
+  'help.looks.from': 'Quién lo hizo: FluidEQ, los miembros o tú.',
+  'help.looks.viewName': 'Vista y orden',
+  'help.looks.view':
+    'Imágenes o una lista detallada, ordenadas por las más nuevas, actualizadas hace poco, nombre o más usadas.',
   'help.looks.plus':
-    'Escenas de FluidEQ y de los miembros, y las tuyas en Hechos por ti.',
-  'help.looks.categoriesName': 'Categorías',
-  'help.looks.categories': 'Naturaleza, Ciudades, Abstracto y más.',
+    'Cada estilo como una imagen. Nueva o Actualizada marca lo que cambió, y Sonando marca el que está en la gráfica.',
 
   'help.plus.title': 'Tu cuenta, los créditos y la pestaña Escenas',
   'help.plus.intro':

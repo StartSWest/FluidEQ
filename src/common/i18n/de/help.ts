@@ -497,7 +497,7 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.intro':
     'Standardstile sind kostenlose Zeichnungen des Live-Klangs, die Sie selbst einfärben und gestalten können: Linie und Fläche für eine klare Spur, LED-Blöcke und Spitzen für Wucht, Fachwerk, Skyline und Tanzende Flammen für ganze Szenen. Szenen sind lebendige Bilder, auf der Grafikkarte gezeichnet, wie Alpin, Aurora, Blüte und Neonstadt, in denen Bass, Beat und Höhen jeweils etwas anderes bewegen.',
   'help.looks.steps':
-    'Klicken Sie im Diagramm auf den Namen der Darstellung. Suchen oder filtern Sie die Stile über Linien, Flächen, Balken, Punkte oder Szenen.\nWählen Sie rechts eine Szene. Gehört sie Ihnen noch nicht, ist sie gesperrt, und wenn Sie sie wählen, erfahren Sie, wie Sie sie bekommen.\nDrücken Sie bei einem Standardstil Neue Darstellung, um Farben, Bewegung und Spitzen zu ändern, und speichern Sie sie dann; sie erscheint unter dem Filter Ihre.',
+    'Klicken Sie im Diagramm auf den Namen der Darstellung. Wählen Sie links eine Rubrik, oder durchsuchen Sie alles auf einmal.\nMit „Von“ sehen Sie nur die Darstellungen von FluidEQ, die Szenen von Mitgliedern oder Ihre eigenen. Gehört Ihnen eine Szene noch nicht, ist sie gesperrt, und wenn Sie sie wählen, erfahren Sie, wie Sie sie bekommen.\nDrücken Sie bei einem Standardstil Neue Darstellung, um Farben, Bewegung und Spitzen zu ändern, und speichern Sie sie dann; sie erscheint unter „Von: Ihre“.',
   'help.looks.tip':
     'Eine Szene bringt ihre eigenen Farben mit: Attack und Release stellen Sie unter Ansicht ein. Standardstile haben unter Ansicht eigene Grafikeinstellungen, getrennt von Szenen: anfangs volle Auflösung und einfache Skalierung. Kann eine Szene auf diesem Computer nicht laufen, zeichnet das Diagramm statt einer leeren Fläche einen kostenlosen Stil.',
   'help.looks.keywords':
@@ -505,15 +505,15 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.searchName': 'Suche',
   'help.looks.search':
     'Findet Stile und Szenen nach Name, Ersteller oder Kategorie.',
-  'help.looks.styles':
-    'Kostenlose Stile, die FluidEQ zeichnet, und die Darstellungen, die Sie gespeichert haben.',
-  'help.looks.familiesName': 'Stilfilter',
-  'help.looks.families':
-    'Analyse und Szenen, dazu Ihre, sobald Sie eine Darstellung gespeichert haben.',
+  'help.looks.placesName': 'Rubriken',
+  'help.looks.places':
+    'Alles, Neu und aktualisiert, die Arten von Stilen und jede Szenenkategorie, jeweils mit ihrer Anzahl.',
+  'help.looks.from': 'Wer es gemacht hat: FluidEQ, Mitglieder oder Sie.',
+  'help.looks.viewName': 'Ansicht und Reihenfolge',
+  'help.looks.view':
+    'Bilder oder eine Detailliste, sortiert nach neuesten, zuletzt aktualisierten, Name oder meistgenutzten.',
   'help.looks.plus':
-    'Szenen von FluidEQ und von Mitgliedern, Ihre eigenen unter „Von Ihnen erstellt“.',
-  'help.looks.categoriesName': 'Kategorien',
-  'help.looks.categories': 'Natur, Städte, Abstrakt und mehr.',
+    'Jede Darstellung als Bild. „Neu“ oder „Aktualisiert“ zeigt, was sich geändert hat, „Läuft“ die Darstellung im Diagramm.',
 
   'help.plus.title': 'Ihr Konto, Credits und der Tab Szenen',
   'help.plus.intro':

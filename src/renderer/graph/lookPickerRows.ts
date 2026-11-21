@@ -6,7 +6,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { IResolvedLook } from 'common/customLooks';
 import {
-  GRAPH_STYLE_FAMILIES,
   graphStyleFamily,
   type TGraphStyleFamily,
 } from 'common/graphStyleFamilies';
@@ -15,7 +14,6 @@ import { isMemberLookId } from 'common/memberScenes';
 import officialSceneCategory from 'common/officialSceneCategories';
 import {
   FLUIDEQ_CREATOR_ID,
-  PLUS_CATEGORIES,
   versionLineIn,
   type IGalleryScene,
   type TPlusCategory,
@@ -50,8 +48,6 @@ type TTranslate = (
   vars?: Record<string, string | number>,
 ) => string;
 
-export type TStyleFilter = 'all' | TGraphStyleFamily | 'yours';
-export type TPlusFilter = 'all' | TPlusCategory | 'mine' | 'members';
 export type TPlusMaker = 'fluideq' | 'mine' | 'members';
 
 export interface IStyleRow {
@@ -61,13 +57,6 @@ export interface IStyleRow {
   family: TGraphStyleFamily;
   /** A look the member built in the designer. */
   yours: boolean;
-  /**
-   * This row is a saved variation of the row above it, so the list draws it
-   * as a child. Read off the ORDER rather than stored on the look, because
-   * the order is what `getSelectableLooks` already decides and two places
-   * deciding the same thing is how they come to disagree.
-   */
-  nested: boolean;
   /** Everything the search box matches it by, folded. */
   search: string;
 }
@@ -90,6 +79,15 @@ export interface IPlusRow {
   versionNote?: string;
   /** A newer approved version the gallery has, past the one on this computer. */
   latest?: number;
+  /**
+   * When the gallery first published it, when its newest version went up and
+   * how many members have added it - read from the gallery's own listing,
+   * so absent for a scene this session's gallery has not described. The
+   * picker's sorts put those last (`lookPickerFilter.ts`).
+   */
+  publishedAt?: string;
+  updatedAt?: string;
+  adds?: number;
   search: string;
 }
 
@@ -99,13 +97,15 @@ export const FAMILY_KEYS: Record<TGraphStyleFamily, TranslationKey> = {
   fills: 'graph.family.fills',
   bars: 'graph.family.bars',
   points: 'graph.family.points',
-  scenes: 'graph.family.scenes',
+  // Animated in the picker, so "Scenes" names only the scene packs (Ivan,
+  // 2026-11-19: "go with Animated").
+  scenes: 'graph.family.animated',
 };
 
 export const categoryName = (t: TTranslate, category: TPlusCategory) =>
   t(`plus.category.${category}` as TranslationKey);
 
-/** Whose it is, as the filter chip and the list heading both say it. */
+/** Whose it is, as the From tabs and a tile's caption say it. */
 export const makerName = (t: TTranslate, maker: TPlusMaker) => {
   if (maker === 'mine') {
     return t('graph.member.mine');
@@ -127,12 +127,8 @@ export const buildStyleRows = (
 ): IStyleRow[] =>
   looks
     .filter((look) => !isPremiumLookId(look.id) && !isMemberLookId(look.id))
-    .map((look, index, rows) => {
+    .map((look) => {
       const family = graphStyleFamily(look.style);
-      const above = rows[index - 1];
-      const nested = Boolean(
-        look.isCustom && above && above.style === look.style,
-      );
       const name = look.isCustom
         ? look.label
         : t(`graph.styleName.${look.style}` as TranslationKey);
@@ -142,7 +138,6 @@ export const buildStyleRows = (
         look,
         family,
         yours: look.isCustom,
-        nested,
         search: foldForSearch(
           [
             name,
@@ -192,6 +187,18 @@ export const buildPlusRows = ({
 
   // A newer version than the one here, when a gallery list has seen it: the
   // member keeps theirs until they update it, by design.
+  // What the gallery's listing says of it, for the picker's sorts.
+  const listingFor = (gallery: ReturnType<IPlusSources['findInGallery']>) =>
+    gallery
+      ? {
+          updatedAt: gallery.updatedAt,
+          adds: gallery.adds,
+          ...(gallery.firstPublishedAt
+            ? { publishedAt: gallery.firstPublishedAt }
+            : {}),
+        }
+      : {};
+
   const latestFor = (
     gallery: ReturnType<IPlusSources['findInGallery']>,
     version: number,
@@ -224,6 +231,7 @@ export const buildPlusRows = ({
       version: scene.version,
       ...noteFor(gallery, scene.version),
       ...latestFor(gallery, scene.version),
+      ...listingFor(gallery),
       thumbnail: {
         lookId: scene.lookId,
         version: scene.revision ?? String(scene.version),
@@ -258,6 +266,7 @@ export const buildPlusRows = ({
         officialSceneCategory(scene.id),
       ],
       locked: true,
+      ...listingFor(gallery),
       thumbnail: gallery && {
         lookId: scene.lookId,
         version: String(gallery.version),
@@ -283,6 +292,7 @@ export const buildPlusRows = ({
       version: scene.version,
       ...noteFor(gallery, scene.version),
       ...latestFor(gallery, scene.version),
+      ...listingFor(gallery),
       thumbnail: {
         lookId: scene.lookId,
         version: scene.revision ?? String(scene.version),
@@ -320,51 +330,3 @@ export const buildPlusRows = ({
 /** Every word typed is somewhere in what the row is matched by. */
 export const matchesSearch = (search: string, query: string) =>
   searchMatcher(query)(search);
-
-/**
- * Only the families something is filed under.
- *
- * A chip that empties the column is a dead end — the same rule `plusFilters`
- * has always had, and one this list needed the moment the twenty plain forms
- * went: Lines, Fills, Bars and Points were still offered with nothing left
- * to show under any of them.
- */
-export const styleFilters = (rows: readonly IStyleRow[]): TStyleFilter[] => [
-  'all',
-  ...GRAPH_STYLE_FAMILIES.filter((family) =>
-    rows.some((row) => row.family === family),
-  ),
-  ...(rows.some((row) => row.yours) ? (['yours'] as const) : []),
-];
-
-/**
- * Every one of the gallery's categories, in the gallery's order, from the
- * gallery's own list - never only the ones the member's scenes are filed
- * under. It used to be only those, and a member with no retro or 3D scene
- * met a picker missing Retro games and 3D worlds that the gallery has
- * (Ivan, 2026-11-13: "it must always have all the gallery's categories").
- * A category none of the member's scenes is under shows its own empty
- * line with the way to that category in the gallery (`LookPickerBody`).
- * Who made them still shows only when there is somebody to pick.
- */
-export const plusFilters = (rows: readonly IPlusRow[]): TPlusFilter[] => [
-  'all',
-  ...PLUS_CATEGORIES,
-  ...(rows.some((row) => row.maker === 'mine') ? (['mine'] as const) : []),
-  ...(rows.some((row) => row.maker === 'members')
-    ? (['members'] as const)
-    : []),
-];
-
-export const keepStyle = (row: IStyleRow, filter: TStyleFilter) =>
-  filter === 'all' || (filter === 'yours' ? row.yours : row.family === filter);
-
-export const keepPlus = (row: IPlusRow, filter: TPlusFilter) => {
-  if (filter === 'all') {
-    return true;
-  }
-  if (filter === 'mine' || filter === 'members') {
-    return row.maker === filter;
-  }
-  return row.categories.includes(filter);
-};

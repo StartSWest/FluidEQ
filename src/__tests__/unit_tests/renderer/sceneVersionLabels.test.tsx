@@ -17,7 +17,7 @@ import { act, render, renderHook, screen } from '@testing-library/react';
 import type { IGalleryScene } from 'common/plusGallery';
 import type { IUsableMemberScene } from 'renderer/utils/memberScenes';
 import type { TGalleryListOutcome } from 'main/ipc/plusGallery';
-import LookPickerScene from 'renderer/graph/LookPickerScene';
+import { LookPickerSceneTile } from 'renderer/graph/LookPickerTiles';
 import { buildPlusRows, type IPlusRow } from 'renderer/graph/lookPickerRows';
 import {
   findGalleryScene,
@@ -117,6 +117,9 @@ describe('the version in the graph’s look picker', () => {
 
   it('knows a newer version the gallery has, and nothing when it has none', () => {
     expect(rowWith(V2)?.latest).toBe(2);
+    // And what the picker's sorts read from the gallery's listing.
+    expect(rowWith(V2)?.updatedAt).toBe(V2.updatedAt);
+    expect(rowWith(undefined)).not.toHaveProperty('updatedAt');
     expect(rowWith(V1)).not.toHaveProperty('latest');
     expect(rowWith(undefined)).not.toHaveProperty('latest');
   });
@@ -124,11 +127,11 @@ describe('the version in the graph’s look picker', () => {
   const show = (row: IPlusRow) =>
     render(
       <I18nProvider>
-        <LookPickerScene
+        <LookPickerSceneTile
           row={row}
+          fresh={row.latest !== undefined ? 'newer' : undefined}
           selected={false}
           tabbable
-          heading={false}
           onChoose={jest.fn()}
         />
       </I18nProvider>,
