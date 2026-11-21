@@ -333,10 +333,77 @@ void test_punch_gains_reach_the_meters() {
   feq_meters_destroy(meters);
 }
 
+/** The peak of one tap after a note, or -200 if the tap never published. */
+float loudest_at(uint32_t stage, const FeqChainSettings& settings) {
+  FeqMeters* meters = feq_meters_create(2);
+  feq_meters_set_enabled(meters, 1);
+  FeqChain* chain = feq_chain_create(kRate, 2, kBlock);
+  feq_chain_set_meters(chain, meters);
+  feq_chain_configure(chain, &settings);
+  std::vector<float> left(kBlock);
+  std::vector<float> right(kBlock);
+  float* planes[2] = {left.data(), right.data()};
+  std::vector<float> bins(FEQ_METER_BINS, -200.0f);
+  std::vector<float> scratch(FEQ_METER_BINS);
+  double phase = 0.0;
+  for (uint32_t block = 0; block < kBlocks; block += 1) {
+    for (uint32_t at = 0; at < kBlock; at += 1) {
+      const auto value = static_cast<float>(0.35 * std::sin(phase));
+      left[at] = value;
+      right[at] = value;
+      phase += 2.0 * kPi * 60.0 / kRate;
+    }
+    feq_chain_process(chain, planes, kBlock);
+    // Only what a read says is new is kept: an unpublished tap leaves the
+    // sentinel, never a zeroed buffer that reads as 0 dB.
+    if (feq_meters_read_spectrum(meters, stage, scratch.data(),
+                                 FEQ_METER_BINS) != 0) {
+      bins = scratch;
+    }
+  }
+  feq_chain_destroy(chain);
+  feq_meters_destroy(meters);
+  return *std::max_element(bins.begin(), bins.end());
+}
+
+/**
+ * The input tap publishes with the rack switched off.
+ *
+ * Smart correction measures every Library song from it. The rack returned
+ * before the tap when it was off, so with the rack off Smart heard nothing at
+ * all and sat on "Listening" for the whole song (2026-11-20). The EQ tap
+ * stays silent with the rack off, which is the control: it proves the run
+ * really had the rack off, and that a silent tap reads as silent here.
+ */
+void test_input_tap_publishes_with_the_rack_off() {
+  std::printf("\nchain meters: the input tap publishes with the rack off\n");
+  FeqChainSettings off = quiet_chain();
+  off.enabled = 0;
+  FeqChainSettings on = quiet_chain();
+  on.eq.enabled = 1;
+
+  const float input_off = loudest_at(FEQ_METER_STAGE_DENOISE, off);
+  const float eq_off = loudest_at(FEQ_METER_STAGE_EQ, off);
+  const float input_on = loudest_at(FEQ_METER_STAGE_DENOISE, on);
+  const float eq_on = loudest_at(FEQ_METER_STAGE_EQ, on);
+  std::printf("       rack off: input %.1f dB, EQ %.1f dB; on: input %.1f, EQ %.1f\n",
+              input_off, eq_off, input_on, eq_on);
+
+  check(eq_on > -60.0f && input_on > -60.0f,
+        "with the rack on both taps hear the note");
+  check(eq_off <= -199.0f,
+        "with the rack off the EQ tap publishes nothing (the control)");
+  check(input_off > -60.0f,
+        "with the rack off the input tap still hears the note");
+  check(std::fabs(input_off - input_on) < 0.5f,
+        "and hears it as loud as with the rack on");
+}
+
 }  // namespace
 
 int main() {
   std::printf("chain meters\n");
+  test_input_tap_publishes_with_the_rack_off();
   test_exciter_tap_is_above_forge();
   test_forge_bands_reach_the_meters();
   test_punch_gains_reach_the_meters();

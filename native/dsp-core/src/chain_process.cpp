@@ -26,6 +26,14 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
   if (chain->settings.enabled == 0) {
     FeqRoomReport inactive{FEQ_ROOM_REPORT_TAG, 0};
     feq_meters_publish_room(chain->meters, &inactive);
+    // The rack's input tap publishes with the rack off too: what arrives here
+    // is the record as decoded, and Smart correction measures every Library
+    // song from this tap (`rawSource.ts`). Returning above it left Smart
+    // listening to nothing, for ever, on every Library song played with the
+    // rack switched off (Ivan, 2026-11-20: "it stays forever, it does
+    // nothing").
+    feq_meters_capture(chain->meters, FEQ_METER_STAGE_DENOISE, channels,
+                       frames);
     return;
   }
 

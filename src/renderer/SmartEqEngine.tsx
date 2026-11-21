@@ -779,12 +779,23 @@ const SmartEqEngine = () => {
       // Aborting is how this ends, and an abort rejects: nothing to report.
       // Anything else is the tap on the source going away, which is worth a
       // sentence — the mode is still switched on and now hears nothing.
-      if (
-        !(error instanceof DOMException && error.name === 'AbortError') &&
-        error instanceof Error
-      ) {
-        setSmartEqStatus(error.message);
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
       }
+      // Nothing is measuring any more, so nothing may say it is: the graph's
+      // chip and the panel went on reading "Listening" over a tap that had
+      // failed, which looked exactly like a measurement that never ends.
+      if (measurementRef.current === measurement) {
+        measurementRef.current = undefined;
+      }
+      endSmartEqPreview();
+      listeningForRef.current = '';
+      setSmartEqListening('');
+      setSmartEqStatus(
+        error instanceof Error
+          ? error.message
+          : tRef.current('eq.smart.status.failed'),
+      );
     });
     return () => {
       controller.abort();
