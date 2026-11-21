@@ -61,6 +61,13 @@ jest.mock('renderer/audio/LiveAudioContext', () => ({
   useLiveAudioCapture: () => undefined,
 }));
 
+// The preset's plate over the meter reads the EQ's layers and the DSP rack,
+// which these cases about the meter's own drawing do not mount.
+jest.mock('renderer/shell/wavePreset/WavePresetPlate', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 /** One drawn frame: the curve's points and every rounded piece. */
 interface IDrawnFrame {
   curveYs: number[];

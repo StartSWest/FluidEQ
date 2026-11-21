@@ -165,6 +165,12 @@ it under the terms of the GNU General Public License version 3 or later.
 .waveform-visualizer__readout {
   display: inline-flex;
   flex: 0 0 auto;
+  // At the right whether or not the caption is beside it: under
+  // `$bp-desktop` the caption is taken out of the row (`App.scss`), and a
+  // lone item in a space-between row stands at its start, which put the
+  // held peak where the caption had been — under the preset's plate, which
+  // slides into that place on a narrow meter (`WavePreset.scss`).
+  margin-left: auto;
   align-items: center;
   gap: 6px;
 }

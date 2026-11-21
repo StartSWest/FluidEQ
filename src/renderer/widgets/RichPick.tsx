@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
   Fragment,
+  MutableRefObject,
   ReactNode,
   useCallback,
   useEffect,
@@ -66,6 +67,12 @@ interface IRichPickProps {
   triggerClassName?: string;
   /** Rendered inside the trigger's label, after the name. */
   triggerExtra?: ReactNode;
+  /**
+   * What the trigger shows in place of the chosen row's glyph and name, for
+   * a trigger that says it in words of its own — the titlebar's plate says
+   * "No preset" where the list's row says "None".
+   */
+  triggerContent?: ReactNode;
   /** Rendered in the root under the trigger, for a caller's own messages. */
   children?: ReactNode;
   /**
@@ -94,6 +101,12 @@ interface IRichPickProps {
    * under the pointer.
    */
   renderPreview?: (id: string | undefined, close: () => void) => ReactNode;
+  /**
+   * Handed the menu's own open, for a control beside the trigger that opens
+   * the same list: the titlebar plate's card offers "Change preset", which
+   * is this pick and no other (`WavePresetPick`).
+   */
+  openRef?: MutableRefObject<(() => void) | undefined>;
 }
 
 export interface IRichPickFavourites {
@@ -186,10 +199,12 @@ const RichPick = ({
   menuMaxHeight,
   triggerClassName,
   triggerExtra,
+  triggerContent,
   children,
   renderFooter,
   favourites,
   renderPreview,
+  openRef,
 }: IRichPickProps) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -219,6 +234,22 @@ const RichPick = ({
   const active = activeId
     ? entries.find((entry) => entry.id === activeId)
     : undefined;
+
+  // Opening, the preview starts at the chosen row.
+  const open = useCallback(() => {
+    setPreviewId(activeId || undefined);
+    setIsOpen(true);
+  }, [activeId]);
+  useEffect(() => {
+    if (!openRef) {
+      return undefined;
+    }
+    // Disabled, there is nothing to open: the trigger refuses the same press.
+    openRef.current = disabled ? undefined : open;
+    return () => {
+      openRef.current = undefined;
+    };
+  }, [disabled, open, openRef]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -478,18 +509,22 @@ const RichPick = ({
         title={triggerTitle}
         disabled={disabled}
         onClick={() => {
-          // Opening, the preview starts at the chosen row.
-          if (!isOpen) {
-            setPreviewId(activeId || undefined);
+          if (isOpen) {
+            setIsOpen(false);
+          } else {
+            open();
           }
-          setIsOpen(!isOpen);
         }}
       >
-        {active ? active.icon : placeholderIcon}
-        <span className="rich-pick__label">
-          {active ? active.name : placeholder}
-          {triggerExtra}
-        </span>
+        {triggerContent ?? (
+          <>
+            {active ? active.icon : placeholderIcon}
+            <span className="rich-pick__label">
+              {active ? active.name : placeholder}
+              {triggerExtra}
+            </span>
+          </>
+        )}
         {/* It opens a menu, and nothing on it said so — it read as a button
             that does something, in a row of buttons that do. The same chevron
             the mode picker carries, turning over when it is open. */}

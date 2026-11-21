@@ -212,6 +212,9 @@ import './BatteryLevel.scss';
 import './ExtraOutputs.scss';
 import './DriverPicker.scss';
 import './WaveformVisualizer.scss';
+// The playing preset's plate over the titlebar's wave, and its card: over
+// the meter's own rules and the pick's.
+import './WavePreset.scss';
 import './Convolution.scss';
 import './LabelledKnob.scss';
 import './DspRoom.scss';

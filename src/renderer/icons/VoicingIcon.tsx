@@ -45,6 +45,10 @@ const PATHS: Record<string, string> = {
   loudness: 'M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z',
   // Crossed-out circle, for "no voicing".
   none: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM6 6l12 12',
+  // A curve with a handle on its crest: a preset of the listener's own,
+  // shaped on the graph by dragging that handle (own presets, 2026-11-20).
+  ownCurve:
+    'M3 16c2.6 0 3.4-7 6-7s3.4 9 6 9 3.4-6 6-6M9 7.3a1.7 1.7 0 1 0 0 3.4 1.7 1.7 0 0 0 0-3.4z',
 
   // Genres. Drawn on the same 24 grid and at the same weight, so a genre and a
   // purpose read as the same kind of thing in the same list — which they are.

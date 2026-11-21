@@ -35,6 +35,7 @@ import dspDynamics from './dspDynamics';
 import dspStageSave from './dspStageSave';
 import ownPresets from './ownPresets';
 import presetShare from './presetShare';
+import wavePreset from './wavePreset';
 import gaming from './gaming';
 import remoteAudio from './remoteAudio';
 import tour from './tour';
@@ -96,6 +97,7 @@ const hi: Partial<Dictionary> = {
   ...dspStageSave,
   ...ownPresets,
   ...presetShare,
+  ...wavePreset,
   ...gaming,
   ...remoteAudio,
   ...tour,

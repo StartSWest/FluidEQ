@@ -91,6 +91,7 @@ import paintFlatMeter from './waveformFlatPaint';
 import { BODY_TINT, LIGHT_BODY_TINT } from './waveformFlatKit';
 import { type IRecorderView, createRecorderView } from './waveformRecorderView';
 import { advanceFlatMeter, createFlatMeterState } from './waveformFlatState';
+import WavePresetPlate from './shell/wavePreset/WavePresetPlate';
 import './styles/WaveformVisualizer.scss';
 
 /** The spectrum's bands every style reads: as many as the pane can show. */
@@ -797,12 +798,12 @@ const WaveformVisualizer = () => {
   }`;
 
   return (
-    // A wrapper, so the pill can be a real button.
+    // A wrapper, so the preset plate can be a real button.
     //
     // The meter itself is a button — it cycles the meter style — and a button
     // inside a button is invalid markup that browsers resolve by silently
-    // unnesting, which loses the inner click. The pill therefore sits beside
-    // the meter and is positioned over it.
+    // unnesting, which loses the inner click. The plate therefore sits beside
+    // the meter and is positioned over it (`WavePresetPlate`).
     <div ref={shellRef} className="waveform-visualizer-shell">
       <button
         type="button"
@@ -914,6 +915,9 @@ const WaveformVisualizer = () => {
           {isOff ? style : announcedStyle}
         </span>
       </button>
+      {/* The playing preset, over the label row and beside the meter's own
+          button for the reason above. */}
+      <WavePresetPlate isMeterOn={!isOff} />
     </div>
   );
 };

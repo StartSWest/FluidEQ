@@ -97,6 +97,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   transform: rotate(-90deg);
 }
 
+// A preset of the listener's own, in any preset list: its curve glyph in the
+// Preset layer's violet their presets wear (`_ownPresets.scss`), over the
+// accent every other row's glyph takes, lit or not.
+.rich-pick__glyph.is-own,
+.rich-pick__item .rich-pick__glyph.is-own,
+.rich-pick__item.is-active .rich-pick__glyph.is-own {
+  color: var(--ink-preset);
+}
+
 // The preset that game's sound is playing, after its name ("Counter-Strike 2
 // · Competitive"): quieter than the name, which it qualifies, and separated
 // the way the strength is, with the glyph its Preset chip wears.

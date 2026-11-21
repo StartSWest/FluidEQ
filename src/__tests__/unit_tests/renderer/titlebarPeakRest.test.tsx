@@ -53,6 +53,13 @@ jest.mock('renderer/audio/LiveAudioContext', () => ({
   useLiveAudioCapture: () => undefined,
 }));
 
+// The preset's plate over the meter reads the EQ's layers and the DSP rack,
+// which these cases about the meter's own readout do not mount.
+jest.mock('renderer/shell/wavePreset/WavePresetPlate', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 /** A canvas that takes every call and draws nothing. */
 const gradient = { addColorStop: () => undefined };
 const drawing: Record<string | symbol, unknown> = {};
