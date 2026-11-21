@@ -17,7 +17,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useEffect, useRef, useState } from 'react';
-import { describeSmartEqLayer, getSmartEqBands } from 'common/smartEq';
+import {
+  describeSmartEqLayer,
+  getSmartEqBands,
+  hasSmartEqLayer,
+} from 'common/smartEq';
 import {
   describeBalanceProgress,
   describeBalanceResult,
@@ -60,6 +64,7 @@ import {
 } from './utils/smartEqRun';
 import {
   TSmartEqHeldOutcome,
+  departSmartEqPreview,
   endSmartEqPreview,
   getSmartEqPreview,
   publishSmartEqPreview,
@@ -806,6 +811,38 @@ const SmartEqEngine = () => {
     session,
     remeasures,
   ]);
+
+  /**
+   * Smart correction switched off takes its correction off: out of what is
+   * heard and off the graph (Ivan, 2026-11-20: "when smart correction is
+   * turned off, the curves need to disappear too"). Switching off used to
+   * stop the measuring and leave the last curve written, playing and drawn.
+   * Switched on again, the song playing resumes its hold (`heldSongs.ts`) and
+   * its curve comes back without being measured again.
+   *
+   * Only on the switch going from on to off: a window opening with the mode
+   * off leaves whatever a one-shot press last wrote. The graph is handed the
+   * curve that leaves, to fade out where the layer's line just was.
+   */
+  const wasContinuousOnRef = useRef(isContinuousOn);
+  useEffect(() => {
+    const wasOn = wasContinuousOnRef.current;
+    wasContinuousOnRef.current = isContinuousOn;
+    const layer = smartEqRef.current;
+    if (!wasOn || isContinuousOn || !hasSmartEqLayer(layer)) {
+      return;
+    }
+    departSmartEqPreview(atStrength(gainsOf(layer), layer?.intensity));
+    noteSmartEqWrite(undefined);
+    setSmartEq(undefined);
+    setSmartEqApi(undefined).catch(() => {
+      // Reported nowhere, like every background Smart EQ write here; the
+      // next song or a press of the switch writes again.
+    });
+    // Only the switch: the layer and the setters are read through refs or
+    // are stable, and this must not run when they change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- see above
+  }, [isContinuousOn]);
 
   return null;
 };

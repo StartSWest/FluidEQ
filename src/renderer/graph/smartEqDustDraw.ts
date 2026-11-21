@@ -15,14 +15,20 @@ import type { ISmartEqPreviewRegion } from '../utils/smartEqPreview';
  * per slice of the spectrum, scattered by how unsure each range still is.
  *
  * The points BECOME the line (Ivan, same day: "when it finds it those dots
- * become more like a solid line"). As a range is found its points stop
- * wandering, spread out evenly along the curve and grow until each touches
- * its neighbours — a bead chain lying on the line — and only then does the
- * stroke come up under them and the beads go, so what the eye follows is
- * points closing into a line, never points fading while a separate line
- * appears. At the hold the rest closes the same way in one sweep from the
- * bass up, a light runs once along the finished line, and it hands over to
- * the layer's own line.
+ * become more like a solid line"). At the hold the points stop wandering,
+ * spread out evenly along the curve and grow until each touches its
+ * neighbours — a bead chain lying on the line — in one sweep from the bass
+ * up, and only then does the stroke come up under them and the beads go, so
+ * what the eye follows is points closing into a line, never points fading
+ * while a separate line appears. A light runs once along the finished line,
+ * and it hands over to the layer's own line.
+ *
+ * WHILE MEASURING NOTHING IS SOLID. A range that is found draws its points
+ * in close to the curve, never into it. The first version closed each found
+ * range into the stroke at once, and the running mode then went on settling
+ * for up to a minute (`SONG_LISTEN_BOUNDS`), so a line that looked finished
+ * kept moving: "it lands the dots but continues moving" (Ivan, 2026-11-20).
+ * Solid means held, and held means still.
  *
  * Pure drawing: the component owns the frame loop and the easing.
  */
@@ -216,14 +222,17 @@ const rgba = (rgb: readonly number[], alpha: number) =>
 
 /**
  * How closed a slice's points are, from what the measurement knows of it and
- * from the hold's sweep: a range closes as it is found — from about two
- * thirds sure to covered — and the hold closes everything else, the bass
- * first and the top last, `HOLD_SWEEP_S` from one end to the other.
+ * from the hold's sweep: a found range draws in to `FOUND_CLOSED` — from
+ * about two thirds sure to covered — short of where the beads touch and the
+ * stroke begins, and only the hold closes anything, the bass first and the
+ * top last, `HOLD_SWEEP_S` from one end to the other.
  * `sinceHeld` is undefined while measuring, and `reduced` closes the hold at
  * once.
  */
 export const HOLD_SWEEP_S = 0.55;
 export const HOLD_CLOSE_S = 0.4;
+/** Under `strokeShare`'s start, so nothing measured is ever drawn solid. */
+const FOUND_CLOSED = 0.6;
 
 export const closedOf = (
   confidence: Float64Array,
@@ -233,7 +242,7 @@ export const closedOf = (
 ): Float64Array => {
   const last = Math.max(1, into.length - 1);
   for (let index = 0; index < into.length; index += 1) {
-    const found = smoothstep(0.62, 0.92, confidence[index]);
+    const found = FOUND_CLOSED * smoothstep(0.62, 0.92, confidence[index]);
     let held = 0;
     if (sinceHeld !== undefined) {
       held = reduced

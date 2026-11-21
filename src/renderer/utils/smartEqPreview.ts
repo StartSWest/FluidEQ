@@ -57,6 +57,14 @@ export interface ISmartEqPreview {
   /** Counted up at every hold, so the graph plays its arrival once each. */
   holdId: number;
   outcome?: TSmartEqHeldOutcome;
+  /**
+   * The correction taken off when Smart correction was switched off, by band
+   * id at the layer's strength, and a count of such departures: the layer's
+   * own line leaves the graph at once, so the graph draws it once more and
+   * fades it out (`departSmartEqPreview`).
+   */
+  departing?: Readonly<Record<string, number>>;
+  departId: number;
 }
 
 // Every optional field named, at undefined: `publishSmartEqPreview` merges,
@@ -71,6 +79,8 @@ const IDLE: ISmartEqPreview = {
   meanCoverage: 0,
   missing: [],
   holdId: 0,
+  departing: undefined,
+  departId: 0,
 };
 
 let preview: ISmartEqPreview = IDLE;
@@ -96,14 +106,26 @@ export const startSmartEqPreview = () =>
     ...IDLE,
     phase: 'listening',
     holdId: preview.holdId,
+    departId: preview.departId,
   });
 
 export const endSmartEqPreview = () => {
   if (preview.phase === 'idle') {
     return;
   }
-  publishSmartEqPreview({ ...IDLE, holdId: preview.holdId });
+  publishSmartEqPreview({
+    ...IDLE,
+    holdId: preview.holdId,
+    departId: preview.departId,
+  });
 };
+
+/** Smart correction switched off: `gains` is the curve leaving the graph. */
+export const departSmartEqPreview = (gains: Record<string, number>) =>
+  publishSmartEqPreview({
+    departing: gains,
+    departId: preview.departId + 1,
+  });
 
 export const useSmartEqPreview = (): ISmartEqPreview =>
   useSyncExternalStore(

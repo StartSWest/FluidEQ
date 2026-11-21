@@ -26,6 +26,8 @@ import {
   smoothstep,
 } from './smartEqDustDraw';
 import SmartEqChip from './SmartEqChip';
+import { SUPPORTING_CURVE_OPACITY } from './chartCurves';
+import { ColorEnum } from '../styles/color';
 
 /**
  * Smart correction's curve forming on the EQ graph — see `smartEqDustDraw`.
@@ -88,6 +90,19 @@ const paintOfWindow = (): IDustPaint => {
     blend: 'lighter',
   };
 };
+
+/**
+ * The Smart layer's own line, as the chart draws it (`chartCurves.ts`: its
+ * colour at the supporting curves' opacity), for the fade it gets when Smart
+ * correction is switched off and the chart drops it at once.
+ */
+const LAYER_PAINT: IDustPaint = {
+  ink: channels(ColorEnum.SMART),
+  light: channels(ColorEnum.SMART),
+  blend: 'source-over',
+};
+/** Seconds for that line to fade out, the arrival's own pace. */
+const DEPART_S = ARRIVE_S;
 
 /** The share of the way an eased value moves in `dt` seconds. */
 const easeStep = (dt: number, seconds: number) => 1 - Math.exp(-dt / seconds);
@@ -154,6 +169,20 @@ const SmartEqDust = ({
       line: 1,
       pass: -1,
     };
+    // The correction leaving when Smart correction is switched off, drawn as
+    // the layer's own line draws it and faded out (`departSmartEqPreview`).
+    const departing: IDustFrame = {
+      curve: new Float64Array(count),
+      confidence: new Float64Array(count).fill(1),
+      seconds: 0,
+      presence: 1,
+      closed: new Float64Array(count).fill(1),
+      line: 0,
+      pass: -1,
+    };
+    let { departId } = getSmartEqPreview();
+    let departAt: number | undefined;
+    let isDepartNew = false;
     let shownGains: unknown;
     let shownRegions: unknown;
     let heldId = getSmartEqPreview().holdId;
@@ -178,7 +207,18 @@ const SmartEqDust = ({
         isHeldNew = false;
         heldAt = time;
       }
+      if (isDepartNew) {
+        isDepartNew = false;
+        departAt = time;
+      }
       const reduced = isMotionReduced();
+      const sinceDepart =
+        departAt === undefined || reduced ? DEPART_S : (time - departAt) / 1000;
+      departing.line =
+        SUPPORTING_CURVE_OPACITY * (1 - smoothstep(0, DEPART_S, sinceDepart));
+      if (sinceDepart >= DEPART_S) {
+        departAt = undefined;
+      }
       if (!reduced) {
         frame.seconds += dt;
       }
@@ -222,12 +262,12 @@ const SmartEqDust = ({
       }
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
       context.clearRect(0, 0, box.width, box.height);
-      const isDone =
+      const isDustDone =
         !active &&
         (sinceHeld === undefined
           ? frame.presence <= 0
           : sinceHeld >= HELD_DONE_S);
-      if (isDone) {
+      if (isDustDone && departAt === undefined) {
         heldAt = undefined;
         lastTime = undefined;
         return;
@@ -242,14 +282,13 @@ const SmartEqDust = ({
       );
       context.clip();
       const scale = yScaleRef.current;
-      drawDust(
-        context,
-        field,
-        frame,
-        paintOfWindow(),
-        (db) => Number(scale(db)),
-        ys,
-      );
+      const yOf = (db: number) => Number(scale(db));
+      if (departAt !== undefined) {
+        drawDust(context, field, departing, LAYER_PAINT, yOf, ys);
+      }
+      if (!isDustDone) {
+        drawDust(context, field, frame, paintOfWindow(), yOf, ys);
+      }
       context.restore();
       request = requestAnimationFrame(tick);
     };
@@ -264,6 +303,13 @@ const SmartEqDust = ({
         shownRegions = preview.regions;
         confidenceAt(preview.regions, field.frequencies, targetConfidence);
       }
+      if (preview.departId !== departId) {
+        departId = preview.departId;
+        if (preview.departing) {
+          responseAt(preview.departing, field.frequencies, departing.curve);
+          isDepartNew = true;
+        }
+      }
       if (preview.phase === 'held' && preview.holdId !== heldId) {
         heldId = preview.holdId;
         // The sweep closes what the measurement had not: confidence is left
@@ -273,7 +319,14 @@ const SmartEqDust = ({
         heldAt = undefined;
         isHeldNew = false;
       }
-      if (!request && (isActive() || isHeldNew || heldAt !== undefined)) {
+      if (
+        !request &&
+        (isActive() ||
+          isHeldNew ||
+          heldAt !== undefined ||
+          isDepartNew ||
+          departAt !== undefined)
+      ) {
         request = requestAnimationFrame(tick);
       }
     };

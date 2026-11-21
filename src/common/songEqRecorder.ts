@@ -182,21 +182,35 @@ export const reduceSongEq = (
       // the song already playing starts its two minutes again from now — or
       // the curve left in the chain, refined for a few seconds, would be filed
       // under it. Switched OFF: nothing refines the layer any more, and
-      // nothing is filed.
+      // nothing is filed. A loan is dropped, not handed back: what it would
+      // hand back at the song's end is a Smart curve, and with the mode off
+      // the layer stays off (`SmartEqEngine` takes it off at the switch).
+      if (!event.isRunning) {
+        return [
+          {
+            ...state,
+            isAutoEqRunning: false,
+            isSaveOn: false,
+            session: session
+              ? { ...session, hasLoan: false, loanLayer: undefined }
+              : session,
+          },
+          timed,
+        ];
+      }
       return [
         {
           ...state,
-          isAutoEqRunning: event.isRunning,
-          isSaveOn: event.isRunning,
-          session:
-            event.isRunning && session
-              ? {
-                  ...session,
-                  listenedMs: 0,
-                  playingSince:
-                    session.playingSince === undefined ? undefined : now,
-                }
-              : session,
+          isAutoEqRunning: true,
+          isSaveOn: true,
+          session: session
+            ? {
+                ...session,
+                listenedMs: 0,
+                playingSince:
+                  session.playingSince === undefined ? undefined : now,
+              }
+            : session,
         },
         timed,
       ];
@@ -237,6 +251,13 @@ export const reduceSongEq = (
 
     case 'matched': {
       if (
+        // A song's kept correction plays only while Smart correction runs:
+        // the lookup is made either way, and applying its answer with the
+        // mode off put a Smart curve back on every new song after the
+        // listener had switched Smart correction off (Ivan, 2026-11-20:
+        // "when smart correction is turned off, the curves need to
+        // disappear too").
+        !state.isAutoEqRunning ||
         !session ||
         session.phase !== 'recording' ||
         !event.entry ||
