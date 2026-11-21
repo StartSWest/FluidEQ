@@ -246,6 +246,12 @@ textarea.forum-editor__input {
   &.is-selected {
     @include button-face-lit;
   }
+
+  // A topic carrying a preset goes to Presets only: shown chosen, and not a
+  // control (`NewTopicForm`).
+  &.is-fixed {
+    cursor: default;
+  }
 }
 
 .forum__guidance {

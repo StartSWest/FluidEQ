@@ -1,7 +1,6 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 import type { IDspSettings, IEqSettings } from '../../../../common/dsp/chain';
-import { presetShareLink } from '../../../../common/presetShare/presetShareCode';
 import type { Translate } from '../../../../common/i18n';
 import { dspPresetStages } from '../../../dsp/dspPresetCatalog';
 
@@ -61,41 +60,37 @@ export const presetSummaryLine = (
 export const presetShareText = (
   preset: ISharedPresetText,
   format: TShareFormat,
-  withCode: boolean,
+  // Read again when the short link returns; the code always travels now.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- see above
+  _withCode: boolean,
   t: Translate,
 ): string => {
-  const link = presetShareLink(preset.code);
+  // No link until short links (fluideq.com/p/<id>) are on the server and the
+  // site: a link that opens nothing is worse than none (Ivan, 2026-11-20:
+  // "copy shared link?? really? that doesn't work"). The code is what any
+  // FluidEQ reads back, so it always travels; `withCode` waits for the link.
   const title = t('presetShare.text.title', { name: preset.name });
   const summary = presetSummaryLine(preset, t);
-  const open = t('presetShare.text.open');
+  const hint = t('presetShare.export.pasteHint');
   const lines: string[] = [];
   if (format === 'markdown') {
     lines.push(`**${title}**`);
     if (summary) {
       lines.push(summary);
     }
-    lines.push(`[${open}](${link})`);
-    if (withCode) {
-      lines.push('```fluideq-preset', preset.code, '```');
-    }
+    lines.push('```fluideq-preset', preset.code, '```', hint);
   } else if (format === 'bbcode') {
     lines.push(`[b]${title}[/b]`);
     if (summary) {
       lines.push(summary);
     }
-    lines.push(`[url=${link}]${open}[/url]`);
-    if (withCode) {
-      lines.push(`[code]${preset.code}[/code]`);
-    }
+    lines.push(`[code]${preset.code}[/code]`, hint);
   } else {
     lines.push(title);
     if (summary) {
       lines.push(summary);
     }
-    lines.push(`${open}: ${link}`);
-    if (withCode) {
-      lines.push(preset.code);
-    }
+    lines.push(preset.code, hint);
   }
   return lines.join('\n');
 };
