@@ -544,6 +544,21 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The name and, at the row's far end, the 3D label (`GalleryMoveTag`). The
+// name gives way, to an ellipsis, and the label never does: it is three
+// characters and a key. The row is the name's own line high, so a card with
+// the label is exactly as tall as one without, and as its placeholder.
+.gallery-card__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+
+  > .gallery-card__name {
+    flex: 0 1 auto;
+  }
+}
+
 // The Library tile's three lines (`.library-grid__title`, `__subtitle`,
 // `__meta`): the name bold, the maker in the muted ink, the facts faint.
 .gallery-card__name {

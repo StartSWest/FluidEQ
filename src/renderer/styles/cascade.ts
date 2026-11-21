@@ -90,6 +90,8 @@ import './AccountProfile.scss';
 import './PlusToastStack.scss';
 import './Review.scss';
 import './Gallery.scss';
+// The 3D label on a gallery card and a scene's stage, and its tip of keys.
+import './SceneMove.scss';
 import './PlusWelcome.scss';
 import './CreditCoin.scss';
 import './CoinCelebration.scss';

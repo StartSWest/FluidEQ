@@ -4,7 +4,6 @@ import { resolveSceneName } from 'common/scenePacks';
 import { isNewScene, isNewSceneVersion } from 'common/sceneVersionNote';
 import { absoluteTime, relativeTime } from '../forum/forumTime';
 import { useTranslation } from '../utils/I18nContext';
-import type { IUsableMemberScene } from '../utils/memberScenes';
 import {
   addGalleryScene,
   removeGalleryScene,
@@ -18,16 +17,20 @@ import {
 } from './GalleryParts';
 import { claimCardClip, releaseCardClip, useCardClip } from './cardClip';
 import GalleryCardClip from './GalleryCardClip';
+import GalleryMoveTag from './GalleryMoveTag';
 import type { IMakerRef } from './plusNavigation';
 import SceneGet, { officialLine } from './SceneGet';
+import { galleryCameraOf } from './sceneMoveGestures';
+import { useMoveTip } from './SceneMoveTip';
 import { useOwnsLook } from './sceneStore';
+import type { TGalleryLocalScene } from './useGalleryLocalScenes';
 
 interface IGalleryCardProps {
   scene: IGalleryScene;
   /** The member's own account, to tell their scenes from everyone else's. */
   me: string | undefined;
   /** This scene in the member's looks, if it is there. */
-  local: Pick<IUsableMemberScene, 'version'> | undefined;
+  local: Pick<TGalleryLocalScene, 'version' | 'camera'> | undefined;
   onOpen: (scene: IGalleryScene) => void;
   /** Absent on a maker's own page, where the name would lead back to it. */
   onMaker?: (maker: IMakerRef) => void;
@@ -74,6 +77,9 @@ export default function GalleryCard({
   const [focused, setFocused] = useState(false);
   const wanted = hovered || focused;
   const clip = useCardClip(scene, me, card, wanted);
+  // A scene its viewer can turn says so on its card, and how.
+  const camera = galleryCameraOf(scene, local);
+  const moveTip = useMoveTip();
 
   useEffect(() => {
     if (wanted) {
@@ -118,6 +124,7 @@ export default function GalleryCard({
         type="button"
         className="gallery-card__thumb"
         aria-label={t('plus.card.open', { name })}
+        aria-describedby={camera ? moveTip.id : undefined}
         onClick={() => onOpen(scene)}
       >
         <ScenePicture scene={scene} />
@@ -133,14 +140,19 @@ export default function GalleryCard({
         )}
       </button>
       <div className="gallery-card__body">
-        <button
-          type="button"
-          className="gallery-card__name"
-          title={name}
-          onClick={() => onOpen(scene)}
-        >
-          {name}
-        </button>
+        {/* The name, and at the row's far end the 3D label, which the name
+            gives way to: the label is short and says what the name cannot. */}
+        <div className="gallery-card__title">
+          <button
+            type="button"
+            className="gallery-card__name"
+            title={name}
+            onClick={() => onOpen(scene)}
+          >
+            {name}
+          </button>
+          {camera && <GalleryMoveTag limits={camera} tip={moveTip} />}
+        </div>
         <span className="gallery-card__byline">
           {onMaker ? (
             <button

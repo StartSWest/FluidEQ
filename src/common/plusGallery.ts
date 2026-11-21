@@ -5,6 +5,7 @@ import {
   sanitizeDisplayText,
   type IMemberLookRef,
 } from './memberScenes';
+import { readSceneCamera, type ISceneCameraLimits } from './sceneCamera';
 import {
   isPremiumLookId,
   packIdOfLook,
@@ -158,6 +159,13 @@ export interface IGalleryScene {
    * the week's new and updated scenes.
    */
   firstPublishedAt?: string | null;
+  /**
+   * How far its viewer may turn and zoom it: the pack's own `camera`, which
+   * the listing carries so a card can say the scene is 3D before anybody owns
+   * it. Absent for a scene that cannot be moved, and from a server that does
+   * not send it yet.
+   */
+  camera?: ISceneCameraLimits;
 }
 
 /** One earlier version of a scene, as `scene_version_history` lists it. */
@@ -384,6 +392,9 @@ export const parseGalleryRow = (value: unknown): IGalleryScene | undefined => {
   const likesWeek = readCount(value.likes_week);
   const adds = readCount(value.adds);
   const updatedAt = readDate(value.updated_at);
+  // Read as the pack's own is, so the card and the scene agree on whether it
+  // moves; a value that lets the camera move nowhere is no camera.
+  const camera = readSceneCamera(value.camera);
   if (
     !names ||
     !swatch ||
@@ -417,6 +428,7 @@ export const parseGalleryRow = (value: unknown): IGalleryScene | undefined => {
     added: value.added === true,
     ...readVersionFields(value, version),
     ...readFirstPublished(value),
+    ...(camera ? { camera } : {}),
   };
 };
 

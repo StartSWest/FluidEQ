@@ -85,6 +85,8 @@ export interface IScenePackSummary {
   windowColours?: ISceneWindowColours;
   /** And the sets it names at the five hours of its day (`windowColourStops`). */
   windowColourStops?: ISceneWindowColourStops;
+  /** How far its camera turns and zooms, for the gallery's 3D label. */
+  camera?: IScenePack['camera'];
 }
 
 /** One row of the server's listing — the envelope, plus what the cache compares. */
@@ -299,6 +301,7 @@ export const createScenePackStore = ({
     ...(pack.windowColourStops
       ? { windowColourStops: pack.windowColourStops }
       : {}),
+    ...(pack.camera ? { camera: pack.camera } : {}),
   });
 
   /** Both names a pack can be stored under; see `packPath`. */

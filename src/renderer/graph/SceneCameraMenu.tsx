@@ -9,7 +9,6 @@ import type { TranslationKey } from 'common/i18n';
 import {
   cameraKeyOfCode,
   codeOfCameraKey,
-  printedKey,
   SCENE_CAMERA_ORBITS,
   type TSceneCameraKey,
   type TSceneCameraMove,
@@ -21,15 +20,10 @@ import {
   setSceneCameraControl,
   useSceneCameraControl,
 } from '../utils/sceneCameraControlStore';
+import { cameraKeyName, useKeyboardLayout } from './cameraKeyName';
 import { useGraphSceneRun } from './graphScenePlace';
 import type { ISceneInteraction } from './sceneInteraction';
 import { CycleRow, ViewMenuIcon } from './ViewMenuCycleRow';
-
-const MODIFIER_LABEL: Record<'ctrl' | 'alt' | 'shift', TranslationKey> = {
-  ctrl: 'graph.scene.camera.key.ctrl',
-  alt: 'graph.scene.camera.key.alt',
-  shift: 'graph.scene.camera.key.shift',
-};
 
 const MOVE_LABEL: Record<TSceneCameraMove, TranslationKey> = {
   drag: 'graph.scene.camera.move.drag',
@@ -55,49 +49,6 @@ const after = (orbit: TSceneCameraOrbit) =>
   SCENE_CAMERA_ORBITS[
     (SCENE_CAMERA_ORBITS.indexOf(orbit) + 1) % SCENE_CAMERA_ORBITS.length
   ];
-
-/** Chromium's map of each key's place to what this keyboard types there. */
-interface IKeyboardLayout {
-  getLayoutMap(): Promise<ReadonlyMap<string, string>>;
-}
-
-/**
- * What this keyboard's layout types on each key, where the browser can say:
- * a key of one's own is chosen by its place, and is named as it is printed
- * on this keyboard - a German layout's `ö` where a US one has `;`. Read
- * once; until it arrives, or where it never does, a letter or a digit is
- * named from its code and the rest by the code itself.
- */
-let layout: Promise<ReadonlyMap<string, string> | undefined> | undefined;
-const readLayout = () => {
-  const { keyboard } = navigator as Navigator & {
-    keyboard?: IKeyboardLayout;
-  };
-  layout ??= keyboard
-    ? keyboard.getLayoutMap().catch(() => undefined)
-    : Promise.resolve(undefined);
-  return layout;
-};
-
-const useKeyboardLayout = () => {
-  const [map, setMap] = useState<ReadonlyMap<string, string>>();
-  useEffect(() => {
-    let live = true;
-    readLayout()
-      .then((found) => {
-        // Nothing to say where the browser cannot read the layout.
-        if (live && found) {
-          setMap(found);
-        }
-        return undefined;
-      })
-      .catch(() => undefined);
-    return () => {
-      live = false;
-    };
-  }, []);
-  return map;
-};
 
 /** Whether the graph's scene can be turned now, followed as it changes. */
 const useTurns = (interaction: ISceneInteraction | undefined) =>
@@ -168,15 +119,9 @@ export default function SceneCameraMenu() {
   const calm = prefersReducedMotion();
 
   const code = codeOfCameraKey(key);
-  let keyValue: string;
-  if (recording) {
-    keyValue = t('graph.scene.camera.key.press');
-  } else if (code === undefined) {
-    keyValue = t(MODIFIER_LABEL[key as 'ctrl' | 'alt' | 'shift']);
-  } else {
-    keyValue =
-      keyboardLayout?.get(code)?.toUpperCase() ?? printedKey(code) ?? code;
-  }
+  const keyValue = recording
+    ? t('graph.scene.camera.key.press')
+    : cameraKeyName(key, t, keyboardLayout);
 
   let report: string | undefined;
   if (recording) {

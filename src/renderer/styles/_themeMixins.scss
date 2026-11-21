@@ -341,6 +341,20 @@ $picture-accent-light: color-mix(
   }
 }
 
+// A key written as a key: the chip the View menu's shortcuts wear (Ctrl+W,
+// Space, the camera's key), and every other place that names one, so a key
+// reads the same wherever the app tells somebody to press it.
+@mixin keycap {
+  flex: 0 0 auto;
+  padding: 1px 5px;
+  border: 1px solid color-mix(in srgb, $edge-tint 16%, transparent);
+  border-radius: 4px;
+  color: $text-muted;
+  font-family: inherit;
+  font-size: $text-eyebrow;
+  white-space: nowrap;
+}
+
 // What floats and is read, not chosen from: a tooltip, a bubble, a tip. The
 // menus' own material - their floor and their edge - at the controls'
 // corner, so a tip over a menu and the menu are one stuff (2026-11-17, the

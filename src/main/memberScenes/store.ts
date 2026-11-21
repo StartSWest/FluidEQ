@@ -79,6 +79,8 @@ export interface IMemberSceneSummary {
   windowColours?: ISceneWindowColours;
   /** And the sets it names at the five hours of its day (`windowColourStops`). */
   windowColourStops?: ISceneWindowColourStops;
+  /** How far its camera turns and zooms, for the gallery's 3D label. */
+  camera?: IScenePack['camera'];
   /**
    * From the store: built on this computer by the account it is stored
    * under, rather than installed or sent. Through `visibleScenes`: made by
@@ -359,6 +361,7 @@ export const createMemberSceneStore = ({
       ...(pack.windowColourStops
         ? { windowColourStops: pack.windowColourStops }
         : {}),
+      ...(pack.camera ? { camera: pack.camera } : {}),
       own: !imported,
       ...(imported ? { authorName: imported.authorName } : {}),
     };
