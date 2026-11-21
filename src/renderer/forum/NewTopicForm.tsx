@@ -22,6 +22,7 @@ import {
 import MarkdownEditor from './MarkdownEditor';
 import {
   OPEN_FORUM_COMPOSE_EVENT,
+  PRESETS_BOARD,
   boardForTopic,
   readTopicPreset,
   type ITopicPreset,
@@ -83,12 +84,17 @@ export default function NewTopicForm({ forum }: INewTopicFormProps) {
   // when the form opens, and a seed taken then would stay empty.
   const [saved] = useState(savedTopic);
   const [picked, setPicked] = useState<string | undefined>(saved.board);
-  const board =
-    boardForTopic(picked, forum.canStartIn) ??
-    (forum.canStartIn.includes(forum.board) ? forum.board : '');
   const [title, setTitle] = useState(saved.title);
   const [body, setBody] = useState(saved.body);
   const [preset, setPreset] = useState(saved.preset);
+  // A topic carrying a preset goes to Presets and nowhere else (Ivan,
+  // 2026-11-20: "lock on presets so it only can be posted in presets"):
+  // the board is not the person's to pick while the preset is attached,
+  // and taking the preset off gives the choice back.
+  const board = preset
+    ? (boardForTopic(PRESETS_BOARD, forum.canStartIn) ?? PRESETS_BOARD)
+    : (boardForTopic(picked, forum.canStartIn) ??
+      (forum.canStartIn.includes(forum.board) ? forum.board : ''));
   const [posting, setPosting] = useState(false);
   const [copied, setCopied] = useState(false);
   const shared = useSharedPreset(preset?.code ?? '');
@@ -194,23 +200,35 @@ export default function NewTopicForm({ forum }: INewTopicFormProps) {
 
         <fieldset className="forum__field">
           <legend className="forum__label">{t('forum.compose.board')}</legend>
-          <div className="forum__board-picker" role="radiogroup">
-            {forum.canStartIn.map((slug) => (
-              <button
-                key={slug}
-                type="button"
-                role="radio"
-                aria-checked={board === slug}
-                className={`forum__board-choice${board === slug ? ' is-selected' : ''}`}
-                onClick={() => setPicked(slug)}
-                disabled={posting}
-              >
-                <ForumGlyph name={boardGlyph(slug)} />
-                {boardName(slug, forum.boards, t)}
-              </button>
-            ))}
-          </div>
-          {hasPolls && (
+          {preset ? (
+            // Fixed to Presets while a preset is attached: the board lit as
+            // chosen, and no control beside it to pick another. A dimmed
+            // disabled button read as "not chosen" instead.
+            <div className="forum__board-picker">
+              <span className="forum__board-choice is-selected is-fixed">
+                <ForumGlyph name={boardGlyph(board)} />
+                {boardName(board, forum.boards, t)}
+              </span>
+            </div>
+          ) : (
+            <div className="forum__board-picker" role="radiogroup">
+              {forum.canStartIn.map((slug) => (
+                <button
+                  key={slug}
+                  type="button"
+                  role="radio"
+                  aria-checked={board === slug}
+                  className={`forum__board-choice${board === slug ? ' is-selected' : ''}`}
+                  onClick={() => setPicked(slug)}
+                  disabled={posting}
+                >
+                  <ForumGlyph name={boardGlyph(slug)} />
+                  {boardName(slug, forum.boards, t)}
+                </button>
+              ))}
+            </div>
+          )}
+          {hasPolls && !preset && (
             <a
               className="forum__aside"
               href={`${REPOSITORY_URL}/discussions/new?category=polls`}

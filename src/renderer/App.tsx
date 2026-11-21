@@ -92,8 +92,8 @@ import MiniPlayer from './player/MiniPlayer';
 import type { TPlayerPage } from './player/PlayerTitleStrip';
 import { usePlayerVisFull } from './player/playerLayout';
 import { setWindowMode, useWindowMode } from './player/windowModeStore';
-import { startCompose } from './forum/forumStore';
-import { OPEN_FORUM_COMPOSE_EVENT } from './forum/presetTopic';
+import { startComposeIn } from './forum/forumStore';
+import { OPEN_FORUM_COMPOSE_EVENT, PRESETS_BOARD } from './forum/presetTopic';
 import PresetLinkReceiver from './eq/ownPresets/share/PresetLinkReceiver';
 import { applyThemeScope } from './utils/theme';
 import {
@@ -237,7 +237,7 @@ const AppContent = () => {
   // (`presetTopic.ts`).
   useEffect(() => {
     const open = () => {
-      startCompose();
+      startComposeIn(PRESETS_BOARD);
       selectTopWorkspaceTab('forum');
     };
     window.addEventListener(OPEN_FORUM_COMPOSE_EVENT, open);

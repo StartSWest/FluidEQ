@@ -299,6 +299,16 @@ export const backToList = () => {
 
 export const startCompose = () => publish({ view: { kind: 'compose' } });
 
+/**
+ * A new topic for one board, with that board chosen in the rail as well:
+ * a preset's Share (Ivan, 2026-11-20: "pre select preset in the left
+ * pane"). Its list is read too, so Back lands on that board's topics.
+ */
+export const startComposeIn = (board: string) => {
+  publish({ board, search: '', filter: 'all', view: { kind: 'compose' } });
+  loadList().catch(() => undefined);
+};
+
 export const signIn = async (locale: string): Promise<void> => {
   const result = await call(() => bridge()?.forumSignIn?.(locale));
   // Cancelling is the person's own choice and needs no sentence.

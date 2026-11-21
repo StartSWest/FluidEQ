@@ -40,6 +40,9 @@ interface IOwnPresetTileProps {
   onExport: () => void;
 }
 
+/** Short share links are not on the server and the site yet. */
+const isLinkReady = false;
+
 type TMenuItem = {
   key: string;
   icon:
@@ -144,19 +147,26 @@ const OwnPresetTile = ({
       run: onShare,
       startsGroup: true,
     },
-    {
-      key: 'link',
-      icon: 'copyText',
-      label: t('presetShare.menu.copyLink'),
-      run: () => {
-        onCopyLink()
-          .then(() => {
-            setLinkCopied(true);
-            return true;
-          })
-          .catch(() => setLinkCopied(false));
-      },
-    },
+    // Copy share link waits for short links on the server and the site:
+    // the link it copied opened nothing (Ivan, 2026-11-20). `onCopyLink`
+    // and "Share link copied" come back with it.
+    ...(isLinkReady
+      ? [
+          {
+            key: 'link',
+            icon: 'copyText' as const,
+            label: t('presetShare.menu.copyLink'),
+            run: () => {
+              onCopyLink()
+                .then(() => {
+                  setLinkCopied(true);
+                  return true;
+                })
+                .catch(() => setLinkCopied(false));
+            },
+          },
+        ]
+      : []),
     {
       key: 'export',
       icon: 'upload',
