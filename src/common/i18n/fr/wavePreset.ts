@@ -14,7 +14,6 @@ export default {
     '{game} joue son propre son. Appuyez pour voir ce que vous pouvez faire',
   'wavePreset.change': 'Changer de préréglage',
   'wavePreset.choose': 'Choisir un préréglage',
-  'wavePreset.openTab': 'Ouvrir l’onglet Préréglage',
   'wavePreset.openLab': 'Ouvrir le Labo gaming',
   'wavePreset.backToMusic': 'Revenir au son musique',
   'wavePreset.gameOn': '{game} joue son propre son.',

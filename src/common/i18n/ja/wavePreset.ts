@@ -13,7 +13,6 @@ export default {
     '{game} 専用のサウンドを再生中です。押すとできることが表示されます',
   'wavePreset.change': 'プリセットを変更',
   'wavePreset.choose': 'プリセットを選ぶ',
-  'wavePreset.openTab': 'プリセットタブを開く',
   'wavePreset.openLab': 'ゲーミングラボを開く',
   'wavePreset.backToMusic': '音楽用のサウンドに戻す',
   'wavePreset.gameOn': '{game} 専用のサウンドを再生中です。',

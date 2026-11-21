@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { ReactNode } from 'react';
+import type { ReactNode, Ref } from 'react';
 
 interface IWavePresetCardProps {
   /** The glyph beside the name, sized by the card. */
@@ -16,16 +16,16 @@ interface IWavePresetCardProps {
   label: string;
   /** What it does: its curve, its stages. */
   children?: ReactNode;
-  /** The card's two presses, the suggested one first and loud. */
+  /** The card's presses, the suggested one first and loud. */
   actions: ReactNode;
+  /** Handed the card as it is drawn (`useWaveCard`: the focus goes in). */
+  cardRef: Ref<HTMLDivElement>;
 }
 
 /**
- * The card under the titlebar's plate (Ivan, 2026-11-20: "ok con la
- * tarjeta"): what plays, said before anybody presses. Shown by the plate's
- * own stylesheet while the plate is pointed at or focused from the keyboard
- * and hidden while its menu is open (`WavePreset.scss`), so it has no state
- * of its own and nothing here waits on a clock.
+ * The card a press on the titlebar's plate opens (Ivan, 2026-11-20): what
+ * plays, and the way to change it. Shown while its plate says so and never
+ * on pointing, so nothing comes up uninvited over the window.
  *
  * A double click on it stays on it: the titlebar under it takes one as
  * "maximise the window".
@@ -37,10 +37,12 @@ const WavePresetCard = ({
   label,
   children,
   actions,
+  cardRef,
 }: IWavePresetCardProps) => (
   <div
+    ref={cardRef}
     className="wave-preset-card"
-    role="group"
+    role="dialog"
     aria-label={label}
     onDoubleClick={(event) => event.stopPropagation()}
   >

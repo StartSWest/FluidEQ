@@ -13,14 +13,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 //
 // Direction B of the "Preset on the meter" mockup (Ivan, 2026-11-20): the
 // preset's glyph and name on a plate at the top centre of the wave, the trace
-// parting round it so it reads as part of the drawing; the quick pick on a
-// press, and C's card on pointing ("ok con la tarjeta"). Flat: no shadows,
-// no outline, a step of light under the pointer.
+// parting round it so it reads as part of the drawing, and on a press a card
+// that says what plays and opens the Preset page ("open the window and allow
+// the user to click change preset"). Nothing comes up on pointing. Flat: no
+// shadows, a step of light under the pointer.
 
-// How long the pointer rests on the plate before its card comes: passing
-// over it on the way to a tab shows nothing. A delay of the card's own
-// arrival, not a clock in the component (`wave-preset-card-wait` below).
-$card-hover-delay: 360ms;
 // Between the meter's foot and the card, as between a menu and its control.
 $card-gap: 6px;
 $card-width: 320px;
@@ -49,66 +46,43 @@ $card-width: 320px;
 }
 
 .wave-preset__holder {
+  position: relative;
   display: flex;
   grid-column: 2;
   min-width: 0;
 }
 
-.rich-pick.wave-preset__pick {
-  display: flex;
+// The plate: the app's plain key (`button-plain`), its hover and its open
+// state included, sized to the label row and carrying the row's words.
+.wave-preset__plate {
+  @include button-plain;
+  display: inline-flex;
   min-width: 0;
-  flex: 0 1 auto;
-}
-
-// The plate: the pick's trigger, quieter than the toolbar's pill it is —
-// no field edge, the name in the label row's own colour, a step of light
-// under the pointer and while its menu is open.
-.rich-pick__trigger.wave-preset__plate {
-  min-width: 0;
-  min-height: 0;
   height: 20px;
+  align-items: center;
   gap: 6px;
   padding: 0 8px;
   color: $text-primary;
-  border: 0;
   border-radius: $radius-xs;
-  background: transparent;
+  font: inherit;
   font-size: $text-body;
   font-weight: $weight-semibold;
   @include tracking(0.01em);
+  white-space: nowrap;
+  cursor: pointer;
   pointer-events: auto;
   -webkit-app-region: no-drag;
-
-  &:hover:not(:disabled),
-  &[aria-expanded='true'] {
-    background: $hover-accent;
-  }
 
   &:focus-visible {
     outline: 1.5px solid $secondary-default;
     outline-offset: 1px;
   }
-
-  // The caret says it opens something, and only once the plate is reached:
-  // at rest it would be a third mark in a row of words.
-  .rich-pick__caret {
-    width: 8px;
-    height: 8px;
-    opacity: 0;
-    transition: opacity $motion-fast $ease-out;
-  }
-
-  &:hover .rich-pick__caret,
-  &:focus-visible .rich-pick__caret,
-  &[aria-expanded='true'] .rich-pick__caret {
-    opacity: 0.85;
-  }
 }
 
-.wave-preset__glyph.rich-pick__glyph {
+.wave-preset__glyph {
   width: 13px;
   height: 13px;
-  font-size: 13px;
+  flex: none;
   color: $text-accent;
 }
 
@@ -120,15 +94,16 @@ $card-width: 320px;
 
 // One of the listener's own: the curve glyph in the Preset layer's violet,
 // which their presets wear (`_ownPresets.scss`).
-.wave-preset__plate.is-own .wave-preset__glyph.rich-pick__glyph {
+.wave-preset__plate.is-own .wave-preset__glyph {
   color: var(--ink-preset);
 }
 
-// Nothing chosen says so quietly, in the faint ink, and still offers a pick.
+// Nothing chosen says so quietly, in the faint ink, and still opens the card
+// that offers a preset.
 .wave-preset__plate.is-none {
   color: $text-muted;
 
-  .wave-preset__glyph.rich-pick__glyph {
+  .wave-preset__glyph {
     color: $text-muted;
   }
 }
@@ -167,30 +142,25 @@ img.wave-preset__glyph {
   transition: opacity $motion-base $ease-out;
 }
 
-// Pointing at the plate, or reaching it from the keyboard, steps the wave
-// back so the plate and its card are what is read.
-.waveform-visualizer-shell:has(
-    .wave-preset__holder:hover,
-    .wave-preset__holder :focus-visible
-  )
+// While the card is open the wave steps back, so the plate and its card are
+// what is read.
+.waveform-visualizer-shell:has(.wave-preset__plate[aria-expanded='true'])
   .waveform-visualizer__stage {
   opacity: 0.5;
 }
 
-// A narrow meter keeps the glyph alone: the name and the card still say it.
+// A narrow meter keeps the glyph alone: the card still says the rest.
 @container wave-meter (max-width: 150px) {
   .wave-preset__name,
-  .wave-preset__live.workspace-tab__live,
-  .wave-preset__plate .rich-pick__caret {
+  .wave-preset__live.workspace-tab__live {
     display: none;
   }
 }
 
 // *** The card ****************************************************************
 //
-// Under the meter, centred on the plate, on the app's menu surface. It is in
-// the plate's own markup, so pointing at it is still pointing at the plate,
-// and the space between the two is bridged for the pointer.
+// Under the meter, centred on the plate, on the app's menu surface and with
+// its arrival (`menu-motion`'s pop and fold, out of its top edge).
 
 .wave-preset-card {
   @include menu-face;
@@ -200,7 +170,7 @@ img.wave-preset__glyph {
   // meter's foot.
   top: calc(var(--title-bar-meter, 54px) - 1px + #{$card-gap});
   left: 50%;
-  display: none;
+  display: grid;
   width: $card-width;
   margin-left: calc(#{$card-width} / -2);
   padding: 12px;
@@ -213,54 +183,10 @@ img.wave-preset__glyph {
   text-transform: none;
   white-space: normal;
   cursor: default;
-  transform-origin: top center;
   pointer-events: auto;
   -webkit-app-region: no-drag;
-
-  // The way down from the plate, over the meter, so the card stays while
-  // the pointer travels to it.
-  &::before {
-    position: absolute;
-    right: 0;
-    bottom: 100%;
-    left: 0;
-    height: calc(var(--title-bar-meter, 54px) + #{$card-gap});
-    content: '';
-  }
-}
-
-// Held unseen for the rest, then the menus' own pop and fold.
-@keyframes wave-preset-card-wait {
-  from {
-    visibility: hidden;
-  }
-}
-
-.wave-preset__holder:hover
-  .wave-preset__pick:not(.is-card-dismissed, :has(> [aria-expanded='true']))
-  > .wave-preset-card {
-  display: grid;
-  animation:
-    wave-preset-card-wait 1ms linear $card-hover-delay backwards,
-    menu-in $motion-base $ease-out $card-hover-delay backwards;
-}
-
-// From the keyboard it is asked for, so it comes at once.
-.wave-preset__holder:has(:focus-visible)
-  .wave-preset__pick:not(.is-card-dismissed, :has(> [aria-expanded='true']))
-  > .wave-preset-card {
-  display: grid;
-  animation: menu-in $motion-base $ease-out backwards;
-}
-
-// The rest is a wait, not motion: under reduced motion the card still comes
-// only to a pointer that stays, and arrives without the pop.
-:root[data-motion='reduced']
-  .wave-preset__holder:hover
-  .wave-preset__pick:not(.is-card-dismissed, :has(> [aria-expanded='true']))
-  > .wave-preset-card {
-  animation: wave-preset-card-wait 1ms linear $card-hover-delay backwards !important;
-  animation-delay: $card-hover-delay !important;
+  @include surface-motion($menu-arrival);
+  transform-origin: top center;
 }
 
 .wave-preset-card__head {
@@ -340,17 +266,4 @@ img.wave-preset-card__glyph {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-}
-
-// *** The game's menu ***********************************************************
-
-.wave-preset__menu {
-  width: $card-width;
-}
-
-.wave-preset__menu-note {
-  margin: 0;
-  padding: 10px 12px 4px;
-  color: $text-muted;
-  font-size: $text-small;
 }

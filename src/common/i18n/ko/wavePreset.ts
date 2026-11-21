@@ -13,7 +13,6 @@ export default {
     '{game} 전용 사운드가 재생 중입니다. 눌러서 할 수 있는 일을 봅니다',
   'wavePreset.change': '프리셋 바꾸기',
   'wavePreset.choose': '프리셋 고르기',
-  'wavePreset.openTab': '프리셋 탭 열기',
   'wavePreset.openLab': '게이밍 랩 열기',
   'wavePreset.backToMusic': '음악용 사운드로 돌아가기',
   'wavePreset.gameOn': '{game} 전용 사운드가 재생 중입니다.',

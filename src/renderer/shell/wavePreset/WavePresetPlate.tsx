@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { memo, useRef } from 'react';
 import { useSoundingGame } from '../../games/useGameSound';
 import WavePresetGame from './WavePresetGame';
-import WavePresetPick from './WavePresetPick';
+import WavePresetMusic from './WavePresetMusic';
 import useWavePresetRoom from './useWavePresetRoom';
 import '../../styles/WavePreset.scss';
 
@@ -34,7 +34,7 @@ const WavePresetPlate = memo(({ isMeterOn }: { isMeterOn: boolean }) => {
   );
   return (
     <div ref={overlayRef} className="wave-preset">
-      {sounding ? <WavePresetGame game={sounding} /> : <WavePresetPick />}
+      {sounding ? <WavePresetGame game={sounding} /> : <WavePresetMusic />}
     </div>
   );
 });

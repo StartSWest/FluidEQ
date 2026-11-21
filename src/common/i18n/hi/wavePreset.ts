@@ -13,7 +13,6 @@ export default {
     '{game} अपनी साउंड चला रहा है। विकल्प देखने के लिए दबाएँ',
   'wavePreset.change': 'प्रीसेट बदलें',
   'wavePreset.choose': 'प्रीसेट चुनें',
-  'wavePreset.openTab': 'प्रीसेट टैब खोलें',
   'wavePreset.openLab': 'गेमिंग लैब खोलें',
   'wavePreset.backToMusic': 'संगीत वाली साउंड पर लौटें',
   'wavePreset.gameOn': '{game} अपनी साउंड चला रहा है।',

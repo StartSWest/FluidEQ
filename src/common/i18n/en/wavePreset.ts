@@ -16,7 +16,6 @@ export default {
     '{game} is playing its own sound. Press for what you can do',
   'wavePreset.change': 'Change preset',
   'wavePreset.choose': 'Choose a preset',
-  'wavePreset.openTab': 'Open the Preset tab',
   'wavePreset.openLab': 'Open the Gaming Lab',
   'wavePreset.backToMusic': 'Back to the music sound',
   'wavePreset.gameOn': '{game} is playing its own sound.',

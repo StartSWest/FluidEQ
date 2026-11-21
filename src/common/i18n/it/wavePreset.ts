@@ -13,7 +13,6 @@ export default {
     '{game} suona con il suo suono. Premi per vedere cosa puoi fare',
   'wavePreset.change': 'Cambia preset',
   'wavePreset.choose': 'Scegli un preset',
-  'wavePreset.openTab': 'Apri la scheda Preset',
   'wavePreset.openLab': 'Apri il Laboratorio gaming',
   'wavePreset.backToMusic': 'Torna al suono per la musica',
   'wavePreset.gameOn': '{game} suona con il suo suono.',

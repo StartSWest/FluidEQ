@@ -12,7 +12,6 @@ export default {
   'wavePreset.gameLabel': '{game} 正在播放自己的声音。按下查看可做的操作',
   'wavePreset.change': '更换预设',
   'wavePreset.choose': '选择预设',
-  'wavePreset.openTab': '打开预设选项卡',
   'wavePreset.openLab': '打开游戏实验室',
   'wavePreset.backToMusic': '恢复音乐声音',
   'wavePreset.gameOn': '{game} 正在播放自己的声音。',

@@ -13,7 +13,6 @@ export default {
     'Играет собственный звук {game}. Нажмите, чтобы увидеть действия',
   'wavePreset.change': 'Сменить пресет',
   'wavePreset.choose': 'Выбрать пресет',
-  'wavePreset.openTab': 'Открыть вкладку «Пресет»',
   'wavePreset.openLab': 'Открыть игровую лабораторию',
   'wavePreset.backToMusic': 'Вернуть музыкальный звук',
   'wavePreset.gameOn': 'Играет собственный звук {game}.',

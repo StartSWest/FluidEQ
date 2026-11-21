@@ -46,37 +46,52 @@ export const presetGlyph = (
   );
 
 /**
- * What the presets quick pick lists, which row is playing, and what a press
- * does: one reading for the player's deck (`VoicingQuickPick`) and the
- * titlebar's plate (`WavePresetPick`), so the two pickers cannot disagree
- * about what plays or what a pick puts on.
- *
- * The playing preset is read as the EQ page's Preset tab reads it
+ * Which preset plays, read as the EQ page's Preset tab reads it
  * (`activeDspPresetId`): the rack's own while it runs, the Preset layer's
  * otherwise. A pick, a song's or album's sound and Auto EQ all land in one or
- * the other, so every one of them renames both pickers in the same render.
+ * the other, so every one of them renames whatever shows this — the presets
+ * quick pick, the titlebar's plate (`WavePresetMusic`) — in the same render.
  */
-const useVoicingPick = () => {
+export const usePlayingPreset = () => {
   const { t } = useTranslation();
   const settings = useDspSettings();
   const { favorites, catalog } = useDspPresetCatalog(t);
-  const { isEnabled, isBlockingError, voicing } = useFluidEqLayers();
+  const { voicing } = useFluidEqLayers();
   // What the window already holds: asking main on mount ran the engine
   // helper again every time the equaliser's page or the player's deck opened.
   const status = useKnownAudioEngineStatus();
-  const isApo = status?.engine === 'apo';
   // One None for two states: nothing chosen at all, and the None chain the
   // DSP page may have put on a running rack. Picked here, it is the first.
   const chosen = activeDspPresetId(settings, voicing);
   const activeId =
     chosen === undefined || chosen === NONE_CHAIN_ID ? 'none' : chosen;
+  return {
+    settings,
+    favorites,
+    catalog,
+    activeId,
+    /** The playing preset, or undefined for none or a curve nobody named. */
+    active: catalog.find((preset) => preset.id === activeId),
+    /** Equalizer APO is the engine: a preset plays its curve and no rack. */
+    isApo: status?.engine === 'apo',
+  };
+};
+
+/**
+ * What the presets quick pick lists, which row is playing, and what a press
+ * does, for the player's deck (`VoicingQuickPick`).
+ */
+const useVoicingPick = () => {
+  const { t } = useTranslation();
+  const { settings, favorites, catalog, activeId, active, isApo } =
+    usePlayingPreset();
+  const { isEnabled, isBlockingError } = useFluidEqLayers();
   const { apply, selecting } = useDspPresetSelection(
     settings,
     applyDspSettings,
     persistDspSettings,
     true,
   );
-  const active = catalog.find((preset) => preset.id === activeId);
   const favouriteIds = new Set(favorites.map((preset) => preset.id));
   const rows: Array<IDspCatalogEntry & { group: string }> = [
     ...favorites.map((preset) => ({ ...preset, group: 'favorites' })),
@@ -155,8 +170,6 @@ const useVoicingPick = () => {
     groupLabel,
     favourites,
     apply,
-    /** Equalizer APO is the engine: a preset plays its curve and no rack. */
-    isApo,
     isDisabled: isBlockingError || !isEnabled || selecting,
   };
 };

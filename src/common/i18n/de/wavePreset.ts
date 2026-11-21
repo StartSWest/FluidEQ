@@ -13,7 +13,6 @@ export default {
     '{game} spielt seinen eigenen Klang. Drücken für die Möglichkeiten',
   'wavePreset.change': 'Preset wechseln',
   'wavePreset.choose': 'Preset wählen',
-  'wavePreset.openTab': 'Preset-Tab öffnen',
   'wavePreset.openLab': 'Gaming-Labor öffnen',
   'wavePreset.backToMusic': 'Zurück zum Musikklang',
   'wavePreset.gameOn': '{game} spielt seinen eigenen Klang.',

@@ -19,8 +19,8 @@ import '../styles/VoicingQuickPick.scss';
  * their hints and icons, for a menu nobody had open. It takes no props, so it
  * now renders when something it reads changes — the language, a saved chain
  * or a star, the rack, a layer, the engine — and not when its parent does.
- * What it lists and what a pick does are `useVoicingPick`'s, shared with the
- * titlebar's plate (`WavePresetPick`).
+ * What it lists and what a pick does are `useVoicingPick`'s; which preset
+ * plays is read as the titlebar's plate reads it (`usePlayingPreset`).
  */
 const VoicingQuickPick = memo(() => {
   const { t } = useTranslation();
