@@ -21,6 +21,11 @@ import { Dictionary } from '../en';
 
 const video: Partial<Dictionary> = {
   'video.sites': '動画サイト',
+  'video.railSites': 'サイト',
+  'video.recentEmpty':
+    '検索した語句がここに表示され、クリックひとつで再検索できます。',
+  'video.matchOn': 'オン',
+  'video.loading': 'ページを読み込み中',
   'video.back': '戻る',
   'video.forward': '進む',
   'video.reload': '再読み込み',

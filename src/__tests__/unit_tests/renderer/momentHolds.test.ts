@@ -73,8 +73,8 @@ const HOLDS: IHold[] = [
     duration: '6s',
   },
   {
-    sheet: 'VideoBrowser.scss',
-    selector: '.video-browser__sign-out.is-done svg',
+    sheet: 'VideoRail.scss',
+    selector: '.video-rail__sign-out.is-done .video-rail__icon',
     name: 'video-sign-out-said',
     duration: '4s',
   },

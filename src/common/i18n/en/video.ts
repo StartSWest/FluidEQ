@@ -19,6 +19,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 /** The Remote Media tab. */
 const video = {
   'video.sites': 'Video sites',
+  'video.railSites': 'Sites',
+  'video.recentEmpty':
+    'What you search for shows here, a click from running again.',
+  'video.matchOn': 'On',
+  'video.loading': 'Loading the page',
   'video.back': 'Back',
   'video.forward': 'Forward',
   'video.reload': 'Reload',

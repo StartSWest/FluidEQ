@@ -1,0 +1,200 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+
+// *** Notices over the page: flat strips ************************************
+//
+// A saved file and a refused link each say so in a strip across the page's
+// edge, on the menus' material and with no frame, line or shadow (Ivan,
+// 2026-11-19: "flat and clean", "no dropshadow always clean"): what a strip
+// is about is said by its glyph's ink, and a download's progress is the
+// accent's line along the strip's foot.
+
+.video-browser__download,
+.video-browser__blocked {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: $surface-menu-floor;
+}
+
+.video-browser__download {
+  top: 0;
+  min-height: 54px;
+}
+
+.video-browser__download-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: $secondary-light;
+
+  .video-browser__download.is-failed & {
+    color: $red;
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.6;
+  }
+}
+
+.video-browser__download-copy {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+  gap: 2px;
+
+  strong {
+    color: $text-primary;
+    font-size: $studio-text-tree;
+    font-weight: $weight-semibold;
+    @include truncate;
+  }
+
+  > span,
+  > small {
+    color: $studio-t3;
+    font-size: $studio-text-meta;
+    font-variant-numeric: tabular-nums;
+    @include truncate;
+  }
+}
+
+// The progress, along the strip's foot: the accent's line over nothing.
+.video-browser__download-progress {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  overflow: hidden;
+
+  > span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: $secondary-default;
+    transition: width 150ms ease-out;
+  }
+}
+
+.video-browser__download-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+
+  button {
+    padding: 6px 10px;
+    border-radius: $radius-xs;
+    font-size: $studio-text-meta;
+    cursor: pointer;
+    @include button-line;
+  }
+
+  // Showing the file is what a finished download is for: the lit one.
+  button:last-child {
+    @include button-lit;
+  }
+}
+
+.video-browser__download-dismiss,
+.video-browser__blocked-dismiss {
+  display: grid;
+  width: $control-height-2xs;
+  height: $control-height-2xs;
+  flex: 0 0 auto;
+  padding: 0;
+  place-items: center;
+  border-radius: $radius-xs;
+  cursor: pointer;
+  @include button-plain;
+
+  svg {
+    width: 10px;
+    height: 10px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-width: 1.6;
+  }
+}
+
+@container video-page (max-width: #{$bp-md}) {
+  .video-browser__download {
+    flex-wrap: wrap;
+  }
+
+  .video-browser__download-actions {
+    width: 100%;
+    padding-left: 30px;
+  }
+}
+
+// A drag over the divider is a drag over the page as far as Chromium is
+// concerned, and the guest swallows every pointer event that reaches it — the
+// pointer capture on the handle cannot see them. Taking the page out of
+// hit-testing for the length of the drag is what makes the divider work at all.
+//
+// Keyed off the column rather than the player, because the divider belongs to
+// the column now: one handle, above the graph, on whichever tab is showing it.
+.center-workspace.is-resizing .video-browser__view {
+  pointer-events: none;
+}
+
+// A refused link, along the page's foot.
+.video-browser__blocked {
+  bottom: 0;
+
+  > div {
+    display: grid;
+    min-width: 0;
+    flex: 1 1 auto;
+    gap: 2px;
+  }
+
+  strong {
+    color: $secondary-light;
+    font-size: $studio-text-tree;
+    font-weight: $weight-semibold;
+  }
+
+  span {
+    color: $studio-t3;
+    font-size: $studio-text-meta;
+    @include truncate;
+  }
+
+  // Opening it in the real browser is the way on: the lit one.
+  > button:not(.video-browser__blocked-dismiss) {
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    border-radius: $radius-xs;
+    font-size: $studio-text-meta;
+    cursor: pointer;
+    @include button-lit;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .video-browser__nav-button,
+  .video-rail__item {
+    transition: none;
+  }
+}

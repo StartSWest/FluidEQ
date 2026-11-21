@@ -133,6 +133,10 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.studio.chatPicks',
   // Video.
   'fluideq.video.matchColours',
+  // Online Media's rail: its dragged width and whether it is pinned open or
+  // folded to the sites' marks.
+  'fluideq.video.railWidth',
+  'fluideq.video.railPinned',
   'fluideq.videoAdBlock',
   'fluideq.videoAdBlockRevealed',
   // The Library.

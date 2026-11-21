@@ -19,36 +19,38 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'color' as *;
 @use 'constant' as *;
 @use 'motion' as *;
-@use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 
-// *** Built-in player ********************************************************
+// *** Online Media, laid out as the Library is *******************************
 //
-// Sits inside `.middle-content`, above the response graph, and owns its own
-// height — the graph below keeps the size it has everywhere else, and the
-// divider between them moves this one.
+// One card, the page's, and two columns on it in its one tone (Ivan,
+// 2026-11-19: "fix Online Media to match our new flat style, so it looks
+// like the Library"; direction A of that day's mockups): the sites, the
+// recent searches and the account's two controls down the studio rail every
+// such page shares (`VideoRail`, `StudioRail`), and beside it the Library's
+// bar over the page, which runs on to the card's edges. The rail and the
+// splitter place themselves in the first column (`StudioRail.scss`).
+//
+// Two classes, because the page list in App.scss lays every page out as a
+// column at one class's weight, and which of the two files lands later is
+// the bundler's affair.
+.video-browser.workspace-tab-panel--video {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
 
 .video-browser {
-  display: flex;
-  // Fills whatever the graph below is not using. The player has no height of
-  // its own any more: the split shares the viewport, so moving the divider
-  // resizes the graph and this takes the rest.
+  // The box the rail folds by on a narrow card (`_studioRailFold.scss`), as
+  // the Library's card is for its shelves. Nothing in here is fixed, so the
+  // containment takes no full-screen picture's window away from it.
+  container: studio-page / inline-size;
   min-width: 0;
   min-height: 0;
   flex: 1 1 auto;
-  flex-direction: column;
-  gap: $spacing-s;
-  // Never a horizontal scrollbar.
-  //
-  // The toolbar is a wrapping flex row and the stage is sized from its parent,
-  // so on the first paint of the tab — before the panel has been measured and
-  // while the site pills are still laying out — the row can be momentarily
-  // wider than the column it is in. That overflow gave the panel a horizontal
-  // scrollbar and pushed the player sideways out of view, which is a poor first
-  // impression of a tab whose whole content is a picture.
-  //
-  // There is nothing here worth scrolling to sideways in any case: the row
-  // wraps and the stage fits by construction.
+  // Never a horizontal scrollbar: the bar wraps and the stage fits by
+  // construction, and there is nothing here worth scrolling to sideways.
   overflow-x: hidden;
 
   // Not unmounted when another tab is open, so that the audio keeps playing.
@@ -57,466 +59,80 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &.is-hidden {
     display: none;
   }
-
-  // The page's own fullscreen button, honoured within this pane and no further.
-  //
-  // It used to take the whole window — fixed, above the titlebar, above every
-  // notice. That is what a browser does, and it is the wrong thing here: the
-  // reason to play a video inside an equalizer is to watch the spectrum move
-  // with it, and a video over the entire window covers the one thing the app is
-  // for. So fullscreen means the whole of the player's own pane: the toolbar
-  // gets out of the way and the picture takes the rest, while the graph below
-  // and the divider between them stay exactly where they were.
-  //
-  // Something still has to happen, mind. A guest that goes fullscreen fills its
-  // own element and stops, so with no rule at all the button would expand the
-  // video to the size of the box it was already in — technically fullscreen,
-  // visibly nothing.
-  &.is-fullscreen {
-    gap: 0;
-  }
 }
 
-// The chrome has no place over a fullscreen video.
-.video-browser.is-fullscreen .video-browser__bar {
-  display: none;
+// The page beside the rail: the bar, then the stage taking the rest.
+.video-browser__main {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  grid-column: 2;
+  grid-row: 1;
+  flex-direction: column;
+  container: video-page / inline-size;
 }
 
-// Edge to edge within the pane. The rounded card is what the player looks like
-// while it is one panel among several; filling its pane, the corners and the
-// shadow are a frame around something that no longer has anything to be framed
-// against.
+// Edge to edge within the pane. In full screen there is no card to keep the
+// picture inside, and a clip on the live video is a second offscreen layer at
+// display resolution while it decodes.
 .video-browser.is-fullscreen .video-browser__stage {
   height: 100%;
   border: none;
   border-radius: 0;
   box-shadow: none;
-  // Rounded composite clipping is useful for the docked card and expensive at
-  // display resolution. HTML fullscreen has no corners to contain, so do not
-  // put the live video through a second offscreen layer while it is decoding.
   clip-path: none;
   isolation: auto;
   overflow: visible;
 }
 
+// *** The bar: the Library's (`.library-top`) *********************************
+
 .video-browser__bar {
   // Above the stage, so the suggestion list can hang over the page rather than
   // being clipped by it. The stage isolates its guest into its own stacking
-  // context, which keeps the video inside its rounded corners but does nothing
-  // to stop it painting over a sibling that comes earlier in the document.
+  // context, which does nothing to stop it painting over a sibling that comes
+  // earlier in the document.
   position: relative;
   z-index: 5;
   display: flex;
   min-width: 0;
-  // The card pads the top; this pads the sides, so the toolbar is inset while
-  // the picture below it is not.
-  padding-inline: 12px;
+  flex: 0 0 auto;
   flex-wrap: wrap;
   align-items: center;
-  gap: $spacing-s;
+  gap: 10px;
+  // The Library's main column: 14px over its bar, 12 at the sides, 10 under.
+  padding: 14px 12px 10px;
 }
 
-// The toolbar sweeps in left to right — nav buttons, then the site chips, then
-// the search field. Everything below it is the guest page, which is a native
-// surface with somebody else's video in it and is not ours to animate.
-//
-// KEYED OFF `.is-hidden`, unlike every other tab. This panel is mounted once
-// and then hidden rather than destroyed, so that leaving the tab does not stop
-// the music — which means the elements are never new and a plain entrance
-// would play once, on the first visit of the session, and never again. The
-// selector only matches while the tab is showing, so removing the class starts
-// the animation and adding it back arms it for next time. Same mechanism the
-// panel's own surface transition uses in App.scss.
-//
-// Deliberately quicker than the pages that remount: this is a toolbar somebody
-// flicks back to with a video already playing behind it, so the whole sweep is
-// over in about a third of a second.
-.video-browser:not(.is-hidden) .video-browser__nav-button {
+// The bar arrives with the page, as the Library's does: the rail and the bar
+// are drawn only while the page is looked at (`showsChrome`), so each visit
+// mounts them and the entrance plays then.
+.video-browser__nav,
+.video-browser__search,
+.video-browser__address {
   @include stagger-in($count: 3, $step: 26ms, $duration: $motion-fast);
 }
 
-.video-browser:not(.is-hidden) .video-browser__site {
-  @include stagger-in(
-    $count: 5,
-    $step: 26ms,
-    $offset: 78ms,
-    $duration: $motion-fast
-  );
-}
-
-.video-browser:not(.is-hidden) .video-browser__search {
-  @include animate(rise-in, $motion-fast, $ease-out, 208ms);
-}
-
-// *** Back, forward, reload **************************************************
-
 .video-browser__nav {
-  display: flex;
-  flex: 0 0 auto;
-  gap: $spacing-xs;
-}
-
-.video-browser__nav-button {
-  display: flex;
-  width: $control-height-xs;
-  height: $control-height-xs;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  // The line tier (`_buttonFaces.scss`). They had a tint and a hairline of
-  // their own, a third kind of button beside the app's two. Dimmed rather
-  // than hidden when unavailable: a back button that vanishes at the start
-  // of history makes the row jump every time somebody navigates.
-  border-radius: $radius-s;
-  cursor: pointer;
-  transition: $transition-control;
-  @include button-line;
-
-  svg {
-    width: 13px;
-    height: 13px;
-    fill: none;
-    stroke: currentcolor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.7;
-  }
-}
-
-// *** Site buttons ***********************************************************
-
-.video-browser__sites {
-  display: flex;
-  min-width: 0;
-  // Content width. These used to grow, which put every pixel of spare room
-  // between the last pill and the search box — the pills stayed the size of
-  // their labels and the gap did all the growing, so the row read as two
-  // clusters pushed to opposite ends. The slack belongs to the search box,
-  // which can actually use it.
-  flex: 0 1 auto;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: $spacing-xs;
-}
-
-.video-browser__site {
   display: inline-flex;
-  // The back and forward keys' 26px beside them, so the bar is one height
-  // of control (Ivan, 2026-09-27: "do a full pass for all inconsistencies").
-  // Sized by padding they came out 22.
-  height: $control-height-xs;
-  box-sizing: border-box;
-  align-items: center;
-  padding: 0 9px;
-  gap: 5px;
-  border-radius: $radius-xs;
-  font-size: $text-small;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: $transition-control;
-  // The line tier; the site being shown is chosen, so lit, as every chosen
-  // option is (2026-11-17, the one control theme).
-  @include button-line;
-
-  &.is-active {
-    @include button-lit;
-  }
-}
-
-// Filled with `currentColor`, so a mark takes the same hover and active colour
-// as the label beside it rather than fighting it. Slightly behind the text at
-// rest: the icon is there to be recognised in passing, not read.
-.video-browser__site-icon {
-  width: 11px;
-  height: 11px;
   flex: 0 0 auto;
-  fill: currentcolor;
-  opacity: 0.75;
-
-  .video-browser__site:hover &,
-  .video-browser__site.is-active & {
-    opacity: 1;
-  }
+  gap: 2px;
 }
 
-// *** Search *****************************************************************
-
-// Takes the slack the pills no longer do, so the row reads as one continuous
-// toolbar instead of two clusters pushed to opposite ends. Capped, because a
-// search box two thirds of a wide monitor across is not more usable than one
-// the width of a search — it just leaves the caret marooned.
-.video-browser__search {
-  min-width: 180px;
-  flex: 1 1 240px;
-  max-width: 460px;
-}
-
-.video-search {
-  position: relative;
-  width: 100%;
-}
-
-.video-search__field {
-  display: flex;
-  height: $control-height-xs;
-  align-items: center;
-  padding: 0 3px 0 8px;
-  // Matches the site pills rather than the nav buttons: this is the other end
-  // of the same row, and 26px tall against a 999px radius is a capsule.
-  border-radius: $radius-xs;
-  gap: 6px;
-  transition: $transition-control;
-  @include field-surface;
-  @include field-focus;
-
-  // A pill, open or shut. The bottom corners used to square off while the
-  // list was showing, on the reasoning that the two would read as one control
-  // — but the list hangs 4px BELOW the field rather than joining it, so what
-  // that produced was a capsule with two flattened corners floating over a
-  // separate card: a shape that belongs to neither of them, and the edge of
-  // the field looked broken the moment the list opened. The library search
-  // learned the same lesson first.
-}
-
-.video-search__icon {
-  width: 12px;
-  height: 12px;
-  flex: 0 0 auto;
-  fill: none;
-  stroke: color-mix(in srgb, $edge-tint 55%, transparent);
-  stroke-linecap: round;
-  stroke-width: 1.6;
-}
-
-// Two classes deep on purpose. App.scss gives every `input` the shared field
-// surface — its own border, background and padding — which inside this capsule
-// drew a second rounded box within the first. That rule sits at single-element
-// specificity so a single class here only wins if this file happens to be
-// loaded after it, which is not something to rely on for whether the control
-// has one border or two.
-.video-search .video-search__input {
-  min-width: 0;
-  height: 100%;
-  flex: 1 1 auto;
-  padding: 0;
-  border: none;
-  background: none;
-  box-shadow: none;
-  color: $text-primary;
-  font-size: $text-body;
-  outline: none;
-
-  &::placeholder {
-    color: $text-faint;
-  }
-
-  // And it stays glass in every state. The shared rule's HOVER carries two
-  // `:not()`s, which put it above a plain two-class selector — so the field
-  // was quiet at rest and then painted a cyan rectangle inside the capsule
-  // the moment the pointer crossed it, stopping short of both round ends.
-  &:hover:not(:disabled),
-  &:focus,
-  &:focus-visible {
-    border: none;
-    background: none;
-    box-shadow: none;
-    outline: none;
-  }
-}
-
-.video-search__clear {
-  display: flex;
-  width: 16px;
-  height: 16px;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border-radius: $radius-xs;
-  cursor: pointer;
-  @include button-plain;
-
-  svg {
-    width: 8px;
-    height: 8px;
-    fill: none;
-    stroke: currentcolor;
-    stroke-linecap: round;
-    stroke-width: 1.8;
-  }
-}
-
-.video-search__go {
-  flex: 0 0 auto;
-  padding: 3px 10px;
-  border-radius: $radius-xs;
-  // A step of mist inside the field, in the card's own hue: the accent's
-  // light at 16% here was a green chip in Rainbow mode's violet field.
-  font-size: $text-small;
-  white-space: nowrap;
-  cursor: pointer;
-  transition:
-    background 140ms ease,
-    opacity 140ms ease;
-  @include button-plain;
-}
-
-// *** What has been searched before ******************************************
-
-.video-search__suggestions {
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + 4px);
-  right: 0;
-  left: 0;
-  overflow: hidden;
-  padding: 4px;
-  // The floating surfaces' own face, like every other menu (Ivan,
-  // 2026-09-25: "all menus", "to much dropshadows").
-  // A dropdown: the card's face, like every menu (`menu-face`).
-  @include menu-face;
-  // Drops out of the field as every menu does (`menu-in`); it was the one list
-  // that simply appeared.
-  @include menu-motion;
-
-  ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-}
-
-.video-search__suggestions-title {
-  padding: 3px 8px 5px;
-  color: $text-faint;
-  font-size: $text-eyebrow;
-  @include tracking(0.08em);
-  text-transform: uppercase;
-}
-
-.video-search__suggestion {
-  display: flex;
-  align-items: center;
-  border-radius: $radius-s;
-
-  // One highlight, driven by the arrow keys, with hover feeding into the same
-  // state. Two independent highlights — one following the pointer, one the
-  // keyboard — is the thing that makes a list like this feel broken.
-  &.is-highlighted {
-    background: color-mix(in srgb, $secondary-light 14%, transparent);
-  }
-}
-
-.video-search__suggestion-run {
-  display: flex;
-  min-width: 0;
-  flex: 1 1 auto;
-  align-items: center;
-  padding: 5px 8px;
-  border: none;
-  background: none;
-  color: $text-primary;
-  font-size: $text-small;
-  gap: 7px;
-  text-align: left;
-  cursor: pointer;
-
-  svg {
-    width: 11px;
-    height: 11px;
-    flex: 0 0 auto;
-    fill: none;
-    stroke: color-mix(in srgb, $edge-tint 40%, transparent);
-    stroke-linecap: round;
-    stroke-width: 1.5;
-  }
-
-  span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-.video-search__suggestion-forget {
-  display: flex;
-  width: 20px;
-  height: 20px;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  margin-right: 4px;
-  padding: 0;
-  border-radius: $radius-xs;
-  cursor: pointer;
-  @include button-plain;
-
-  svg {
-    width: 8px;
-    height: 8px;
-    fill: none;
-    stroke: currentcolor;
-    stroke-linecap: round;
-    stroke-width: 1.8;
-  }
-}
-
-.video-search__forget-all {
-  width: 100%;
-  margin-top: 3px;
-  padding: 5px 8px;
-  font-size: $text-micro;
-  text-align: left;
-  cursor: pointer;
-  @include button-plain-accent;
-  // The menu's own rule above it, after the tier's edge so it stands.
-  border-top-color: $menu-rule;
-}
-
-// *** Sign out ***************************************************************
-
-// It carries the `margin-left: auto` that used to be on the ad-block group,
-// because it comes first in the row and is always rendered where that one
-// appears only after its chord. Two auto margins in one flex row split the free
-// space between them, which opens a gap in the middle rather than closing it.
-// One small square at the end of the row, and nothing else.
-//
-// It carries the `margin-left: auto` that used to be on the ad-block group,
-// because it comes first and is always rendered where that one appears only
-// after its chord. Two auto margins in one flex row split the free space
-// between them, which opens a gap in the middle rather than closing it.
-//
-// Sized to the row's other glyph buttons rather than to its own label, because
-// it no longer has one — the words are in the tooltip and in what a screen
-// reader is given.
-// The colours switch stands just before it and shares every line of it, so
-// the two read as one pair of marks at the end of the bar. The first of the
-// pair takes the free space; two automatic margins would have split it and
-// left a gap between them.
-.video-browser__match + .video-browser__sign-out {
-  margin-left: 0;
-}
-
-// How long the sign-out button says what it did before offering it again.
-$video-sign-out-said: 4s;
-
-.video-browser__match,
-.video-browser__sign-out {
+// The Library's bare squares (`.library-top__arrow`). Dimmed rather than
+// hidden when unavailable: a back button that vanishes at the start of
+// history makes the row jump every time somebody navigates.
+.video-browser__nav-button {
   display: grid;
-  width: $control-height-xs;
-  height: $control-height-xs;
-  margin-left: auto;
+  width: $control-height-sm;
+  height: $control-height-sm;
   flex: 0 0 auto;
-  padding: 0;
-  border-radius: $radius-s;
   place-items: center;
+  padding: 0;
+  border-radius: $radius-xs;
   cursor: pointer;
-  // The plain tier (`_buttonFaces.scss`).
+  transition: $transition-control;
   @include button-plain;
-  transition:
-    color 140ms ease,
-    border-color 140ms ease,
-    background 140ms ease;
 
   svg {
     width: 14px;
@@ -525,70 +141,61 @@ $video-sign-out-said: 4s;
     stroke: currentcolor;
     stroke-linecap: round;
     stroke-linejoin: round;
-    stroke-width: 1.5;
-  }
-
-  // What it did, in the only currency a glyph has. Held for four seconds by
-  // the glyph's own hold below, whose end brings the door back.
-  // The app's own accent rather than a green, because there is no green in this
-  // palette and inventing one for a four-second tick is how a palette stops
-  // being one.
-  &.is-done {
-    color: $secondary-default;
-  }
-
-  &.is-failed {
-    color: $red;
-  }
-
-  &.is-done svg,
-  &.is-failed svg {
-    animation: video-sign-out-said $video-sign-out-said linear;
+    stroke-width: 1.7;
   }
 }
 
-// The tick or the cross, for its moment. `visibility`, which the glyph already
-// has, so the hold draws nothing: it is only how long the answer stays up.
-// Not a movement, and it has to end for the door to come back, so it stays
-// under reduced motion — against the stand-down's 1ms (`App.scss`) with a
-// class more than its `*` and `!important` to meet its own.
-:root[data-motion='reduced']
-  .video-browser__sign-out:is(.is-done, .is-failed)
-  svg {
-  animation: video-sign-out-said $video-sign-out-said linear !important;
-}
-
-@keyframes video-sign-out-said {
-  from,
-  to {
-    visibility: visible;
-  }
-}
-
-// On: the drop filled and lit in the accent — the page beside it has just
-// taken the same colour, and the mark says where it came from.
-.video-browser__match.is-on {
-  color: $secondary-light;
-
-  svg path {
-    fill: color-mix(in srgb, currentcolor 45%, transparent);
-  }
-}
-
-// *** Ad blocker switch ******************************************************
-
-.video-browser__ad-block {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: $spacing-xs;
-}
-
-.video-browser__ad-block-label {
-  color: $text-muted;
-  font-size: $text-small;
+// Where the page is, at the bar's far end: the host in the second ink, the
+// first step of its path in the third after a dot. Truncated before it ever
+// pushes the search to a line of its own.
+.video-browser__address {
+  display: inline-flex;
+  min-width: 0;
+  flex: 0 1 auto;
+  align-items: baseline;
+  gap: 6px;
+  margin-left: auto;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
   white-space: nowrap;
-  cursor: help;
+}
+
+.video-browser__host {
+  min-width: 0;
+  color: $studio-t2;
+  font-weight: $weight-semibold;
+  @include truncate;
+}
+
+.video-browser__place {
+  min-width: 0;
+  @include truncate;
+
+  &::before {
+    margin-right: 6px;
+    content: '\00B7';
+  }
+}
+
+// The search takes what is left, up to the width a query needs, as the
+// Library's does.
+.video-browser__search {
+  min-width: 180px;
+  flex: 1 1 200px;
+  max-width: 460px;
+}
+
+// A bar too short for everything: the search takes a line of its own beside
+// the arrows, and where the page is gives way first.
+@container video-page (max-width: #{$bp-md}) {
+  .video-browser__search {
+    flex-basis: calc(100% - 3 * #{$control-height-sm} - 14px);
+    max-width: none;
+  }
+
+  .video-browser__address {
+    display: none;
+  }
 }
 
 // *** The page itself ********************************************************
@@ -598,27 +205,14 @@ $video-sign-out-said: 4s;
   width: 100%;
   min-height: 0;
   flex: 1 1 auto;
-  // No frame of its own, and square.
-  //
-  // The panes lost their fills and their card with them: the page stands on
-  // the window's floor, and the site drawn in its colour (`useGuestTint`)
-  // runs on out of it. Rounded corners were those of a card that is no longer
-  // drawn, and read as a rounded box cut into the pane (Ivan, 2026-09-26: "no
-  // rounded borders now inside that pane"). No clip path either: it was only
-  // there to carry the rounding to the guest, which this document does not
-  // paint.
+  // No frame of its own, and square: the page stands on the card and the
+  // site drawn in its colour (`useGuestTint`) runs on out of it (Ivan,
+  // 2026-09-26: "no rounded borders now inside that pane"). No fill either,
+  // so a letterboxed video shows the card behind it rather than a black box.
   border: none;
   border-radius: 0;
-  // Black rather than the shell colour: this is where a picture goes, and any
-  // tint behind a letterboxed video is visible as a border around it.
-  // No fill of its own, so a letterboxed video shows the workspace behind it
-  // rather than a black box. This used to be black on the reasoning that any
-  // tint behind a picture reads as a border around it — true of a *tint*, and
-  // not of the surface the rest of the app is already drawn on.
   background: transparent;
   box-shadow: none;
-  // The guest paints as a rectangle and ignores the parent's rounded corners
-  // unless it is clipped here.
   isolation: isolate;
   overflow: hidden;
 }
@@ -627,6 +221,38 @@ $video-sign-out-said: 4s;
   display: flex;
   width: 100%;
   height: 100%;
+}
+
+// A page on its way: a sweep along the stage's top edge, from the first
+// moment the guest starts loading until it stops. Under reduced motion the
+// sweep stands still at the start of the line.
+.video-browser__loading {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 2px;
+  overflow: hidden;
+  pointer-events: none;
+
+  > span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 40%;
+    background: $secondary-default;
+    animation: video-browser-loading 1.35s ease-in-out infinite;
+  }
+}
+
+@keyframes video-browser-loading {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(250%);
+  }
 }
 
 // The graph's Plus visualizer behind the page, in the video's own full screen
@@ -717,228 +343,6 @@ $video-sign-out-said: 4s;
 @media (prefers-reduced-motion: reduce) {
   .video-browser__full-bar,
   .video-browser__edge.is-top {
-    transition: none;
-  }
-}
-
-// *** Explicit web downloads ************************************************
-
-.video-browser__download {
-  position: absolute;
-  z-index: 3;
-  top: 12px;
-  right: 12px;
-  left: 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 54px;
-  padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, $secondary-light 42%, transparent);
-  border-radius: $radius-m;
-  background: color-mix(in srgb, $surface-menu-top 98%, transparent);
-  box-shadow: none;
-
-  &.is-completed {
-    border-color: rgba(#55f2bd, 0.52);
-  }
-
-  &.is-failed {
-    border-color: rgba($red, 0.58);
-  }
-}
-
-.video-browser__download-icon {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  flex: 0 0 auto;
-  place-items: center;
-  border: 1px solid color-mix(in srgb, $secondary-light 42%, transparent);
-  border-radius: $radius-m;
-  background: color-mix(in srgb, $secondary-light 10%, transparent);
-  color: $secondary-light;
-
-  svg {
-    width: 19px;
-    height: 19px;
-    fill: none;
-    stroke: currentcolor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.6;
-  }
-}
-
-.video-browser__download-copy {
-  display: grid;
-  min-width: 0;
-  flex: 1 1 auto;
-  gap: 3px;
-
-  strong {
-    overflow: hidden;
-    color: $text-primary;
-    font-size: $text-body;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  > span,
-  > small {
-    overflow: hidden;
-    color: $text-muted;
-    font-size: $text-small;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-.video-browser__download-progress {
-  position: relative;
-  height: 4px;
-  margin-top: 3px;
-  overflow: hidden;
-  border-radius: $radius-pill;
-  background: color-mix(in srgb, $edge-tint 14%, transparent);
-
-  > span {
-    position: absolute;
-    inset: 0 auto 0 0;
-    border-radius: inherit;
-    background: $secondary-light;
-    box-shadow: 0 0 12px color-mix(in srgb, $secondary-light 55%, transparent);
-    transition: width 150ms ease-out;
-  }
-}
-
-.video-browser__download-actions {
-  display: flex;
-  flex: 0 0 auto;
-  gap: 6px;
-
-  // The lit tier (`_buttonFaces.scss`); it glowed 14px under the pointer.
-  button {
-    padding: 6px 9px;
-    border-radius: $radius-s;
-    font-size: $text-small;
-    cursor: pointer;
-    @include button-lit;
-  }
-}
-
-.video-browser__download-dismiss {
-  display: grid;
-  width: $control-height-2xs;
-  height: $control-height-2xs;
-  flex: 0 0 auto;
-  padding: 0;
-  place-items: center;
-  border-radius: $radius-xs;
-  cursor: pointer;
-  @include button-plain;
-
-  svg {
-    width: 10px;
-    height: 10px;
-    fill: none;
-    stroke: currentcolor;
-    stroke-linecap: round;
-    stroke-width: 1.6;
-  }
-}
-
-@media (max-width: 680px) {
-  .video-browser__download {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .video-browser__download-actions {
-    width: 100%;
-    padding-left: 44px;
-  }
-}
-
-// A drag over the divider is a drag over the page as far as Chromium is
-// concerned, and the guest swallows every pointer event that reaches it — the
-// pointer capture on the handle cannot see them. Taking the page out of
-// hit-testing for the length of the drag is what makes the divider work at all.
-//
-// Keyed off the column rather than the player, because the divider belongs to
-// the column now: one handle, above the graph, on whichever tab is showing it.
-.center-workspace.is-resizing .video-browser__view {
-  pointer-events: none;
-}
-
-// *** Refused navigation *****************************************************
-
-.video-browser__blocked {
-  position: absolute;
-  z-index: 2;
-  right: 12px;
-  bottom: 12px;
-  left: 12px;
-  display: flex;
-  align-items: center;
-  gap: $spacing-s;
-  padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, $secondary-light 40%, transparent);
-  border-radius: $radius-m;
-  background: color-mix(in srgb, $surface-menu-top 97%, transparent);
-  box-shadow: none;
-
-  > div {
-    display: grid;
-    min-width: 0;
-    flex: 1 1 auto;
-    gap: 3px;
-  }
-
-  strong {
-    color: $secondary-light;
-    font-size: $text-body;
-  }
-
-  span {
-    overflow: hidden;
-    color: $text-muted;
-    font-size: $text-small;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  button {
-    flex: 0 0 auto;
-    padding: 5px 10px;
-    border-radius: $radius-s;
-    font-size: $text-small;
-    cursor: pointer;
-    @include button-lit;
-  }
-}
-
-.video-browser__blocked-dismiss {
-  display: flex;
-  width: 22px;
-  height: 22px;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-
-  svg {
-    width: 10px;
-    height: 10px;
-    fill: none;
-    stroke: currentcolor;
-    stroke-linecap: round;
-    stroke-width: 1.6;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .video-browser__nav-button,
-  .video-browser__site {
     transition: none;
   }
 }

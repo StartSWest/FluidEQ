@@ -21,6 +21,11 @@ import { Dictionary } from '../en';
 
 const video: Partial<Dictionary> = {
   'video.sites': 'Sites vidéo',
+  'video.railSites': 'Sites',
+  'video.recentEmpty':
+    'Vos recherches s’affichent ici, à un clic d’être relancées.',
+  'video.matchOn': 'Activé',
+  'video.loading': 'Chargement de la page',
   'video.back': 'Précédent',
   'video.forward': 'Suivant',
   'video.reload': 'Actualiser',

@@ -21,6 +21,11 @@ import { Dictionary } from '../en';
 
 const video: Partial<Dictionary> = {
   'video.sites': 'वीडियो साइटें',
+  'video.railSites': 'साइटें',
+  'video.recentEmpty':
+    'आप जो खोजते हैं, वह यहाँ दिखेगा, दोबारा खोजने के लिए बस एक क्लिक।',
+  'video.matchOn': 'चालू',
+  'video.loading': 'पेज लोड हो रहा है',
   'video.back': 'पीछे',
   'video.forward': 'आगे',
   'video.reload': 'फिर से लोड करें',

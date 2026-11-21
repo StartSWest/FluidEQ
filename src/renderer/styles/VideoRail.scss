@@ -1,0 +1,319 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+@use 'studioRailFold' as *;
+
+// *** The rail (`VideoRail`): the Library's shelves *************************
+
+// The rail's body hands its room to the list and the foot, as the Library's
+// does (`.library-rail`): the list scrolls, the foot stays.
+.studio-rail__body:has(> .video-rail) {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.video-rail {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.video-rail__scroll {
+  @include slim-scrollbar;
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 1px;
+  padding: 0 10px 8px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.video-rail__group {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// The sites arrive in a wave on each visit, as the Library's shelves do.
+.video-rail__group > .video-rail__item {
+  @include stagger-in($count: 5, $step: 26ms, $offset: 110ms);
+}
+
+// A site, the colours and the sign-out: the shelf row. Every button's line,
+// which the Library's shelves keep.
+.video-rail__item {
+  position: relative;
+  width: 100%;
+  line-height: 1.15;
+
+  @include studio-rail-item {
+    &.is-active {
+      @include studio-rail-item-active('.video-browser__site-icon');
+    }
+
+    &:disabled {
+      background: none;
+      color: $text-muted;
+      cursor: default;
+      opacity: $disabled-opacity;
+    }
+  }
+}
+
+// A site's mark (`VideoSiteIcon`), at the shelves' glyph size, in the row's
+// own ink so it takes the hover and the mark with the name.
+.video-browser__site-icon {
+  @include studio-rail-icon;
+  fill: currentcolor;
+}
+
+// The foot's drawn glyphs: the drop, the door, the tick and the cross.
+.video-rail__icon {
+  @include studio-rail-icon;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+.video-rail__label {
+  min-width: 0;
+  @include truncate;
+}
+
+// The site playing, at the row's end where a shelf keeps its count; on its
+// mark's corner while the rail is folded, the row's end being out of sight.
+.video-rail__live {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  margin-left: auto;
+  border-radius: $radius-pill;
+  background: $active;
+
+  @include folded-at-rest {
+    position: absolute;
+    top: 6px;
+    left: 24px;
+    margin: 0;
+  }
+}
+
+// A state at the row's end, in the third ink, as a shelf's count is.
+.video-rail__state {
+  margin-left: auto;
+  padding-left: 8px;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+}
+
+// On: the drop filled and lit in the accent, as the page beside it has just
+// taken the same colour. The words keep the row's ink: an accent row would
+// read as the thing to press.
+.video-rail__match.is-on .video-rail__icon {
+  color: $secondary-light;
+  opacity: 1;
+
+  path {
+    fill: color-mix(in srgb, currentcolor 45%, transparent);
+  }
+}
+
+// How long the sign-out row says what it did before offering it again.
+$video-sign-out-said: 4s;
+
+// What it did, in the accent or the red, for the glyph's own hold below,
+// whose end brings the door back. The app's accent rather than a green: this
+// palette has none, and inventing one for a four-second tick is how a palette
+// stops being one.
+.video-rail__sign-out {
+  &.is-done {
+    color: $secondary-light;
+  }
+
+  &.is-failed {
+    color: $red;
+  }
+
+  // Two plain selectors rather than one `:is()`: `momentHolds.test.ts` reads
+  // the compiled rule by its selector.
+  &.is-done .video-rail__icon,
+  &.is-failed .video-rail__icon {
+    opacity: 1;
+    animation: video-sign-out-said $video-sign-out-said linear;
+  }
+}
+
+// `visibility`, which the glyph already has, so the hold draws nothing: it is
+// only how long the answer stays up. Not a movement, and it has to end for
+// the door to come back, so it stays under reduced motion — against the
+// stand-down's 1ms (`App.scss`) with a class more than its `*` and
+// `!important` to meet its own.
+:root[data-motion='reduced']
+  .video-rail__sign-out:is(.is-done, .is-failed)
+  .video-rail__icon {
+  animation: video-sign-out-said $video-sign-out-said linear !important;
+}
+
+@keyframes video-sign-out-said {
+  from,
+  to {
+    visibility: visible;
+  }
+}
+
+// What has been searched before. Folded, the rail drops them all: six
+// identical clocks name nothing, and the field still finishes a typed word.
+.video-rail__recents {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1px;
+
+  @include folded-at-rest {
+    display: none;
+  }
+}
+
+.video-rail__recent {
+  position: relative;
+  display: flex;
+  min-width: 0;
+}
+
+// The Library's tree row (`.library-tree__item`): a step smaller than a
+// shelf, so the searches read as under the sites. Room kept at the end for
+// the forget button, which stands over it.
+.video-rail__recent-run {
+  min-width: 0;
+  flex: 1 1 auto;
+
+  @include studio-rail-item {
+    gap: 8px;
+    padding: 6px 30px 6px 10px;
+    font-size: $studio-text-tree;
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.5;
+    opacity: 0.6;
+  }
+}
+
+// Forgetting one search, shown on the row under the pointer or the keyboard.
+.video-rail__forget {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  display: grid;
+  width: $control-height-2xs;
+  height: $control-height-2xs;
+  padding: 0;
+  place-items: center;
+  border-radius: $radius-xs;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: $transition-control;
+  @include button-plain;
+
+  svg {
+    width: 8px;
+    height: 8px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-width: 1.8;
+  }
+
+  .video-rail__recent:is(:hover, :focus-within) & {
+    opacity: 1;
+  }
+}
+
+// No searches yet: what will appear here, in the third ink.
+.video-rail__note {
+  margin: 0;
+  padding: 2px 10px 6px;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  line-height: 1.45;
+}
+
+// The foot, where the Library adds a folder: under its hairline, outside the
+// list's scroll.
+.video-rail__foot {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 1px;
+  padding: 8px 10px 10px;
+  border-top: 1px solid $studio-hair;
+}
+
+// The foot's words run onto a second line rather than lose their end: a
+// switch named "Match FluidEQ's col…" says nothing, and the translations are
+// longer still. Folded they keep to one line, so the rail's hidden words
+// never make a glyph's row taller than its neighbours'.
+.video-rail__foot .video-rail__label {
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
+
+  @include folded-at-rest {
+    white-space: nowrap;
+  }
+}
+
+// The ad blocker, behind its chord: the words and the app's switch on one
+// row. Folded it has no glyph to stand for it, so it waits for the rail.
+.video-rail__ad-block {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 10px;
+  color: $text-muted;
+  font-size: $studio-text-row;
+
+  .video-rail__label {
+    cursor: help;
+  }
+
+  @include folded-at-rest {
+    display: none;
+  }
+}
+
+// A drag of the rail's edge crosses the page, and the guest swallows every
+// pointer event that reaches it, the handle's capture included: the page
+// stops taking the pointer for the length of the drag, as for the divider's.
+.video-browser:has(> .studio-rail-slot.is-resizing) .video-browser__view {
+  pointer-events: none;
+}

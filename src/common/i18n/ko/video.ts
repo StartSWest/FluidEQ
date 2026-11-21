@@ -4,6 +4,11 @@ import type { Dictionary } from '../en';
 
 const video = {
   'video.sites': '비디오 사이트',
+  'video.railSites': '사이트',
+  'video.recentEmpty':
+    '검색한 내용이 여기에 표시되며, 클릭 한 번으로 다시 검색할 수 있습니다.',
+  'video.matchOn': '켜짐',
+  'video.loading': '페이지를 불러오는 중',
   'video.back': '뒤로',
   'video.forward': '앞으로',
   'video.reload': '새로고침',

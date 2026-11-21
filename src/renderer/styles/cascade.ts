@@ -165,6 +165,11 @@ import './BugReport.scss';
 import './AudioTroubleshooter.scss';
 import './SideBar.scss';
 import './VideoBrowser.scss';
+// Online Media's search field, its rail (after `StudioRail.scss`, whose rows
+// it draws) and its notices over the page.
+import './VideoSearch.scss';
+import './VideoRail.scss';
+import './VideoNotices.scss';
 import './LibraryStageArt.scss';
 import './LibraryFolderArt.scss';
 import './LibraryCoverFlow.scss';

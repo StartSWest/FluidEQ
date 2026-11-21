@@ -18,22 +18,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import ChannelEnum from 'common/channels';
-import type { TranslationKey } from 'common/i18n';
 import { VIDEO_AD_BLOCK_STORAGE_KEY } from 'common/videoAdBlock';
 import {
   IVideoSite,
   VIDEO_BROWSER_PARTITION,
-  VIDEO_SITES,
   VIDEO_LINK_BLOCKED,
   buildSearchUrl,
   findSiteForUrl,
   isNavigableVideoUrl,
 } from 'common/videoSites';
-import {
-  IVideoDownloadUpdate,
-  VIDEO_DOWNLOAD_CHANGED,
-  isVideoDownloadUpdate,
-} from 'common/videoDownloads';
 import {
   TPlaybackMarks,
   resumePositionFor,
@@ -43,13 +36,14 @@ import Switch from '../widgets/Switch';
 import { useTranslation } from '../utils/I18nContext';
 import { useIsAdBlockRevealed } from '../utils/adBlockReveal';
 import { useGraphView } from '../utils/graphStyle';
-import { sendRequest, simpleResponseHandler } from '../utils/ipcRequest';
-import isOwnAnimationEnd from '../utils/ownAnimationEnd';
-import VideoSearch from './VideoSearch';
+import { addSearchToHistory } from '../utils/videoSearchHistory';
 import VideoFullScreenRow from './VideoFullScreenRow';
 import { FULL_LEVEL } from '../library/player/usePlayerDecks';
-import VideoSiteIcon from './VideoSiteIcon';
 import GuestTintToggle from './GuestTintToggle';
+import VideoRail from './VideoRail';
+import VideoSignOut from './VideoSignOut';
+import VideoTopBar from './VideoTopBar';
+import { VideoBlockedStrip, VideoDownloadStrip } from './VideoNotices';
 import { useGuestTint } from './useGuestTint';
 import VideoSceneBackdrop, { useSceneBehindVideo } from './VideoSceneBackdrop';
 import '../styles/VideoBrowser.scss';
@@ -66,13 +60,6 @@ import useVideoGuestEvents from './useVideoGuestEvents';
 import useVideoPlayerOnly from './useVideoPlayerOnly';
 import useVideoTransport from './useVideoTransport';
 import useVideoResumeMarks from './useVideoResumeMarks';
-
-const formatDownloadBytes = (bytes: number) => {
-  if (bytes < 1024 * 1024) {
-    return `${Math.max(0, bytes / 1024).toFixed(1)} KB`;
-  }
-  return `${Math.max(0, bytes / (1024 * 1024)).toFixed(1)} MB`;
-};
 
 interface IVideoBrowserProps {
   /**
@@ -180,8 +167,6 @@ const VideoBrowser = ({
   const [canGoForward, setCanGoForward] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [blockedUrl, setBlockedUrl] = useState('');
-  const [downloadUpdate, setDownloadUpdate] = useState<IVideoDownloadUpdate>();
-  const [downloadPathCopied, setDownloadPathCopied] = useState(false);
   // Whether the guest has a document to be asked anything about. Nothing may
   // call into it before `dom-ready`.
   const [isGuestReady, setIsGuestReady] = useState(false);
@@ -189,18 +174,9 @@ const VideoBrowser = ({
   // anything that has to be done again to a freshly loaded page can depend on
   // it. See `handleReady` for why a boolean was not enough.
   const [pageToken, setPageToken] = useState(0);
-  /**
-   * How the sign-out is going, as one value rather than three booleans.
-   *
-   * A clear can be in flight, can have worked, or can have failed, and those are
-   * exclusive — `isClearing && didFail` is not a state this can be in, so it
-   * should not be a state it can express. The result is deliberately not sticky:
-   * it goes back to idle on its own, because a permanent "Signed out" beside a
-   * button would still be there next time somebody wondered whether they were.
-   */
-  const [signOutState, setSignOutState] = useState<
-    'idle' | 'clearing' | 'done' | 'failed'
-  >('idle');
+  /** What the search field holds; a recent search pressed in the rail lands
+   * there too. */
+  const [searchQuery, setSearchQuery] = useState('');
   const [isAdBlockOn, setIsAdBlockOn] = useState(readStoredAdBlock);
   // Whether the switch is in the interface at all. Owned by a root-level flag
   // rather than by this component, because the chord that moves it is pressed
@@ -210,6 +186,9 @@ const VideoBrowser = ({
   // The page in FluidEQ's colours, when the user has asked for it — or as
   // glass over the graph's Plus visualizer in the video's own full screen.
   const isSceneBehind = useSceneBehindVideo(isFullScreen);
+  // The page as a page, with its rail and bar: on its tab, and neither in the
+  // video's own full screen nor the picture under an expanded graph.
+  const showsChrome = !isHidden && !isFullScreen && !isGraphBackdrop;
   useGuestTint(
     webviewRef,
     activeSite?.id,
@@ -339,35 +318,6 @@ const VideoBrowser = ({
     };
   }, []);
 
-  useEffect(() => {
-    const off = window.electron.ipcRenderer.on(
-      VIDEO_DOWNLOAD_CHANGED,
-      (...args: unknown[]) => {
-        const [update] = args;
-        if (!isVideoDownloadUpdate(update)) {
-          return;
-        }
-        setDownloadPathCopied(false);
-        setDownloadUpdate(update.phase === 'cancelled' ? undefined : update);
-      },
-    );
-    return () => {
-      off();
-    };
-  }, []);
-
-  const copyDownloadPath = useCallback(async () => {
-    if (!downloadUpdate?.filePath) {
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(downloadUpdate.filePath);
-      setDownloadPathCopied(true);
-    } catch {
-      setDownloadPathCopied(false);
-    }
-  }, [downloadUpdate]);
-
   // What the blocker actually runs on. A switch nobody has found cannot be on,
   // whatever a stored value left by another build might say — the interface
   // showing nothing and the player stripping ads is the one combination that
@@ -471,77 +421,23 @@ const VideoBrowser = ({
     [activeSite, goTo, pendingResumeRef],
   );
 
-  const handleSearch = useCallback(
+  /**
+   * Run a search, from the field or from a recent one in the rail, and
+   * remember it. Searched on whichever site is open, so the site marked in
+   * the rail is also the one being asked. Off any of them, YouTube answers.
+   */
+  const runSearch = useCallback(
     (terms: string) => {
-      if (!terms.trim()) {
+      const cleaned = terms.trim();
+      if (!cleaned) {
         return;
       }
-      // Searched on whichever site is open, so the button that is lit is also
-      // the one being asked. Off any of them, YouTube answers.
-      goTo(buildSearchUrl(activeSite ?? HOME_SITE, terms));
+      addSearchToHistory(cleaned);
+      setSearchQuery(cleaned);
+      goTo(buildSearchUrl(activeSite ?? HOME_SITE, cleaned));
     },
     [activeSite, goTo],
   );
-
-  /**
-   * Sign out of everything, and say so.
-   *
-   * The main process does the clearing and sends every player home afterwards,
-   * so there is nothing to reload from here — a page left showing somebody's
-   * name from cache is exactly the failure this button exists to avoid, and it
-   * is fixed on the side that knows when the store is actually empty.
-   *
-   * A request rather than a standing listener: the reply belongs to the press
-   * that asked for it, and a listener that outlived the press would answer a
-   * later one with an earlier result. Waited on however long the store takes
-   * to empty, because main answers every press.
-   */
-  const handleSignOut = useCallback(() => {
-    setSignOutState('clearing');
-    sendRequest(
-      ChannelEnum.CLEAR_VIDEO_SESSION,
-      [],
-      simpleResponseHandler<boolean>(),
-    ).then(
-      (cleared) => setSignOutState(cleared ? 'done' : 'failed'),
-      () => setSignOutState('failed'),
-    );
-  }, []);
-
-  const blockedHost = (() => {
-    try {
-      // A refused address with no host — `about:blank` is the one that happens
-      // — would print an empty string, which is a notice that says nothing at
-      // all. The whole address is worth more than a blank in that case.
-      return new URL(blockedUrl).hostname || blockedUrl;
-    } catch {
-      return blockedUrl;
-    }
-  })();
-
-  /**
-   * Whether the real browser could do anything with this if offered it.
-   *
-   * `shell.openExternal` is handed the address in the main process and refuses
-   * anything that is not `http:` or `https:` — rightly, since the OS acts on
-   * whatever scheme it is given. But the button offering it was drawn
-   * regardless, so a refusal of `about:blank` put up a control that did
-   * precisely nothing when pressed, which is worse than not offering it: it
-   * reads as the app being broken rather than as the address being unopenable.
-   */
-  const canOpenBlockedExternally = (() => {
-    try {
-      const { protocol } = new URL(blockedUrl);
-      return protocol === 'https:' || protocol === 'http:';
-    } catch {
-      return false;
-    }
-  })();
-
-  // There used to be a second kind of refusal here: a sign-in, turned away on
-  // purpose and told apart from a link off the list so it could be answered
-  // differently. Sign-in is the point now, so there is one kind of refusal left
-  // — the address is not on the list — and one thing to say about it.
 
   return (
     <div
@@ -562,331 +458,116 @@ const VideoBrowser = ({
         isGraphBackdrop ? ' is-playback-backdrop' : ''
       }`}
     >
-      {!isHidden && (
-        <div className="video-browser__bar">
-          <div className="video-browser__nav">
-            <button
-              type="button"
-              className="video-browser__nav-button"
-              aria-label={t('video.back')}
-              title={t('video.back')}
-              disabled={!canGoBack}
-              onClick={() => webviewRef.current?.goBack()}
-            >
-              <svg viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M10 3L5 8l5 5" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              className="video-browser__nav-button"
-              aria-label={t('video.forward')}
-              title={t('video.forward')}
-              disabled={!canGoForward}
-              onClick={() => webviewRef.current?.goForward()}
-            >
-              <svg viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M6 3l5 5-5 5" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              className="video-browser__nav-button"
-              aria-label={isLoading ? t('video.stop') : t('video.reload')}
-              title={isLoading ? t('video.stop') : t('video.reload')}
-              onClick={() => {
-                const view = webviewRef.current;
-                if (isLoading) {
-                  view?.stop();
-                } else {
-                  view?.reload();
-                }
-              }}
-            >
-              {isLoading ? (
-                <svg viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M4 4l8 8M12 4l-8 8" />
-                </svg>
-              ) : (
-                <svg viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M13 8a5 5 0 1 1-1.6-3.7M13 2v3h-3" />
-                </svg>
-              )}
-            </button>
-          </div>
-
-          <div
-            className="video-browser__sites"
-            role="group"
-            aria-label={t('video.sites')}
-          >
-            {VIDEO_SITES.map((site) => (
-              <button
-                key={site.id}
-                type="button"
-                className={`video-browser__site${
-                  activeSite?.id === site.id ? ' is-active' : ''
-                }`}
-                aria-pressed={activeSite?.id === site.id}
-                onClick={() => goToSite(site)}
-              >
-                <VideoSiteIcon siteId={site.id} />
-                {site.name}
-              </button>
-            ))}
-          </div>
-
-          <div className="video-browser__search">
-            <VideoSearch
-              handleSearch={handleSearch}
-              siteName={(activeSite ?? HOME_SITE).name}
-            />
-          </div>
-
-          {/*
-          THE OTHER HALF OF A SESSION THAT REMEMBERS.
-
-          The player keeps cookies now, so that signing in is worth doing — and
-          the moment it does, somebody has to be able to undo it. Always there,
-          unlike the ad-block switch behind its chord: a privacy control that has
-          to be discovered is one most people never find, and this one is the
-          whole justification for the store existing.
-
-          A MARK RATHER THAN A SENTENCE. It was a labelled button with a result
-          beside it, which is two pieces of prose in a toolbar whose other
-          controls are all glyphs — and it read as the loudest thing in the row
-          for something pressed once a month. The words live in the tooltip and
-          the label the screen reader gets; the corner keeps one small square.
-
-          It still says what it did, in the only currency it has left: the glyph
-          becomes a tick or a cross for a few seconds. A press that clears every
-          login and then shows nothing is indistinguishable from one that failed,
-          and that difference matters more here than anywhere else in the app.
-        */}
-          <GuestTintToggle siteId={activeSite?.id} />
-          <button
-            type="button"
-            className={`video-browser__sign-out is-${signOutState}`}
-            onClick={handleSignOut}
-            disabled={signOutState === 'clearing'}
-            title={t('video.signOutHint')}
-            aria-label={t(
-              {
-                idle: 'video.signOut',
-                clearing: 'video.signOutBusy',
-                done: 'video.signOutDone',
-                failed: 'video.signOutFailed',
-              }[signOutState] as TranslationKey,
-            )}
-          >
-            {/* Announced through the button's own label, so the drawing is
-              hidden from anything that reads rather than looks.
-
-              The tick or the cross clears itself: left up, "Signed out"
-              would still be on screen the next time somebody looked to check
-              whether they were — the one question this control exists to
-              answer, answered wrongly. How long it stays is the glyph's own
-              hold (`video-sign-out-said`), whose end brings the door back; it
-              was a timer, which ran on behind a covered window. */}
-            <svg
-              viewBox="0 0 16 16"
-              aria-hidden
-              onAnimationEnd={(event) => {
-                if (isOwnAnimationEnd(event, 'video-sign-out-said')) {
-                  setSignOutState('idle');
-                }
-              }}
-            >
-              {signOutState === 'done' && <path d="M3.5 8.4l3 3 6-6.6" />}
-              {signOutState === 'failed' && (
-                <path d="M4.5 4.5l7 7M11.5 4.5l-7 7" />
-              )}
-              {signOutState !== 'done' && signOutState !== 'failed' && (
-                // A door with an arrow leaving it, which is what every other
-                // application in the world uses for this.
-                <>
-                  <path d="M9.5 2.5h-6v11h6" />
-                  <path d="M7.5 8h7M11.5 5l3 3-3 3" />
-                </>
-              )}
-            </svg>
-          </button>
-
-          {isAdBlockRevealed && (
-            <div className="video-browser__ad-block">
-              <span
-                className="video-browser__ad-block-label"
-                title={t('video.adBlockHint')}
-              >
-                {t('video.adBlock')}
-              </span>
-              <Switch
-                id="videoAdBlocker"
-                isOn={isAdBlockOn}
-                isDisabled={false}
-                handleToggle={() => setIsAdBlockOn((on) => !on)}
-              />
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="video-browser__stage">
-        {isSceneBehind && <VideoSceneBackdrop />}
-        <Webview
-          ref={webviewRef}
-          className="video-browser__view"
-          src={initialUrl.current}
-          // Named here as well as forced in the main process. This is the value
-          // that has to be right for the tag to attach at all; the main process
-          // overwrites it anyway, so the two can never drift apart.
-          partition={VIDEO_BROWSER_PARTITION}
-          // Same reasoning as the partition above: named here as well as forced
-          // in the main process, because this is one of the attributes the tag
-          // reads while attaching. Setting it only in `will-attach-webview` was
-          // too late — the guest attached without it and `window.open` returned
-          // null, so SoundCloud showed "Please enable popup windows and try
-          // again" with a handler standing ready that Chromium never consulted.
-          //
-          // It does NOT widen what may open. Every popup is still put to
-          // `setWindowOpenHandler`, still checked against the allow-list, and
-          // still refused with a notice naming the host. This only lets the
-          // question be asked.
-          allowpopups="true"
-          webpreferences={VIDEO_WEB_PREFERENCES}
-        />
-        {/* In full screen, where the toolbar above is not drawn, the page's
-            row, as every page has one. */}
-        {!isHidden && isFullScreen && (
-          <VideoFullScreenRow
-            siteName={activeSite?.name}
-            onExit={onToggleVideoFullScreen}
-          />
-        )}
-        {!isHidden && downloadUpdate && (
-          <div
-            className={`video-browser__download is-${downloadUpdate.phase}`}
-            role={downloadUpdate.phase === 'failed' ? 'alert' : 'status'}
-            aria-live="polite"
-          >
-            <div className="video-browser__download-icon" aria-hidden="true">
-              <svg viewBox="0 0 20 20">
-                <path d="M10 2v10m0 0 4-4m-4 4L6 8M3 15.5h14" />
-              </svg>
-            </div>
-            <div className="video-browser__download-copy">
-              <strong>
-                {downloadUpdate.phase === 'choosing' &&
-                  t('video.downloadChoosing')}
-                {downloadUpdate.phase === 'downloading' &&
-                  t('video.downloadSaving', {
-                    file: downloadUpdate.fileName,
-                  })}
-                {downloadUpdate.phase === 'completed' &&
-                  t('video.downloadComplete')}
-                {downloadUpdate.phase === 'failed' && t('video.downloadFailed')}
-              </strong>
-              <span title={downloadUpdate.filePath ?? downloadUpdate.fileName}>
-                {downloadUpdate.filePath ?? downloadUpdate.fileName}
-              </span>
-              {(downloadUpdate.phase === 'choosing' ||
-                downloadUpdate.phase === 'downloading') && (
-                <>
-                  <div
-                    className="video-browser__download-progress"
-                    role="progressbar"
-                    aria-label={t('video.downloadProgress')}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={
-                      downloadUpdate.percent !== undefined
-                        ? Math.round(downloadUpdate.percent)
-                        : undefined
-                    }
+      {/* The rail and the bar only while the page is looked at as a page:
+          never behind another tab, in the video's own full screen or under an
+          expanded graph, where the picture is everything. Rendered rather
+          than hidden, and always ahead of the column that holds the guest,
+          so that column never moves in the tree and the guest is never
+          reloaded. */}
+      {showsChrome && (
+        <VideoRail
+          activeSiteId={activeSite?.id}
+          onSite={goToSite}
+          onRunSearch={runSearch}
+          foot={
+            <>
+              <GuestTintToggle siteId={activeSite?.id} />
+              <VideoSignOut />
+              {isAdBlockRevealed && (
+                <div className="video-rail__ad-block">
+                  <span
+                    className="video-rail__label"
+                    title={t('video.adBlockHint')}
                   >
-                    <span
-                      style={{
-                        width: `${downloadUpdate.percent ?? 0}%`,
-                      }}
-                    />
-                  </div>
-                  <small>
-                    {formatDownloadBytes(downloadUpdate.receivedBytes)}
-                    {downloadUpdate.totalBytes !== undefined &&
-                      ` / ${formatDownloadBytes(downloadUpdate.totalBytes)}`}
-                    {downloadUpdate.percent !== undefined &&
-                      ` · ${Math.round(downloadUpdate.percent)}%`}
-                  </small>
-                </>
-              )}
-            </div>
-            {downloadUpdate.phase === 'completed' &&
-              downloadUpdate.filePath && (
-                <div className="video-browser__download-actions">
-                  <button type="button" onClick={copyDownloadPath}>
-                    {downloadPathCopied
-                      ? t('video.downloadCopied')
-                      : t('video.downloadCopyPath')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      window.electron.ipcRenderer
-                        .revealVideoDownload(downloadUpdate.filePath as string)
-                        .catch(() => undefined);
-                    }}
-                  >
-                    {t('video.downloadShowFolder')}
-                  </button>
+                    {t('video.adBlock')}
+                  </span>
+                  <Switch
+                    id="videoAdBlocker"
+                    isOn={isAdBlockOn}
+                    isDisabled={false}
+                    handleToggle={() => setIsAdBlockOn((on) => !on)}
+                  />
                 </div>
               )}
-            {(downloadUpdate.phase === 'completed' ||
-              downloadUpdate.phase === 'failed') && (
-              <button
-                type="button"
-                aria-label={t('app.dismiss')}
-                className="video-browser__download-dismiss"
-                onClick={() => setDownloadUpdate(undefined)}
-              >
-                <svg viewBox="0 0 12 12" aria-hidden="true">
-                  <path d="M3 3l6 6M9 3l-6 6" />
-                </svg>
-              </button>
-            )}
-          </div>
+            </>
+          }
+        />
+      )}
+
+      <div className="video-browser__main">
+        {showsChrome && (
+          <VideoTopBar
+            canGoBack={canGoBack}
+            canGoForward={canGoForward}
+            isLoading={isLoading}
+            onBack={() => webviewRef.current?.goBack()}
+            onForward={() => webviewRef.current?.goForward()}
+            onReloadOrStop={() => {
+              const view = webviewRef.current;
+              if (isLoading) {
+                view?.stop();
+              } else {
+                view?.reload();
+              }
+            }}
+            currentUrl={currentUrl}
+            query={searchQuery}
+            onQueryChange={setSearchQuery}
+            onRunSearch={runSearch}
+            siteName={(activeSite ?? HOME_SITE).name}
+          />
         )}
-        {!isHidden && blockedUrl && (
-          <div className="video-browser__blocked" role="alert">
-            <div>
-              <strong>{t('video.blockedTitle')}</strong>
-              <span title={blockedUrl}>{blockedHost}</span>
-            </div>
-            {canOpenBlockedExternally && (
-              <button
-                type="button"
-                onClick={() => {
-                  window.electron.ipcRenderer.sendMessage(
-                    ChannelEnum.OPEN_VIDEO_LINK_EXTERNALLY,
-                    [blockedUrl],
-                  );
-                  setBlockedUrl('');
-                }}
-              >
-                {t('video.openInBrowser')}
-              </button>
-            )}
-            <button
-              type="button"
-              aria-label={t('app.dismiss')}
-              className="video-browser__blocked-dismiss"
-              onClick={() => setBlockedUrl('')}
+        <div className="video-browser__stage">
+          {isSceneBehind && <VideoSceneBackdrop />}
+          <Webview
+            ref={webviewRef}
+            className="video-browser__view"
+            src={initialUrl.current}
+            // Named here as well as forced in the main process. This is the value
+            // that has to be right for the tag to attach at all; the main process
+            // overwrites it anyway, so the two can never drift apart.
+            partition={VIDEO_BROWSER_PARTITION}
+            // Same reasoning as the partition above: named here as well as forced
+            // in the main process, because this is one of the attributes the tag
+            // reads while attaching. Setting it only in `will-attach-webview` was
+            // too late — the guest attached without it and `window.open` returned
+            // null, so SoundCloud showed "Please enable popup windows and try
+            // again" with a handler standing ready that Chromium never consulted.
+            //
+            // It does NOT widen what may open. Every popup is still put to
+            // `setWindowOpenHandler`, still checked against the allow-list, and
+            // still refused with a notice naming the host. This only lets the
+            // question be asked.
+            allowpopups="true"
+            webpreferences={VIDEO_WEB_PREFERENCES}
+          />
+          {/* A page on its way, from the first moment: a sweep along the
+            stage's top edge until the guest says it stopped loading. */}
+          {showsChrome && isLoading && (
+            <div
+              className="video-browser__loading"
+              role="progressbar"
+              aria-label={t('video.loading')}
             >
-              <svg viewBox="0 0 12 12" aria-hidden="true">
-                <path d="M3 3l6 6M9 3l-6 6" />
-              </svg>
-            </button>
-          </div>
-        )}
+              <span />
+            </div>
+          )}
+          {/* In full screen, where the toolbar above is not drawn, the page's
+            row, as every page has one. */}
+          {!isHidden && isFullScreen && (
+            <VideoFullScreenRow
+              siteName={activeSite?.name}
+              onExit={onToggleVideoFullScreen}
+            />
+          )}
+          <VideoDownloadStrip isHidden={isHidden} />
+          {!isHidden && blockedUrl && (
+            <VideoBlockedStrip
+              url={blockedUrl}
+              onDismiss={() => setBlockedUrl('')}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
