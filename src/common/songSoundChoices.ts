@@ -82,13 +82,24 @@ export const revert = (state: ISongSoundState): TStep => {
 /**
  * A saved EQ put on by the listener. While a song plays a sound it borrowed,
  * the EQ is lent too, as an edit made over that sound is kept out of the
- * output's profile, and the song's end hands back the listener's own sound as
- * it always does; over the listener's own sound it simply is their sound now.
+ * output's profile; over the listener's own sound it simply is their sound
+ * now. Either way it is picked by hand, so it is also what the song hands
+ * back at its end (`byHand` in `songSoundRecorder.ts`) — decided here, at the
+ * pick, because the window may hear the sound before main's answer or after
+ * it, and a sound heard while it is still on its way counts as nobody's hand.
  */
-export const putOn = (state: ISongSoundState, sound: ISongSound): TStep => [
-  { ...state, pending: sound },
-  [{ kind: 'apply', sound, isLent: state.session?.handBack !== undefined }],
-];
+export const putOn = (state: ISongSoundState, sound: ISongSound): TStep => {
+  const { session } = state;
+  const isLent = session?.handBack !== undefined;
+  return [
+    {
+      ...state,
+      pending: sound,
+      session: session && isLent ? { ...session, handBack: sound } : session,
+    },
+    [{ kind: 'apply', sound, isLent }],
+  ];
+};
 
 /** Look the playing song up again, for an answer changed elsewhere. */
 export const reconsider = (state: ISongSoundState): TStep => [

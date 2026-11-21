@@ -212,6 +212,9 @@ describe('putting a saved EQ on while a song plays', () => {
     const { step, read } = playingItsOwn();
     const effects = step({ kind: 'putOn', sound: saved });
     expect(effects).toEqual([{ kind: 'apply', sound: saved, isLent: true }]);
+    // Picked by hand, it is what the song hands back, from the pick itself:
+    // the window has not heard it yet.
+    expect(read().session?.handBack).toEqual(saved);
     step({ kind: 'applied', asked: saved, landed: saved });
     expect(read().session?.baseline).toEqual(remembered);
     expect(isSongSoundChanged(read())).toBe(true);
@@ -251,7 +254,8 @@ describe('putting a saved EQ on while a song plays', () => {
     expect(effects).toEqual([]);
     expect(read().session?.baseline).toEqual(saved);
     expect(isSongSoundChanged(read())).toBe(false);
-    // The listener's own sound still comes back at the song's end.
-    expect(read().session?.handBack).toEqual(original);
+    // Put on by hand, it is the listener's own sound from now on: the song's
+    // end hands it back, not the sound from before.
+    expect(read().session?.handBack).toEqual(saved);
   });
 });

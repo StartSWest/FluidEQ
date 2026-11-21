@@ -391,8 +391,15 @@ export const nowPlaying = (
       [],
     ];
   }
+  // Another song named is a next song, playing yet or not: the hand-back
+  // waits for its answer either way. The Library names the next track before
+  // it plays — `isPlaying` false for a moment at every change of track — and
+  // handing the listener's sound back right then put it on ahead of a song
+  // that had a sound of its own (Ivan, 2026-11-20: the next song of an album
+  // set to Pop "loaded K-pop", his sound from before). A song that never
+  // plays leaves it held until something does, or until nothing is named.
   const [closed, effects] = close(state, {
-    nextSong: isPlaying,
+    nextSong: true,
     handBack: true,
   });
   const opened: ISongSoundState = {

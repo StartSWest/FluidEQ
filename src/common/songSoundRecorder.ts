@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { sameSongSound } from './songSound';
+import { ISongSound, sameSongSound } from './songSound';
 import {
   ISongSoundState,
   TSongSoundEffect,
@@ -21,6 +21,7 @@ import {
   TStep,
 } from './songSoundSteps';
 import {
+  isSongSoundChanged,
   picked,
   putOn,
   reconsider,
@@ -58,17 +59,17 @@ export type {
  * song's end (Ivan approved explicit saving, 2026-11-20: "ok with auto eq
  * song save"). A change made while a saved sound plays is heard at once and
  * shown as "Changed, not saved", with Back to saved (`revert`); left unsaved,
- * it stays behind with the song, which plays its saved sound next time, and
- * the listener's own sound comes back for the next song as after any saved
- * one. Over its album's sound a save is the song's alone; an album changes in
+ * the song plays its saved sound next time, and the change, picked by hand,
+ * is what the next song with nothing saved plays (`byHand`). Over its album's
+ * sound a save is the song's alone; an album changes in
  * the Library only (Ivan, 2026-11-19). It used to be filed by itself at the
  * song's end: nothing on screen said so, and Clear EQ pressed during a saved
  * song saved it flat.
  *
  * WHAT IS LENT: a remembered song's sound goes on as its lookup answers and
- * is the song's while it plays, and the sound from before it is handed back
- * at its end, so a song with no memory plays with what the listener had, not
- * with the last remembered
+ * is the song's while it plays, and the listener's own sound — the last they
+ * picked by hand (`byHand`) — is handed back at its end, so a song with no
+ * memory plays with what the listener chose, not with the last remembered
  * song's. The hand-back waits for the next song's answer when one follows:
  * handed back at once and replaced a moment later by the next song's own,
  * two remembered songs in a row would play a moment of a third sound between
@@ -77,6 +78,38 @@ export type {
  * does — so every path here that ends a loan says so, even where the sound
  * would not change.
  */
+/**
+ * THE LISTENER'S OWN SOUND IS THE LAST ONE THEY PICKED BY HAND, whenever they
+ * picked it (Ivan, 2026-11-20: "otherwise it should be playing Music, the last
+ * preset manually selected during any playing or no playing"). A change made
+ * over a saved song's sound is still that song's "Changed, not saved", with
+ * Save changes and Back to saved; it is also, from now on, what every song
+ * with nothing saved plays — so it becomes what the song hands back at its
+ * end, and what a hand-back held for the next song puts on. What a saved song
+ * loads never counts: a sound on its way, or arriving, is nobody's hand.
+ * It used to be the sound from before the first saved song, kept whatever was
+ * picked during it, and after a saved song with Music picked by hand the next
+ * song with nothing saved played the K-pop from before.
+ */
+const byHand = (
+  state: ISongSoundState,
+  sound: ISongSound | undefined,
+  isOurs: boolean,
+): ISongSoundState => {
+  if (!sound || isOurs) {
+    return state;
+  }
+  const { session, owed } = state;
+  if (session?.handBack && isSongSoundChanged(state)) {
+    return { ...state, session: { ...session, handBack: sound } };
+  }
+  if (owed && !session?.handBack && !session?.owner) {
+    // Between songs, the next one's answer not in yet.
+    return { ...state, owed: { sound } };
+  }
+  return state;
+};
+
 export const reduceSongSound = (
   input: ISongSoundState,
   event: TSongSoundEvent,
@@ -102,18 +135,19 @@ export const reduceSongSound = (
         sound !== undefined &&
         state.pending !== undefined &&
         sameSongSound(sound, state.pending);
+      const next: ISongSoundState = {
+        ...state,
+        live: sound,
+        pending: isArrived ? undefined : state.pending,
+        // A song opened before the window knew its sound begins with the
+        // first one it hears.
+        session:
+          session && !session.baseline && !state.pending
+            ? { ...session, baseline: sound }
+            : session,
+      };
       return [
-        {
-          ...state,
-          live: sound,
-          pending: isArrived ? undefined : state.pending,
-          // A song opened before the window knew its sound begins with the
-          // first one it hears.
-          session:
-            session && !session.baseline && !state.pending
-              ? { ...session, baseline: sound }
-              : session,
-        },
+        byHand(next, sound, isArrived || state.pending !== undefined),
         timed,
       ];
     }
