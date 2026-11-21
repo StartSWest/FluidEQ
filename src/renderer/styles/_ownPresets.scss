@@ -11,6 +11,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'theme' as *;
 @use 'mainContentTokens' as *;
 @use 'libraryTokens' as *;
+@use 'eqPresetTab' as card;
 
 // *** The listener's own presets (own presets, Direction A, 2026-11-20) ****
 //
@@ -55,14 +56,19 @@ $own-edge: color-mix(in srgb, var(--ink-preset) 55%, transparent);
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
 }
 
-// --- One of the listener's presets: the Preset tab's tile, as two controls
-// side by side in one frame — the press that plays it, and its menu.
+// --- One of the listener's presets: the Preset tab's tile, as controls side
+// by side in one frame — the press that plays it, its star, Share and its
+// menu — over its curve, which runs the frame's whole width as a factory
+// card's does. The frame keeps the curve's room under the press, and the
+// press keeps the card's top inset on both sides of its words, so its words,
+// its star and its curve land where a factory card's do.
 .own-preset-tile {
+  position: relative;
   display: flex;
   min-width: 0;
-  min-height: 48px;
   box-sizing: border-box;
   align-items: stretch;
+  padding-bottom: card.$card-reserve - card.$card-pad-y;
   border: 1px solid $border-subtle;
   border-radius: $radius-m;
   transition: $transition-control;
@@ -92,7 +98,7 @@ $own-edge: color-mix(in srgb, var(--ink-preset) 55%, transparent);
   flex: 1 1 auto;
   align-items: center;
   gap: 10px;
-  padding: 6px 4px 6px 10px;
+  padding: card.$card-pad-y 4px card.$card-pad-y 10px;
   color: $text-primary;
   border: 0;
   border-radius: $radius-m 0 0 $radius-m;
@@ -101,13 +107,30 @@ $own-edge: color-mix(in srgb, var(--ink-preset) 55%, transparent);
   text-align: left;
   cursor: pointer;
 
+  // The press reaches over the whole frame, its curve included: the strip
+  // under the star and the menu is the card's as much as the words are. The
+  // star, Share and the menu stand over it (`position: relative` below).
+  // Never the rename's frame: laid over its field, it took the field's
+  // presses.
+  &:is(button)::before {
+    position: absolute;
+    border-radius: $radius-m;
+    content: '';
+    inset: 0;
+  }
+
   &:disabled {
     cursor: not-allowed;
     opacity: $disabled-opacity;
   }
 
+  // The focus outlines the card the press now covers, not the words alone.
   &:focus-visible {
-    @include focus-outline(-2px);
+    outline: none;
+
+    &::before {
+      @include focus-outline(-2px);
+    }
   }
 
   .eq-preset-tab__words {
@@ -181,16 +204,19 @@ $own-edge: color-mix(in srgb, var(--ink-preset) 55%, transparent);
   }
 }
 
-// Its curve, small, between its words and its menu.
+// Over the press's reach, so each keeps its own press.
+.own-preset-tile__star,
+.own-preset-tile__share,
+.own-preset-tile__more {
+  position: relative;
+}
+
+// Its curve drawn wide: in the notes beside the grid, New preset's dialog
+// and the titlebar plate's card.
 .own-preset-spark {
   display: block;
   flex: none;
   color: $own-ink;
-}
-
-.own-preset-spark--tile {
-  width: 44px;
-  height: 20px;
 }
 
 .own-preset-spark__zero {

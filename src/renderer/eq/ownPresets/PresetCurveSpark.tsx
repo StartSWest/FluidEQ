@@ -14,13 +14,11 @@ import {
   type ICurveBox,
 } from '../../graph/curvePreview';
 
-/** A tile's, a dialog's and the notes' sizes: each drawn at its own aspect. */
+/**
+ * A dialog's, the notes' and the titlebar card's size. A tile on the Preset
+ * tab draws its curve along its foot instead (`PresetCardCurve`).
+ */
 export const SPARK_BOXES = {
-  tile: {
-    width: 44,
-    height: 20,
-    padding: { top: 3, right: 2, bottom: 3, left: 2 },
-  },
   wide: {
     width: 260,
     height: 56,

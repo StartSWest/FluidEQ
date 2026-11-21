@@ -141,16 +141,29 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 8px;
 }
 
-// A preset: its glyph, its name and what it does, the one playing on the
-// accent's tint with the accent round it.
+// The curve along each card's foot (`PresetCardCurve`), and the room every
+// card keeps under its words for it - curve or none, so the Off card, New
+// preset and a chain with no curve stand as tall as their neighbours and the
+// grid's rows stay even. Own presets' cards build the same foot from these
+// (`_ownPresets.scss`), so the two kinds line up side by side in Favourites
+// and in a search.
+$card-pad-y: 7px;
+$card-curve: 20px;
+$card-rise: 4px;
+$card-foot: 7px;
+$card-reserve: $card-rise + $card-curve + $card-foot;
+
+// A preset: its glyph, its name and what it does over its curve, the one
+// playing on the accent's tint with the accent round it.
 .eq-preset-tab__tile {
-  display: flex;
+  position: relative;
+  display: grid;
   min-width: 0;
-  min-height: 48px;
   box-sizing: border-box;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 10px;
-  padding: 6px 10px;
+  column-gap: 10px;
+  padding: $card-pad-y 10px $card-reserve;
   color: $text-primary;
   border: 1px solid $border-subtle;
   border-radius: $radius-m;
@@ -208,11 +221,87 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
+// Centred on the words, not the card: held between the card's top inset and
+// the curve's room with its own height, so it stays on the name's row
+// whatever height the grid's row gives the card.
 .eq-preset-tab__star {
   position: absolute;
-  top: 50%;
+  top: $card-pad-y;
   right: 6px;
-  transform: translateY(-50%);
+  bottom: $card-reserve;
+  margin: auto 0;
+}
+
+// The curve: inset as the words are, its ink set by its tone and lifted to
+// full under the pointer or the focus. Every part strokes in `currentColor`,
+// the hairline at a quarter of it, so a card's 0 dB line is its own ink too.
+.preset-card-curve {
+  position: absolute;
+  bottom: $card-foot;
+  left: 10px;
+  display: block;
+  // An SVG is a replaced element: with `left` and `right` alone it keeps its
+  // own width rather than spanning between them.
+  width: calc(100% - 20px);
+  height: $card-curve;
+  overflow: visible;
+  color: $text-muted;
+  opacity: 0.58;
+  pointer-events: none;
+  // The line comes out of the card and goes back into it at 20 Hz and
+  // 20 kHz, rather than stopping on a cut at the inset.
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 7%,
+    #000 93%,
+    transparent
+  );
+  transition:
+    color 150ms ease,
+    opacity 150ms ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.preset-card-curve--own {
+  color: var(--ink-preset);
+  opacity: 0.8;
+}
+
+.preset-card-curve--playing {
+  color: $text-accent;
+  opacity: 1;
+}
+
+.eq-preset-tab__tile:is(:hover, :focus-visible):not(:disabled),
+.own-preset-tile:is(:hover, :focus-within) {
+  .preset-card-curve {
+    opacity: 1;
+  }
+
+  .preset-card-curve--plain {
+    color: $text-primary;
+  }
+}
+
+.preset-card-curve__zero {
+  stroke: currentColor;
+  stroke-opacity: 0.26;
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+  vector-effect: non-scaling-stroke;
+}
+
+.preset-card-curve__line {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
 }
 
 .eq-preset-tab__glyph {

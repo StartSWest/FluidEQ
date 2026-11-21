@@ -39,6 +39,8 @@ import {
   OwnPresetsEmptyNotes,
 } from './ownPresets/OwnPresetNotes';
 import useOwnPresetActions from './ownPresets/useOwnPresetActions';
+import PresetTile from './presetCard/PresetTile';
+import usePresetCurveDesign from './presetCard/usePresetCurveDesign';
 import OwnPresetExportDialog from './ownPresets/share/OwnPresetExportDialog';
 import {
   copyPresetLink,
@@ -127,6 +129,7 @@ const EqPresetTab = () => {
   );
   const [isImporting, setImporting] = useState(false);
   const own = useOwnPresetActions();
+  const curveDesign = usePresetCurveDesign();
 
   // A search looks in every group at once, each preset once.
   const searched = Array.from(
@@ -255,16 +258,12 @@ const EqPresetTab = () => {
                   preset.id,
                   catalog.map((one) => one.id),
                 );
-              // The star beside the tile, never inside it: a button cannot
-              // hold a button, and starring must not put the preset on. The
-              // same star, list and labels as the preset picks' menus, so a
-              // star given here files the preset first there too (Ivan,
-              // 2026-11-20: "on presets how do I add one to fav or remove").
               if (preset.group === 'saved') {
                 return (
                   <OwnPresetTile
                     key={preset.id}
                     preset={preset}
+                    curveDesign={curveDesign}
                     hint={
                       isApo ? t('dsp.quick.apo') : dspPresetRowHint(preset, t)
                     }
@@ -299,44 +298,23 @@ const EqPresetTab = () => {
                 );
               }
               return (
-                <div key={preset.id} className="eq-preset-tab__cell">
-                  <button
-                    type="button"
-                    className="eq-preset-tab__tile"
-                    aria-pressed={preset.id === activeId}
-                    disabled={isDisabled}
-                    onPointerEnter={() => setPointedAt(preset.id)}
-                    onFocus={() => setPointedAt(preset.id)}
-                    onClick={() => {
-                      apply(preset.id).catch(() => undefined);
-                    }}
-                  >
-                    <VoicingIcon
-                      profileId={preset.id}
-                      className="eq-preset-tab__glyph"
-                    />
-                    <span className="eq-preset-tab__words">
-                      <strong>{preset.name}</strong>
-                      <span>
-                        {isApo
-                          ? t('dsp.quick.apo')
-                          : dspPresetRowHint(preset, t)}
-                      </span>
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`rich-pick__star eq-preset-tab__star${
-                      isFavourite ? ' is-on' : ''
-                    }`}
-                    aria-pressed={isFavourite}
-                    aria-label={`${starLabel}: ${preset.name}`}
-                    title={starLabel}
-                    onClick={toggleStar}
-                  >
-                    <MenuIcon name="star" />
-                  </button>
-                </div>
+                <PresetTile
+                  key={preset.id}
+                  preset={preset}
+                  hint={
+                    isApo ? t('dsp.quick.apo') : dspPresetRowHint(preset, t)
+                  }
+                  isPlaying={preset.id === activeId}
+                  isDisabled={isDisabled}
+                  isFavourite={isFavourite}
+                  starLabel={starLabel}
+                  design={curveDesign}
+                  onToggleStar={toggleStar}
+                  onApply={() => {
+                    apply(preset.id).catch(() => undefined);
+                  }}
+                  onPoint={() => setPointedAt(preset.id)}
+                />
               );
             })}
           </div>

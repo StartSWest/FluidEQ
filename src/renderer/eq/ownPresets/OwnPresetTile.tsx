@@ -11,10 +11,13 @@ import MenuIcon from '../../icons/MenuIcon';
 import VoicingIcon from '../../icons/VoicingIcon';
 import { useTranslation } from '../../utils/I18nContext';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../../widgets/AnchoredMenu';
-import PresetCurveSpark from './PresetCurveSpark';
+import PresetCardCurve from '../presetCard/PresetCardCurve';
+import type { IPresetCurveDesign } from '../presetCard/presetCardDrawing';
 
 interface IOwnPresetTileProps {
   preset: IDspCatalogEntry;
+  /** How its curve is drawn, read once by the tab for every card. */
+  curveDesign: IPresetCurveDesign;
   /** What the rack runs, as the Preset tab's other tiles say it. */
   hint: string;
   isPlaying: boolean;
@@ -59,13 +62,15 @@ type TMenuItem = {
 
 /**
  * One of the listener's presets on the Preset tab: pressed, it plays, as
- * every tile there does; its curve drawn small beside its name; and a menu of
- * its own — Edit, Rename (in place), Duplicate, its three ways out (Share
- * to the community, Copy share link, Export) and Delete — which a factory
+ * every tile there does; its curve along its foot in the Preset layer's
+ * violet, as every card draws its own in its ink; and a menu of its own —
+ * Edit, Rename (in place), Duplicate, its three ways out (Share to the
+ * community, Copy share link, Export) and Delete — which a factory
  * preset does not have. Delete asks first, in the notes beside the grid.
  */
 const OwnPresetTile = ({
   preset,
+  curveDesign,
   hint,
   isPlaying,
   isDisabled,
@@ -226,9 +231,16 @@ const OwnPresetTile = ({
               {isLinkCopied ? t('presetShare.linkCopied') : hint}
             </span>
           </span>
-          <PresetCurveSpark curve={preset.curve} size="tile" />
         </button>
       )}
+      {/* Across the card's foot, under the star and the menu too, so it
+          lines up with a factory card's beside it; a press on it is the
+          card's own press (`.own-preset-tile__main::before`). */}
+      <PresetCardCurve
+        curve={preset.curve}
+        design={curveDesign}
+        tone={isPlaying ? 'playing' : 'own'}
+      />
       {/* The star every Preset tab tile has (`.rich-pick__star`), shown under
           the pointer or the focus and always once given, then the menu at
           the tile's end: side by side, never one over the other. */}

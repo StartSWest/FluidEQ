@@ -43,6 +43,14 @@ jest.mock('renderer/games/useGameSound', () => ({
   ...jest.requireActual('renderer/games/useGameSound'),
   useSoundingGame: () => undefined,
 }));
+// The cards' curves read how the graph draws the Preset layer, which asks
+// main for the treble choice and the output's rate; with no bridge here they
+// are drawn as before either is known, which is what the window does too.
+jest.mock('renderer/utils/useTrebleDesigns', () => ({
+  ...jest.requireActual('renderer/utils/useTrebleDesigns'),
+  useTrebleDesigns: () => undefined,
+}));
+jest.mock('renderer/utils/useOutputRate', () => () => undefined);
 // The notes' own contents are not what is held here.
 jest.mock('renderer/dsp/GenreNotesPreview', () => () => null);
 
