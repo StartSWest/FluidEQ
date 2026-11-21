@@ -29,11 +29,20 @@ export const clamp = (num: number, min: number, max: number) => {
   return Math.min(Math.max(num, min), max);
 };
 
+/** Both ears first, then the left, then the right. */
+const CHANNEL_ORDER = { both: 0, left: 1, right: 2 } as const;
+
+/**
+ * Bands by frequency, and at one frequency by what a drag never changes: the
+ * ear, then the band's own id. The tie used to fall to gain and Q, so taking
+ * the right ear of a left/right pair under the left's gain swapped the two
+ * sliders under the hand (Ivan, 2026-11-20: "the R swap with left position,
+ * it needs to keep its position") — and Q widens with gain, so it moved too.
+ */
 export const sortHelper = (a: IFilter, b: IFilter) =>
   a.frequency - b.frequency ||
-  a.gain - b.gain ||
-  a.quality - b.quality ||
-  a.type.localeCompare(b.type);
+  CHANNEL_ORDER[a.channel ?? 'both'] - CHANNEL_ORDER[b.channel ?? 'both'] ||
+  a.id.localeCompare(b.id);
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from#sequence_generator_range
 export const range = (start: number, stop: number, step: number) =>
