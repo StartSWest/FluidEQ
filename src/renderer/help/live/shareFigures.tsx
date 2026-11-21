@@ -1,16 +1,18 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
+import { useState } from 'react';
 import type { IRemoteNowPlaying } from 'common/remoteAudio';
 import { LINK_SWITCHES_ON } from 'common/remoteAudio';
 import { PICTURE_QUEUE } from '../../components/featureTour/playerPictureData';
 import MenuIcon from '../../icons/MenuIcon';
+import { useRailWidth } from '../../library/LibraryRailSplitter';
 import type { IRemoteAudioMeter } from '../../remoteAudio/meter';
 import RemoteAudioGroup from '../../remoteAudio/RemoteAudioGroup';
+import RemoteAudioLayout from '../../remoteAudio/RemoteAudioLayout';
 import RemoteAudioMix from '../../remoteAudio/RemoteAudioMix';
 import type { IRemoteAudioValue } from '../../remoteAudio/remoteAudioState';
 import { useTranslation } from '../../utils/I18nContext';
 import Dropdown from '../../widgets/Dropdown';
-import '../../styles/RemoteAudio.scss';
 import '../../styles/RemoteAudioGroup.scss';
 
 /**
@@ -26,6 +28,9 @@ import '../../styles/RemoteAudioGroup.scss';
  * volume, and the picker the reader's own outputs. It stands in the
  * workspace's card, which is also the width the page's layout answers to.
  */
+
+/** The figure's rail width, dragged in Help, kept apart from the page's. */
+const HELP_SHARE_RAIL_WIDTH_KEY = 'fluideq.help.shareRailWidth';
 
 const nothing = () => undefined;
 const settled = () => Promise.resolve();
@@ -121,8 +126,10 @@ const OUTPUT = 'speakers';
 const OutputPicker = () => {
   const { t } = useTranslation();
   return (
-    <div className="remote-audio__lane remote-audio__mix-output">
-      <span className="control-kicker">{t('remoteAudio.group.output')}</span>
+    <div className="remote-audio__output">
+      <span className="remote-audio__output-label">
+        {t('remoteAudio.group.output')}
+      </span>
       <Dropdown
         name={t('remoteAudio.group.output')}
         value={OUTPUT}
@@ -143,41 +150,43 @@ const OutputPicker = () => {
 /** The Share Audio page with a group of four, in the workspace's card. */
 const ShareDrawing = () => {
   const { t } = useTranslation();
+  const [isPinned, setPinned] = useState(true);
+  const rail = useRailWidth(HELP_SHARE_RAIL_WIDTH_KEY);
   return (
     <div className="workspace-tab-panel workspace-tab-panel--share">
       <div className="workspace-tab-panel__scroll">
-        <section className="remote-audio">
-          <header className="remote-audio__header">
-            <div>
-              <p className="eyebrow">{t('remoteAudio.eyebrow')}</p>
+        {/* The rail's pin and width are the drawing's own, never the page's:
+            folding the figure in Help must not fold the reader's page. */}
+        <RemoteAudioLayout
+          rail={rail}
+          isPinned={isPinned}
+          onPinnedChange={setPinned}
+          mix={<RemoteAudioMix remote={GROUP} system={SYSTEM} />}
+          output={<OutputPicker />}
+        >
+          <header className="remote-audio__head">
+            <div className="remote-audio__head-words">
               <h2>{t('remoteAudio.title')}</h2>
+              <p className="remote-audio__lead">
+                {t('remoteAudio.group.hint')}
+              </p>
+              <ul className="remote-audio__facts">
+                <li>{t('remoteAudio.badge.local')}</li>
+                <li>{t('remoteAudio.badge.lossless')}</li>
+                <li>{t('remoteAudio.badge.encrypted')}</li>
+              </ul>
             </div>
             <button type="button" className="button small">
               <MenuIcon name="plus" />
               {t('remoteAudio.group.add')}
             </button>
           </header>
-          <div className="remote-audio__intro">
-            <p>{t('remoteAudio.group.hint')}</p>
-            <ul className="remote-audio__facts">
-              <li>{t('remoteAudio.badge.local')}</li>
-              <li>{t('remoteAudio.badge.lossless')}</li>
-              <li>{t('remoteAudio.badge.encrypted')}</li>
-            </ul>
-          </div>
-          <div className="remote-audio__columns">
-            <RemoteAudioGroup remote={GROUP} localNowPlaying={song(1)} />
-            <RemoteAudioMix
-              remote={GROUP}
-              system={SYSTEM}
-              output={<OutputPicker />}
-            />
-          </div>
-          <footer className="remote-audio__note">
+          <RemoteAudioGroup remote={GROUP} localNowPlaying={song(1)} />
+          <footer className="remote-audio__note remote-audio__note--foot">
             <strong>{t('remoteAudio.note.title')}</strong>
             <span>{t('remoteAudio.note.body')}</span>
           </footer>
-        </section>
+        </RemoteAudioLayout>
       </div>
     </div>
   );

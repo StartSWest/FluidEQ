@@ -31,8 +31,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.group.hint':
     'Reliez un ordinateur pour rejoindre son groupe. Chaque ordinateur envoie son propre son directement aux autres ; réglez ce que vous écoutez dans votre mixage.',
   'tabs.share': 'Partager l’audio',
-  'remoteAudio.eyebrow': 'LIAISON AUDIO LAN',
-  'remoteAudio.title': 'Écoutez vos autres ordinateurs ici',
+  'remoteAudio.title': 'Partagez l’audio entre vos ordinateurs',
   'remoteAudio.security': 'Propriétés de la connexion',
   'remoteAudio.badge.local': 'Réseau local privé uniquement',
   'remoteAudio.badge.lossless': 'Transport PCM Float32 sans perte',

@@ -56,7 +56,7 @@ const expectVolumes = (thumb: number, confirmed: number) => {
     `${confirmed}%`,
   );
   expect(
-    document.querySelector('.remote-audio__lane-level-value'),
+    document.querySelector('.remote-audio__fader-value'),
   ).toHaveTextContent(`${confirmed}%`);
 };
 

@@ -97,23 +97,24 @@ const RemoteAudioGroup = ({
   };
   return (
     <section
-      className="remote-audio__link remote-audio__group"
+      className="remote-audio__group"
       aria-label={t('remoteAudio.group.title')}
     >
-      <header className="remote-audio__link-head">
-        <span className="remote-audio__link-name">
-          <strong>{t('remoteAudio.group.title')}</strong>
+      {/* The Library table's header line: the list's name in its quietest
+          capitals, the count at the other end, a hairline under them. */}
+      <header className="remote-audio__group-head">
+        <span className="remote-audio__group-title">
+          {t('remoteAudio.group.title')}
         </span>
-        <span className="remote-audio__link-spacer" />
-        <span className="remote-audio__link-stats">
+        <span className="remote-audio__group-count">
           {t(
             `remoteAudio.group.count.${pluralCategory(computers, locale)}` as TranslationKey,
             { count: new Intl.NumberFormat(locale).format(computers) },
           )}
         </span>
       </header>
-      <article className="remote-audio__lane remote-audio__group-row">
-        <div className="remote-audio__lanes remote-audio__group-lanes">
+      <article className="remote-audio__group-row">
+        <div className="remote-audio__group-lanes">
           <RemoteAudioLane
             direction="out"
             kicker={t('remoteAudio.link.thisComputer')}
@@ -136,7 +137,7 @@ const RemoteAudioGroup = ({
         {/* Smooth stands where every other row has Send, and its hint where
             they have their options button, so the switches and the buttons
             make straight columns. */}
-        <div className="remote-audio__link-actions remote-audio__group-actions">
+        <div className="remote-audio__group-actions">
           <div className="remote-audio__lane-switch">
             <span>{t('remoteAudio.group.smooth')}</span>
             <Switch
@@ -158,7 +159,7 @@ const RemoteAudioGroup = ({
         </div>
       </article>
       <div
-        className="remote-audio__group-list remote-audio__peer-scroll"
+        className="remote-audio__group-list"
         role="group"
         aria-label={t('remoteAudio.group.title')}
       >
@@ -199,11 +200,11 @@ const RemoteAudioGroup = ({
           }
           return (
             <article
-              className="remote-audio__lane remote-audio__group-row"
+              className="remote-audio__group-row"
               key={computerId}
               aria-label={name}
             >
-              <div className="remote-audio__lanes remote-audio__group-lanes">
+              <div className="remote-audio__group-lanes">
                 <RemoteAudioLane
                   direction="in"
                   kicker={
@@ -243,7 +244,7 @@ const RemoteAudioGroup = ({
                   }}
                 />
               </div>
-              <div className="remote-audio__link-actions remote-audio__group-actions">
+              <div className="remote-audio__group-actions">
                 <div className="remote-audio__lane-switch">
                   <span>{t('remoteAudio.group.send')}</span>
                   <Switch

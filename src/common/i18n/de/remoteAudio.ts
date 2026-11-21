@@ -31,7 +31,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.group.hint':
     'Verbinden Sie einen Computer, um seiner Gruppe beizutreten. Jeder Computer sendet seinen eigenen Ton direkt an die anderen. Passen Sie Ihren Mix hier an.',
   'tabs.share': 'Audio teilen',
-  'remoteAudio.eyebrow': 'LAN-AUDIOVERBINDUNG',
   'remoteAudio.title': 'Audio zwischen Ihren Computern teilen',
   'remoteAudio.security': 'Verbindungseigenschaften',
   'remoteAudio.badge.local': 'Nur privates LAN',

@@ -13,14 +13,19 @@ import {
   useTransportSources,
 } from '../audio/transportSource';
 import MenuIcon from '../icons/MenuIcon';
+import { useRailWidth } from '../library/LibraryRailSplitter';
 import { useTranslation } from '../utils/I18nContext';
 import { useSinglePlayer } from '../utils/singlePlayer';
-import '../styles/RemoteAudio.scss';
 import RemoteAudioGroup from './RemoteAudioGroup';
+import RemoteAudioLayout, {
+  SHARE_RAIL_PINNED_KEY,
+  SHARE_RAIL_WIDTH_KEY,
+} from './RemoteAudioLayout';
 import RemoteAudioMix from './RemoteAudioMix';
 import RemoteAudioOutput from './RemoteAudioOutput';
 import { useSystemFader } from '../audio/systemVolume';
 import '../styles/RemoteAudioGroup.scss';
+import { useRailPinned } from '../widgets/StudioRail';
 import RemoteAudioLinkDialog from './RemoteAudioLinkDialog';
 import { useRemoteAudio } from './remoteAudioValueContext';
 import {
@@ -50,13 +55,15 @@ const RULES = [
  * Share Audio: link this computer with any number of others, all to all.
  *
  * One group, with the local source first and a stable order for the rest,
- * including offline computers. Your mix holds the OS volume and independent
- * receive gains. Pairing opens from the header so a growing list cannot
- * push the connection controls out of reach.
+ * including offline computers. Your mix, in the rail (`RemoteAudioLayout`),
+ * holds the OS volume and independent receive gains. Pairing opens from the
+ * head so a growing list cannot push the connection controls out of reach.
  */
 const RemoteAudioPanel = () => {
   const { t } = useTranslation();
   const [adding, setAdding] = useState(false);
+  const [isPinned, setPinned] = useRailPinned(SHARE_RAIL_PINNED_KEY);
+  const rail = useRailWidth(SHARE_RAIL_WIDTH_KEY);
   const remote = useRemoteAudio();
   const system = useSystemFader();
   const singlePlayer = useSinglePlayer();
@@ -89,11 +96,25 @@ const RemoteAudioPanel = () => {
     codeStatus = t('remoteAudio.status.noNetwork');
   }
   return (
-    <section className="remote-audio" aria-labelledby="remote-audio-title">
-      <header className="remote-audio__header">
-        <div>
-          <p className="eyebrow">{t('remoteAudio.eyebrow')}</p>
+    <RemoteAudioLayout
+      rail={rail}
+      isPinned={isPinned}
+      onPinnedChange={setPinned}
+      mix={<RemoteAudioMix remote={remote} system={system} />}
+      output={<RemoteAudioOutput />}
+    >
+      <header className="remote-audio__head">
+        <div className="remote-audio__head-words">
           <h2 id="remote-audio-title">{t('remoteAudio.title')}</h2>
+          <p className="remote-audio__lead">{t('remoteAudio.group.hint')}</p>
+          <ul
+            className="remote-audio__facts"
+            aria-label={t('remoteAudio.security')}
+          >
+            <li>{t('remoteAudio.badge.local')}</li>
+            <li>{t('remoteAudio.badge.lossless')}</li>
+            <li>{t('remoteAudio.badge.encrypted')}</li>
+          </ul>
         </div>
         <button
           type="button"
@@ -106,17 +127,6 @@ const RemoteAudioPanel = () => {
           {t('remoteAudio.group.add')}
         </button>
       </header>
-      <div className="remote-audio__intro">
-        <p>{t('remoteAudio.group.hint')}</p>
-        <ul
-          className="remote-audio__facts"
-          aria-label={t('remoteAudio.security')}
-        >
-          <li>{t('remoteAudio.badge.local')}</li>
-          <li>{t('remoteAudio.badge.lossless')}</li>
-          <li>{t('remoteAudio.badge.encrypted')}</li>
-        </ul>
-      </div>
 
       {adding && (
         <RemoteAudioLinkDialog
@@ -131,14 +141,7 @@ const RemoteAudioPanel = () => {
         />
       )}
 
-      <div className="remote-audio__columns">
-        <RemoteAudioGroup remote={remote} localNowPlaying={localNowPlaying} />
-        <RemoteAudioMix
-          remote={remote}
-          system={system}
-          output={<RemoteAudioOutput />}
-        />
-      </div>
+      <RemoteAudioGroup remote={remote} localNowPlaying={localNowPlaying} />
 
       {linked && (
         <>
@@ -196,11 +199,11 @@ const RemoteAudioPanel = () => {
         </div>
       )}
 
-      <footer className="remote-audio__note">
+      <footer className="remote-audio__note remote-audio__note--foot">
         <strong>{t('remoteAudio.note.title')}</strong>
         <span>{t('remoteAudio.note.body')}</span>
       </footer>
-    </section>
+    </RemoteAudioLayout>
   );
 };
 

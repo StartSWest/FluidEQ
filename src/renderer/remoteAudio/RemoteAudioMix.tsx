@@ -1,5 +1,5 @@
 /* FluidEQ — GPL-3.0-or-later */
-import type { ReactNode, KeyboardEventHandler } from 'react';
+import type { KeyboardEventHandler } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import RemoteAudioFader from './RemoteAudioFader';
 import { audioGroupRows, audioLinkKey } from './RemoteAudioGroup';
@@ -7,11 +7,13 @@ import type { IRemoteAudioValue } from './remoteAudioState';
 import { linkControls } from './linkRecords';
 
 /** The system fader targets the OS default output, which the output picker
- * changes too. Incoming gains are independent receiver gains; no send gain. */
+ * changes too. Incoming gains are independent receiver gains; no send gain.
+ *
+ * The rail's body (`RemoteAudioLayout`): the rail's head names it and its
+ * foot holds the output, so it is the faders alone, one list, no card. */
 const RemoteAudioMix = ({
   remote,
   system,
-  output,
 }: {
   remote: IRemoteAudioValue;
   system: {
@@ -26,20 +28,13 @@ const RemoteAudioMix = ({
     setLevel(value: number): void;
     toggleMute(): void;
   };
-  output?: ReactNode;
 }) => {
   const { t } = useTranslation();
   return (
     <section
-      className="remote-audio__link remote-audio__mix"
+      className="remote-audio__mix"
       aria-label={t('remoteAudio.group.mix')}
     >
-      <header className="remote-audio__link-head">
-        <span className="remote-audio__link-name">
-          <strong>{t('remoteAudio.group.mix')}</strong>
-        </span>
-      </header>
-      {output}
       <RemoteAudioFader
         id="this-pc-volume"
         label={t('remoteAudio.group.thisPC')}
@@ -73,7 +68,7 @@ const RemoteAudioMix = ({
         }
       />
       <div
-        className="remote-audio__peer-scroll"
+        className="remote-audio__mix-peers"
         role="group"
         aria-label={t('remoteAudio.group.mix')}
       >

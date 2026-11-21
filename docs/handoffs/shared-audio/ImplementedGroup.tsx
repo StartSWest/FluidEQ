@@ -1,5 +1,8 @@
 /* FluidEQ — GPL-3.0-or-later. Production UI with simulated audio I/O. */
 import RemoteAudioGroup from '../../../src/renderer/remoteAudio/RemoteAudioGroup';
+import { useState } from 'react';
+import { useRailWidth } from '../../../src/renderer/library/LibraryRailSplitter';
+import RemoteAudioLayout from '../../../src/renderer/remoteAudio/RemoteAudioLayout';
 import RemoteAudioMix from '../../../src/renderer/remoteAudio/RemoteAudioMix';
 import Dropdown from '../../../src/renderer/widgets/Dropdown';
 import type { IRemoteAudioValue } from '../../../src/renderer/remoteAudio/remoteAudioState';
@@ -60,6 +63,9 @@ export default function ImplementedGroup({
   ): void;
   onPause(id: string): void;
 }) {
+  // The page's rail, with a pin and a width of the preview's own.
+  const [isPinned, setPinned] = useState(true);
+  const rail = useRailWidth('fluideq.preview.shareRailWidth');
   const others = group.computers.filter(
     (pc) => pc.id !== local.id && !findRoute(group, local.id, pc.id)?.unlinked,
   );
@@ -131,7 +137,37 @@ export default function ImplementedGroup({
     },
   };
   return (
-    <div className="remote-audio__columns">
+    <RemoteAudioLayout
+      rail={rail}
+      isPinned={isPinned}
+      onPinnedChange={setPinned}
+      mix={
+        <RemoteAudioMix
+          remote={remote}
+          system={{
+            isAvailable: true,
+            level: local.systemVolume,
+            isMuted: local.isMuted === true,
+            setLevel: (systemVolume) => onComputer({ systemVolume }),
+            toggleMute: () => onComputer({ isMuted: !local.isMuted }),
+          }}
+        />
+      }
+      output={
+        <div className="remote-audio__output">
+          <span className="remote-audio__output-label">Output</span>
+          <Dropdown
+            name="Output"
+            value={local.output}
+            options={['Headphones', 'Speakers', 'USB audio interface'].map(
+              (name) => ({ value: name, label: name, display: name }),
+            )}
+            isDisabled={false}
+            handleChange={(output) => onComputer({ output })}
+          />
+        </div>
+      }
+    >
       <RemoteAudioGroup
         remote={remote}
         localNowPlaying={{
@@ -145,30 +181,6 @@ export default function ImplementedGroup({
           canStop: false,
         }}
       />
-      <RemoteAudioMix
-        remote={remote}
-        system={{
-          isAvailable: true,
-          level: local.systemVolume,
-          isMuted: local.isMuted === true,
-          setLevel: (systemVolume) => onComputer({ systemVolume }),
-          toggleMute: () => onComputer({ isMuted: !local.isMuted }),
-        }}
-        output={
-          <div className="remote-audio__lane remote-audio__mix-output">
-            <span className="control-kicker">Output</span>
-            <Dropdown
-              name="Output"
-              value={local.output}
-              options={['Headphones', 'Speakers', 'USB audio interface'].map(
-                (name) => ({ value: name, label: name, display: name }),
-              )}
-              isDisabled={false}
-              handleChange={(output) => onComputer({ output })}
-            />
-          </div>
-        }
-      />
-    </div>
+    </RemoteAudioLayout>
   );
 }

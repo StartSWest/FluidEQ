@@ -30,8 +30,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.group.hint':
     '连接一台电脑即可加入其群组。每台电脑将自己的声音直接发送给其他电脑；在混音中调整你听到的声音。',
   'tabs.share': '共享音频',
-  'remoteAudio.eyebrow': '局域网音频连接',
-  'remoteAudio.title': '在这里收听其他电脑',
+  'remoteAudio.title': '在电脑之间共享音频',
   'remoteAudio.security': '连接属性',
   'remoteAudio.badge.local': '仅限私有局域网',
   'remoteAudio.badge.lossless': '无损 Float32 PCM 传输',

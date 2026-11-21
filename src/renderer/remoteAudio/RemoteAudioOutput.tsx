@@ -41,8 +41,10 @@ const RemoteAudioOutput = () => {
     }
   };
   return (
-    <div className="remote-audio__lane remote-audio__mix-output">
-      <span className="control-kicker">{t('remoteAudio.group.output')}</span>
+    <div className="remote-audio__output">
+      <span className="remote-audio__output-label">
+        {t('remoteAudio.group.output')}
+      </span>
       <Dropdown
         name={t('remoteAudio.group.output')}
         value={devices.find((device) => device.isDefault)?.id ?? ''}
@@ -57,7 +59,7 @@ const RemoteAudioOutput = () => {
         }}
       />
       {failed && (
-        <span role="alert" className="remote-audio__lane-caption">
+        <span role="alert" className="remote-audio__output-error">
           {t('remoteAudio.error.playback')}
         </span>
       )}
