@@ -31,3 +31,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
   @include truncate;
   min-width: 0;
 }
+
+// Changed by hand: back to the saved sound, or Auto EQ (`SongSoundChip`). As
+// wide as its longer row, so "Zurück zum Album-Klang · Ballade" stays on one
+// line; past the cap a row wraps rather than being cut, its name being the
+// point of it.
+.band-menu.song-sound-menu {
+  width: max-content;
+  min-width: 200px;
+  max-width: min(340px, calc(100vw - 24px));
+}

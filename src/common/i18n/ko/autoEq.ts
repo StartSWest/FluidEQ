@@ -8,6 +8,13 @@ const autoEq = {
   'autoEq.title': 'Auto EQ',
   'autoEq.aria': 'Auto EQ: 각 노래의 사운드를 정하는 기능',
   'autoEq.chip.title': '재생 중: {sound}. Auto EQ 열기',
+  'autoEq.chip.changedAlbum': '직접 변경했습니다. 앨범 사운드는 {preset}입니다',
+  'autoEq.chip.changedSong':
+    '직접 변경했습니다. 이 노래의 사운드는 {preset}입니다',
+  'autoEq.chip.backAlbum': '앨범 사운드로 돌아가기 · {preset}',
+  'autoEq.chip.backSong': '이 노래의 사운드로 돌아가기 · {preset}',
+  'autoEq.chip.open': 'Auto EQ 열기',
+  'autoEq.albums.revert': '{preset}(으)로 돌아가기',
   'autoEq.tagline': '노래마다 알맞은 사운드를 골라 드립니다',
   'autoEq.state.measuring': '측정 중',
   'autoEq.state.paused': '일시중지됨',
@@ -25,6 +32,7 @@ const autoEq = {
   'autoEq.now.album': '{album}의 사운드',
   'autoEq.now.albumUnnamed': '앨범의 사운드',
   'autoEq.now.albumWhy': '라이브러리에서 앨범 전체에 설정했습니다.',
+  'autoEq.now.changedWhy': '직접 변경했습니다: 지금은 {preset} 재생 중입니다.',
   'autoEq.songs.title': '노래 사운드',
   'autoEq.songs.hint':
     '사운드가 저장된 곡은 그 사운드로 재생됩니다. 바꾼 뒤 변경 사항 저장을 눌러야 유지됩니다. 다른 곡은 내 사운드로 재생됩니다.',
