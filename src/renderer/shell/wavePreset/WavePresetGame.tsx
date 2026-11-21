@@ -24,9 +24,13 @@ import WavePresetRow from './WavePresetRow';
 
 /**
  * The plate while a game's own sound is on: the game's name with the live
- * dot its Gaming Lab tab wears, and on a press the same panel, headed by the
- * game, with the way back to the music sound as its first row — naming the
- * preset it brings back — and the Gaming Lab after it.
+ * dot its Gaming Lab tab wears, and on a press the panel headed by the game,
+ * with the way back to the music sound — naming the preset it brings back —
+ * and the Gaming Lab.
+ *
+ * No None and no favourites: a game's sound is tuned in the Gaming Lab and
+ * nowhere else (Ivan, 2026-11-03: a preset picked into a game's sound from
+ * the main screen "will complicate things"; kept 2026-11-21 for the panel).
  */
 const WavePresetGame = ({ game }: { game: IGameProfile }) => {
   const { t } = useTranslation();
@@ -96,42 +100,41 @@ const WavePresetGame = ({ game }: { game: IGameProfile }) => {
             )}
           </>
         }
-        lead={
-          <>
-            <WavePresetRow
-              glyph={
-                <VoicingIcon
-                  profileId="music"
-                  className="wave-preset-menu__glyph"
-                />
-              }
-              name={t('wavePreset.backToMusic')}
-              hint={musicName}
-              isLoud
-              disabled={isBusy}
-              onPress={() => {
-                menu.close();
-                setIsBusy(true);
-                putMusicSoundBack()
-                  .catch((error: unknown) =>
-                    setGlobalError(error as ErrorDescription),
-                  )
-                  .finally(() => setIsBusy(false));
-              }}
-            />
-            <WavePresetRow
-              glyph={
-                <MenuIcon name="gamepad" className="wave-preset-menu__glyph" />
-              }
-              name={t('wavePreset.openLab')}
-              onPress={() => {
-                menu.close();
-                openGamingLab();
-              }}
-            />
-          </>
-        }
-      />
+      >
+        <div className="wave-preset-menu__lead">
+          <WavePresetRow
+            glyph={
+              <VoicingIcon
+                profileId="music"
+                className="wave-preset-menu__glyph"
+              />
+            }
+            name={t('wavePreset.backToMusic')}
+            hint={musicName}
+            isLoud
+            disabled={isBusy}
+            onPress={() => {
+              menu.close();
+              setIsBusy(true);
+              putMusicSoundBack()
+                .catch((error: unknown) =>
+                  setGlobalError(error as ErrorDescription),
+                )
+                .finally(() => setIsBusy(false));
+            }}
+          />
+          <WavePresetRow
+            glyph={
+              <MenuIcon name="gamepad" className="wave-preset-menu__glyph" />
+            }
+            name={t('wavePreset.openLab')}
+            onPress={() => {
+              menu.close();
+              openGamingLab();
+            }}
+          />
+        </div>
+      </WavePresetPanel>
     </div>
   );
 };

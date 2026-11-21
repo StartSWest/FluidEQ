@@ -21,6 +21,7 @@ import {
   usePlayingPreset,
 } from '../../components/useVoicingPick';
 import useWaveMenu from './useWaveMenu';
+import WavePresetFavourites from './WavePresetFavourites';
 import WavePresetPanel from './WavePresetPanel';
 
 /**
@@ -131,7 +132,9 @@ const WavePresetMusic = () => {
             )}
           </>
         }
-      />
+      >
+        <WavePresetFavourites isOpen={menu.isOpen} close={menu.close} />
+      </WavePresetPanel>
     </div>
   );
 };
