@@ -110,3 +110,10 @@ $song-eq-notice-linger: 6s;
 :root[data-motion='reduced'] .compact-frame.song-eq-notice {
   animation: song-eq-notice-linger $song-eq-notice-linger linear !important;
 }
+
+// The preset a saved sound put on, set apart in the sentence: the accent's
+// readable ink at the bold weight, so it reads as the answer on both windows.
+.song-eq-notice__preset {
+  color: $text-accent;
+  font-weight: $weight-bold;
+}

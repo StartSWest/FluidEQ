@@ -48,14 +48,17 @@ it('names the song playing, which the memory may not', () => {
   expect(
     screen.getByText(translate('en', 'songSound.noticeTitle')),
   ).toBeVisible();
-  expect(
-    screen.getByText(
-      translate('en', 'songSound.noticeBody', {
-        title: 'A tune',
-        preset: noName,
-      }),
-    ),
-  ).toBeVisible();
+  const body = document.getElementById('song-sound-notice-body');
+  expect(body).toHaveTextContent(
+    translate('en', 'songSound.noticeBody', {
+      title: 'A tune',
+      preset: noName,
+    }),
+  );
+  // The preset's name is set apart in the sentence, where it was plain text.
+  expect(body?.querySelector('.song-eq-notice__preset')).toHaveTextContent(
+    noName,
+  );
 });
 
 it('says when the sound is the album’s, and which album', () => {
@@ -74,14 +77,16 @@ it('says when the sound is the album’s, and which album', () => {
       translate('en', 'songSound.albumNoticeTitle', { album: 'Night Album' }),
     ),
   ).toBeVisible();
-  expect(
-    screen.getByText(
-      translate('en', 'songSound.albumNoticeBody', {
-        title: 'A tune',
-        preset: noName,
-      }),
-    ),
-  ).toBeVisible();
+  const body = document.getElementById('song-sound-notice-body');
+  expect(body).toHaveTextContent(
+    translate('en', 'songSound.albumNoticeBody', {
+      title: 'A tune',
+      preset: noName,
+    }),
+  );
+  expect(body?.querySelector('.song-eq-notice__preset')).toHaveTextContent(
+    noName,
+  );
 });
 
 it('draws nothing while no saved sound has gone on', () => {
