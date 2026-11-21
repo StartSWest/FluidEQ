@@ -20,6 +20,7 @@ import {
   keyframes,
   styleRules,
 } from '../../utils/stylesheetRules';
+import makerNoticeLingerSeconds from '../../../renderer/karaoke/makerNoticeLinger';
 
 const css = compileStylesheet('Karaoke.scss');
 
@@ -37,12 +38,22 @@ const animatedProperties = (name: string) =>
   );
 
 describe("the Maker's messages under reduced motion", () => {
-  it('keeps the notice up for its five seconds', () => {
+  it('keeps the notice up for the time its text takes to read, five seconds at least', () => {
+    // The Maker sets the variable from the notice's length; with none set it
+    // is the five seconds it always was.
     expect(
       reducedRule('.karaoke-maker__notice')?.declarations.get(
         'animation-duration',
       ),
-    ).toBe('5s !important');
+    ).toBe('var(--karaoke-maker-notice-linger, 5s) !important');
+    expect(makerNoticeLingerSeconds('Saved.')).toBe(5);
+    const kept =
+      'Kept your word timings. Found 493 editable melody notes from the voice.';
+    expect(makerNoticeLingerSeconds(kept)).toBe(5);
+    expect(makerNoticeLingerSeconds(`${kept} ${kept}`)).toBe(8);
+    // A dense script says as much in fewer characters.
+    expect(makerNoticeLingerSeconds('字'.repeat(60))).toBe(9);
+    expect(makerNoticeLingerSeconds('a'.repeat(2_000))).toBe(14);
     // A hold: nothing in it moves.
     expect(animatedProperties('karaoke-maker-notice-linger')).toEqual(
       new Set(['opacity']),
