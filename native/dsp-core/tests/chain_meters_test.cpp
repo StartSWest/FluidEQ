@@ -28,6 +28,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <vector>
 
 #include "fluideq/meters.h"
+#include "../../dsp-host/src/chain_route.h"
 
 namespace {
 
@@ -399,10 +400,69 @@ void test_input_tap_publishes_with_the_rack_off() {
         "and hears it as loud as with the rack on");
 }
 
+/** The peak of one tap after a note through the host's route, or -200. */
+float loudest_through_route(uint32_t stage, bool raw) {
+  FeqMeters* meters = feq_meters_create(2);
+  feq_meters_set_enabled(meters, 1);
+  FeqChain* chain = feq_chain_create(kRate, 2, kBlock);
+  feq_chain_set_meters(chain, meters);
+  FeqChainSettings settings = quiet_chain();
+  settings.eq.enabled = 1;
+  feq_chain_configure(chain, &settings);
+  ChainRoute route;
+  ProcessingLatency latency;
+  std::vector<float> left(kBlock);
+  std::vector<float> right(kBlock);
+  float* planes[2] = {left.data(), right.data()};
+  std::vector<float> bins(FEQ_METER_BINS, -200.0f);
+  std::vector<float> scratch(FEQ_METER_BINS);
+  double phase = 0.0;
+  for (uint32_t block = 0; block < kBlocks; block += 1) {
+    for (uint32_t at = 0; at < kBlock; at += 1) {
+      const auto value = static_cast<float>(0.35 * std::sin(phase));
+      left[at] = value;
+      right[at] = value;
+      phase += 2.0 * kPi * 60.0 / kRate;
+    }
+    route.process(chain, meters, raw, planes, kBlock, latency);
+    if (feq_meters_read_spectrum(meters, stage, scratch.data(),
+                                 FEQ_METER_BINS) != 0) {
+      bins = scratch;
+    }
+  }
+  feq_chain_destroy(chain);
+  feq_meters_destroy(meters);
+  return *std::max_element(bins.begin(), bins.end());
+}
+
+/**
+ * The input tap publishes on the host's raw route.
+ *
+ * Under the FluidEQ Engine the Library's rack runs in the engine and the host
+ * plays raw, never calling the chain; the tap went with it, and Smart
+ * correction heard nothing from any Library song (2026-11-20). The EQ tap on
+ * the raw route is the control: it stays silent, so the route really skipped
+ * the chain.
+ */
+void test_input_tap_publishes_on_the_raw_route() {
+  std::printf("\nchain meters: the input tap publishes on the raw route\n");
+  const float input_raw = loudest_through_route(FEQ_METER_STAGE_DENOISE, true);
+  const float eq_raw = loudest_through_route(FEQ_METER_STAGE_EQ, true);
+  const float input_rack = loudest_through_route(FEQ_METER_STAGE_DENOISE, false);
+  std::printf("       raw: input %.1f dB, EQ %.1f dB; through the rack: input %.1f\n",
+              input_raw, eq_raw, input_rack);
+  check(eq_raw <= -199.0f,
+        "the raw route runs no chain, so the EQ tap is silent (the control)");
+  check(input_raw > -60.0f, "the input tap still hears the note on it");
+  check(std::fabs(input_raw - input_rack) < 0.5f,
+        "and hears it as loud as through the rack");
+}
+
 }  // namespace
 
 int main() {
   std::printf("chain meters\n");
+  test_input_tap_publishes_on_the_raw_route();
   test_input_tap_publishes_with_the_rack_off();
   test_exciter_tap_is_above_forge();
   test_forge_bands_reach_the_meters();

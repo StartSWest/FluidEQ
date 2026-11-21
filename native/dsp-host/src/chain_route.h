@@ -19,6 +19,13 @@ class ChainRoute {
     if (raw) {
       const FeqRoomReport inactive{FEQ_ROOM_REPORT_TAG, 0};
       feq_meters_publish_room(meters, &inactive);
+      // The rack's input tap still publishes on the raw route: the block is
+      // the record as decoded, and Smart correction measures every Library
+      // song from this tap (`rawSource.ts`). Under the FluidEQ Engine the
+      // Library's rack belongs to the engine, so the host runs raw for every
+      // Library song, and skipping the tap with the chain left Smart on
+      // "Listening" with nothing heard, song after song (Ivan, 2026-11-20).
+      feq_meters_capture(meters, FEQ_METER_STAGE_DENOISE, planar, frames);
     } else {
       feq_chain_process(chain, planar, frames);
     }
