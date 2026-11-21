@@ -10,6 +10,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'libraryTokens' as *;
 @use 'lookPickerDiscover';
 @use 'lookPickerTiles';
+@use 'lookPickerWindow';
 
 // The graph's look picker (`LookPicker.tsx`), laid out as the Library is
 // (Ivan, 2026-11-19: "improve that to look like the Library"): the search,
@@ -41,7 +42,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
   isolation: isolate;
   display: flex;
   // A rail and a grid of pictures three or four across, and never wider
-  // than the window it opens in (720px at the narrowest).
+  // than the window it opens in (720px at the narrowest). The open picker
+  // wears the size its reader gave it instead (`LookPickerWindow`); this is
+  // Help's drawing of it, and that size before anybody sized it.
   width: min(880px, calc(100vw - #{2 * $spacing-s}));
   // A height of its own, which AnchoredMenu's cap brings down to the room
   // there is. The rail and the grid scroll inside it; sized by content
@@ -464,6 +467,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 @include lookPickerDiscover.styles;
 @include lookPickerTiles.styles;
+@include lookPickerWindow.styles;
 
 // The look on the graph changed since it was last played: a dot on the
 // closed trigger, in the accent.

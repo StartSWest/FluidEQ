@@ -16,7 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CSSProperties, ReactNode, useLayoutEffect, useState } from 'react';
+import {
+  CSSProperties,
+  ReactNode,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { createPortal } from 'react-dom';
 import bottomInset from '../utils/shellInset';
 import useExitAnimation from '../utils/useExitAnimation';
@@ -62,8 +68,25 @@ import useExitAnimation from '../utils/useExitAnimation';
 /** The gap between the trigger and the menu, matching the in-flow menus. */
 const OFFSET = 6;
 
-/** Clearance kept from the window edge, so it never looks pinned to it. */
-const MARGIN = 8;
+/**
+ * Clearance kept from the window edge, so it never looks pinned to it. A
+ * framed menu's grips (`LookPickerWindow`) hold its edges to the same.
+ */
+export const MENU_MARGIN = 8;
+const MARGIN = MENU_MARGIN;
+
+/**
+ * A menu that is a window the reader sizes (the look picker): its own width
+ * and height, and how far its aligned edge has been dragged from the
+ * trigger's - right of it is positive.
+ */
+export interface IMenuFrame {
+  width: number;
+  height: number;
+  nudge: number;
+}
+
+type TMenuSide = 'up' | 'down';
 
 const positionFrom = (
   rect: DOMRect,
@@ -71,6 +94,8 @@ const positionFrom = (
   menuWidth: number,
   heightLimit = Infinity,
   align: 'left' | 'right' = 'right',
+  frame: IMenuFrame | undefined = undefined,
+  keepSide: TMenuSide | undefined = undefined,
 ) => {
   const roomAbove = rect.top - OFFSET - MARGIN;
   // The now-playing bar is not room. Without this the menu opened downward
@@ -81,10 +106,21 @@ const positionFrom = (
     window.innerHeight - rect.bottom - OFFSET - MARGIN - bottomInset();
   // Unmeasured on the first pass — height 0 fits anywhere, so this takes the
   // preferred side and the measured pass corrects it before the frame is
-  // painted.
-  const openUpward =
-    Math.min(menuHeight, heightLimit) > roomBelow && roomAbove > roomBelow;
-  return {
+  // painted. A framed menu is as tall as the reader made it, whatever its
+  // lists hold.
+  const wanted = Math.min(frame ? frame.height : menuHeight, heightLimit);
+  // A framed menu stays on the side it opened on while it fits there: one
+  // opened upward and then shrunk under the room below would otherwise jump
+  // across its trigger in the middle of the drag.
+  const keeps =
+    keepSide !== undefined &&
+    wanted <= (keepSide === 'up' ? roomAbove : roomBelow);
+  const openUpward = keeps
+    ? keepSide === 'up'
+    : wanted > roomBelow && roomAbove > roomBelow;
+  const edge =
+    (align === 'left' ? rect.left : rect.right) + (frame?.nudge ?? 0);
+  const style = {
     position: 'fixed' as const,
     // Anchored by the edge nearest the trigger in both directions, so the menu
     // grows away from the control rather than over it.
@@ -113,16 +149,26 @@ const positionFrom = (
       ? {
           left: Math.max(
             MARGIN,
-            Math.min(rect.left, window.innerWidth - MARGIN - menuWidth),
+            Math.min(edge, window.innerWidth - MARGIN - menuWidth),
           ),
         }
       : {
           right: Math.min(
-            Math.max(MARGIN, window.innerWidth - rect.right),
+            Math.max(MARGIN, window.innerWidth - edge),
             Math.max(MARGIN, window.innerWidth - MARGIN - menuWidth),
           ),
         }),
+    // The reader's size, never wider than the window less its margins; the
+    // height is capped by `maxHeight` above to the room on its side.
+    ...(frame
+      ? {
+          width: `min(${frame.width}px, calc(100vw - ${2 * MARGIN}px))`,
+          height: frame.height,
+        }
+      : {}),
   };
+  const side: TMenuSide = openUpward ? 'up' : 'down';
+  return { style, side };
 };
 
 /**
@@ -151,6 +197,7 @@ const AnchoredMenu = ({
   ariaLabel,
   maxHeight,
   align = 'right',
+  frame,
   children,
 }: {
   /** The control it hangs off. Its position on screen is the whole input. */
@@ -162,9 +209,16 @@ const AnchoredMenu = ({
   /** Optional caller cap, still constrained by the available window space. */
   maxHeight?: number;
   align?: 'left' | 'right';
+  /** The size the reader gave it, for a menu that is a window (`IMenuFrame`). */
+  frame?: IMenuFrame;
   children: ReactNode;
 }) => {
-  const [style, setStyle] = useState<CSSProperties>();
+  const [placement, setPlacement] = useState<{
+    style: CSSProperties;
+    side: TMenuSide;
+  }>();
+  /** The side a framed menu stands on, kept while it is open. */
+  const sideRef = useRef<TMenuSide | undefined>(undefined);
   // The menu element itself, as state rather than a ref, because placing it
   // depends on its measured height and a ref would not re-run the effect when
   // it arrives.
@@ -172,26 +226,43 @@ const AnchoredMenu = ({
   // Still drawn while it leaves, so it goes back into its control instead of
   // blinking out.
   const exit = useExitAnimation(isOpen, 'menu-out', menu);
+  const frameWidth = frame?.width;
+  const frameHeight = frame?.height;
+  const frameNudge = frame?.nudge;
 
   useLayoutEffect(() => {
     if (!isOpen || !anchor) {
+      sideRef.current = undefined;
       return undefined;
     }
-    const place = () =>
-      setStyle(
-        positionFrom(
-          anchor.getBoundingClientRect(),
-          // Not `offsetHeight`, which would report the cap, which would then
-          // look like a perfect fit and never flip back. See `wantedHeight`.
-          menu ? wantedHeight(menu) : 0,
-          // Width is the opposite case: `offsetWidth` is what it occupies, and
-          // what has to be kept inside the window. Zero on the first pass, so
-          // the clamp is inert until the measured pass corrects it.
-          menu?.offsetWidth ?? 0,
-          maxHeight,
-          align,
-        ),
+    const sized =
+      frameWidth !== undefined &&
+      frameHeight !== undefined &&
+      frameNudge !== undefined
+        ? { width: frameWidth, height: frameHeight, nudge: frameNudge }
+        : undefined;
+    const place = () => {
+      const placed = positionFrom(
+        anchor.getBoundingClientRect(),
+        // Not `offsetHeight`, which would report the cap, which would then
+        // look like a perfect fit and never flip back. See `wantedHeight`.
+        menu ? wantedHeight(menu) : 0,
+        // Width is the opposite case: `offsetWidth` is what it occupies, and
+        // what has to be kept inside the window. Zero on the first pass, so
+        // the clamp is inert until the measured pass corrects it. A framed
+        // menu's is the width it is about to be given: the element still
+        // wears the previous one while this runs.
+        sized
+          ? Math.min(sized.width, window.innerWidth - 2 * MARGIN)
+          : (menu?.offsetWidth ?? 0),
+        maxHeight,
+        align,
+        sized,
+        sized ? sideRef.current : undefined,
       );
+      sideRef.current = placed.side;
+      setPlacement(placed);
+    };
     place();
     // Anything that moves the trigger moves the menu. `true` on the scroll
     // listener catches scrolling inside the panel as well as the window, which
@@ -203,9 +274,18 @@ const AnchoredMenu = ({
       window.removeEventListener('scroll', place, true);
       window.removeEventListener('resize', place);
     };
-  }, [anchor, isOpen, menu, maxHeight, align]);
+  }, [
+    anchor,
+    isOpen,
+    menu,
+    maxHeight,
+    align,
+    frameWidth,
+    frameHeight,
+    frameNudge,
+  ]);
 
-  if (!exit.present || !style || typeof document === 'undefined') {
+  if (!exit.present || !placement || typeof document === 'undefined') {
     return null;
   }
 
@@ -213,10 +293,13 @@ const AnchoredMenu = ({
     <div
       ref={setMenu}
       className={className}
-      style={style}
+      style={placement.style}
       role={role}
       aria-label={ariaLabel}
       data-anchored-menu
+      // Which side of its trigger it opened on: a framed menu's grips stand
+      // on the edges away from the trigger.
+      data-side={placement.side}
       // Leaving: out of reach and out of the accessibility tree while it
       // plays, so nothing can be pressed on a menu that is already gone.
       data-closing={exit.closing ? '' : undefined}
