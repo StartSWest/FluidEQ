@@ -229,10 +229,9 @@ export interface IBalanceCaptureState {
    */
   fullBand: IFullBandState;
   /**
-   * Learns from every frame, the gate's holds included: the graph's forming
-   * curve, which must not stand still for the twenty seconds a filtered
-   * intro or a record with no air holds the measurement (`smartEqPreview`).
-   * Never what a correction is written from.
+   * Learns from every frame, the gate's holds included: the capture that
+   * keeps a hold's frames aside (`heldEvidence`), which has no gate of its
+   * own to answer to.
    */
   learnsThroughHolds?: boolean;
   /**
@@ -687,7 +686,15 @@ export const accumulateBalanceFrame = (
       const held =
         state.heldEvidence ?? startHeldEvidence(state, frame.timestampMs - dt);
       state.heldEvidence = held;
-      held.presenceGate = state.presenceGate;
+      // Judged against its own lines, which the owner writes after every
+      // frame as it does the measurement's (`smartEqMeasurement.ts`); the
+      // measurement's are only the first frame's, before it has any. With
+      // the measurement's lines throughout, the held frames were judged
+      // against levels frozen at the hold's first instant — the opening of a
+      // song that fades in — so a range quiet there counted as fully present
+      // for twenty seconds and earned the full boost: 3.7 dB at 40 Hz where
+      // the record itself gave 1.3 (seen live, 2026-11-20).
+      held.presenceGate ??= state.presenceGate;
       accumulateBalanceFrame(held, frame);
     }
   }

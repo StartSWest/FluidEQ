@@ -68,4 +68,47 @@ const mergeHeldEvidence = (
   state.acceptedFrames += held.acceptedFrames;
 };
 
+/**
+ * The measurement as it will stand if the gate's hold in progress runs out:
+ * a copy of it with the held frames folded in, and the measurement itself
+ * left untouched. With no hold in progress, a copy of the measurement.
+ *
+ * What the forming curve is drawn from (`smartEqMeasurement.ts`). It used to
+ * be drawn from a second accumulator that learned through every hold, beside
+ * the measurement that did not, and the two followed the presence lines from
+ * different typical levels, so they weighed the same frames differently: when
+ * the measurement took over, the curve on the graph jumped to another shape
+ * mid-settle (3.7 dB at 40 Hz where the second had 1.3, seen live on
+ * 2026-11-20). This copy is the measurement's own evidence plus exactly what
+ * its merge would add, so the hand-over at the end of a hold changes nothing
+ * that was drawn.
+ *
+ * Copies only what a report reads; the copy is evaluated and thrown away.
+ */
+export const withHeldEvidence = (
+  state: IBalanceCaptureState,
+): IBalanceCaptureState => {
+  const copy: IBalanceCaptureState = {
+    ...state,
+    power: new Float64Array(state.power),
+    weight: new Float64Array(state.weight),
+    regionStates: state.regionStates.map((region) => ({ ...region })),
+    presenceSum: new Float64Array(state.presenceSum),
+    presenceWeight: new Float64Array(state.presenceWeight),
+    liveDb: new Float64Array(state.liveDb),
+    typicalDb: new Float64Array(state.typicalDb),
+    fullBand: { ...state.fullBand },
+    checkpoint: state.checkpoint && {
+      ...state.checkpoint,
+      probe: new Float64Array(state.checkpoint.probe),
+    },
+    probeHistory: undefined,
+    heldEvidence: undefined,
+  };
+  if (state.heldEvidence) {
+    mergeHeldEvidence(copy, state.heldEvidence);
+  }
+  return copy;
+};
+
 export default mergeHeldEvidence;

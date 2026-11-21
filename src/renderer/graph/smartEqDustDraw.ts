@@ -234,6 +234,27 @@ export const HOLD_CLOSE_S = 0.4;
 /** Under `strokeShare`'s start, so nothing measured is ever drawn solid. */
 const FOUND_CLOSED = 0.6;
 
+/**
+ * How fast the drawn curve follows the measurement, in seconds to cover most
+ * of the way: slowly while it forms, quickly once the song is held.
+ *
+ * A checkpoint every half second is a step, and a song's estimate still
+ * moves while it settles: 1.2 dB between two checkpoints of a real song
+ * where two overlapping bands traded gain, 2.5 dB at the top of the spectrum
+ * on another where the air range was still uncertain (measured 2026-11-21,
+ * 47 steps over half a decibel across eight records after the first six
+ * seconds). Followed in 0.22 s, each step was drawn as a jolt: "it keeps
+ * moving while it forms". Followed over a second, the same steps are a drift.
+ * Once held the curve is the answer and catches up within the hold's sweep,
+ * so the line it closes into is already where it stays.
+ */
+export const CURVE_EASE_FORMING_S = 1.1;
+export const CURVE_EASE_HELD_S = 0.15;
+
+/** The share of the way the drawn curve moves toward its target in `dt`. */
+export const curveEaseShare = (dt: number, isHeld: boolean): number =>
+  1 - Math.exp(-dt / (isHeld ? CURVE_EASE_HELD_S : CURVE_EASE_FORMING_S));
+
 export const closedOf = (
   confidence: Float64Array,
   sinceHeld: number | undefined,

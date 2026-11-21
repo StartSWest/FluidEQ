@@ -20,6 +20,7 @@ import {
   IDustPaint,
   clamp01,
   closedOf,
+  curveEaseShare,
   confidenceAt,
   createDustField,
   drawDust,
@@ -39,8 +40,6 @@ import { ColorEnum } from '../styles/color';
  * arrival has played.
  */
 
-/** Seconds for the drawn curve to cover most of the way to a new one. */
-const CURVE_EASE_S = 0.22;
 const CONFIDENCE_EASE_S = 0.35;
 const ARRIVE_S = 0.45;
 /**
@@ -229,7 +228,9 @@ const SmartEqDust = ({
 
       // Ease toward the measurement, so a checkpoint every half second reads
       // as one movement and not as steps.
-      const curveShare = isFirst ? 1 : easeStep(dt, CURVE_EASE_S);
+      const curveShare = isFirst
+        ? 1
+        : curveEaseShare(dt, sinceHeld !== undefined);
       const confidenceShare = isFirst ? 1 : easeStep(dt, CONFIDENCE_EASE_S);
       isFirst = false;
       for (let index = 0; index < count; index += 1) {

@@ -21,6 +21,8 @@ import {
   isBalanceCheckDue,
   shouldFinishBalanceCapture,
 } from '../utils/autoBalanceCapture';
+import { CONVERGENCE_CHECK_MS } from '../utils/autoBalanceTuning';
+import { withHeldEvidence } from '../utils/heldEvidence';
 import { getPresenceLine, presenceAllowance } from '../utils/presenceThreshold';
 import { IRawSourceFrame, TRawSourceKind, openRawSource } from './rawSource';
 
@@ -72,14 +74,14 @@ export interface IMeasurementOptions extends IBalanceListenBounds {
 /**
  * What the forming curve is drawn from.
  *
- * Two accumulators hear every frame. The measurement's own stops learning
- * while the full-band gate holds (`fullBandGate.ts`: a filtered intro, a
- * record with no air), for up to twenty seconds, and nothing is ever written
- * from anything but it. A second one learns through those holds, so the
- * curve on the graph keeps forming while the measurement waits. Whichever of
- * the two has the more confident ranges stands for the preview: with no hold
- * they are the same numbers and the measurement's own is taken, so the curve
- * that forms is the curve that is written.
+ * One accumulator, the measurement's: its latest report, so the curve that
+ * forms is the curve that is written. While the full-band gate holds
+ * (`fullBandGate.ts`) the measurement keeps what it hears aside; a hold that
+ * opens the song leaves it nothing of its own, and then the curve is drawn
+ * from it as that hold will leave it (`withHeldEvidence`), so it still forms
+ * and the hand-over changes nothing drawn. A second accumulator used to stand
+ * in through holds, judging the same frames against other presence lines,
+ * and the curve jumped between its shape and the measurement's mid-settle.
  */
 export interface ISmartEqPreviewReport {
   report: IBalanceReport;
@@ -183,9 +185,9 @@ export const measureSource = (
 ): IMeasurement => {
   let state: IBalanceCaptureState | undefined;
   let presenceGate: Float64Array | undefined;
-  /** The preview's accumulator — see `ISmartEqPreviewReport`. */
-  let shadow: IBalanceCaptureState | undefined;
-  let shadowGate: Float64Array | undefined;
+  let heldGate: Float64Array | undefined;
+  /** Music heard at the last preview, holds included. */
+  let previewedAtMs: number | undefined;
   let lastReport: IBalanceReport | undefined;
   let { halfLifeMs } = options;
   let sampleRate = 0;
@@ -230,19 +232,34 @@ export const measureSource = (
   };
 
   const evaluatePreview = () => {
-    if (!shadow || !options.onPreview || !isBalanceCheckDue(shadow)) {
+    if (!state || !options.onPreview) {
       return;
     }
-    const heard = evaluateBalanceCapture(shadow, options);
-    options.onPreview({
-      report:
-        lastReport && lastReport.meanCoverage >= heard.meanCoverage
-          ? lastReport
-          : heard,
-      measured: lastReport,
-      heardMs: shadow.listenedMs,
-      isSilent,
-    });
+    // Paced by music heard, holds included, so the curve forms through a
+    // hold at the cadence it forms at outside one. Never backwards: a hold
+    // the record ends takes its frames out of the measurement, and the
+    // readout of seconds heard would step back by the length of the hold.
+    const heardMs = Math.max(
+      previewedAtMs ?? 0,
+      state.listenedMs + (state.heldEvidence?.listenedMs ?? 0),
+    );
+    const isDue =
+      previewedAtMs === undefined
+        ? heardMs > 0
+        : heardMs - previewedAtMs >= CONVERGENCE_CHECK_MS;
+    if (!isDue) {
+      return;
+    }
+    previewedAtMs = heardMs;
+    // The measurement's own report whenever it has one. A hold that opens
+    // the song leaves it nothing to draw, so the curve is drawn from it as
+    // that hold will leave it; a hold later in the song keeps the curve
+    // where the measurement stands, because a band that comes back throws
+    // the held frames away, and drawing them would draw a shape that then
+    // leaves again.
+    const report =
+      lastReport ?? evaluateBalanceCapture(withHeldEvidence(state), options);
+    options.onPreview({ report, measured: lastReport, heardMs, isSilent });
   };
 
   const evaluate = () => {
@@ -295,10 +312,6 @@ export const measureSource = (
       sampleRate = frame.sampleRate;
       state = createBalanceCaptureState(frame.axis, halfLifeMs);
       presenceGate = new Float64Array(state.regions.length);
-      if (options.onPreview) {
-        shadow = createBalanceCaptureState(frame.axis, halfLifeMs, true);
-        shadowGate = new Float64Array(shadow.regions.length);
-      }
     } else if (frame.sampleRate !== sampleRate) {
       // Index-to-frequency changed underneath the accumulator. Mixing two
       // axes yields frequency-shifted garbage, which is the worst possible
@@ -319,9 +332,11 @@ export const measureSource = (
       // The gate depends on where somebody has dragged the lines, which can
       // happen mid-capture, so it is refreshed every frame rather than held.
       state.presenceGate = gateOf(state, presenceGate as Float64Array);
-      if (shadow && shadowGate) {
-        accumulateBalanceFrame(shadow, heard);
-        shadow.presenceGate = gateOf(shadow, shadowGate);
+      // And the frames a gate's hold keeps aside against their own lines,
+      // placed from what the hold is hearing (`heldEvidence` in the capture).
+      if (state.heldEvidence) {
+        heldGate ??= new Float64Array(state.regions.length);
+        state.heldEvidence.presenceGate = gateOf(state.heldEvidence, heldGate);
       }
       publish({
         ...view,
@@ -361,8 +376,8 @@ export const measureSource = (
       halfLifeMs = nextHalfLifeMs;
       state = undefined;
       presenceGate = undefined;
-      shadow = undefined;
-      shadowGate = undefined;
+      heldGate = undefined;
+      previewedAtMs = undefined;
       lastReport = undefined;
       lastPercent = 0;
       lastProgress = undefined;
