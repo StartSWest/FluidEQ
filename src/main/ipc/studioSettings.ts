@@ -5,7 +5,9 @@ import type { ISceneResponse } from '../../common/sceneResponse';
 import { readSceneWave, type ISceneWave } from '../../common/sceneWave';
 import {
   readSceneWindowColours,
+  SCENE_WINDOW_COLOUR_STOPS,
   type ISceneWindowColours,
+  type TSceneWindowColourStop,
 } from '../../common/sceneWindowColours';
 import { readProject } from '../memberScenes/project';
 import {
@@ -111,9 +113,9 @@ const readSettings = (raw: unknown): IProjectSettings => {
   } else if (raw.wave !== undefined) {
     wave = readSceneWave(raw.wave) ?? null;
   }
-  // `null` takes the scene's window colours out; anything else is three
-  // #rrggbb colours or not written at all.
-  // The day's set the same way, on its own (`windowColoursDay`).
+  // The window colours by point (`windowColourStops`): `null` takes a
+  // point out, anything else is three #rrggbb colours or not written at
+  // all. The two-point names still say the 0 and the 100 point.
   const coloursOf = (
     value: unknown,
   ): ISceneWindowColours | null | undefined => {
@@ -122,13 +124,28 @@ const readSettings = (raw: unknown): IProjectSettings => {
     }
     return value === undefined ? undefined : readSceneWindowColours(value);
   };
-  const windowColours = coloursOf(raw.windowColours);
-  const windowColoursDay = coloursOf(raw.windowColoursDay);
+  const sentStops = isRecord(raw.windowColourStops)
+    ? raw.windowColourStops
+    : {};
+  const windowColourStops: Partial<
+    Record<TSceneWindowColourStop, ISceneWindowColours | null>
+  > = {};
+  SCENE_WINDOW_COLOUR_STOPS.forEach((stop) => {
+    let sent = sentStops[stop];
+    if (sent === undefined && stop === '0') {
+      sent = raw.windowColours;
+    } else if (sent === undefined && stop === '100') {
+      sent = raw.windowColoursDay;
+    }
+    const colours = coloursOf(sent);
+    if (colours !== undefined) {
+      windowColourStops[stop] = colours;
+    }
+  });
   return {
     ...(params ? { params } : {}),
     ...(ambient ? { ambient } : {}),
-    ...(windowColours !== undefined ? { windowColours } : {}),
-    ...(windowColoursDay !== undefined ? { windowColoursDay } : {}),
+    ...(Object.keys(windowColourStops).length > 0 ? { windowColourStops } : {}),
     ...(palettes && Object.keys(palettes).length ? { palettes } : {}),
     ...(colours && Object.keys(colours).length ? { colours } : {}),
     ...(response !== undefined ? { response } : {}),

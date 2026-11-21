@@ -11,12 +11,11 @@ import {
   snapPercent,
 } from '../utils/percentSnaps';
 import { useTranslation } from '../utils/I18nContext';
-import { WINDOW_TIMES } from '../utils/sceneDayColours';
 import { setThemeShade, useThemeShade } from '../utils/theme';
 import { THEME_SHADE_MAX, THEME_SHADE_MIN } from '../utils/themeShade';
-import { useNearerTime } from '../utils/useEditedTime';
+import { useNearerEnd } from '../utils/useEditedStop';
 import useLiveSlider from '../utils/useLiveSlider';
-import TIME_NAME from '../utils/windowTimeNames';
+import TIME_NAME, { WINDOW_ENDS } from '../utils/windowTimeNames';
 import { Setting } from './StudioSettings';
 
 const SHADE_SPAN = THEME_SHADE_MAX - THEME_SHADE_MIN;
@@ -56,7 +55,7 @@ export default function StudioBrightness() {
     setThemeShade,
     BRIGHTNESS_REST_FRAMES,
   );
-  const now = useNearerTime();
+  const now = useNearerEnd();
   return (
     <div className="studio-brightness">
       <Setting
@@ -73,7 +72,7 @@ export default function StudioBrightness() {
       {/* What each end of the track is, for the eye: the slider's own value
           already says where it stands. */}
       <div className="studio-brightness__times" aria-hidden="true">
-        {WINDOW_TIMES.map((time) => (
+        {WINDOW_ENDS.map((time) => (
           <span
             key={time}
             className={`studio-brightness__time${time === now ? ' is-now' : ''}`}

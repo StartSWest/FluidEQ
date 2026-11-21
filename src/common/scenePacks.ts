@@ -7,7 +7,9 @@ import { readSceneFraming, type ISceneFraming } from './sceneFraming';
 import { readScenePointer, type IScenePointer } from './scenePointer';
 import {
   readSceneWindowColours,
+  sceneWindowColourStopsOf,
   type ISceneWindowColours,
+  type ISceneWindowColourStops,
 } from './sceneWindowColours';
 import { MAX_SCENE_PALETTES } from './scenePalette';
 import { MAX_SCENE_COLOURS } from './sceneColourControl';
@@ -180,13 +182,14 @@ export interface IScenePack {
    */
   windowColours?: ISceneWindowColours;
   /**
-   * The colours it lends the window by day (Daylight 100), `windowColours`
-   * being its night's; the window blends the two by the scene's time of day.
-   * Absent, the day's are worked out as the night's are. A key of its own
-   * beside `windowColours`, so a FluidEQ older than it reads the night's and
-   * nothing else, and either can be named without the other.
+   * The sets it names at the five hours of its day (`windowColourStops`,
+   * `sceneWindowColours.ts`), the two-point keys folded in as the 0 and 100
+   * points (`sceneWindowColourStopsOf`). What the window blends by the
+   * scene's time of day; `windowColours` above is the one set a FluidEQ
+   * older than the points reads. Absent, every point is worked out by the
+   * app.
    */
-  windowColoursDay?: ISceneWindowColours;
+  windowColourStops?: ISceneWindowColourStops;
 }
 
 /**
@@ -373,7 +376,7 @@ export const normalizeScenePack = (given: unknown): IScenePack | null => {
   // All three colours or none, never refused: without them the window takes
   // colours of its own from the scene.
   const windowColours = readSceneWindowColours(raw.windowColours);
-  const windowColoursDay = readSceneWindowColours(raw.windowColoursDay);
+  const windowColourStops = sceneWindowColourStopsOf(raw);
   return {
     schema: raw.schema,
     id: raw.id,
@@ -396,7 +399,7 @@ export const normalizeScenePack = (given: unknown): IScenePack | null => {
     ...(framing ? { framing } : {}),
     ...(pointer ? { pointer } : {}),
     ...(windowColours ? { windowColours } : {}),
-    ...(windowColoursDay ? { windowColoursDay } : {}),
+    ...(windowColourStops ? { windowColourStops } : {}),
   };
 };
 

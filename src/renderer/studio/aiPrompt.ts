@@ -158,7 +158,7 @@ pack.json:
   "names": { "en": "Short Name" },
   "swatch": ["#rrggbb", "#rrggbb", "#rrggbb"],
   "windowColours": { "surface": "#rrggbb", "accent": "#rrggbb", "glow": "#rrggbb" },
-  "windowColoursDay": { "surface": "#rrggbb", "accent": "#rrggbb", "glow": "#rrggbb" },
+  "windowColourStops": { "0": { the same three }, "100": { the same three } },
   "sourceFile": "scene.frag",
   "framing": { "focus": [0.5, 0.45], "narrowest": 1.7778 },
   "params": [
@@ -186,13 +186,14 @@ pack.json:
 - names: English required; add es, pt, fr, de, it, ru, zh, zh-Hant, ja, ko, hi if you can.
   At most 40 characters each.
 - swatch: 2 to 4 colours that represent the scene.
-- windowColours and windowColoursDay: always give both. The colours
-  FluidEQ's window wears round my scene at its night (Daylight 0) and at
-  its day (Daylight 100); between them the window blends the two by the
-  scene's hour. Each is the hues of the scene's own colours at that hour,
-  at the lightness a window needs - a dark floor, a bright accent, a lit
-  glow (the fluideq-finish skill says how). Every look_at_scene answer
-  measures both, and their blend, in its Window colours check, which must
+- windowColours, and windowColourStops by the scene's hour: always "0"
+  (equal to windowColours) and "100", and "25", "50" or "75" only where
+  the blend of the hours named is wrong there. FluidEQ's window wears them
+  round my scene; between hours it blends them. Each is the hues of the
+  scene's own colours at that hour, at the lightness a window needs - a
+  dark floor, a bright accent, a lit glow (the fluideq-finish skill says
+  how). Every look_at_scene answer measures each hour named, and the
+  blend, in its Window colours check, which must
   pass. Choose them again whenever the scene's colours change.
 - params: the scene's own sliders, up to 8, which FluidEQ shows me by
   itself with the names you give them - and the Daylight control, which it

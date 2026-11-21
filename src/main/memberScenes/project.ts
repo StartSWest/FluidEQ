@@ -154,6 +154,11 @@ const buildRawPack = async (folder: string, drafts = NO_DRAFTS) => {
       ...(manifest.windowColoursDay === undefined
         ? {}
         : { windowColoursDay: manifest.windowColoursDay }),
+      // And the five points (`windowColourStops`), which the reader folds
+      // the two keys above into.
+      ...(manifest.windowColourStops === undefined
+        ? {}
+        : { windowColourStops: manifest.windowColourStops }),
     },
     artworkHash,
   };

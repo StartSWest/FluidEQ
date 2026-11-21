@@ -825,7 +825,7 @@ const studio = {
   'studio.problem.bad-ambient':
     'Einige ambient-Elemente oder -Regler in pack.json wurden weggelassen. Prüfen Sie Formen, Bewegungen, Farben, Anzahlen und was jeder Regler bewegt.',
   'studio.problem.bad-window-colours':
-    'windowColours in pack.json braucht surface, accent und glow, jeweils eine Farbe wie #00e5cf.',
+    'windowColours/windowColourStops in pack.json braucht surface, accent und glow, jeweils eine Farbe wie #00e5cf.',
   'studio.windowColours.failed':
     'Die Farben konnten nicht gespeichert werden. Versuchen Sie es erneut.',
   'studio.windowColours.note':

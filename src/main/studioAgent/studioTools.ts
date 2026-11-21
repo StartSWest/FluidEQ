@@ -336,7 +336,7 @@ const describe = (
     slidersLine(pack, request.sliders),
     ...palettesLine(pack),
     ...coloursLine(pack),
-    ...windowColourLines(pack.windowColours, pack.windowColoursDay),
+    ...windowColourLines(pack.windowColourStops),
     momentLine(answer.moment),
     cameraLine(pack, camera, request),
     costLine(answer.drawMs, answer.renderWidth, answer.renderHeight),

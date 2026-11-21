@@ -4,9 +4,12 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { ISceneWindowColours } from 'common/sceneWindowColours';
+import type {
+  ISceneWindowColours,
+  ISceneWindowColourStops,
+} from '../../common/sceneWindowColours';
 import { hueDistance, parseCssColour, rgbToLab } from './oklab';
-import { blendWindowColours } from './sceneDayColours';
+import { coloursAtHour } from './sceneDayColours';
 import { clearsWarningHues } from './sceneTint';
 
 /**
@@ -142,20 +145,20 @@ export interface IDayColourFault {
 }
 
 /**
- * Where the blend of `night` and `day` first makes a bad window, or
- * undefined when it never does. Two good sets can still make a bad one
- * between them: an accent and a glow that trade hues from night to day turn
- * through each other at dusk and are one colour there - Aurora's first day
- * set, green and pink by night against blue and green by day, failed from
- * Daylight 30 to 85.
+ * Where the blend of the sets named at a scene's points (`sceneDayColours.ts`)
+ * first makes a bad window, or undefined when it never does. Two good sets
+ * can still make a bad one between them: an accent and a glow that trade
+ * hues from night to day turn through each other at dusk and are one colour
+ * there - Aurora's first day set, green and pink by night against blue and
+ * green by day, failed from Daylight 30 to 85.
  */
 export const windowColourFaultsThroughDay = (
-  night: ISceneWindowColours,
-  day: ISceneWindowColours,
+  stops: ISceneWindowColourStops,
 ): IDayColourFault | undefined => {
   for (let step = 0; step <= DAY_CHECK_STEPS; step += 1) {
     const daylight = (step / DAY_CHECK_STEPS) * 100;
-    const faults = windowColourFaults(blendWindowColours(night, day, daylight));
+    const colours = coloursAtHour(stops, daylight);
+    const faults = colours ? windowColourFaults(colours) : [];
     if (faults.length > 0) {
       return { daylight, faults };
     }

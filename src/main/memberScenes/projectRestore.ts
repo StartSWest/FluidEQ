@@ -3,6 +3,7 @@ import path from 'path';
 import { MAX_MEMBER_NAME_LENGTH } from '../../common/memberScenes';
 import type { IScenePack } from '../../common/scenePacks';
 import storedScenePack from '../../common/sceneStoredPack';
+import { sceneWindowColourKeys } from '../../common/sceneWindowColours';
 import type { ISceneWorld } from '../../common/sceneWorld';
 import { folderNameFor } from './projectFolders';
 import { MANIFEST_FILE, readManifest } from './projectFiles';
@@ -66,9 +67,12 @@ export const restoredManifest = (pack: IScenePack) =>
       ...(pack.camera ? { camera: pack.camera } : {}),
       ...(pack.framing ? { framing: pack.framing } : {}),
       ...(pack.pointer ? { pointer: pack.pointer } : {}),
-      ...(pack.windowColours ? { windowColours: pack.windowColours } : {}),
-      ...(pack.windowColoursDay
-        ? { windowColoursDay: pack.windowColoursDay }
+      // The points, and the keys an older FluidEQ reads beside them.
+      ...(pack.windowColourStops
+        ? sceneWindowColourKeys(pack.windowColourStops)
+        : {}),
+      ...(!pack.windowColourStops && pack.windowColours
+        ? { windowColours: pack.windowColours }
         : {}),
     },
     null,

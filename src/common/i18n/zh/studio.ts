@@ -723,7 +723,7 @@ const studio = {
   'studio.problem.bad-ambient':
     'pack.json 中的部分 ambient 元素或控件被忽略了。请检查它们的形状、运动、颜色、数量以及每个控件调节的内容。',
   'studio.problem.bad-window-colours':
-    'pack.json 中的 windowColours 需要 surface、accent 和 glow，每项都是类似 #00e5cf 的颜色。',
+    'pack.json 中的 windowColours/windowColourStops 需要 surface、accent 和 glow，每项都是类似 #00e5cf 的颜色。',
   'studio.windowColours.failed': '无法保存颜色。请重试。',
   'studio.windowColours.note': '保存在场景中，所有播放它的人都会看到这些颜色。',
   'studio.windowColours.none':

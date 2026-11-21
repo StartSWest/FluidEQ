@@ -44,7 +44,7 @@ export const EVERY_PACK_FIELD: Record<keyof IScenePack, true> = {
   framing: true,
   pointer: true,
   windowColours: true,
-  windowColoursDay: true,
+  windowColourStops: true,
 };
 
 /**
@@ -216,10 +216,10 @@ const fullPack = (): IScenePack =>
       ],
     },
     windowColours: { surface: '#1d2b4f', accent: '#5fd4ff', glow: '#ff8fd0' },
-    windowColoursDay: {
-      surface: '#e8eef8',
-      accent: '#2a6fdb',
-      glow: '#ff9a3c',
+    windowColourStops: {
+      '0': { surface: '#1d2b4f', accent: '#5fd4ff', glow: '#ff8fd0' },
+      '50': { surface: '#24365f', accent: '#7ac8ff', glow: '#ffa6d8' },
+      '100': { surface: '#e8eef8', accent: '#2a6fdb', glow: '#ff9a3c' },
     },
   });
 

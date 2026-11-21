@@ -13,10 +13,13 @@ import {
 } from 'common/sceneWindowColours';
 import ColourPickerPopover from './ColourPickerPopover';
 import { useTranslation } from '../utils/I18nContext';
-import type { TWindowTime } from '../utils/sceneDayColours';
+import type {
+  TSceneStopColours,
+  TWindowColourStop,
+} from '../utils/sceneDayColours';
 import { skyFromWindowColours } from '../utils/sceneOwnColours';
 import { useThemeShade } from '../utils/theme';
-import { lightWindowOf } from '../utils/themeShade';
+import { lightWindowOf, THEME_SHADE_MAX } from '../utils/themeShade';
 import useWornSurface from '../utils/useWornSurface';
 
 const ROLE_NAME: Record<TSceneWindowColourRole, TranslationKey> = {
@@ -142,13 +145,12 @@ interface IWindowColourSwatchesProps {
   /** What a dot is measured against: the colours the scene comes with. */
   own: ISceneWindowColours | undefined;
   /**
-   * Both times' colours as the window blends them, the open one as it is
+   * Every point's colours as the window blends them, the open one as it is
    * being picked, and which is open: the surface is shown as the window
    * paints it at the hour and the Brightness it is at (`useWornSurface`).
    */
-  night: ISceneWindowColours;
-  day: ISceneWindowColours;
-  editing: TWindowTime;
+  sides: TSceneStopColours;
+  editing: TWindowColourStop;
   disabled?: boolean;
   onChange: (role: TSceneWindowColourRole, value: string) => void;
   onCommit: (role: TSceneWindowColourRole, value: string) => void;
@@ -163,21 +165,25 @@ interface IWindowColourSwatchesProps {
 export default function WindowColourSwatches({
   colours,
   own,
-  night,
-  day,
+  sides,
   editing,
   disabled = false,
   onChange,
   onCommit,
 }: IWindowColourSwatchesProps) {
   const { t } = useTranslation();
-  const wornSurface = useWornSurface(night, day, editing);
+  const wornSurface = useWornSurface(sides, editing);
   const glowUnused = skyFromWindowColours(colours)?.active === null;
   // A white window keeps its panes white whatever the scene's surface is
   // (`pickedWindow.ts`), so the surface paints nothing there and its swatch
   // says so, held, rather than taking a colour nobody would see (Ivan,
-  // 2026-11-17: "make sure it disables the surface").
-  const whitePane = lightWindowOf(useThemeShade())?.tokens['--surface-panel'];
+  // 2026-11-17: "make sure it disables the surface"). The 100 point is
+  // the white window's whatever the Brightness stands at: its surface is
+  // always white, and only its accent and glow are chosen (Ivan, 2026-11-18:
+  // "plus 100% which is the white one ... choose primary and sec also").
+  const shade = useThemeShade();
+  const whitePane = lightWindowOf(editing === '100' ? THEME_SHADE_MAX : shade)
+    ?.tokens['--surface-panel'];
   return (
     <div className="window-colour-swatches">
       {SCENE_WINDOW_COLOUR_ROLES.map((role) => (

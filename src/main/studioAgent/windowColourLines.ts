@@ -4,7 +4,12 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { ISceneWindowColours } from '../../common/sceneWindowColours';
+import {
+  SCENE_WINDOW_COLOUR_STOPS,
+  type ISceneWindowColours,
+  type ISceneWindowColourStops,
+  type TSceneWindowColourStop,
+} from '../../common/sceneWindowColours';
 import {
   lchOf,
   windowColourFaults,
@@ -63,47 +68,59 @@ const setLines = (label: string, colours: ISceneWindowColours): string[] => {
       ];
 };
 
+/** How the check names a point, in the words of `windowColourStops`. */
+const STOP_LABEL: Record<TSceneWindowColourStop, string> = {
+  '0': 'windowColourStops "0", the night',
+  '25': 'windowColourStops "25"',
+  '50': 'windowColourStops "50"',
+  '75': 'windowColourStops "75"',
+  '100': 'windowColourStops "100", the day on a white window',
+};
+
 /**
- * The Window colours check for the night's set (`windowColours`) and the
- * day's (`windowColoursDay`), and for the blend between them, which the
- * window wears at every hour in between.
+ * The Window colours check for the sets the scene names at its five hours
+ * (`windowColourStops`, the two-point `windowColours` and `windowColoursDay`
+ * folded in as the 0 and 100 points by the pack's reader), and for the blend
+ * between them, which the window wears at every hour in between.
  */
 const windowColourLines = (
-  night: ISceneWindowColours | undefined,
-  day?: ISceneWindowColours,
+  stops: ISceneWindowColourStops | undefined,
 ): string[] => {
-  if (!night && !day) {
+  const named = SCENE_WINDOW_COLOUR_STOPS.filter(
+    (stop) => stops?.[stop] !== undefined,
+  );
+  if (!stops || named.length === 0) {
     return [
-      'Window colours check: MISSING. pack.json names no windowColours (the night, Daylight 0) and no windowColoursDay (the day, Daylight 100), so FluidEQ works them out from the picture by a fixed rule. Choose them from what you see at each hour (the fluideq-finish skill says how), save, and look again.',
+      'Window colours check: MISSING. pack.json names no windowColourStops (the scene\'s hours "0" night to "100" day), so FluidEQ works them out from the picture by a fixed rule. Choose them from what you see at each hour (the fluideq-finish skill says how), save, and look again.',
     ];
   }
-  const problems = [
-    ...(night ? setLines('windowColours, the night', night) : []),
-    ...(day ? setLines('windowColoursDay, the day', day) : []),
-  ];
+  const problems = named.flatMap((stop) => {
+    const colours = stops[stop];
+    return colours ? setLines(STOP_LABEL[stop], colours) : [];
+  });
   const crossing =
-    night && day ? windowColourFaultsThroughDay(night, day) : undefined;
+    named.length > 1 ? windowColourFaultsThroughDay(stops) : undefined;
   if (crossing && problems.length === 0) {
     problems.push(
-      `Between night and day, at Daylight ${crossing.daylight}, the blend the window wears fails: ${crossing.faults.join(', ')}. Each set is fine alone, so they turn through each other: keep the accent on its side of the wheel and the glow on its own at both hours, rather than trading hues from night to day.`,
+      `Between the hours named, at Daylight ${crossing.daylight}, the blend the window wears fails: ${crossing.faults.join(', ')}. Each set is fine alone, so they turn through each other: keep the accent on its side of the wheel and the glow on its own at every hour, rather than trading hues through the day.`,
     );
   }
-  // A set not named is worked out by the app, which is allowed: said, so
+  // An end not named is worked out by the app, which is allowed: said, so
   // the AI names it when the scene's hour changes its colours.
   let missing = '';
-  if (!night) {
+  if (!stops['0']) {
     missing =
-      ' The night (windowColours) is not named: FluidEQ works it out from the picture at Daylight 0.';
-  } else if (!day) {
+      ' The night ("0") is not named: FluidEQ works it out from the picture at Daylight 0.';
+  } else if (!stops['100']) {
     missing =
-      ' The day (windowColoursDay) is not named: FluidEQ works it out from the picture at Daylight 100; name it if the scene by day has colours of its own.';
+      ' The day ("100") is not named: FluidEQ works it out from the picture at Daylight 100; name it if the scene by day has colours of its own.';
   }
   if (problems.length === 0) {
-    const shown = [
-      night && `night ${nameOf(night)}`,
-      day && `day ${nameOf(day)}`,
-    ]
-      .filter(Boolean)
+    const shown = named
+      .map((stop) => {
+        const colours = stops[stop];
+        return colours ? `"${stop}" ${nameOf(colours)}` : '';
+      })
       .join('; ');
     return [`Window colours check: PASSES (${shown}).${missing}`];
   }

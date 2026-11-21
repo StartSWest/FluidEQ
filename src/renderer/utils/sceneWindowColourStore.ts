@@ -8,9 +8,15 @@ import { useSyncExternalStore } from 'react';
 import {
   readSceneWindowColours,
   type ISceneWindowColours,
+  type ISceneWindowColourStops,
 } from 'common/sceneWindowColours';
 import { readStored, removeStored, writeStored } from './graphStorage';
-import { dayKeyOf, timeKeyOf, type TWindowTime } from './sceneDayColours';
+import {
+  migrateStopKey,
+  stopKeyOf,
+  WINDOW_COLOUR_STOPS,
+  type TWindowColourStop,
+} from './sceneDayColours';
 
 /**
  * The window colours a listener chose for a scene, by look id (Ivan,
@@ -18,9 +24,10 @@ import { dayKeyOf, timeKeyOf, type TWindowTime } from './sceneDayColours';
  * that scene only, like its sliders (`sceneParamStore.ts`), and worn in place
  * of the scene's own until "Use the scene's colours" forgets them. Always all
  * three: changing one keeps the scene's other two beside it, so a scene that
- * later names different colours still shows exactly what was chosen. The
- * night's and the day's are kept apart (`sceneDayColours.ts`): choosing one
- * leaves the other as the scene has it.
+ * later names different colours still shows exactly what was chosen. Each of
+ * the five points is kept apart (`sceneDayColours.ts`), the 0 point under the
+ * look's id and the others under `<id>@<point>`: choosing one leaves the
+ * others as the scene has them.
  */
 
 const STORAGE_KEY = 'fluideq.sceneWindowColours';
@@ -43,10 +50,11 @@ const readAll = (): Map<string, ISceneWindowColours> => {
     return all;
   }
   if (isRecord(parsed)) {
-    Object.entries(parsed).forEach(([lookId, raw]) => {
+    Object.entries(parsed).forEach(([key, raw]) => {
       const colours = readSceneWindowColours(raw);
       if (colours) {
-        all.set(lookId, colours);
+        // A day chosen under the two-point model is the 100 point's.
+        all.set(migrateStopKey(key), colours);
       }
     });
   }
@@ -71,21 +79,23 @@ const save = () => {
   listeners.forEach((listener) => listener());
 };
 
-/** The colours the listener chose for `lookId`, or undefined for its own. */
-export const getChosenWindowColours = (lookId: string) => all().get(lookId);
+/** The colours the listener chose for `lookId` at `stop`, or undefined. */
+export const getChosenWindowColours = (
+  lookId: string,
+  stop: TWindowColourStop = '0',
+) => all().get(stopKeyOf(lookId, stop));
 
 /**
- * Chooses `colours` for `lookId` at `time` - the night's under the look's id,
- * the day's under its day key (`sceneDayColours.ts`) - and the scene's own
- * again when they match it.
+ * Chooses `colours` for `lookId` at `stop`, and the scene's own again when
+ * they match it.
  */
 export const setChosenWindowColours = (
   lookId: string,
   colours: ISceneWindowColours,
   own: ISceneWindowColours | undefined,
-  time: TWindowTime = 'night',
+  stop: TWindowColourStop = '0',
 ) => {
-  const key = timeKeyOf(lookId, time);
+  const key = stopKeyOf(lookId, stop);
   const same =
     own !== undefined &&
     own.surface === colours.surface &&
@@ -101,11 +111,19 @@ export const setChosenWindowColours = (
   save();
 };
 
-/** Back to the scene's own colours, night and day. */
+/** Back to the scene's own colours at `stop`. */
+export const clearChosenStop = (lookId: string, stop: TWindowColourStop) => {
+  if (all().delete(stopKeyOf(lookId, stop))) {
+    save();
+  }
+};
+
+/** Back to the scene's own colours at every point. */
 export const clearChosenWindowColours = (lookId: string) => {
-  const night = all().delete(lookId);
-  const day = all().delete(dayKeyOf(lookId));
-  if (night || day) {
+  const removed = WINDOW_COLOUR_STOPS.map((stop) =>
+    all().delete(stopKeyOf(lookId, stop)),
+  );
+  if (removed.some(Boolean)) {
     save();
   }
 };
@@ -117,15 +135,65 @@ const subscribe = (listener: () => void) => {
   };
 };
 
-/** What the listener chose for `lookId`, one stable object per change. */
-export const useChosenWindowColours = (lookId: string) =>
-  useSyncExternalStore(
+/**
+ * Every point the listener chose for `lookId`, as one text compared by
+ * value: `useSyncExternalStore` wants the same answer for the same state,
+ * and a map built per read would be a new one each time.
+ */
+const chosenKey = (lookId: string) =>
+  WINDOW_COLOUR_STOPS.map((stop) => {
+    const colours = all().get(stopKeyOf(lookId, stop));
+    return colours
+      ? `${stop}:${colours.surface}${colours.accent}${colours.glow}`
+      : '';
+  }).join(' ');
+
+/** What the listener chose for `lookId`, point by point. */
+export const useChosenWindowColourStops = (
+  lookId: string,
+): ISceneWindowColourStops => {
+  const key = useSyncExternalStore(
     subscribe,
-    () => (lookId ? all().get(lookId) : undefined),
-    () => undefined,
+    () => (lookId ? chosenKey(lookId) : ''),
+    () => '',
   );
+  return stableStopsOf(lookId, key);
+};
+
+const NO_STOPS: ISceneWindowColourStops = {};
+
+/** The last points built for each scene, with the text they were built at. */
+let builtStops = new Map<
+  string,
+  { key: string; stops: ISceneWindowColourStops }
+>();
+
+/**
+ * One object per scene and state, so the memos that read it run again only
+ * when a choice changed: rebuilt from the store when its text for the scene
+ * moves, which is the only time what it holds for that scene does.
+ */
+const stableStopsOf = (lookId: string, key: string) => {
+  if (!lookId) {
+    return NO_STOPS;
+  }
+  const built = builtStops.get(lookId);
+  if (built?.key === key) {
+    return built.stops;
+  }
+  const stops: Partial<Record<TWindowColourStop, ISceneWindowColours>> = {};
+  WINDOW_COLOUR_STOPS.forEach((stop) => {
+    const colours = all().get(stopKeyOf(lookId, stop));
+    if (colours) {
+      stops[stop] = colours;
+    }
+  });
+  builtStops.set(lookId, { key, stops });
+  return stops;
+};
 
 /** For tests: forget what was read, so the next read is from storage. */
 export const resetChosenWindowColoursForTesting = () => {
   chosen = undefined;
+  builtStops = new Map();
 };

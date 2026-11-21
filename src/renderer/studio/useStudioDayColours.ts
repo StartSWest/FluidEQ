@@ -8,55 +8,52 @@ import { useMemo } from 'react';
 import type { IScenePack } from 'common/scenePacks';
 import type { ISceneWindowColours } from 'common/sceneWindowColours';
 import {
-  dayKeyOf,
-  resolveDayColours,
-  type IResolvedDayColours,
-  type TSceneDayColours,
+  resolveStopColours,
+  stopKeyOf,
+  type IResolvedStopColours,
+  type TSceneStopColours,
 } from '../utils/sceneDayColours';
 import { windowColoursOfSky } from '../utils/sceneOwnColours';
 import { studioSkyKey, useRememberedSceneSky } from '../utils/sceneTintStore';
 
 /**
- * The Studio project's window colours, night and day (`sceneDayColours.ts`):
- * what its pack names for each time, else `palette`'s all day, else its
- * picture's as last measured at that hour for the project
- * (`measureStudioSky`). The same rule as a graph look's, so the window, the
- * Tune card and the graph never disagree about a scene.
+ * The Studio project's window colours at its five points
+ * (`sceneDayColours.ts`): what its pack names at each, else - at the day's
+ * two ends - `palette`'s, else its picture's as last measured at that hour
+ * for the project (`measureStudioSky`). The same rule as a graph look's, so
+ * the window, the Tune card and the graph never disagree about a scene.
  */
 export default function useStudioDayColours(
   project: string | undefined,
   pack: IScenePack | undefined,
   palette: ISceneWindowColours | undefined,
-): IResolvedDayColours & {
+): IResolvedStopColours & {
   /**
-   * What the app works out for each time with nothing named: the palette's,
-   * or the picture's as measured. What publishing writes into a scene for a
-   * time the member left to the app, and how the card tells such colours
+   * What the app works out for each end with nothing named: the palette's,
+   * or the picture's as measured. What publishing writes into a scene for an
+   * end the member left to the app, and how the card tells such colours
    * from chosen ones once they are written.
    */
-  automatic: TSceneDayColours;
+  automatic: TSceneStopColours;
 } {
   const key = project ? studioSkyKey(project) : '';
   const nightSky = useRememberedSceneSky(key);
-  const daySky = useRememberedSceneSky(key && dayKeyOf(key));
+  const daySky = useRememberedSceneSky(key && stopKeyOf(key, '100'));
   return useMemo(() => {
     const sources = {
       ...(palette ? { palette } : {}),
       measured: {
-        ...(nightSky ? { night: windowColoursOfSky(nightSky) } : {}),
-        ...(daySky ? { day: windowColoursOfSky(daySky) } : {}),
+        ...(nightSky ? { '0': windowColoursOfSky(nightSky) } : {}),
+        ...(daySky ? { '100': windowColoursOfSky(daySky) } : {}),
       },
       chosen: {},
     };
     return {
-      ...resolveDayColours({
+      ...resolveStopColours({
         ...sources,
-        named: {
-          ...(pack?.windowColours ? { night: pack.windowColours } : {}),
-          ...(pack?.windowColoursDay ? { day: pack.windowColoursDay } : {}),
-        },
+        named: pack?.windowColourStops ?? {},
       }),
-      automatic: resolveDayColours({ ...sources, named: {} }).own,
+      automatic: resolveStopColours({ ...sources, named: {} }).own,
     };
   }, [pack, palette, nightSky, daySky]);
 }

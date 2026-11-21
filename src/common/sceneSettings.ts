@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { isNeutralResponse, type ISceneResponse } from './sceneResponse';
 import { isDefaultSceneWave, type ISceneWave } from './sceneWave';
-import type { ISceneWindowColours } from './sceneWindowColours';
+import type { ISceneWindowColourStops } from './sceneWindowColours';
 import type { IScenePack } from './scenePacks';
 import { paletteValueOf, type IScenePaletteValue } from './scenePalette';
 
@@ -30,10 +30,11 @@ export interface ISceneSettings {
   response?: ISceneResponse;
   /** Absent for a scene that asks nothing of the wave (`sceneWave.ts`). */
   wave?: ISceneWave;
-  /** Absent for a scene that names no window colours (`sceneWindowColours.ts`). */
-  windowColours?: ISceneWindowColours;
-  /** Absent for a scene that names no day colours of its own. */
-  windowColoursDay?: ISceneWindowColours;
+  /**
+   * The points it names window colours at (`sceneWindowColours.ts`);
+   * absent for a scene that names none.
+   */
+  windowColourStops?: ISceneWindowColourStops;
 }
 
 const valuesOf = (
@@ -63,6 +64,7 @@ export const settingsOfPack = (pack: IScenePack): ISceneSettings => ({
     ? { response: pack.response }
     : {}),
   ...(pack.wave && !isDefaultSceneWave(pack.wave) ? { wave: pack.wave } : {}),
-  ...(pack.windowColours ? { windowColours: pack.windowColours } : {}),
-  ...(pack.windowColoursDay ? { windowColoursDay: pack.windowColoursDay } : {}),
+  ...(pack.windowColourStops
+    ? { windowColourStops: pack.windowColourStops }
+    : {}),
 });
