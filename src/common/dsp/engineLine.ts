@@ -8,11 +8,13 @@ import {
   engineRunsDynamics,
   engineRunsFootsteps,
   engineRunsGame,
+  engineRunsVoice,
 } from '../engineHealth';
 import {
   asFootstepsAlone,
   withoutDynamics,
   withoutFootsteps,
+  withoutVoice,
 } from './chainWire';
 
 /**
@@ -26,15 +28,22 @@ export interface IEngineReads {
   game: 'game' | 'footsteps' | 'none';
   /** Dynamics (1.27). */
   dynamics: boolean;
+  /** A microphone's Voice stage (1.31). */
+  voice: boolean;
 }
 
 /** An engine as new as the app: the line as written. */
-export const ENGINE_READS_ALL: IEngineReads = { game: 'game', dynamics: true };
+export const ENGINE_READS_ALL: IEngineReads = {
+  game: 'game',
+  dynamics: true,
+  voice: true,
+};
 
 /** Nothing known about the engine: the line every engine reads. */
 export const ENGINE_READS_NONE: IEngineReads = {
   game: 'none',
   dynamics: false,
+  voice: false,
 };
 
 export const engineReadsOf = (dllVersion: string | undefined): IEngineReads => {
@@ -44,7 +53,11 @@ export const engineReadsOf = (dllVersion: string | undefined): IEngineReads => {
   } else if (engineRunsFootsteps(dllVersion)) {
     game = 'footsteps';
   }
-  return { game, dynamics: engineRunsDynamics(dllVersion) };
+  return {
+    game,
+    dynamics: engineRunsDynamics(dllVersion),
+    voice: engineRunsVoice(dllVersion),
+  };
 };
 
 /** The line as the engine that `reads` describes can read it. */
@@ -52,7 +65,10 @@ export const lineForEngine = (
   values: number[],
   reads: IEngineReads,
 ): number[] => {
-  const line = reads.dynamics ? values : withoutDynamics(values);
+  // Voice first: it stands after Dynamics, and each strip finds its own
+  // trailer from the ones before it.
+  const voiced = reads.voice ? values : withoutVoice(values);
+  const line = reads.dynamics ? voiced : withoutDynamics(voiced);
   if (reads.game === 'game') {
     return line;
   }

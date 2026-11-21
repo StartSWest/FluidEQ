@@ -174,6 +174,11 @@ add_executable(fluideq-engine-dynamics-line-test tests/dynamics_line_test.cpp)
 target_link_libraries(fluideq-engine-dynamics-line-test
   PRIVATE fluideq-engine-dsp feq_strict)
 add_test(NAME engine-dynamics-line COMMAND fluideq-engine-dynamics-line-test)
+# A microphone's Voice trailer, from lines the TypeScript encoder wrote.
+add_executable(fluideq-engine-voice-line-test tests/voice_line_test.cpp)
+target_link_libraries(fluideq-engine-voice-line-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-voice-line COMMAND fluideq-engine-voice-line-test)
 add_executable(fluideq-engine-graph-crossing-test tests/graph_crossing_test.cpp)
 target_link_libraries(fluideq-engine-graph-crossing-test
   PRIVATE fluideq-engine-dsp feq_strict)

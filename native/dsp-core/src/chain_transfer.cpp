@@ -111,6 +111,9 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
   // Its gains and levels likewise: a turned knob must not drop every lift
   // to nothing and bring it back over the release.
   feq_compander_transfer(prepared.compander, previous.compander);
+  // The filters, the pop guard and the gate keep running: a profile
+  // switched mid-word must not open a closed gate or reset the low cut.
+  feq_voice_transfer(prepared.voice, previous.voice);
   swap(prepared.bass_punch_low, previous.bass_punch_low);
   swap(prepared.bass_punch_bloom, previous.bass_punch_bloom);
   swap(prepared.bass_punch_bloom_pointers, previous.bass_punch_bloom_pointers);

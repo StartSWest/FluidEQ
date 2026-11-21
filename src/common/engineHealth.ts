@@ -367,6 +367,16 @@ export const engineReportsDynamics = (
   dllVersion: string | undefined,
 ): boolean => engineAtLeast(dllVersion, ENGINE_DYNAMICS_METERS_SINCE);
 
+/**
+ * A microphone's Voice stage, from its own VOIC trailer, and the voice
+ * cleaner's low-lag margin. An older engine refuses a line carrying the
+ * trailer and bypasses the whole rack, so the app takes it off for one
+ * (`withoutVoice`).
+ */
+export const ENGINE_VOICE_SINCE: readonly [number, number] = [1, 31];
+export const engineRunsVoice = (dllVersion: string | undefined): boolean =>
+  engineAtLeast(dllVersion, ENGINE_VOICE_SINCE);
+
 /** Versioned Room commands and truthful comparison telemetry. */
 export const ENGINE_ROOM_SINCE: readonly [number, number] = [1, 11];
 export const engineSupportsRoomUpgrade = (

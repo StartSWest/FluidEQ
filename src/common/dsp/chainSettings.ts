@@ -31,6 +31,7 @@ import {
 import type { IDeEsserSettings } from './deEsser';
 import type { IDynamicsSettings } from './dynamicsStage';
 import type { IFootstepsSettings } from './footsteps';
+import type { IVoiceSettings } from './voiceStage';
 
 // The rest of the rack's settings - the Master, the EQ and its bands, the
 // Room, surround - and IDspSettings, the whole rack as one value. chain.ts
@@ -403,6 +404,12 @@ export interface IDspSettings {
   footsteps: IFootstepsSettings;
   /** Dynamics, just before the Maximizer (`dynamicsStage.ts`). */
   dynamics: IDynamicsSettings;
+  /**
+   * A microphone's Voice stage (`voiceStage.ts`): low cut, proximity and pop
+   * guard ahead of the restoration, the gate behind it. Only a mic's rack
+   * carries one; a music rack leaves it out and its line is unchanged.
+   */
+  voice?: IVoiceSettings;
   exciter: IExciterSettings;
   bassForge: IBassForgeSettings;
   bassPunch: IBassPunchSettings;

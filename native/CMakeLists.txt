@@ -128,6 +128,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/game_environment.cpp
   dsp-core/src/game_shared.cpp
   dsp-core/src/compander.cpp
+  dsp-core/src/voice.cpp
   dsp-core/src/meters.cpp
   dsp-core/src/meters_deesser.cpp
   dsp-core/src/meters_footsteps.cpp
@@ -250,6 +251,11 @@ add_test(NAME footsteps-stems COMMAND fluideq-footsteps-stems-test)
 add_executable(fluideq-compander-test dsp-core/tests/compander_test.cpp)
 target_link_libraries(fluideq-compander-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME compander COMMAND fluideq-compander-test)
+
+# The microphone's Voice stage: gate, low cut, proximity, pop guard.
+add_executable(fluideq-voice-test dsp-core/tests/voice_test.cpp)
+target_link_libraries(fluideq-voice-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME voice COMMAND fluideq-voice-test)
 
 add_executable(fluideq-dynamics-meters-test dsp-core/tests/dynamics_meters_test.cpp)
 target_link_libraries(fluideq-dynamics-meters-test PRIVATE fluideq-dsp-core feq_strict)

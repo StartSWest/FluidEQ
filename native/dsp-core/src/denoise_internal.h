@@ -384,6 +384,12 @@ struct FeqDenoise {
    * for this count to return to zero before retiring the old one.
    */
   std::atomic<uint32_t> voice_readers{0};
+  /**
+   * How many finished hops the next model load keeps in hand: four, or in
+   * low lag as few as one device block allows (`feq_denoise_set_low_latency`).
+   * Read once per load, on the control thread, like the model path.
+   */
+  uint32_t voice_headroom_hops = kDenoiseVoiceLatencyFrames;
   /** Rebuild a clean runtime on a source reset without mutating the live one. */
   std::string voice_model_path;
   std::string voice_runtime_path;
@@ -430,7 +436,9 @@ int denoise_voice_load_model(FeqDenoise* denoise,
 void denoise_voice_unload(FeqDenoise* denoise);
 uint32_t denoise_voice_latency_frames(const FeqDenoise* denoise);
 /** What the neural module delays by at `device_rate`, whenever it runs. */
-uint32_t denoise_voice_latency_for(double device_rate);
+uint32_t denoise_voice_latency_for(double device_rate, uint32_t headroom_hops);
+/** The fewest hops of margin that still cover one device block. */
+uint32_t denoise_voice_low_latency_hops(double device_rate, uint32_t max_frames);
 /** Rings the worker if a block armed it. After the block, never inside it. */
 void denoise_voice_wake(FeqDenoise* denoise);
 

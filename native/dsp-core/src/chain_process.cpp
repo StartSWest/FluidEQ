@@ -68,6 +68,9 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
    * reporting it. Above the exciter because the alternative is generating
    * harmonics from hiss and then trying to remove the result.
    */
+  // A mic's low cut, proximity shelf and pop guard come before the
+  // restoration: the cleaner then hears the voice, not the rumble.
+  feq_voice_process_front(chain->voice, channels, frames);
   feq_denoise_process(chain->denoise, channels, frames);
   // The restoration works on the front pair and delays it by its modules;
   // the channels beyond the pair are held back by the same amount here, so
@@ -81,6 +84,9 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
     feq_meters_publish_denoise(chain->meters, &report);
   }
   feq_meters_capture(chain->meters, FEQ_METER_STAGE_DENOISE, channels, frames);
+  // The gate after the cleaner, so its threshold is set against the floor
+  // the cleaner left, not the room.
+  feq_voice_process_gate(chain->voice, channels, frames);
 
   // The De-esser between the repair and the Exciter: see
   // `chain_deesser.cpp` for why it stands exactly there.

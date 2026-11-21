@@ -195,6 +195,7 @@ void feq_chain_settings_defaults(FeqChainSettings* settings) {
   feq_deesser_settings_defaults(&settings->deesser);
   feq_footsteps_settings_defaults(&settings->footsteps);
   feq_compander_settings_defaults(&settings->compander);
+  feq_voice_settings_defaults(&settings->voice);
   settings->eq.model_amount = 1.0;
   settings->eq.oversample = 1;
   // The cookbook, which is what every test and fixture was built against;
@@ -398,6 +399,8 @@ FeqChain* feq_chain_create(double sample_rate,
   chain->footsteps = feq_footsteps_create(sample_rate, chain->channels);
   // And a rack missing Dynamics.
   chain->compander = feq_compander_create(sample_rate, chain->channels);
+  // And a rack missing Voice.
+  chain->voice = feq_voice_create(sample_rate, chain->channels);
 
   // Both sets, so the first published one is complete and the spare is not a
   // half-built rack waiting to be swapped in.
@@ -453,6 +456,8 @@ void feq_chain_destroy(FeqChain* chain) {
   chain->footsteps = nullptr;
   feq_compander_destroy(chain->compander);
   chain->compander = nullptr;
+  feq_voice_destroy(chain->voice);
+  chain->voice = nullptr;
   delete chain;
 }
 
@@ -508,6 +513,8 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
   feq_live_normalizer_set_standby(chain->live_normalizer,
                                   chain_leveler_idle(chain) ? 1 : 0);
   feq_denoise_configure(chain->denoise, &chain->settings.denoise);
+  // Before the source loads the voice model: the margin is chosen there.
+  feq_denoise_set_low_latency(chain->denoise, chain->settings.low_latency);
   // After the restoration, whose modules decide how far behind the front
   // pair now runs — and so how far the other channels must be held back.
   chain_apply_denoise_alignment(chain);
@@ -516,6 +523,7 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
   chain_configure_deesser(chain);
   chain_configure_footsteps(chain);
   feq_compander_configure(chain->compander, &chain->settings.compander);
+  feq_voice_configure(chain->voice, &chain->settings.voice);
   {
     FeqRoomSettings room{};
     feq_room_settings_defaults(&room);
@@ -740,6 +748,8 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
   feq_footsteps_reset(chain->footsteps);
   // Its gains were the passage before's; the next one starts level.
   feq_compander_reset(chain->compander);
+  // The gate starts open and the pop guard level, as on a fresh mic.
+  feq_voice_reset(chain->voice);
 
   if (reason != FEQ_CHAIN_RESET_SEEK) {
     /**

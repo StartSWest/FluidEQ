@@ -37,6 +37,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/exciter_oversample.h"
 #include "fluideq/footsteps.h"
 #include "fluideq/meters.h"
+#include "fluideq/voice.h"
 #include "fluideq/live_normalizer.h"
 #include "fluideq/room.h"
 
@@ -235,6 +236,13 @@ typedef struct FeqChainSettings {
    * written only while the stage is on, as Footsteps' is.
    */
   FeqCompanderSettings compander;
+  /**
+   * Voice, for a microphone (`voice.h`): low cut, proximity shelf and pop
+   * guard in front of the restoration, the gate behind it. On the wire in a
+   * tagged trailer of its own (`FEQ_CHAIN_VOICE_TAG`), written only while
+   * the stage is on, as Dynamics' is.
+   */
+  FeqVoiceSettings voice;
   /**
    * Stereo width per band. Touches the side signal only, so the mono sum is
    * unchanged at every setting — `dimension_test.cpp` asserts that as equality.
@@ -477,6 +485,18 @@ typedef struct FeqChainSettings {
 #define FEQ_CHAIN_DYNAMICS_FIELDS 20
 #define FEQ_CHAIN_DYNAMICS_TRAILER 23
 /**
+ * VOIC tag, schema version, field count, then the Voice stage's switch,
+ * low cut, proximity, pop guard, and the gate's switch, threshold, range,
+ * hold, attack and release. After Dynamics' trailer when there is one,
+ * before the tone; written only while the stage is on (`voiceTrailer` in
+ * `voiceWire.ts`). An engine before 1.31 refuses the line, so the app
+ * takes the trailer off for one.
+ */
+#define FEQ_CHAIN_VOICE_TAG 1448036675
+#define FEQ_CHAIN_VOICE_SCHEMA 1
+#define FEQ_CHAIN_VOICE_FIELDS 10
+#define FEQ_CHAIN_VOICE_TRAILER 13
+/**
  * TONE tag, schema version, band count and design, then each band's type,
  * frequency, gain and Q. Last on the line, after the low-latency word, the
  * Room's trailer and Footsteps' when there are those: `appendPresetTone` in
@@ -492,6 +512,7 @@ typedef struct FeqChainSettings {
  */
 #define FEQ_CHAIN_MAX_TRAILER                                        \
   (15 + FEQ_CHAIN_GAME_TRAILER + FEQ_CHAIN_DYNAMICS_TRAILER +        \
+   FEQ_CHAIN_VOICE_TRAILER +                                         \
    FEQ_CHAIN_TONE_HEADER +                                           \
    FEQ_CHAIN_MAX_TONE_BANDS * FEQ_CHAIN_TONE_BAND_PARAMS)
 #define FEQ_CHAIN_MAX_PARAMS (FEQ_CHAIN_PARAM_LEAD + FEQ_CHAIN_MAX_EQ_BANDS * FEQ_CHAIN_BAND_PARAMS + FEQ_CHAIN_MAX_TRAILER)

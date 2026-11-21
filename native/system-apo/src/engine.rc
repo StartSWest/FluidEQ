@@ -116,6 +116,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *        follows. Game cues stay additive with the mix held steady while
  *        footsteps lift. Nothing on the wire changed; the app gates nothing
  *        on 1.30.
+ *   1.31 runs on microphones too: the rack reads a VOIC trailer, the Voice
+ *        stage (`voice.h`: low cut, proximity, pop guard ahead of the
+ *        restoration, the gate behind it), and a low-lag chain keeps the
+ *        voice cleaner one device block ahead instead of four hops (about
+ *        20 ms instead of 50). An engine before 1.31 refuses a line with the
+ *        trailer, so the app takes it off for one (ENGINE_VOICE_SINCE).
  * ENGINE_STATUS_SINCE stays at 1.1: older status-capable engines still report
  * their health even when the new display connection is unavailable.
  */
@@ -127,8 +133,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #endif
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 30, 0, 0
-PRODUCTVERSION 1, 30, 0, 0
+FILEVERSION 1, 31, 0, 0
+PRODUCTVERSION 1, 31, 0, 0
 FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 FILEFLAGS 0
 FILEOS VOS_NT_WINDOWS32

@@ -199,6 +199,8 @@ struct VoiceRuntime {
   uint64_t output_debt = 0;
   uint32_t max_frames = 0;
   uint32_t voice_latency = 0;
+  /** Finished hops kept in hand; the prefill and the latency both use it. */
+  uint32_t headroom_hops = kDenoiseVoiceLatencyFrames;
   double device_rate = kVoiceRate;
 
   std::thread worker;
@@ -571,7 +573,7 @@ void reset_runtime(VoiceRuntime& runtime) {
      */
     float silence[64] = {0.0f};
     uint32_t remaining = device_frames_for(
-        runtime.device_rate, kVoiceHop * kDenoiseVoiceLatencyFrames);
+        runtime.device_rate, kVoiceHop * runtime.headroom_hops);
     while (remaining > 0) {
       const uint32_t block = remaining < 64 ? remaining : 64;
       runtime.output[c].push(silence, block);
@@ -637,10 +639,23 @@ void retire_runtime(FeqDenoise* denoise, VoiceRuntime* runtime) {
 
 }  // namespace
 
-uint32_t denoise_voice_latency_for(double device_rate) {
-  // One overlap-add hop, plus the worker's four-hop scheduling headroom.
+uint32_t denoise_voice_latency_for(double device_rate,
+                                   uint32_t headroom_hops) {
+  // One overlap-add hop, plus the worker's scheduling headroom.
   return device_frames_for(device_rate, kVoiceHop) +
-         device_frames_for(device_rate, kVoiceHop * kDenoiseVoiceLatencyFrames);
+         device_frames_for(device_rate, kVoiceHop * headroom_hops);
+}
+
+uint32_t denoise_voice_low_latency_hops(double device_rate,
+                                        uint32_t max_frames) {
+  // The worker is woken after each device block and must have the next
+  // block's output ready before it: fewer hops than one block holds is an
+  // underrun on every block, however fast the machine.
+  const double model_frames =
+      static_cast<double>(max_frames) * kVoiceRate / device_rate;
+  const uint32_t hops =
+      static_cast<uint32_t>(std::ceil(model_frames / kVoiceHop - 1e-9));
+  return std::clamp(hops, 1u, kDenoiseVoiceLatencyFrames);
 }
 
 void denoise_voice_configure(FeqDenoise* denoise) { (void)denoise; }
@@ -844,7 +859,9 @@ int denoise_voice_load_model(FeqDenoise* denoise, const char* model_path,
   runtime->channel_count = denoise->channels;
   runtime->max_frames = denoise->max_frames;
   runtime->device_rate = denoise->sample_rate;
-  runtime->voice_latency = denoise_voice_latency_for(runtime->device_rate);
+  runtime->headroom_hops = denoise->voice_headroom_hops;
+  runtime->voice_latency =
+      denoise_voice_latency_for(runtime->device_rate, runtime->headroom_hops);
   runtime->to_model = feq_resampler_create(runtime->device_rate, kVoiceRate,
                                            runtime->channel_count);
   runtime->from_model = feq_resampler_create(kVoiceRate, runtime->device_rate,
@@ -901,5 +918,6 @@ uint32_t denoise_voice_latency_frames(const FeqDenoise* denoise) {
       denoise->voice.load(std::memory_order_acquire) == nullptr) {
     return 0;
   }
-  return denoise_voice_latency_for(denoise->sample_rate);
+  return denoise_voice_latency_for(denoise->sample_rate,
+                                   denoise->voice_headroom_hops);
 }

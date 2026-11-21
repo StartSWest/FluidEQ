@@ -156,6 +156,27 @@ int feq_chain_settings_decode(const double* values,
     }
     trailer_at += FEQ_CHAIN_DYNAMICS_TRAILER;
   }
+  const bool has_voice =
+      has_low_latency && count > trailer_at &&
+      values[trailer_at] == FEQ_CHAIN_VOICE_TAG;
+  if (has_voice) {
+    // Two switches and eight values within the stage's own ranges: anything
+    // else is a Voice this engine does not know.
+    const double* v = values + trailer_at;
+    const bool low_cut_ok =
+        v[4] == 0 || (v[4] >= FEQ_VOICE_LOW_CUT_MIN_HZ &&
+                      v[4] <= FEQ_VOICE_LOW_CUT_MAX_HZ);
+    if (count < trailer_at + FEQ_CHAIN_VOICE_TRAILER ||
+        v[1] != FEQ_CHAIN_VOICE_SCHEMA || v[2] != FEQ_CHAIN_VOICE_FIELDS ||
+        (v[3] != 0 && v[3] != 1) || !low_cut_ok || v[5] < 0 ||
+        v[5] > FEQ_VOICE_PROXIMITY_MAX_DB || v[6] < 0 || v[6] > 1 ||
+        (v[7] != 0 && v[7] != 1) || v[8] < -80 || v[8] > -10 || v[9] < 0 ||
+        v[9] > 80 || v[10] < 0 || v[10] > 1000 || v[11] < 0.1 ||
+        v[11] > 50 || v[12] < 5 || v[12] > 2000) {
+      return 0;
+    }
+    trailer_at += FEQ_CHAIN_VOICE_TRAILER;
+  }
   const bool has_tone = has_low_latency && count > trailer_at;
   uint32_t tone_bands = 0;
   if (has_tone) {
@@ -476,6 +497,19 @@ int feq_chain_settings_decode(const double* values,
     out->compander.release_ms = next();
     out->compander.mix = next();
     out->compander.makeup_db = next();
+  }
+  if (has_voice) {
+    at += 3;  // validated tag, schema and field count
+    out->voice.enabled = flag();
+    out->voice.low_cut_hz = next();
+    out->voice.proximity_db = next();
+    out->voice.deplosive = next();
+    out->voice.gate_enabled = flag();
+    out->voice.gate_threshold_db = next();
+    out->voice.gate_range_db = next();
+    out->voice.gate_hold_ms = next();
+    out->voice.gate_attack_ms = next();
+    out->voice.gate_release_ms = next();
   }
   if (has_tone) {
     at += 3; // validated tag, schema and band count

@@ -330,6 +330,8 @@ struct FeqChain {
   FeqFootsteps* footsteps = nullptr;
   /** Dynamics, just before the Maximizer (`compander.h`). */
   FeqCompander* compander = nullptr;
+  /** Voice, for a microphone (`voice.h`): front half and gate. */
+  FeqVoice* voice = nullptr;
 
   ChainEqSlot slots[FEQ_CHAIN_MAX_CHANNELS];
   ChainExciterPath paths[kExciterPaths];

@@ -211,6 +211,15 @@ int feq_denoise_load_voice_model(FeqDenoise* denoise,
 
 void feq_denoise_reset(FeqDenoise* denoise);
 
+/**
+ * Whether the next voice-model load keeps the low-lag margin: one device
+ * block of finished hops instead of four, about 20 ms instead of 50 at
+ * 48 kHz in 10 ms blocks. A mic is always low lag (Ivan, 2026-11-20); a
+ * late hop already passes dry, so the cost of the short margin on a
+ * loaded machine is a moment of uncleaned voice, never a gap.
+ */
+void feq_denoise_set_low_latency(FeqDenoise* denoise, int low_latency);
+
 /** At a quiescent block boundary; no allocation. Refuses incompatible histories. */
 int feq_denoise_transfer_state(FeqDenoise* prepared, FeqDenoise* previous);
 

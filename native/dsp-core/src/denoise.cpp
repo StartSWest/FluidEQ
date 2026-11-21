@@ -209,6 +209,17 @@ int feq_denoise_load_voice_model(FeqDenoise* denoise,
   return denoise_voice_load_model(denoise, model_path, runtime_path);
 }
 
+void feq_denoise_set_low_latency(FeqDenoise* denoise, int low_latency) {
+  if (denoise == nullptr) {
+    return;
+  }
+  denoise->voice_headroom_hops =
+      low_latency != 0
+          ? denoise_voice_low_latency_hops(denoise->sample_rate,
+                                           denoise->max_frames)
+          : kDenoiseVoiceLatencyFrames;
+}
+
 void feq_denoise_reset(FeqDenoise* denoise) {
   if (denoise == nullptr) {
     return;
@@ -372,7 +383,7 @@ uint32_t feq_denoise_max_latency_frames(double sample_rate) {
   // Each term as `feq_denoise_latency_frames` counts it, at its largest.
   return (kDenoiseClickMaxRun + kDenoiseClickSearch - 1) +
          denoise_spectral_window_for(sample_rate) +
-         denoise_voice_latency_for(sample_rate);
+         denoise_voice_latency_for(sample_rate, kDenoiseVoiceLatencyFrames);
 }
 
 void feq_denoise_report(const FeqDenoise* denoise, FeqDenoiseReport* out) {

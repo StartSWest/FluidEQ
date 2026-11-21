@@ -93,6 +93,9 @@ int main() {
     max.insert(max.end(), {-40, 1, 0, -20, 1});
   }
   max.insert(max.end(), {10, 200, 1, 0});
+  max.insert(max.end(), {FEQ_CHAIN_VOICE_TAG, FEQ_CHAIN_VOICE_SCHEMA,
+                        FEQ_CHAIN_VOICE_FIELDS, 1, 100, 3, 0.5, 1, -50, 15,
+                        200, 2, 150});
   max.push_back(FEQ_CHAIN_TONE_TAG);
   max.push_back(FEQ_CHAIN_TONE_SCHEMA);
   max.push_back(FEQ_CHAIN_MAX_TONE_BANDS);
@@ -107,7 +110,8 @@ int main() {
             settings.tone.band_count == FEQ_CHAIN_MAX_TONE_BANDS &&
             settings.footsteps.enabled == 1 && settings.footsteps.heavy == 1 &&
             settings.footsteps.environment == 0 && settings.footsteps.voices == 0.5 &&
-            settings.footsteps.duck == 1 && settings.compander.enabled == 1,
+            settings.footsteps.duck == 1 && settings.compander.enabled == 1 &&
+            settings.voice.enabled == 1 && settings.voice.low_cut_hz == 100,
         "the longest payload, 64 bands, Room, Footsteps, Dynamics and a curve, "
         "fits the shared host/APO bound");
   max.push_back(0);

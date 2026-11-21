@@ -53,6 +53,12 @@ import {
   dynamicsTrailer,
   isDynamicsTrailer,
 } from './dynamicsWire';
+import {
+  CHAIN_VOICE_TAG,
+  CHAIN_VOICE_TRAILER,
+  isVoiceTrailer,
+  voiceTrailer,
+} from './voiceWire';
 import { roomMuteWire } from './roomSpeakers';
 
 /**
@@ -448,6 +454,13 @@ export const encodeChainSettings = (settings: IDspSettings): number[] => {
     }
     values.push(...dynamicsTrailer(settings.dynamics));
   }
+  // A microphone's Voice after Dynamics, on the same terms (`voiceWire.ts`).
+  if (settings.voice?.enabled) {
+    if (values.length === gameWord) {
+      values.push(0);
+    }
+    values.push(...voiceTrailer(settings.voice));
+  }
   return values;
 };
 
@@ -598,6 +611,12 @@ export const isChainWirePayload = (value: unknown): value is number[] => {
     }
     at += CHAIN_DYNAMICS_TRAILER;
   }
+  if (value[at] === CHAIN_VOICE_TAG) {
+    if (!isVoiceTrailer(value, at)) {
+      return false;
+    }
+    at += CHAIN_VOICE_TRAILER;
+  }
   if (value.length > at && !isToneTrailer(value, at)) {
     return false;
   }
@@ -677,10 +696,38 @@ export const withoutDynamics = (values: number[]): number[] => {
     : line;
 };
 
+/** Where Voice's trailer would start: after Dynamics' when there is one. */
+const voiceSlot = (values: readonly number[]): number =>
+  dynamicsSlot(values) + (hasDynamics(values) ? CHAIN_DYNAMICS_TRAILER : 0);
+
+/** Call only after isChainWirePayload at the IPC boundary. */
+export const hasVoice = (values: readonly number[]): boolean =>
+  values[voiceSlot(values)] === CHAIN_VOICE_TAG;
+
+/**
+ * The line without Voice's trailer, the preset's curve after it kept, for
+ * an engine older than the stage (`ENGINE_VOICE_SINCE`), which refuses a
+ * line longer than it knows. The game word goes too where it was written,
+ * off, only for the trailer to stand after.
+ */
+export const withoutVoice = (values: number[]): number[] => {
+  if (!hasVoice(values)) {
+    return values;
+  }
+  const at = voiceSlot(values);
+  const line = [
+    ...values.slice(0, at),
+    ...values.slice(at + CHAIN_VOICE_TRAILER),
+  ];
+  const gameWord = gameWordAt(line);
+  return line.length === gameWord + 1 && line[gameWord] === 0
+    ? line.slice(0, -1)
+    : line;
+};
+
 /** Where the preset's curve starts on a line, or -1 for none. */
 const toneAt = (values: readonly number[]): number => {
-  const at =
-    dynamicsSlot(values) + (hasDynamics(values) ? CHAIN_DYNAMICS_TRAILER : 0);
+  const at = voiceSlot(values) + (hasVoice(values) ? CHAIN_VOICE_TRAILER : 0);
   return values.length > at && values[at] === CHAIN_TONE_TAG ? at : -1;
 };
 
@@ -769,7 +816,9 @@ export const gameModeOnWire = (values: readonly number[]): boolean =>
 export const legacyChainWithoutInactiveRoom = (
   values: number[],
 ): number[] | undefined => {
-  const line = withoutFootsteps(withoutDynamics(withoutPresetTone(values)));
+  const line = withoutFootsteps(
+    withoutDynamics(withoutVoice(withoutPresetTone(values))),
+  );
   if (!hasRoomTrailer(line)) {
     return line;
   }
