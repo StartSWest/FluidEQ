@@ -140,6 +140,7 @@ const NOT_STORED = [
   'fluideq-game-sound-changed',
   'fluideq-gaming-profiles-changed',
   'fluideq-open-auto-eq',
+  'fluideq:open-forum-compose',
   'fluideq-open-gaming-lab',
   'fluideq-open-headphone-corrections',
   'fluideq-open-preset-edit-page',
