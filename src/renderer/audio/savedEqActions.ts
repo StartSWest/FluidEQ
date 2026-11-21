@@ -14,6 +14,7 @@ import {
   feedSongSound,
   readLiveSongSound,
   readSongSoundNow,
+  songSoundPicked,
   useLiveSongSound,
   useSongSoundNow,
 } from './songSoundSession';
@@ -114,6 +115,8 @@ export const giveSavedEqToSong = async (eqId: string): Promise<void> => {
     return;
   }
   await saveSongSound(identity, { eqId });
+  // It plays at once, over a change made since the song began.
+  songSoundPicked((playing) => playing.key === identity.key);
 };
 
 /**

@@ -216,6 +216,8 @@ export const matched = (
   identity: ISongIdentity,
   song: TSavedSound | undefined,
   album: IAlbumSoundMatch | undefined,
+  /** The answer to a pick made for this song or its album (`picked`). */
+  isPick = false,
 ): TStep => {
   const { session } = state;
   if (!session || identity.key !== session.identity.key) {
@@ -268,6 +270,7 @@ export const matched = (
     return [{ ...state, session: { ...session, baseline: sound } }, []];
   }
   if (
+    !isPick &&
     session.handBack &&
     session.owner === chosen.owner &&
     session.baseline &&
@@ -275,8 +278,9 @@ export const matched = (
   ) {
     // Asked again (`reconsider`: something else was saved while it plays) and
     // the answer is the sound it already holds: nothing to put on. Lending it
-    // again would undo a change the listener made over it since, which is
-    // filed at the song's end and would then have been lost.
+    // again would undo a change the listener made over it since, which stays
+    // offered for Save changes. Never for a pick: the listener just chose
+    // this sound for this song or its album, over the change (`picked`).
     return [state, []];
   }
   const cleared: ISongSoundState = { ...state, owed: undefined };

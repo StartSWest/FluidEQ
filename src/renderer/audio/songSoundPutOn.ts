@@ -66,6 +66,7 @@ export const matchedEvent = (
   identity: ISongIdentity,
   match: ISongSoundMatch,
   live: ISongSound | undefined,
+  isPick = false,
 ): TSongSoundEvent => {
   const song = playable(match.song, live);
   const albumSound = playable(match.album?.sound, live);
@@ -76,6 +77,7 @@ export const matchedEvent = (
     ...(albumSound && match.album
       ? { album: { sound: albumSound, title: match.album.title } }
       : {}),
+    ...(isPick ? { isPick } : {}),
   };
 };
 

@@ -132,6 +132,7 @@ const performEffects = (effects: TSongSoundEffect[]): Promise<void> => {
     switch (effect.kind) {
       case 'lookup': {
         const { identity } = effect;
+        const isPick = effect.isPick === true;
         if (!isCurrentEditor(target)) {
           break;
         }
@@ -153,7 +154,9 @@ const performEffects = (effects: TSongSoundEffect[]): Promise<void> => {
                 ? {}
                 : { album: match.album.eqId }),
             };
-            return dispatchSongSound(matchedEvent(identity, match, state.live));
+            return dispatchSongSound(
+              matchedEvent(identity, match, state.live, isPick),
+            );
           })
           .catch(() => {
             // No answer is no memory of this song, and a hand-back held over
@@ -161,7 +164,11 @@ const performEffects = (effects: TSongSoundEffect[]): Promise<void> => {
             if (!isCurrentEditor(target)) {
               return undefined;
             }
-            return dispatchSongSound({ kind: 'matched', identity });
+            return dispatchSongSound({
+              kind: 'matched',
+              identity,
+              ...(isPick ? { isPick } : {}),
+            });
           });
         break;
       }
@@ -433,6 +440,20 @@ export const useSongSoundNow = (): ISongSoundNow =>
 
 /** "Save for this song", or Save changes: what plays is the song's own. */
 export const saveSongSoundNow = (): void => feedSongSound({ kind: 'saveNow' });
+
+/**
+ * A sound was picked here for songs or an album (`covers` says which): the
+ * playing song, if the pick reaches it, plays the answer at once, over a
+ * change made since it began.
+ */
+export const songSoundPicked = (
+  covers: (identity: ISongIdentity) => boolean,
+): void => {
+  const { session } = state;
+  if (session && covers(session.identity)) {
+    feedSongSound({ kind: 'picked' });
+  }
+};
 
 /** What is kept changed elsewhere: the playing song is looked up again. */
 export const reconsiderSongSound = (): void =>

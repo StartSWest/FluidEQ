@@ -10,11 +10,12 @@ import { libraryTrackIdentity } from 'common/songIdentity';
 import type { TSavedSound } from 'common/songSound';
 import type { IEqLink } from 'common/savedEq';
 import { normalizeForSearch } from 'common/library/grouping';
+import { pickCovers } from 'common/songSoundChoices';
 import MenuIcon from '../icons/MenuIcon';
 import TextInput from '../widgets/TextInput';
 import { useTranslation } from '../utils/I18nContext';
 import { useSongSoundIndex } from '../audio/songSoundIndex';
-import { useLiveSongSound } from '../audio/songSoundSession';
+import { songSoundPicked, useLiveSongSound } from '../audio/songSoundSession';
 import useDspChainEntries from '../dsp/useDspChainEntries';
 import { pickLibrarySongSounds, setAlbumSound } from '../utils/songSoundApi';
 import { countText } from './libraryFormat';
@@ -94,15 +95,32 @@ const LibrarySoundMenu = ({
     subject.kind === 'album' ? albums.get(subject.album.key) : undefined;
   const single = isOne ? songs.get(trackIds[0]) : undefined;
 
+  // Kept, and then, where the pick reaches the song that plays, played at
+  // once over whatever it plays now (`songSoundPicked`).
   const keep = (sound: TSavedSound | IEqLink | null) => {
     onClose();
     if (subject.kind === 'album' && sound !== null) {
-      const { key, title, artist } = subject.album;
-      setAlbumSound(key, title, artist, sound).catch(report);
+      setAlbumOf(sound);
       return;
     }
     identitiesOf(trackIds)
-      .then((identities) => pickLibrarySongSounds(identities, sound))
+      .then(async (identities) => {
+        await pickLibrarySongSounds(identities, sound);
+        const keys = identities.map((identity) => identity.key);
+        return songSoundPicked((playing) => pickCovers(playing, { keys }));
+      })
+      .catch(report);
+  };
+  /** The album's sound set, or taken away (`null`). */
+  const setAlbumOf = (sound: TSavedSound | IEqLink | null) => {
+    if (subject.kind !== 'album') {
+      return;
+    }
+    const { key, title, artist } = subject.album;
+    setAlbumSound(key, title, artist, sound)
+      .then(() =>
+        songSoundPicked((playing) => pickCovers(playing, { albumKey: key })),
+      )
       .catch(report);
   };
 
@@ -277,8 +295,7 @@ const LibrarySoundMenu = ({
           disabled={!album}
           onClick={() => {
             onClose();
-            const { key, title, artist } = subject.album;
-            setAlbumSound(key, title, artist, null).catch(report);
+            setAlbumOf(null);
           }}
         >
           <MenuIcon name="trash" className="library-list__menu-icon" />

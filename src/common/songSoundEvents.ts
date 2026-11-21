@@ -102,6 +102,8 @@ export type TSongSoundEvent =
       identity: ISongIdentity;
       song?: TSavedSound;
       album?: IAlbumSoundMatch;
+      /** The answer to a `picked` lookup: it plays, over a change made since. */
+      isPick?: boolean;
     }
   /**
    * An `apply` finished: `asked` is the effect's own sound, `landed` what the
@@ -127,6 +129,13 @@ export type TSongSoundEvent =
    * Library while it plays: it is looked up again and plays the new answer.
    */
   | { kind: 'reconsider' }
+  /**
+   * A sound picked, here, for the playing song or its album — the Library's
+   * sound menu, Use a saved EQ: it is looked up and its answer plays at once,
+   * even over a change the listener made since the song began (Ivan,
+   * 2026-11-20: "needs to instantly change the preset to the chosen one").
+   */
+  | { kind: 'picked' }
   | { kind: 'forget'; identity?: ISongIdentity }
   /**
    * Something else is about to put a sound on — a profile loaded, a game's
@@ -141,7 +150,7 @@ export type TSongSoundEvent =
   | { kind: 'closing' };
 
 export type TSongSoundEffect =
-  | { kind: 'lookup'; identity: ISongIdentity }
+  | { kind: 'lookup'; identity: ISongIdentity; isPick?: boolean }
   /**
    * Put a sound on: lent while it is a song's own, which keeps it out of the
    * output's profile, and handed back when not, which ends the loan.

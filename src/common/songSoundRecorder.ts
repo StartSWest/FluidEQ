@@ -21,6 +21,7 @@ import {
   TStep,
 } from './songSoundSteps';
 import {
+  picked,
   putOn,
   reconsider,
   revert,
@@ -118,7 +119,15 @@ export const reduceSongSound = (
     }
 
     case 'matched':
-      return withTimed(matched(state, event.identity, event.song, event.album));
+      return withTimed(
+        matched(
+          state,
+          event.identity,
+          event.song,
+          event.album,
+          event.isPick === true,
+        ),
+      );
 
     case 'saveNow':
       return withTimed(saveNow(state));
@@ -131,6 +140,9 @@ export const reduceSongSound = (
 
     case 'reconsider':
       return withTimed(reconsider(state));
+
+    case 'picked':
+      return withTimed(picked(state));
 
     case 'applied': {
       // By the object, not by value: a newer ask has replaced it, and this

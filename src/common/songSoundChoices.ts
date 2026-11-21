@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { ISongSound, sameSongSound } from './songSound';
+import type { ISongIdentity } from './songIdentity';
 import { ISongSoundParts, ISongSoundState } from './songSoundEvents';
 import { TStep, giveEverythingBack, lookupOpen } from './songSoundSteps';
 
@@ -94,6 +95,30 @@ export const reconsider = (state: ISongSoundState): TStep => [
   state,
   lookupOpen(state),
 ];
+
+/**
+ * A sound picked for the playing song or its album: looked up, and its answer
+ * marked a pick, which plays over a change made since (`matched`). A plain
+ * look-up keeps such a change, which is right for something saved elsewhere
+ * and was wrong for this: Ivan changed the preset of a song playing its
+ * album's Pop by hand, picked Pop for the album again, and kept hearing his
+ * change, because the answer was the sound the song already held.
+ */
+export const picked = (state: ISongSoundState): TStep => [
+  state,
+  lookupOpen(state).map((effect) =>
+    effect.kind === 'lookup' ? { ...effect, isPick: true } : effect,
+  ),
+];
+
+/** Whether a pick reaches this song: it is one of the songs picked, or on the
+ * album whose sound was set. */
+export const pickCovers = (
+  identity: ISongIdentity,
+  pick: { keys?: readonly string[]; albumKey?: string },
+): boolean =>
+  (pick.keys?.includes(identity.key) ?? false) ||
+  (pick.albumKey !== undefined && identity.albumKey === pick.albumKey);
 
 /**
  * A switch moved. All off gives back whatever a song borrowed; anything else
