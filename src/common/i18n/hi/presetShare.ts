@@ -11,6 +11,13 @@ export default {
   'presetShare.menu.copyLink': 'साझा लिंक कॉपी करें',
   'presetShare.menu.export': 'निर्यात करें…',
   'presetShare.linkCopied': 'साझा लिंक कॉपी हो गया',
+  'presetShare.linkMaking': 'लिंक बनाया जा रहा है…',
+  'presetShare.linkFailed.signedOut': 'लिंक बनाने के लिए साइन इन करें',
+  'presetShare.linkFailed.suspended': 'यह खाता अभी साझा नहीं कर सकता',
+  'presetShare.linkFailed.rateLimited': 'इस घंटे बहुत ज़्यादा लिंक बने',
+  'presetShare.linkFailed.tooMany': 'खाते की लिंक सीमा पूरी हो गई',
+  'presetShare.linkFailed.takenDown': 'यह लिंक हटा दिया गया',
+  'presetShare.linkFailed.offline': 'FluidEQ सर्वर ने जवाब नहीं दिया',
 
   'presetShare.text.title': '{name} · FluidEQ प्रीसेट',
   'presetShare.text.curve': 'कर्व: {count} बैंड',
@@ -32,11 +39,11 @@ export default {
   'presetShare.format.bbcodeFor': 'Head-Fi · दूसरे फ़ोरम',
   'presetShare.format.plain': 'सादा टेक्स्ट',
   'presetShare.format.plainFor': 'बाकी हर जगह',
-  'presetShare.export.withCode':
-    'कोड को टेक्स्ट के रूप में भी जोड़ें, उन फ़ोरम के लिए जो लिंक छोटे कर देते हैं',
+  'presetShare.export.withLink': 'fluideq.com पर इसके पेज का छोटा लिंक जोड़ें',
+  'presetShare.export.linkSignIn': 'छोटा लिंक जोड़ने के लिए साइन इन करें',
   'presetShare.export.fits': '{count} अक्षर · एक Discord संदेश में आ जाता है',
   'presetShare.export.long':
-    '{count} अक्षर · एक Discord संदेश के लिए बहुत लंबा, कोड हटा दें',
+    '{count} अक्षर · एक Discord संदेश के लिए बहुत लंबा। केवल छोटा लिंक भेजें।',
   'presetShare.export.pasteHint':
     'FluidEQ वाला कोई भी इसे “आयात करें” में पेस्ट कर सकता है।',
   'presetShare.export.fileHint':
@@ -58,6 +65,8 @@ export default {
     'किसके लिए: \nकिस पर सुना: \nइसके साथ आज़माएँ: \n\nयह क्या करता है: ',
 
   'presetShare.card.by': '@{author} ने साझा किया',
+  'presetShare.card.sharedBy': '{author} ने साझा किया',
+  'presetShare.card.sharedByMember': 'FluidEQ के एक सदस्य ने साझा किया',
   'presetShare.card.add': 'मेरे प्रीसेट में जोड़ें',
   'presetShare.card.added': '“आपके” में · चल रहा है',
   'presetShare.card.try': 'आज़माएँ',
@@ -81,9 +90,14 @@ export default {
     'प्रीसेट का कोड कटा हुआ या ख़राब है। इसे शुरू से अंत तक फिर से कॉपी करें।',
   'presetShare.import.clipboardFailed':
     'FluidEQ क्लिपबोर्ड नहीं पढ़ सका। इसके बजाय बॉक्स में पेस्ट करें।',
+  'presetShare.import.gone':
+    'यह प्रीसेट अब साझा नहीं है। इसके बजाय इसका कोड माँगें।',
+  'presetShare.import.offline':
+    'यह लिंक खोलने के लिए FluidEQ अपने सर्वर तक नहीं पहुँच सका। कनेक्शन जाँचें और फिर कोशिश करें।',
 
   'presetShare.link.title': 'यह प्रीसेट जोड़ें?',
   'presetShare.link.hint':
     'आपके खोले गए लिंक से। जब तक आप दबाएँ नहीं, न कुछ चलेगा, न सहेजा जाएगा।',
   'presetShare.link.notNow': 'अभी नहीं',
+  'presetShare.link.fetching': 'FluidEQ से प्रीसेट लाया जा रहा है…',
 } as const;

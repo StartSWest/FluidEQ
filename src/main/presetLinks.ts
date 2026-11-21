@@ -1,46 +1,65 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 import { app, ipcMain, type BrowserWindow } from 'electron';
+import log from 'electron-log';
 import {
   PRESET_LINK_ARRIVED,
   PRESET_LINK_TAKE,
 } from '../common/presetLinkChannels';
-import { APP_LINK_SCHEME } from './appLinks';
+import { sharedPresetIdOfAppLink } from '../common/presetShare/sharedPresetLink';
 
 /**
- * `fluideq://preset/<code>`: a shared preset, opened from fluideq.com's page
- * for it (`common/presetShare/presetShareCode.ts`).
+ * `fluideq://preset/<id>`: a shared preset, opened from its page on
+ * fluideq.com (`https://fluideq.com/p/<id>`).
  *
- * All a page can do with one is put the window's "Add this preset?" question
- * up: nothing is saved or played until the listener presses Add there, so a
- * page that opens one on its own costs a dialog, nothing more. Main does not
- * unpack the code; it only checks that it is shaped like one and no longer
- * than the window will read, and hands it on.
+ * The link carries the preset's eight-character id and nothing else (Ivan,
+ * 2026-11-20: "no hacker or virus can hack this or inject things"). The whole
+ * address must be exactly `fluideq://preset/` and eight letters or digits: no
+ * other host, no more path, no query, no fragment, nothing percent-encoded,
+ * no unicode look-alike. Anything else that names `fluideq://preset` is
+ * dropped with a line in the log, before a URL parser has had a chance to
+ * normalise it into something that would pass.
+ *
+ * The window then asks main for that id's preset (`ipc/sharedPresetLinks.ts`),
+ * which fetches it from FluidEQ's server over HTTPS — never from the page —
+ * and reads it with the strict decoder a pasted code goes through. All it
+ * can do is put up "Add this preset?": nothing is saved or played until the
+ * listener presses Add there, so a page that opens a link on its own costs a
+ * card, nothing more.
  *
  * A link can arrive before the window is there to ask — FluidEQ started by
  * the link itself — so the last one waits here until the window takes it.
  */
 
-const PRESET_LINK = /^FQP\d{1,3}\.[A-Za-z0-9_-]{8,4000}$/;
+const NAMES_PRESET_LINK = /^fluideq:\/*preset/i;
 
-/** The share code a `fluideq://preset/…` address carries, if it is one. */
-export const presetLinkCodeOf = (value: string): string | undefined => {
-  let url: URL;
-  try {
-    url = new URL(value);
-  } catch {
-    return undefined;
-  }
-  if (url.protocol !== `${APP_LINK_SCHEME}:` || url.host !== 'preset') {
-    return undefined;
-  }
-  const code = url.pathname.replace(/^\/+/, '').replace(/\/+$/, '');
-  return PRESET_LINK.test(code) ? code : undefined;
+/** The id a whole `fluideq://preset/<id>` address carries; undefined otherwise. */
+export const presetLinkIdOf = (value: string): string | undefined =>
+  sharedPresetIdOfAppLink(value);
+
+/**
+ * The preset link among a launch's arguments, as Windows passes it. Another
+ * argument that names a preset link but is not exactly one is logged and
+ * left alone.
+ */
+export const presetLinkInArgs = (
+  argv: readonly string[],
+): string | undefined => {
+  let found: string | undefined;
+  argv.forEach((arg) => {
+    const id = presetLinkIdOf(arg);
+    if (id) {
+      found ??= id;
+    } else if (NAMES_PRESET_LINK.test(arg)) {
+      log.warn(
+        `A preset link that is not exactly fluideq://preset/<id> was dropped: ${JSON.stringify(
+          arg.slice(0, 80),
+        )}`,
+      );
+    }
+  });
+  return found;
 };
-
-/** The preset link among a launch's arguments, as Windows passes it. */
-export const presetLinkInArgs = (argv: readonly string[]): string | undefined =>
-  argv.map(presetLinkCodeOf).find((code): code is string => code !== undefined);
 
 type TWindowOf = () => BrowserWindow | null | undefined;
 
@@ -48,14 +67,20 @@ let waiting: string | undefined;
 let windowOf: TWindowOf = () => undefined;
 
 /**
- * A preset link arrived: kept for the window, and told to it if it is up.
- * The window takes it from here either way, so a link told to a window
- * still loading is not lost.
+ * A preset link arrived: kept for the window, the window brought forward and
+ * told, if it is up. The window takes it from here either way, so a link
+ * told to a window still loading is not lost, and a second link replaces the
+ * first rather than queueing behind it.
  */
-export const receivePresetLink = (code: string): void => {
-  waiting = code;
+export const receivePresetLink = (id: string): void => {
+  waiting = id;
   const target = windowOf();
   if (target && !target.isDestroyed()) {
+    if (target.isMinimized()) {
+      target.restore();
+    }
+    target.show();
+    target.focus();
     target.webContents.send(PRESET_LINK_ARRIVED);
   }
 };
@@ -68,10 +93,13 @@ export const receivePresetLink = (code: string): void => {
 export const registerPresetLinks = (getMainWindow: TWindowOf): void => {
   windowOf = getMainWindow;
   app.on('open-url', (event, url) => {
-    const code = presetLinkCodeOf(url);
-    if (code) {
-      event.preventDefault();
-      receivePresetLink(code);
+    if (!NAMES_PRESET_LINK.test(url)) {
+      return;
+    }
+    event.preventDefault();
+    const id = presetLinkInArgs([url]);
+    if (id) {
+      receivePresetLink(id);
     }
   });
   const launched = presetLinkInArgs(process.argv);
@@ -79,8 +107,8 @@ export const registerPresetLinks = (getMainWindow: TWindowOf): void => {
     receivePresetLink(launched);
   }
   ipcMain.handle(PRESET_LINK_TAKE, () => {
-    const code = waiting;
+    const id = waiting;
     waiting = undefined;
-    return code;
+    return id;
   });
 };

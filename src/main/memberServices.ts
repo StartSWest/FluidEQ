@@ -30,6 +30,7 @@ import { registerAccountIpc } from './ipc/account';
 import { registerCreatorIpc } from './ipc/creator';
 import { registerMemberScenesIpc } from './ipc/memberScenes';
 import { registerMemberSharingIpc } from './ipc/memberSharing';
+import registerSharedPresetLinksIpc from './ipc/sharedPresetLinks';
 import { registerPlusGalleryIpc } from './ipc/plusGallery';
 import { registerGalleryClipIpc } from './ipc/plusGalleryClip';
 import { registerPlusProfileIpc } from './ipc/plusProfile';
@@ -339,6 +340,14 @@ const registerMemberServices = ({
     logger: log,
   });
 
+  // Short links for shared presets (fluideq.com/p/<id>): made with the
+  // account's token, opened by anyone.
+  const sharedPresetLinksIpc = registerSharedPresetLinksIpc({
+    config: ACCOUNT_CONFIG,
+    session: accountIpc.session,
+    logger: log,
+  });
+
   // The Plus gallery: members' published scenes, found, added and reported;
   // and the member's own side of it — the Studio's Publish, their published
   // scenes, taking one down.
@@ -593,6 +602,7 @@ const registerMemberServices = ({
     keptSceneSync.dispose();
     galleryClipIpc.dispose();
     memberSharingIpc.dispose();
+    sharedPresetLinksIpc.dispose();
     memberScenesIpc.dispose();
     // Its listening socket, like the forum's, must not outlive the app.
     studioAgentDoor.dispose().catch(() => undefined);

@@ -1,7 +1,6 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 import type { IDspSettings, IEqSettings } from '../../../../common/dsp/chain';
-import { presetShareLink } from '../../../../common/presetShare/presetShareCode';
 import type { Translate } from '../../../../common/i18n';
 import { dspPresetStages } from '../../../dsp/dspPresetCatalog';
 
@@ -20,6 +19,8 @@ export interface ISharedPresetText {
   settings: IDspSettings;
   curve?: IEqSettings;
   code: string;
+  /** The short link (`https://fluideq.com/p/<id>`), when one was made. */
+  link?: string;
 }
 
 /** The rack's stages, without the EQ: the curve has a line of its own. */
@@ -49,53 +50,56 @@ export const presetSummaryLine = (
 };
 
 /**
- * The text that pastes into a forum: the preset's name, what it holds, and
- * the link that opens it in FluidEQ. The link carries the whole preset, so
- * the code as text is only for the boards that shorten or strip links.
+ * The text that pastes into a forum: the preset's name, what it holds, the
+ * short link that opens it on fluideq.com (when one was made) and its code.
+ *
+ * The code always travels. It is what any FluidEQ reads back from a post or
+ * a paste, offline, and it outlives a link its author takes back; the link
+ * is what brings somebody without FluidEQ to the page that offers it.
  *
  * The name is written as the listener typed it. It is plain text in every
  * format but Markdown and BBCode's markup characters are left alone: a
  * forum shows them as typed at worst, and nothing here is ever read back
- * from this text but the code (`readPresetShareCode`).
+ * from this text but the code (`readPresetShareCode`) and the link's id.
  */
 export const presetShareText = (
   preset: ISharedPresetText,
   format: TShareFormat,
-  withCode: boolean,
   t: Translate,
 ): string => {
-  const link = presetShareLink(preset.code);
+  const { link } = preset;
   const title = t('presetShare.text.title', { name: preset.name });
   const summary = presetSummaryLine(preset, t);
   const open = t('presetShare.text.open');
+  const hint = t('presetShare.export.pasteHint');
   const lines: string[] = [];
   if (format === 'markdown') {
     lines.push(`**${title}**`);
     if (summary) {
       lines.push(summary);
     }
-    lines.push(`[${open}](${link})`);
-    if (withCode) {
-      lines.push('```fluideq-preset', preset.code, '```');
+    if (link) {
+      lines.push(`[${open}](${link})`);
     }
+    lines.push('```fluideq-preset', preset.code, '```', hint);
   } else if (format === 'bbcode') {
     lines.push(`[b]${title}[/b]`);
     if (summary) {
       lines.push(summary);
     }
-    lines.push(`[url=${link}]${open}[/url]`);
-    if (withCode) {
-      lines.push(`[code]${preset.code}[/code]`);
+    if (link) {
+      lines.push(`[url=${link}]${open}[/url]`);
     }
+    lines.push(`[code]${preset.code}[/code]`, hint);
   } else {
     lines.push(title);
     if (summary) {
       lines.push(summary);
     }
-    lines.push(`${open}: ${link}`);
-    if (withCode) {
-      lines.push(preset.code);
+    if (link) {
+      lines.push(`${open}: ${link}`);
     }
+    lines.push(preset.code, hint);
   }
   return lines.join('\n');
 };

@@ -11,6 +11,13 @@ export default {
   'presetShare.menu.copyLink': '複製分享連結',
   'presetShare.menu.export': '匯出…',
   'presetShare.linkCopied': '已複製分享連結',
+  'presetShare.linkMaking': '正在產生連結…',
+  'presetShare.linkFailed.signedOut': '登入後才能產生連結',
+  'presetShare.linkFailed.suspended': '此帳號目前無法分享',
+  'presetShare.linkFailed.rateLimited': '這一小時的連結太多了',
+  'presetShare.linkFailed.tooMany': '已達連結數量上限',
+  'presetShare.linkFailed.takenDown': '這個連結已被移除',
+  'presetShare.linkFailed.offline': 'FluidEQ 伺服器沒有回應',
 
   'presetShare.text.title': '{name} · FluidEQ 預設組',
   'presetShare.text.curve': '曲線：{count} 個頻段',
@@ -32,10 +39,11 @@ export default {
   'presetShare.format.bbcodeFor': 'Head-Fi · 其他論壇',
   'presetShare.format.plain': '純文字',
   'presetShare.format.plainFor': '其他任何地方',
-  'presetShare.export.withCode': '同時以文字附上代碼，供會縮短連結的論壇使用',
+  'presetShare.export.withLink': '附上指向 fluideq.com 頁面的短連結',
+  'presetShare.export.linkSignIn': '登入以附上短連結',
   'presetShare.export.fits': '{count} 個字元 · 一則 Discord 訊息放得下',
   'presetShare.export.long':
-    '{count} 個字元 · 一則 Discord 訊息放不下，請拿掉代碼',
+    '{count} 個字元 · 一則 Discord 訊息放不下，請只傳送短連結。',
   'presetShare.export.pasteHint': '任何有 FluidEQ 的人都能把它貼到「匯入」中。',
   'presetShare.export.fileHint':
     '可讀的 JSON，包含曲線與每個階段，就是 DSP 頁面儲存的檔案。把它拖到「匯入」即可還原。',
@@ -55,6 +63,8 @@ export default {
     '適用於： \n試聽設備： \n推薦搭配： \n\n效果： ',
 
   'presetShare.card.by': '由 @{author} 分享',
+  'presetShare.card.sharedBy': '由 {author} 分享',
+  'presetShare.card.sharedByMember': '由一位 FluidEQ 成員分享',
   'presetShare.card.add': '加入我的預設組',
   'presetShare.card.added': '已在「你的」中 · 播放中',
   'presetShare.card.try': '試聽',
@@ -78,9 +88,13 @@ export default {
     '預設組的代碼被截斷或已損毀。請從頭到尾重新複製。',
   'presetShare.import.clipboardFailed':
     'FluidEQ 無法讀取剪貼簿。請改為直接貼到輸入框中。',
+  'presetShare.import.gone': '這個預設組已不再分享。請改為索取它的代碼。',
+  'presetShare.import.offline':
+    'FluidEQ 無法連線到伺服器來開啟這個連結。請檢查網路連線後重試。',
 
   'presetShare.link.title': '要加入這個預設組嗎？',
   'presetShare.link.hint':
     '來自你開啟的連結。在你按下之前，不會播放或儲存任何內容。',
   'presetShare.link.notNow': '暫時不要',
+  'presetShare.link.fetching': '正在從 FluidEQ 取得預設組…',
 } as const;

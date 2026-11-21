@@ -3,6 +3,8 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ErrorDescription } from '../../../../common/errors';
+import { findPresetShareCode } from '../../../../common/presetShare/presetShareCode';
+import { findSharedPresetId } from '../../../../common/presetShare/sharedPresetLink';
 import DialogFrame from '../../../components/DialogFrame';
 import MenuIcon from '../../../icons/MenuIcon';
 import { useFluidEqLayers } from '../../../utils/FluidEqContext';
@@ -25,6 +27,8 @@ const PROBLEM_KEY = {
   missing: 'presetShare.import.missing',
   newer: 'presetShare.import.newer',
   damaged: 'presetShare.import.damaged',
+  gone: 'presetShare.import.gone',
+  offline: 'presetShare.import.offline',
 } as const;
 
 const problemOf = (read: TSharedPresetRead | undefined) =>
@@ -54,7 +58,9 @@ const SharedPresetImportDialog = ({
   const [text, setText] = useState(initialText);
   const [note, setNote] = useState('');
   const [adding, setAdding] = useState(false);
-  const read = useSharedPreset(text);
+  // A short link pasted here, or the one a page opened, is followed: main
+  // fetches its preset from FluidEQ's server by id.
+  const read = useSharedPreset(text, true);
   const add = useAddSharedPreset();
   const fileRef = useRef<HTMLInputElement>(null);
   const textRef = useRef<HTMLTextAreaElement>(null);
@@ -99,7 +105,22 @@ const SharedPresetImportDialog = ({
   };
 
   const found = read?.ok ? read.preset : undefined;
+  const source = read?.ok ? read.source : undefined;
   const problem = problemOf(read);
+  // A short link with no code beside it is a request to FluidEQ's server:
+  // said from its first moment, in the link's question or in the box. A code
+  // reads in an instant and needs no line.
+  const isFetching =
+    read?.ok === false &&
+    read.problem === 'reading' &&
+    findSharedPresetId(text) !== undefined &&
+    findPresetShareCode(text) === undefined;
+  let byline: string | undefined;
+  if (source) {
+    byline = source.author
+      ? t('presetShare.card.sharedBy', { author: source.author })
+      : t('presetShare.card.sharedByMember');
+  }
 
   const keep = () => {
     if (!found || adding) {
@@ -210,8 +231,15 @@ const SharedPresetImportDialog = ({
               name={found.name}
               settings={found.settings}
               curve={found.curve}
+              byline={byline}
             />
           </div>
+        )}
+
+        {isFetching && (
+          <p className="preset-share-dialog__fetching" role="status">
+            {t('presetShare.link.fetching')}
+          </p>
         )}
 
         {(problem || note) && (

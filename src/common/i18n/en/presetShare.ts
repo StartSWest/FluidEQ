@@ -18,6 +18,13 @@ export default {
   'presetShare.menu.copyLink': 'Copy share link',
   'presetShare.menu.export': 'Export…',
   'presetShare.linkCopied': 'Share link copied',
+  'presetShare.linkMaking': 'Making the link…',
+  'presetShare.linkFailed.signedOut': 'Sign in to make a link',
+  'presetShare.linkFailed.suspended': 'This account can’t share now',
+  'presetShare.linkFailed.rateLimited': 'Too many links this hour',
+  'presetShare.linkFailed.tooMany': 'This account’s link limit is reached',
+  'presetShare.linkFailed.takenDown': 'This link was taken down',
+  'presetShare.linkFailed.offline': 'No answer from FluidEQ’s server',
 
   'presetShare.text.title': '{name} · FluidEQ preset',
   'presetShare.text.curve': 'Curve: {count} bands',
@@ -39,11 +46,11 @@ export default {
   'presetShare.format.bbcodeFor': 'Head-Fi · other boards',
   'presetShare.format.plain': 'Plain text',
   'presetShare.format.plainFor': 'Anywhere else',
-  'presetShare.export.withCode':
-    'Add the code as text too, for boards that shorten links',
+  'presetShare.export.withLink': 'Add a short link to its page on fluideq.com',
+  'presetShare.export.linkSignIn': 'Sign in to add a short link',
   'presetShare.export.fits': '{count} characters · fits one Discord message',
   'presetShare.export.long':
-    '{count} characters · too long for one Discord message, leave the code out',
+    '{count} characters · too long for one Discord message. Send the short link alone.',
   'presetShare.export.pasteHint':
     'Anyone with FluidEQ can paste this into Import.',
   'presetShare.export.fileHint':
@@ -65,6 +72,8 @@ export default {
     'Made for: \nHeard on: \nTry it with: \n\nWhat it does: ',
 
   'presetShare.card.by': 'Shared by @{author}',
+  'presetShare.card.sharedBy': 'Shared by {author}',
+  'presetShare.card.sharedByMember': 'Shared by a FluidEQ member',
   'presetShare.card.add': 'Add to my presets',
   'presetShare.card.added': 'In Yours · playing',
   'presetShare.card.try': 'Try it',
@@ -88,9 +97,14 @@ export default {
     'The preset’s code is cut off or damaged. Copy it again from start to end.',
   'presetShare.import.clipboardFailed':
     'FluidEQ couldn’t read the clipboard. Paste into the box instead.',
+  'presetShare.import.gone':
+    'This preset is no longer shared. Ask for its code instead.',
+  'presetShare.import.offline':
+    'FluidEQ couldn’t reach its server to open this link. Check the connection and try again.',
 
   'presetShare.link.title': 'Add this preset?',
   'presetShare.link.hint':
     'From a link you opened. Nothing plays or saves until you press.',
   'presetShare.link.notNow': 'Not now',
+  'presetShare.link.fetching': 'Getting the preset from FluidEQ…',
 } as const;

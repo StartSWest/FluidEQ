@@ -13,6 +13,21 @@ import { useTranslation } from '../../utils/I18nContext';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../../widgets/AnchoredMenu';
 import PresetCardCurve from '../presetCard/PresetCardCurve';
 import type { IPresetCurveDesign } from '../presetCard/presetCardDrawing';
+import type { TCopyLinkResult } from './share/presetShareActions';
+
+/** Copy share link's line in place of the hint, by what came of the press. */
+const LINK_LINE = {
+  making: 'presetShare.linkMaking',
+  copied: 'presetShare.linkCopied',
+  'not-copied': 'presetShare.export.failed',
+  'signed-out': 'presetShare.linkFailed.signedOut',
+  suspended: 'presetShare.linkFailed.suspended',
+  'rate-limited': 'presetShare.linkFailed.rateLimited',
+  'too-many': 'presetShare.linkFailed.tooMany',
+  'taken-down': 'presetShare.linkFailed.takenDown',
+  invalid: 'presetShare.linkFailed.offline',
+  offline: 'presetShare.linkFailed.offline',
+} as const satisfies Record<TCopyLinkResult | 'making', string>;
 
 interface IOwnPresetTileProps {
   preset: IDspCatalogEntry;
@@ -38,8 +53,8 @@ interface IOwnPresetTileProps {
   onAskDelete: () => void;
   /** Share: a topic about it on the Forum's Presets board. */
   onShare: () => void;
-  /** Its share link to the clipboard; resolves once it is there. */
-  onCopyLink: () => Promise<void>;
+  /** Its short link to the clipboard; resolves with what came of it. */
+  onCopyLink: () => Promise<TCopyLinkResult>;
   onExport: () => void;
 }
 
@@ -93,9 +108,28 @@ const OwnPresetTile = ({
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
   const [draft, setDraft] = useState(preset.name);
-  // "Link copied" in place of the hint until the pointer leaves the tile:
-  // said where the press was, and gone with no clock deciding when.
-  const [isLinkCopied, setLinkCopied] = useState(false);
+  // "Making the link…", then "Link copied" or why not, in place of the hint
+  // until the pointer leaves the tile: said where the press was, and gone
+  // with no clock deciding when.
+  const [linkState, setLinkState] = useState<
+    TCopyLinkResult | 'making' | undefined
+  >(undefined);
+  const [tile, setTile] = useState<HTMLDivElement | null>(null);
+
+  // The pointer leaving the tile itself, heard on the element: React's own
+  // leave counts the menu as the tile's (it is rendered from inside it), so
+  // the menu closing on Copy share link read as a leave and wiped the line
+  // the press had just written (measured in the harness). A link still being
+  // made keeps its line: its answer is still to come.
+  useEffect(() => {
+    if (!tile) {
+      return undefined;
+    }
+    const onLeave = () =>
+      setLinkState((state) => (state === 'making' ? state : undefined));
+    tile.addEventListener('pointerleave', onLeave);
+    return () => tile.removeEventListener('pointerleave', onLeave);
+  }, [tile]);
 
   // A press anywhere but the menu and its button closes it, as every menu
   // here closes; Escape too, and the focus goes back to the button.
@@ -154,12 +188,13 @@ const OwnPresetTile = ({
       icon: 'copyText',
       label: t('presetShare.menu.copyLink'),
       run: () => {
+        setLinkState('making');
         onCopyLink()
-          .then(() => {
-            setLinkCopied(true);
-            return true;
+          .then((result) => {
+            setLinkState(result);
+            return result;
           })
-          .catch(() => setLinkCopied(false));
+          .catch(() => setLinkState('offline'));
       },
     },
     {
@@ -178,6 +213,13 @@ const OwnPresetTile = ({
     },
   ];
 
+  let linkLineClass: string | undefined;
+  if (linkState === 'copied') {
+    linkLineClass = 'own-preset-tile__done';
+  } else if (linkState && linkState !== 'making') {
+    linkLineClass = 'own-preset-tile__problem';
+  }
+
   const finishRename = () => {
     const next = draft.trim();
     onRenameEnd(next !== '' && next !== preset.name ? next : undefined);
@@ -185,8 +227,8 @@ const OwnPresetTile = ({
 
   return (
     <div
+      ref={setTile}
       className={`own-preset-tile${isPlaying ? ' is-playing' : ''}`}
-      onPointerLeave={() => setLinkCopied(false)}
     >
       {isRenaming ? (
         <div className="own-preset-tile__main">
@@ -226,9 +268,10 @@ const OwnPresetTile = ({
           <span className="eq-preset-tab__words">
             <strong>{preset.name}</strong>
             <span
-              className={isLinkCopied ? 'own-preset-tile__done' : undefined}
+              className={linkLineClass}
+              role={linkState ? 'status' : undefined}
             >
-              {isLinkCopied ? t('presetShare.linkCopied') : hint}
+              {linkState ? t(LINK_LINE[linkState]) : hint}
             </span>
           </span>
         </button>

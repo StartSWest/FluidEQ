@@ -11,6 +11,14 @@ export default {
   'presetShare.menu.copyLink': 'Copier le lien de partage',
   'presetShare.menu.export': 'Exporter…',
   'presetShare.linkCopied': 'Lien de partage copié',
+  'presetShare.linkMaking': 'Création du lien…',
+  'presetShare.linkFailed.signedOut': 'Connectez-vous pour créer un lien',
+  'presetShare.linkFailed.suspended':
+    'Ce compte ne peut pas partager pour l’instant',
+  'presetShare.linkFailed.rateLimited': 'Trop de liens cette heure-ci',
+  'presetShare.linkFailed.tooMany': 'Limite de liens atteinte pour ce compte',
+  'presetShare.linkFailed.takenDown': 'Ce lien a été retiré',
+  'presetShare.linkFailed.offline': 'Le serveur de FluidEQ n’a pas répondu',
 
   'presetShare.text.title': '{name} · préréglage FluidEQ',
   'presetShare.text.curve': 'Courbe : {count} bandes',
@@ -32,12 +40,13 @@ export default {
   'presetShare.format.bbcodeFor': 'Head-Fi · autres forums',
   'presetShare.format.plain': 'Texte brut',
   'presetShare.format.plainFor': 'Partout ailleurs',
-  'presetShare.export.withCode':
-    'Ajouter aussi le code en texte, pour les forums qui raccourcissent les liens',
+  'presetShare.export.withLink':
+    'Ajouter un lien court vers sa page sur fluideq.com',
+  'presetShare.export.linkSignIn': 'Connectez-vous pour ajouter un lien court',
   'presetShare.export.fits':
     '{count} caractères · tient dans un message Discord',
   'presetShare.export.long':
-    '{count} caractères · trop long pour un message Discord, retirez le code',
+    '{count} caractères · trop long pour un message Discord. Envoyez le lien court seul.',
   'presetShare.export.pasteHint':
     'Toute personne ayant FluidEQ peut coller ceci dans Importer.',
   'presetShare.export.fileHint':
@@ -59,6 +68,8 @@ export default {
     'Conçu pour : \nÉcouté sur : \nÀ essayer avec : \n\nCe qu’il fait : ',
 
   'presetShare.card.by': 'Partagé par @{author}',
+  'presetShare.card.sharedBy': 'Partagé par {author}',
+  'presetShare.card.sharedByMember': 'Partagé par un membre de FluidEQ',
   'presetShare.card.add': 'Ajouter à mes préréglages',
   'presetShare.card.added': 'Dans « Les vôtres » · en lecture',
   'presetShare.card.try': 'Essayer',
@@ -82,9 +93,14 @@ export default {
     'Le code du préréglage est tronqué ou endommagé. Copiez-le à nouveau du début à la fin.',
   'presetShare.import.clipboardFailed':
     'FluidEQ n’a pas pu lire le presse-papiers. Collez plutôt le texte dans la zone.',
+  'presetShare.import.gone':
+    'Ce préréglage n’est plus partagé. Demandez plutôt son code.',
+  'presetShare.import.offline':
+    'FluidEQ n’a pas pu joindre son serveur pour ouvrir ce lien. Vérifiez la connexion et réessayez.',
 
   'presetShare.link.title': 'Ajouter ce préréglage ?',
   'presetShare.link.hint':
     'Depuis un lien que vous avez ouvert. Rien ne joue ni ne s’enregistre avant que vous appuyiez.',
   'presetShare.link.notNow': 'Pas maintenant',
+  'presetShare.link.fetching': 'Récupération du préréglage auprès de FluidEQ…',
 } as const;

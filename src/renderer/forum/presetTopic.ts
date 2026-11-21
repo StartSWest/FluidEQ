@@ -1,5 +1,9 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
+import {
+  SHARED_PRESET_PAGE,
+  isSharedPresetId,
+} from '../../common/presetShare/sharedPresetLink';
 import { NEW_TOPIC_DRAFT, writeDraft } from './forumDrafts';
 
 /**
@@ -17,25 +21,42 @@ const STAND_IN_BOARD = 'show-and-tell';
 /** Asked of the window: the Forum's page, on the new topic (`App.tsx`). */
 export const OPEN_FORUM_COMPOSE_EVENT = 'fluideq:open-forum-compose';
 
-/** The preset a topic carries, as its share code (`presetShareCode.ts`). */
+/**
+ * The preset a topic carries, as its share code (`presetShareCode.ts`), and
+ * its short link when the sharer's account made one (`sharedPresetLink.ts`).
+ */
 export interface ITopicPreset {
   name: string;
   code: string;
+  link?: string;
 }
 
 const CODE = /^FQP\d{1,3}\.[A-Za-z0-9_-]{8,4000}$/;
+
+/** Only a link FluidEQ's server made: its page on fluideq.com, by id. */
+const isOwnShortLink = (value: unknown): value is string =>
+  typeof value === 'string' &&
+  value.startsWith(SHARED_PRESET_PAGE) &&
+  isSharedPresetId(value.slice(SHARED_PRESET_PAGE.length));
 
 export const readTopicPreset = (value: unknown): ITopicPreset | undefined => {
   if (typeof value !== 'object' || value === null) {
     return undefined;
   }
-  const { name, code } = value as Record<string, unknown>;
-  return typeof name === 'string' &&
-    name.trim() !== '' &&
-    typeof code === 'string' &&
-    CODE.test(code)
-    ? { name: name.trim(), code }
-    : undefined;
+  const { name, code, link } = value as Record<string, unknown>;
+  if (
+    typeof name !== 'string' ||
+    name.trim() === '' ||
+    typeof code !== 'string' ||
+    !CODE.test(code)
+  ) {
+    return undefined;
+  }
+  return {
+    name: name.trim(),
+    code,
+    ...(isOwnShortLink(link) ? { link } : {}),
+  };
 };
 
 /**

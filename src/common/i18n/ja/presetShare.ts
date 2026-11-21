@@ -11,6 +11,13 @@ export default {
   'presetShare.menu.copyLink': '共有リンクをコピー',
   'presetShare.menu.export': 'エクスポート…',
   'presetShare.linkCopied': '共有リンクをコピーしました',
+  'presetShare.linkMaking': 'リンクを作成しています…',
+  'presetShare.linkFailed.signedOut': 'リンクを作るにはサインインしてください',
+  'presetShare.linkFailed.suspended': 'このアカウントは今は共有できません',
+  'presetShare.linkFailed.rateLimited': 'この 1 時間のリンクが多すぎます',
+  'presetShare.linkFailed.tooMany': 'リンクの上限に達しました',
+  'presetShare.linkFailed.takenDown': 'このリンクは削除されました',
+  'presetShare.linkFailed.offline': 'FluidEQ のサーバーが応答しません',
 
   'presetShare.text.title': '{name} · FluidEQ プリセット',
   'presetShare.text.curve': 'カーブ: {count} バンド',
@@ -32,12 +39,12 @@ export default {
   'presetShare.format.bbcodeFor': 'Head-Fi · その他の掲示板',
   'presetShare.format.plain': 'プレーンテキスト',
   'presetShare.format.plainFor': 'それ以外の場所',
-  'presetShare.export.withCode':
-    'リンクを短縮する掲示板向けに、コードもテキストで添える',
+  'presetShare.export.withLink': 'fluideq.com のページへの短いリンクを添える',
+  'presetShare.export.linkSignIn': 'サインインして短いリンクを添える',
   'presetShare.export.fits':
     '{count} 文字 · Discord のメッセージ 1 件に収まります',
   'presetShare.export.long':
-    '{count} 文字 · Discord のメッセージ 1 件には長すぎます。コードを外してください',
+    '{count} 文字 · Discord のメッセージ 1 件には長すぎます。短いリンクだけを送ってください。',
   'presetShare.export.pasteHint':
     'FluidEQ があれば、誰でもこれを「インポート」に貼り付けられます。',
   'presetShare.export.fileHint':
@@ -59,6 +66,8 @@ export default {
   'presetShare.forum.template': '用途: \n試聴環境: \n試すなら: \n\n効果: ',
 
   'presetShare.card.by': '@{author} が共有',
+  'presetShare.card.sharedBy': '{author} が共有',
+  'presetShare.card.sharedByMember': 'FluidEQ のメンバーが共有',
   'presetShare.card.add': '自分のプリセットに追加',
   'presetShare.card.added': '「自分の」に追加済み · 再生中',
   'presetShare.card.try': '試す',
@@ -82,9 +91,14 @@ export default {
     'プリセットのコードが途中で切れているか、壊れています。最初から最後までもう一度コピーしてください。',
   'presetShare.import.clipboardFailed':
     'FluidEQ はクリップボードを読み取れませんでした。代わりにボックスに貼り付けてください。',
+  'presetShare.import.gone':
+    'このプリセットはもう共有されていません。代わりにコードを尋ねてください。',
+  'presetShare.import.offline':
+    'このリンクを開くために FluidEQ のサーバーに接続できませんでした。接続を確認してもう一度お試しください。',
 
   'presetShare.link.title': 'このプリセットを追加しますか？',
   'presetShare.link.hint':
     '開いたリンクからです。押すまで、再生も保存も行われません。',
   'presetShare.link.notNow': '今はしない',
+  'presetShare.link.fetching': 'FluidEQ からプリセットを取得しています…',
 } as const;

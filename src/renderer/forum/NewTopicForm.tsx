@@ -126,13 +126,18 @@ export default function NewTopicForm({ forum }: INewTopicFormProps) {
   }, [picked, title, body, preset]);
   const guidance = board ? boardGuidance(board, t) : undefined;
   // The words, then the preset as text GitHub shows and FluidEQ reads back:
-  // its name, the link that opens it and its code (`presetShareText`).
+  // its name, its short link when one was made, and its code
+  // (`presetShareText`).
   const presetBlock =
     preset && shared?.ok
       ? presetShareText(
-          { ...shared.preset, name: preset.name, code: preset.code },
+          {
+            ...shared.preset,
+            name: preset.name,
+            code: preset.code,
+            ...(preset.link ? { link: preset.link } : {}),
+          },
           'markdown',
-          true,
           t,
         )
       : '';

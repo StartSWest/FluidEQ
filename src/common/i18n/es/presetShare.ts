@@ -11,6 +11,13 @@ export default {
   'presetShare.menu.copyLink': 'Copiar enlace para compartir',
   'presetShare.menu.export': 'Exportar…',
   'presetShare.linkCopied': 'Enlace para compartir copiado',
+  'presetShare.linkMaking': 'Creando el enlace…',
+  'presetShare.linkFailed.signedOut': 'Inicia sesión para crear un enlace',
+  'presetShare.linkFailed.suspended': 'Esta cuenta no puede compartir ahora',
+  'presetShare.linkFailed.rateLimited': 'Demasiados enlaces en esta hora',
+  'presetShare.linkFailed.tooMany': 'Esta cuenta llegó al límite de enlaces',
+  'presetShare.linkFailed.takenDown': 'Este enlace fue retirado',
+  'presetShare.linkFailed.offline': 'El servidor de FluidEQ no respondió',
 
   'presetShare.text.title': '{name} · preset de FluidEQ',
   'presetShare.text.curve': 'Curva: {count} bandas',
@@ -32,12 +39,13 @@ export default {
   'presetShare.format.bbcodeFor': 'Head-Fi · otros foros',
   'presetShare.format.plain': 'Texto sin formato',
   'presetShare.format.plainFor': 'Cualquier otro sitio',
-  'presetShare.export.withCode':
-    'Añadir también el código como texto, para foros que acortan los enlaces',
+  'presetShare.export.withLink':
+    'Añadir un enlace corto a su página en fluideq.com',
+  'presetShare.export.linkSignIn': 'Inicia sesión para añadir un enlace corto',
   'presetShare.export.fits':
     '{count} caracteres · cabe en un mensaje de Discord',
   'presetShare.export.long':
-    '{count} caracteres · demasiado largo para un mensaje de Discord, quita el código',
+    '{count} caracteres · demasiado largo para un mensaje de Discord. Envía solo el enlace corto.',
   'presetShare.export.pasteHint':
     'Cualquiera con FluidEQ puede pegarlo en Importar.',
   'presetShare.export.fileHint':
@@ -59,6 +67,8 @@ export default {
     'Hecho para: \nEscuchado en: \nPruébalo con: \n\nQué hace: ',
 
   'presetShare.card.by': 'Compartido por @{author}',
+  'presetShare.card.sharedBy': 'Compartido por {author}',
+  'presetShare.card.sharedByMember': 'Compartido por un miembro de FluidEQ',
   'presetShare.card.add': 'Añadir a mis presets',
   'presetShare.card.added': 'En Tuyos · sonando',
   'presetShare.card.try': 'Probar',
@@ -82,9 +92,13 @@ export default {
     'El código del preset está cortado o dañado. Cópialo otra vez de principio a fin.',
   'presetShare.import.clipboardFailed':
     'FluidEQ no pudo leer el portapapeles. Pégalo directamente en el cuadro.',
+  'presetShare.import.gone': 'Este preset ya no se comparte. Pide su código.',
+  'presetShare.import.offline':
+    'FluidEQ no pudo conectar con su servidor para abrir este enlace. Revisa la conexión e inténtalo de nuevo.',
 
   'presetShare.link.title': '¿Añadir este preset?',
   'presetShare.link.hint':
     'Viene de un enlace que abriste. Nada suena ni se guarda hasta que pulses.',
   'presetShare.link.notNow': 'Ahora no',
+  'presetShare.link.fetching': 'Trayendo el preset desde FluidEQ…',
 } as const;

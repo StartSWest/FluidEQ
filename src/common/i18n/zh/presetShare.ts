@@ -11,6 +11,13 @@ export default {
   'presetShare.menu.copyLink': '复制分享链接',
   'presetShare.menu.export': '导出…',
   'presetShare.linkCopied': '已复制分享链接',
+  'presetShare.linkMaking': '正在生成链接…',
+  'presetShare.linkFailed.signedOut': '登录后才能生成链接',
+  'presetShare.linkFailed.suspended': '此账户目前无法分享',
+  'presetShare.linkFailed.rateLimited': '这一小时的链接太多了',
+  'presetShare.linkFailed.tooMany': '已达链接数量上限',
+  'presetShare.linkFailed.takenDown': '这个链接已被移除',
+  'presetShare.linkFailed.offline': 'FluidEQ 服务器没有响应',
 
   'presetShare.text.title': '{name} · FluidEQ 预设',
   'presetShare.text.curve': '曲线：{count} 个频段',
@@ -32,11 +39,11 @@ export default {
   'presetShare.format.bbcodeFor': 'Head-Fi · 其他论坛',
   'presetShare.format.plain': '纯文本',
   'presetShare.format.plainFor': '其他任何地方',
-  'presetShare.export.withCode':
-    '同时以文本形式附上代码，供会缩短链接的论坛使用',
+  'presetShare.export.withLink': '附上指向 fluideq.com 页面的短链接',
+  'presetShare.export.linkSignIn': '登录以附上短链接',
   'presetShare.export.fits': '{count} 个字符 · 一条 Discord 消息放得下',
   'presetShare.export.long':
-    '{count} 个字符 · 一条 Discord 消息放不下，请去掉代码',
+    '{count} 个字符 · 一条 Discord 消息放不下，请只发送短链接。',
   'presetShare.export.pasteHint':
     '任何装有 FluidEQ 的人都可以把它粘贴到“导入”中。',
   'presetShare.export.fileHint':
@@ -57,6 +64,8 @@ export default {
     '适用于： \n试听设备： \n推荐搭配： \n\n效果： ',
 
   'presetShare.card.by': '由 @{author} 分享',
+  'presetShare.card.sharedBy': '由 {author} 分享',
+  'presetShare.card.sharedByMember': '由一位 FluidEQ 成员分享',
   'presetShare.card.add': '添加到我的预设',
   'presetShare.card.added': '已在“我的”中 · 正在播放',
   'presetShare.card.try': '试听',
@@ -79,9 +88,13 @@ export default {
   'presetShare.import.damaged': '预设代码被截断或已损坏。请从头到尾重新复制。',
   'presetShare.import.clipboardFailed':
     'FluidEQ 无法读取剪贴板。请直接粘贴到输入框中。',
+  'presetShare.import.gone': '这个预设已不再分享。请改为索取它的代码。',
+  'presetShare.import.offline':
+    'FluidEQ 无法连接服务器来打开这个链接。请检查网络连接后重试。',
 
   'presetShare.link.title': '添加这个预设？',
   'presetShare.link.hint':
     '来自你打开的链接。在你按下之前，不会播放或保存任何内容。',
   'presetShare.link.notNow': '暂不',
+  'presetShare.link.fetching': '正在从 FluidEQ 获取预设…',
 } as const;

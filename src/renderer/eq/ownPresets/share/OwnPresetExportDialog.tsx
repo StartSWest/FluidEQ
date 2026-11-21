@@ -4,6 +4,9 @@ import { useEffect, useId, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { toDspChainPresetFile } from '../../../../common/dsp/dspChainPresetFile';
 import { encodePresetShareCode } from '../../../../common/presetShare/presetShareCode';
+import type { TSharePresetLinkRefusal } from '../../../../common/presetShare/sharedPresetLink';
+import { requestAccountPanel } from '../../../account/accountPanel';
+import { useAccount, useAccountKnown } from '../../../account/accountStore';
 import DialogFrame from '../../../components/DialogFrame';
 import type { IDspCatalogEntry } from '../../../dsp/dspPresetCatalog';
 import MenuIcon from '../../../icons/MenuIcon';
@@ -17,6 +20,18 @@ import {
   rackStageNames,
   type TShareFormat,
 } from './presetShareText';
+import usePresetShortLink from './usePresetShortLink';
+
+/** Why the export's short link was not made, as the box under it says. */
+const LINK_REFUSAL = {
+  'signed-out': 'presetShare.linkFailed.signedOut',
+  suspended: 'presetShare.linkFailed.suspended',
+  'rate-limited': 'presetShare.linkFailed.rateLimited',
+  'too-many': 'presetShare.linkFailed.tooMany',
+  'taken-down': 'presetShare.linkFailed.takenDown',
+  invalid: 'presetShare.linkFailed.offline',
+  offline: 'presetShare.linkFailed.offline',
+} as const satisfies Record<TSharePresetLinkRefusal, string>;
 
 type TExportTab = 'forum' | 'file' | 'apo';
 
@@ -40,9 +55,15 @@ interface IOwnPresetExportDialogProps {
 /**
  * A preset of the listener's own, out of FluidEQ (Ivan, 2026-11-20:
  * "export the users presets … but also to export to any forums"): as text
- * for any forum — Markdown, BBCode or plain, with the link that opens it in
- * FluidEQ — as the preset file the DSP page already writes, or as the curve
- * alone in Equalizer APO's text for somebody on another equaliser.
+ * for any forum — Markdown, BBCode or plain, with its code and, for an
+ * account, the short link to its page on fluideq.com — as the preset file
+ * the DSP page already writes, or as the curve alone in Equalizer APO's text
+ * for somebody on another equaliser.
+ *
+ * The link is on by default for an account, because a link is what brings
+ * somebody without FluidEQ to it (Ivan, 2026-11-20). Signed out, the box
+ * gives way to a quiet Sign in that opens the Account panel; the code alone
+ * is still the whole preset.
  *
  * What the action does is said by its label and shown by the box above it;
  * nothing leaves the window but by the listener's press: Copy, or Save in
@@ -54,11 +75,18 @@ const OwnPresetExportDialog = ({
 }: IOwnPresetExportDialogProps) => {
   const { t } = useTranslation();
   const titleId = useId();
-  const codeId = useId();
+  const linkId = useId();
   const [tab, setTab] = useState<TExportTab>('forum');
   const [format, setFormat] = useState<TShareFormat>('markdown');
-  const [withCode, setWithCode] = useState(false);
+  const [withLink, setWithLink] = useState(true);
   const [code, setCode] = useState<string | undefined>(undefined);
+  const isSignedIn = useAccount().identity !== undefined;
+  const isAccountKnown = useAccountKnown();
+  const link = usePresetShortLink(
+    preset,
+    code,
+    isSignedIn && withLink && tab === 'forum',
+  );
   const [done, setDone] = useState<TExportTab | undefined>(undefined);
   const [failed, setFailed] = useState(false);
 
@@ -92,7 +120,15 @@ const OwnPresetExportDialog = ({
   }, [onClose]);
 
   const forumText = code
-    ? presetShareText({ ...preset, code }, format, withCode, t)
+    ? presetShareText(
+        {
+          ...preset,
+          code,
+          ...(link.state === 'ready' ? { link: link.url } : {}),
+        },
+        format,
+        t,
+      )
     : '';
   const apoText = presetApoText(preset.curve);
   const stages = rackStageNames(preset.settings, t);
@@ -244,18 +280,42 @@ const OwnPresetExportDialog = ({
             <pre className="preset-share-dialog__text" aria-live="polite">
               {forumText}
             </pre>
-            <label className="preset-share-dialog__check" htmlFor={codeId}>
-              <input
-                id={codeId}
-                type="checkbox"
-                checked={withCode}
-                onChange={(event) => {
-                  setWithCode(event.target.checked);
-                  setDone(undefined);
-                }}
-              />
-              {t('presetShare.export.withCode')}
-            </label>
+            {isSignedIn && (
+              <label className="preset-share-dialog__check" htmlFor={linkId}>
+                <input
+                  id={linkId}
+                  type="checkbox"
+                  checked={withLink}
+                  onChange={(event) => {
+                    setWithLink(event.target.checked);
+                    setDone(undefined);
+                  }}
+                />
+                {t('presetShare.export.withLink')}
+                {link.state === 'making' && (
+                  <span className="preset-share-dialog__link-note">
+                    {t('presetShare.linkMaking')}
+                  </span>
+                )}
+                {link.state === 'refused' && (
+                  <span
+                    className="preset-share-dialog__link-note is-problem"
+                    role="status"
+                  >
+                    {t(LINK_REFUSAL[link.reason])}
+                  </span>
+                )}
+              </label>
+            )}
+            {!isSignedIn && isAccountKnown && (
+              <button
+                type="button"
+                className="button small subtle preset-share-dialog__sign-in"
+                onClick={() => requestAccountPanel('home')}
+              >
+                {t('presetShare.export.linkSignIn')}
+              </button>
+            )}
             <p className="preset-share-dialog__meta">
               <span className={fits ? 'is-fit' : 'is-long'}>
                 {t(
@@ -265,7 +325,6 @@ const OwnPresetExportDialog = ({
                   },
                 )}
               </span>
-              <span>{t('presetShare.export.pasteHint')}</span>
             </p>
           </div>
         )}

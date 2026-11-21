@@ -11,6 +11,13 @@ export default {
   'presetShare.menu.copyLink': 'Копировать ссылку',
   'presetShare.menu.export': 'Экспорт…',
   'presetShare.linkCopied': 'Ссылка скопирована',
+  'presetShare.linkMaking': 'Создаём ссылку…',
+  'presetShare.linkFailed.signedOut': 'Войдите, чтобы создать ссылку',
+  'presetShare.linkFailed.suspended': 'Этот аккаунт сейчас не может делиться',
+  'presetShare.linkFailed.rateLimited': 'Слишком много ссылок за час',
+  'presetShare.linkFailed.tooMany': 'Достигнут лимит ссылок аккаунта',
+  'presetShare.linkFailed.takenDown': 'Эта ссылка удалена',
+  'presetShare.linkFailed.offline': 'Сервер FluidEQ не ответил',
 
   'presetShare.text.title': '{name} · пресет FluidEQ',
   'presetShare.text.curve': 'Кривая: полос — {count}',
@@ -32,12 +39,13 @@ export default {
   'presetShare.format.bbcodeFor': 'Head-Fi · другие форумы',
   'presetShare.format.plain': 'Обычный текст',
   'presetShare.format.plainFor': 'Для всего остального',
-  'presetShare.export.withCode':
-    'Добавить код ещё и текстом — для форумов, которые сокращают ссылки',
+  'presetShare.export.withLink':
+    'Добавить короткую ссылку на его страницу на fluideq.com',
+  'presetShare.export.linkSignIn': 'Войдите, чтобы добавить короткую ссылку',
   'presetShare.export.fits':
     'Символов: {count} · помещается в одно сообщение Discord',
   'presetShare.export.long':
-    'Символов: {count} · слишком длинно для одного сообщения Discord, уберите код',
+    'Символов: {count} · слишком длинно для одного сообщения Discord. Отправьте только короткую ссылку.',
   'presetShare.export.pasteHint':
     'Любой, у кого есть FluidEQ, может вставить это в «Импорт».',
   'presetShare.export.fileHint':
@@ -59,6 +67,8 @@ export default {
     'Создан для: \nПрослушан на: \nПопробуйте с: \n\nЧто делает: ',
 
   'presetShare.card.by': 'Автор: @{author}',
+  'presetShare.card.sharedBy': 'Автор: {author}',
+  'presetShare.card.sharedByMember': 'Поделился участник FluidEQ',
   'presetShare.card.add': 'Добавить в мои пресеты',
   'presetShare.card.added': 'В «Свои» · играет',
   'presetShare.card.try': 'Попробовать',
@@ -82,9 +92,14 @@ export default {
     'Код пресета обрезан или повреждён. Скопируйте его ещё раз от начала до конца.',
   'presetShare.import.clipboardFailed':
     'FluidEQ не смог прочитать буфер обмена. Вставьте текст в поле вручную.',
+  'presetShare.import.gone':
+    'Этим пресетом больше не делятся. Попросите его код.',
+  'presetShare.import.offline':
+    'FluidEQ не смог связаться со своим сервером, чтобы открыть эту ссылку. Проверьте подключение и попробуйте ещё раз.',
 
   'presetShare.link.title': 'Добавить этот пресет?',
   'presetShare.link.hint':
     'Из ссылки, которую вы открыли. Ничего не заиграет и не сохранится, пока вы не нажмёте.',
   'presetShare.link.notNow': 'Не сейчас',
+  'presetShare.link.fetching': 'Получаем пресет из FluidEQ…',
 } as const;

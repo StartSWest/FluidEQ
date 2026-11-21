@@ -40,11 +40,6 @@ export const SHARE_CODE_MAX = 4000;
 /** Unpacking stops here: the largest measured preset was 8.3 KB. */
 export const SHARE_JSON_MAX = 64 * 1024;
 
-/** The page on fluideq.com that draws a shared preset and opens FluidEQ. */
-export const SHARE_PAGE_URL = 'https://fluideq.com/p';
-/** The link a page hands FluidEQ (`main/presetLinks.ts`). */
-export const SHARE_APP_LINK_PREFIX = 'fluideq://preset/';
-
 const CODE_PATTERN = /FQP(\d{1,3})\.([A-Za-z0-9_-]+)/;
 
 /** Why a text gave no preset, as the import says it. */
@@ -218,10 +213,6 @@ export const encodePresetShareCode = async (
   }
   return `FQP${SHARE_CODE_VERSION}.${toBase64Url(packed)}`;
 };
-
-/** The link that opens a share code on fluideq.com, readable by FluidEQ. */
-export const presetShareLink = (code: string): string =>
-  `${SHARE_PAGE_URL}#${code}`;
 
 /** The first share code anywhere in `text`: a post, a link, a message. */
 export const findPresetShareCode = (

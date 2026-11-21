@@ -68,9 +68,25 @@ $share-tint: color-mix(in srgb, var(--ink-preset) 13%, transparent);
   }
 }
 
-// "Share link copied", in the hint's place until the pointer leaves.
-.own-preset-tile__done {
+// "Share link copied", in the hint's place until the pointer leaves. Named
+// under the words, because `.eq-preset-tab__words span` paints the hint's
+// muted ink and outranks a lone class: measured in the harness, the line
+// stayed muted.
+.eq-preset-tab__words .own-preset-tile__done {
   color: $text-accent;
+}
+
+// Why no link was copied (signed out, too many this hour, no answer): a
+// caution in the same place, the colour the import's warnings wear.
+// Two lines, never cut: the hint truncates to one, and "Too many links this
+// hour" cut to "Too many links this hour. Tr…" in the harness's 290px tile.
+.eq-preset-tab__words .own-preset-tile__problem {
+  display: -webkit-box;
+  overflow: hidden;
+  color: $ink-caution;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 // A menu icon has no size of its own (`.menu-icon` is sized by where it
@@ -308,8 +324,9 @@ textarea.preset-share-dialog__text {
 
 .preset-share-dialog__check {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 4px 8px;
   color: $text-muted;
   font-size: $text-body;
   cursor: pointer;
@@ -317,6 +334,30 @@ textarea.preset-share-dialog__text {
   input {
     accent-color: $secondary-default;
   }
+}
+
+// "Making the link…" or why it was not made, after the box's own words.
+.preset-share-dialog__link-note {
+  color: $text-muted;
+  font-size: $text-small;
+
+  &.is-problem {
+    color: $ink-caution;
+  }
+}
+
+// A link's question while main fetches the preset: said from the first
+// moment, in the place the card is about to take.
+.preset-share-dialog__fetching {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+}
+
+// Signed out, the box gives way to this: quiet, on its own line's start.
+// The pane is a grid, which stretched it to the pane's width (measured).
+.preset-share-dialog__sign-in {
+  justify-self: start;
 }
 
 .preset-share-dialog__meta {

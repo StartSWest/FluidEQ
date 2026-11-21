@@ -11,6 +11,14 @@ export default {
   'presetShare.menu.copyLink': 'Copia link di condivisione',
   'presetShare.menu.export': 'Esporta…',
   'presetShare.linkCopied': 'Link di condivisione copiato',
+  'presetShare.linkMaking': 'Creazione del link…',
+  'presetShare.linkFailed.signedOut': 'Accedi per creare un link',
+  'presetShare.linkFailed.suspended': 'Questo account non può condividere ora',
+  'presetShare.linkFailed.rateLimited': 'Troppi link in quest’ora',
+  'presetShare.linkFailed.tooMany':
+    'Limite di link raggiunto per questo account',
+  'presetShare.linkFailed.takenDown': 'Questo link è stato rimosso',
+  'presetShare.linkFailed.offline': 'Il server di FluidEQ non ha risposto',
 
   'presetShare.text.title': '{name} · preset FluidEQ',
   'presetShare.text.curve': 'Curva: {count} bande',
@@ -32,11 +40,12 @@ export default {
   'presetShare.format.bbcodeFor': 'Head-Fi · altri forum',
   'presetShare.format.plain': 'Testo semplice',
   'presetShare.format.plainFor': 'Ovunque altro',
-  'presetShare.export.withCode':
-    'Aggiungi anche il codice come testo, per i forum che accorciano i link',
+  'presetShare.export.withLink':
+    'Aggiungi un link breve alla sua pagina su fluideq.com',
+  'presetShare.export.linkSignIn': 'Accedi per aggiungere un link breve',
   'presetShare.export.fits': '{count} caratteri · sta in un messaggio Discord',
   'presetShare.export.long':
-    '{count} caratteri · troppo lungo per un messaggio Discord, togli il codice',
+    '{count} caratteri · troppo lungo per un messaggio Discord. Invia solo il link breve.',
   'presetShare.export.pasteHint':
     'Chiunque abbia FluidEQ può incollarlo in Importa.',
   'presetShare.export.fileHint':
@@ -58,6 +67,8 @@ export default {
     'Pensato per: \nAscoltato su: \nProvalo con: \n\nCosa fa: ',
 
   'presetShare.card.by': 'Condiviso da @{author}',
+  'presetShare.card.sharedBy': 'Condiviso da {author}',
+  'presetShare.card.sharedByMember': 'Condiviso da un membro di FluidEQ',
   'presetShare.card.add': 'Aggiungi ai miei preset',
   'presetShare.card.added': 'In I tuoi · in riproduzione',
   'presetShare.card.try': 'Provalo',
@@ -81,9 +92,14 @@ export default {
     'Il codice del preset è troncato o danneggiato. Copialo di nuovo dall’inizio alla fine.',
   'presetShare.import.clipboardFailed':
     'FluidEQ non è riuscito a leggere gli appunti. Incolla invece il testo nella casella.',
+  'presetShare.import.gone':
+    'Questo preset non è più condiviso. Chiedi il suo codice.',
+  'presetShare.import.offline':
+    'FluidEQ non è riuscito a raggiungere il suo server per aprire questo link. Controlla la connessione e riprova.',
 
   'presetShare.link.title': 'Aggiungere questo preset?',
   'presetShare.link.hint':
     'Da un link che hai aperto. Niente suona né viene salvato finché non premi.',
   'presetShare.link.notNow': 'Non ora',
+  'presetShare.link.fetching': 'Recupero del preset da FluidEQ…',
 } as const;
