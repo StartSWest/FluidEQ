@@ -369,8 +369,17 @@ const library = {
   'library.sound.noAlbumSound': '앨범 사운드 없음',
   'library.sound.tagOwn': '자체 · {preset}',
   'library.sound.tagAlbum': '앨범 · {preset}',
+  'library.sound.tagChanged': '변경됨 · {preset}',
   'library.sound.detailsYours': '내 사운드',
   'library.sound.change': '변경',
+  'library.sound.keptAlbum': '앨범에 저장됨: {preset}',
+  'library.sound.keptSong': '이 노래에 저장됨: {preset}',
+  'library.sound.keptSongs': '{count}에 저장됨: {preset}',
+  'library.sound.albumsOff': '앨범 사운드가 꺼져 있어 아직 재생되지 않습니다.',
+  'library.sound.songsOff': '노래 사운드가 꺼져 있어 아직 재생되지 않습니다.',
+  'library.sound.turnOnAlbums': '앨범 사운드 켜기',
+  'library.sound.turnOnSongs': '노래 사운드 켜기',
+  'library.sound.offWhere': 'EQ 페이지의 Auto EQ에서 다시 끌 수 있습니다.',
 } satisfies Partial<Dictionary>;
 
 export default library;

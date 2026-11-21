@@ -212,13 +212,28 @@ const AppContent = () => {
     return () => window.removeEventListener(OPEN_GAMING_LAB_EVENT, open);
   }, [selectTopWorkspaceTab, windowMode]);
 
-  // Asked for Auto EQ (the Output panel's note about the old switch): the EQ
-  // page, where its button opens its panel (`autoEqOpen.ts`).
+  // Asked for Auto EQ (the Output panel's note about the old switch, the
+  // sound on a song's card): the EQ page, where its button opens its panel
+  // (`autoEqOpen.ts`) — from the amp too, which shows no page: the app comes
+  // back on it, as for the Gaming Lab above, or the press did nothing seen.
   useEffect(() => {
-    const open = () => selectTopWorkspaceTab('eq');
+    const open = () => {
+      if (windowMode !== 'player') {
+        selectTopWorkspaceTab('eq');
+        return;
+      }
+      preloadTab('eq')
+        .catch((error: unknown) => {
+          reportError('Loading the EQ page', error);
+        })
+        .finally(() => {
+          selectTopWorkspaceTab('eq');
+          setWindowMode('app').catch(() => undefined);
+        });
+    };
     window.addEventListener(OPEN_AUTO_EQ_EVENT, open);
     return () => window.removeEventListener(OPEN_AUTO_EQ_EVENT, open);
-  }, [selectTopWorkspaceTab]);
+  }, [selectTopWorkspaceTab, windowMode]);
 
   // Asked by a preset being edited: its curve on the EQ page, its rack on
   // the DSP page (`presetEditPages.ts`).

@@ -46,6 +46,7 @@ import { usePlaylistDeck } from './playlistDeck';
 import type { IGraphScenePack } from './useGraphScenePack';
 import usePlayerSource from './usePlayerSource';
 import switchVisFullScreen from './visFullScreen';
+import SongSoundChip from '../components/SongSoundChip';
 
 interface IPlayerHeroProps {
   /** The Plus visualizer drawn behind the panel, when there is one. */
@@ -292,6 +293,7 @@ const PlayerHero = ({
           {shown?.subtitle && (
             <span className="player-hero__artist">{shown.subtitle}</span>
           )}
+          {shown && <SongSoundChip className="player-hero__sound" />}
           <PlayerReadouts />
         </span>
         {trackId !== undefined && playlists && (

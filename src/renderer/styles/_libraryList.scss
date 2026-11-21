@@ -743,7 +743,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // other from `visible` to `auto`: hence a horizontal scrollbar across the
   // foot of the menu. The floor here is what lets the button shrink so the
   // label's own `truncate` can do its job.
-  button {
+  //
+  // The menu's rows only: an app button inside the menu (`button small`, as
+  // the playlist picker's Create and the sound page's Turn on are) keeps its
+  // own face. This rule outweighed `.button`'s, and painted the filled accent
+  // as a bare word with no fill.
+  button:not(.button) {
     display: flex;
     min-width: 0;
     align-items: center;
@@ -825,7 +830,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // A disabled entry is a playlist the song is already in. Dimmed rather than
 // hidden — see the menu's own comment for why it stays on the list.
-.library-list__menu button:disabled {
+.library-list__menu button:not(.button):disabled {
   color: $text-faint;
   cursor: default;
 
@@ -955,4 +960,69 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: 15px;
     height: 15px;
   }
+}
+
+// A pick kept for a part of Auto EQ that is off (`LibrarySoundPartOff`):
+// what was kept, in the ink of its kind, why it will not play, the switch
+// and Not now, and where to switch it off again. A column narrower than the
+// menu may grow, so the sentences wrap into lines that read rather than
+// stretching the menu to its widest.
+.library-sound-off {
+  display: grid;
+  max-width: 300px;
+  padding: 6px 10px 8px;
+  gap: $spacing-s;
+
+  p {
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    gap: $spacing-s;
+    line-height: 1.35;
+  }
+}
+
+.library-sound-off__icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  // On the first line's middle, whatever the line height.
+  margin-top: 0.1em;
+}
+
+// The news is that it will not play: that line leads, and the pick it was
+// kept as stands under it, quieter.
+.library-sound-off__why {
+  color: $ink;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+
+  .library-sound-off__icon {
+    color: $ink-caution;
+  }
+}
+
+.library-sound-off__kept {
+  color: $text-muted;
+  font-size: $text-small;
+
+  .library-sound-off__icon {
+    color: $sound-own;
+  }
+
+  .is-album & .library-sound-off__icon {
+    color: $sound-album;
+  }
+}
+
+.library-sound-off__actions {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 2px;
+  gap: $spacing-s;
+}
+
+.library-sound-off__where {
+  color: $text-faint;
+  font-size: $text-micro;
 }

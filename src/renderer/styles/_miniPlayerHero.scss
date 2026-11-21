@@ -327,6 +327,50 @@ SPDX-License-Identifier: GPL-3.0-or-later
   text-shadow: var(--player-text-shadow);
 }
 
+// The song's sound (`SongSoundChip`), under the artist: the readouts'
+// chip below it in shape, on the same half-lit glass so its ink reads over
+// any scene, and in the ink the Library names the sound with. Its words give
+// way to the column, never past it.
+.player-hero__sound {
+  justify-self: start;
+  max-width: 100%;
+  height: 19px;
+  margin-top: 3px;
+  padding: 0 7px 0 5px;
+  border: 1px solid color-mix(in srgb, currentcolor 35%, transparent);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--surface-base) 55%, transparent);
+  box-shadow: none;
+  color: var(--player-text-muted);
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: $weight-bold;
+  line-height: 1;
+  transition: $transition-control;
+
+  .song-sound-chip__icon {
+    width: 11px;
+    height: 11px;
+  }
+
+  &.is-own {
+    color: $sound-own;
+  }
+
+  &.is-album,
+  &.is-changed {
+    color: $sound-album;
+  }
+
+  &:hover {
+    border-color: color-mix(in srgb, currentcolor 60%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
 // Where the song comes from, over its title (`PlayerSource`).
 .player-source {
   display: inline-flex;

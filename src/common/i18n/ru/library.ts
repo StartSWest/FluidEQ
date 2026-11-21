@@ -405,8 +405,20 @@ const library: Partial<Dictionary> = {
   'library.sound.noAlbumSound': 'Без звука альбома',
   'library.sound.tagOwn': 'Свой · {preset}',
   'library.sound.tagAlbum': 'Альбом · {preset}',
+  'library.sound.tagChanged': 'Изменено · {preset}',
   'library.sound.detailsYours': 'Ваш звук',
   'library.sound.change': 'Изменить',
+  'library.sound.keptAlbum': 'Сохранено для альбома: {preset}',
+  'library.sound.keptSong': 'Сохранено для этой песни: {preset}',
+  'library.sound.keptSongs': 'Сохранено для {count}: {preset}',
+  'library.sound.albumsOff':
+    '«Звук альбомов» выключен, поэтому пока не будет звучать.',
+  'library.sound.songsOff':
+    '«Звук песен» выключен, поэтому пока не будет звучать.',
+  'library.sound.turnOnAlbums': 'Включить «Звук альбомов»',
+  'library.sound.turnOnSongs': 'Включить «Звук песен»',
+  'library.sound.offWhere':
+    'Снова выключить можно в «Авто EQ» на странице эквалайзера.',
 };
 
 export default library;

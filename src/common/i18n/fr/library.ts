@@ -414,8 +414,20 @@ const library: Partial<Dictionary> = {
   'library.sound.noAlbumSound': 'Aucun son d’album',
   'library.sound.tagOwn': 'Propre · {preset}',
   'library.sound.tagAlbum': 'Album · {preset}',
+  'library.sound.tagChanged': 'Modifié · {preset}',
   'library.sound.detailsYours': 'Votre son',
   'library.sound.change': 'Modifier',
+  'library.sound.keptAlbum': 'Enregistré pour l’album : {preset}',
+  'library.sound.keptSong': 'Enregistré pour cette chanson : {preset}',
+  'library.sound.keptSongs': 'Enregistré pour {count} : {preset}',
+  'library.sound.albumsOff':
+    'Sons des albums est désactivé : ce son ne sera pas encore joué.',
+  'library.sound.songsOff':
+    'Sons des chansons est désactivé : ce son ne sera pas encore joué.',
+  'library.sound.turnOnAlbums': 'Activer Sons des albums',
+  'library.sound.turnOnSongs': 'Activer Sons des chansons',
+  'library.sound.offWhere':
+    'Vous pourrez le désactiver à nouveau dans l’Égalisation auto, dans la page Égaliseur.',
 };
 
 export default library;

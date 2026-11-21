@@ -17,6 +17,18 @@ import { I18nProvider } from '../../renderer/utils/I18nContext';
 jest.mock('../../renderer/audio/songEqSession');
 const mockUseSongEqRecording = useSongEqRecording as jest.Mock;
 
+// The song's sound on the card (`SongSoundChip`) reads main's index of saved
+// sounds, which a bar rendered here has no main to answer. What it says is
+// `songCardSound`'s; here only that both bars carry it, after the song.
+jest.mock('../../renderer/components/SongSoundChip', () => {
+  const { createElement } = jest.requireActual<typeof import('react')>('react');
+  return {
+    __esModule: true,
+    default: ({ className }: { className: string }) =>
+      createElement('span', { 'data-testid': 'song-sound', className }),
+  };
+});
+
 const track: ILibraryTrack = {
   id: 't1',
   rootId: 'r',
@@ -176,6 +188,38 @@ describe('the now playing bar', () => {
   it('greys out Stop once the loaded Library item is paused at zero', () => {
     bar({ isPlaying: false, positionMs: 0 });
     expect(screen.getByRole('button', { name: 'Stop' })).toBeDisabled();
+  });
+});
+
+describe('the song’s sound on the card', () => {
+  beforeEach(() => {
+    mockUseSongEqRecording.mockReturnValue({ isSaveOn: false });
+  });
+
+  it('stands after the song on the Library’s bar and on the other bar', () => {
+    const library = bar();
+    expect(library.getByTestId('song-sound')).toHaveClass(
+      'now-playing-bar__sound',
+    );
+    library.unmount();
+    render(
+      <I18nProvider>
+        <SourceTransportBar
+          source={{
+            owner: 'karaoke',
+            title: 'Warm-up',
+            isPlaying: true,
+            positionMs: 0,
+            durationMs: 0,
+            toggle: jest.fn(),
+          }}
+        />
+      </I18nProvider>,
+    );
+    const sound = screen.getByTestId('song-sound');
+    expect(sound).toHaveClass('now-playing-bar__sound');
+    // After the song's own button, inside the same column.
+    expect(sound.previousElementSibling).toHaveClass('now-playing-bar__reveal');
   });
 });
 

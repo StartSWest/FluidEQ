@@ -34,6 +34,7 @@ import { useTranslation } from '../../utils/I18nContext';
 import AnchoredMenu from '../../widgets/AnchoredMenu';
 import MenuIcon from '../../icons/MenuIcon';
 import SongEqBadge from '../../components/SongEqBadge';
+import SongSoundChip from '../../components/SongSoundChip';
 import LibraryCoverArt from '../LibraryCoverArt';
 import '../../styles/NowPlayingBar.scss';
 
@@ -695,6 +696,7 @@ const NowPlayingBar = ({
             )}
           </span>
         </button>
+        <SongSoundChip className="now-playing-bar__sound" />
         {isUnplayable && (
           <span className="now-playing-bar__unplayable" role="status">
             {t('library.unplayable')}

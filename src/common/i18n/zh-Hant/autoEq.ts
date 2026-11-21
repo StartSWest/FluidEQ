@@ -7,6 +7,7 @@ import type { Dictionary } from '../en';
 const autoEq = {
   'autoEq.title': 'Auto EQ',
   'autoEq.aria': 'Auto EQ：決定每首歌的聲音',
+  'autoEq.chip.title': '正在播放 {sound}。開啟 Auto EQ',
   'autoEq.tagline': '為您挑選每首歌的聲音',
   'autoEq.state.measuring': '測量中',
   'autoEq.state.paused': '已暫停',

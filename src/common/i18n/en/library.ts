@@ -397,8 +397,18 @@ const library = {
   'library.sound.noAlbumSound': 'No album sound',
   'library.sound.tagOwn': 'Own · {preset}',
   'library.sound.tagAlbum': 'Album · {preset}',
+  'library.sound.tagChanged': 'Changed · {preset}',
   'library.sound.detailsYours': 'Your sound',
   'library.sound.change': 'Change',
+  'library.sound.keptAlbum': 'Kept for the album: {preset}',
+  'library.sound.keptSong': 'Kept for this song: {preset}',
+  'library.sound.keptSongs': 'Kept for {count}: {preset}',
+  'library.sound.albumsOff': 'Album sounds is off, so this won’t play yet.',
+  'library.sound.songsOff': 'Song sounds is off, so this won’t play yet.',
+  'library.sound.turnOnAlbums': 'Turn on Album sounds',
+  'library.sound.turnOnSongs': 'Turn on Song sounds',
+  'library.sound.offWhere':
+    'You can switch it off again in Auto EQ on the EQ page.',
 } as const;
 
 export default library;

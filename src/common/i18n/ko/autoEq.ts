@@ -7,6 +7,7 @@ import type { Dictionary } from '../en';
 const autoEq = {
   'autoEq.title': 'Auto EQ',
   'autoEq.aria': 'Auto EQ: 각 노래의 사운드를 정하는 기능',
+  'autoEq.chip.title': '재생 중: {sound}. Auto EQ 열기',
   'autoEq.tagline': '노래마다 알맞은 사운드를 골라 드립니다',
   'autoEq.state.measuring': '측정 중',
   'autoEq.state.paused': '일시중지됨',

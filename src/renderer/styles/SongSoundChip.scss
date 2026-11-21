@@ -1,0 +1,33 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'theme' as *;
+
+// The sound the playing song plays (`SongSoundChip`), wherever its card is:
+// the glyph and the words, the words the part that gives way. Each card
+// sizes, tints and places it (`.now-playing-bar__sound` on the bars,
+// `.player-hero__sound` on the amp), in the ink the Library's Sound column
+// names the same sound with: the song's own green, the album's amber (a
+// change not saved too, as Auto EQ's panel says it), the listener's own in
+// the card's quiet ink.
+.song-sound-chip {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.song-sound-chip__icon {
+  width: 13px;
+  height: 13px;
+  flex: none;
+}
+
+.song-sound-chip__text {
+  @include truncate;
+  min-width: 0;
+}

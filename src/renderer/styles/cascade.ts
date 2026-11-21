@@ -65,6 +65,7 @@ import './GameModeSwitch.scss';
 import './EngineStrip.scss';
 import './TitleRate.scss';
 import './SongEqBadge.scss';
+import './SongSoundChip.scss';
 import './NowPlayingBar.scss';
 import './EqAutoPanel.scss';
 import './EqAutoSounds.scss';

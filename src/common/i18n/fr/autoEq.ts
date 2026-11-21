@@ -9,6 +9,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 export default {
   'autoEq.title': 'Égalisation auto',
   'autoEq.aria': 'Égalisation auto : ce qui décide du son de chaque chanson',
+  'autoEq.chip.title': 'En lecture : {sound}. Ouvrir l’Égalisation auto',
   'autoEq.tagline': 'Le son de chaque chanson, choisi pour vous',
   'autoEq.state.measuring': 'Mesure',
   'autoEq.state.paused': 'En pause',

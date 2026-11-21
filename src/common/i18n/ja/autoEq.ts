@@ -9,6 +9,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 export default {
   'autoEq.title': 'オート EQ',
   'autoEq.aria': 'オート EQ：曲ごとのサウンドを決める機能',
+  'autoEq.chip.title': '再生中：{sound}。オート EQ を開く',
   'autoEq.tagline': '曲ごとのサウンドを自動で選びます',
   'autoEq.state.measuring': '測定中',
   'autoEq.state.paused': '一時停止中',

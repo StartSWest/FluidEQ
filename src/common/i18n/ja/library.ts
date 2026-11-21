@@ -405,8 +405,18 @@ const library: Partial<Dictionary> = {
   'library.sound.noAlbumSound': 'アルバムのサウンドなし',
   'library.sound.tagOwn': '独自 · {preset}',
   'library.sound.tagAlbum': 'アルバム · {preset}',
+  'library.sound.tagChanged': '変更あり · {preset}',
   'library.sound.detailsYours': 'あなたのサウンド',
   'library.sound.change': '変更',
+  'library.sound.keptAlbum': 'アルバムに保存しました：{preset}',
+  'library.sound.keptSong': 'この曲に保存しました：{preset}',
+  'library.sound.keptSongs': '{count}に保存しました：{preset}',
+  'library.sound.albumsOff':
+    'アルバムのサウンドがオフのため、まだ再生されません。',
+  'library.sound.songsOff': '曲のサウンドがオフのため、まだ再生されません。',
+  'library.sound.turnOnAlbums': 'アルバムのサウンドをオンにする',
+  'library.sound.turnOnSongs': '曲のサウンドをオンにする',
+  'library.sound.offWhere': 'EQ ページのオート EQ で、いつでもオフに戻せます。',
 };
 
 export default library;

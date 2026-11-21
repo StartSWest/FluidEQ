@@ -352,8 +352,17 @@ const library = {
   'library.sound.noAlbumSound': '無專輯聲音',
   'library.sound.tagOwn': '自有 · {preset}',
   'library.sound.tagAlbum': '專輯 · {preset}',
+  'library.sound.tagChanged': '已變更 · {preset}',
   'library.sound.detailsYours': '您的聲音',
   'library.sound.change': '變更',
+  'library.sound.keptAlbum': '已為專輯儲存：{preset}',
+  'library.sound.keptSong': '已為這首歌儲存：{preset}',
+  'library.sound.keptSongs': '已為 {count}儲存：{preset}',
+  'library.sound.albumsOff': '專輯聲音已關閉，所以暫時不會播放。',
+  'library.sound.songsOff': '歌曲聲音已關閉，所以暫時不會播放。',
+  'library.sound.turnOnAlbums': '開啟專輯聲音',
+  'library.sound.turnOnSongs': '開啟歌曲聲音',
+  'library.sound.offWhere': '您可以在 EQ 頁面的 Auto EQ 中再次關閉它。',
 } satisfies Partial<Dictionary>;
 
 export default library;

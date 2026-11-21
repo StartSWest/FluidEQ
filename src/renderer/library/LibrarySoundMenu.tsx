@@ -6,8 +6,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useState } from 'react';
 import log from 'electron-log/renderer';
-import { libraryTrackIdentity } from 'common/songIdentity';
+import { type ISongIdentity, libraryTrackIdentity } from 'common/songIdentity';
 import type { TSavedSound } from 'common/songSound';
+import type { ISongSoundParts } from 'common/songSoundEvents';
 import type { IEqLink } from 'common/savedEq';
 import { normalizeForSearch } from 'common/library/grouping';
 import { pickCovers } from 'common/songSoundChoices';
@@ -15,12 +16,29 @@ import MenuIcon from '../icons/MenuIcon';
 import TextInput from '../widgets/TextInput';
 import { useTranslation } from '../utils/I18nContext';
 import { useSongSoundIndex } from '../audio/songSoundIndex';
-import { songSoundPicked, useLiveSongSound } from '../audio/songSoundSession';
+import {
+  setSongSoundParts,
+  songSoundPicked,
+  useLiveSongSound,
+  useSongSoundParts,
+} from '../audio/songSoundSession';
 import useDspChainEntries from '../dsp/useDspChainEntries';
 import { pickLibrarySongSounds, setAlbumSound } from '../utils/songSoundApi';
 import { countText } from './libraryFormat';
 import { eqNameOf, savedSoundName } from './librarySoundTag';
 import AutoEqMiniCurve from '../eq/autoEq/AutoEqMiniCurve';
+import LibrarySoundPartOff from './LibrarySoundPartOff';
+
+/** Which playing songs a kept pick reaches (`pickCovers`). */
+type TPickReach = (playing: ISongIdentity) => boolean;
+
+/** A pick kept for a part that is off, while the menu says so. */
+interface IPartOff {
+  part: keyof ISongSoundParts;
+  /** Settles once main has kept it. */
+  kept: Promise<TPickReach>;
+  line: string;
+}
 
 /** What the menu gives a sound to: Library songs, or a whole album. */
 export type TLibrarySoundSubject =
@@ -78,6 +96,8 @@ const LibrarySoundMenu = ({
   const { t } = useTranslation();
   const [isChoosing, setIsChoosing] = useState(false);
   const [search, setSearch] = useState('');
+  const [partOff, setPartOff] = useState<IPartOff>();
+  const parts = useSongSoundParts();
   const soundIndex = useSongSoundIndex();
   const { songs, albums, eqs } = soundIndex;
   const live = useLiveSongSound();
@@ -95,34 +115,75 @@ const LibrarySoundMenu = ({
     subject.kind === 'album' ? albums.get(subject.album.key) : undefined;
   const single = isOne ? songs.get(trackIds[0]) : undefined;
 
-  // Kept, and then, where the pick reaches the song that plays, played at
-  // once over whatever it plays now (`songSoundPicked`).
-  const keep = (sound: TSavedSound | IEqLink | null) => {
-    onClose();
-    if (subject.kind === 'album' && sound !== null) {
-      setAlbumOf(sound);
-      return;
-    }
-    identitiesOf(trackIds)
-      .then(async (identities) => {
-        await pickLibrarySongSounds(identities, sound);
-        const keys = identities.map((identity) => identity.key);
-        return songSoundPicked((playing) => pickCovers(playing, { keys }));
-      })
-      .catch(report);
-  };
-  /** The album's sound set, or taken away (`null`). */
-  const setAlbumOf = (sound: TSavedSound | IEqLink | null) => {
+  /** The album's sound set, or taken away (`null`), once main has kept it:
+   * which playing songs the pick reaches. */
+  const setAlbumOf = async (
+    sound: TSavedSound | IEqLink | null,
+  ): Promise<TPickReach> => {
     if (subject.kind !== 'album') {
-      return;
+      return () => false;
     }
     const { key, title, artist } = subject.album;
-    setAlbumSound(key, title, artist, sound)
-      .then(() =>
-        songSoundPicked((playing) => pickCovers(playing, { albumKey: key })),
-      )
-      .catch(report);
+    await setAlbumSound(key, title, artist, sound);
+    return (playing) => pickCovers(playing, { albumKey: key });
   };
+  const setSongsOf = async (
+    sound: TSavedSound | IEqLink | null,
+  ): Promise<TPickReach> => {
+    const identities = await identitiesOf(trackIds);
+    await pickLibrarySongSounds(identities, sound);
+    const keys = identities.map((identity) => identity.key);
+    return (playing) => pickCovers(playing, { keys });
+  };
+
+  // Kept, and then, where the pick reaches the song that plays, played at
+  // once over whatever it plays now (`songSoundPicked`). A sound kept for a
+  // part that is switched off cannot play, so the menu stays to say so and
+  // offer the switch instead of closing on a pick that seemed to do nothing.
+  const keep = (sound: TSavedSound | IEqLink | null) => {
+    const part: keyof ISongSoundParts =
+      subject.kind === 'album' && sound !== null ? 'albums' : 'songs';
+    const kept = part === 'albums' ? setAlbumOf(sound) : setSongsOf(sound);
+    kept.then(songSoundPicked).catch(report);
+    if (sound === null || parts[part]) {
+      onClose();
+      return;
+    }
+    setPartOff({ part, kept, line: keptLine(sound) });
+  };
+  const keptLine = (sound: TSavedSound | IEqLink): string => {
+    const preset =
+      'eqId' in sound
+        ? (eqNameOf(soundIndex, sound.eqId) ?? t('songSound.noPresetName'))
+        : nameOf(sound);
+    if (subject.kind === 'album') {
+      return t('library.sound.keptAlbum', { preset });
+    }
+    return isOne
+      ? t('library.sound.keptSong', { preset })
+      : t('library.sound.keptSongs', {
+          preset,
+          count: countText(t, 'library.trackCount', trackIds.length),
+        });
+  };
+
+  if (partOff) {
+    return (
+      <LibrarySoundPartOff
+        part={partOff.part}
+        kept={partOff.line}
+        onTurnOn={() => {
+          onClose();
+          setSongSoundParts({ ...parts, [partOff.part]: true });
+          // Played as a pick once main has it, before this press or after:
+          // the switch's own look-up is not one, and would keep a change made
+          // over the playing song.
+          partOff.kept.then(songSoundPicked).catch(report);
+        }}
+        onClose={onClose}
+      />
+    );
+  }
 
   if (isChoosing) {
     const needle = normalizeForSearch(search);
@@ -295,7 +356,7 @@ const LibrarySoundMenu = ({
           disabled={!album}
           onClick={() => {
             onClose();
-            setAlbumOf(null);
+            setAlbumOf(null).then(songSoundPicked).catch(report);
           }}
         >
           <MenuIcon name="trash" className="library-list__menu-icon" />

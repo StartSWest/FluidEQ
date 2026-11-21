@@ -399,8 +399,19 @@ const library: Partial<Dictionary> = {
   'library.sound.noAlbumSound': 'एल्बम की कोई आवाज़ नहीं',
   'library.sound.tagOwn': 'अपनी · {preset}',
   'library.sound.tagAlbum': 'एल्बम · {preset}',
+  'library.sound.tagChanged': 'बदला गया · {preset}',
   'library.sound.detailsYours': 'आपकी आवाज़',
   'library.sound.change': 'बदलें',
+  'library.sound.keptAlbum': 'एल्बम के लिए सहेजा गया: {preset}',
+  'library.sound.keptSong': 'इस गाने के लिए सहेजा गया: {preset}',
+  'library.sound.keptSongs': '{count} के लिए सहेजा गया: {preset}',
+  'library.sound.albumsOff':
+    'एल्बमों की आवाज़ें बंद है, इसलिए यह अभी नहीं बजेगा।',
+  'library.sound.songsOff': 'गानों की आवाज़ें बंद है, इसलिए यह अभी नहीं बजेगा।',
+  'library.sound.turnOnAlbums': 'एल्बमों की आवाज़ें चालू करें',
+  'library.sound.turnOnSongs': 'गानों की आवाज़ें चालू करें',
+  'library.sound.offWhere':
+    'आप इसे EQ पेज पर ऑटो EQ में फिर से बंद कर सकते हैं।',
 };
 
 export default library;

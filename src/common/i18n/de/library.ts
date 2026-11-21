@@ -412,8 +412,20 @@ const library: Partial<Dictionary> = {
   'library.sound.noAlbumSound': 'Kein Album-Klang',
   'library.sound.tagOwn': 'Eigener · {preset}',
   'library.sound.tagAlbum': 'Album · {preset}',
+  'library.sound.tagChanged': 'Geändert · {preset}',
   'library.sound.detailsYours': 'Ihr Klang',
   'library.sound.change': 'Ändern',
+  'library.sound.keptAlbum': 'Für das Album gespeichert: {preset}',
+  'library.sound.keptSong': 'Für diesen Song gespeichert: {preset}',
+  'library.sound.keptSongs': 'Für {count} gespeichert: {preset}',
+  'library.sound.albumsOff':
+    '„Album-Klänge“ ist ausgeschaltet, deshalb ist das noch nicht zu hören.',
+  'library.sound.songsOff':
+    '„Song-Klänge“ ist ausgeschaltet, deshalb ist das noch nicht zu hören.',
+  'library.sound.turnOnAlbums': 'Album-Klänge einschalten',
+  'library.sound.turnOnSongs': 'Song-Klänge einschalten',
+  'library.sound.offWhere':
+    'Sie können es in Auto-EQ auf der EQ-Seite wieder ausschalten.',
 };
 
 export default library;

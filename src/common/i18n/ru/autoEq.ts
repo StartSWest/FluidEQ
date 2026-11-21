@@ -9,6 +9,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 export default {
   'autoEq.title': 'Авто EQ',
   'autoEq.aria': 'Авто EQ: что определяет звук каждой песни',
+  'autoEq.chip.title': 'Звучит {sound}. Открыть «Авто EQ»',
   'autoEq.tagline': 'Звук каждой песни, подобранный для вас',
   'autoEq.state.measuring': 'Измерение',
   'autoEq.state.paused': 'Пауза',

@@ -266,6 +266,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
   align-items: center;
   gap: $spacing-s;
+  // Measured by the song's sound (`.now-playing-bar__sound`), which keeps
+  // its words only where the column has room for them beside a title. Its
+  // width is the grid track's, never its content's, so the containment
+  // changes nothing about how wide it is laid out.
+  container: now-playing-track / inline-size;
 }
 
 // The same picture on a bar whose title is not a button. Only the library's
@@ -285,10 +290,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // text stacked inside it — which is what put the title over the corner of the
 // cover instead of next to it. Stated here as what it actually is: a row of
 // two things, with no chrome until it is pointed at.
+//
+// As wide as what it holds, not the column: the song's sound stands right
+// after the words it is about (`.now-playing-bar__sound`), not at the far end
+// of the column against the transport, and the hover outline hugs the song.
 .now-playing-bar__reveal {
   display: flex;
   min-width: 0;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   align-items: center;
   gap: $spacing-s;
   padding: 2px 3px;
@@ -403,6 +412,63 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: $text-micro;
   font-weight: $weight-bold;
   white-space: nowrap;
+}
+
+// The song's sound on the bar (`SongSoundChip`, its own sheet for what it
+// is anywhere): a pill right after the song, its tint its own ink, so the
+// song's green, the album's amber and the listener's quiet grey read apart on
+// a dark window and a white one alike. Its words whole where the column has
+// room for them; past that, its glyph alone (the container query below).
+.now-playing-bar__sound {
+  max-width: 14rem;
+  height: 24px;
+  min-height: 0;
+  flex: 0 0 auto;
+  padding: 0 9px 0 7px;
+  border: 1px solid color-mix(in srgb, currentcolor 30%, transparent);
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, currentcolor 8%, transparent);
+  box-shadow: none;
+  color: $text-muted;
+  font: inherit;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  line-height: 1;
+  transition: $transition-control;
+
+  &.is-own {
+    color: $sound-own;
+  }
+
+  &.is-album,
+  &.is-changed {
+    color: $sound-album;
+  }
+
+  &:hover {
+    border-color: color-mix(in srgb, currentcolor 55%, transparent);
+    background: color-mix(in srgb, currentcolor 15%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
+// Narrow, its glyph alone, in its ink, its words in the tooltip: a pill cut
+// to "Albu…" beside a title cut to "Storm the S…" said neither. Wide, its
+// words whole, and the title gives way, as a long title already does.
+@container now-playing-track (max-width: 360px) {
+  .now-playing-bar__sound {
+    width: 24px;
+    justify-content: center;
+    padding: 0;
+
+    .song-sound-chip__text {
+      display: none;
+    }
+  }
 }
 
 // *** A tab's own controls, in the bar's wrapper *****************************

@@ -9,6 +9,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 export default {
   'autoEq.title': 'EQ automatico',
   'autoEq.aria': 'EQ automatico: cosa decide il suono di ogni brano',
+  'autoEq.chip.title': 'In riproduzione: {sound}. Apri EQ automatico',
   'autoEq.tagline': 'Il suono di ogni brano, scelto per te',
   'autoEq.state.measuring': 'Misurazione',
   'autoEq.state.paused': 'In pausa',

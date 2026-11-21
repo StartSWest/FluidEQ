@@ -9,6 +9,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 export default {
   'autoEq.title': '自动均衡',
   'autoEq.aria': '自动均衡：决定每首歌的声音',
+  'autoEq.chip.title': '正在播放 {sound}。打开自动均衡',
   'autoEq.tagline': '为你挑选每首歌的声音',
   'autoEq.state.measuring': '测量中',
   'autoEq.state.paused': '已暂停',

@@ -384,8 +384,17 @@ const library: Partial<Dictionary> = {
   'library.sound.noAlbumSound': '无专辑声音',
   'library.sound.tagOwn': '自有 · {preset}',
   'library.sound.tagAlbum': '专辑 · {preset}',
+  'library.sound.tagChanged': '已更改 · {preset}',
   'library.sound.detailsYours': '你的声音',
   'library.sound.change': '更改',
+  'library.sound.keptAlbum': '已为专辑保存：{preset}',
+  'library.sound.keptSong': '已为这首歌保存：{preset}',
+  'library.sound.keptSongs': '已为 {count}保存：{preset}',
+  'library.sound.albumsOff': '专辑声音已关闭，所以暂时不会播放。',
+  'library.sound.songsOff': '歌曲声音已关闭，所以暂时不会播放。',
+  'library.sound.turnOnAlbums': '打开专辑声音',
+  'library.sound.turnOnSongs': '打开歌曲声音',
+  'library.sound.offWhere': '你可以在 EQ 页面的自动均衡中再次关闭它。',
 };
 
 export default library;

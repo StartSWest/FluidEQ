@@ -9,6 +9,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 export default {
   'autoEq.title': 'ऑटो EQ',
   'autoEq.aria': 'ऑटो EQ: हर गाने की आवाज़ क्या तय करता है',
+  'autoEq.chip.title': '{sound} बज रहा है। ऑटो EQ खोलें',
   'autoEq.tagline': 'हर गाने की आवाज़, आपके लिए चुनी हुई',
   'autoEq.state.measuring': 'माप रहा है',
   'autoEq.state.paused': 'रुका हुआ',
