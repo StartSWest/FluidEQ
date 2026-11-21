@@ -8,14 +8,14 @@ import { useCallback, useRef, useState } from 'react';
 import MenuIcon from '../icons/MenuIcon';
 import AnchoredMenu from '../widgets/AnchoredMenu';
 import { useTranslation } from '../utils/I18nContext';
-import {
-  revertSongSound,
-  useLiveSongSound,
-  useSongSoundNow,
-} from '../audio/songSoundSession';
+import { useLiveSongSound, useSongSoundNow } from '../audio/songSoundSession';
 import { useSongSoundIndex } from '../audio/songSoundIndex';
 import { useSavedEqStates } from '../audio/savedEqActions';
-import { songCardSound } from '../audio/songCardSound';
+import {
+  goBackToSaved,
+  songCardSound,
+  storedPresetOf,
+} from '../audio/songCardSound';
 import { requestAutoEqOpen } from '../eq/autoEq/autoEqOpen';
 import useMenuDismiss from '../player/useMenuDismiss';
 import '../styles/SongSoundChip.scss';
@@ -44,14 +44,22 @@ const SongSoundChip = ({ className }: { className: string }) => {
   const { t } = useTranslation();
   const now = useSongSoundNow();
   const live = useLiveSongSound();
-  const { eqs, eqById } = useSongSoundIndex();
+  const index = useSongSoundIndex();
+  const { eqs, eqById } = index;
   const states = useSavedEqStates(eqs);
   const [isOpen, setIsOpen] = useState(false);
   const holder = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setIsOpen(false), []);
   useMenuDismiss(isOpen, holder, close);
 
-  const sound = songCardSound(now, live, states, eqById, t);
+  const sound = songCardSound(
+    now,
+    live,
+    states,
+    eqById,
+    t,
+    storedPresetOf(now, index),
+  );
   const back = sound?.back;
   // Nothing changed any more (saved, gone back, the next song): the menu goes
   // with it, and does not open by itself the next time a change is made.
@@ -103,7 +111,7 @@ const SongSoundChip = ({ className }: { className: string }) => {
             role="menuitem"
             onClick={() => {
               close();
-              revertSongSound();
+              goBackToSaved(back);
             }}
           >
             <MenuIcon name="reset" className="band-menu__icon" />
