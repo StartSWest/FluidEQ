@@ -240,6 +240,8 @@ const KEPT_FILES = [
   // Which outputs a game's own sound has borrowed, so the music sound comes
   // back when the game ends: reset away, a game left playing kept its sound.
   'game-sound.json',
+  // Each microphone's own rack and profile, the sound people hear of you.
+  'mic-sound.json',
   'output-design-profiles-v1.json',
   'output-dsp-profiles-v1.json',
   // The engine and the outputs.

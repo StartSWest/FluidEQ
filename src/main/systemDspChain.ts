@@ -46,6 +46,7 @@ import {
   hasFootsteps,
   hasPresetTone,
   hasRoomTrailer,
+  hasVoice,
   roomHeadOnWire,
 } from '../common/dsp/chainWire';
 import {
@@ -89,6 +90,7 @@ export const formatSystemDspChain = (
     !hasRoomTrailer(values) &&
     !hasFootsteps(values) &&
     !hasDynamics(values) &&
+    !hasVoice(values) &&
     !hasPresetTone(values)
       ? values.slice(0, -1)
       : values;
@@ -141,7 +143,8 @@ const writeChainFile = async (
         gameModeOnWire(snapshot)
           ? readEngineHealth(path.dirname(configDirPath))
           : Promise.resolve(undefined),
-        engineReads && (hasFootsteps(snapshot) || hasDynamics(snapshot))
+        engineReads &&
+        (hasFootsteps(snapshot) || hasDynamics(snapshot) || hasVoice(snapshot))
           ? engineReads()
           : Promise.resolve(ENGINE_READS_ALL),
       ]);

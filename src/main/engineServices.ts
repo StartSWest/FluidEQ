@@ -21,6 +21,7 @@ import log from 'electron-log';
 import fs from 'fs';
 import type { TAudioEngine } from '../common/audioEngine';
 import { IDeviceProfileSettings, IState } from '../common/constants';
+import { ENGINE_READS_NONE, engineReadsOf } from '../common/dsp/engineLine';
 import {
   createApoGuard,
   isApoOnAnyOutput,
@@ -39,6 +40,7 @@ import { runEngineSetup } from './engineSetup';
 import { readAudioEngineStatus } from './engineStatus';
 import { registerAudioEngineIpc, TReflushResult } from './ipc/audioEngine';
 import { registerCurveComparisonIpc } from './ipc/curveComparison';
+import { registerMicSoundIpc } from './ipc/micSound';
 import { registerTrebleDesignIpc } from './ipc/trebleDesign';
 import type { IMainSession } from './mainSession';
 import {
@@ -271,9 +273,42 @@ export const registerEngineServices = ({
       automatic: automaticSetup,
     }).repair,
     automatic: automaticSetup,
-    onSwitched: onEngineSwitched,
+    onSwitched: () => {
+      onEngineSwitched();
+      // The microphones' racks follow the switch like the outputs': written
+      // into the FluidEQ Engine's folder when it is the one chosen now.
+      micSound
+        .republish()
+        .catch((error: unknown) =>
+          log.error('Could not write the microphones’ racks', error),
+        );
+    },
   });
   session.installedEngineVersion = engineIpc.installedEngineVersion;
+
+  const micSound = registerMicSoundIpc({
+    userDataDir,
+    getEngine: () => session.audioEngine,
+    isSwitching: () => session.engineSwitching,
+    isEngineInstalled,
+    getConfigPath,
+    engineReads: async () => {
+      try {
+        return engineReadsOf(await engineIpc.installedEngineVersion());
+      } catch (error) {
+        log.warn('Writing the mic racks without their newer stages', error);
+        return ENGINE_READS_NONE;
+      }
+    },
+    writeSystemDspChain,
+  });
+  // At launch, like the outputs' racks: the quit reset deleted every
+  // endpoint's file, and a mic must come back with its sound.
+  micSound
+    .republish()
+    .catch((error: unknown) =>
+      log.error('Could not write the microphones’ racks', error),
+    );
 
   return { apoGuard };
 };

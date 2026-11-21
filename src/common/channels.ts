@@ -272,6 +272,13 @@ enum ChannelEnum {
   // place of Equalizer APO's Device Selector.
   ATTACH_FLUID_ENGINE = 'attachFluidEngine',
   DETACH_FLUID_ENGINE = 'detachFluidEngine',
+  // Each microphone's own sound (`micSound.ts`): read them all, set one
+  // mic's (saved, and written to that mic's rack file under the FluidEQ
+  // Engine), and remember which mic the Mic tab shows. A mic goes on and off
+  // the engine through ATTACH/DETACH_FLUID_ENGINE like an output.
+  GET_MIC_SOUND = 'getMicSound',
+  SET_MIC_SOUND = 'setMicSound',
+  SELECT_MIC = 'selectMic',
   // The DSP rack, system-wide. The renderer already builds this array for the
   // Library player's host; under the FluidEQ Engine the same array is written
   // beside the config so the DLL runs the rack on every output.
