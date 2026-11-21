@@ -142,6 +142,7 @@ const NOT_STORED = [
   'fluideq-open-auto-eq',
   'fluideq-open-gaming-lab',
   'fluideq-open-headphone-corrections',
+  'fluideq-open-preset-edit-page',
   'fluideq-opra-updated',
   'fluideq-sounding-game-tuned',
   'fluideq-output-changed',

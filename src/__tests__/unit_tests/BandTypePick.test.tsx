@@ -23,6 +23,7 @@ import { FilterTypeEnum, IFiltersMap } from 'common/constants';
 import MainContent from 'renderer/MainContent';
 import { setFilterValues } from 'renderer/utils/equalizerApi';
 import { refreshTrebleDesigns } from 'renderer/utils/useTrebleDesigns';
+import { routeSongSounds } from '../utils/songSoundsBridge';
 
 const mockSetSelectedFilterIds = jest.fn();
 const mockDispatchFilter = jest.fn();
@@ -130,7 +131,20 @@ jest.mock('renderer/utils/bandReveal', () => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
+  // The bands toolbar's Save EQ reads the saved EQs from main's song sound
+  // index (`songSoundIndex.ts`): a main with nothing saved answers it.
+  Object.defineProperty(window, 'electron', {
+    configurable: true,
+    value: { ipcRenderer: routeSongSounds() },
+  });
 });
+
+/** The page, once main's answer for the saved EQs has landed. */
+const renderPage = async () => {
+  await act(async () => {
+    render(<MainContent />);
+  });
+};
 
 /**
  * The selected band's editor is a popover since 2026-11-16, up while Shift
@@ -141,8 +155,8 @@ const openPopover = () => {
   fireEvent.keyDown(window, { key: 'Shift' });
 };
 
-it('keeps the band selected while its type is picked, and saves the pick', () => {
-  render(<MainContent />);
+it('keeps the band selected while its type is picked, and saves the pick', async () => {
+  await renderPage();
   // Not up until it is asked for, so the menu below is the popover's.
   expect(
     screen.queryByRole('menu', { name: 'selected-band-filter-type' }),
@@ -168,10 +182,10 @@ it('keeps the band selected while its type is picked, and saves the pick', () =>
   );
 });
 
-it('still lets the band go on a press anywhere else', () => {
+it('still lets the band go on a press anywhere else', async () => {
   // POSITIVE CONTROL for the test above: the rule is listening, so its
   // silence there is the list being counted as the band's own surface.
-  render(<MainContent />);
+  await renderPage();
   fireEvent.pointerDown(document.body);
   expect(mockSetSelectedFilterIds).toHaveBeenCalledWith([]);
 });
