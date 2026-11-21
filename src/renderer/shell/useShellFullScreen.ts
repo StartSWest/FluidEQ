@@ -47,6 +47,7 @@ import { reportError } from '../utils/logger';
 import { isStageFullScreenClaimed } from '../utils/stageFullScreen';
 import useAppFullMark from '../utils/useAppFullMark';
 import type { TWorkspaceTab } from '../workspaceTabs';
+import refitWindow from './windowRefit';
 import { isFullscreenMediaTab } from './workspaceGroups';
 
 export interface IShellFullScreenInput {
@@ -229,36 +230,61 @@ const useShellFullScreen = ({
     return window.electron.ipcRenderer.setWindowFullScreen(next);
   }, []);
 
-  // The graph goes out of sight while the window changes size for it and
-  // fades in once the page is drawn at the new size (`graphArrival.ts`):
-  // main answers once it has moved the window, and the page's own size says
-  // when that has reached it.
+  // The graph's scene holds its picture while the window changes size for it
+  // (`graphArrival.ts`): main answers once it has moved the window, and the
+  // page's own size says when that has reached it. All of it behind the cover
+  // (`windowRefit.ts`), put up in the same task as the view's change — the
+  // store calls this before it tells anybody the view moved.
   useEffect(() => {
+    let isRegistering = true;
     onWindowFullScreenChange((next) => {
-      const moved = requestWindowFullScreen(next);
-      holdGraphUntil(moved.then(untilViewportIsWindow).then(afterNextFrame));
-      moved.catch((e) => {
-        reportError('Could not change the window to full screen', e);
-      });
+      const change = () => {
+        const moved = requestWindowFullScreen(next);
+        holdGraphUntil(moved.then(untilViewportIsWindow).then(afterNextFrame));
+        moved.catch((e) => {
+          reportError('Could not change the window to full screen', e);
+        });
+        return moved;
+      };
+      // A full screen restored at launch is applied as the store is
+      // registered, while the columns are still rising in from nothing, and
+      // a cover in the top layer would stand over that rise in black.
+      if (isRegistering) {
+        change();
+        return;
+      }
+      refitWindow(next, change);
     });
+    isRegistering = false;
     return () => onWindowFullScreenChange(() => undefined);
   }, [requestWindowFullScreen]);
 
-  /** `undefined` leaves full screen; a tab takes it, and owns it. */
+  /**
+   * `undefined` leaves full screen; a tab takes it, and owns it. Behind the
+   * cover whenever the surface comes or goes (`windowRefit.ts`) — Karaoke's
+   * stage and a film reflow the page as the graph's full screen does.
+   */
   const applyMediaFullScreen = useCallback(
     async (owner: TWorkspaceTab | undefined) => {
       const next = owner !== undefined;
-      mediaFullScreenRequestedRef.current = next;
-      setMediaFullScreenOwner(owner);
-      try {
-        const applied = await requestWindowFullScreen(next);
-        mediaFullScreenRequestedRef.current = next && applied;
-        setMediaFullScreenOwner(next && applied ? owner : undefined);
-      } catch (error) {
-        mediaFullScreenRequestedRef.current = false;
-        setMediaFullScreenOwner(undefined);
-        reportError('Could not change the media surface full screen', error);
+      const change = async () => {
+        mediaFullScreenRequestedRef.current = next;
+        setMediaFullScreenOwner(owner);
+        try {
+          const applied = await requestWindowFullScreen(next);
+          mediaFullScreenRequestedRef.current = next && applied;
+          setMediaFullScreenOwner(next && applied ? owner : undefined);
+        } catch (error) {
+          mediaFullScreenRequestedRef.current = false;
+          setMediaFullScreenOwner(undefined);
+          reportError('Could not change the media surface full screen', error);
+        }
+      };
+      if (next === mediaFullScreenRequestedRef.current) {
+        await change();
+        return;
       }
+      await refitWindow(next, change);
     },
     [requestWindowFullScreen],
   );
