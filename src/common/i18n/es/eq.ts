@@ -258,6 +258,15 @@ const eq: Partial<Dictionary> = {
   'graph.sceneColours.dayStrip':
     'Cómo cambian estos colores de la noche al día',
   'graph.sceneColours.nowAt': 'Ahora {hour} %',
+  'graph.sceneColours.find': 'Automático',
+  'graph.sceneColours.findHint':
+    'Mira la escena con este brillo y toma sus colores. Pulsa otra vez para otros.',
+  'graph.sceneColours.finding': 'Mirando…',
+  'graph.sceneColours.found': 'Color {index} de {count} de la escena',
+  'graph.sceneColours.findNone':
+    'La escena no muestra ningún color que tomar con este brillo.',
+  'graph.sceneColours.findFailed':
+    'No se pudo mirar la escena. Vuelve a intentarlo.',
   'graph.member.mine': 'Hechos por ti',
   'graph.member.theirs': 'Hechos por miembros',
   'graph.member.by': 'por {name}',

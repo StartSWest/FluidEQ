@@ -14,6 +14,7 @@ import {
   hourOfStop,
   stopKeyOf,
   type TMeasuredStop,
+  type TWindowColourStop,
 } from '../utils/sceneDayColours';
 import { sceneOwnSky, skyFromWindowColours } from '../utils/sceneOwnColours';
 import type { TListenerParams } from '../utils/sceneParamStore';
@@ -124,6 +125,25 @@ const ownSkyAt = (pack: IScenePack, stop: TMeasuredStop) => {
   return sceneOwnSky(rest);
 };
 
+/**
+ * `pack`'s picture drawn at the point `stop`'s hour (`sceneDayColours.ts`)
+ * and read: what it shows there, whatever its pack names.
+ */
+const drawnSkyOf = async (
+  what: string,
+  pack: IScenePack | undefined,
+  stop: TWindowColourStop,
+): Promise<TSkyMeasurement> => {
+  const pixels = pack
+    ? await sampleSceneInWorker(pack, hourOfStop(stop))
+    : undefined;
+  if (!pixels) {
+    console.error(`Could not draw scene "${what}" to measure its colour.`);
+    return undefined;
+  }
+  return findSceneSky(pixels) ?? null;
+};
+
 const skyOf = async (
   what: string,
   pack: IScenePack | undefined,
@@ -136,16 +156,9 @@ const skyOf = async (
   if (own) {
     return own;
   }
-  // Drawn at the hour it stands for (`sceneDayColours.ts`): the window
-  // blends the points by the scene's time of day.
-  const pixels = pack
-    ? await sampleSceneInWorker(pack, hourOfStop(stop))
-    : undefined;
-  if (!pixels) {
-    console.error(`Could not draw scene "${what}" to measure its colour.`);
-    return undefined;
-  }
-  return findSceneSky(pixels) ?? null;
+  // Drawn at the hour it stands for: the window blends the points by the
+  // scene's time of day.
+  return drawnSkyOf(what, pack, stop);
 };
 
 /**
@@ -253,3 +266,78 @@ export const measureStudioSky = (
   measurements.set(key, measurement);
   return measurement;
 };
+
+/**
+ * The pictures Automatic has looked at this session, by what was drawn and
+ * the point it was drawn at: the first press draws the scene, every press
+ * after steps through what that drawing showed at once.
+ */
+const scans = new Map<string, Promise<TSkyMeasurement>>();
+
+const scanned = (
+  key: string,
+  what: string,
+  work: () => Promise<TSkyMeasurement>,
+): Promise<TSkyMeasurement> => {
+  const running = scans.get(key);
+  if (running) {
+    return running;
+  }
+  const scan = inTurn(work).catch((error: unknown) => {
+    console.error(`Could not look at the colours of "${what}":`, error);
+    return undefined;
+  });
+  scans.set(key, scan);
+  // A drawing that failed taught nothing: the next press draws again.
+  scan
+    .then((sky) => (sky === undefined ? scans.delete(key) : undefined))
+    .catch(() => undefined);
+  return scan;
+};
+
+/**
+ * What Automatic looks at for the point `stop` of `project`'s build `build`
+ * (Ivan, 2026-11-19: "every time the user clicks it, it will scan the scene
+ * for that brightness"): its picture at that point's hour, drawn whatever
+ * its pack names - the press asks what the scene shows, not what it says -
+ * and at any of the five points, where the colours the app works out
+ * unasked are measured only at the day's two ends.
+ */
+export const scanStudioSky = (
+  build: string,
+  pack: IScenePack,
+  stop: TWindowColourStop,
+): Promise<TSkyMeasurement> =>
+  scanned(stopKeyOf(`studio:${build}`, stop), pack.id, () =>
+    drawnSkyOf(pack.id, pack, stop),
+  );
+
+/**
+ * `scanStudioSky` for the graph's look `lookId` at `version`, drawn as the
+ * listener's choices in it leave it, as everything measured of it is.
+ */
+export const scanSceneSky = (
+  lookId: string,
+  version: string,
+  params: TListenerParams | undefined,
+  stop: TWindowColourStop,
+): Promise<TSkyMeasurement> =>
+  scanned(
+    `${stopKeyOf(lookId, stop)}@${sceneSkyVersion(lookId, version, params)}`,
+    lookId,
+    async () => {
+      const pack = await loadPack(lookId);
+      if (!pack) {
+        return drawnSkyOf(lookId, undefined, stop);
+      }
+      choiceIds.set(
+        lookId,
+        pack.params.filter((param) => param.options).map((param) => param.id),
+      );
+      return drawnSkyOf(
+        lookId,
+        withChoices(pack, chosenIn(lookId, params)),
+        stop,
+      );
+    },
+  );

@@ -12,7 +12,7 @@ import {
   type ISceneWindowColourStops,
   type TSceneWindowColourRole,
 } from 'common/sceneWindowColours';
-import { measureStudioSky } from '../graph/sceneSky';
+import { measureStudioSky, scanStudioSky } from '../graph/sceneSky';
 import {
   hourOfStop,
   isWornAsNamed,
@@ -25,6 +25,7 @@ import {
 import { sceneWindowColours } from '../utils/sceneOwnColours';
 import { recallSceneSky, studioSkyKey } from '../utils/sceneTintStore';
 import { withinLimits } from '../utils/useColourLimits';
+import useColourFinder from '../utils/useColourFinder';
 import useEditedStop from '../utils/useEditedStop';
 import {
   dropWindowColourDraft,
@@ -161,9 +162,18 @@ export default function useStudioWindowColours(
     send({ windowColourStops: next })
       .then((outcome) => {
         setSaving(outcome.written === 'failed' ? 'failed' : 'saved');
+        // Only a new build lets a draft go (`setDraft` above); a write
+        // that failed, or changed nothing, brings none, and a draft kept
+        // would show colours the scene does not hold.
+        if (outcome.written !== 'written') {
+          setDraft(undefined);
+        }
         return undefined;
       })
-      .catch(() => setSaving('failed'));
+      .catch(() => {
+        setSaving('failed');
+        setDraft(undefined);
+      });
   }, []);
 
   const change = useCallback(
@@ -192,10 +202,30 @@ export default function useStudioWindowColours(
     },
     [wearing, editing, write],
   );
-  const automatic = useCallback(
-    () => write({ [editing]: null }),
+  // Automatic finds the scene's colours at the open point and writes them
+  // there, as often as it is pressed (`useColourFinder`); shown on the
+  // whole window at once, before the build that carries them is made.
+  const applyFound = useCallback(
+    (found: ISceneWindowColours) => {
+      setDraft(found);
+      write({ [editing]: found });
+    },
     [editing, write],
   );
+  const scan = useMemo(
+    () =>
+      pack && build ? () => scanStudioSky(build, pack, editing) : undefined,
+    [pack, build, editing],
+  );
+  const finder = useColourFinder({
+    // The project, not the build: the build the colours found bring is
+    // the same scene, and what was found stays said over it.
+    subject: project ?? '',
+    stop: editing,
+    current: colours,
+    scan,
+    apply: applyFound,
+  });
   // An end the member left to the app is written into the scene, as the app
   // works it out, before it is published (Ivan, 2026-11-18: "si el usuario
   // no lo hace, el programa lo hace ... en la escena como tal siempre están
@@ -245,8 +275,7 @@ export default function useStudioWindowColours(
     saving,
     change,
     commit,
-    automatic,
-    canAutomatic: sourceOf(editing) === 'ai' || sourceOf(editing) === 'member',
+    finder,
     fillAutomatic,
     reset,
     canReset: !same(named[editing], atUndo[editing]),

@@ -257,6 +257,15 @@ const eq: Partial<Dictionary> = {
   'graph.sceneColours.throughDay': 'В течение дня · сейчас {hour}',
   'graph.sceneColours.dayStrip': 'Как эти цвета меняются от ночи ко дню',
   'graph.sceneColours.nowAt': 'Сейчас {hour}%',
+  'graph.sceneColours.find': 'Автоматически',
+  'graph.sceneColours.findHint':
+    'Посмотреть на сцену при этой яркости и взять её цвета. Нажмите ещё раз, чтобы взять другие.',
+  'graph.sceneColours.finding': 'Смотрю…',
+  'graph.sceneColours.found': 'Цвет {index} из {count} из сцены',
+  'graph.sceneColours.findNone':
+    'При этой яркости в сцене нет цвета, который можно взять.',
+  'graph.sceneColours.findFailed':
+    'Не удалось посмотреть на сцену. Попробуйте ещё раз.',
   'graph.member.mine': 'Созданы вами',
   'graph.member.theirs': 'Созданы участниками',
   'graph.member.by': 'автор: {name}',

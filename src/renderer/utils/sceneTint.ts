@@ -178,7 +178,7 @@ const MIN_ACCENT_SHARE = 0.015;
  * chroma 0.04 and every colour worth naming well above it.
  */
 const ACCENT_GREY_CHROMA = 0.04;
-const ACCENT_CLEAR_CHROMA = 0.1;
+export const ACCENT_CLEAR_CHROMA = 0.1;
 /**
  * The colour for "on" may be a quieter one than the buttons' — a flower's
  * blue-grey heart is a colour anybody names, at a chroma the accent's test
