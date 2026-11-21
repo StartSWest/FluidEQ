@@ -98,6 +98,7 @@ import genreWorld from './genreWorld';
 import troubleshoot from './troubleshoot';
 import files from './files';
 import gaming from './gaming';
+import mic from './mic';
 import libraryTags from './libraryTags';
 
 const en = {
@@ -160,6 +161,7 @@ const en = {
   ...troubleshoot,
   ...files,
   ...gaming,
+  ...mic,
   ...libraryTags,
 };
 

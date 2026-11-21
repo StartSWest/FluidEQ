@@ -144,12 +144,15 @@ export const registerMicSoundIpc = ({
 
   /**
    * Saved first, then written: an edit made under Equalizer APO or with the
-   * engine missing is still the mic's sound the next time it can play.
+   * engine missing is still the mic's sound the next time it can play. A
+   * control still moving (`save` false) is written to the engine at every
+   * step and saved only when it is let go, as the outputs' racks are.
    */
   onWindowMessage(ChannelEnum.SET_MIC_SOUND, async (event, arg) => {
     const channel = ChannelEnum.SET_MIC_SOUND;
     const guid: unknown = Array.isArray(arg) ? arg[0] : undefined;
     const raw: unknown = Array.isArray(arg) ? arg[1] : undefined;
+    const persist = !Array.isArray(arg) || arg[2] !== false;
     if (typeof guid !== 'string' || !MIC_GUID.test(guid) || !raw) {
       succeed<TMicSoundResult>(event, channel, 'rejected');
       return;
@@ -157,12 +160,14 @@ export const registerMicSoundIpc = ({
     const id = guid.toUpperCase();
     const entry = clampMicSoundEntry(raw);
     file = { ...file, mics: { ...file.mics, [id]: entry } };
-    try {
-      save();
-    } catch (error) {
-      log.error(`Could not save the sound of microphone ${id}`, error);
-      refuse(event, channel, ErrorCode.FAILURE);
-      return;
+    if (persist) {
+      try {
+        save();
+      } catch (error) {
+        log.error(`Could not save the sound of microphone ${id}`, error);
+        refuse(event, channel, ErrorCode.FAILURE);
+        return;
+      }
     }
     try {
       const result = await writeRack(id, entry);
