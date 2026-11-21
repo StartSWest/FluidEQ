@@ -18,6 +18,7 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 
 // Every row in the tree is one of these tall, whatever it happens to hold.
 //
@@ -156,12 +157,12 @@ $name-column: 34ch;
 //
 // A line rather than a badge tucked in a corner: it is the first thing worth
 // knowing on this panel, and when the answer is "none of this is applied" it
-// changes how everything below should be read.
+// changes how everything below should be read. Its dot and its colour say
+// it; the tinted band the width of the page round it was one more box, and
+// the dot's glow a light this flat window does not use (Ivan, 2026-11-19).
 .config-status {
   display: flex;
   align-items: center;
-  padding: 6px 10px;
-  border-radius: $radius-s;
   margin: 0;
   font-size: $text-body;
   font-weight: $weight-semibold;
@@ -176,17 +177,14 @@ $name-column: 34ch;
   }
 
   &--on {
-    background: color-mix(in srgb, $active 10%, transparent);
     color: $active;
 
     &::before {
       background: $active;
-      box-shadow: 0 0 8px color-mix(in srgb, $active 80%, transparent);
     }
   }
 
   &--off {
-    background: rgba($red, 0.1);
     color: $red;
 
     &::before {
@@ -203,17 +201,23 @@ $name-column: 34ch;
   gap: $spacing-s;
 }
 
-// A card, filled: it is a button, and a button that names no fill of its own
-// is painted in the system's button face — the flat grey every output here
-// stood in on Windows (Ivan, 2026-09-26, the engine config's grey tiles).
+// A tile on a step of light, with no edge: it is a button, and a button that
+// names no fill of its own is painted in the system's button face — the flat
+// grey every output here stood in on Windows (Ivan, 2026-09-26, the engine
+// config's grey tiles). The output being read wears the Library's one mark
+// for "here" (`studio-mark`); the one being played through says so in its
+// badge, which is why it no longer carries a line of its own as well — two
+// left-hand lines on one tile could not be told apart.
 .config-card {
-  @include card-surface;
   display: flex;
   min-width: 150px;
   max-width: 240px;
   flex: 1 1 170px;
   flex-direction: column;
-  padding: 8px 10px;
+  padding: 9px 12px 10px 14px;
+  border: 0;
+  border-radius: $radius-s;
+  background: $studio-surface;
   color: inherit;
   cursor: pointer;
   gap: 2px;
@@ -221,27 +225,16 @@ $name-column: 34ch;
   transition: $transition-control;
 
   &:hover {
-    @include card-hover;
-    border-color: color-mix(in srgb, $secondary-default 40%, transparent);
+    background: $studio-raise;
   }
 
-  // Selection is a border and a fill, not a colour swap: the card goes on
-  // saying the same thing whether or not it is the one being read. The fill
-  // is laid over the card's face rather than in place of it.
   &.is-selected {
-    border-color: $secondary-default;
-    background:
-      linear-gradient(
-        color-mix(in srgb, $secondary-default 18%, transparent) 0 0
-      ),
-      $card-glow, $surface-card;
+    @include studio-mark;
   }
 
-  // The output being played through, which is the one somebody almost always
-  // came here about. Marked as well as sorted first, because "first" stops
-  // meaning anything the moment they click another card.
-  &.is-current {
-    box-shadow: inset 2px 0 0 $active;
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
   }
 }
 
@@ -272,12 +265,13 @@ $name-column: 34ch;
 
 // *** One output ***************************************************************
 
+// The chosen output's page under the tiles, on the card's own floor: its
+// heading and the space above it part it from the tiles, where an edge all
+// round it made a card inside the workspace card.
 .config-device {
   display: flex;
   flex-direction: column;
-  padding: $spacing-s $spacing-m $spacing-m;
-  border: 1px solid $card-edge;
-  border-radius: $radius-m;
+  margin-top: 6px;
   gap: 6px;
 }
 
@@ -709,9 +703,8 @@ $name-column: 34ch;
   max-width: 22rem;
   flex: 0 1 auto;
   padding: 1px 8px;
-  border: 1px solid $border-field;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 10%, transparent);
+  background: $studio-surface;
   color: $text-muted;
   font-size: $text-micro;
 }
@@ -845,14 +838,12 @@ $name-column: 34ch;
 .config-node__lines {
   overflow-x: auto;
   max-height: 220px;
-  padding: 6px 8px;
-  border: 1px solid $card-edge;
+  padding: 8px 10px;
   border-radius: $radius-s;
   margin: 2px 0 0;
-  // The well the rest of the window uses for a drawing or a listing, not raw
-  // black: this block is what the file actually says, and it was being shown
-  // in a colour nothing else in the app shares.
-  background: $surface-plot;
+  // A step of light with no edge, the Library's tray: this block is what the
+  // file actually says, set apart by its ground and its monospace alone.
+  background: $studio-surface;
   color: $text-muted;
   font-family: $font-mono;
   font-size: $text-small;

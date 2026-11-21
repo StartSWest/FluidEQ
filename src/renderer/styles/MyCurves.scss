@@ -121,13 +121,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
+// Said in the list's place, on the floor it stands on: a dashed frame round
+// two lines of text was one more box on the page.
 .my-curves__empty {
   display: grid;
   justify-items: center;
   gap: 4px;
-  padding: 22px 18px;
-  border: 1px dashed $border-subtle;
-  border-radius: $radius-m;
+  padding: 28px 18px;
   text-align: center;
 
   strong {
@@ -151,7 +151,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
       3,
       max-content
     );
-  gap: 6px 14px;
+  // Rows touch, as the Library's do: they are parted by their own rhythm and
+  // the hover tint, not by gaps that read as the edges of cards.
+  gap: 2px 14px;
   margin: 0;
   padding: 0;
   list-style: none;

@@ -7,8 +7,16 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
+@use 'constant' as *;
 @use 'motion' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
+
+// THE CONVOLUTION PAGE, LAID OUT AS THE LIBRARY IS (Ivan, 2026-11-19: "clean,
+// clear, without so many lines and borders, like the Library"): the heading,
+// what is loaded on a step of light, the search as the Library's quiet field,
+// and the catalogue as a list of rows on the card's own floor. No box round
+// the notice, no edge round a row, no dashed frame round "nothing found".
 
 .convolution-panel {
   // Flex, not a fixed grid template: the applied banner and the empty-state
@@ -23,7 +31,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: flex;
   min-height: 0;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 
   // Only the result list scrolls, so the search box, the applied banner and
   // the status row are always reachable.
@@ -77,23 +85,38 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The search's name over it in the rail's small capitals, a step under the
+// rows' ink, and the field itself the Library's (`quiet-field`). The label was
+// bold body capitals, and the field inherited the bold: the placeholder read
+// as louder than anything it would find.
 .convolution-search {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 6px;
-  color: $text-muted;
-  font-size: $text-body;
-  font-weight: $weight-bold;
-  @include tracking(0.04em);
-  text-transform: uppercase;
+  gap: 8px;
+
+  > span {
+    @include studio-rail-heading;
+    // A label over a field, not a rail's: a long translation wraps.
+    white-space: normal;
+  }
 
   input {
     width: 100%;
     min-height: $control-height;
-    font-size: $text-lead;
+    @include quiet-field;
+    font-size: $studio-text-row;
+    font-weight: $weight-regular;
     letter-spacing: normal;
     text-transform: none;
+
+    &::placeholder {
+      color: $text-faint;
+    }
+
+    &:focus {
+      @include quiet-field-focus;
+    }
   }
 }
 
@@ -101,10 +124,26 @@ it under the terms of the GNU General Public License version 3 or later.
   position: relative;
   min-width: 0;
 
-  // Room for the clear cross inside the field's right end.
+  // Room for the glyph at the left and the clear cross at the right.
   > input {
     padding-right: 32px;
+    padding-left: 34px;
   }
+}
+
+// The Library search's glyph, drawn in the field's quiet ink.
+.convolution-search__glyph {
+  position: absolute;
+  top: 50%;
+  left: 11px;
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: $text-faint;
+  stroke-linecap: round;
+  stroke-width: 1.8;
+  transform: translateY(-50%);
+  pointer-events: none;
 }
 
 // The same cross the menu searches carry, sat inside this field. The shape
@@ -218,13 +257,14 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// What the catalogue is and what the engine does with a download: a line
+// of quiet prose under the search, not a framed box.
 .convolution-notice {
-  padding: 7px 10px;
+  max-width: 96ch;
+  margin-top: -4px;
   color: $text-muted;
-  border: 1px solid $card-edge;
-  border-radius: $radius-xs;
-  font-size: $text-body;
-  line-height: 1.45;
+  font-size: $text-small;
+  line-height: 1.5;
 }
 
 .convolution-results {
@@ -233,7 +273,9 @@ it under the terms of the GNU General Public License version 3 or later.
   // The one child that takes the leftover height and scrolls inside it.
   flex: 1 1 auto;
   flex-direction: column;
-  gap: 7px;
+  // Rows touch, as the Library's do; the hover tint and their own rhythm
+  // part them.
+  gap: 2px;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -262,12 +304,21 @@ it under the terms of the GNU General Public License version 3 or later.
   @include stagger-in($count: 10);
   display: grid;
   min-width: 0;
-  padding: 10px 11px;
+  padding: 8px 10px 8px 14px;
   grid-template-columns: minmax(0, 1fr) max-content max-content;
   align-items: center;
-  gap: 12px;
-  border: 1px solid $card-edge;
-  border-radius: $radius-s;
+  gap: 16px;
+  transition: background-color $motion-fast $ease-out;
+
+  &:hover,
+  &:focus-within {
+    background: $fill-hover;
+  }
+
+  // The impulse that is loaded: the Library's one mark for "here".
+  &.is-applied {
+    @include studio-mark;
+  }
 
   &__details {
     display: flex;
@@ -277,8 +328,9 @@ it under the terms of the GNU General Public License version 3 or later.
 
     strong {
       @include truncate;
-      color: $ink;
-      font-size: $text-body;
+      color: $text-primary;
+      font-size: $studio-text-row;
+      font-weight: $weight-semibold;
     }
 
     span {
@@ -322,6 +374,16 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// A row's Apply is the plain tier until its row is pointed at or focused,
+// and the lit one then: a column of a dozen lit buttons down the catalogue
+// recommended every one of them at once, and a dozen outlined ones was a
+// dozen boxes. The loaded row says so in plain words.
+.convolution-result:not(:hover, :focus-within)
+  .convolution-button:not(.convolution-button--quiet),
+.convolution-result .convolution-button.is-applied {
+  @include button-plain;
+}
+
 // Icon and label read as one control.
 .convolution-button {
   display: inline-flex;
@@ -338,17 +400,18 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // The applied convolution, stated where you look first. Cyan-edged so it reads
 // as live rather than as another catalogue row.
+// On a step of light with no edge, the Library's tray: it reads as the one
+// thing on the page that is live, where an outline made it one more box.
 .convolution-applied {
   @include animate(rise-in, $motion-base);
   display: grid;
   min-width: 0;
   align-items: center;
-  gap: 11px;
+  gap: 12px;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  padding: 10px 12px;
-  border: 1px solid $border-field;
-  border-radius: $radius-s;
-  background: transparent;
+  padding: 12px 14px;
+  border-radius: $radius-m;
+  background: $studio-surface;
 
   > div {
     display: grid;
@@ -379,10 +442,8 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .convolution-empty {
-  padding: 24px 12px;
+  padding: 28px 12px;
   color: $text-muted;
-  border: 1px dashed $card-edge;
-  border-radius: $radius-s;
   font-size: $text-body;
   text-align: center;
 }
@@ -410,16 +471,13 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// No cap on the catalogue any more.
-//
-// It was here because the stacked shell used to be a scrolling document with
-// content-sized rows, where an uncapped list would have made the page
-// arbitrarily tall instead of scrolling in place. The shell is the size of
-// the window at every width now and this list scrolls inside its own panel,
-// so the cap only did the thing it was written to prevent: with the graph
-// hidden and a whole column of room available, the catalogue stopped at
-// 46vh and the rest of it read as cut off.
-@media (max-width: 900px) {
+// Measured against the panel, not the window (`autoeq-workspace`, declared
+// on the workspace scroller): the two sidebars take several hundred pixels
+// of the window, and a 900px window rule stacked every row's source link
+// under its name while the panel still had room for all three columns.
+// Under a tablet's width the link moves under the details and Apply holds
+// both lines; the heading's button drops under the heading.
+@container autoeq-workspace (max-width: #{$bp-md}) {
   .convolution-result {
     grid-template-columns: minmax(0, 1fr) max-content;
 
@@ -431,10 +489,6 @@ it under the terms of the GNU General Public License version 3 or later.
       grid-row: 1 / span 2;
     }
   }
-}
-
-@media (max-width: 620px) {
-  // The same cap as above, and gone for the same reason.
 
   .convolution-panel__intro {
     align-items: stretch;

@@ -3,25 +3,35 @@
 @use 'constant' as *;
 @use 'motion' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 
 // Share the list's columns: a short Playing label must not move its preview
 // or ear label relative to the other curves. Action columns also follow the
 // widest translated label, including the confirmation to replace EQ bands.
+//
+// A row of the Library's list, not a card (Ivan, 2026-11-19: "a lot of
+// divisions and lines and cards"): no edge and no fill at rest, the hover
+// tint under the pointer, and the curve playing wears the Library's one mark
+// for "here" (`studio-mark`) — the accent's line on the left over the lit
+// fill — where it wore an accent edge all round.
 .my-curve {
   display: grid;
   grid-column: 1 / -1;
   grid-template-columns: subgrid;
   align-items: center;
   gap: 8px 14px;
-  padding: 9px 10px 9px 12px;
-  border: 1px solid $card-edge;
-  border-radius: $radius-m;
-  background: color-mix(in srgb, $surface-field 60%, transparent);
-  transition: border-color $motion-fast $ease-out;
+  padding: 7px 10px 7px 14px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  transition: background-color $motion-fast $ease-out;
+
+  &:hover {
+    background: $fill-hover;
+  }
 
   &.is-playing {
-    border-color: color-mix(in srgb, $secondary-default 55%, $card-edge);
-    background: color-mix(in srgb, $secondary-default 7%, $surface-field);
+    @include studio-mark;
   }
 }
 
@@ -71,23 +81,23 @@
   @include tracking(0.04em);
 }
 
+// Where the curve came from: a quiet tag on a step of light, no edge.
 .my-curve__source {
   padding: 1px 6px;
-  border: 1px solid $border-subtle;
   border-radius: $radius-2xs;
+  background: $studio-surface;
   color: $text-muted;
   font-weight: $weight-semibold;
 }
 
-// A small screen set into the row (`MyCurveSpark.tsx`): the same well the
-// preset arrows are cut into, so the curve reads as a display, not a doodle.
+// A small screen set into the row (`MyCurveSpark.tsx`): a step of light
+// with no edge, so the curve reads as a display, not a doodle.
 .my-curve__spark {
   display: block;
   width: 132px;
   height: 40px;
-  border: 1px solid color-mix(in srgb, $edge-tint 6%, transparent);
   border-radius: $radius-s;
-  background: color-mix(in srgb, $surface-base 55%, transparent);
+  background: $studio-surface;
   color: $secondary-default;
 }
 
@@ -103,9 +113,6 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.7;
-  filter: drop-shadow(
-    0 0 2px color-mix(in srgb, currentColor 55%, transparent)
-  );
 }
 
 .my-curve__ears {
