@@ -5,7 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { ReactNode, useId } from 'react';
-import MenuIcon from '../icons/MenuIcon';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import Switch from '../widgets/Switch';
@@ -20,7 +19,6 @@ interface IGamingLabHeadProps {
   /** Whether a game in front switches to its own sound. */
   isOn: boolean;
   onToggle: () => void;
-  onAdd: () => void;
   /**
    * Game mode and the delay it leaves, beside the switch (`ListenedLatency`):
    * the page's, which reads the listener's own output. A drawing of the
@@ -38,7 +36,8 @@ interface IGamingLabHeadProps {
  * The Gaming Lab's top line: its two views, the switch that lets a game in
  * front put its own sound on, Game mode beside it — on by itself while a
  * game's sound plays, so it is seen being on (Ivan, 2026-11-03: "add same
- * game mode toggle to gaming lab so is visible there") — and Add a game.
+ * game mode toggle to gaming lab so is visible there"). Add a game is the
+ * rail's, under the games (`GamingLabFrame`).
  * The page and its Help drawing (`help/live/gamingFigures`) both draw this
  * one.
  */
@@ -47,7 +46,6 @@ const GamingLabHead = ({
   onView,
   isOn,
   onToggle,
-  onAdd,
   gameMode,
   nowPlaying,
 }: IGamingLabHeadProps) => {
@@ -94,14 +92,6 @@ const GamingLabHead = ({
           />
         </div>
         {gameMode}
-        <button
-          type="button"
-          className="button small subtle gaming-lab__add"
-          onClick={onAdd}
-        >
-          <MenuIcon name="plus" />
-          {t('gaming.add')}
-        </button>
       </div>
     </div>
   );

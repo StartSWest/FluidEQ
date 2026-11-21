@@ -154,7 +154,11 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.library.subtitleLanguage',
   // The subtitle file each video was last watched with.
   'fluideq.library.subtitleByVideo',
-  // Gaming's list size and folded state, separate from saved game profiles.
+  // The Gaming Lab's rail: its dragged width and whether it is pinned open,
+  // separate from saved game profiles; and the list's layout from before the
+  // rail, which the page carries over once and removes.
+  'fluideq.gaming.railWidth',
+  'fluideq.gaming.railPinned',
   'fluideq.gaming.gamesLayout',
   // Karaoke.
   'fluideq.karaokeLayout',

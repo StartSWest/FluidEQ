@@ -216,7 +216,9 @@ describe('what stands on the floor', () => {
   // floor — never lighter than a pane ("fix those pane too light").
   it.each([
     ['Library.scss', '.library-grid__tile'],
-    ['Games.scss', '.gaming-game'],
+    // The Gaming Lab's games are rail rows now (`GamingLab.scss`); its
+    // profiles are the grid's tiles, as the Library's are.
+    ['Games.scss', '.gaming-profile'],
     ['ConfigInspector.scss', '.config-card'],
     ['StudioMaker.scss', '.studio-maker'],
     ['RemoteAudio.scss', '.remote-audio__link-form'],

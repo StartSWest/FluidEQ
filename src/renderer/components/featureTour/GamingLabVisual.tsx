@@ -19,6 +19,7 @@ import {
   GamingProfilePick,
 } from '../../games/GamingGameHead';
 import GamingGameRow from '../../games/GamingGameRow';
+import GamingLabFrame, { drawnRailWidth } from '../../games/GamingLabFrame';
 import GamingLabHead from '../../games/GamingLabHead';
 import { GamingNowPlayingTag } from '../../games/GamingNowPlaying';
 import GamingSaveMenu from '../../games/GamingSaveMenu';
@@ -35,8 +36,7 @@ import Switch from '../../widgets/Switch';
  * page is (`help/live/gamingFigures`), handed made-up state instead of the
  * reader's; inert, so nothing in it can be pressed. Two games, not Help's
  * three: the slide gives the picture a third of the dialog's width, where the
- * page folds its list over the game, and a third row pushed How to start
- * under the stage's foot.
+ * games' rail folds to its icons (`GamingLabFrame`), and two say the list.
  */
 
 const nothing = () => undefined;
@@ -102,86 +102,85 @@ function LabTurn({ playing }: { playing: boolean }) {
     >
       <div className="workspace-tab-panel workspace-tab-panel--games">
         <div className="workspace-tab-panel__scroll">
-          <div className="gaming-lab">
-            <GamingLabHead
-              view="games"
-              onView={nothing}
-              isOn
-              onToggle={nothing}
-              onAdd={nothing}
-              nowPlaying={
-                playing ? (
-                  <GamingNowPlayingTag
-                    game={shown}
-                    preset={glyph && name ? { glyph, name } : undefined}
-                    onShow={nothing}
-                  />
-                ) : undefined
-              }
-              gameMode={<GameModeTag on={playing} />}
-            />
-            <div className="gaming-games">
-              <div className="gaming-games__list">
-                <span className="gaming-cap">
-                  {t('gaming.list.count', { count: GAMES.length })}
-                </span>
-                {GAMES.map((game) => (
-                  <GamingGameRow
-                    key={game.id}
-                    game={game}
-                    profileName={
-                      gamingProfileEntry(gamingProfileOf(game), [], t).name
-                    }
-                    isTuned={game.id === shown.id}
-                    isSelected={game.id === shown.id}
-                    isPlaying={playing && game.id === shown.id}
-                    onSelect={nothing}
-                  />
-                ))}
-              </div>
-              <section className="gaming-panel" aria-label={shown.name}>
-                <GamingGameHead
-                  game={shown}
-                  where={t('gaming.game.where', {
-                    source: t('games.source.steam'),
-                    output: 'Arctis Nova 7',
-                  })}
-                  isPlaying={playing}
-                  pick={
-                    <GamingProfilePick
-                      profileId={gamingProfileOf(shown)}
-                      yours={[]}
-                      onPick={nothing}
-                      disabled={false}
+          <GamingLabFrame
+            count={GAMES.length}
+            isOn
+            isPinned
+            onPinned={nothing}
+            railWidth={drawnRailWidth}
+            onAdd={nothing}
+            rows={GAMES.map((game) => (
+              <GamingGameRow
+                key={game.id}
+                game={game}
+                profileName={
+                  gamingProfileEntry(gamingProfileOf(game), [], t).name
+                }
+                isTuned={game.id === shown.id}
+                isSelected={game.id === shown.id}
+                isPlaying={playing && game.id === shown.id}
+                onSelect={nothing}
+              />
+            ))}
+            head={
+              <GamingLabHead
+                view="games"
+                onView={nothing}
+                isOn
+                onToggle={nothing}
+                nowPlaying={
+                  playing ? (
+                    <GamingNowPlayingTag
+                      game={shown}
+                      preset={glyph && name ? { glyph, name } : undefined}
+                      onShow={nothing}
                     />
-                  }
-                  actions={
-                    <>
-                      <GamingSaveMenu
-                        gameName={shown.name}
-                        profileName={profile.name}
-                        isYours={false}
-                        isBusy={false}
-                        onSaveNew={nothing}
-                        onUpdate={nothing}
-                        onReset={nothing}
-                        onRename={nothing}
-                        onDelete={nothing}
-                      />
-                      <button type="button" className="button small">
-                        {t(
-                          playing
-                            ? 'gaming.action.unload'
-                            : 'gaming.action.try',
-                        )}
-                      </button>
-                    </>
-                  }
-                />
-                <GamingGameStatus tuned={TUNED} profileName={profile.name} />
-              </section>
-            </div>
-          </div>
+                  ) : undefined
+                }
+                gameMode={<GameModeTag on={playing} />}
+              />
+            }
+          >
+            <section className="gaming-panel" aria-label={shown.name}>
+              <GamingGameHead
+                game={shown}
+                where={t('gaming.game.where', {
+                  source: t('games.source.steam'),
+                  output: 'Arctis Nova 7',
+                })}
+                isPlaying={playing}
+                pick={
+                  <GamingProfilePick
+                    profileId={gamingProfileOf(shown)}
+                    yours={[]}
+                    onPick={nothing}
+                    disabled={false}
+                  />
+                }
+                actions={
+                  <>
+                    <GamingSaveMenu
+                      gameName={shown.name}
+                      profileName={profile.name}
+                      isYours={false}
+                      isBusy={false}
+                      onSaveNew={nothing}
+                      onUpdate={nothing}
+                      onReset={nothing}
+                      onRename={nothing}
+                      onDelete={nothing}
+                    />
+                    <button type="button" className="button small">
+                      {t(
+                        playing ? 'gaming.action.unload' : 'gaming.action.try',
+                      )}
+                    </button>
+                  </>
+                }
+              />
+              <GamingGameStatus tuned={TUNED} profileName={profile.name} />
+            </section>
+          </GamingLabFrame>
         </div>
       </div>
     </div>

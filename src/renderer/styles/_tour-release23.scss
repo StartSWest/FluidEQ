@@ -54,17 +54,12 @@ $lab-turn: 9s;
   }
 }
 
-// A laptop's stage leaves the list out rather than drawing everything
-// smaller still: the game's own header names it and says it is playing, and
-// at 1366 x 768 the whole picture ran 40 to 63px past the stage, with the
-// list's rows cut short in Russian.
+// A laptop's stage draws it smaller still: at 1366 x 768 the whole picture
+// ran 40 to 63px past the stage. The games stand in the rail beside the
+// page, which adds no height, so nothing has to be left out.
 @media (max-height: $bp-laptop-height) {
   .gaming-lab-visual {
     zoom: 0.78;
-  }
-
-  .gaming-lab-visual .gaming-games__list {
-    display: none;
   }
 }
 

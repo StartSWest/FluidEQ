@@ -285,7 +285,7 @@ const help: Record<keyof typeof en, string> = {
   'help.games.tip':
     'Tant que le son d’un jeu est actif, la page DSP montre votre rack musique en pause avec un bouton pour ajuster le jeu, et la liste des profils se met en repos : rien de ce que vous y faites ne peut écraser votre profil musique avec le son du jeu. Le Filtre Jeu fait ressortir les pas et les rechargements discrets au moment où ils se produisent et fait passer les voix devant.',
   'help.games.list':
-    'La liste des jeux défile indépendamment. Faites glisser le séparateur pour régler sa largeur, ou sa hauteur dans une vue étroite. Le chevron masque ou affiche la liste ; sa taille et son état replié sont mémorisés.',
+    'Vos jeux sont à gauche et défilent indépendamment. Faites glisser le bord du panneau pour régler sa largeur. L’épingle le replie sur les icônes des jeux, qui l’ouvrent par-dessus la page tant que le pointeur est dessus ; appuyez de nouveau sur l’épingle pour le garder ouvert. Sa largeur et son état replié sont mémorisés.',
   'help.games.keywords':
     'jeux vidéo, profil de jeu, par application, changement automatique, jeu de tir, bruits de pas, pas des ennemis, compétitif, gaming, gamer, launcher, Epic Games, FPS, shooter, esport, presets, game filter, dialogue, voices, ambience, environment, hooves, labo gaming, gaming lab, profil gaming, copie',
   'help.games.switch':
@@ -294,7 +294,7 @@ const help: Record<keyof typeof en, string> = {
     'Ajoute un jeu de Steam, Epic, EA, GOG, Ubisoft, Battle.net ou Xbox, ou n’importe quel programme ouvert en ce moment. FluidEQ, l’Explorateur Windows, les processus système et de lanceurs connus, ainsi que les programmes d’installation de composants partagés, sont exclus.',
   'help.games.gameName': 'Un jeu',
   'help.games.game':
-    'Le jeu, le profil dont son son est parti et si vous l’avez ajusté. En cours signifie qu’il est au premier plan maintenant.',
+    'Un jeu. Celui qui est ouvert est marqué, et un point au bout signifie qu’il est au premier plan maintenant. Son info-bulle indique le profil dont son son est parti et si vous l’avez ajusté.',
   'help.games.profile':
     'Le profil gaming dont part la copie de ce jeu. En choisir un autre donne au jeu une nouvelle copie de celui-ci.',
   'help.games.save':

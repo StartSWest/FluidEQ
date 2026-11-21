@@ -280,7 +280,7 @@ const help: Record<keyof typeof en, string> = {
   'help.games.tip':
     'Enquanto o som de um jogo está ligado, a página DSP mostra seu rack de música em pausa com um botão para ajustar o jogo, e a lista de perfis fica em repouso, então nada do que você fizer ali pode sobrescrever seu perfil de música com o som do jogo. O Filtro Jogo aumenta passos e recargas baixos no momento em que acontecem e traz as vozes para a frente.',
   'help.games.list':
-    'A lista de jogos tem a sua própria rolagem. Arraste o separador para mudar a largura, ou a altura numa vista estreita. A seta oculta ou mostra a lista; o tamanho e o estado recolhido ficam guardados.',
+    'Os seus jogos ficam à esquerda, com rolagem própria. Arraste a borda do painel para mudar a largura. O alfinete o recolhe aos ícones dos jogos, que o abrem sobre a página enquanto o ponteiro está sobre eles; pressione o alfinete de novo para mantê-lo aberto. A largura e o estado recolhido ficam guardados.',
   'help.games.keywords':
     'games, gaming, perfil de jogo, por aplicativo, troca automática, launcher, FPS, jogo de tiro, passos dos inimigos, competitivo, latência, game filter, dialogue, voices, ambience, environment, hooves, laboratório gamer, gaming lab, perfil gamer, cópia',
   'help.games.switch':
@@ -289,7 +289,7 @@ const help: Record<keyof typeof en, string> = {
     'Adiciona um jogo de Steam, Epic, EA, GOG, Ubisoft, Battle.net ou Xbox, ou qualquer programa aberto agora. FluidEQ, o Explorador do Windows, processos conhecidos do sistema e dos iniciadores e instaladores de componentes partilhados ficam de fora.',
   'help.games.gameName': 'Um jogo',
   'help.games.game':
-    'O jogo, o perfil de onde o som dele partiu e se você o ajustou. Jogando significa que ele está em primeiro plano agora.',
+    'Um jogo. O que está aberto fica marcado, e um ponto no final significa que ele está em primeiro plano agora. A dica dele diz o perfil de onde o som partiu e se você o ajustou.',
   'help.games.profile':
     'O perfil gamer de onde parte a cópia deste jogo. Escolher outro dá ao jogo uma cópia nova dele.',
   'help.games.save':

@@ -276,6 +276,8 @@ describe('Reset all settings', () => {
       'fluideq.songSound',
       'fluideq.singlePlayer',
       'fluideq.gaming.gamesLayout',
+      'fluideq.gaming.railWidth',
+      'fluideq.gaming.railPinned',
       'fluideq-rainbow',
       'fluideq.windowTintColour',
       'fluideq.windowTintSecondary',

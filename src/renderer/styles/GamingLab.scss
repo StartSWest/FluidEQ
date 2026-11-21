@@ -1,0 +1,424 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// THE GAMING LAB LAID OUT AS THE LIBRARY IS (Ivan, 2026-11-19: "limpias,
+// clear y sin tantas líneas ni borders, como mismo está la librería, con el
+// panel izquierdo siempre como es, resizable ... y togglable"). One card, no
+// card inside it: the games down the studio rail every such page shares
+// (`StudioRail`), on the card's own tone and parted from the page by its
+// hairline alone; the page beside it scrolling inside itself. The stages a
+// game's sound is tuned in are the DSP page's, drawn flat by the rules
+// `_dspStudio.scss` says for both pages.
+//
+// The page, its Help figures and the release slide draw the same frame
+// (`GamingLabFrame`).
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+@use 'studioRailFold' as *;
+@use 'mainContentTokens' as content;
+
+// *** The frame *************************************************************
+
+// The card holds the rail and the page and scrolls neither, as the Library's
+// does: what is beside the rail scrolls inside itself, so the rail stays put
+// while a long stage is read. The scroller stays (and stays the `eq-panel`
+// box the rail folds by, `_studioRailFold.scss`); it only stops scrolling.
+.workspace-tab-panel--games:has(> .workspace-tab-panel__scroll > .gaming-lab) {
+  padding: 0;
+
+  > .workspace-tab-panel__scroll {
+    padding: 0;
+    overflow: hidden;
+    scrollbar-gutter: auto;
+  }
+}
+
+.gaming-lab {
+  // The boxes inside the stages (`dsp-box`): the Library's tray, a step of
+  // light on the card's tone, where they were each an edge.
+  --dsp-box-edge: transparent;
+  --dsp-box-fill: #{$studio-surface};
+
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+// The page beside the rail. The container the page's own folds ask (the
+// stage list, the panel's head): this column is the room they share with the
+// rail now, never the whole card.
+.gaming-lab__main {
+  @include slim-scrollbar;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  grid-column: 2;
+  grid-row: 1;
+  flex-direction: column;
+  gap: 18px;
+  // The DSP page's column (`.dsp-studio__main`): the Library's 14px over its
+  // bar, 16 at the sides because a stage's plots run to the column's edges.
+  padding: 14px 16px 16px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  container: gaming-lab / inline-size;
+}
+
+// *** The rail's rows: the Library's shelves ********************************
+
+.gaming-lab__games {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1px;
+}
+
+// A game: the shelf row, its program's icon in the glyph's place. Every
+// button's line, which the Library's shelves keep.
+.gaming-game {
+  position: relative;
+  width: 100%;
+  line-height: 1.15;
+
+  @include studio-rail-item {
+    // The 18px icon centred on the column the pin and the folded rail
+    // share: 10px of list, 9px of row and half of 18 is 28px in.
+    padding-left: 9px;
+
+    &.is-selected {
+      @include studio-rail-item-active('.gaming-game__icon');
+    }
+  }
+
+  // The game in front: its name in the light accent, as the Library's
+  // playing folder wears it.
+  &.is-playing .gaming-game__name {
+    color: $secondary-light;
+  }
+
+  // Switched off, the games are still the listener's to tune, but read as
+  // standing by rather than live.
+  .gaming-lab.is-off & {
+    opacity: 0.6;
+  }
+}
+
+// A program's own picture keeps its colours, so it is not dimmed as a glyph.
+.gaming-game__icon {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  place-items: center;
+}
+
+.gaming-game__name {
+  min-width: 0;
+  @include truncate;
+}
+
+// The live dot at the row's end, where a shelf keeps its count; the word is
+// for a screen reader, the dot and the tooltip say it on screen.
+.gaming-game__live {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  margin-left: auto;
+  padding-left: 8px;
+
+  // Folded, on its icon's corner, the row's end being out of sight. Said on
+  // the bare class: the fold's selector already names the rail it is in.
+  @include folded-at-rest {
+    position: absolute;
+    top: 5px;
+    left: 24px;
+    padding: 0;
+  }
+}
+
+.gaming-game__live-word {
+  @include content.words-hidden;
+}
+
+// Adding a game is the rail's one recommendation, so it wears the accent's
+// ink - as a word, not a filled button, the Library's Add folder.
+.gaming-lab__add {
+  width: 100%;
+  margin-top: 6px;
+  line-height: 1.15;
+
+  @include studio-rail-item {
+    color: $secondary-light;
+  }
+
+  // Folded, one more glyph at the games' own step (33px), as the DSP rail's
+  // folded glyphs stand.
+  @include folded-at-rest {
+    margin-top: 0;
+  }
+}
+
+.gaming-lab__add-icon {
+  @include studio-rail-icon;
+  opacity: 1;
+}
+
+// *** The page's top line: the two views, the switch and Game mode **********
+
+.gaming-lab__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  min-width: 0;
+}
+
+// The Library's views (`.library-top__view`): words, the chosen one with
+// its line under it. The first word's inset is given back, so it starts on
+// the column's edge with everything under it.
+.gaming-lab__views {
+  display: inline-flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  gap: 2px;
+  min-width: 0;
+  margin-left: -10px;
+}
+
+.gaming-lab__view {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 10px;
+  @include studio-tab('.is-active');
+}
+
+// Game mode and the delay it leaves (`ListenedLatency`, shown under the
+// FluidEQ Engine): a switch and a figure on the line like the switch beside
+// them, not a bordered capsule with a rule inside it - one more box on the
+// head (Ivan, 2026-11-19, of the same capsule on the DSP page). The delay
+// stays a button that opens its breakdown, lit under the pointer.
+.gaming-lab__head .engine-strip {
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+
+  > .game-mode-switch {
+    padding: 4px 0;
+  }
+
+  > .latency-readout {
+    padding: 4px 8px;
+    border-left: 0;
+    border-radius: $radius-xs;
+  }
+}
+
+.gaming-lab__head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px 20px;
+  min-width: 0;
+  margin-left: auto;
+}
+
+// What is playing (`GamingNowPlaying`): the preset in the accent, the game
+// after it quieter, a live dot first - words on the card, no capsule round
+// them; the pointer lights it as it lights a rail row.
+.gaming-now {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  color: $secondary-light;
+  font: inherit;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover {
+    background: $fill-hover;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
+.gaming-now__dot {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: $radius-pill;
+  background: $secondary-default;
+}
+
+.gaming-now__glyph {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+}
+
+.gaming-now__preset {
+  white-space: nowrap;
+}
+
+.gaming-now__game {
+  min-width: 0;
+  color: $text-muted;
+  @include truncate;
+
+  .gaming-now__preset + &::before {
+    margin-right: 7px;
+    content: '·';
+    color: $studio-t3;
+  }
+}
+
+// *** A game's parts: the stage list beside the editor **********************
+
+// The parts and the editor, parted by air: the DSP page's rail is the page's
+// rail there, and here it is a list inside the page, so no hairline.
+.gaming-panel__body {
+  gap: 24px;
+}
+
+// The DSP page's rows (`_dspStudio.scss` draws them for both pages), in
+// three named groups.
+.gaming-rail {
+  flex: 0 0 auto;
+  gap: 4px;
+  width: 212px;
+}
+
+// One line, as the DSP rail's and the Library's shelf names: a name that
+// wrapped stood a 48px row among 32px ones. Each row's title names it whole.
+.gaming-rail .dsp-rail-name {
+  line-height: inherit;
+  @include truncate;
+}
+
+// The groups' names are the Library's headings, and they are what parts the
+// groups. Onto a second line rather than cut, as the DSP rail's are.
+.gaming-rail .dsp-rail-group-label {
+  padding: 12px 10px 6px;
+  @include studio-rail-heading;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.gaming-rail__group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+  // The first group's name stands level with the editor's first line.
+  &:first-child > .dsp-rail-group-label {
+    padding-top: 2px;
+  }
+}
+
+// The EQ page's own glyphs, drawn in the rack glyphs' place.
+.gaming-rail__glyph {
+  display: grid;
+  place-items: center;
+
+  > svg {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// Tuned away from its profile there: the word in the colour every "tuned"
+// in the Lab wears, before the stage's lamp at the row's end.
+.gaming-rail__tuned {
+  margin-left: auto;
+  padding-left: 8px;
+  color: $ink-tuned;
+  font-size: $studio-text-label;
+  font-weight: $weight-semibold;
+  @include tracking(0.04em);
+}
+
+.gaming-rail .gaming-rail__tuned + .dsp-rail-lamp {
+  margin-left: 6px;
+}
+
+// A page too narrow for the list's words beside an editor: the list folds to
+// its glyphs, down the side as the Library's rail folds - never a strip
+// across the top. Each part keeps its name as its tooltip, the groups stand
+// apart by the Library's hairline where their names were, the lamp sits on
+// its glyph's corner and "tuned" becomes a dot of its colour under it.
+@container gaming-lab (max-width: 760px) {
+  .gaming-panel__body {
+    gap: 14px;
+  }
+
+  .gaming-rail {
+    width: 36px;
+    gap: 0;
+  }
+
+  .gaming-rail__group + .gaming-rail__group {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid $studio-hair;
+  }
+
+  .gaming-rail :is(.dsp-rail-group-label, .dsp-rail-name, .gaming-rail__tuned) {
+    display: none;
+  }
+
+  .gaming-rail .dsp-rail-tab {
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  .gaming-rail .dsp-rail-lamp {
+    position: absolute;
+    top: 5px;
+    left: 24px;
+    margin: 0;
+  }
+
+  .gaming-rail .dsp-rail-tab:has(.gaming-rail__tuned)::after {
+    position: absolute;
+    bottom: 5px;
+    left: 24px;
+    width: 5px;
+    height: 5px;
+    border-radius: $radius-pill;
+    background: $ink-tuned;
+    content: '';
+  }
+}
+
+// *** The stages: the page itself ******************************************
+
+// The EQ page's editor sits on the page as the DSP's stages do, with no card
+// of its own (the EQ page gives it none either, `.main-content` on its
+// section card).
+.gaming-eq > .main-content {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}

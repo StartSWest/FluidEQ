@@ -9,10 +9,25 @@ import { gamingProfileOf, IGameProfile } from '../../common/games';
 import { useTranslation } from '../utils/I18nContext';
 import GamingGamePanel from './GamingGamePanel';
 import GamingGameRow from './GamingGameRow';
-import GamingGamesLayout from './GamingGamesLayout';
 import { gamingProfileEntry } from './gamingCatalog';
 import { useLoadedGame } from './gameSoundStore';
 import { useGameTuned, useYoursGamingProfiles } from './useGamingData';
+
+/**
+ * Which game the page shows: the one chosen, else the one being played,
+ * then the one whose sound is on, then the first. The page is mostly opened
+ * from a game, alt-tabbed out of, and that game is the one it should open on.
+ */
+export const shownGame = (
+  games: readonly IGameProfile[],
+  selectedId: string | undefined,
+  playingId: string | undefined,
+  soundingId: string | undefined,
+): IGameProfile | undefined =>
+  games.find((game) => game.id === selectedId) ??
+  games.find((game) => game.id === playingId) ??
+  games.find((game) => game.id === soundingId) ??
+  games[0];
 
 /**
  * A row, told by main whether its game's copy has moved away from the
@@ -42,38 +57,58 @@ const TunedGameRow = ({
   );
 };
 
-interface IGamingGamesProps {
+interface IGamingGameListProps {
   games: readonly IGameProfile[];
-  /** The Gaming Lab's switch: off, the list reads as standing by. */
-  isOn: boolean;
+  /** The game open beside the rail; none while the profiles are shown. */
+  shownId?: string;
   playingId?: string;
-  soundingId?: string;
-  selectedId?: string;
   onSelect: (id: string) => void;
+}
+
+/** The listener's games, as the rows of the Gaming Lab's rail. */
+export const GamingGameList = ({
+  games,
+  shownId,
+  playingId,
+  onSelect,
+}: IGamingGameListProps) => {
+  const { t } = useTranslation();
+  const yours = useYoursGamingProfiles();
+  const { gameId: loadedId } = useLoadedGame();
+  return (
+    <>
+      {games.map((game) => (
+        <TunedGameRow
+          key={game.id}
+          game={game}
+          profileName={gamingProfileEntry(gamingProfileOf(game), yours, t).name}
+          isSelected={game.id === shownId}
+          isPlaying={game.id === playingId}
+          isLoaded={game.id === loadedId}
+          onSelect={() => onSelect(game.id)}
+        />
+      ))}
+    </>
+  );
+};
+
+interface IGamingGamesProps {
+  /** The game open beside the rail (`shownGame`); none when there are none. */
+  shown: IGameProfile | undefined;
+  playingId?: string;
   onAdd: () => void;
 }
 
 /**
- * The listener's games down the side and the chosen one's sound beside them.
- *
- * Which game is shown when none was chosen is the one being played, then the
- * one whose sound is on, then the first: the page is mostly opened from a
- * game, alt-tabbed out of, and that game is the one it should open on.
+ * The chosen game's sound, beside the rail of games — or, before the first
+ * game, what the page is for and the way to add one.
  */
-const GamingGames = ({
-  games,
-  isOn,
-  playingId,
-  soundingId,
-  selectedId,
-  onSelect,
-  onAdd,
-}: IGamingGamesProps) => {
+const GamingGames = ({ shown, playingId, onAdd }: IGamingGamesProps) => {
   const { t } = useTranslation();
   const yours = useYoursGamingProfiles();
   const { gameId: loadedId } = useLoadedGame();
 
-  if (games.length === 0) {
+  if (!shown) {
     return (
       <div className="games-empty">
         {/* The page's own picture, at the size an empty page can carry: a pad
@@ -121,36 +156,14 @@ const GamingGames = ({
     );
   }
 
-  const shown =
-    games.find((game) => game.id === selectedId) ??
-    games.find((game) => game.id === playingId) ??
-    games.find((game) => game.id === soundingId) ??
-    games[0];
-
   return (
-    <GamingGamesLayout
-      count={games.length}
-      isOn={isOn}
-      list={games.map((game) => (
-        <TunedGameRow
-          key={game.id}
-          game={game}
-          profileName={gamingProfileEntry(gamingProfileOf(game), yours, t).name}
-          isSelected={game.id === shown.id}
-          isPlaying={game.id === playingId}
-          isLoaded={game.id === loadedId}
-          onSelect={() => onSelect(game.id)}
-        />
-      ))}
-    >
-      <GamingGamePanel
-        key={shown.id}
-        game={shown}
-        yours={yours}
-        isLoaded={shown.id === loadedId}
-        isPlaying={shown.id === playingId}
-      />
-    </GamingGamesLayout>
+    <GamingGamePanel
+      key={shown.id}
+      game={shown}
+      yours={yours}
+      isLoaded={shown.id === loadedId}
+      isPlaying={shown.id === playingId}
+    />
   );
 };
 
