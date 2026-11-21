@@ -1,0 +1,201 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// How far a grip reaches past the window's edge: the margin AnchoredMenu
+// keeps from the app window's own edge (`MENU_MARGIN`), so a grip is never
+// off screen.
+$grip-reach: 8px;
+// And how far it reaches in, over the hairline and no further: the lists'
+// scrollbars stand just inside the right edge.
+$grip-in: 2px;
+$grip-corner: 16px;
+// The light lies inside the hairline, so its corners follow the hairline's
+// inner curve.
+$light-radius: $card-radius - 1px;
+
+// The look picker's resize grips (`LookPickerWindow.tsx`): just outside the
+// edge, as Windows' resize borders are, invisible until the pointer finds
+// one - then the edge it moves lights in the accent, a step of light on the
+// hairline, and stays lit while it is held.
+@mixin styles {
+  // The window clips its contents, and lets the grips past. The clip keeps
+  // the window's rounded corners, grown by its margin, so a margin of only
+  // the grips' reach cut the outer tips off the corner grips and a corner
+  // missed the pointer; twice the reach covers them whole.
+  .look-picker__menu[data-anchored-menu] {
+    overflow: clip;
+    overflow-clip-margin: $grip-reach * 2;
+  }
+
+  .look-picker__grip {
+    position: absolute;
+    z-index: 2;
+    touch-action: none;
+    user-select: none;
+
+    &::after {
+      position: absolute;
+      border: 0 solid color-mix(in srgb, $secondary-light 82%, transparent);
+      opacity: 0;
+      content: '';
+      transition: opacity 120ms ease;
+    }
+
+    &:hover::after,
+    &:active::after {
+      opacity: 1;
+    }
+  }
+
+  // The edges: the whole side, short of the corners.
+  .look-picker__grip--left,
+  .look-picker__grip--right {
+    top: $grip-corner;
+    bottom: $grip-corner;
+    width: $grip-reach + $grip-in;
+    cursor: ew-resize;
+
+    &::after {
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: color-mix(in srgb, $secondary-light 82%, transparent);
+    }
+  }
+
+  .look-picker__grip--left {
+    left: -$grip-reach;
+
+    &::after {
+      right: 0;
+    }
+  }
+
+  .look-picker__grip--right {
+    right: -$grip-reach;
+
+    &::after {
+      left: 0;
+    }
+  }
+
+  .look-picker__grip--top,
+  .look-picker__grip--bottom {
+    right: $grip-corner;
+    left: $grip-corner;
+    height: $grip-reach + $grip-in;
+    cursor: ns-resize;
+
+    &::after {
+      right: 0;
+      left: 0;
+      height: 2px;
+      background: color-mix(in srgb, $secondary-light 82%, transparent);
+    }
+  }
+
+  .look-picker__grip--top {
+    top: -$grip-reach;
+
+    &::after {
+      bottom: 0;
+    }
+  }
+
+  .look-picker__grip--bottom {
+    bottom: -$grip-reach;
+
+    &::after {
+      top: 0;
+    }
+  }
+
+  // The corners: both edges at once, lit as the window's own rounded corner.
+  .look-picker__grip--top-left,
+  .look-picker__grip--top-right,
+  .look-picker__grip--bottom-left,
+  .look-picker__grip--bottom-right {
+    width: $grip-reach + $grip-corner;
+    height: $grip-reach + $grip-corner;
+
+    &::after {
+      width: $grip-corner;
+      height: $grip-corner;
+    }
+  }
+
+  .look-picker__grip--top-left {
+    top: -$grip-reach;
+    left: -$grip-reach;
+    cursor: nwse-resize;
+
+    &::after {
+      right: 0;
+      bottom: 0;
+      border-width: 2px 0 0 2px;
+      border-top-left-radius: $light-radius;
+    }
+  }
+
+  .look-picker__grip--top-right {
+    top: -$grip-reach;
+    right: -$grip-reach;
+    cursor: nesw-resize;
+
+    &::after {
+      bottom: 0;
+      left: 0;
+      border-width: 2px 2px 0 0;
+      border-top-right-radius: $light-radius;
+    }
+  }
+
+  .look-picker__grip--bottom-left {
+    bottom: -$grip-reach;
+    left: -$grip-reach;
+    cursor: nesw-resize;
+
+    &::after {
+      top: 0;
+      right: 0;
+      border-width: 0 0 2px 2px;
+      border-bottom-left-radius: $light-radius;
+    }
+  }
+
+  .look-picker__grip--bottom-right {
+    right: -$grip-reach;
+    bottom: -$grip-reach;
+    cursor: nwse-resize;
+
+    &::after {
+      top: 0;
+      left: 0;
+      border-width: 0 2px 2px 0;
+      border-bottom-right-radius: $light-radius;
+    }
+  }
+
+  // Only the edges away from the trigger move: the one beside it is where
+  // the window hangs from.
+  [data-side='down'] > .look-picker__grip--top,
+  [data-side='down'] > .look-picker__grip--top-left,
+  [data-side='down'] > .look-picker__grip--top-right,
+  [data-side='up'] > .look-picker__grip--bottom,
+  [data-side='up'] > .look-picker__grip--bottom-left,
+  [data-side='up'] > .look-picker__grip--bottom-right {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .look-picker__grip::after {
+      transition: none;
+    }
+  }
+}
