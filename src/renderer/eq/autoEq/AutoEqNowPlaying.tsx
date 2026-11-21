@@ -14,13 +14,21 @@ import songSoundPresetName from '../../components/songSoundPresetName';
  * sound: its own saved sound, its album's, or the listener's own — the
  * answer of the ladder the mockup drew, in one line. A saved EQ that plays
  * is named in the preset's place: it is the whole sound, preset and all.
+ *
+ * Changed by hand over a saved sound, the line still names the saved one —
+ * the album's Ballad, not the My Pop picked over it — and says what plays
+ * instead under it. It named the pick as the album's sound, which is what
+ * Ivan was reading when he asked how to go back (2026-11-20).
  */
 const AutoEqNowPlaying = ({
   now,
   eqName,
+  underName,
 }: {
   now: ISongSoundNow;
   eqName?: string;
+  /** The saved sound under a change made by hand, by name. */
+  underName?: string;
 }) => {
   const { t } = useTranslation();
   const { identity } = now;
@@ -34,12 +42,13 @@ const AutoEqNowPlaying = ({
       </div>
     );
   }
-  const preset =
-    eqName ??
+  // What plays by its preset: a change made over a saved EQ is no longer the
+  // saved EQ, so its name is not what plays then.
+  const playing =
     (now.presetId === undefined
       ? undefined
-      : songSoundPresetName(now.presetId, t)) ??
-    t('songSound.noPresetName');
+      : songSoundPresetName(now.presetId, t)) ?? t('songSound.noPresetName');
+  const preset = underName ?? eqName ?? playing;
   let from = t('autoEq.now.yours');
   let why = t('autoEq.now.yoursWhy');
   if (now.owner === 'song') {
@@ -50,6 +59,9 @@ const AutoEqNowPlaying = ({
       ? t('autoEq.now.album', { album: now.albumTitle })
       : t('autoEq.now.albumUnnamed');
     why = t('autoEq.now.albumWhy');
+  }
+  if (underName !== undefined) {
+    why = t('autoEq.now.changedWhy', { preset: playing });
   }
   return (
     <div className={`eq-auto-now is-${now.owner ?? 'yours'}`}>

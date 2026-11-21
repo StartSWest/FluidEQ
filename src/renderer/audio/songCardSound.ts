@@ -20,7 +20,38 @@ import songSoundPresetName from '../components/songSoundPresetName';
 export interface ISongCardSound {
   kind: 'own' | 'album' | 'changed' | 'yours';
   text: string;
+  /** Changed by hand over a saved sound: whose it is and its name, for Back
+   * to it (`revertSongSound`). */
+  back?: { owner: 'song' | 'album'; name: string };
 }
+
+/**
+ * The saved sound a song plays when nothing is changed over it — its own or
+ * its album's — by the name the Library gives it: the saved EQ it follows,
+ * or its preset. What plays may be a change made over it; this is the sound
+ * under the change.
+ */
+export const savedSoundOf = (
+  now: ISongSoundNow,
+  eqById: ReadonlyMap<string, ISavedEqSummary>,
+  t: Translate,
+): { owner: 'song' | 'album'; name: string } | undefined => {
+  if (!now.owner || !now.saved) {
+    return undefined;
+  }
+  const eqName =
+    now.eqId === undefined ? undefined : eqById.get(now.eqId)?.name;
+  return {
+    owner: now.owner,
+    name: savedSoundName(
+      {
+        presetId: now.saved.presetId,
+        ...(eqName === undefined ? {} : { eqName }),
+      },
+      t,
+    ),
+  };
+};
 
 /**
  * The words on the player's song card (Ivan, 2026-11-20: "also show the
@@ -43,7 +74,12 @@ export const songCardSound = (
   if (now.isChanged) {
     const preset =
       songSoundPresetName(live.presetId, t) ?? t('songSound.noPresetName');
-    return { kind: 'changed', text: t('library.sound.tagChanged', { preset }) };
+    const back = savedSoundOf(now, eqById, t);
+    return {
+      kind: 'changed',
+      text: t('library.sound.tagChanged', { preset }),
+      ...(back ? { back } : {}),
+    };
   }
   if (now.owner) {
     const eqName =

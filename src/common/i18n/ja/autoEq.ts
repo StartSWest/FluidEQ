@@ -10,6 +10,13 @@ export default {
   'autoEq.title': 'オート EQ',
   'autoEq.aria': 'オート EQ：曲ごとのサウンドを決める機能',
   'autoEq.chip.title': '再生中：{sound}。オート EQ を開く',
+  'autoEq.chip.changedAlbum':
+    '手動で変更しました。アルバムのサウンドは {preset}',
+  'autoEq.chip.changedSong': '手動で変更しました。この曲のサウンドは {preset}',
+  'autoEq.chip.backAlbum': 'アルバムのサウンドに戻す · {preset}',
+  'autoEq.chip.backSong': 'この曲のサウンドに戻す · {preset}',
+  'autoEq.chip.open': 'オート EQ を開く',
+  'autoEq.albums.revert': '{preset} に戻す',
   'autoEq.tagline': '曲ごとのサウンドを自動で選びます',
   'autoEq.state.measuring': '測定中',
   'autoEq.state.paused': '一時停止中',
@@ -27,6 +34,7 @@ export default {
   'autoEq.now.album': '{album} のサウンド',
   'autoEq.now.albumUnnamed': 'アルバムのサウンド',
   'autoEq.now.albumWhy': 'ライブラリでアルバム全体に設定されています。',
+  'autoEq.now.changedWhy': '手動で変更しました：いまは {preset} を再生中です。',
   'autoEq.songs.title': '曲のサウンド',
   'autoEq.songs.hint':
     'サウンドを保存した曲はそれで再生されます。変更したら「変更を保存」を押すと保持されます。ほかの曲はあなたのサウンドで再生されます。',

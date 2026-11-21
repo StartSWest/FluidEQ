@@ -29,6 +29,7 @@ import useHasChanged from '../../utils/useHasChanged';
 import AutoEqMeasureOnce from './AutoEqMeasureOnce';
 import AutoEqSongHolds from './AutoEqSongHolds';
 import AutoEqEqPicker from './AutoEqEqPicker';
+import { savedSoundOf } from '../../audio/songCardSound';
 
 /** One of the panel's parts: its name and line, its switch, what it holds. */
 const AutoEqPart = ({
@@ -134,16 +135,21 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
     songLine = t('autoEq.songs.none');
   }
 
+  const albumSound =
+    album &&
+    ((album.eqId === undefined ? undefined : eqById.get(album.eqId)?.name) ??
+      songSoundPresetName(album.presetId, t) ??
+      t('songSound.noPresetName'));
+  // The sound under a change made by hand, named as the song's card names
+  // it, so the panel and the card offer the same thing by the same name.
+  const backTo = savedSoundOf(now, eqById, t);
   let albumLine = t('autoEq.albums.nothing');
   if (identity && !isLibrary) {
     albumLine = t('autoEq.albums.libraryOnly');
-  } else if (album) {
+  } else if (album && albumSound !== undefined) {
     albumLine = t('autoEq.albums.set', {
       album: album.title,
-      preset:
-        (album.eqId === undefined ? undefined : eqById.get(album.eqId)?.name) ??
-        songSoundPresetName(album.presetId, t) ??
-        t('songSound.noPresetName'),
+      preset: albumSound,
     });
   } else if (identity?.albumKey !== undefined) {
     albumLine = t('autoEq.albums.none');
@@ -161,7 +167,11 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
           <span>{t('autoEq.aside')}</span>
         </p>
       )}
-      <AutoEqNowPlaying now={now} eqName={songEq?.name} />
+      <AutoEqNowPlaying
+        now={now}
+        eqName={songEq?.name}
+        underName={now.isChanged ? backTo?.name : undefined}
+      />
       <AutoEqPart
         id="eq-auto-songs"
         title={t('autoEq.songs.title')}
@@ -242,6 +252,22 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
       >
         <div className="eq-auto-part__line">
           <span>{albumLine}</span>
+          {/* The album's sound, changed by hand over this song: back to it
+            (Ivan, 2026-11-20: "a way that when it is album sound and I
+            change the preset manually, to restore to album sound"). Here
+            because Song sounds, whose Back to saved does the same, may be
+            off — it was, when he asked. Going back is not a pick of his
+            own: the pick he made stays the sound a song with nothing saved
+            plays (`revert` in `songSoundChoices.ts`). */}
+          {backTo?.owner === 'album' && now.isChanged && (
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={revertSongSound}
+            >
+              {t('autoEq.albums.revert', { preset: backTo.name })}
+            </button>
+          )}
         </div>
       </AutoEqPart>
       <AutoEqSmartPart button={button} />
