@@ -295,6 +295,8 @@ describe('songEqSession', () => {
    * result above would pass equally well against a `useSongEqNotice` wired
    * to return `undefined` unconditionally. */
   it('raises a notice naming the song when a lookup finds one', async () => {
+    // A kept correction plays only while Smart correction runs.
+    startAutoEq();
     const song = buildSongIdentity(
       'library',
       'remembered-song',
@@ -327,6 +329,46 @@ describe('songEqSession', () => {
   });
 
   /**
+   * With Smart correction off, a song's kept correction stays kept and is
+   * not played: Ivan, 2026-11-20, "when smart correction is turned off, the
+   * curves need to disappear too". The lookup still finds it — the test above
+   * is the control, the same lookup with Smart correction on.
+   */
+  it('plays no kept correction while Smart correction is off', async () => {
+    const song = buildSongIdentity(
+      'library',
+      'remembered-song',
+      'Remembered Song',
+      'Artist',
+    );
+    if (!song) {
+      throw new Error('test fixture produced no identity');
+    }
+    (api.lookupSongEq as jest.Mock).mockResolvedValue(
+      entryOf('Remembered Song', layerOf(4)),
+    );
+    mockUseNowPlayingIdentity.mockReturnValue({
+      identity: song,
+      isPlaying: true,
+    });
+
+    const { result } = renderHook(
+      () => {
+        useSongEqSessionHost();
+        return useSongEqNotice();
+      },
+      { wrapper },
+    );
+
+    await playFor(SONG_EQ_SETTLE_MS + 1000);
+
+    expect(api.lookupSongEq).toHaveBeenCalled();
+    expect(result.current).toBeUndefined();
+    expect(setSmartEqSpy).not.toHaveBeenCalled();
+    expect(api.setSmartEq).not.toHaveBeenCalled();
+  });
+
+  /**
    * The notice goes when its own linger animation ends, reported by id — not
    * when a clock says so. Time alone leaves it up (the null; a six-second
    * timer used to take it down, and nothing may be scheduled now), an end
@@ -334,6 +376,8 @@ describe('songEqSession', () => {
    * down (the positive control).
    */
   it('keeps the notice up until its own linger reports its end', async () => {
+    // A kept correction plays only while Smart correction runs.
+    startAutoEq();
     const song = buildSongIdentity(
       'library',
       'lingering-song',
@@ -423,6 +467,8 @@ describe('songEqSession', () => {
   });
 
   it('keeps the loan through its own write landing back in context', async () => {
+    // A kept correction plays only while Smart correction runs.
+    startAutoEq();
     const song = buildSongIdentity(
       'library',
       'echo-song',
@@ -525,6 +571,8 @@ describe('songEqSession', () => {
    * last `setSmartEq` stays the refinement rather than the pre-match layer.
    */
   it('hands the loan back at the end of a song the engine kept refining', async () => {
+    // A kept correction plays only while Smart correction runs.
+    startAutoEq();
     const song = buildSongIdentity(
       'library',
       'refined-song',
@@ -571,6 +619,8 @@ describe('songEqSession', () => {
   });
 
   it('forgets the notice-named song over IPC and clears the notice', async () => {
+    // A kept correction plays only while Smart correction runs.
+    startAutoEq();
     const song = buildSongIdentity(
       'library',
       'forget-song',

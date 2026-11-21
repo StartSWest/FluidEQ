@@ -165,14 +165,22 @@ it('starts a continuous measurement with Smart correction, stops it, and starts 
   expect(mockMeasureSource).toHaveBeenCalledTimes(1);
   expect(measurements[0].options.isContinuous).toBe(true);
 
+  // Starting writes nothing of its own: nothing is held yet.
+  expect(writeSmartEq).not.toHaveBeenCalled();
+
   await press(smartSwitch());
   expect(measurements[0].options.signal?.aborted).toBe(true);
+  // Stopping takes the correction off what is heard (Ivan, 2026-11-20:
+  // "when smart correction is turned off, the curves need to disappear
+  // too"): one write, of no layer at all.
+  expect(writeSmartEq).toHaveBeenCalledTimes(1);
+  expect(writeSmartEq).toHaveBeenLastCalledWith(undefined);
 
   await press(smartSwitch());
   expect(mockMeasureSource).toHaveBeenCalledTimes(2);
   expect(measurements[1].options.signal?.aborted).toBe(false);
-  // Starting and stopping writes no correction of its own.
-  expect(writeSmartEq).not.toHaveBeenCalled();
+  // And starting afresh on a song never held writes nothing more.
+  expect(writeSmartEq).toHaveBeenCalledTimes(1);
 });
 
 it.each<[TSmartEqMode, string]>([
