@@ -11,10 +11,14 @@ export default {
   'wavePreset.noneLabel': 'Nenhum preset em uso. Pressione para escolher um',
   'wavePreset.gameLabel':
     '{game} está tocando o próprio som. Pressione para ver o que você pode fazer',
-  'wavePreset.change': 'Trocar preset',
-  'wavePreset.choose': 'Escolher um preset',
   'wavePreset.openLab': 'Abrir o Laboratório gamer',
   'wavePreset.backToMusic': 'Voltar ao som de música',
   'wavePreset.gameOn': '{game} está tocando o próprio som.',
   'wavePreset.yours': 'Um dos seus próprios presets',
+  'wavePreset.noneHint': 'Só o seu EQ',
+  'wavePreset.starHint':
+    'Marque presets com estrela na aba Preset para tê-los aqui.',
+  'wavePreset.openTab': 'Abrir a aba Preset',
+  'wavePreset.find': 'Encontrar um favorito',
+  'wavePreset.playingNow': 'Tocando agora',
 };

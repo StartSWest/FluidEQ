@@ -11,16 +11,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // *** The playing preset on the titlebar's wave *******************************
 //
-// Direction B of the "Preset on the meter" mockup (Ivan, 2026-11-20): the
-// preset's glyph and name on a plate at the top centre of the wave, the trace
-// parting round it so it reads as part of the drawing, and on a press a card
-// that says what plays and opens the Preset page ("open the window and allow
-// the user to click change preset"). Nothing comes up on pointing. Flat: no
-// shadows, a step of light under the pointer.
+// The preset's glyph and name on a plate at the top centre of the wave, the
+// trace parting round it so it reads as part of the drawing, and on a press
+// the panel the "Wave preset panel" mockup drew (Ivan, 2026-11-20): what
+// plays, None, the favourites, and the Preset tab at its foot. Nothing comes
+// up on pointing. Flat: no shadows, steps of light.
 
-// Between the meter's foot and the card, as between a menu and its control.
-$card-gap: 6px;
-$card-width: 320px;
+$panel-width: 372px;
+// About eight rows of favourites before the list scrolls inside.
+$list-height: 252px;
 
 // The layer over the meter's label row. Three columns, the plate in the
 // middle one: the outer two share what the plate leaves, so it stands at the
@@ -61,7 +60,7 @@ $card-width: 320px;
   height: 20px;
   align-items: center;
   gap: 6px;
-  padding: 0 8px;
+  padding: 0 7px 0 8px;
   color: $text-primary;
   border-radius: $radius-xs;
   font: inherit;
@@ -92,14 +91,31 @@ $card-width: 320px;
   flex: 0 1 auto;
 }
 
+// The mockup's chevron: it opens a list, and turns over while it is open.
+.wave-preset__caret {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  color: $text-muted;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform $motion-fast $ease-out;
+
+  .wave-preset__plate[aria-expanded='true'] & {
+    transform: rotate(180deg);
+  }
+}
+
 // One of the listener's own: the curve glyph in the Preset layer's violet,
 // which their presets wear (`_ownPresets.scss`).
 .wave-preset__plate.is-own .wave-preset__glyph {
   color: var(--ink-preset);
 }
 
-// Nothing chosen says so quietly, in the faint ink, and still opens the card
-// that offers a preset.
+// Nothing chosen says so quietly, in the faint ink.
 .wave-preset__plate.is-none {
   color: $text-muted;
 
@@ -122,6 +138,18 @@ img.wave-preset__glyph {
   margin-left: 0;
 }
 
+// Where the panel hangs from: the plate's centre, half a panel wide, down to
+// the meter's foot, so the panel — right-aligned to it by AnchoredMenu —
+// stands centred under the plate and opens below the wave, not over it.
+.wave-preset__anchor {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: calc(#{$panel-width} / 2);
+  height: calc(var(--title-bar-meter, 54px) - 1px);
+  pointer-events: none;
+}
+
 // The caption steps aside for the plate, which takes its place: the wave
 // says it is live, and the plate says what is playing on it.
 .waveform-visualizer-shell[data-wave-plate] .waveform-visualizer__signal {
@@ -142,14 +170,14 @@ img.wave-preset__glyph {
   transition: opacity $motion-base $ease-out;
 }
 
-// While the card is open the wave steps back, so the plate and its card are
-// what is read.
+// While the panel is open the wave steps back, so the plate and its panel
+// are what is read.
 .waveform-visualizer-shell:has(.wave-preset__plate[aria-expanded='true'])
   .waveform-visualizer__stage {
   opacity: 0.5;
 }
 
-// A narrow meter keeps the glyph alone: the card still says the rest.
+// A narrow meter keeps the glyph and the chevron: the panel says the rest.
 @container wave-meter (max-width: 150px) {
   .wave-preset__name,
   .wave-preset__live.workspace-tab__live {
@@ -157,48 +185,44 @@ img.wave-preset__glyph {
   }
 }
 
-// *** The card ****************************************************************
+// *** The panel ***************************************************************
 //
-// Under the meter, centred on the plate, on the app's menu surface and with
-// its arrival (`menu-motion`'s pop and fold, out of its top edge).
+// The app's menu surface and arrival (`rich-pick__menu`), at the mockup's
+// width, growing out of its top centre. Only the favourites scroll: what
+// plays, None and the foot keep their places.
 
-.wave-preset-card {
-  @include menu-face;
-  position: absolute;
-  z-index: 30;
-  // The plate stands 1px down the meter; the card starts its gap under the
-  // meter's foot.
-  top: calc(var(--title-bar-meter, 54px) - 1px + #{$card-gap});
-  left: 50%;
-  display: grid;
-  width: $card-width;
-  margin-left: calc(#{$card-width} / -2);
-  padding: 12px;
-  gap: 10px;
-  color: $text-primary;
-  font-size: $text-small;
-  font-weight: $weight-regular;
-  letter-spacing: normal;
-  text-align: left;
-  text-transform: none;
-  white-space: normal;
-  cursor: default;
-  pointer-events: auto;
-  -webkit-app-region: no-drag;
-  @include surface-motion($menu-arrival);
+.rich-pick__menu.wave-preset-menu {
+  width: $panel-width;
+  overflow: hidden;
   transform-origin: top center;
 }
 
-.wave-preset-card__head {
+.wave-preset-menu__inner {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  outline: none;
+}
+
+.wave-preset-menu__head {
+  display: grid;
+  flex: none;
+  gap: 8px;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid $menu-rule;
+}
+
+.wave-preset-head {
   display: grid;
   align-items: center;
   gap: 2px 10px;
   grid-template-columns: 22px minmax(0, 1fr);
 }
 
-.wave-preset-card__glyph {
-  width: 22px;
-  height: 22px;
+.wave-preset-head__glyph {
+  width: 20px;
+  height: 20px;
   grid-row: span 2;
   color: $text-accent;
 
@@ -207,12 +231,12 @@ img.wave-preset__glyph {
   }
 }
 
-img.wave-preset-card__glyph {
+img.wave-preset-head__glyph {
   border-radius: $radius-xs;
   object-fit: cover;
 }
 
-.wave-preset-card__name {
+.wave-preset-head__name {
   display: flex;
   min-width: 0;
   align-items: center;
@@ -222,48 +246,224 @@ img.wave-preset-card__glyph {
   overflow-wrap: anywhere;
 }
 
-.wave-preset-card__line {
+.wave-preset-head__line {
+  @include truncate;
   color: $text-muted;
   font-size: $text-small;
 }
 
 // A head with no line under it: the glyph stands beside the name alone.
-.wave-preset-card__head:not(:has(.wave-preset-card__line))
-  .wave-preset-card__glyph {
+.wave-preset-head:not(:has(.wave-preset-head__line)) .wave-preset-head__glyph {
   grid-row: auto;
 }
 
-// Its curve, as the Preset tab's notes draw one of the listener's (the
-// accent for a factory preset, the Preset layer's violet for their own).
-.wave-preset-card__curve {
-  color: $text-accent;
+// Its curve, as the Preset tab's cards draw one (`PresetCardCurve`: the
+// accent for what plays, the Preset layer's violet for the listener's own),
+// in the head's flow rather than along a card's foot.
+.wave-preset-head__curve .preset-card-curve {
+  position: static;
+  width: 100%;
+  height: 30px;
+}
 
-  .own-preset-spark {
-    display: block;
-    width: 100%;
-    height: 46px;
-    color: inherit;
+.wave-preset-head__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.wave-preset-head__chip-glyph {
+  width: 13px;
+  height: 13px;
+  color: $text-accent;
+}
+
+.wave-preset-menu__lead {
+  display: grid;
+  flex: none;
+  gap: 1px;
+  padding: 6px;
+}
+
+.wave-preset-menu__group {
+  flex: none;
+  padding: 6px 16px 4px;
+  color: $text-muted;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  @include tracking(0.09em);
+  text-transform: uppercase;
+}
+
+// The menus' search row, boxed as the mockup drew it: a field in the panel
+// rather than a strip across it, since it narrows only the favourites under
+// it and not the panel.
+.wave-preset-menu__search {
+  @include menu-search;
+  flex: none;
+  margin: 2px 12px 6px;
+  padding: 0 10px;
+  border: 1px solid $menu-rule;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $edge-tint 4%, transparent);
+}
+
+.wave-preset-menu__list {
+  @include slim-scrollbar;
+  display: grid;
+  min-height: 0;
+  max-height: $list-height;
+  flex: 0 1 auto;
+  align-content: start;
+  gap: 1px;
+  padding: 0 6px 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding-block: 6px;
+
+  // Soft edges only where there is more to scroll to (`markFades`).
+  &[data-more-above] {
+    mask-image: linear-gradient(to bottom, transparent 0, #000 12px);
   }
+
+  &[data-more-below] {
+    mask-image: linear-gradient(
+      to bottom,
+      #000 calc(100% - 16px),
+      transparent 100%
+    );
+  }
+
+  &[data-more-above][data-more-below] {
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      #000 12px,
+      #000 calc(100% - 16px),
+      transparent 100%
+    );
+  }
+}
+
+// One row: glyph, name, what it does at the end, and the check on the one
+// that plays. The name keeps its width; the line gives way first.
+.wave-preset-menu__row {
+  display: grid;
+  width: 100%;
+  min-height: 30px;
+  align-items: center;
+  gap: 10px;
+  grid-template-columns: 18px minmax(0, 1fr) auto 12px;
+  padding: 6px 10px;
+  color: $text-primary;
+  border: 0;
+  border-radius: $radius-xs;
+  background: transparent;
+  font: inherit;
+  font-size: $text-body;
+  text-align: left;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background: $hover-accent;
+    outline: none;
+  }
+
+  &[aria-checked='true'] {
+    background: $selected-accent;
+
+    .wave-preset-menu__name,
+    .wave-preset-menu__glyph {
+      color: $text-accent;
+    }
+  }
+
+  &.is-loud {
+    .wave-preset-menu__name,
+    .wave-preset-menu__glyph {
+      color: $text-accent;
+    }
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.55;
+  }
+}
+
+.wave-preset-menu__glyph {
+  width: 16px;
+  height: 16px;
+  color: $text-muted;
 
   &.is-own {
     color: var(--ink-preset);
   }
 }
 
-.wave-preset-card__chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+// The listener's own keeps its violet when it is the one playing.
+.wave-preset-menu__row[aria-checked='true'] .wave-preset-menu__glyph.is-own {
+  color: var(--ink-preset);
 }
 
-.wave-preset-card__chip-glyph {
-  width: 13px;
-  height: 13px;
+.wave-preset-menu__name {
+  @include truncate;
+  font-weight: $weight-semibold;
+}
+
+.wave-preset-menu__hint {
+  @include truncate;
+  max-width: 150px;
+  color: $text-muted;
+  font-size: $text-small;
+}
+
+.wave-preset-menu__check {
+  width: 12px;
+  height: 12px;
   color: $text-accent;
 }
 
-.wave-preset-card__actions {
+.wave-preset-menu__note {
+  margin: 0;
+  padding: 2px 16px 12px;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+// The foot: a hairline, then the way to the Preset tab in the accent, with
+// its arrow at the end.
+.wave-preset-menu__foot {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  width: 100%;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 16px;
+  color: $text-accent;
+  border: 0;
+  border-top: 1px solid $menu-rule;
+  background: transparent;
+  font: inherit;
+  font-size: $text-body;
+  font-weight: $weight-bold;
+  text-align: left;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover,
+  &:focus-visible {
+    background: $hover-accent;
+    outline: none;
+  }
+}
+
+.wave-preset-menu__arrow {
+  width: 14px;
+  height: 14px;
+  flex: none;
 }

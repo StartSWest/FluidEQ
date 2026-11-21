@@ -4,13 +4,15 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { useState } from 'react';
 import {
   dspPresetRowHint,
   dspPresetStages,
   presetLayerNameOf,
 } from '../../dsp/dspPresetCatalog';
-import openEqPresetTab from '../../eq/openEqPresetTab';
-import PresetCurveSpark from '../../eq/ownPresets/PresetCurveSpark';
+import PresetCardCurve from '../../eq/presetCard/PresetCardCurve';
+import usePresetCurveDesign from '../../eq/presetCard/usePresetCurveDesign';
+import Chevron from '../../icons/Chevron';
 import VoicingIcon from '../../icons/VoicingIcon';
 import { useTranslation } from '../../utils/I18nContext';
 import {
@@ -18,18 +20,13 @@ import {
   presetGlyph,
   usePlayingPreset,
 } from '../../components/useVoicingPick';
-import useWaveCard from './useWaveCard';
-import WavePresetCard from './WavePresetCard';
+import useWaveMenu from './useWaveMenu';
+import WavePresetPanel from './WavePresetPanel';
 
 /**
  * The plate while the music's sound plays: the preset's glyph and name over
- * the wave, and on a press the card that says what it is and what it does
- * (Ivan, 2026-11-20).
- *
- * The card's one press is Change preset, which opens the EQ page on its
- * Preset tab ("not the preset list but the preset page"): the plate opens no
- * list of its own, so nothing it shows can stand between him and the
- * presets.
+ * the wave with the mockup's chevron, and on a press the panel — what plays,
+ * None, the favourites and the Preset tab (Ivan, 2026-11-20).
  *
  * The preset is read as the Preset tab reads it (`usePlayingPreset`), so a
  * pick, a song's or album's sound, Auto EQ or a preset made on the EQ page
@@ -38,7 +35,13 @@ import WavePresetCard from './WavePresetCard';
 const WavePresetMusic = () => {
   const { t } = useTranslation();
   const { active, activeId, isApo } = usePlayingPreset();
-  const card = useWaveCard();
+  const menu = useWaveMenu();
+  // The curve drawn as the Preset tab's cards draw it, with the EQ's own
+  // model, Q and Treble design (`presetCardDrawing.ts`).
+  const curveDesign = usePresetCurveDesign();
+  // Where the panel hangs from (`.wave-preset__anchor`): state, so the panel
+  // places itself once the element is there.
+  const [anchor, setAnchor] = useState<HTMLSpanElement | null>(null);
   const isNone = activeId === 'none';
   const isOwn = isOwnPreset(active);
   // A Preset layer no list holds is named as the layers' chip names it: a
@@ -72,63 +75,63 @@ const WavePresetMusic = () => {
   const stages = active && !isApo ? dspPresetStages(active, t) : [];
 
   return (
-    <div className="wave-preset__holder" ref={card.holderRef}>
+    <div className="wave-preset__holder" ref={menu.holderRef}>
       <button
-        ref={card.plateRef}
+        ref={menu.plateRef}
         type="button"
         className={`wave-preset__plate${isNone ? ' is-none' : ''}${
           isOwn ? ' is-own' : ''
         }`}
-        aria-haspopup="dialog"
-        aria-expanded={card.isOpen}
+        aria-haspopup="menu"
+        aria-expanded={menu.isOpen}
         aria-label={
           isNone ? t('wavePreset.noneLabel') : t('wavePreset.label', { name })
         }
-        onClick={card.toggle}
+        onClick={menu.toggle}
       >
         {glyphOf('wave-preset__glyph')}
         <span className="wave-preset__name">{name}</span>
+        <Chevron className="wave-preset__caret" />
       </button>
+      <span ref={setAnchor} className="wave-preset__anchor" aria-hidden />
 
-      {card.isOpen && (
-        <WavePresetCard
-          cardRef={card.cardRef}
-          glyph={glyphOf('wave-preset-card__glyph')}
-          name={name}
-          label={name}
-          line={line}
-          actions={
-            <button
-              type="button"
-              className="button small"
-              onClick={() => {
-                card.close();
-                openEqPresetTab();
-              }}
-            >
-              {t(isNone ? 'wavePreset.choose' : 'wavePreset.change')}
-            </button>
-          }
-        >
-          {active?.curve && (
-            <div className={`wave-preset-card__curve${isOwn ? ' is-own' : ''}`}>
-              <PresetCurveSpark curve={active.curve} size="wide" />
+      <WavePresetPanel
+        anchor={anchor}
+        isOpen={menu.isOpen}
+        arrive={menu.arrive}
+        close={menu.close}
+        header={
+          <>
+            <div className="wave-preset-head">
+              {glyphOf('wave-preset-head__glyph')}
+              <strong className="wave-preset-head__name">{name}</strong>
+              {line && <span className="wave-preset-head__line">{line}</span>}
             </div>
-          )}
-          {stages.length > 0 && (
-            <div className="eq-preset-tab__stages wave-preset-card__stages">
-              <span className="eq-preset-tab__eyebrow">
-                {t('eq.preset.rack')}
-              </span>
-              <ul>
-                {stages.map((stage) => (
-                  <li key={stage}>{stage}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </WavePresetCard>
-      )}
+            {active?.curve && (
+              <div className="wave-preset-head__curve">
+                <PresetCardCurve
+                  curve={active.curve}
+                  design={curveDesign}
+                  tone={isOwn ? 'own' : 'playing'}
+                />
+              </div>
+            )}
+            {stages.length > 0 && (
+              <div
+                className="eq-preset-tab__stages wave-preset-head__stages"
+                role="group"
+                aria-label={t('eq.preset.rack')}
+              >
+                <ul>
+                  {stages.map((stage) => (
+                    <li key={stage}>{stage}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
+        }
+      />
     </div>
   );
 };

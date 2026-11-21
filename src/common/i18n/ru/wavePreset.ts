@@ -11,10 +11,14 @@ export default {
   'wavePreset.noneLabel': 'Пресет не выбран. Нажмите, чтобы выбрать',
   'wavePreset.gameLabel':
     'Играет собственный звук {game}. Нажмите, чтобы увидеть действия',
-  'wavePreset.change': 'Сменить пресет',
-  'wavePreset.choose': 'Выбрать пресет',
   'wavePreset.openLab': 'Открыть игровую лабораторию',
   'wavePreset.backToMusic': 'Вернуть музыкальный звук',
   'wavePreset.gameOn': 'Играет собственный звук {game}.',
   'wavePreset.yours': 'Ваш собственный пресет',
+  'wavePreset.noneHint': 'Только ваш эквалайзер',
+  'wavePreset.starHint':
+    'Отметьте пресеты звёздочкой на вкладке «Пресет», чтобы они были здесь.',
+  'wavePreset.openTab': 'Открыть вкладку «Пресет»',
+  'wavePreset.find': 'Найти избранное',
+  'wavePreset.playingNow': 'Играет сейчас',
 };

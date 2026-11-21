@@ -7,115 +7,131 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useState } from 'react';
 import type { IGameProfile } from '../../../common/games';
 import type { ErrorDescription } from '../../../common/errors';
+import { useDspPresetCatalog } from '../../dsp/dspPresetCatalog';
 import GameIcon from '../../games/GameIcon';
+import { useLoadedGame } from '../../games/gameSoundStore';
 import { openGamingLab } from '../../games/gamingLabEvents';
 import usePlayingGamePreset from '../../games/usePlayingGamePreset';
 import { putMusicSoundBack } from '../../games/useGameSound';
+import Chevron from '../../icons/Chevron';
+import MenuIcon from '../../icons/MenuIcon';
 import VoicingIcon from '../../icons/VoicingIcon';
 import { useFluidEqShell } from '../../utils/FluidEqContext';
 import { useTranslation } from '../../utils/I18nContext';
-import useWaveCard from './useWaveCard';
-import WavePresetCard from './WavePresetCard';
+import useWaveMenu from './useWaveMenu';
+import WavePresetPanel from './WavePresetPanel';
+import WavePresetRow from './WavePresetRow';
 
 /**
  * The plate while a game's own sound is on: the game's name with the live
- * dot its Gaming Lab tab wears, and on a press the card with the two ways
- * out of the game's sound — the music sound back, the suggested one, and the
- * Gaming Lab beside it.
- *
- * Never a way to the presets. The game is the preset then, tuned in the
- * Gaming Lab and nowhere else (Ivan, 2026-11-03: a preset picked into a
- * game's sound from the main screen "will complicate things"), as the
- * player's deck sends a press straight to the Lab (`GameSoundPresetButton`).
+ * dot its Gaming Lab tab wears, and on a press the same panel, headed by the
+ * game, with the way back to the music sound as its first row — naming the
+ * preset it brings back — and the Gaming Lab after it.
  */
 const WavePresetGame = ({ game }: { game: IGameProfile }) => {
   const { t } = useTranslation();
   const { setGlobalError } = useFluidEqShell();
   const preset = usePlayingGamePreset();
-  const card = useWaveCard();
+  const { musicDsp } = useLoadedGame();
+  const { catalog } = useDspPresetCatalog(t);
+  const musicName = musicDsp?.presetId
+    ? catalog.find((one) => one.id === musicDsp.presetId)?.name
+    : undefined;
+  const menu = useWaveMenu();
+  const [anchor, setAnchor] = useState<HTMLSpanElement | null>(null);
   const [isBusy, setIsBusy] = useState(false);
-
-  const backToMusic = () => {
-    card.close();
-    setIsBusy(true);
-    putMusicSoundBack()
-      .catch((error: unknown) => setGlobalError(error as ErrorDescription))
-      .finally(() => setIsBusy(false));
-  };
   const liveDot = (
     <span className="workspace-tab__live wave-preset__live" aria-hidden />
   );
 
   return (
-    <div className="wave-preset__holder" ref={card.holderRef}>
+    <div className="wave-preset__holder" ref={menu.holderRef}>
       <button
-        ref={card.plateRef}
+        ref={menu.plateRef}
         type="button"
         className="wave-preset__plate is-game"
-        aria-haspopup="dialog"
-        aria-expanded={card.isOpen}
+        aria-haspopup="menu"
+        aria-expanded={menu.isOpen}
         aria-label={t('wavePreset.gameLabel', { game: game.name })}
-        onClick={card.toggle}
+        onClick={menu.toggle}
       >
         <GameIcon program={game} className="wave-preset__glyph" />
         <span className="wave-preset__name">{game.name}</span>
         {liveDot}
+        <Chevron className="wave-preset__caret" />
       </button>
+      <span ref={setAnchor} className="wave-preset__anchor" aria-hidden />
 
-      {card.isOpen && (
-        <WavePresetCard
-          cardRef={card.cardRef}
-          glyph={
-            <GameIcon program={game} className="wave-preset-card__glyph" />
-          }
-          name={
-            <>
-              {game.name}
-              {liveDot}
-            </>
-          }
-          label={game.name}
-          line={t('wavePreset.gameOn', { game: game.name })}
-          actions={
-            <>
-              <button
-                type="button"
-                className="button small"
-                disabled={isBusy}
-                onClick={backToMusic}
-              >
-                {t('wavePreset.backToMusic')}
-              </button>
-              <button
-                type="button"
-                className="button small subtle"
-                onClick={() => {
-                  card.close();
-                  openGamingLab();
-                }}
-              >
-                {t('wavePreset.openLab')}
-              </button>
-            </>
-          }
-        >
-          {/* The curve the game's sound plays, named as its chip names it
-              ("Competitive"). */}
-          {preset && (
-            <div className="eq-preset-tab__stages wave-preset-card__stages">
-              <ul>
-                <li className="wave-preset-card__chip">
-                  <VoicingIcon
-                    profileId={preset.glyph}
-                    className="wave-preset-card__chip-glyph"
-                  />
-                  {preset.name}
-                </li>
-              </ul>
+      <WavePresetPanel
+        anchor={anchor}
+        isOpen={menu.isOpen}
+        arrive={menu.arrive}
+        close={menu.close}
+        header={
+          <>
+            <div className="wave-preset-head">
+              <GameIcon program={game} className="wave-preset-head__glyph" />
+              <strong className="wave-preset-head__name">
+                {game.name}
+                {liveDot}
+              </strong>
+              <span className="wave-preset-head__line">
+                {t('wavePreset.gameOn', { game: game.name })}
+              </span>
             </div>
-          )}
-        </WavePresetCard>
-      )}
+            {/* The curve the game's sound plays, named as its chip names it
+                ("Competitive"). */}
+            {preset && (
+              <div className="eq-preset-tab__stages wave-preset-head__stages">
+                <ul>
+                  <li className="wave-preset-head__chip">
+                    <VoicingIcon
+                      profileId={preset.glyph}
+                      className="wave-preset-head__chip-glyph"
+                    />
+                    {preset.name}
+                  </li>
+                </ul>
+              </div>
+            )}
+          </>
+        }
+        lead={
+          <>
+            <WavePresetRow
+              glyph={
+                <VoicingIcon
+                  profileId="music"
+                  className="wave-preset-menu__glyph"
+                />
+              }
+              name={t('wavePreset.backToMusic')}
+              hint={musicName}
+              isLoud
+              disabled={isBusy}
+              onPress={() => {
+                menu.close();
+                setIsBusy(true);
+                putMusicSoundBack()
+                  .catch((error: unknown) =>
+                    setGlobalError(error as ErrorDescription),
+                  )
+                  .finally(() => setIsBusy(false));
+              }}
+            />
+            <WavePresetRow
+              glyph={
+                <MenuIcon name="gamepad" className="wave-preset-menu__glyph" />
+              }
+              name={t('wavePreset.openLab')}
+              onPress={() => {
+                menu.close();
+                openGamingLab();
+              }}
+            />
+          </>
+        }
+      />
     </div>
   );
 };

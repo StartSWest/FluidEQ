@@ -12,10 +12,14 @@ export default {
     'Aucun préréglage en cours. Appuyez pour en choisir un',
   'wavePreset.gameLabel':
     '{game} joue son propre son. Appuyez pour voir ce que vous pouvez faire',
-  'wavePreset.change': 'Changer de préréglage',
-  'wavePreset.choose': 'Choisir un préréglage',
   'wavePreset.openLab': 'Ouvrir le Labo gaming',
   'wavePreset.backToMusic': 'Revenir au son musique',
   'wavePreset.gameOn': '{game} joue son propre son.',
   'wavePreset.yours': 'Un de vos propres préréglages',
+  'wavePreset.noneHint': 'Votre égaliseur seul',
+  'wavePreset.starHint':
+    'Ajoutez des préréglages en favori dans l’onglet Préréglage pour les retrouver ici.',
+  'wavePreset.openTab': 'Ouvrir l’onglet Préréglage',
+  'wavePreset.find': 'Trouver un favori',
+  'wavePreset.playingNow': 'En cours',
 };

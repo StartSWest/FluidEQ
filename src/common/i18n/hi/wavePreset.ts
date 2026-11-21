@@ -11,10 +11,14 @@ export default {
   'wavePreset.noneLabel': 'कोई प्रीसेट नहीं चल रहा। चुनने के लिए दबाएँ',
   'wavePreset.gameLabel':
     '{game} अपनी साउंड चला रहा है। विकल्प देखने के लिए दबाएँ',
-  'wavePreset.change': 'प्रीसेट बदलें',
-  'wavePreset.choose': 'प्रीसेट चुनें',
   'wavePreset.openLab': 'गेमिंग लैब खोलें',
   'wavePreset.backToMusic': 'संगीत वाली साउंड पर लौटें',
   'wavePreset.gameOn': '{game} अपनी साउंड चला रहा है।',
   'wavePreset.yours': 'आपका अपना प्रीसेट',
+  'wavePreset.noneHint': 'सिर्फ़ आपका EQ',
+  'wavePreset.starHint':
+    'प्रीसेट को यहाँ रखने के लिए प्रीसेट टैब में उन्हें स्टार करें।',
+  'wavePreset.openTab': 'प्रीसेट टैब खोलें',
+  'wavePreset.find': 'पसंदीदा खोजें',
+  'wavePreset.playingNow': 'अभी चल रहा है',
 };

@@ -11,10 +11,14 @@ export default {
   'wavePreset.noneLabel': 'Kein Preset aktiv. Drücken, um eines zu wählen',
   'wavePreset.gameLabel':
     '{game} spielt seinen eigenen Klang. Drücken für die Möglichkeiten',
-  'wavePreset.change': 'Preset wechseln',
-  'wavePreset.choose': 'Preset wählen',
   'wavePreset.openLab': 'Gaming-Labor öffnen',
   'wavePreset.backToMusic': 'Zurück zum Musikklang',
   'wavePreset.gameOn': '{game} spielt seinen eigenen Klang.',
   'wavePreset.yours': 'Eines Ihrer eigenen Presets',
+  'wavePreset.noneHint': 'Nur Ihr EQ',
+  'wavePreset.starHint':
+    'Markieren Sie Presets im Preset-Tab mit einem Stern, um sie hier zu behalten.',
+  'wavePreset.openTab': 'Preset-Tab öffnen',
+  'wavePreset.find': 'Favorit suchen',
+  'wavePreset.playingNow': 'Läuft gerade',
 };
