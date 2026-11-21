@@ -463,12 +463,6 @@ export const reconsiderSongSound = (): void =>
 export const forgetPlayingSongSound = (): void =>
   feedSongSound({ kind: 'forget' });
 
-/** This play only: the listener's own sound back, the memory kept. */
-export const undoSongSound = (): void => {
-  feedSongSound({ kind: 'undo' });
-  dismissSongSoundNotice();
-};
-
 /** Back to saved: the song's saved sound on again, the changes left. */
 export const revertSongSound = (): void => feedSongSound({ kind: 'revert' });
 
