@@ -89,6 +89,7 @@ using fluideq_engine::setup::is_valid_endpoint_guid;
 using fluideq_engine::setup::json_escape;
 using fluideq_engine::setup::kCommandTries;
 using fluideq_engine::setup::kEngineClsid;
+using fluideq_engine::setup::list_capture_endpoints;
 using fluideq_engine::setup::list_render_endpoints;
 using fluideq_engine::setup::path_exists;
 using fluideq_engine::setup::read_fx_values;
@@ -118,10 +119,10 @@ const char kUsage[] =
     "FluidEQ-Engine-Setup <command> [options]\n"
     "\n"
     "  install [--attach-all] [--restart-audio]\n"
-    "  attach <output-id>... [--slot "
+    "  attach <endpoint-id>... [--slot "
     "efx|mfx|sfx|efx-single|mfx-single|sfx-single|gfx|lfx] "
     "[--restart-audio]\n"
-    "  detach <output-id>... [--restart-audio]\n"
+    "  detach <endpoint-id>... [--restart-audio]\n"
     "  uninstall [--purge]\n"
     "  suspend-apo [--restart-audio]\n"
     "  restore-apo [--restart-audio]\n"
@@ -129,8 +130,10 @@ const char kUsage[] =
     "  status\n"
     "  settle\n"
     "\n"
-    "An output id looks like {00000000-0000-0000-0000-000000000000} and is\n"
-    "listed by the status command. status and settle (which waits until\n"
+    "An endpoint id names an output or a microphone, looks like\n"
+    "{00000000-0000-0000-0000-000000000000} and is listed by the status\n"
+    "command, microphones apart under \"microphones\" (gfx is never created\n"
+    "on a microphone). status and settle (which waits until\n"
     "Windows audio has finished starting or stopping) never ask for\n"
     "administrator rights. Every other command is tried up to three times,\n"
     "waiting for Windows audio to settle between tries.\n"
@@ -301,6 +304,79 @@ std::wstring registered_class_name(const std::wstring& clsid) {
   return name;
 }
 
+/**
+ * One endpoint as the status document lists it: an output, or a
+ * microphone under `microphones`, in the same shape.
+ */
+std::wstring endpoint_json(const Endpoint& endpoint) {
+  std::wstring out;
+  FxValues values;
+  std::wstring unreadable;
+  const bool attached =
+      read_fx_values(endpoint.guid, values, unreadable) &&
+      is_attached(values, kEngineClsid);
+  out += L"{\"guid\":\"";
+  out += json_escape(endpoint.guid);
+  out += L"\",\"name\":\"";
+  out += json_escape(endpoint.name);
+  out += L"\",\"attached\":";
+  out += attached ? L"true" : L"false";
+  out += L",\"backupExists\":";
+  out += backup_exists(endpoint.guid) ? L"true" : L"false";
+  // Which slot it sits in, because that is the one thing the app can
+  // change about an output where the engine is attached and never loaded:
+  // a driver that creates no endpoint effect still creates a mode effect.
+  const std::optional<Slot> slot = slot_of(values, kEngineClsid);
+  out += L",\"slot\":";
+  out += slot.has_value() ? L"\"" + std::wstring(slot_name(*slot)) + L"\""
+                          : L"null";
+  // Whether that slot lacks the processing modes value Windows needs to
+  // reach it, which an attach into the same slot writes (`mode_missing`).
+  out += L",\"modeMissing\":";
+  out += mode_missing(values, kEngineClsid) ? L"true" : L"false";
+  // And every slot this output has already been put in, oldest first. The
+  // ladder walks newest to oldest, so where the engine is now says only
+  // how far down it got — not which rungs were tried, which is a different
+  // question the moment a rung is added to the middle of the ladder. An
+  // endpoint that had already reached the bottom would otherwise never be
+  // offered the new one.
+  out += L",\"slotsTried\":[";
+  const std::vector<Slot> tried = remembered_slots(endpoint.guid);
+  for (size_t step = 0; step < tried.size(); ++step) {
+    if (step != 0) {
+      out += L',';
+    }
+    out += L'"';
+    out += slot_name(tried[step]);
+    out += L'"';
+  }
+  out += L']';
+  // And which rungs somebody else's effect holds (`held_slots`), so the
+  // app steps past them instead of spending a Windows prompt on a refusal.
+  out += L",\"slotsHeld\":[";
+  const std::vector<Slot> held = held_slots(
+      values, load_backup(endpoint.guid).value_or(values), kEngineClsid);
+  for (size_t step = 0; step < held.size(); ++step) {
+    if (step != 0) {
+      out += L',';
+    }
+    out += L'"';
+    out += slot_name(held[step]);
+    out += L'"';
+  }
+  out += L']';
+  // Everything in the output's effect slots, named, and how many are
+  // free: "attached" is one bit about a structure a sound card's own
+  // effects can fill, and which slot this engine sits in — and beside
+  // whom — is the question on a machine where it is attached and never
+  // heard. Read again here rather than reused: a read that failed above
+  // reported "not attached", and this says what it could see.
+  out += L',';
+  out += describe_slots(values, registered_class_name);
+  out += L'}';
+  return out;
+}
+
 int print_status() {
   std::vector<Endpoint> endpoints;
   // Enumerated before anything is printed. An empty output list and an audio
@@ -362,72 +438,28 @@ int print_status() {
     if (at != 0) {
       out += L',';
     }
-    FxValues values;
-    std::wstring unreadable;
-    const bool attached =
-        read_fx_values(endpoints[at].guid, values, unreadable) &&
-        is_attached(values, kEngineClsid);
-    out += L"{\"guid\":\"";
-    out += json_escape(endpoints[at].guid);
-    out += L"\",\"name\":\"";
-    out += json_escape(endpoints[at].name);
-    out += L"\",\"attached\":";
-    out += attached ? L"true" : L"false";
-    out += L",\"backupExists\":";
-    out += backup_exists(endpoints[at].guid) ? L"true" : L"false";
-    // Which slot it sits in, because that is the one thing the app can
-    // change about an output where the engine is attached and never loaded:
-    // a driver that creates no endpoint effect still creates a mode effect.
-    const std::optional<Slot> slot = slot_of(values, kEngineClsid);
-    out += L",\"slot\":";
-    out += slot.has_value() ? L"\"" + std::wstring(slot_name(*slot)) + L"\""
-                            : L"null";
-    // Whether that slot lacks the processing modes value Windows needs to
-    // reach it, which an attach into the same slot writes (`mode_missing`).
-    out += L",\"modeMissing\":";
-    out += mode_missing(values, kEngineClsid) ? L"true" : L"false";
-    // And every slot this output has already been put in, oldest first. The
-    // ladder walks newest to oldest, so where the engine is now says only
-    // how far down it got — not which rungs were tried, which is a different
-    // question the moment a rung is added to the middle of the ladder. An
-    // endpoint that had already reached the bottom would otherwise never be
-    // offered the new one.
-    out += L",\"slotsTried\":[";
-    const std::vector<Slot> tried = remembered_slots(endpoints[at].guid);
-    for (size_t step = 0; step < tried.size(); ++step) {
-      if (step != 0) {
-        out += L',';
-      }
-      out += L'"';
-      out += slot_name(tried[step]);
-      out += L'"';
-    }
-    out += L']';
-    // And which rungs somebody else's effect holds (`held_slots`), so the
-    // app steps past them instead of spending a Windows prompt on a refusal.
-    out += L",\"slotsHeld\":[";
-    const std::vector<Slot> held = held_slots(
-        values, load_backup(endpoints[at].guid).value_or(values), kEngineClsid);
-    for (size_t step = 0; step < held.size(); ++step) {
-      if (step != 0) {
-        out += L',';
-      }
-      out += L'"';
-      out += slot_name(held[step]);
-      out += L'"';
-    }
-    out += L']';
-    // Everything in the output's effect slots, named, and how many are
-    // free: "attached" is one bit about a structure a sound card's own
-    // effects can fill, and which slot this engine sits in — and beside
-    // whom — is the question on a machine where it is attached and never
-    // heard. Read again here rather than reused: a read that failed above
-    // reported "not attached", and this says what it could see.
-    out += L',';
-    out += describe_slots(values, registered_class_name);
-    out += L'}';
+    out += endpoint_json(endpoints[at]);
   }
-  out += L"]}";
+  out += L']';
+  // The microphones, in a list of their own so nothing that reads
+  // `endpoints` as the outputs ever mistakes one for an output. Asked once,
+  // after the outputs answered: a list that fails here is reported beside an
+  // empty one and costs the outputs nothing.
+  std::vector<Endpoint> microphones;
+  std::wstring microphones_error;
+  list_capture_endpoints(microphones, microphones_error);
+  out += L",\"microphones\":[";
+  for (size_t at = 0; at < microphones.size(); ++at) {
+    if (at != 0) {
+      out += L',';
+    }
+    out += endpoint_json(microphones[at]);
+  }
+  out += L']';
+  if (!microphones_error.empty()) {
+    out += L",\"microphonesError\":\"" + json_escape(microphones_error) + L"\"";
+  }
+  out += L'}';
   print_json(out);
   return 0;
 }

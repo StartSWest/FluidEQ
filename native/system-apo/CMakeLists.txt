@@ -312,8 +312,15 @@ add_test(NAME engine-repro
 add_library(fluideq-engine-setup-core STATIC
   setup/fx_list.cpp setup/fx_modes.cpp setup/json.cpp setup/multi_sz.cpp
   setup/attach_outcome.cpp setup/com_paths.cpp setup/service_restart.cpp
-  setup/retry.cpp setup/slot_report.cpp)
+  setup/retry.cpp setup/slot_report.cpp setup/capture_slots.cpp)
 target_link_libraries(fluideq-engine-setup-core PRIVATE feq_strict)
+
+# Where the engine may go on a microphone: GFX is never created on one, and a
+# legacy-only mic reads its effect from LFX.
+add_executable(fluideq-engine-capture-slots-test tests/capture_slots_test.cpp)
+target_link_libraries(fluideq-engine-capture-slots-test
+  PRIVATE fluideq-engine-setup-core feq_strict)
+add_test(NAME engine-capture-slots COMMAND fluideq-engine-capture-slots-test)
 
 # How often a failed engine command is tried, and that each try after the
 # first waits for Windows audio to settle rather than for a clock.

@@ -5,7 +5,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The outputs the machine currently has, as the audio stack sees them.
+ * The outputs and microphones the machine currently has, as the audio stack
+ * sees them.
  *
  * The registry under `MMDevices\Audio\Render` remembers every endpoint the
  * machine has ever had, including the headset unplugged two years ago. Asking
@@ -34,6 +35,15 @@ struct Endpoint {
  * attaching to one writes a key the user cannot see the effect of.
  */
 bool list_render_endpoints(std::vector<Endpoint>& out, std::wstring& error);
+
+/**
+ * Every active capture endpoint — the microphones. Same rules as above.
+ *
+ * Listed apart from the outputs, never with them: `--attach-all` and the
+ * Equalizer APO switch walk outputs only, and a microphone gets the engine
+ * only when somebody picks that microphone.
+ */
+bool list_capture_endpoints(std::vector<Endpoint>& out, std::wstring& error);
 
 }  // namespace fluideq_engine::setup
 

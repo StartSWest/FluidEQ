@@ -22,6 +22,8 @@ namespace {
 
 const wchar_t kRenderPath[] =
     L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\MMDevices\\Audio\\Render";
+const wchar_t kCapturePath[] =
+    L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\MMDevices\\Audio\\Capture";
 
 /** The FX property set, whose members are the effect values themselves. */
 const wchar_t kFxProperty[] = L"{d04e05a6-594b-4fb6-a80d-01af5eed7d1d}";
@@ -158,8 +160,24 @@ LSTATUS apply_single(HKEY key, const std::wstring& name,
   return set_string(key, name.c_str(), *value);
 }
 
+bool key_exists(const std::wstring& path) {
+  RegKey key;
+  return open_read(path, key) == ERROR_SUCCESS;
+}
+
+/**
+ * The endpoint's key: under `Render` for an output, under `Capture` for a
+ * microphone. An endpoint id names one device whichever way it flows, so
+ * looking in both is never ambiguous; an id in neither stays under `Render`,
+ * where every caller refused it before microphones existed.
+ */
 std::wstring endpoint_path(const std::wstring& guid) {
-  return std::wstring(kRenderPath) + L"\\" + guid;
+  const std::wstring render = std::wstring(kRenderPath) + L"\\" + guid;
+  if (key_exists(render)) {
+    return render;
+  }
+  const std::wstring capture = std::wstring(kCapturePath) + L"\\" + guid;
+  return key_exists(capture) ? capture : render;
 }
 
 std::wstring fx_path(const std::wstring& guid) {
@@ -204,8 +222,13 @@ bool endpoint_key_exists(const std::wstring& guid) {
   if (!is_valid_endpoint_guid(guid)) {
     return false;
   }
-  RegKey key;
-  return open_read(endpoint_path(guid), key) == ERROR_SUCCESS;
+  return key_exists(endpoint_path(guid));
+}
+
+bool endpoint_is_capture(const std::wstring& guid) {
+  return is_valid_endpoint_guid(guid) &&
+         !key_exists(std::wstring(kRenderPath) + L"\\" + guid) &&
+         key_exists(std::wstring(kCapturePath) + L"\\" + guid);
 }
 
 bool endpoint_is_combined(const std::wstring& guid) {

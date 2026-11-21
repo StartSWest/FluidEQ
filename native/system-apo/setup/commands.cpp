@@ -18,6 +18,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "acl.h"
 #include "backup.h"
+#include "capture_slots.h"
 #include "com_registration.h"
 #include "digest.h"
 #include "endpoints.h"
@@ -57,7 +58,9 @@ Slot slot_for(const std::wstring& guid, const FxValues& original) {
   if (learned.has_value()) {
     return *learned;
   }
-  return default_slot_for(original, endpoint_is_combined(guid));
+  const bool combined = endpoint_is_combined(guid);
+  return endpoint_is_capture(guid) ? default_capture_slot_for(original, combined)
+                                   : default_slot_for(original, combined);
 }
 
 /**
@@ -76,6 +79,15 @@ Slot slot_for(const std::wstring& guid, const FxValues& original) {
  */
 bool attach_one(const std::wstring& guid, std::optional<Slot> named,
                 bool& attached, std::wstring& error) {
+  // Refused before anything is read or recorded: an engine registered as a
+  // post-mix effect on a microphone reports attached and is never once
+  // created. Only a named slot can be one; the defaults never are.
+  if (named.has_value() && !slot_exists_on_capture(*named) &&
+      endpoint_is_capture(guid)) {
+    error = std::wstring(slot_name(*named)) + L" is never created on a "
+            L"microphone, so nothing was changed on " + guid;
+    return false;
+  }
   FxValues before;
   if (!read_fx_values(guid, before, error)) {
     return false;
@@ -195,7 +207,7 @@ void attach_each(const std::vector<std::wstring>& guids,
                  CommandResult& result) {
   for (const std::wstring& guid : guids) {
     if (!endpoint_key_exists(guid)) {
-      fail(result, L"there is no output with the id " + guid);
+      fail(result, L"there is no output or microphone with the id " + guid);
       return;
     }
     EndpointResult one;
@@ -227,7 +239,7 @@ void attach_all_endpoints(const std::vector<std::wstring>& guids,
     EndpointResult one;
     one.guid = guid;
     if (!endpoint_key_exists(guid)) {
-      one.error = L"there is no output with the id " + guid;
+      one.error = L"there is no output or microphone with the id " + guid;
     } else if (!attach_one(guid, slot, one.attached, one.error)) {
       if (one.error.empty()) {
         one.error = L"the output could not be attached";
@@ -513,9 +525,17 @@ void run_uninstall(const Options& options, CommandResult& result) {
   std::vector<std::wstring> guids = endpoints_with_backups();
   // Also whatever is attached without a backup — a backup file deleted by
   // hand must not leave an effect nobody can take off again.
+  // Microphones too: the engine goes on one only when somebody picks it, and
+  // an uninstall that left it there would leave a mic processed by a program
+  // that is gone.
   std::vector<Endpoint> active;
+  std::vector<Endpoint> microphones;
   std::wstring listed;
-  if (list_render_endpoints(active, listed)) {
+  const bool outputs_listed = list_render_endpoints(active, listed);
+  if (list_capture_endpoints(microphones, listed)) {
+    active.insert(active.end(), microphones.begin(), microphones.end());
+  }
+  if (outputs_listed || !microphones.empty()) {
     for (const Endpoint& endpoint : active) {
       FxValues values;
       std::wstring ignored;

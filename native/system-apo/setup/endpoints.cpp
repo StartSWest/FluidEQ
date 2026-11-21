@@ -104,9 +104,12 @@ std::wstring friendly_name(IMMDevice* device) {
   return name;
 }
 
-}  // namespace
-
-bool list_render_endpoints(std::vector<Endpoint>& out, std::wstring& error) {
+/**
+ * Every active endpoint flowing one way. `plural` names them in the errors,
+ * which reach the app log and a bug report as they are.
+ */
+bool list_active(EDataFlow flow, const wchar_t* plural,
+                 std::vector<Endpoint>& out, std::wstring& error) {
   out.clear();
   ComPtr<IMMDeviceEnumerator> enumerator;
   HRESULT made = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr,
@@ -121,17 +124,19 @@ bool list_render_endpoints(std::vector<Endpoint>& out, std::wstring& error) {
   }
 
   ComPtr<IMMDeviceCollection> devices;
-  made = enumerator.get()->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE,
+  made = enumerator.get()->EnumAudioEndpoints(flow, DEVICE_STATE_ACTIVE,
                                               devices.receive());
   if (FAILED(made) || devices.get() == nullptr) {
-    error = L"could not list the outputs: " + describe_hresult(made);
+    error = L"could not list the " + std::wstring(plural) + L": " +
+            describe_hresult(made);
     return false;
   }
 
   UINT count = 0;
   const HRESULT counted = devices.get()->GetCount(&count);
   if (FAILED(counted)) {
-    error = L"could not count the outputs: " + describe_hresult(counted);
+    error = L"could not count the " + std::wstring(plural) + L": " +
+            describe_hresult(counted);
     return false;
   }
   for (UINT at = 0; at < count; ++at) {
@@ -154,6 +159,16 @@ bool list_render_endpoints(std::vector<Endpoint>& out, std::wstring& error) {
     out.push_back(std::move(endpoint));
   }
   return true;
+}
+
+}  // namespace
+
+bool list_render_endpoints(std::vector<Endpoint>& out, std::wstring& error) {
+  return list_active(eRender, L"outputs", out, error);
+}
+
+bool list_capture_endpoints(std::vector<Endpoint>& out, std::wstring& error) {
+  return list_active(eCapture, L"microphones", out, error);
 }
 
 }  // namespace fluideq_engine::setup

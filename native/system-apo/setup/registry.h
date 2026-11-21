@@ -5,8 +5,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The per-output effect lists: reading one endpoint's `FxProperties` and
- * writing back only what changed.
+ * The per-endpoint effect lists: reading one output's or microphone's
+ * `FxProperties` and writing back only what changed.
  *
  * These values belong to whoever wrote the audio driver, not to FluidEQ, and
  * every one of them has to come back exactly as found. The registration of
@@ -35,8 +35,11 @@ namespace fluideq_engine::setup {
  */
 bool is_valid_endpoint_guid(std::wstring_view guid);
 
-/** Whether the audio stack knows about a render endpoint with this guid. */
+/** Whether the audio stack knows an output or a microphone with this guid. */
 bool endpoint_key_exists(const std::wstring& guid);
+
+/** Whether this guid is a microphone (a capture endpoint), not an output. */
+bool endpoint_is_capture(const std::wstring& guid);
 
 /**
  * Whether Windows 11 has folded this endpoint together with another — the
