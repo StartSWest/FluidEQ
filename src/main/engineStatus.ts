@@ -36,6 +36,7 @@ import {
   IAudioEngineStatus,
   IEndpointEffect,
   IFluidEngineEndpoint,
+  IFluidEngineMicrophone,
   IFluidEngineStatus,
   TAudioEngine,
   TEngineSlotName,
@@ -217,12 +218,39 @@ const parseStatusEndpoints = (value: unknown): IFluidEngineEndpoint[] =>
       })
     : [];
 
+/**
+ * The helper's microphones: the same entries as the outputs, each with the
+ * name the outputs get from the device list instead. One without a name is
+ * still a microphone and is shown by its id.
+ */
+const parseStatusMicrophones = (value: unknown): IFluidEngineMicrophone[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const names = new Map<string, string>(
+    value.flatMap((entry: unknown): [string, string][] => {
+      if (typeof entry !== 'object' || entry === null) {
+        return [];
+      }
+      const { guid, name } = entry as Record<string, unknown>;
+      return typeof guid === 'string' && typeof name === 'string'
+        ? [[guid, name]]
+        : [];
+    }),
+  );
+  return parseStatusEndpoints(value).map((endpoint) => ({
+    ...endpoint,
+    name: names.get(endpoint.guid) ?? '',
+  }));
+};
+
 interface IRawStatus {
   installed?: unknown;
   dllPath?: unknown;
   dllVersion?: unknown;
   configDir?: unknown;
   endpoints?: unknown;
+  microphones?: unknown;
   error?: unknown;
   unsignedAllowed?: unknown;
   runtimeBeside?: unknown;
@@ -282,6 +310,10 @@ export const parseFluidEngineStatus = (stdout: string): IFluidEngineStatus => {
   }
   if (typeof raw.serviceCanWrite === 'boolean') {
     status.serviceCanWrite = raw.serviceCanWrite;
+  }
+  // Only from a helper that lists them: none at all is not "no mics".
+  if (Array.isArray(raw.microphones)) {
+    status.microphones = parseStatusMicrophones(raw.microphones);
   }
   return status;
 };

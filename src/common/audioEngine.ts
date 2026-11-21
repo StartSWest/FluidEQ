@@ -190,6 +190,17 @@ export interface IFluidEngineStatus {
    * never created.
    */
   serviceCanWrite?: boolean;
+  /**
+   * The microphones, apart from the outputs (`status`'s `microphones` list):
+   * nothing that reads `endpoints` as the outputs may meet one. Absent from a
+   * helper older than mic support.
+   */
+  microphones?: IFluidEngineMicrophone[];
+}
+
+/** A microphone as the setup helper reports it: an endpoint with a name. */
+export interface IFluidEngineMicrophone extends IFluidEngineEndpoint {
+  name: string;
 }
 
 export interface IAudioEngineStatus {
