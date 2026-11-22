@@ -18,9 +18,9 @@ import {
   micProfileGroup,
   micProfileSettings,
   micRackDelayMs,
-} from '../../../common/dsp/micProfiles';
+} from '../../../common/mic/micProfiles';
 import { dynamicsPresetSettings } from '../../../common/dsp/dynamicsPresets';
-import micProfilesFixture from '../../../common/dsp/micProfilesFixture';
+import micProfilesFixture from '../../../common/mic/micProfilesFixture';
 import { clampMicSettings } from '../../../common/micSound';
 import en from '../../../common/i18n/en';
 

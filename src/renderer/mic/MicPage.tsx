@@ -21,7 +21,7 @@ import {
   MIC_PROFILE_IDS,
   micRackDelayMs,
   TMicProfileId,
-} from '../../common/dsp/micProfiles';
+} from '../../common/mic/micProfiles';
 import type { TranslationKey } from '../../common/i18n';
 import DspStageCards from '../dsp/DspStageCards';
 import { IRoomLive } from '../dsp/useRoomLive';

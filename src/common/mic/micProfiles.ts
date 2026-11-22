@@ -22,13 +22,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * measured on recorded voices before they are called finished.
  */
 
-import { DSP_DEFAULTS } from './chainDefaults';
-import type { IDspSettings, IEqBandSettings } from './chainSettings';
-import { MAXIMIZER_MIN_LOOK_AHEAD_MS } from './chainStageSettings';
-import { deEsserPresetSettings, TDeEsserPresetId } from './deEsserPresets';
-import { dynamicsPresetSettings, TDynamicsPresetId } from './dynamicsPresets';
-import type { IDynamicsBand } from './dynamicsStage';
-import { IVoiceSettings, VOICE_DEFAULTS } from './voiceStage';
+import { DSP_DEFAULTS } from '../dsp/chainDefaults';
+import type { IDspSettings, IEqBandSettings } from '../dsp/chainSettings';
+import { MAXIMIZER_MIN_LOOK_AHEAD_MS } from '../dsp/chainStageSettings';
+import { deEsserPresetSettings, TDeEsserPresetId } from '../dsp/deEsserPresets';
+import {
+  dynamicsPresetSettings,
+  TDynamicsPresetId,
+} from '../dsp/dynamicsPresets';
+import type { IDynamicsBand } from '../dsp/dynamicsStage';
+import { IVoiceSettings, VOICE_DEFAULTS } from '../dsp/voiceStage';
 
 export const MIC_PROFILE_GROUPS = ['use', 'mic'] as const;
 export type TMicProfileGroup = (typeof MIC_PROFILE_GROUPS)[number];

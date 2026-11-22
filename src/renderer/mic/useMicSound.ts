@@ -21,7 +21,7 @@ import {
   isMicProfileId,
   micProfileSettings,
   TMicProfileId,
-} from '../../common/dsp/micProfiles';
+} from '../../common/mic/micProfiles';
 import {
   clampMicSettings,
   EMPTY_MIC_SOUND,

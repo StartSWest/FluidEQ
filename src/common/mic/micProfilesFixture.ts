@@ -12,7 +12,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * encoder's (`encodeChainSettings`), so `mic_profiles_test.cpp` measures the
  * racks a mic is actually given.
  */
-import { encodeChainSettings } from './chainWire';
+import { encodeChainSettings } from '../dsp/chainWire';
 import { MIC_PROFILE_IDS, micProfileSettings } from './micProfiles';
 
 /** The ceiling each profile's limiter is set to, beside its line. */

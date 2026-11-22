@@ -17,7 +17,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { renameSync, writeFileSync } from 'fs';
 import path from 'path';
-import micProfilesFixture from '../../src/common/dsp/micProfilesFixture';
+import micProfilesFixture from '../../src/common/mic/micProfilesFixture';
 
 const out = path.resolve(
   process.cwd(),
