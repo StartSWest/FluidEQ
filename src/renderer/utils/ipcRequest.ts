@@ -58,6 +58,7 @@ import type {
 // Type only, so the renderer bundle never pulls `child_process` in behind the
 // engine setup helper's module.
 import type { IEngineSetupResult } from 'main/engineSetup';
+import type { IMicSoundFile } from 'common/micSound';
 
 /**
  * One request to the main process, and how it is allowed to fail.
@@ -257,6 +258,7 @@ export const buildResponseHandler = <
     | IGameCopySound
     | IYoursGamingProfile
     | IYoursGamingProfile[]
+    | IMicSoundFile
     | Record<string, string>,
 >(
   resultEvaluator: (

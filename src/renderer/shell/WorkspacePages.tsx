@@ -35,6 +35,7 @@ import {
   ConvolutionPage,
   ForumPage,
   GamesPage,
+  MicPage,
   PlusPage,
   PresetsPage,
   SharePage,
@@ -209,6 +210,21 @@ const WorkspacePages = ({
         <div className="workspace-tab-panel__scroll">
           <Suspense fallback={null}>
             <GamesPage.Page />
+          </Suspense>
+        </div>
+      </div>
+    )}
+    {/* Each microphone's own sound, beside Share Audio: the two places
+      about what other people hear (Ivan, 2026-11-20). Not inert with the
+      equaliser off: a mic's sound is its own. */}
+    {activeTab === 'mic' && (
+      <div
+        key={activeTab}
+        className="workspace-tab-panel workspace-tab-panel--mic"
+      >
+        <div className="workspace-tab-panel__scroll">
+          <Suspense fallback={null}>
+            <MicPage.Page />
           </Suspense>
         </div>
       </div>

@@ -40,6 +40,9 @@ export const ConvolutionPage = lazyPage(
 export const GamesPage = lazyPage(
   () => import(/* webpackChunkName: "page-games" */ './games/GamingLab'),
 );
+export const MicPage = lazyPage(
+  () => import(/* webpackChunkName: "page-mic" */ './mic/MicPage'),
+);
 export const ConfigPage = lazyPage(
   () =>
     import(
@@ -91,6 +94,7 @@ const PAGE_OF_TAB: Partial<Record<TWorkspaceTab, IPreloadable>> = {
   presets: PresetsPage,
   convolution: ConvolutionPage,
   games: GamesPage,
+  mic: MicPage,
   config: ConfigPage,
   dsp: DspPanelPage,
   share: SharePage,

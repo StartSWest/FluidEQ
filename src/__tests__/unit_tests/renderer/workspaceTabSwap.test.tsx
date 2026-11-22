@@ -54,7 +54,7 @@ it('places Visualizers on the left and Online Media on the right with their orig
   );
   expect(
     screen.getAllByRole('tab').map((tab) => tab.getAttribute('aria-label')),
-  ).toEqual(['Scenes', 'Share Audio', 'Gaming Lab', 'EQ']);
+  ).toEqual(['Scenes', 'Share Audio', 'Mic', 'Gaming Lab', 'EQ']);
   fireEvent.click(screen.getByRole('tab', { name: 'Scenes' }));
   fireEvent.pointerEnter(screen.getByRole('tab', { name: 'Scenes' }));
   expect(select).toHaveBeenCalledWith('community');

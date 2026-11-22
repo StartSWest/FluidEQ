@@ -1,0 +1,290 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// THE MIC TAB (Ivan, 2026-11-20): one card laid out as the Gaming Lab and the
+// DSP page are — flat, parted by air and one hairline, no box inside a box,
+// no shadow. The header says three things in one row (which mic and whether
+// it is live, the voice picture, the profile); under it the stages on the
+// DSP page's own rail and cards (`_dspStudio.scss` names `.mic-page` with
+// the other two). Only the standard breakpoints, and rows wrap first.
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+
+// *** The frame *************************************************************
+
+.workspace-tab-panel--mic:has(> .workspace-tab-panel__scroll > .mic-page) {
+  padding: 0;
+
+  > .workspace-tab-panel__scroll {
+    padding: 0;
+    overflow: hidden;
+    scrollbar-gutter: auto;
+  }
+}
+
+.mic-page {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  container: mic-page / inline-size;
+}
+
+// *** The header ************************************************************
+
+.mic-head {
+  display: grid;
+  align-items: center;
+  gap: 10px 22px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid $studio-hair;
+}
+
+.mic-head__who {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+// Under the mic's name: live in every app and the delay it adds, or why not.
+.mic-head__live {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+  color: $text-muted;
+  font-size: $studio-text-label;
+  @include truncate;
+}
+
+.mic-head__lamp {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: $text-faint;
+  opacity: 0.6;
+
+  .mic-head__live.is-live & {
+    background: var(--active);
+    opacity: 1;
+  }
+}
+
+.mic-head__sound {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+// "tuned" in the colour every tuned thing in the app wears.
+.mic-head__tuned {
+  margin-left: 6px;
+  color: $ink-tuned;
+  font-size: $studio-text-label;
+  font-weight: $weight-semibold;
+  @include tracking(0.04em);
+}
+
+// *** The voice picture *****************************************************
+
+.mic-picture {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.mic-picture__canvas {
+  display: block;
+  width: 100%;
+  height: 54px;
+}
+
+.mic-picture__key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  color: $text-faint;
+  font-size: $studio-text-label;
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+}
+
+.mic-picture__swatch {
+  display: inline-block;
+  width: 10px;
+  height: 3px;
+  border-radius: 2px;
+
+  &.is-raw {
+    background: $text-faint;
+    opacity: 0.6;
+  }
+
+  &.is-heard {
+    background: var(--accent);
+  }
+
+  &.is-gate {
+    background: repeating-linear-gradient(
+      90deg,
+      var(--dsp-contrast) 0 3px,
+      transparent 3px 5px
+    );
+  }
+}
+
+// *** The notice ************************************************************
+
+// A step of light, not a box: the engine not yet on this mic, or not chosen.
+.mic-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin: 12px 16px 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: color-mix(in srgb, $edge-tint 6%, transparent);
+}
+
+.mic-notice__text {
+  display: grid;
+  flex: 1 1 280px;
+  gap: 2px;
+  margin: 0;
+
+  > span {
+    color: $text-muted;
+  }
+}
+
+// *** The stages ************************************************************
+
+.mic-body {
+  @include slim-scrollbar;
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  align-items: start;
+  gap: 24px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 14px 16px 16px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.mic-rail {
+  display: flex;
+  width: 212px;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.mic-rail .dsp-rail-name {
+  line-height: inherit;
+  @include truncate;
+}
+
+.mic-stage {
+  min-width: 0;
+}
+
+// *** No microphone *********************************************************
+
+.mic-page--empty {
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+.mic-empty {
+  display: grid;
+  max-width: 420px;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.mic-empty__icon {
+  width: 40px;
+  height: 40px;
+  color: $text-faint;
+}
+
+.mic-empty__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: $weight-semibold;
+}
+
+.mic-empty__body {
+  margin: 0;
+  color: $text-muted;
+}
+
+// *** Narrower cards ********************************************************
+
+// The picture takes a row of its own under the mic and the profile.
+@container mic-page (max-width: #{$bp-lg}) {
+  .mic-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .mic-picture {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+// The rail folds to its glyphs, down the side as the Gaming Lab's does,
+// each row keeping its name as its tooltip and its lamp on the glyph.
+@container mic-page (max-width: #{$bp-md}) {
+  .mic-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mic-head__sound {
+    justify-content: flex-start;
+  }
+
+  .mic-body {
+    gap: 14px;
+  }
+
+  .mic-rail {
+    width: 36px;
+  }
+
+  .mic-rail .dsp-rail-name {
+    display: none;
+  }
+
+  .mic-rail .dsp-rail-tab {
+    position: relative;
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  .mic-rail .dsp-rail-lamp {
+    position: absolute;
+    top: 5px;
+    left: 24px;
+    margin: 0;
+  }
+}

@@ -113,6 +113,7 @@ export const WorkspaceTabsLeft = ({
   const { t } = useTranslation();
   const isShareTab = activeTab === 'share';
   const isGamesTab = activeTab === 'games';
+  const isMicTab = activeTab === 'mic';
   const sounding = useSoundingGame();
   return (
     <WorkspaceTabStrip label={t('tabs.aria')}>
@@ -133,6 +134,21 @@ export const WorkspaceTabsLeft = ({
       >
         <MenuIcon name="waveform" />
         <span className="workspace-tab__label">{t('tabs.share')}</span>
+      </button>
+      {/* Beside Share Audio, the other place about what others hear of
+          you; its own glyph, since Karaoke already wears the microphone. */}
+      <button
+        type="button"
+        role="tab"
+        aria-selected={isMicTab}
+        aria-label={t('mic.tab')}
+        className={`workspace-tab${isMicTab ? ' is-active' : ''}`}
+        onClick={() => onSelect('mic')}
+        onPointerEnter={() => onApproach('mic')}
+        onFocus={() => onApproach('mic')}
+      >
+        <MenuIcon name="microphoneSettings" />
+        <span className="workspace-tab__label">{t('mic.tab')}</span>
       </button>
       {/* Beside the equaliser, which it stands in for while a game plays:
           a game's whole sound is tuned here (Ivan, 2026-11-02: "put it to the

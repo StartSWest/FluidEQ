@@ -37,6 +37,7 @@ import ownPresets from './ownPresets';
 import presetShare from './presetShare';
 import wavePreset from './wavePreset';
 import gaming from './gaming';
+import mic from './mic';
 import remoteAudio from './remoteAudio';
 import tour from './tour';
 import tour24 from './tour24';
@@ -99,6 +100,7 @@ const de: Partial<Dictionary> = {
   ...presetShare,
   ...wavePreset,
   ...gaming,
+  ...mic,
   ...remoteAudio,
   ...tour,
   ...tour24,

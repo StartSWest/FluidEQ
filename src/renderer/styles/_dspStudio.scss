@@ -14,7 +14,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 //
 // Everything here is said through `.dsp-studio`, the DSP page's root. The
 // same stages are drawn on the Gaming Lab (`.gaming-lab`, laid out the same
-// way on 2026-11-19), so the rules for a stage's rows and boxes name both;
+// way on 2026-11-19) and on the Mic tab (`.mic-page`, 2026-11-20), so the
+// rules for a stage's rows and boxes name all three;
 // the frame and the header are the DSP page's alone. Help's DSP figures keep
 // their own frames: a rule written on the bare class would redraw them too.
 
@@ -150,7 +151,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-:is(.dsp-studio, .gaming-lab) .dsp-rail-tab {
+:is(.dsp-studio, .gaming-lab, .mic-page) .dsp-rail-tab {
   // Every button's line, which the Library's shelves keep.
   line-height: 1.15;
   translate: none;
@@ -208,7 +209,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 // The glyph alone, as the Library's shelves draw theirs: no frame round it.
-:is(.dsp-studio, .gaming-lab) .dsp-section-icon {
+:is(.dsp-studio, .gaming-lab, .mic-page) .dsp-section-icon {
   width: 18px;
   height: 18px;
   padding: 0;
@@ -220,7 +221,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // The processor's own on/off, at the row's end where the Library keeps its
 // counts: lit while it is on, and nothing while it is off, so the rail reads
 // as the stages that are doing something rather than as a column of dots.
-:is(.dsp-studio, .gaming-lab) .dsp-rail-lamp {
+:is(.dsp-studio, .gaming-lab, .mic-page) .dsp-rail-lamp {
   width: 6px;
   height: 6px;
   margin-left: auto;
@@ -239,7 +240,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-:is(.dsp-studio, .gaming-lab) .dsp-rail-tab.is-on .dsp-rail-lamp {
+:is(.dsp-studio, .gaming-lab, .mic-page) .dsp-rail-tab.is-on .dsp-rail-lamp {
   background: $active;
 }
 
@@ -256,7 +257,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // *** The stage: the page itself, no card inside the card *******************
 
-:is(.dsp-studio, .gaming-lab) .dsp-stage .dsp-card {
+:is(.dsp-studio, .gaming-lab, .mic-page) .dsp-stage .dsp-card {
   gap: 14px;
   padding: 0;
   border: 0;
@@ -267,24 +268,26 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // The cluster before the power switch and the monitor before it are parted
 // by space, not by rules.
-:is(.dsp-studio, .gaming-lab) .dsp-card-header.has-toolbar .dsp-card-power {
+:is(.dsp-studio, .gaming-lab, .mic-page)
+  .dsp-card-header.has-toolbar
+  .dsp-card-power {
   padding-left: 0;
   border-left: 0;
 }
 
-:is(.dsp-studio, .gaming-lab) .dsp-card-before-power {
+:is(.dsp-studio, .gaming-lab, .mic-page) .dsp-card-before-power {
   padding-right: 0;
   border-right: 0;
 }
 
 // The bars' groups (preset | reset | stereo) are parted by their 24px gap
 // alone; the rule painted in it was one more line across every header.
-:is(.dsp-studio, .gaming-lab) :is(.dsp-eq-bar, .dsp-eq-bar-unit) {
+:is(.dsp-studio, .gaming-lab, .mic-page) :is(.dsp-eq-bar, .dsp-eq-bar-unit) {
   column-rule: none;
 }
 
 // A stage's whole-stage dials stand apart from its bands by air.
-:is(.dsp-studio, .gaming-lab) .dsp-crossovers {
+:is(.dsp-studio, .gaming-lab, .mic-page) .dsp-crossovers {
   padding-bottom: 4px;
   border-bottom: 0;
 }
@@ -293,25 +296,25 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // The notices a stage carries - an engine too old for it, the Room's line
 // about its signal - in their tint alone.
-:is(.dsp-studio, .gaming-lab)
+:is(.dsp-studio, .gaming-lab, .mic-page)
   :is(.dsp-de-esser-engine, .dsp-footsteps-engine, .dsp-room-signal__line) {
   border-color: transparent;
 }
 
-:is(.dsp-studio, .gaming-lab) .dsp-room-signal__line.is-warn {
+:is(.dsp-studio, .gaming-lab, .mic-page) .dsp-room-signal__line.is-warn {
   background: color-mix(in srgb, $amber 8%, transparent);
 }
 
 // Rows and groups inside a box parted by their gap, not by a rule: the
 // Room's rows and switches, its saved rooms, the crossfade's saved shapes.
-:is(.dsp-studio, .gaming-lab) .dsp-room-row + .dsp-room-row,
-:is(.dsp-studio, .gaming-lab)
+:is(.dsp-studio, .gaming-lab, .mic-page) .dsp-room-row + .dsp-room-row,
+:is(.dsp-studio, .gaming-lab, .mic-page)
   :is(.dsp-room-check, .dsp-room-library, .dsp-crossfade-library) {
   border-top: 0;
 }
 
 // The Normalizer's meters are their well and their fill; the hairline round
 // each well drew four more lines.
-:is(.dsp-studio, .gaming-lab) .dsp-normalizer-meter-track {
+:is(.dsp-studio, .gaming-lab, .mic-page) .dsp-normalizer-meter-track {
   border-color: transparent;
 }

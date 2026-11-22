@@ -27,6 +27,7 @@ export type TWorkspaceTab =
   | 'community'
   | 'forum'
   | 'games'
+  | 'mic'
   | 'config';
 
 /**
@@ -65,6 +66,7 @@ export const WORKSPACE_TABS: TWorkspaceTab[] = [
   'forum',
   'dsp',
   'share',
+  'mic',
   'games',
   'config',
 ];

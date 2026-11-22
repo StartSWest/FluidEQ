@@ -1,0 +1,90 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+/**
+ * The Mic tab: each microphone's own sound, played by the FluidEQ Engine on
+ * the microphone itself, so every app hears it (Ivan, 2026-11-20).
+ */
+export default {
+  'mic.tab': '麦克风',
+  'mic.label': '麦克风',
+  'mic.pickHint': '选择要调整的麦克风',
+  'mic.list.heading': '这台电脑上的麦克风',
+  'mic.list.on': '已开启',
+  'mic.list.off': '未设置',
+  'mic.live': '所有应用实时生效 · 低延迟 {ms} ms',
+  'mic.notSetUp': '这个麦克风还没有设置',
+  'mic.picture.label': '你的声音：暗线是麦克风收到的声音，亮线是别人听到的声音',
+  'mic.picture.raw': '你的麦克风',
+  'mic.picture.heard': '别人听到的',
+  'mic.picture.gate': '噪声门',
+  'mic.profile.label': '麦克风配置',
+  'mic.profile.pickHint': '从适合你用法的配置开始',
+  'mic.profile.group.use': '按用途',
+  'mic.profile.group.mic': '按麦克风',
+  'mic.profile.tuned': '已调校',
+  'mic.profile.stream': '直播',
+  'mic.profile.stream.hint': '温暖、贴近、稳定，适合 Twitch 和 YouTube',
+  'mic.profile.podcast': '播客',
+  'mic.profile.podcast.hint': '自然的人声，控制轻柔',
+  'mic.profile.chat': '游戏语音',
+  'mic.profile.chat.hint':
+    '在 Discord 和队伍语音里清晰靠前，字与字之间干干净净',
+  'mic.profile.sing': '唱歌',
+  'mic.profile.sing.hint': '开阔通透，没有抽吸感，每一口气息都保留',
+  'mic.profile.broadcast': '广播',
+  'mic.profile.broadcast.hint': '电台嗓音：低频饱满，紧实厚重',
+  'mic.profile.noisy': '嘈杂房间',
+  'mic.profile.noisy.hint': '风扇、孩子、车流：净化和噪声门全开',
+  'mic.profile.meet': '会议',
+  'mic.profile.meet.hint': 'Teams 和 Zoom：吐字清楚，降噪留给它们自己处理',
+  'mic.profile.laptop': '笔记本麦克风',
+  'mic.profile.laptop.hint': '单薄、远、空旷：低切调高，净化加强',
+  'mic.profile.headset': '耳麦话筒',
+  'mic.profile.headset.hint': '贴近嘴边的小振膜：找回温暖，去掉喷麦',
+  'mic.reset': '重置为 {profile}',
+  'mic.setup.title': '{mic} 上还没有设置 FluidEQ Engine。',
+  'mic.setup.body': 'Windows 只会请求一次权限。设置期间你的输出会继续播放。',
+  'mic.setup.button': '在这个麦克风上设置',
+  'mic.setup.working': '正在设置…',
+  'mic.setup.declined': 'Windows 没有授予权限，所以什么都没有改变。',
+  'mic.setup.failed': '无法在这个麦克风上完成设置。',
+  'mic.notFluid.title': '麦克风的专属声音需要 FluidEQ Engine 来播放。',
+  'mic.notFluid.body': '声音设置已保存，选用 FluidEQ Engine 后会立即生效。',
+  'mic.empty.title': '没有找到麦克风',
+  'mic.empty.body': '请插入麦克风，或更新 FluidEQ Engine 以便它列出麦克风。',
+  'mic.stage.lowCut': '低切',
+  'mic.stage.cleaner': '人声净化',
+  'mic.stage.gate': '噪声门',
+  'mic.stage.deEsser': '齿音消除',
+  'mic.stage.eq': 'EQ',
+  'mic.stage.compressor': '压缩器',
+  'mic.stage.limiter': '限幅器',
+  'mic.lowCut.title': '低切',
+  'mic.lowCut.description':
+    '在净化处理之前，去掉人声以下的隆隆声、敲桌声和风扇声。',
+  'mic.lowCut.group.below': '人声以下',
+  'mic.lowCut.group.belowHint':
+    '“近讲补偿”会收回离振膜几厘米时人声多出来的低频。',
+  'mic.lowCut.cut': '切除频率',
+  'mic.lowCut.proximity': '近讲补偿',
+  'mic.lowCut.group.pops': '喷麦',
+  'mic.lowCut.group.popsHint': '柔化 P、B 音的“噗”声，平稳的人声不受影响。',
+  'mic.lowCut.plosive': '防喷',
+  'mic.gate.title': '噪声门',
+  'mic.gate.description':
+    '在说话间隙关闭麦克风，挡住房间声、风扇和键盘声。范围调小后就是一个柔和的扩展器。',
+  'mic.gate.group.level': '何时打开',
+  'mic.gate.group.levelHint':
+    '看图中的虚线：你的声音应该越过它，房间的声音应该留在它下面。',
+  'mic.gate.threshold': '开启电平',
+  'mic.gate.range': '衰减量',
+  'mic.gate.group.time': '速度',
+  'mic.gate.group.timeHint': '保持会让门在音节之间继续打开，字尾不会被切掉。',
+  'mic.gate.attack': '打开时间',
+  'mic.gate.hold': '保持',
+  'mic.gate.release': '关闭时间',
+};
