@@ -415,8 +415,9 @@ describe('App', () => {
     //
     // "Online Media" and not "Media": jsdom has no `matchMedia`, which
     // `useMediaQuery` reads as "not narrow", so this is the wide-window strip.
-    expect(tabs.slice(0, 7).map((tab) => tab.textContent)).toEqual([
+    expect(tabs.slice(0, 8).map((tab) => tab.textContent)).toEqual([
       'Share Audio',
+      'Mic',
       'Gaming Lab',
       'EQ',
       'DSP',
