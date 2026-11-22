@@ -304,13 +304,22 @@ export const registerEngineServices = ({
     },
     writeSystemDspChain,
   });
-  // At launch, like the outputs' racks: the quit reset deleted every
-  // endpoint's file, and a mic must come back with its sound.
-  micSound
-    .republish()
-    .catch((error: unknown) =>
-      log.error('Could not write the microphones’ racks', error),
-    );
+  /**
+   * At launch, like the outputs' racks: the quit reset deleted every
+   * endpoint's file, and a mic must come back with its sound. Called by
+   * main once the launch engine is chosen (`onAppReady`), never from here:
+   * this runs at module load, when no engine is chosen yet, and a write then
+   * answered "not the FluidEQ Engine" and wrote nothing — after every start
+   * the mic passed through untouched until a dial on its tab was moved
+   * (2026-11-22, Ivan's Kraken: attached, and no rack file in the folder).
+   */
+  const republishMicRacks = (): void => {
+    micSound
+      .republish()
+      .catch((error: unknown) =>
+        log.error('Could not write the microphones’ racks', error),
+      );
+  };
 
-  return { apoGuard };
+  return { apoGuard, republishMicRacks };
 };

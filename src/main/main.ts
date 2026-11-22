@@ -451,7 +451,7 @@ registerEngineStateIpc({
   syncCustomFxFromConfig,
 });
 
-const { apoGuard } = registerEngineServices({
+const { apoGuard, republishMicRacks } = registerEngineServices({
   userDataDir,
   state,
   session,
@@ -1121,6 +1121,9 @@ registerPresetLinks(getMainWindow);
 const onAppReady = async () => {
   // Which engine, before anything can ask for a config directory.
   session.audioEngine = await chooseLaunchEngine(userDataDir);
+  // The microphones' racks need the engine known: written before it, each
+  // was skipped as "not the FluidEQ Engine".
+  republishMicRacks();
   await sourceAnalysis.release().catch((error) => {
     log.error('Clearing the previous Library source failed', error);
   });
