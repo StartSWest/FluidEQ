@@ -95,6 +95,8 @@ const byHand = (
   state: ISongSoundState,
   sound: ISongSound | undefined,
   isOurs: boolean,
+  /** What the window heard before this report. */
+  heard: ISongSound | undefined,
 ): ISongSoundState => {
   if (!sound || isOurs) {
     return state;
@@ -103,8 +105,20 @@ const byHand = (
   if (session?.handBack && isSongSoundChanged(state)) {
     return { ...state, session: { ...session, handBack: sound } };
   }
-  if (owed && !session?.handBack && !session?.owner) {
-    // Between songs, the next one's answer not in yet.
+  // Between songs, the next one's answer not in yet: only a sound that moved
+  // is a pick. The window reports the same sound again whenever what it is
+  // read from is rebuilt — a change of track does it — and taking that as a
+  // pick made the album's Ballad, still playing from the last song, the
+  // listener's own: the next song of the album then found its sound equal to
+  // "his", handed it back instead of lending it, and a hand-back puts back
+  // the rack and curve held for him, K-pop, while the card said the album's
+  // sound played (Ivan, 2026-11-20: "kpop? what the heck").
+  if (
+    owed &&
+    !session?.handBack &&
+    !session?.owner &&
+    !(heard && sameSongSound(heard, sound))
+  ) {
     return { ...state, owed: { sound } };
   }
   return state;
@@ -147,7 +161,12 @@ export const reduceSongSound = (
             : session,
       };
       return [
-        byHand(next, sound, isArrived || state.pending !== undefined),
+        byHand(
+          next,
+          sound,
+          isArrived || state.pending !== undefined,
+          state.live,
+        ),
         timed,
       ];
     }

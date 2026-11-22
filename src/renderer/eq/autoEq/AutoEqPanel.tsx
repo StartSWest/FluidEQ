@@ -29,7 +29,11 @@ import useHasChanged from '../../utils/useHasChanged';
 import AutoEqMeasureOnce from './AutoEqMeasureOnce';
 import AutoEqSongHolds from './AutoEqSongHolds';
 import AutoEqEqPicker from './AutoEqEqPicker';
-import { savedSoundOf } from '../../audio/songCardSound';
+import {
+  backToSaved,
+  goBackToSaved,
+  storedPresetOf,
+} from '../../audio/songCardSound';
 
 /** One of the panel's parts: its name and line, its switch, what it holds. */
 const AutoEqPart = ({
@@ -90,7 +94,8 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
   const parts = useSongSoundParts();
   const isHeld = useSongSoundHeld();
   const now = useSongSoundNow();
-  const { index, albums, eqs, eqById } = useSongSoundIndex();
+  const soundIndex = useSongSoundIndex();
+  const { index, albums, eqs, eqById } = soundIndex;
   // The song's line swaps in when its state does — Changed, Saved, nothing
   // saved — and not as the panel opens.
   const songLineState = `${now.isChanged ? 'changed' : (now.owner ?? 'own')}`;
@@ -142,7 +147,7 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
       t('songSound.noPresetName'));
   // The sound under a change made by hand, named as the song's card names
   // it, so the panel and the card offer the same thing by the same name.
-  const backTo = savedSoundOf(now, eqById, t);
+  const backTo = backToSaved(now, eqById, t, storedPresetOf(now, soundIndex));
   let albumLine = t('autoEq.albums.nothing');
   if (identity && !isLibrary) {
     albumLine = t('autoEq.albums.libraryOnly');
@@ -170,7 +175,7 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
       <AutoEqNowPlaying
         now={now}
         eqName={songEq?.name}
-        underName={now.isChanged ? backTo?.name : undefined}
+        underName={backTo?.name}
       />
       <AutoEqPart
         id="eq-auto-songs"
@@ -259,11 +264,11 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
             off — it was, when he asked. Going back is not a pick of his
             own: the pick he made stays the sound a song with nothing saved
             plays (`revert` in `songSoundChoices.ts`). */}
-          {backTo?.owner === 'album' && now.isChanged && (
+          {backTo?.owner === 'album' && (
             <button
               type="button"
               className="button small subtle"
-              onClick={revertSongSound}
+              onClick={() => goBackToSaved(backTo)}
             >
               {t('autoEq.albums.revert', { preset: backTo.name })}
             </button>
