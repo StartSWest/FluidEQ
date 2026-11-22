@@ -16,12 +16,11 @@ const autoEq = {
   'autoEq.albums.revert': '還原 {preset}',
   'autoEq.tagline': '為您挑選每首歌的聲音',
   'autoEq.state.measuring': '測量中',
-  'autoEq.state.paused': '已暫停',
   'autoEq.state.song': '歌曲',
   'autoEq.state.album': '專輯',
   'autoEq.state.yours': '您的',
   'autoEq.aside':
-    '在 DSP 關閉、遊戲鏈開啟或遊戲播放自己的聲音時，它會暫時讓開，之後恢復原狀。',
+    '遊戲正在播放自己的聲音，歌曲與專輯聲音暫時等待，遊戲停止後恢復。',
   'autoEq.now.nothing': '沒有播放',
   'autoEq.now.yours': '您的聲音',
   'autoEq.now.yoursWhy': '這首歌沒有儲存任何聲音：播放您最後選擇的聲音。',

@@ -143,8 +143,6 @@ const AutoEqButton = () => {
   let state = '';
   if (isMeasuring) {
     state = t('autoEq.state.measuring');
-  } else if (isHeld && (parts.songs || parts.albums)) {
-    state = t('autoEq.state.paused');
   } else if (now.isChanged) {
     state = t('autoEq.state.changed');
   } else if (now.owner === 'song') {

@@ -18,12 +18,11 @@ export default {
   'autoEq.albums.revert': 'Zurück zu {preset}',
   'autoEq.tagline': 'Der Klang jedes Songs, für Sie gewählt',
   'autoEq.state.measuring': 'Misst',
-  'autoEq.state.paused': 'Pausiert',
   'autoEq.state.song': 'Song',
   'autoEq.state.album': 'Album',
   'autoEq.state.yours': 'Ihrer',
   'autoEq.aside':
-    'Hält sich zurück, solange DSP aus ist, eine Gaming-Kette läuft oder ein Spiel seinen eigenen Klang spielt. Danach geht es weiter wie zuvor.',
+    'Ein Spiel spielt seinen eigenen Klang, daher warten Song- und Album-Klänge. Sie kehren zurück, wenn es aufhört.',
   'autoEq.now.nothing': 'Nichts läuft',
   'autoEq.now.yours': 'Ihr Klang',
   'autoEq.now.yoursWhy':

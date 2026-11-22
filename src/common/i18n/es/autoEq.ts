@@ -18,12 +18,11 @@ export default {
   'autoEq.albums.revert': 'Volver a {preset}',
   'autoEq.tagline': 'El sonido de cada canción, elegido por ti',
   'autoEq.state.measuring': 'Midiendo',
-  'autoEq.state.paused': 'En pausa',
   'autoEq.state.song': 'Canción',
   'autoEq.state.album': 'Álbum',
   'autoEq.state.yours': 'El tuyo',
   'autoEq.aside':
-    'Se aparta mientras el DSP está apagado, hay una cadena de Juegos activa o un juego usa su propio sonido. Vuelve tal como estaba.',
+    'Un juego está sonando con su propio sonido, así que los sonidos de canciones y álbumes esperan. Vuelven cuando termina.',
   'autoEq.now.nothing': 'Nada sonando',
   'autoEq.now.yours': 'tu sonido',
   'autoEq.now.yoursWhy':

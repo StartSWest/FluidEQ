@@ -19,12 +19,11 @@ export default {
   'autoEq.albums.revert': '{preset} に戻す',
   'autoEq.tagline': '曲ごとのサウンドを自動で選びます',
   'autoEq.state.measuring': '測定中',
-  'autoEq.state.paused': '一時停止中',
   'autoEq.state.song': '曲',
   'autoEq.state.album': 'アルバム',
   'autoEq.state.yours': 'あなたの音',
   'autoEq.aside':
-    'DSP がオフのとき、ゲームのチェーンがオンのとき、ゲームが独自のサウンドを鳴らしているときは一時的に退きます。終わると元どおりに戻ります。',
+    'ゲームが独自のサウンドを再生しているため、曲とアルバムのサウンドは待機します。終わると戻ります。',
   'autoEq.now.nothing': '再生していません',
   'autoEq.now.yours': 'あなたのサウンド',
   'autoEq.now.yoursWhy':

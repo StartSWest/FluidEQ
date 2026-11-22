@@ -18,12 +18,11 @@ export default {
   'autoEq.albums.revert': 'Torna a {preset}',
   'autoEq.tagline': 'Il suono di ogni brano, scelto per te',
   'autoEq.state.measuring': 'Misurazione',
-  'autoEq.state.paused': 'In pausa',
   'autoEq.state.song': 'Brano',
   'autoEq.state.album': 'Album',
   'autoEq.state.yours': 'Il tuo',
   'autoEq.aside':
-    'Si fa da parte mentre il DSP è spento, è attiva una catena Gaming o un gioco riproduce il proprio suono. Poi torna com’era.',
+    'Un gioco sta suonando con il suo suono, quindi i suoni di brani e album aspettano. Tornano quando si ferma.',
   'autoEq.now.nothing': 'Nessuna riproduzione',
   'autoEq.now.yours': 'il tuo suono',
   'autoEq.now.yoursWhy':

@@ -17,12 +17,11 @@ const autoEq = {
   'autoEq.albums.revert': '{preset}(으)로 돌아가기',
   'autoEq.tagline': '노래마다 알맞은 사운드를 골라 드립니다',
   'autoEq.state.measuring': '측정 중',
-  'autoEq.state.paused': '일시중지됨',
   'autoEq.state.song': '노래',
   'autoEq.state.album': '앨범',
   'autoEq.state.yours': '내 사운드',
   'autoEq.aside':
-    'DSP가 꺼져 있거나 게임 체인이 켜져 있거나 게임이 자체 사운드를 재생하는 동안에는 잠시 물러납니다. 끝나면 그대로 돌아옵니다.',
+    '게임이 자체 사운드를 재생 중이라 노래 및 앨범 사운드가 기다립니다. 게임이 멈추면 돌아옵니다.',
   'autoEq.now.nothing': '재생 중인 항목 없음',
   'autoEq.now.yours': '내 사운드',
   'autoEq.now.yoursWhy':

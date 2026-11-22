@@ -18,12 +18,11 @@ export default {
   'autoEq.albums.revert': '{preset} पर लौटें',
   'autoEq.tagline': 'हर गाने की आवाज़, आपके लिए चुनी हुई',
   'autoEq.state.measuring': 'माप रहा है',
-  'autoEq.state.paused': 'रुका हुआ',
   'autoEq.state.song': 'गाना',
   'autoEq.state.album': 'एल्बम',
   'autoEq.state.yours': 'आपकी',
   'autoEq.aside':
-    'जब DSP बंद हो, कोई गेमिंग चेन चालू हो या कोई गेम अपनी आवाज़ बजाए, तब यह किनारे हट जाता है। फिर जैसा था वैसा लौट आता है।',
+    'एक गेम अपनी आवाज़ बजा रहा है, इसलिए गानों और एल्बमों की आवाज़ें इंतज़ार करती हैं। उसके रुकने पर लौट आती हैं।',
   'autoEq.now.nothing': 'कुछ नहीं बज रहा',
   'autoEq.now.yours': 'आपकी आवाज़',
   'autoEq.now.yoursWhy':

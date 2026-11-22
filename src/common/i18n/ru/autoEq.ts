@@ -18,12 +18,11 @@ export default {
   'autoEq.albums.revert': 'Вернуть «{preset}»',
   'autoEq.tagline': 'Звук каждой песни, подобранный для вас',
   'autoEq.state.measuring': 'Измерение',
-  'autoEq.state.paused': 'Пауза',
   'autoEq.state.song': 'Песня',
   'autoEq.state.album': 'Альбом',
   'autoEq.state.yours': 'Ваш',
   'autoEq.aside':
-    'Отходит в сторону, пока DSP выключен, включена цепочка «Игры» или игра воспроизводит собственный звук. Потом всё возвращается как было.',
+    'Игра играет своим звуком, поэтому звук песен и альбомов ждёт. Он вернётся, когда игра остановится.',
   'autoEq.now.nothing': 'Ничего не играет',
   'autoEq.now.yours': 'ваш звук',
   'autoEq.now.yoursWhy':

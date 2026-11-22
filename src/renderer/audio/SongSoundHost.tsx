@@ -6,10 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useMemo, useRef } from 'react';
 import ChannelEnum from 'common/channels';
-import { DSP_PRESETS } from 'common/dsp/presets';
 import { canKeepSongSound } from 'common/songSoundMemory';
-import { isDspLent, useDspSettings } from '../dsp/store';
-import { GAMING_PRESET_GROUP } from '../dsp/presetScope';
+import { useDspSettings } from '../dsp/store';
 import { useSoundingGame } from '../games/useGameSound';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useOutputEditor } from '../utils/outputEditor';
@@ -24,12 +22,6 @@ import {
 } from './songSoundSession';
 import songSoundOf from './songSoundOf';
 import { useTransportSources } from './transportSource';
-
-/** Whether the rack the listener chose is one of the Gaming tab's chains. */
-const isGamingChain = (presetId: string): boolean =>
-  DSP_PRESETS.some(
-    (preset) => preset.id === presetId && preset.group === GAMING_PRESET_GROUP,
-  );
 
 /**
  * Tells Auto EQ's song and album sounds (`songSoundSession.ts`) what plays,
@@ -75,18 +67,17 @@ const SongSoundHost = () => {
     });
   }, [refreshState]);
 
-  // Auto EQ steps aside while a game's own sound plays, while DSP is off, and
-  // while a Gaming chain is the listener's rack — never for a rack a song
-  // lent, which is Auto EQ's own. Under Equalizer APO the rack is always held
-  // off (`putOn`), which is not DSP being off.
+  // Auto EQ steps aside only while a game plays its own sound: a song's or an
+  // album's sound put on then would take the game's place. It used to step
+  // aside while DSP was off and while a Gaming chain was the rack too, and
+  // picking None turns the rack off, so None read as "Paused" (Ivan,
+  // 2026-11-20: "if I select none it doesn't pause"). None and a Gaming
+  // chain are sounds like any other: the listener's own when picked by hand,
+  // with a song's or an album's sound going on over them while its part is on.
   const isGameSounding = game !== undefined;
-  const isEngineApo = status?.engine === 'apo';
-  const isRackAside =
-    !isDspLent() &&
-    ((!rack.enabled && !isEngineApo) || isGamingChain(rack.presetId));
   useEffect(() => {
-    holdSongSound(isGameSounding || isRackAside);
-  }, [isGameSounding, isRackAside]);
+    holdSongSound(isGameSounding);
+  }, [isGameSounding]);
 
   // What is kept changed — in the Library, in Manage, or a save that landed:
   // the playing song is asked about again.
