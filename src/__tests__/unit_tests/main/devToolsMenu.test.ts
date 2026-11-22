@@ -8,8 +8,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * Every way the development menu opens the developer tools opens them in a
  * window of their own (`devTools.ts`): the View menu's toggle on Windows and
- * Linux, the Mac's, and the page's own Inspect element. Docked inside the
- * window they decide how wide the page is, not the window.
+ * Linux, and the Mac's (the page's Inspect element is the right-click menu's,
+ * `editContextMenu.test.ts`). Docked inside the window they decide how wide
+ * the page is, not the window.
  */
 
 import { EventEmitter } from 'events';
@@ -110,11 +111,10 @@ describe('the development menu', () => {
     },
   );
 
-  it("inspects an element in tools of their own, from the page's menu", () => {
+  // Inspect element is an item of the page's right-click menu, which every
+  // page has: `editContextMenu.test.ts`.
+  it('opens no right-click menu of its own beside the page’s', () => {
     const page = buildFor('win32');
-    page.emit('context-menu', {}, { x: 40, y: 50 });
-    press(itemCalled('Inspect element'));
-    expect(page.openDevTools).toHaveBeenCalledWith(DETACHED);
-    expect(page.inspectElement).toHaveBeenCalledWith(40, 50);
+    expect(page.listenerCount('context-menu')).toBe(0);
   });
 });

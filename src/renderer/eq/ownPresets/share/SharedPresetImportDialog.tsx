@@ -6,6 +6,7 @@ import type { ErrorDescription } from '../../../../common/errors';
 import { findPresetShareCode } from '../../../../common/presetShare/presetShareCode';
 import { findSharedPresetId } from '../../../../common/presetShare/sharedPresetLink';
 import DialogFrame from '../../../components/DialogFrame';
+import PasteButton from '../../../components/PasteButton';
 import MenuIcon from '../../../icons/MenuIcon';
 import { useFluidEqLayers } from '../../../utils/FluidEqContext';
 import { useTranslation } from '../../../utils/I18nContext';
@@ -78,17 +79,6 @@ const SharedPresetImportDialog = ({
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
-
-  const pasteClipboard = () => {
-    setNote('');
-    navigator.clipboard
-      .readText()
-      .then((pasted) => {
-        setText(pasted);
-        return pasted;
-      })
-      .catch(() => setNote(t('presetShare.import.clipboardFailed')));
-  };
 
   const readFile = (file: File | undefined) => {
     if (!file) {
@@ -199,14 +189,7 @@ const SharedPresetImportDialog = ({
       >
         {!isLink && (
           <div className="preset-share-dialog__paste">
-            <button
-              type="button"
-              className="button small subtle"
-              onClick={pasteClipboard}
-            >
-              <MenuIcon name="copyText" />
-              {t('presetShare.import.paste')}
-            </button>
+            <PasteButton target={textRef} />
             <textarea
               ref={textRef}
               className="preset-share-dialog__text"

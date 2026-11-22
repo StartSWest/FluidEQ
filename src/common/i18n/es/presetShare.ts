@@ -80,7 +80,6 @@ export default {
   'presetShare.import.title': 'Importar un preset',
   'presetShare.import.hint':
     'Pega una publicación de un foro, un enlace para compartir o un archivo de preset. Solo se lee el preset que contiene.',
-  'presetShare.import.paste': 'Pegar del portapapeles',
   'presetShare.import.placeholder': 'Pega aquí…',
   'presetShare.import.chooseFile': 'Elegir archivo…',
   'presetShare.import.found': 'Se encontró un preset',
@@ -90,8 +89,6 @@ export default {
     'Este preset se hizo con un FluidEQ más nuevo. Actualiza FluidEQ para leerlo.',
   'presetShare.import.damaged':
     'El código del preset está cortado o dañado. Cópialo otra vez de principio a fin.',
-  'presetShare.import.clipboardFailed':
-    'FluidEQ no pudo leer el portapapeles. Pégalo directamente en el cuadro.',
   'presetShare.import.gone': 'Este preset ya no se comparte. Pide su código.',
   'presetShare.import.offline':
     'FluidEQ no pudo conectar con su servidor para abrir este enlace. Revisa la conexión e inténtalo de nuevo.',

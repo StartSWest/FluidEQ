@@ -80,7 +80,6 @@ export default {
   'presetShare.import.title': 'Importa un preset',
   'presetShare.import.hint':
     'Incolla un post di un forum, un link di condivisione o un file di preset. Viene letto solo il preset contenuto.',
-  'presetShare.import.paste': 'Incolla dagli appunti',
   'presetShare.import.placeholder': 'Incolla qui…',
   'presetShare.import.chooseFile': 'Scegli file…',
   'presetShare.import.found': 'Trovato un preset',
@@ -90,8 +89,6 @@ export default {
     'Questo preset è stato creato con un FluidEQ più recente. Aggiorna FluidEQ per leggerlo.',
   'presetShare.import.damaged':
     'Il codice del preset è troncato o danneggiato. Copialo di nuovo dall’inizio alla fine.',
-  'presetShare.import.clipboardFailed':
-    'FluidEQ non è riuscito a leggere gli appunti. Incolla invece il testo nella casella.',
   'presetShare.import.gone':
     'Questo preset non è più condiviso. Chiedi il suo codice.',
   'presetShare.import.offline':

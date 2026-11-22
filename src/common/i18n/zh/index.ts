@@ -79,6 +79,7 @@ import genreWorld from './genreWorld';
 import troubleshoot from './troubleshoot';
 import files from './files';
 import libraryTags from './libraryTags';
+import edit from './edit';
 
 const zh: Partial<Dictionary> = {
   ...karaoke,
@@ -142,6 +143,7 @@ const zh: Partial<Dictionary> = {
   ...troubleshoot,
   ...files,
   ...libraryTags,
+  ...edit,
 };
 
 export default zh;

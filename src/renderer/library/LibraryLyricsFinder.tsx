@@ -23,7 +23,9 @@ import {
   lyricsSearchUrl,
 } from '../../common/library/lyricsSites';
 import type { ILibraryTrack } from '../../common/library/types';
+import PasteButton from '../components/PasteButton';
 import MenuIcon from '../icons/MenuIcon';
+import { readClipboardText } from '../utils/clipboardText';
 import { useTranslation } from '../utils/I18nContext';
 import LibraryLyricsImportStatus from './LibraryLyricsImportStatus';
 import type { ILyricsImport } from './useLyricsImport';
@@ -54,6 +56,7 @@ const LibraryLyricsFinder = ({
   const isBusy = lyricsImport.status.state === 'busy';
   const isPasting = draft !== undefined;
   const pasteRef = useRef<HTMLDivElement>(null);
+  const boxRef = useRef<HTMLTextAreaElement>(null);
 
   // Opened by a press that asked to type: the caret goes into the box, and
   // the box with its Save scrolls into the pane rather than opening below
@@ -61,11 +64,28 @@ const LibraryLyricsFinder = ({
   useEffect(() => {
     if (isPasting) {
       pasteRef.current?.scrollIntoView({ block: 'nearest' });
-      pasteRef.current
-        ?.querySelector('textarea')
-        ?.focus({ preventScroll: true });
+      boxRef.current?.focus({ preventScroll: true });
     }
   }, [isPasting]);
+
+  // Paste pastes (Ivan, 2026-11-22: "let's add a paste button to actually
+  // paste"): it used to open an empty box and leave the pasting to the
+  // keyboard. The box opens holding the clipboard's text; with none on it
+  // it opens empty and its own Paste says why, and a clipboard that could
+  // not be read leaves an empty box to type or paste into.
+  const openWithClipboard = () => {
+    lyricsImport.dismiss();
+    readClipboardText()
+      .then((text) => {
+        setDraft(text);
+        return text;
+      })
+      .catch((error: unknown) => {
+        // eslint-disable-next-line no-console -- the one trace of a clipboard main could not read; the box still opens, empty
+        console.error('The clipboard could not be read for the lyrics', error);
+        setDraft('');
+      });
+  };
 
   const save = () => {
     if (draft !== undefined && draft.trim() !== '') {
@@ -142,10 +162,7 @@ const LibraryLyricsFinder = ({
               type="button"
               className="button small subtle"
               disabled={isBusy}
-              onClick={() => {
-                lyricsImport.dismiss();
-                setDraft('');
-              }}
+              onClick={openWithClipboard}
             >
               <MenuIcon name="copyText" />
               {t('library.lyrics.import.paste')}
@@ -154,6 +171,7 @@ const LibraryLyricsFinder = ({
         ) : (
           <div className="library-lyrics-finder__paste" ref={pasteRef}>
             <textarea
+              ref={boxRef}
               className="library-lyrics-finder__paste-box"
               value={draft}
               rows={6}
@@ -182,6 +200,7 @@ const LibraryLyricsFinder = ({
               >
                 {t('library.lyrics.import.cancel')}
               </button>
+              <PasteButton target={boxRef} disabled={isBusy} />
             </div>
           </div>
         )}

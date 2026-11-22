@@ -41,6 +41,10 @@ import {
   type TTaskbarIconRequest,
 } from '../common/taskbarIcon';
 import { VIDEO_DOWNLOAD_REVEAL } from '../common/videoDownloads';
+import {
+  CLIPBOARD_HAS_TEXT,
+  CLIPBOARD_READ_TEXT,
+} from '../common/clipboardText';
 import { addonBridge } from './addonBridge';
 import { dspHostBridge } from './dspHost/bridge';
 import karaokeBridge from './karaokeBridge';
@@ -358,6 +362,13 @@ const onSystemMedia = (
 /** Electron removed File.path; this is the supported replacement. */
 const getPathForFile = (file: File): string => webUtils.getPathForFile(file);
 
+/** A Paste button's questions; see `common/clipboardText.ts`. */
+const clipboardHasText = () =>
+  ipcRenderer.invoke(CLIPBOARD_HAS_TEXT) as Promise<boolean>;
+
+const readClipboardText = () =>
+  ipcRenderer.invoke(CLIPBOARD_READ_TEXT) as Promise<string>;
+
 const revealVideoDownload = (filePath: string) =>
   ipcRenderer.invoke(VIDEO_DOWNLOAD_REVEAL, filePath) as Promise<boolean>;
 
@@ -410,6 +421,8 @@ export default {
     onSystemMedia,
     getPathForFile,
     revealVideoDownload,
+    clipboardHasText,
+    readClipboardText,
     // Every feature's calls in a module of its own, spread rather than nested
     // so each one sits beside the calls above: the window reaches all of them
     // the same way, `window.electron.ipcRenderer.<call>`.

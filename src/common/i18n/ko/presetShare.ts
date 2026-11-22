@@ -78,7 +78,6 @@ export default {
   'presetShare.import.title': '프리셋 가져오기',
   'presetShare.import.hint':
     '포럼 게시물, 공유 링크 또는 프리셋 파일을 붙여 넣으세요. 안에 든 프리셋만 읽습니다.',
-  'presetShare.import.paste': '클립보드에서 붙여 넣기',
   'presetShare.import.placeholder': '여기에 붙여 넣기…',
   'presetShare.import.chooseFile': '파일 선택…',
   'presetShare.import.found': '프리셋 1개를 찾았습니다',
@@ -88,8 +87,6 @@ export default {
     '이 프리셋은 더 새로운 FluidEQ로 만들어졌습니다. 읽으려면 FluidEQ를 업데이트하세요.',
   'presetShare.import.damaged':
     '프리셋 코드가 잘렸거나 손상되었습니다. 처음부터 끝까지 다시 복사하세요.',
-  'presetShare.import.clipboardFailed':
-    'FluidEQ가 클립보드를 읽지 못했습니다. 대신 상자에 붙여 넣으세요.',
   'presetShare.import.gone':
     '이 프리셋은 더 이상 공유되지 않습니다. 대신 코드를 요청하세요.',
   'presetShare.import.offline':

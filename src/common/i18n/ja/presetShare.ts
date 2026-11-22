@@ -79,7 +79,6 @@ export default {
   'presetShare.import.title': 'プリセットをインポート',
   'presetShare.import.hint':
     'フォーラムの投稿、共有リンク、プリセットファイルを貼り付けてください。読み取るのは中のプリセットだけです。',
-  'presetShare.import.paste': 'クリップボードから貼り付け',
   'presetShare.import.placeholder': 'ここに貼り付け…',
   'presetShare.import.chooseFile': 'ファイルを選択…',
   'presetShare.import.found': 'プリセットが 1 つ見つかりました',
@@ -89,8 +88,6 @@ export default {
     'このプリセットは新しい FluidEQ で作られています。読み込むには FluidEQ を更新してください。',
   'presetShare.import.damaged':
     'プリセットのコードが途中で切れているか、壊れています。最初から最後までもう一度コピーしてください。',
-  'presetShare.import.clipboardFailed':
-    'FluidEQ はクリップボードを読み取れませんでした。代わりにボックスに貼り付けてください。',
   'presetShare.import.gone':
     'このプリセットはもう共有されていません。代わりにコードを尋ねてください。',
   'presetShare.import.offline':

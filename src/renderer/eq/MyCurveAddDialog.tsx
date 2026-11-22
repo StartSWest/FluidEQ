@@ -32,6 +32,7 @@ import {
 import { appliedOpraName, knownOpraProducts } from '../opraProducts';
 import { openHeadphoneCorrections } from './headphoneCorrectionsOpen';
 import ImportEarsPick from './ImportEarsPick';
+import PasteButton from '../components/PasteButton';
 import MyCurveDialogShell from './MyCurveDialogShell';
 import MyCurvePreview from './MyCurvePreview';
 import MyCurveSourcePick, { type TCurveOrigin } from './MyCurveSourcePick';
@@ -91,6 +92,7 @@ export default function MyCurveAddDialog({
   const curves = useMyCurves();
   const ids = useId();
   const fileRef = useRef<HTMLInputElement>(null);
+  const textRef = useRef<HTMLTextAreaElement>(null);
   const today = useMemo(
     () =>
       new Date().toLocaleDateString(locale, { day: 'numeric', month: 'short' }),
@@ -351,10 +353,14 @@ export default function MyCurveAddDialog({
               hidden
               onChange={readFile}
             />
-            <label className="my-curve-add__label" htmlFor={`${ids}-text`}>
-              {t('myCurves.textLabel')}
-            </label>
+            <div className="my-curve-add__text-head">
+              <label className="my-curve-add__label" htmlFor={`${ids}-text`}>
+                {t('myCurves.textLabel')}
+              </label>
+              {origin === 'paste' && <PasteButton target={textRef} />}
+            </div>
             <textarea
+              ref={textRef}
               id={`${ids}-text`}
               className="my-curve-add__text"
               spellCheck={false}

@@ -81,7 +81,6 @@ export default {
   'presetShare.import.title': 'Importer un préréglage',
   'presetShare.import.hint':
     'Collez une publication de forum, un lien de partage ou un fichier de préréglage. Seul le préréglage qu’il contient est lu.',
-  'presetShare.import.paste': 'Coller depuis le presse-papiers',
   'presetShare.import.placeholder': 'Collez ici…',
   'presetShare.import.chooseFile': 'Choisir un fichier…',
   'presetShare.import.found': 'Un préréglage trouvé',
@@ -91,8 +90,6 @@ export default {
     'Ce préréglage a été créé avec une version plus récente de FluidEQ. Mettez FluidEQ à jour pour le lire.',
   'presetShare.import.damaged':
     'Le code du préréglage est tronqué ou endommagé. Copiez-le à nouveau du début à la fin.',
-  'presetShare.import.clipboardFailed':
-    'FluidEQ n’a pas pu lire le presse-papiers. Collez plutôt le texte dans la zone.',
   'presetShare.import.gone':
     'Ce préréglage n’est plus partagé. Demandez plutôt son code.',
   'presetShare.import.offline':

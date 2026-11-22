@@ -100,6 +100,7 @@ import files from './files';
 import gaming from './gaming';
 import mic from './mic';
 import libraryTags from './libraryTags';
+import edit from './edit';
 
 const en = {
   ...karaoke,
@@ -163,6 +164,7 @@ const en = {
   ...gaming,
   ...mic,
   ...libraryTags,
+  ...edit,
 };
 
 export type TranslationKey = keyof typeof en;

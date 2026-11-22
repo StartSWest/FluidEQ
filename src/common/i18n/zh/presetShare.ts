@@ -77,7 +77,6 @@ export default {
   'presetShare.import.title': '导入预设',
   'presetShare.import.hint':
     '粘贴论坛帖子、分享链接或预设文件。只会读取其中的预设。',
-  'presetShare.import.paste': '从剪贴板粘贴',
   'presetShare.import.placeholder': '粘贴到这里…',
   'presetShare.import.chooseFile': '选择文件…',
   'presetShare.import.found': '找到一个预设',
@@ -86,8 +85,6 @@ export default {
   'presetShare.import.newer':
     '这个预设是用更新版本的 FluidEQ 制作的。请更新 FluidEQ 后再读取。',
   'presetShare.import.damaged': '预设代码被截断或已损坏。请从头到尾重新复制。',
-  'presetShare.import.clipboardFailed':
-    'FluidEQ 无法读取剪贴板。请直接粘贴到输入框中。',
   'presetShare.import.gone': '这个预设已不再分享。请改为索取它的代码。',
   'presetShare.import.offline':
     'FluidEQ 无法连接服务器来打开这个链接。请检查网络连接后重试。',

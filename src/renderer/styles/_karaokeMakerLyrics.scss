@@ -272,6 +272,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Why the head's Paste is grey: a line of its own under the head's row,
+// at its end, beside the button it explains.
+.karaoke-maker__lyrics-paste-note {
+  flex: 1 0 100%;
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.4;
+  text-align: end;
+}
+
 .karaoke-maker__lyrics-token-scroll {
   min-height: 0;
   overflow: auto;

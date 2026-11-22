@@ -10,6 +10,7 @@ import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import DialogFrame from '../components/DialogFrame';
+import PasteButton from '../components/PasteButton';
 
 interface IDspPresetImportDialogProps {
   titleKey: TranslationKey;
@@ -91,8 +92,9 @@ const DspPresetImportDialog = ({
         footer={
           <>
             {/* Where the text comes from, at the left, away from the two
-                answers: a file fills the box, and nothing is imported until
-                Import is pressed. */}
+                answers: a file fills the box, Paste puts the clipboard's
+                text in at the caret, and nothing is imported until Import
+                is pressed. */}
             <button
               type="button"
               className="button small subtle"
@@ -100,6 +102,7 @@ const DspPresetImportDialog = ({
             >
               {t('dsp.eqImport.chooseFile')}
             </button>
+            <PasteButton target={textRef} />
             <div className="dialog-frame__actions">
               <button
                 type="button"

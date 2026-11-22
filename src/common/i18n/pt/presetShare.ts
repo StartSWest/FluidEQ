@@ -80,7 +80,6 @@ export default {
   'presetShare.import.title': 'Importar um preset',
   'presetShare.import.hint':
     'Cole uma publicação de fórum, um link de compartilhamento ou um arquivo de preset. Só o preset que está dentro é lido.',
-  'presetShare.import.paste': 'Colar da área de transferência',
   'presetShare.import.placeholder': 'Cole aqui…',
   'presetShare.import.chooseFile': 'Escolher arquivo…',
   'presetShare.import.found': 'Um preset encontrado',
@@ -90,8 +89,6 @@ export default {
     'Este preset foi feito com um FluidEQ mais novo. Atualize o FluidEQ para lê-lo.',
   'presetShare.import.damaged':
     'O código do preset está cortado ou danificado. Copie-o de novo do início ao fim.',
-  'presetShare.import.clipboardFailed':
-    'O FluidEQ não conseguiu ler a área de transferência. Cole o texto na caixa em vez disso.',
   'presetShare.import.gone':
     'Este preset não é mais compartilhado. Peça o código dele.',
   'presetShare.import.offline':

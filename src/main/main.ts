@@ -113,6 +113,7 @@ import { registerLightingIpc } from './ipc/lighting';
 import { registerRemoteAudioIpc } from './ipc/remoteAudio';
 import { registerForumIpc } from './ipc/forum';
 import { registerMotionPreferenceIpc } from './ipc/motionPreference';
+import registerClipboardTextIpc from './ipc/clipboardText';
 import { registerGamesIpc } from './ipc/games';
 import { registerGameSoundIpc } from './ipc/gameSound';
 import {
@@ -150,7 +151,8 @@ import {
   saveDeviceProfileSettings,
 } from './deviceProfileSettings';
 import onWindowMessage from './ipc/windowMessages';
-import { declineDefaultMenu } from './menu';
+import { declineDefaultMenu, hasDevelopmentMenu } from './menu';
+import installEditContextMenus from './editContextMenu';
 import registerDevMemoryTrace from './devMemoryTrace';
 import createAppUpdates from './appUpdates';
 import { createWindowPlacement, firstRunPlacement } from './windowPlacement';
@@ -770,6 +772,10 @@ const graphicsPreferenceIpc = registerGraphicsPreferenceIpc({
   logger: log,
 });
 
+// The window's Paste buttons: whether the clipboard holds text, and the text
+// on a press.
+const clipboardTextIpc = registerClipboardTextIpc(getMainWindow);
+
 // The forum: the project's GitHub Discussions. Independent of the FluidEQ
 // account — reading needs nothing and writing needs a GitHub sign-in — and
 // registering contacts nothing until the Forum tab asks.
@@ -1101,6 +1107,7 @@ app.on('will-quit', () => {
   members.dispose();
   forumIpc.dispose();
   motionPreferenceIpc.dispose();
+  clipboardTextIpc.dispose();
   startWithWindowsIpc.dispose();
   graphicsPreferenceIpc.dispose();
 });
@@ -1157,6 +1164,9 @@ const onAppReady = async () => {
   // Before any window exists, so the player's session and the rules its web
   // contents run under are in place by the time one can be attached.
   setUpVideoBrowser();
+  // Before any window too: every page it opens, the window's own and the
+  // Media tab's, gets a text field's right-click menu as it is created.
+  installEditContextMenus({ canInspect: hasDevelopmentMenu() });
   // Needs the session to exist, which is why this is here and not beside
   // `registerPrivilegedSchemes` at the top of the file — that call only
   // declares the scheme's privileges and has to run before `whenReady`;

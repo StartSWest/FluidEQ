@@ -55,6 +55,8 @@ import './Button.scss';
 import './Dropdown.scss';
 import './List.scss';
 import './TextInput.scss';
+// A box's Paste button, over the button's own sizes.
+import './PasteButton.scss';
 import './Knob.scss';
 import './Switch.scss';
 import './GenreNotes.scss';

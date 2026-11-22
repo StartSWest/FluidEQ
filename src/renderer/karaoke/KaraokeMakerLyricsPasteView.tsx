@@ -4,9 +4,11 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { RefObject } from 'react';
+import { RefObject, useRef } from 'react';
 import { IKaraokeMakerProject } from '../../common/karaoke/makerProject';
+import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
+import usePasteIntoField from '../utils/usePasteIntoField';
 import karaokeLanguageName from './karaokeLanguageName';
 import KARAOKE_LANGUAGE_CODES from './karaokeLanguageCodes';
 import Dropdown from '../widgets/Dropdown';
@@ -51,6 +53,10 @@ const KaraokeMakerLyricsPasteView = ({
 }: IKaraokeMakerLyricsPasteViewProps) => {
   const { t } = useTranslation();
   const isTranslationTarget = targetLanguage !== originalLanguage;
+  // Lyrics come from somewhere else almost always: the box's own Paste, in
+  // the Maker's face beside Load lyrics file (`usePasteIntoField`).
+  const boxRef = useRef<HTMLTextAreaElement>(null);
+  const pasteIn = usePasteIntoField(boxRef);
   const targetOptions = [
     originalLanguage,
     ...KARAOKE_LANGUAGE_CODES.filter((code) => code !== originalLanguage),
@@ -96,7 +102,24 @@ const KaraokeMakerLyricsPasteView = ({
             <KaraokeMakerToolIcon name="project" />
             <span>{t('karaoke.maker.loadLyricsFile')}</span>
           </button>
+          <button
+            type="button"
+            disabled={lyricsProcessing || !pasteIn.hasText}
+            title={t('edit.paste.hint')}
+            onMouseDown={pasteIn.keepFieldFocus}
+            onClick={pasteIn.paste}
+          >
+            <MenuIcon name="copyText" />
+            <span>{t('edit.paste.button')}</span>
+          </button>
         </div>
+        {/* In the head, on a line of its own: the column's rows are fixed
+            (head, language, box) and a fourth would take the box's. */}
+        {pasteIn.noteKey !== undefined && (
+          <p className="karaoke-maker__lyrics-paste-note" role="status">
+            {t(pasteIn.noteKey)}
+          </p>
+        )}
       </div>
       <div className="karaoke-maker__lyrics-target">
         <span>{t('karaoke.translation.target')}</span>
@@ -111,6 +134,7 @@ const KaraokeMakerLyricsPasteView = ({
         />
       </div>
       <KaraokeMakerLyricsSourceEditor
+        textareaRef={boxRef}
         value={lyricsDraft}
         disabled={lyricsProcessing}
         project={previewProject}

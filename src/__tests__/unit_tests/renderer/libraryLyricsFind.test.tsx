@@ -73,6 +73,8 @@ const importLibraryTrackLyrics = jest.fn(
   },
 );
 const open = jest.fn();
+// What main reads off the clipboard for a Paste (`main/ipc/clipboardText.ts`).
+let clipboard = '';
 // A song of its own for each test: the tab keeps the words it found for the
 // session, so a song given words in one test would have them in the next.
 let id = '';
@@ -84,6 +86,7 @@ beforeEach(() => {
   answers = {};
   imports = [];
   picked = { state: 'canceled' };
+  clipboard = '';
   libraryTrackLyrics.mockClear();
   pickLibraryLyricsFile.mockClear();
   importLibraryTrackLyrics.mockClear();
@@ -95,6 +98,8 @@ beforeEach(() => {
         libraryTrackLyrics,
         pickLibraryLyricsFile,
         importLibraryTrackLyrics,
+        clipboardHasText: async () => clipboard !== '',
+        readClipboardText: async () => clipboard,
       },
     },
   });
@@ -244,13 +249,16 @@ describe('bringing lyrics in', () => {
         fileName: 'Harbour Lights.txt',
       });
     });
+    clipboard = 'Gulls';
     await show(id);
+    // Paste pastes: the box opens holding what was copied (Ivan,
+    // 2026-11-22: "let's add a paste button to actually paste").
     fireEvent.click(screen.getByRole('button', { name: 'Paste' }));
+    await settle();
     const box = screen.getByRole('textbox', {
       name: 'Lyrics to keep with this song',
     });
-    expect(screen.getByRole('button', { name: 'Save lyrics' })).toBeDisabled();
-    fireEvent.change(box, { target: { value: 'Gulls' } });
+    expect(box).toHaveValue('Gulls');
     fireEvent.click(screen.getByRole('button', { name: 'Save lyrics' }));
     await settle();
     await settle();
@@ -260,6 +268,25 @@ describe('bringing lyrics in', () => {
         'Saved in FluidEQ’s lyrics folder: the song’s folder can’t be written',
       ),
     ).toBeInTheDocument();
+  });
+
+  it('opens an empty box, and says the clipboard has no text, when nothing was copied', async () => {
+    answers[id] = { looked: [] };
+    await show(id);
+    fireEvent.click(screen.getByRole('button', { name: 'Paste' }));
+    await settle();
+    const box = screen.getByRole('textbox', {
+      name: 'Lyrics to keep with this song',
+    });
+    expect(box).toHaveValue('');
+    expect(screen.getByRole('button', { name: 'Save lyrics' })).toBeDisabled();
+    // The box's own Paste is grey, and the line beside it says why.
+    expect(screen.getByRole('button', { name: 'Paste' })).toBeDisabled();
+    expect(
+      screen.getByText('There is no text on the clipboard to paste.'),
+    ).toBeInTheDocument();
+    fireEvent.change(box, { target: { value: 'Gulls' } });
+    expect(screen.getByRole('button', { name: 'Save lyrics' })).toBeEnabled();
   });
 
   it('refuses a dropped file that is not lyrics, without asking main', async () => {

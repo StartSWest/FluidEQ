@@ -78,7 +78,6 @@ export default {
   'presetShare.import.title': 'प्रीसेट आयात करें',
   'presetShare.import.hint':
     'कोई फ़ोरम पोस्ट, साझा लिंक या प्रीसेट फ़ाइल पेस्ट करें। केवल उसके अंदर का प्रीसेट पढ़ा जाता है।',
-  'presetShare.import.paste': 'क्लिपबोर्ड से पेस्ट करें',
   'presetShare.import.placeholder': 'यहाँ पेस्ट करें…',
   'presetShare.import.chooseFile': 'फ़ाइल चुनें…',
   'presetShare.import.found': 'एक प्रीसेट मिला',
@@ -88,8 +87,6 @@ export default {
     'यह प्रीसेट FluidEQ के नए संस्करण से बना है। इसे पढ़ने के लिए FluidEQ अपडेट करें।',
   'presetShare.import.damaged':
     'प्रीसेट का कोड कटा हुआ या ख़राब है। इसे शुरू से अंत तक फिर से कॉपी करें।',
-  'presetShare.import.clipboardFailed':
-    'FluidEQ क्लिपबोर्ड नहीं पढ़ सका। इसके बजाय बॉक्स में पेस्ट करें।',
   'presetShare.import.gone':
     'यह प्रीसेट अब साझा नहीं है। इसके बजाय इसका कोड माँगें।',
   'presetShare.import.offline':

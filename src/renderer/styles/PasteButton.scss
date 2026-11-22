@@ -1,0 +1,42 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// A box's Paste button (`PasteButton`) and the line beside it when the
+// clipboard holds no text. The button is the app's own quiet one; this sheet
+// only lays the glyph, the label and the line out, the same wherever it
+// stands.
+@use 'color' as *;
+@use 'theme' as *;
+
+.paste-button {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 4px;
+
+  > .button {
+    gap: 6px;
+  }
+
+  > .button .menu-icon {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+  }
+}
+
+// Beside the greyed button, the reason it is grey: said once, quietly, and
+// wrapping under it where the row is narrow rather than pushing it out.
+.paste-button__note {
+  min-width: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}

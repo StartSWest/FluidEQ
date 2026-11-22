@@ -120,6 +120,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: 15px;
     flex: 0 0 auto;
   }
+
+  // Under the box, the box's own Paste stands apart from Save and Cancel,
+  // at the row's far end: it edits the words, the other two decide them.
+  // Wrapped under them with its line, it keeps to the end as well, and the
+  // line speaks in the pane's quiet ink, as the drop note under it does.
+  > .paste-button {
+    margin-inline-start: auto;
+    justify-content: flex-end;
+
+    .paste-button__note {
+      color: $studio-t3;
+      font-size: $studio-text-meta;
+      text-align: end;
+    }
+  }
 }
 
 .library-lyrics-finder__paste {

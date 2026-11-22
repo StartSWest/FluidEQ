@@ -147,6 +147,17 @@
   font-size: $text-small;
   font-weight: $weight-semibold;
 }
+// The box's name, and its Paste at the far end while text is being pasted
+// in; under the name where a translation leaves no room beside it.
+.my-curve-add__text-head {
+  display: flex;
+  min-width: 0;
+  min-height: $control-height-sm;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 10px;
+}
 .my-curve-add__text {
   width: 100%;
   min-height: 180px;

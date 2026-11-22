@@ -241,10 +241,15 @@ $share-tint: color-mix(in srgb, var(--ink-preset) 13%, transparent);
   gap: 10px;
 }
 
-.preset-share-dialog__paste > .button,
 .preset-share-dialog .dialog-frame__actions .button {
   justify-self: start;
   gap: 6px;
+}
+
+// The box's Paste, at the start of the column like the dialog's buttons,
+// not stretched across it as a grid item would be.
+.preset-share-dialog__paste > .paste-button {
+  justify-self: start;
 }
 
 .preset-share-dialog__formats {

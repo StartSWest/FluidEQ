@@ -81,7 +81,6 @@ export default {
   'presetShare.import.title': 'Ein Preset importieren',
   'presetShare.import.hint':
     'Fügen Sie einen Forenbeitrag, einen Teilen-Link oder eine Preset-Datei ein. Gelesen wird nur das Preset darin.',
-  'presetShare.import.paste': 'Aus der Zwischenablage einfügen',
   'presetShare.import.placeholder': 'Hier einfügen…',
   'presetShare.import.chooseFile': 'Datei wählen…',
   'presetShare.import.found': 'Ein Preset gefunden',
@@ -91,8 +90,6 @@ export default {
     'Dieses Preset wurde mit einem neueren FluidEQ erstellt. Aktualisieren Sie FluidEQ, um es zu lesen.',
   'presetShare.import.damaged':
     'Der Code des Presets ist abgeschnitten oder beschädigt. Kopieren Sie ihn noch einmal von Anfang bis Ende.',
-  'presetShare.import.clipboardFailed':
-    'FluidEQ konnte die Zwischenablage nicht lesen. Fügen Sie den Text stattdessen in das Feld ein.',
   'presetShare.import.gone':
     'Dieses Preset wird nicht mehr geteilt. Fragen Sie stattdessen nach seinem Code.',
   'presetShare.import.offline':

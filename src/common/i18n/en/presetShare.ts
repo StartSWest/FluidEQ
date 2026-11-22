@@ -85,7 +85,6 @@ export default {
   'presetShare.import.title': 'Import a preset',
   'presetShare.import.hint':
     'Paste a forum post, a share link or a preset file. Only the preset inside is read.',
-  'presetShare.import.paste': 'Paste from clipboard',
   'presetShare.import.placeholder': 'Paste here…',
   'presetShare.import.chooseFile': 'Choose file…',
   'presetShare.import.found': 'Found one preset',
@@ -95,8 +94,6 @@ export default {
     'This preset was made with a newer FluidEQ. Update FluidEQ to read it.',
   'presetShare.import.damaged':
     'The preset’s code is cut off or damaged. Copy it again from start to end.',
-  'presetShare.import.clipboardFailed':
-    'FluidEQ couldn’t read the clipboard. Paste into the box instead.',
   'presetShare.import.gone':
     'This preset is no longer shared. Ask for its code instead.',
   'presetShare.import.offline':

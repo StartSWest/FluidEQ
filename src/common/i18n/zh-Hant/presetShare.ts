@@ -76,7 +76,6 @@ export default {
   'presetShare.import.title': '匯入預設組',
   'presetShare.import.hint':
     '貼上論壇貼文、分享連結或預設組檔案。只會讀取其中的預設組。',
-  'presetShare.import.paste': '從剪貼簿貼上',
   'presetShare.import.placeholder': '貼到這裡…',
   'presetShare.import.chooseFile': '選擇檔案…',
   'presetShare.import.found': '找到一個預設組',
@@ -86,8 +85,6 @@ export default {
     '這個預設組是用較新版本的 FluidEQ 製作的。請更新 FluidEQ 後再讀取。',
   'presetShare.import.damaged':
     '預設組的代碼被截斷或已損毀。請從頭到尾重新複製。',
-  'presetShare.import.clipboardFailed':
-    'FluidEQ 無法讀取剪貼簿。請改為直接貼到輸入框中。',
   'presetShare.import.gone': '這個預設組已不再分享。請改為索取它的代碼。',
   'presetShare.import.offline':
     'FluidEQ 無法連線到伺服器來開啟這個連結。請檢查網路連線後重試。',

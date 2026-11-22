@@ -80,7 +80,6 @@ export default {
   'presetShare.import.title': 'Импорт пресета',
   'presetShare.import.hint':
     'Вставьте сообщение с форума, ссылку или файл пресета. Читается только пресет внутри.',
-  'presetShare.import.paste': 'Вставить из буфера обмена',
   'presetShare.import.placeholder': 'Вставьте сюда…',
   'presetShare.import.chooseFile': 'Выбрать файл…',
   'presetShare.import.found': 'Найден один пресет',
@@ -90,8 +89,6 @@ export default {
     'Этот пресет создан в более новой версии FluidEQ. Обновите FluidEQ, чтобы его прочитать.',
   'presetShare.import.damaged':
     'Код пресета обрезан или повреждён. Скопируйте его ещё раз от начала до конца.',
-  'presetShare.import.clipboardFailed':
-    'FluidEQ не смог прочитать буфер обмена. Вставьте текст в поле вручную.',
   'presetShare.import.gone':
     'Этим пресетом больше не делятся. Попросите его код.',
   'presetShare.import.offline':

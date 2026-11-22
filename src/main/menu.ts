@@ -25,7 +25,7 @@ import {
 } from 'electron';
 import { PRODUCT_NAME, REPOSITORY_URL } from '../common/branding';
 import { zoomKeyOf } from '../common/readingZoom';
-import { inspectDetached, toggleDetachedDevTools } from './devTools';
+import { toggleDetachedDevTools } from './devTools';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -54,8 +54,11 @@ const ZOOM_STEP = 0.5;
 const ZOOM_MIN_LEVEL = -3;
 const ZOOM_MAX_LEVEL = 4;
 
-/** The builds `buildMenu` gives a menu of their own: reload, DevTools. */
-const hasDevelopmentMenu = () =>
+/**
+ * The builds `buildMenu` gives a menu of their own: reload, DevTools. The
+ * page's right-click menu adds Inspect element in the same builds.
+ */
+export const hasDevelopmentMenu = () =>
   process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
 
 /**
@@ -105,9 +108,9 @@ export default class MenuBuilder {
     // hung off a menu item would only ever fire in development.
     this.installZoomShortcuts();
 
-    if (hasDevelopmentMenu()) {
-      this.setupDevelopmentEnvironment();
-    } else {
+    // Development's Inspect element is an item of the page's right-click
+    // menu, which every page has (`editContextMenu.ts`).
+    if (!hasDevelopmentMenu()) {
       this.mainWindow.setMenu(null);
       return;
     }
@@ -182,21 +185,6 @@ export default class MenuBuilder {
   /** Whether a reading page has the keyboard; see `readingHasKeys`. */
   setReadingHasKeys(hasKeys: boolean): void {
     this.readingHasKeys = hasKeys;
-  }
-
-  setupDevelopmentEnvironment(): void {
-    this.mainWindow.webContents.on('context-menu', (_, props) => {
-      const { x, y } = props;
-
-      Menu.buildFromTemplate([
-        {
-          label: 'Inspect element',
-          click: () => {
-            inspectDetached(this.mainWindow.webContents, x, y);
-          },
-        },
-      ]).popup({ window: this.mainWindow });
-    });
   }
 
   buildDarwinTemplate(): MenuItemConstructorOptions[] {
