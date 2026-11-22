@@ -10,7 +10,6 @@ import AnchoredMenu from '../widgets/AnchoredMenu';
 import { useTranslation } from '../utils/I18nContext';
 import { useLiveSongSound, useSongSoundNow } from '../audio/songSoundSession';
 import { useSongSoundIndex } from '../audio/songSoundIndex';
-import { useSavedEqStates } from '../audio/savedEqActions';
 import {
   goBackToSaved,
   songCardSound,
@@ -22,16 +21,18 @@ import '../styles/SongSoundChip.scss';
 
 /**
  * The sound the playing song plays, on its card (Ivan, 2026-11-20: "also
- * show the preset playing on the song card too"): "Album · Pop" in the
- * album's amber, "Own · Warm" in the song's green, a change not saved in the
- * amber, the listener's own preset in the card's quiet ink — the Library's
- * Sound column, word for word (`songCardSound`). From the same session the
- * panel reads, so it changes the moment the sound does. Pressed, it opens
- * Auto EQ's panel, which says why and offers what can be done about it.
+ * show the preset playing on the song card too"), in three states only
+ * (`songCardSound`): "Song · Warm" in the song's green, "Album · Pop" in the
+ * album's amber, "Changed · K-pop" in the amber, and nothing at all
+ * otherwise. From the same session the panel reads, so it changes the moment
+ * the sound does. Pressed, it opens Auto EQ's panel.
  *
  * Changed by hand over a song's or an album's sound, the press opens a short
  * menu instead (Ivan, 2026-11-20: "when I hover on 'Changed' — set album
- * sound or something like that"): back to that sound first, Auto EQ second.
+ * sound or something like that"): Restore first, in the panel's own words,
+ * Auto EQ second. Drawn over the bar, which stands at a higher layer than
+ * menus do: under it the menu's foot was cut off (Ivan, 2026-11-21: "fix
+ * the menu to show on top").
  * A menu rather than going back on the press itself, because in every other
  * state the same press opens Auto EQ, and a press that silently swapped the
  * sound in this one alone would be the one nobody expected.
@@ -45,21 +46,13 @@ const SongSoundChip = ({ className }: { className: string }) => {
   const now = useSongSoundNow();
   const live = useLiveSongSound();
   const index = useSongSoundIndex();
-  const { eqs, eqById } = index;
-  const states = useSavedEqStates(eqs);
+  const { eqById } = index;
   const [isOpen, setIsOpen] = useState(false);
   const holder = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setIsOpen(false), []);
   useMenuDismiss(isOpen, holder, close);
 
-  const sound = songCardSound(
-    now,
-    live,
-    states,
-    eqById,
-    t,
-    storedPresetOf(now, index),
-  );
+  const sound = songCardSound(now, live, eqById, t, storedPresetOf(now, index));
   const back = sound?.back;
   // Nothing changed any more (saved, gone back, the next song): the menu goes
   // with it, and does not open by itself the next time a change is made.
@@ -115,11 +108,7 @@ const SongSoundChip = ({ className }: { className: string }) => {
             }}
           >
             <MenuIcon name="reset" className="band-menu__icon" />
-            <span>
-              {t(isAlbum ? 'autoEq.chip.backAlbum' : 'autoEq.chip.backSong', {
-                preset: back.name,
-              })}
-            </span>
+            <span>{t('autoEq.restore', { preset: back.name })}</span>
           </button>
           <button
             type="button"

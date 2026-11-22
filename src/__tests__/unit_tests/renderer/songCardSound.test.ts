@@ -11,9 +11,11 @@ import {
   storedPresetOf,
 } from '../../../renderer/audio/songCardSound';
 
-// The song's card calls a sound the album's only while the album's own preset
-// is the saved sound the session holds (Ivan, 2026-11-20: "Album · K-pop"
-// over an album set to Ballad, "kpop? what the heck").
+// The song's card in exactly three states (Ivan, 2026-11-21: "we need to
+// simplify and make sure no crazy weird things happen"): the song's own
+// sound, the album's, or one of them changed by hand — nothing otherwise —
+// and it names what plays, never a remembered id ("Album · K-pop" over an
+// album set to Ballad, 2026-11-20: "kpop? what the heck").
 
 const t = ((key: string, vars?: Record<string, unknown>) =>
   vars ? `${key} ${JSON.stringify(vars)}` : key) as Translate;
@@ -37,7 +39,18 @@ const identity = (() => {
   return { ...made, albumKey: 'exitos\u001fsilvana di lorenzo' };
 })();
 const index = {
-  songs: new Map(),
+  songs: new Map([
+    [
+      't1',
+      {
+        trackId: 't1',
+        title: 'En un sábado',
+        presetId: 'warm',
+        isWhole: false,
+        updatedAt: 1,
+      },
+    ],
+  ]),
   albums: new Map([
     [
       identity.albumKey,
@@ -51,39 +64,64 @@ const index = {
     ],
   ]),
 };
-const onAlbum = (held: string): ISongSoundNow => ({
+const playing = (
+  owner: 'song' | 'album' | undefined,
+  held: string,
+  over: Partial<ISongSoundNow> = {},
+): ISongSoundNow => ({
   identity,
   isPlaying: true,
-  owner: 'album',
+  ...(owner ? { owner, saved: sound(held) } : {}),
   presetId: held,
-  saved: sound(held),
   canSave: false,
   isChanged: false,
+  ...over,
 });
+const card = (now: ISongSoundNow, live: string) =>
+  songCardSound(now, sound(live), new Map(), t, storedPresetOf(now, index));
 
 describe('the song’s card: whose sound plays', () => {
-  it('reads the album’s preset as kept', () => {
-    expect(storedPresetOf(onAlbum('ballad'), index)).toBe('ballad');
+  it('reads the preset kept for the song’s sound and the album’s', () => {
+    expect(storedPresetOf(playing('song', 'warm'), index)).toBe('warm');
+    expect(storedPresetOf(playing('album', 'ballad'), index)).toBe('ballad');
   });
 
-  it('calls a sound the album’s while the album’s own preset is the one held', () => {
-    const now = onAlbum('ballad');
-    const card = songCardSound(
-      now,
-      sound('ballad'),
-      {},
-      new Map(),
-      t,
-      'ballad',
-    );
-    expect(card?.kind).toBe('album');
+  it('says Song while the song’s own sound plays', () => {
+    const result = card(playing('song', 'warm'), 'warm');
+    expect(result?.kind).toBe('song');
+    expect(result?.text.startsWith('autoEq.chip.song')).toBe(true);
+    expect(result?.back).toBeUndefined();
+  });
+
+  it('says Album while the album’s own sound plays', () => {
+    const now = playing('album', 'ballad');
+    expect(card(now, 'ballad')?.kind).toBe('album');
     expect(backToSaved(now, new Map(), t, 'ballad')).toBeUndefined();
   });
 
-  it('calls K-pop held as the album’s a change, and goes back by asking afresh', () => {
-    const now = onAlbum('kPop');
-    const card = songCardSound(now, sound('kPop'), {}, new Map(), t, 'ballad');
-    expect(card?.kind).toBe('changed');
-    expect(card?.back).toMatchObject({ owner: 'album', isAstray: true });
+  it('says Changed, with Restore, over a change made by hand', () => {
+    const now = playing('album', 'ballad', {
+      isChanged: true,
+      presetId: 'kPop',
+    });
+    const result = card(now, 'kPop');
+    expect(result?.kind).toBe('changed');
+    expect(result?.back).toMatchObject({ owner: 'album' });
+    expect(result?.back?.isAstray).toBeUndefined();
+  });
+
+  it('never says Album when the album’s sound did not land: K-pop held as the album’s is a change', () => {
+    const now = playing('album', 'kPop');
+    const result = card(now, 'kPop');
+    expect(result?.kind).toBe('changed');
+    expect(result?.back).toMatchObject({ owner: 'album', isAstray: true });
+  });
+
+  it('shows nothing for the listener’s own sound, None or a saved EQ of theirs', () => {
+    expect(card(playing(undefined, 'kPop'), 'kPop')).toBeUndefined();
+    expect(card(playing(undefined, 'none'), 'none')).toBeUndefined();
+    expect(
+      card(playing(undefined, 'pop', { eqId: 'eq-1' }), 'pop'),
+    ).toBeUndefined();
   });
 });

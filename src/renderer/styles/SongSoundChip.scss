@@ -37,6 +37,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // line; past the cap a row wraps rather than being cut, its name being the
 // point of it.
 .band-menu.song-sound-menu {
+  // Over the player's bar (1100), which a menu's own layer (1001) sat under:
+  // the bar covered the menu's foot and its Open Auto EQ row.
+  z-index: 1200;
   width: max-content;
   min-width: 200px;
   max-width: min(340px, calc(100vw - 24px));

@@ -12,18 +12,17 @@ import {
   revertSongSound,
   songSoundPicked,
 } from './songSoundSession';
-import type { ISavedEqStates } from './savedEqActions';
 import type { ISongSoundIndexView } from './songSoundIndex';
 import { savedSoundName } from '../library/librarySoundTag';
 import songSoundPresetName from '../components/songSoundPresetName';
 
 /**
  * Whose sound the playing song plays, as its card on the player says it:
- * the song's own, its album's, one of them changed and not saved, or the
- * listener's own — `kind` picks the ink the Library's Sound column uses.
+ * the song's own, its album's, or one of them changed by hand — `kind`
+ * picks the ink the Library's Sound column uses.
  */
 export interface ISongCardSound {
-  kind: 'own' | 'album' | 'changed' | 'yours';
+  kind: 'song' | 'album' | 'changed';
   text: string;
   /** Changed by hand over a saved sound: whose it is and its name, for Back
    * to it — `revertSongSound`, or asked for afresh where what the session
@@ -118,6 +117,15 @@ export const backToSaved = (
   return now.isChanged ? savedSoundOf(now, eqById, t) : undefined;
 };
 
+/**
+ * A preset by the name the picker gives it, None included: the card and the
+ * panel say what plays, and None plays as much as any preset does.
+ */
+export const playingPresetName = (presetId: string, t: Translate): string =>
+  presetId === 'none'
+    ? t('dsp.preset.none')
+    : (songSoundPresetName(presetId, t) ?? t('songSound.noPresetName'));
+
 /** Back to the saved sound `backToSaved` named. */
 export const goBackToSaved = (
   back: NonNullable<ISongCardSound['back']>,
@@ -132,58 +140,36 @@ export const goBackToSaved = (
 
 /**
  * The words on the player's song card (Ivan, 2026-11-20: "also show the
- * preset playing on the song card too"), in the Library's own words —
- * "Own · Warm", "Album · Pop" — so the card and the row say the same thing.
- * A saved sound that follows a saved EQ is named by the EQ, as everywhere
- * else; over the listener's own sound, the saved EQ that plays exactly, or
- * the preset. Nothing while the window has not yet heard what plays.
+ * preset playing on the song card too"), in exactly three states (Ivan,
+ * 2026-11-21: "we need to simplify and make sure no crazy weird things
+ * happen"): "Song · Warm" while the song's own sound plays, "Album · Pop"
+ * while its album's does, "Changed · K-pop" while one of them was changed by
+ * hand. Anything else — the listener's own sound, a saved EQ, None, nothing
+ * saved — is no tag: a saved EQ's name is on the Save EQ button and the
+ * preset on the titlebar's plate. The preset named is always the one that
+ * plays (`live`, read the way the plate reads it), never a remembered id.
  */
 export const songCardSound = (
   now: ISongSoundNow,
   live: ISongSound | undefined,
-  states: ISavedEqStates,
   eqById: ReadonlyMap<string, ISavedEqSummary>,
   t: Translate,
   /** The preset kept for the saved sound (`storedPresetOf`). */
   stored?: string,
 ): ISongCardSound | undefined => {
-  if (!live) {
+  if (!live || !now.owner) {
     return undefined;
   }
+  const preset = playingPresetName(live.presetId, t);
   const back = backToSaved(now, eqById, t, stored);
   if (now.isChanged || back?.isAstray) {
-    const preset =
-      songSoundPresetName(live.presetId, t) ?? t('songSound.noPresetName');
     return {
       kind: 'changed',
       text: t('library.sound.tagChanged', { preset }),
       ...(back ? { back } : {}),
     };
   }
-  if (now.owner) {
-    const eqName =
-      now.eqId === undefined ? undefined : eqById.get(now.eqId)?.name;
-    const preset = savedSoundName(
-      {
-        presetId: now.presetId ?? live.presetId,
-        ...(eqName === undefined ? {} : { eqName }),
-      },
-      t,
-    );
-    return now.owner === 'song'
-      ? { kind: 'own', text: t('library.sound.tagOwn', { preset }) }
-      : { kind: 'album', text: t('library.sound.tagAlbum', { preset }) };
-  }
-  const playing =
-    states.playingId === undefined ? undefined : eqById.get(states.playingId);
-  return {
-    kind: 'yours',
-    text: savedSoundName(
-      {
-        presetId: live.presetId,
-        ...(playing ? { eqName: playing.name } : {}),
-      },
-      t,
-    ),
-  };
+  return now.owner === 'song'
+    ? { kind: 'song', text: t('autoEq.chip.song', { preset }) }
+    : { kind: 'album', text: t('library.sound.tagAlbum', { preset }) };
 };

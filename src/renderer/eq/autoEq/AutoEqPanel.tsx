@@ -10,7 +10,6 @@ import Switch from '../../widgets/Switch';
 import { useTranslation } from '../../utils/I18nContext';
 import {
   forgetPlayingSongSound,
-  revertSongSound,
   saveSongSoundNow,
   setSongSoundParts,
   useSongSoundHeld,
@@ -29,11 +28,7 @@ import useHasChanged from '../../utils/useHasChanged';
 import AutoEqMeasureOnce from './AutoEqMeasureOnce';
 import AutoEqSongHolds from './AutoEqSongHolds';
 import AutoEqEqPicker from './AutoEqEqPicker';
-import {
-  backToSaved,
-  goBackToSaved,
-  storedPresetOf,
-} from '../../audio/songCardSound';
+import { backToSaved, storedPresetOf } from '../../audio/songCardSound';
 
 /** One of the panel's parts: its name and line, its switch, what it holds. */
 const AutoEqPart = ({
@@ -172,11 +167,7 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
           <span>{t('autoEq.aside')}</span>
         </p>
       )}
-      <AutoEqNowPlaying
-        now={now}
-        eqName={songEq?.name}
-        underName={backTo?.name}
-      />
+      <AutoEqNowPlaying now={now} eqName={songEq?.name} back={backTo} />
       <AutoEqPart
         id="eq-auto-songs"
         title={t('autoEq.songs.title')}
@@ -187,19 +178,13 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
         {now.saved && <AutoEqSongHolds sound={now.saved} />}
         {now.isChanged ? (
           // Changed over a saved sound, and kept only when saved (Ivan
-          // approved explicit saving, 2026-11-20): saving is the suggestion,
-          // so it wears the loud style, and going back the quiet one.
+          // approved explicit saving, 2026-11-20): saving is what this part
+          // does, so it is the loud one and the only one. Going back is the
+          // top card's Restore, one for the song's sound and the album's.
           <div key={songLineState} className={`eq-auto-part__line${swap}`}>
             <span className="eq-auto-part__changed" role="status">
               {t('autoEq.songs.changed')}
             </span>
-            <button
-              type="button"
-              className="button small subtle"
-              onClick={revertSongSound}
-            >
-              {t('autoEq.songs.revert')}
-            </button>
             <button
               type="button"
               className="button small"
@@ -257,22 +242,6 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
       >
         <div className="eq-auto-part__line">
           <span>{albumLine}</span>
-          {/* The album's sound, changed by hand over this song: back to it
-            (Ivan, 2026-11-20: "a way that when it is album sound and I
-            change the preset manually, to restore to album sound"). Here
-            because Song sounds, whose Back to saved does the same, may be
-            off — it was, when he asked. Going back is not a pick of his
-            own: the pick he made stays the sound a song with nothing saved
-            plays (`revert` in `songSoundChoices.ts`). */}
-          {backTo?.owner === 'album' && (
-            <button
-              type="button"
-              className="button small subtle"
-              onClick={() => goBackToSaved(backTo)}
-            >
-              {t('autoEq.albums.revert', { preset: backTo.name })}
-            </button>
-          )}
         </div>
       </AutoEqPart>
       <AutoEqSmartPart button={button} />
