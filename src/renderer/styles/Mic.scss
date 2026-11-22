@@ -28,12 +28,31 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
+// The card's two columns, as the Gaming Lab's (`.gaming-lab`): the studio
+// rail in the first, which places itself (`StudioRail.scss`), and the page.
 .mic-page {
-  display: flex;
+  display: grid;
   min-width: 0;
   min-height: 0;
   flex: 1 1 auto;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+// The page beside the rail, scrolling inside itself with the app's slim bar
+// so the rail stays put. The container the header's folds ask: this column
+// is what it shares with the rail, never the whole card.
+.mic-page__main {
+  @include slim-scrollbar;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  grid-column: 2;
+  grid-row: 1;
   flex-direction: column;
+  padding-bottom: 16px;
+  overflow-x: hidden;
+  overflow-y: auto;
   container: mic-page / inline-size;
 }
 
@@ -264,38 +283,32 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // *** The stages ************************************************************
 
-.mic-body {
-  @include slim-scrollbar;
-  display: grid;
-  min-height: 0;
-  flex: 1 1 auto;
-  align-items: start;
-  gap: 24px;
-  grid-template-columns: auto minmax(0, 1fr);
-  padding: 14px 16px 16px;
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
+// The stages down the studio rail, at the rail's width (it is dragged wider
+// for a long name, and folded to its glyphs by its pin, as the DSP page's).
 .mic-rail {
   display: flex;
-  width: 212px;
+  width: auto;
   flex-direction: column;
   gap: 1px;
 }
 
+// One line, as the Library's shelf names; each row's title names it in full.
 .mic-rail .dsp-rail-name {
   line-height: inherit;
   @include truncate;
 }
 
+// The DSP page's column air: the Library's 14px over its first row, 16 at
+// the sides because a stage's boxes run to the column's edges.
 .mic-stage {
   min-width: 0;
+  padding: 14px 16px 0;
 }
 
 // *** No microphone *********************************************************
 
 .mic-page--empty {
+  display: flex;
   align-items: center;
   justify-content: center;
   padding: 32px 16px;
@@ -340,8 +353,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// The rail folds to its glyphs, down the side as the Gaming Lab's does,
-// each row keeping its name as its tooltip and its lamp on the glyph.
+// The header in one column; the rail folds by its own pin, as every studio
+// rail does, never by the width.
 @container mic-page (max-width: #{$bp-md}) {
   .mic-head {
     grid-template-columns: minmax(0, 1fr);
@@ -349,30 +362,5 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   .mic-head__sound {
     justify-content: flex-start;
-  }
-
-  .mic-body {
-    gap: 14px;
-  }
-
-  .mic-rail {
-    width: 36px;
-  }
-
-  .mic-rail .dsp-rail-name {
-    display: none;
-  }
-
-  .mic-rail .dsp-rail-tab {
-    position: relative;
-    justify-content: center;
-    padding-inline: 0;
-  }
-
-  .mic-rail .dsp-rail-lamp {
-    position: absolute;
-    top: 5px;
-    left: 24px;
-    margin: 0;
   }
 }

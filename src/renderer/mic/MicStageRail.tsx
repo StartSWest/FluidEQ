@@ -133,7 +133,7 @@ const MicStageRail = ({
           onClick={() => onSelect(id)}
         >
           <StageIcon stage={id} />
-          <span className="dsp-rail-name">{t(labelKey)}</span>
+          <span className="dsp-rail-name studio-rail__word">{t(labelKey)}</span>
           <span className="dsp-rail-lamp" aria-hidden="true" />
         </button>
       ))}

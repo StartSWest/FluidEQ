@@ -2833,6 +2833,7 @@ $tab-bar-inset: 8px;
 .workspace-tab-panel--games,
 .workspace-tab-panel--dsp,
 .workspace-tab-panel--share,
+.workspace-tab-panel--mic,
 .workspace-tab-panel--community,
 .workspace-tab-panel--forum,
 .workspace-tab-panel--config,
@@ -2872,7 +2873,9 @@ $tab-bar-inset: 8px;
 // panes and the Karaoke stage stand inside it. Not Plus and the forum, which
 // lay out rails of their own.
 $section-card-pages: ();
-@each $page in eq, presets, convolution, games, config, dsp, share, video,
+// The Mic tab joined late, and stood on the bare floor until Ivan held it up
+// beside the DSP page (2026-11-22: "the mic page doesn't have the card bg").
+@each $page in eq, presets, convolution, games, config, dsp, share, mic, video,
   karaoke, library
 {
   $section-card-pages: list.append(
@@ -3491,6 +3494,7 @@ $graph-card-pages: list.join(
 .workspace-tab-panel--games,
 .workspace-tab-panel--dsp,
 .workspace-tab-panel--share,
+.workspace-tab-panel--mic,
 .workspace-tab-panel--config {
   min-height: 0;
   flex: 1 1 auto;

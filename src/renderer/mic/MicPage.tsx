@@ -23,8 +23,6 @@ import {
   TMicProfileId,
 } from '../../common/mic/micProfiles';
 import type { TranslationKey } from '../../common/i18n';
-import DspStageCards from '../dsp/DspStageCards';
-import { IRoomLive } from '../dsp/useRoomLive';
 import MenuIcon from '../icons/MenuIcon';
 import { attachFluidEngine } from '../utils/audioEngineApi';
 import { useTranslation } from '../utils/I18nContext';
@@ -34,9 +32,12 @@ import {
   refreshAudioEngineStatus,
   useKnownAudioEngineStatus,
 } from '../utils/useAudioEngineStatus';
+import { useRailWidth } from '../library/LibraryRailSplitter';
 import RichPick from '../widgets/RichPick';
+import StudioRail, { useRailPinned } from '../widgets/StudioRail';
+import { MIC_RAIL_PINNED_KEY, MIC_RAIL_WIDTH_KEY } from './micRail';
+import MicStage from './MicStage';
 import MicStageRail, { TMicStage } from './MicStageRail';
-import { MicCleanerCard, MicGateCard, MicLowCutCard } from './MicVoiceCards';
 import MicVoicePicture from './MicVoicePicture';
 import MicLiveBar from './MicLiveBar';
 import useMicEffects from './useMicEffects';
@@ -64,9 +65,6 @@ const PROFILE_WORDS: Record<
   laptop: { name: 'mic.profile.laptop', hint: 'mic.profile.laptop.hint' },
   headset: { name: 'mic.profile.headset', hint: 'mic.profile.headset.hint' },
 };
-
-/** The DSP cards' Room feed: a mic has no Room, so nothing is known of one. */
-const NO_ROOM: IRoomLive = { state: 'unknown', channels: undefined };
 
 const MicGlyph = () => (
   <MenuIcon name="microphoneSettings" className="rich-pick__glyph" />
@@ -98,6 +96,8 @@ const MicPage = () => {
   const { mic, microphones, entry } = sound;
   const [stage, setStage] = useState<TMicStage>('lowCut');
   const [setup, setSetup] = useState<TSetup>('idle');
+  const railWidth = useRailWidth(MIC_RAIL_WIDTH_KEY);
+  const [isRailPinned, setRailPinned] = useRailPinned(MIC_RAIL_PINNED_KEY);
   const isFluid = status?.engine === 'fluid';
   const attached = isFluid && mic?.attached === true;
   const effects = useMicEffects(attached ? mic?.guid : undefined, status);
@@ -174,174 +174,159 @@ const MicPage = () => {
   };
 
   return (
+    // The DSP page's and the Gaming Lab's frame: the stages down the studio
+    // rail every such page shares, and the page beside it on the card,
+    // scrolling inside itself (Ivan, 2026-11-22: "the mic page doesn't have
+    // the card bg").
     <div className="mic-page">
-      <header className="mic-head">
-        <div className="mic-head__who">
-          <RichPick
-            className="mic-head__pick"
-            entries={microphones.map((each) => ({
-              id: each.guid,
-              name: each.name || each.guid,
-              hint: each.attached ? t('mic.list.on') : t('mic.list.off'),
-              group: 'mics',
-              icon: <MicGlyph />,
-            }))}
-            groupLabel={() => t('mic.list.heading')}
-            activeId={mic.guid}
-            onPick={sound.select}
-            placeholder={mic.name}
-            placeholderIcon={<MicGlyph />}
-            triggerAriaLabel={t('mic.label')}
-            triggerTitle={t('mic.pickHint')}
-          />
-          <span className={`mic-head__live${lineTone}`} role="status">
-            <span className="mic-head__lamp" aria-hidden="true" />
-            {liveLine}
-          </span>
-        </div>
-        <MicVoicePicture history={levels.history} gateDb={gateDb} />
-        <div className="mic-head__sound">
-          <RichPick
-            className="mic-head__profile"
-            entries={MIC_PROFILE_IDS.map((id) => ({
-              id,
-              name: profileName(id),
-              hint: t(PROFILE_WORDS[id].hint),
-              group: micProfileGroup(id),
-              icon: <MicGlyph />,
-            }))}
-            groupLabel={(group) =>
-              group === 'mic'
-                ? t('mic.profile.group.mic')
-                : t('mic.profile.group.use')
-            }
-            activeId={profileId ?? ''}
-            onPick={(id) => {
-              if (isMicProfileId(id)) {
-                sound.pickProfile(id);
-              }
-            }}
-            placeholder={
-              profileId ? profileName(profileId) : t('mic.profile.label')
-            }
-            placeholderIcon={<MicGlyph />}
-            triggerAriaLabel={t('mic.profile.label')}
-            triggerTitle={t('mic.profile.pickHint')}
-            triggerExtra={
-              entry.tuned ? (
-                <span className="mic-head__tuned">
-                  {t('mic.profile.tuned')}
-                </span>
-              ) : undefined
-            }
-          />
-          {entry.tuned && profileId && (
-            <button
-              type="button"
-              className="button small subtle"
-              onClick={() => sound.pickProfile(profileId)}
-            >
-              {t('mic.reset', { profile: profileName(profileId) })}
-            </button>
-          )}
-        </div>
-      </header>
-
-      {listening && (
-        <MicLiveBar
-          key={mic.guid}
-          latest={levels.latest}
-          live={live}
-          gateDb={gateDb}
-          makeupDb={
-            settings.dynamics.enabled ? settings.dynamics.makeupDb : undefined
-          }
-          limiterOn={settings.maximizer.enabled}
-          stream={levels.stream}
-        />
-      )}
-      {attached && effects === 'off' && (
-        <div className="mic-notice" role="status">
-          <p className="mic-notice__text">
-            <strong>{t('mic.effectsOff.title', { mic: mic.name })}</strong>
-            <span>{t('mic.effectsOff.body')}</span>
-          </p>
-          <button
-            type="button"
-            className="button small"
-            onClick={openWindowsSoundSettings}
-          >
-            {t('mic.effectsOff.button')}
-          </button>
-        </div>
-      )}
-      {isFluid && !mic.attached && (
-        <div className="mic-notice" role="status">
-          <p className="mic-notice__text">
-            <strong>{t('mic.setup.title', { mic: mic.name })}</strong>
-            <span>{t(SETUP_WORDS[setup])}</span>
-          </p>
-          <button
-            type="button"
-            className="button small"
-            disabled={setup === 'working'}
-            onClick={setUp}
-          >
-            {setup === 'working'
-              ? t('mic.setup.working')
-              : t('mic.setup.button')}
-          </button>
-        </div>
-      )}
-      {!isFluid && (
-        <div className="mic-notice" role="status">
-          <p className="mic-notice__text">
-            <strong>{t('mic.notFluid.title')}</strong>
-            <span>{t('mic.notFluid.body')}</span>
-          </p>
-        </div>
-      )}
-
-      <div className="mic-body">
+      <StudioRail
+        rail={railWidth}
+        isPinned={isRailPinned}
+        onPinnedChange={setRailPinned}
+        heading={t('mic.tab')}
+      >
         <MicStageRail
           heading={mic.name}
           active={stage}
           settings={settings}
           onSelect={setStage}
         />
-        <div className="mic-stage dsp-stage">
-          {stage === 'lowCut' && voice && (
-            <MicLowCutCard
-              voice={voice}
-              onPatch={(next) => sound.patch({ voice: next })}
-              onCommit={sound.commit}
+      </StudioRail>
+      <div className="mic-page__main">
+        <header className="mic-head">
+          <div className="mic-head__who">
+            <RichPick
+              className="mic-head__pick"
+              entries={microphones.map((each) => ({
+                id: each.guid,
+                name: each.name || each.guid,
+                hint: each.attached ? t('mic.list.on') : t('mic.list.off'),
+                group: 'mics',
+                icon: <MicGlyph />,
+              }))}
+              groupLabel={() => t('mic.list.heading')}
+              activeId={mic.guid}
+              onPick={sound.select}
+              placeholder={mic.name}
+              placeholderIcon={<MicGlyph />}
+              triggerAriaLabel={t('mic.label')}
+              triggerTitle={t('mic.pickHint')}
             />
-          )}
-          {stage === 'gate' && voice && (
-            <MicGateCard
-              voice={voice}
-              onPatch={(next) => sound.patch({ voice: next })}
-              onCommit={sound.commit}
+            <span className={`mic-head__live${lineTone}`} role="status">
+              <span className="mic-head__lamp" aria-hidden="true" />
+              {liveLine}
+            </span>
+          </div>
+          <MicVoicePicture history={levels.history} gateDb={gateDb} />
+          <div className="mic-head__sound">
+            <RichPick
+              className="mic-head__profile"
+              entries={MIC_PROFILE_IDS.map((id) => ({
+                id,
+                name: profileName(id),
+                hint: t(PROFILE_WORDS[id].hint),
+                group: micProfileGroup(id),
+                icon: <MicGlyph />,
+              }))}
+              groupLabel={(group) =>
+                group === 'mic'
+                  ? t('mic.profile.group.mic')
+                  : t('mic.profile.group.use')
+              }
+              activeId={profileId ?? ''}
+              onPick={(id) => {
+                if (isMicProfileId(id)) {
+                  sound.pickProfile(id);
+                }
+              }}
+              placeholder={
+                profileId ? profileName(profileId) : t('mic.profile.label')
+              }
+              placeholderIcon={<MicGlyph />}
+              triggerAriaLabel={t('mic.profile.label')}
+              triggerTitle={t('mic.profile.pickHint')}
+              triggerExtra={
+                entry.tuned ? (
+                  <span className="mic-head__tuned">
+                    {t('mic.profile.tuned')}
+                  </span>
+                ) : undefined
+              }
             />
-          )}
-          {stage === 'denoise' && (
-            <MicCleanerCard
-              denoise={settings.denoise}
-              onPatch={(next) => sound.patch({ denoise: next })}
-              onCommit={sound.commit}
-            />
-          )}
-          {stage !== 'lowCut' && stage !== 'gate' && stage !== 'denoise' && (
-            <DspStageCards
-              section={stage}
-              settings={settings}
-              onPatch={(next) => sound.patch(next)}
-              onCommit={sound.commit}
-              isSystemWide={isFluid}
-              roomLive={NO_ROOM}
-            />
-          )}
-        </div>
+            {entry.tuned && profileId && (
+              <button
+                type="button"
+                className="button small subtle"
+                onClick={() => sound.pickProfile(profileId)}
+              >
+                {t('mic.reset', { profile: profileName(profileId) })}
+              </button>
+            )}
+          </div>
+        </header>
+
+        {listening && (
+          <MicLiveBar
+            key={mic.guid}
+            latest={levels.latest}
+            live={live}
+            gateDb={gateDb}
+            makeupDb={
+              settings.dynamics.enabled ? settings.dynamics.makeupDb : undefined
+            }
+            limiterOn={settings.maximizer.enabled}
+            stream={levels.stream}
+          />
+        )}
+        {attached && effects === 'off' && (
+          <div className="mic-notice" role="status">
+            <p className="mic-notice__text">
+              <strong>{t('mic.effectsOff.title', { mic: mic.name })}</strong>
+              <span>{t('mic.effectsOff.body')}</span>
+            </p>
+            <button
+              type="button"
+              className="button small"
+              onClick={openWindowsSoundSettings}
+            >
+              {t('mic.effectsOff.button')}
+            </button>
+          </div>
+        )}
+        {isFluid && !mic.attached && (
+          <div className="mic-notice" role="status">
+            <p className="mic-notice__text">
+              <strong>{t('mic.setup.title', { mic: mic.name })}</strong>
+              <span>{t(SETUP_WORDS[setup])}</span>
+            </p>
+            <button
+              type="button"
+              className="button small"
+              disabled={setup === 'working'}
+              onClick={setUp}
+            >
+              {setup === 'working'
+                ? t('mic.setup.working')
+                : t('mic.setup.button')}
+            </button>
+          </div>
+        )}
+        {!isFluid && (
+          <div className="mic-notice" role="status">
+            <p className="mic-notice__text">
+              <strong>{t('mic.notFluid.title')}</strong>
+              <span>{t('mic.notFluid.body')}</span>
+            </p>
+          </div>
+        )}
+
+        <MicStage
+          stage={stage}
+          settings={settings}
+          isSystemWide={isFluid}
+          onPatch={sound.patch}
+          onCommit={sound.commit}
+        />
       </div>
     </div>
   );
