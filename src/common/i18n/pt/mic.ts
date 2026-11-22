@@ -17,6 +17,27 @@ export default {
   'mic.list.off': 'Não configurado',
   'mic.live': 'Ao vivo em todos os apps · baixa latência {ms} ms',
   'mic.notSetUp': 'Ainda não configurado neste microfone',
+  'mic.state.opening': 'Abrindo o microfone…',
+  'mic.state.noInput':
+    'O Windows não mostra nenhuma entrada para este microfone agora',
+  'mic.state.blocked': 'O Windows não deixou o FluidEQ abrir este microfone',
+  'mic.state.waiting': 'Microfone aberto · aguardando o motor iniciar nele',
+  'mic.meter.gateOpen': 'Voz passando',
+  'mic.meter.gateClosed': 'Gate fechado',
+  'mic.meter.compressor': 'Compressor',
+  'mic.meter.limiter': 'Limitador',
+  'mic.monitor.label': 'Ouvir a mim mesmo',
+  'mic.monitor.hint':
+    'Toca o que os outros ouvem na saída que você está ouvindo',
+  'mic.monitor.warning':
+    'Use fones de ouvido: nas caixas de som, sua voz volta para o microfone e microfona.',
+  'mic.effectsOff.short':
+    'Os aprimoramentos de áudio do Windows estão desativados neste microfone',
+  'mic.effectsOff.title':
+    'Os aprimoramentos de áudio estão desativados em {mic}',
+  'mic.effectsOff.body':
+    'Desativados, o Windows não aplica nenhum efeito a este microfone e o FluidEQ não consegue processá-lo. Ative “Aprimoramentos de áudio” nas propriedades do microfone.',
+  'mic.effectsOff.button': 'Abrir as configurações de som do Windows',
   'mic.picture.label':
     'Sua voz: apagado o que o microfone capta, brilhante o que os outros ouvem',
   'mic.picture.raw': 'Seu microfone',

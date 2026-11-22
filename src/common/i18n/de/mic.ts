@@ -17,6 +17,27 @@ export default {
   'mic.list.off': 'Nicht eingerichtet',
   'mic.live': 'Live in jeder App · geringe Latenz {ms} ms',
   'mic.notSetUp': 'Auf diesem Mikrofon noch nicht eingerichtet',
+  'mic.state.opening': 'Mikrofon wird geöffnet …',
+  'mic.state.noInput':
+    'Windows zeigt für dieses Mikrofon gerade keinen Eingang',
+  'mic.state.blocked':
+    'Windows hat FluidEQ dieses Mikrofon nicht öffnen lassen',
+  'mic.state.waiting': 'Mikrofon offen · wartet, bis die Engine darauf startet',
+  'mic.meter.gateOpen': 'Stimme geht durch',
+  'mic.meter.gateClosed': 'Gate geschlossen',
+  'mic.meter.compressor': 'Kompressor',
+  'mic.meter.limiter': 'Limiter',
+  'mic.monitor.label': 'Mich selbst hören',
+  'mic.monitor.hint':
+    'Spielt, was andere hören, auf dem Ausgang ab, den Sie gerade hören',
+  'mic.monitor.warning':
+    'Nutzen Sie Kopfhörer: Über Lautsprecher gelangt Ihre Stimme zurück ins Mikrofon und koppelt.',
+  'mic.effectsOff.short':
+    'Die Audioverbesserungen von Windows sind für dieses Mikrofon aus',
+  'mic.effectsOff.title': 'Audioverbesserungen sind für {mic} aus',
+  'mic.effectsOff.body':
+    'Solange sie aus sind, lädt Windows auf diesem Mikrofon keinen Effekt, und FluidEQ kann es nicht bearbeiten. Schalten Sie in den Eigenschaften des Mikrofons „Audioverbesserungen“ ein.',
+  'mic.effectsOff.button': 'Windows-Soundeinstellungen öffnen',
   'mic.picture.label':
     'Ihre Stimme: blass, was das Mikrofon aufnimmt, und hell, was andere hören',
   'mic.picture.raw': 'Ihr Mikrofon',

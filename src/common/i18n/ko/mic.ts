@@ -17,6 +17,25 @@ export default {
   'mic.list.off': '설정 안 됨',
   'mic.live': '모든 앱에 적용 중 · 저지연 {ms} ms',
   'mic.notSetUp': '이 마이크는 아직 설정되지 않았습니다',
+  'mic.state.opening': '마이크를 여는 중…',
+  'mic.state.noInput': '지금 Windows에 이 마이크의 입력이 보이지 않습니다',
+  'mic.state.blocked': 'Windows가 FluidEQ의 마이크 열기를 허용하지 않았습니다',
+  'mic.state.waiting': '마이크 열림 · 엔진이 시작되기를 기다리는 중',
+  'mic.meter.gateOpen': '목소리 통과 중',
+  'mic.meter.gateClosed': '게이트 닫힘',
+  'mic.meter.compressor': '컴프레서',
+  'mic.meter.limiter': '리미터',
+  'mic.monitor.label': '내 목소리 듣기',
+  'mic.monitor.hint':
+    '다른 사람이 듣는 소리를 지금 듣고 있는 출력으로 재생합니다',
+  'mic.monitor.warning':
+    '헤드폰을 사용하세요. 스피커로 들으면 목소리가 다시 마이크로 들어가 하울링이 생깁니다.',
+  'mic.effectsOff.short':
+    '이 마이크의 Windows 오디오 향상 기능이 꺼져 있습니다',
+  'mic.effectsOff.title': '{mic}의 오디오 향상 기능이 꺼져 있습니다',
+  'mic.effectsOff.body':
+    '꺼져 있는 동안 Windows는 이 마이크에 어떤 효과도 적용하지 않으므로 FluidEQ가 처리할 수 없습니다. 마이크 속성에서 “오디오 향상”을 켜세요.',
+  'mic.effectsOff.button': 'Windows 소리 설정 열기',
   'mic.picture.label':
     '내 목소리: 흐린 선은 마이크가 받은 소리, 밝은 선은 상대가 듣는 소리',
   'mic.picture.raw': '내 마이크',

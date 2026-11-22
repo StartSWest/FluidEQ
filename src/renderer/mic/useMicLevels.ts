@@ -5,22 +5,27 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The voice picture's two readings: what reaches the mic's rack and what
- * leaves it, from the engine's own measurements on that mic (the live
- * Normalizer's input peaks and the master tap's peaks).
+ * The mic as the tab hears it: the stream the tab opens, what state that is
+ * in, and the engine's own readings on the mic once it runs.
  *
  * The engine only runs on a mic while something records from it, so the tab
  * opens the mic itself while it is on screen, the way any recorder does, and
  * closes it when it is not. The stream asks Chromium for nothing of its own
- * (no echo cancelling, noise suppression or gain control): what the picture
- * shows is the engine's work, not the browser's.
+ * (no echo cancelling, noise suppression or gain control): what is heard and
+ * drawn is the engine's work, not the browser's. That stream comes out of the
+ * capture effect, so it is what every other app receives — which is what
+ * "Listen to myself" plays.
  *
- * Read once per painted frame and never while the window is hidden; one
- * analysis reader exists for the whole window, so the tab takes it while it
- * is open and gives it back (`read(null)`) when it closes.
+ * The readings come from the engine's analysis link for that mic: the rack's
+ * input peaks (the live Normalizer's tap), its output peaks, the compressor's
+ * gains and the limiter's reduction. Read once per painted frame and never
+ * while the window is hidden; one analysis reader exists for the whole
+ * window, so the tab takes it while it is open and gives it back
+ * (`read(null)`) when it closes.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { micInputFor } from '../../common/micInput';
 import { reportError } from '../utils/logger';
 
 export interface IMicLevel {
@@ -28,25 +33,30 @@ export interface IMicLevel {
   input: number;
   /** Linear peak leaving it, 0 to 1. */
   output: number;
+  /** The compressor's lowest band gain, dB, make-up included; absent off. */
+  compressorGainDb?: number;
+  /** The limiter's reduction, dB, never positive. */
+  limiterDb: number;
 }
+
+/**
+ * Where the tab's own recording of the mic stands. `waiting` is open with no
+ * reading from the engine yet: the engine has not been created on the mic,
+ * which Windows decides (enhancements off, a driver that never loads it).
+ */
+export type TMicListen =
+  'idle' | 'opening' | 'no-input' | 'blocked' | 'waiting' | 'live';
 
 /** How many readings the picture keeps: a few seconds at 60 frames a second. */
 export const MIC_HISTORY = 360;
 
-/** The browser's input whose label is the mic's Windows name, if any. */
-const inputFor = async (name: string): Promise<string | undefined> => {
-  const devices = await navigator.mediaDevices.enumerateDevices();
-  const wanted = name.trim().toLowerCase();
-  return devices.find(
-    (device) =>
-      device.kind === 'audioinput' &&
-      device.label.trim().toLowerCase() === wanted,
-  )?.deviceId;
-};
+const lowest = (values: readonly number[]) =>
+  values.length > 0 ? Math.min(...values) : undefined;
 
 /**
  * `history` is filled oldest first and read by the picture's own frame; the
- * newest reading is also in `latest`. Nothing here renders React.
+ * newest reading is also in `latest`. Only `state` and `stream` render React,
+ * and each changes a handful of times, never per frame.
  */
 const useMicLevels = (
   guid: string | undefined,
@@ -55,45 +65,61 @@ const useMicLevels = (
 ): {
   history: React.MutableRefObject<IMicLevel[]>;
   latest: React.MutableRefObject<IMicLevel | undefined>;
+  state: TMicListen;
+  stream: MediaStream | undefined;
 } => {
   const history = useRef<IMicLevel[]>([]);
   const latest = useRef<IMicLevel | undefined>(undefined);
+  const [state, setState] = useState<TMicListen>('idle');
+  const [stream, setStream] = useState<MediaStream>();
 
   useEffect(() => {
     const read = window.electron?.ipcRenderer?.readDspEngineAnalysis;
+    history.current = [];
+    latest.current = undefined;
     if (!active || !guid || typeof read !== 'function') {
+      setState('idle');
       return undefined;
     }
     let disposed = false;
     let animation = 0;
-    let stream: MediaStream | undefined;
-    history.current = [];
-    latest.current = undefined;
+    let opened: MediaStream | undefined;
+    let hearing = false;
+    setState('opening');
 
-    inputFor(name)
-      .then((deviceId) =>
-        deviceId
-          ? navigator.mediaDevices.getUserMedia({
-              audio: {
-                deviceId: { exact: deviceId },
-                echoCancellation: false,
-                noiseSuppression: false,
-                autoGainControl: false,
-              },
-            })
-          : undefined,
-      )
-      .then((opened) => {
-        if (disposed) {
-          opened?.getTracks().forEach((track) => track.stop());
-          return undefined;
-        }
-        stream = opened;
-        return undefined;
-      })
-      .catch((error: unknown) =>
-        reportError('opening the microphone for its picture', error),
+    const open = async () => {
+      const deviceId = micInputFor(
+        await navigator.mediaDevices.enumerateDevices(),
+        name,
       );
+      if (!deviceId) {
+        if (!disposed) {
+          setState('no-input');
+        }
+        return;
+      }
+      const result = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          deviceId: { exact: deviceId },
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+        },
+      });
+      if (disposed) {
+        result.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      opened = result;
+      setStream(result);
+      setState(hearing ? 'live' : 'waiting');
+    };
+    open().catch((error: unknown) => {
+      reportError('opening the microphone for its picture', error);
+      if (!disposed) {
+        setState('blocked');
+      }
+    });
 
     const paint = async () => {
       if (disposed) {
@@ -110,11 +136,24 @@ const useMicLevels = (
             const level: IMicLevel = {
               input: Math.max(...frame.normalizer.inputPeaks),
               output: Math.max(...frame.peaks),
+              compressorGainDb: frame.dynamics?.active
+                ? lowest(frame.dynamics.gainDb)
+                : undefined,
+              limiterDb: Math.min(0, frame.maximizerReductionDb),
             };
             latest.current = level;
             history.current.push(level);
             if (history.current.length > MIC_HISTORY) {
               history.current.splice(0, history.current.length - MIC_HISTORY);
+            }
+          }
+          // The engine answering is what "live" means; it stops answering
+          // when Windows tears the effect down, and the line says so again.
+          const now = Boolean(result);
+          if (now !== hearing) {
+            hearing = now;
+            if (opened) {
+              setState(now ? 'live' : 'waiting');
             }
           }
         } catch (error) {
@@ -130,14 +169,15 @@ const useMicLevels = (
     return () => {
       disposed = true;
       cancelAnimationFrame(animation);
-      stream?.getTracks().forEach((track) => track.stop());
+      opened?.getTracks().forEach((track) => track.stop());
+      setStream(undefined);
       read(null).catch((error: unknown) =>
         reportError('giving back the engine’s readings', error),
       );
     };
   }, [active, guid, name]);
 
-  return { history, latest };
+  return { history, latest, state, stream };
 };
 
 export default useMicLevels;

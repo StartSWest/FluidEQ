@@ -93,6 +93,9 @@ export const clampMicSoundFile = (value: unknown): IMicSoundFile => {
   return { version: MIC_SOUND_VERSION, selected, mics };
 };
 
+/** Windows' "Audio enhancements" switch for one mic, as main could read it. */
+export type TMicEffects = 'on' | 'off' | 'unknown';
+
 /** What a mic's rack write came to; `saved` alone means no engine wrote it. */
 export type TMicSoundResult =
   'written' | 'saved' | 'not-fluid' | 'not-installed' | 'rejected';

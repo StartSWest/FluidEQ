@@ -17,6 +17,23 @@ export default {
   'mic.list.off': '尚未設定',
   'mic.live': '所有應用程式即時套用 · 低延遲 {ms} ms',
   'mic.notSetUp': '這支麥克風尚未設定',
+  'mic.state.opening': '正在開啟麥克風…',
+  'mic.state.noInput': 'Windows 目前沒有列出這支麥克風的輸入',
+  'mic.state.blocked': 'Windows 不允許 FluidEQ 開啟這支麥克風',
+  'mic.state.waiting': '麥克風已開啟 · 正在等待引擎在上面啟動',
+  'mic.meter.gateOpen': '人聲通過',
+  'mic.meter.gateClosed': '門限關閉',
+  'mic.meter.compressor': '壓縮器',
+  'mic.meter.limiter': '限幅器',
+  'mic.monitor.label': '監聽自己',
+  'mic.monitor.hint': '把別人聽到的聲音播放到你正在聆聽的輸出',
+  'mic.monitor.warning':
+    '請使用耳機：用喇叭時，你的聲音會回到麥克風並產生嘯叫。',
+  'mic.effectsOff.short': '這支麥克風的 Windows 音訊增強已關閉',
+  'mic.effectsOff.title': '{mic} 的音訊增強已關閉',
+  'mic.effectsOff.body':
+    '關閉期間，Windows 不會在這支麥克風上執行任何效果，FluidEQ 也就無法處理它。請在麥克風內容中開啟「音訊增強」。',
+  'mic.effectsOff.button': '開啟 Windows 音效設定',
   'mic.picture.label':
     '你的聲音：淡色線是麥克風收到的聲音，亮色線是別人聽到的聲音',
   'mic.picture.raw': '你的麥克風',

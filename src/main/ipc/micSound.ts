@@ -28,6 +28,7 @@ import {
   IMicSoundEntry,
   IMicSoundFile,
   MIC_GUID,
+  TMicEffects,
   TMicSoundResult,
 } from '../../common/micSound';
 import type { TError, TSuccess } from '../../renderer/utils/equalizerApi';
@@ -40,6 +41,8 @@ export interface IMicSoundIpcDeps {
   isSwitching: () => boolean;
   isEngineInstalled: (engine: TAudioEngine) => Promise<boolean>;
   getConfigPath: (engine: TAudioEngine) => Promise<string>;
+  /** Windows' enhancements switch for one mic (`readMicEffectsEnabled`). */
+  readMicEffects: (guid: string) => Promise<boolean | undefined>;
   /** Which of the rack's newer trailers the installed engine reads. */
   engineReads: () => Promise<IEngineReads>;
   writeSystemDspChain: (
@@ -57,6 +60,7 @@ export const registerMicSoundIpc = ({
   isSwitching,
   isEngineInstalled,
   getConfigPath,
+  readMicEffects,
   engineReads,
   writeSystemDspChain,
 }: IMicSoundIpcDeps) => {
@@ -140,6 +144,27 @@ export const registerMicSoundIpc = ({
       log.error('Could not remember the selected microphone', error);
       refuse(event, channel, ErrorCode.FAILURE);
     }
+  });
+
+  onWindowMessage(ChannelEnum.GET_MIC_EFFECTS, async (event, arg) => {
+    const channel = ChannelEnum.GET_MIC_EFFECTS;
+    const guid: unknown = Array.isArray(arg) ? arg[0] : undefined;
+    if (typeof guid !== 'string' || !MIC_GUID.test(guid)) {
+      refuse(event, channel, ErrorCode.INVALID_PARAMETER);
+      return;
+    }
+    let effects: TMicEffects = 'unknown';
+    try {
+      const enabled = await readMicEffects(guid);
+      if (enabled !== undefined) {
+        effects = enabled ? 'on' : 'off';
+      }
+    } catch (error) {
+      // An unreadable switch is not called off: the page then says nothing
+      // about it rather than sending somebody to a setting that is fine.
+      log.error(`Could not read the enhancements of microphone ${guid}`, error);
+    }
+    succeed<TMicEffects>(event, channel, effects);
   });
 
   /**

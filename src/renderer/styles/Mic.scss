@@ -77,6 +77,85 @@ SPDX-License-Identifier: GPL-3.0-or-later
     background: var(--active);
     opacity: 1;
   }
+
+  // Something on this PC stands in the way (no input, refused, Windows'
+  // enhancements off): the line says what, the lamp says it is not fine.
+  .mic-head__live.is-warn & {
+    background: $ink-caution;
+    opacity: 1;
+  }
+}
+
+// *** The live strip ********************************************************
+
+// Under the header, what the rack is doing to the voice now and "Listen to
+// myself". It takes the header's hairline, so the two read as one head.
+.mic-head:has(+ .mic-live) {
+  border-bottom: 0;
+}
+
+.mic-live {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 22px;
+  padding: 0 16px 10px;
+  border-bottom: 1px solid $studio-hair;
+  font-size: $studio-text-label;
+}
+
+.mic-live__readings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 20px;
+  color: $text-muted;
+}
+
+.mic-live__reading {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+
+  // Before the engine answers the readings are a promise, not a number.
+  &.is-idle {
+    opacity: 0.45;
+  }
+}
+
+// Tabular already from the shell; fixed width so a changing number never
+// shoves the reading beside it.
+.mic-live__value {
+  min-width: 5.5ch;
+  color: $text-primary;
+  text-align: right;
+}
+
+.mic-live__lamp {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: $text-faint;
+  opacity: 0.5;
+
+  &.is-open {
+    background: var(--active);
+    opacity: 1;
+  }
+}
+
+.mic-live__monitor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px 12px;
+}
+
+.mic-live__warning {
+  color: $ink-caution;
 }
 
 .mic-head__sound {
@@ -163,11 +242,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
   background: color-mix(in srgb, $edge-tint 6%, transparent);
 }
 
+// At the rail's and the cards' sizes: a bare paragraph took the document's
+// own 16px and stood twice the height of everything round it.
 .mic-notice__text {
   display: grid;
   flex: 1 1 280px;
   gap: 2px;
   margin: 0;
+  font-size: $studio-text-meta;
+  line-height: 1.45;
+
+  > strong {
+    font-size: $studio-text-row;
+    font-weight: $weight-semibold;
+  }
 
   > span {
     color: $text-muted;

@@ -279,6 +279,9 @@ enum ChannelEnum {
   GET_MIC_SOUND = 'getMicSound',
   SET_MIC_SOUND = 'setMicSound',
   SELECT_MIC = 'selectMic',
+  // Whether Windows' "Audio enhancements" are on for one mic: off, Windows
+  // loads no effect there and the engine never runs on it.
+  GET_MIC_EFFECTS = 'getMicEffects',
   // The DSP rack, system-wide. The renderer already builds this array for the
   // Library player's host; under the FluidEQ Engine the same array is written
   // beside the config so the DLL runs the rack on every output.

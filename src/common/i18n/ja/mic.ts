@@ -17,6 +17,24 @@ export default {
   'mic.list.off': '未設定',
   'mic.live': 'すべてのアプリに適用中 · 低遅延 {ms} ms',
   'mic.notSetUp': 'このマイクはまだ設定されていません',
+  'mic.state.opening': 'マイクを開いています…',
+  'mic.state.noInput': '現在、Windows にこのマイクの入力が見つかりません',
+  'mic.state.blocked': 'Windows が FluidEQ にこのマイクを開かせませんでした',
+  'mic.state.waiting': 'マイクは開いています · エンジンの起動を待っています',
+  'mic.meter.gateOpen': '声が通過中',
+  'mic.meter.gateClosed': 'ゲート閉',
+  'mic.meter.compressor': 'コンプレッサー',
+  'mic.meter.limiter': 'リミッター',
+  'mic.monitor.label': '自分の声を聴く',
+  'mic.monitor.hint': '相手に聞こえる音を、今聴いている出力で再生します',
+  'mic.monitor.warning':
+    'ヘッドホンを使ってください。スピーカーでは声がマイクに戻り、ハウリングします。',
+  'mic.effectsOff.short':
+    'このマイクでは Windows のオーディオの拡張機能がオフです',
+  'mic.effectsOff.title': '{mic} のオーディオの拡張機能がオフです',
+  'mic.effectsOff.body':
+    'オフの間、Windows はこのマイクにエフェクトを適用しないため、FluidEQ は処理できません。マイクのプロパティで「オーディオの拡張機能」をオンにしてください。',
+  'mic.effectsOff.button': 'Windows のサウンド設定を開く',
   'mic.picture.label':
     'あなたの声：薄い線がマイクの拾った音、明るい線が相手に聞こえる音',
   'mic.picture.raw': 'マイクの音',

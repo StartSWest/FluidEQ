@@ -17,6 +17,24 @@ export default {
   'mic.list.off': 'सेट अप नहीं',
   'mic.live': 'हर ऐप में लाइव · कम देरी {ms} ms',
   'mic.notSetUp': 'इस माइक पर अभी सेट अप नहीं हुआ',
+  'mic.state.opening': 'माइक खोला जा रहा है…',
+  'mic.state.noInput': 'Windows अभी इस माइक के लिए कोई इनपुट नहीं दिखा रहा',
+  'mic.state.blocked': 'Windows ने FluidEQ को यह माइक खोलने नहीं दिया',
+  'mic.state.waiting': 'माइक खुला है · इस पर इंजन शुरू होने का इंतज़ार',
+  'mic.meter.gateOpen': 'आवाज़ जा रही है',
+  'mic.meter.gateClosed': 'गेट बंद',
+  'mic.meter.compressor': 'कंप्रेसर',
+  'mic.meter.limiter': 'लिमिटर',
+  'mic.monitor.label': 'ख़ुद को सुनें',
+  'mic.monitor.hint':
+    'दूसरों को जो सुनाई देता है, उसे उस आउटपुट पर बजाता है जिसे आप सुन रहे हैं',
+  'mic.monitor.warning':
+    'हेडफ़ोन लगाएँ: स्पीकर पर आपकी आवाज़ वापस माइक में जाकर गूँजती है।',
+  'mic.effectsOff.short': 'इस माइक के लिए Windows के ऑडियो एन्हांसमेंट बंद हैं',
+  'mic.effectsOff.title': '{mic} के लिए ऑडियो एन्हांसमेंट बंद हैं',
+  'mic.effectsOff.body':
+    'इनके बंद रहते Windows इस माइक पर कोई इफ़ेक्ट नहीं चलाता, इसलिए FluidEQ इसे प्रोसेस नहीं कर सकता। माइक की प्रॉपर्टीज़ में “ऑडियो एन्हांसमेंट” चालू करें।',
+  'mic.effectsOff.button': 'Windows की साउंड सेटिंग्स खोलें',
   'mic.picture.label':
     'आपकी आवाज़: माइक जो पकड़ता है वह हल्के रंग में, और दूसरे जो सुनते हैं वह चमकीले रंग में',
   'mic.picture.raw': 'आपका माइक',

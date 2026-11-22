@@ -81,8 +81,11 @@ const useMicSound = (): IMicSoundHook => {
     };
   }, []);
 
+  // With none picked yet, a mic the engine is already on before the first in
+  // Windows' list, which is often a webcam's or a docking station's.
   const mic =
     microphones.find((entry) => entry.guid.toUpperCase() === file.selected) ??
+    microphones.find((entry) => entry.attached) ??
     microphones[0];
   const guid = mic?.guid.toUpperCase();
   const entry = useMemo(() => {

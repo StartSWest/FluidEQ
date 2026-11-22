@@ -17,6 +17,24 @@ export default {
   'mic.list.off': 'Not set up',
   'mic.live': 'Live in every app · low lag {ms} ms',
   'mic.notSetUp': 'Not set up on this mic yet',
+  'mic.state.opening': 'Opening the mic…',
+  'mic.state.noInput': 'Windows lists no input for this mic right now',
+  'mic.state.blocked': 'Windows would not let FluidEQ open this mic',
+  'mic.state.waiting': 'Mic open · waiting for the engine to start on it',
+  'mic.meter.gateOpen': 'Voice passing',
+  'mic.meter.gateClosed': 'Gate closed',
+  'mic.meter.compressor': 'Compressor',
+  'mic.meter.limiter': 'Limiter',
+  'mic.monitor.label': 'Listen to myself',
+  'mic.monitor.hint':
+    'Plays what others hear to the output you are listening on',
+  'mic.monitor.warning':
+    'Use headphones: on speakers your voice goes back into the mic and howls.',
+  'mic.effectsOff.short': 'Windows’ audio enhancements are off for this mic',
+  'mic.effectsOff.title': 'Audio enhancements are off for {mic}',
+  'mic.effectsOff.body':
+    'With them off, Windows runs no effect on this mic, so FluidEQ cannot shape it. Turn on “Audio enhancements” in the mic’s properties.',
+  'mic.effectsOff.button': 'Open Windows sound settings',
   'mic.picture.label':
     'Your voice: what the mic picks up, faint, and what others hear, bright',
   'mic.picture.raw': 'Your mic',

@@ -10,6 +10,7 @@ import ChannelEnum from 'common/channels';
 import type {
   IMicSoundEntry,
   IMicSoundFile,
+  TMicEffects,
   TMicSoundResult,
 } from 'common/micSound';
 import { buildResponseHandler, sendRequest } from './ipcRequest';
@@ -34,6 +35,14 @@ export const setMicSound = (
     ChannelEnum.SET_MIC_SOUND,
     [guid, entry, save],
     buildResponseHandler<TMicSoundResult>((result, resolve) => resolve(result)),
+  );
+
+/** Windows' "Audio enhancements" switch for one mic. */
+export const getMicEffects = (guid: string): Promise<TMicEffects> =>
+  sendRequest<TMicEffects>(
+    ChannelEnum.GET_MIC_EFFECTS,
+    [guid],
+    buildResponseHandler<TMicEffects>((result, resolve) => resolve(result)),
   );
 
 export const selectMic = (guid: string): Promise<boolean> =>

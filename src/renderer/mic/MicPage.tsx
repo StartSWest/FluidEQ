@@ -29,6 +29,7 @@ import MenuIcon from '../icons/MenuIcon';
 import { attachFluidEngine } from '../utils/audioEngineApi';
 import { useTranslation } from '../utils/I18nContext';
 import { reportError } from '../utils/logger';
+import { openWindowsSoundSettings } from '../utils/soundSettings';
 import {
   refreshAudioEngineStatus,
   useKnownAudioEngineStatus,
@@ -37,7 +38,9 @@ import RichPick from '../widgets/RichPick';
 import MicStageRail, { TMicStage } from './MicStageRail';
 import { MicCleanerCard, MicGateCard, MicLowCutCard } from './MicVoiceCards';
 import MicVoicePicture from './MicVoicePicture';
-import useMicLevels from './useMicLevels';
+import MicLiveBar from './MicLiveBar';
+import useMicEffects from './useMicEffects';
+import useMicLevels, { TMicListen } from './useMicLevels';
 import useMicSound from './useMicSound';
 
 /**
@@ -71,6 +74,15 @@ const MicGlyph = () => (
 
 type TSetup = 'idle' | 'working' | 'declined' | 'failed';
 
+/** The live line while the tab's own recording is not yet heard. */
+const LISTEN_WORDS: Record<Exclude<TMicListen, 'live'>, TranslationKey> = {
+  idle: 'mic.state.opening',
+  opening: 'mic.state.opening',
+  'no-input': 'mic.state.noInput',
+  blocked: 'mic.state.blocked',
+  waiting: 'mic.state.waiting',
+};
+
 /** What the set-up notice says under its title, after each press. */
 const SETUP_WORDS: Record<TSetup, TranslationKey> = {
   idle: 'mic.setup.body',
@@ -87,10 +99,17 @@ const MicPage = () => {
   const [stage, setStage] = useState<TMicStage>('lowCut');
   const [setup, setSetup] = useState<TSetup>('idle');
   const isFluid = status?.engine === 'fluid';
-  const live = isFluid && mic?.attached === true;
-  const levels = useMicLevels(mic?.guid, mic?.name ?? '', live);
+  const attached = isFluid && mic?.attached === true;
+  const effects = useMicEffects(attached ? mic?.guid : undefined, status);
+  // The tab records the mic only where the engine can be on it: attached,
+  // and Windows' enhancements not known to be off.
+  const listening = attached && effects !== 'off';
+  const levels = useMicLevels(mic?.guid, mic?.name ?? '', listening);
+  const live = listening && levels.state === 'live';
   const { settings } = entry;
   const { voice } = settings;
+  const gateDb =
+    voice?.enabled && voice.gateEnabled ? voice.gateThresholdDb : undefined;
 
   if (!mic) {
     return (
@@ -112,10 +131,29 @@ const MicPage = () => {
     if (!isFluid) {
       return t('mic.notFluid.title');
     }
-    if (!live) {
+    if (!attached) {
       return t('mic.notSetUp');
     }
-    return t('mic.live', { ms: Math.round(micRackDelayMs(settings)) });
+    if (effects === 'off') {
+      return t('mic.effectsOff.short');
+    }
+    if (levels.state === 'live') {
+      return t('mic.live', { ms: Math.round(micRackDelayMs(settings)) });
+    }
+    return t(LISTEN_WORDS[levels.state]);
+  })();
+  const lineTone = (() => {
+    if (live) {
+      return ' is-live';
+    }
+    if (
+      effects === 'off' ||
+      levels.state === 'no-input' ||
+      levels.state === 'blocked'
+    ) {
+      return ' is-warn';
+    }
+    return '';
   })();
 
   const setUp = () => {
@@ -156,19 +194,12 @@ const MicPage = () => {
             triggerAriaLabel={t('mic.label')}
             triggerTitle={t('mic.pickHint')}
           />
-          <span className={`mic-head__live${live ? ' is-live' : ''}`}>
+          <span className={`mic-head__live${lineTone}`} role="status">
             <span className="mic-head__lamp" aria-hidden="true" />
             {liveLine}
           </span>
         </div>
-        <MicVoicePicture
-          history={levels.history}
-          gateDb={
-            voice?.enabled && voice.gateEnabled
-              ? voice.gateThresholdDb
-              : undefined
-          }
-        />
+        <MicVoicePicture history={levels.history} gateDb={gateDb} />
         <div className="mic-head__sound">
           <RichPick
             className="mic-head__profile"
@@ -216,6 +247,34 @@ const MicPage = () => {
         </div>
       </header>
 
+      {listening && (
+        <MicLiveBar
+          key={mic.guid}
+          latest={levels.latest}
+          live={live}
+          gateDb={gateDb}
+          makeupDb={
+            settings.dynamics.enabled ? settings.dynamics.makeupDb : undefined
+          }
+          limiterOn={settings.maximizer.enabled}
+          stream={levels.stream}
+        />
+      )}
+      {attached && effects === 'off' && (
+        <div className="mic-notice" role="status">
+          <p className="mic-notice__text">
+            <strong>{t('mic.effectsOff.title', { mic: mic.name })}</strong>
+            <span>{t('mic.effectsOff.body')}</span>
+          </p>
+          <button
+            type="button"
+            className="button small"
+            onClick={openWindowsSoundSettings}
+          >
+            {t('mic.effectsOff.button')}
+          </button>
+        </div>
+      )}
       {isFluid && !mic.attached && (
         <div className="mic-notice" role="status">
           <p className="mic-notice__text">

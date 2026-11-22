@@ -264,3 +264,37 @@ export const getConfigPath = async (engine: TAudioEngine): Promise<string> => {
 
   throw new Error('Config path not found');
 };
+
+/**
+ * `PKEY_AudioEndpoint_Disable_SysFx` in a capture endpoint's property store:
+ * Windows' "Audio enhancements" switch for that mic. While it is 1 Windows
+ * loads no effect there, so the engine is never created on the mic however it
+ * is attached, and nothing about it says why.
+ */
+const MIC_EFFECTS_OFF_VALUE = '{1da5d803-d492-4edd-8c23-e0c0ffee7f0e},5';
+const MIC_GUID_TEXT = /^\{[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}\}$/i;
+
+/**
+ * Whether Windows' audio enhancements are on for one microphone: true or
+ * false as its own property says, undefined where it cannot be read (a mic
+ * Windows no longer lists, a registry that refused). Absent means on, which
+ * is Windows' default.
+ */
+export const readMicEffectsEnabled = async (
+  guid: string,
+): Promise<boolean | undefined> => {
+  if (process.platform !== 'win32' || !MIC_GUID_TEXT.test(guid)) {
+    return undefined;
+  }
+  const registryKey = [
+    'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\MMDevices\\Audio\\Capture',
+    guid.toLowerCase(),
+    'Properties',
+  ].join('\\');
+  const listed = (await regedit.list([registryKey]))[registryKey];
+  if (!listed?.exists) {
+    return undefined;
+  }
+  const value = listed.values?.[MIC_EFFECTS_OFF_VALUE]?.value;
+  return value !== 1;
+};

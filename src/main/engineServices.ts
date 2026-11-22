@@ -49,6 +49,7 @@ import {
   getFluidEngineDllPath,
   isEngineInstalled,
   isEqualizerAPOInstalled,
+  readMicEffectsEnabled,
 } from './registry';
 import {
   writeSystemDspChain,
@@ -292,6 +293,7 @@ export const registerEngineServices = ({
     isSwitching: () => session.engineSwitching,
     isEngineInstalled,
     getConfigPath,
+    readMicEffects: readMicEffectsEnabled,
     engineReads: async () => {
       try {
         return engineReadsOf(await engineIpc.installedEngineVersion());
