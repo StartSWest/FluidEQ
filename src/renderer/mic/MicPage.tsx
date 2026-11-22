@@ -324,8 +324,10 @@ const MicPage = () => {
           stage={stage}
           settings={settings}
           isSystemWide={isFluid}
+          lowCutKept={sound.entry.lowCutKept}
           onPatch={sound.patch}
           onCommit={sound.commit}
+          onSwitchLowCut={sound.switchLowCut}
         />
       </div>
     </div>

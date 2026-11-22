@@ -25,7 +25,9 @@ import {
 import {
   clampMicSettings,
   EMPTY_MIC_SOUND,
+  IMicLowCutParts,
   IMicSoundEntry,
+  LOW_CUT_WHEN_ON,
   IMicSoundFile,
   TMicSoundResult,
 } from '../../common/micSound';
@@ -49,6 +51,11 @@ export interface IMicSoundHook {
   patch: (next: Partial<IDspSettings>) => void;
   /** A control let go: saved. */
   commit: () => void;
+  /**
+   * The Low cut card's switch: the low cut, "Close to the mic" and the pop
+   * guard off together, and back on as they were. Saved at once.
+   */
+  switchLowCut: (on: boolean) => void;
 }
 
 const freshEntry = (name: string, id: TMicProfileId): IMicSoundEntry => ({
@@ -58,20 +65,51 @@ const freshEntry = (name: string, id: TMicProfileId): IMicSoundEntry => ({
   settings: micProfileSettings(id),
 });
 
+/**
+ * What switching the low cut on brings back when nothing was kept from a
+ * switch-off (an entry saved before there was one): the profile's own parts,
+ * or a plain 80 Hz cut.
+ */
+const lowCutPartsOf = (profileId: string): IMicLowCutParts => {
+  const voice = isMicProfileId(profileId)
+    ? micProfileSettings(profileId).voice
+    : undefined;
+  return voice && voice.lowCutHz > 0
+    ? {
+        lowCutHz: voice.lowCutHz,
+        proximityDb: voice.proximityDb,
+        deplosive: voice.deplosive,
+      }
+    : { lowCutHz: LOW_CUT_WHEN_ON, proximityDb: 0, deplosive: 0 };
+};
+
 const useMicSound = (): IMicSoundHook => {
   const status = useKnownAudioEngineStatus();
   const microphones = useMemo(() => status?.fluid.microphones ?? [], [status]);
   const [file, setFile] = useState<IMicSoundFile>(EMPTY_MIC_SOUND);
   const [lastResult, setLastResult] = useState<TMicSoundResult>();
+  /**
+   * The file as of the last change, kept in step with every change rather
+   * than copied from `file` at render. A switch patches and commits in one
+   * handler, before any render: copied at render, the commit read the file
+   * from before the patch, saved it, and its state update landed last — so
+   * every switch on the Mic tab sprang back to where it was (2026-11-22).
+   */
   const latest = useRef(file);
-  latest.current = file;
+  const change = useCallback(
+    (next: (current: IMicSoundFile) => IMicSoundFile) => {
+      latest.current = next(latest.current);
+      setFile(latest.current);
+    },
+    [],
+  );
 
   useEffect(() => {
     let alive = true;
     getMicSound()
       .then((loaded) => {
         if (alive) {
-          setFile(loaded);
+          change(() => loaded);
         }
         return undefined;
       })
@@ -79,7 +117,7 @@ const useMicSound = (): IMicSoundHook => {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [change]);
 
   // With none picked yet, a mic the engine is already on before the first in
   // Windows' list, which is often a webcam's or a docking station's.
@@ -100,7 +138,7 @@ const useMicSound = (): IMicSoundHook => {
       if (!guid) {
         return;
       }
-      setFile((current) => ({
+      change((current) => ({
         ...current,
         mics: { ...current.mics, [guid]: next },
       }));
@@ -110,15 +148,18 @@ const useMicSound = (): IMicSoundHook => {
           reportError('writing a microphone’s sound', error),
         );
     },
-    [guid],
+    [change, guid],
   );
 
-  const select = useCallback((next: string) => {
-    setFile((current) => ({ ...current, selected: next.toUpperCase() }));
-    selectMic(next).catch((error: unknown) =>
-      reportError('remembering the shown microphone', error),
-    );
-  }, []);
+  const select = useCallback(
+    (next: string) => {
+      change((current) => ({ ...current, selected: next.toUpperCase() }));
+      selectMic(next).catch((error: unknown) =>
+        reportError('remembering the shown microphone', error),
+      );
+    },
+    [change],
+  );
 
   const pickProfile = useCallback(
     (id: TMicProfileId) => {
@@ -157,6 +198,43 @@ const useMicSound = (): IMicSoundHook => {
     send(current, true);
   }, [entry, guid, send]);
 
+  const switchLowCut = useCallback(
+    (on: boolean) => {
+      if (!mic) {
+        return;
+      }
+      const current = latest.current.mics[guid ?? ''] ?? entry;
+      const { voice } = current.settings;
+      if (!voice) {
+        return;
+      }
+      const { lowCutKept, ...rest } = current;
+      const parts: IMicLowCutParts = on
+        ? (lowCutKept ?? lowCutPartsOf(current.profileId))
+        : {
+            lowCutHz: voice.lowCutHz > 0 ? voice.lowCutHz : LOW_CUT_WHEN_ON,
+            proximityDb: voice.proximityDb,
+            deplosive: voice.deplosive,
+          };
+      send(
+        {
+          ...rest,
+          name: mic.name,
+          tuned: true,
+          settings: clampMicSettings({
+            ...current.settings,
+            voice: on
+              ? { ...voice, enabled: true, ...parts }
+              : { ...voice, lowCutHz: 0, proximityDb: 0, deplosive: 0 },
+          }),
+          ...(on ? {} : { lowCutKept: parts }),
+        },
+        true,
+      );
+    },
+    [entry, guid, mic, send],
+  );
+
   return {
     microphones,
     mic,
@@ -166,6 +244,7 @@ const useMicSound = (): IMicSoundHook => {
     pickProfile,
     patch,
     commit,
+    switchLowCut,
   };
 };
 

@@ -12,6 +12,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import type { IDenoiseSettings } from '../../common/dsp/chain';
+import { IMicLowCutParts, LOW_CUT_WHEN_ON } from '../../common/micSound';
 import {
   IVoiceSettings,
   VOICE_DEFAULTS,
@@ -126,16 +127,36 @@ interface IMicVoiceCardProps {
   onCommit: () => void;
 }
 
-/** The low cut is "on" while it cuts; switched off it remembers its corner. */
-const LOW_CUT_WHEN_ON = 80;
+interface IMicLowCutCardProps extends IMicVoiceCardProps {
+  /** The three parts as the switch turned them off, shown greyed while off. */
+  kept: IMicLowCutParts | undefined;
+  /** The card's switch: all three parts off together, or back as they were. */
+  onSwitch: (on: boolean) => void;
+}
 
+/**
+ * The low cut, "Close to the mic" and the pop guard, under one switch: it
+ * used to zero the corner alone and leave the other two running, with the
+ * rail's lamp still lit over a card that read "off" (2026-11-22).
+ */
 export const MicLowCutCard = ({
   voice,
+  kept,
   onPatch,
   onCommit,
-}: IMicVoiceCardProps) => {
+  onSwitch,
+}: IMicLowCutCardProps) => {
   const { t } = useTranslation();
-  const on = voice.enabled && voice.lowCutHz > 0;
+  const on =
+    voice.enabled &&
+    (voice.lowCutHz > 0 || voice.proximityDb > 0 || voice.deplosive > 0);
+  const shown: IMicLowCutParts = on
+    ? voice
+    : (kept ?? {
+        lowCutHz: LOW_CUT_WHEN_ON,
+        proximityDb: 0,
+        deplosive: 0,
+      });
   const patch = (next: Partial<IVoiceSettings>) =>
     onPatch({ ...voice, enabled: true, ...next });
   return (
@@ -144,10 +165,7 @@ export const MicLowCutCard = ({
       titleKey="mic.lowCut.title"
       descriptionKey="mic.lowCut.description"
       isEnabled={on}
-      onToggle={() => {
-        patch({ lowCutHz: on ? 0 : LOW_CUT_WHEN_ON });
-        onCommit();
-      }}
+      onToggle={() => onSwitch(!on)}
     >
       <div className="dsp-band">
         <div className="dsp-band-head">
@@ -157,7 +175,7 @@ export const MicLowCutCard = ({
         <div className="dsp-band-dials">
           <Dial
             labelKey="mic.lowCut.cut"
-            value={on ? voice.lowCutHz : LOW_CUT_WHEN_ON}
+            value={shown.lowCutHz > 0 ? shown.lowCutHz : LOW_CUT_WHEN_ON}
             defaultValue={LOW_CUT_WHEN_ON}
             min={VOICE_RANGES.lowCutHz.min}
             max={VOICE_RANGES.lowCutHz.max}
@@ -169,13 +187,13 @@ export const MicLowCutCard = ({
           />
           <Dial
             labelKey="mic.lowCut.proximity"
-            value={voice.proximityDb}
+            value={shown.proximityDb}
             defaultValue={VOICE_DEFAULTS.proximityDb}
             min={VOICE_RANGES.proximityDb.min}
             max={VOICE_RANGES.proximityDb.max}
             unit="dB"
             step={0.5}
-            isDisabled={!voice.enabled}
+            isDisabled={!on}
             onChange={(proximityDb) => patch({ proximityDb })}
             onCommit={onCommit}
           />
@@ -189,13 +207,13 @@ export const MicLowCutCard = ({
         <div className="dsp-band-dials">
           <Dial
             labelKey="mic.lowCut.plosive"
-            value={Math.round(voice.deplosive * 100)}
+            value={Math.round(shown.deplosive * 100)}
             defaultValue={0}
             min={0}
             max={100}
             unit="%"
             step={1}
-            isDisabled={!voice.enabled}
+            isDisabled={!on}
             onChange={(percent) => patch({ deplosive: percent / 100 })}
             onCommit={onCommit}
           />

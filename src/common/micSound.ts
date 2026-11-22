@@ -29,6 +29,22 @@ export interface IMicSoundEntry {
   tuned: boolean;
   /** The mic's rack, Voice stage included, always in low lag. */
   settings: IDspSettings;
+  /**
+   * The Low cut card's three parts as they were when its switch turned them
+   * off, so the switch turning it back on brings back the same voice. Not
+   * on the wire: the rack only ever carries the values in play.
+   */
+  lowCutKept?: IMicLowCutParts;
+}
+
+/** The corner a low cut comes back at when nothing better is known. */
+export const LOW_CUT_WHEN_ON = 80;
+
+/** What the Low cut card's switch takes off and puts back together. */
+export interface IMicLowCutParts {
+  lowCutHz: number;
+  proximityDb: number;
+  deplosive: number;
 }
 
 export interface IMicSoundFile {
@@ -65,14 +81,34 @@ export const clampMicSettings = (value: unknown): IDspSettings => {
   };
 };
 
+/**
+ * Kept parts read back, each in the Voice stage's own range; a corner of 0,
+ * or none at all, is nothing kept — there would be no low cut to bring back.
+ */
+const clampLowCutKept = (value: unknown): IMicLowCutParts | undefined => {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  const voice = clampVoiceSettings({ enabled: true, ...value });
+  return voice.lowCutHz > 0
+    ? {
+        lowCutHz: voice.lowCutHz,
+        proximityDb: voice.proximityDb,
+        deplosive: voice.deplosive,
+      }
+    : undefined;
+};
+
 export const clampMicSoundEntry = (value: unknown): IMicSoundEntry => {
   const entry = isRecord(value) ? value : {};
+  const lowCutKept = clampLowCutKept(entry.lowCutKept);
   return {
     name: typeof entry.name === 'string' ? entry.name.slice(0, 200) : '',
     profileId:
       typeof entry.profileId === 'string' ? entry.profileId.slice(0, 80) : '',
     tuned: entry.tuned === true,
     settings: clampMicSettings(entry.settings),
+    ...(lowCutKept ? { lowCutKept } : {}),
   };
 };
 

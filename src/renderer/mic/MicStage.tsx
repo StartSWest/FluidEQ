@@ -11,6 +11,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import type { IDspSettings } from '../../common/dsp/chain';
+import type { IMicLowCutParts } from '../../common/micSound';
 import DspStageCards from '../dsp/DspStageCards';
 import type { IRoomLive } from '../dsp/useRoomLive';
 import type { TMicStage } from './MicStageRail';
@@ -23,16 +24,21 @@ interface IMicStageProps {
   stage: TMicStage;
   settings: IDspSettings;
   isSystemWide: boolean;
+  /** The Low cut card's parts as its switch turned them off. */
+  lowCutKept: IMicLowCutParts | undefined;
   onPatch: (next: Partial<IDspSettings>) => void;
   onCommit: () => void;
+  onSwitchLowCut: (on: boolean) => void;
 }
 
 const MicStage = ({
   stage,
   settings,
   isSystemWide,
+  lowCutKept,
   onPatch,
   onCommit,
+  onSwitchLowCut,
 }: IMicStageProps) => {
   const { voice } = settings;
   return (
@@ -40,8 +46,10 @@ const MicStage = ({
       {stage === 'lowCut' && voice && (
         <MicLowCutCard
           voice={voice}
+          kept={lowCutKept}
           onPatch={(next) => onPatch({ voice: next })}
           onCommit={onCommit}
+          onSwitch={onSwitchLowCut}
         />
       )}
       {stage === 'gate' && voice && (
