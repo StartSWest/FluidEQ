@@ -149,7 +149,13 @@ const useMicLevels = (
           }
           // The engine answering is what "live" means; it stops answering
           // when Windows tears the effect down, and the line says so again.
-          const now = Boolean(result);
+          // Main answers `null` only when no engine is connected on the mic;
+          // `undefined` is a connected engine with no frame newer than the
+          // last read, which a 60 Hz paint asks for every other frame. Read
+          // as silence, it flipped the live line and the readings between
+          // live and waiting many times a second (Ivan, 2026-11-22: "a lot
+          // of glitch in the text below the select").
+          const now = result === undefined ? hearing : result !== null;
           if (now !== hearing) {
             hearing = now;
             if (opened) {
