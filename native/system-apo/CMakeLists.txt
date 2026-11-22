@@ -179,6 +179,12 @@ add_executable(fluideq-engine-voice-line-test tests/voice_line_test.cpp)
 target_link_libraries(fluideq-engine-voice-line-test
   PRIVATE fluideq-engine-dsp feq_strict)
 add_test(NAME engine-voice-line COMMAND fluideq-engine-voice-line-test)
+# Every mic profile through the engine's graph: the limiter holds its ceiling
+# on a loud voice and the gate leaves a quiet room quiet.
+add_executable(fluideq-engine-mic-profiles-test tests/mic_profiles_test.cpp)
+target_link_libraries(fluideq-engine-mic-profiles-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-mic-profiles COMMAND fluideq-engine-mic-profiles-test)
 add_executable(fluideq-engine-graph-crossing-test tests/graph_crossing_test.cpp)
 target_link_libraries(fluideq-engine-graph-crossing-test
   PRIVATE fluideq-engine-dsp feq_strict)

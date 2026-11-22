@@ -4,6 +4,8 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import {
   encodeChainSettings,
   hasVoice,
@@ -17,6 +19,8 @@ import {
   micProfileSettings,
   micRackDelayMs,
 } from '../../../common/dsp/micProfiles';
+import { dynamicsPresetSettings } from '../../../common/dsp/dynamicsPresets';
+import micProfilesFixture from '../../../common/dsp/micProfilesFixture';
 import { clampMicSettings } from '../../../common/micSound';
 import en from '../../../common/i18n/en';
 
@@ -73,6 +77,35 @@ describe('the mic profiles', () => {
     expect(micProfileGroup('laptop')).toBe('mic');
     expect(isMicProfileId('stream')).toBe(true);
     expect(isMicProfileId('nope')).toBe(false);
+  });
+
+  it('presses the voice down and never lifts what is quiet, the room with it', () => {
+    MIC_PROFILE_IDS.map(micProfileSettings)
+      .filter((rack) => rack.dynamics.enabled)
+      .forEach((rack) => {
+        expect(rack.dynamics.presetId).toBe('');
+        rack.dynamics.bands.forEach((band) => {
+          expect(band.upRatio).toBe(1);
+          expect(band.upMaxDb).toBe(0);
+        });
+      });
+    // Control: the preset they start from does lift.
+    expect(
+      dynamicsPresetSettings('speech', true).bands.some(
+        (band) => band.upMaxDb > 0,
+      ),
+    ).toBe(true);
+  });
+
+  it("matches the engine test's table, written from these profiles", () => {
+    const header = readFileSync(
+      join(
+        __dirname,
+        '../../../../native/system-apo/tests/mic_profiles_fixture.h',
+      ),
+      'utf8',
+    );
+    expect(header).toBe(micProfilesFixture());
   });
 
   it('gives every profile arrays of its own', () => {

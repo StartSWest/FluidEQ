@@ -27,6 +27,7 @@ import type { IDspSettings, IEqBandSettings } from './chainSettings';
 import { MAXIMIZER_MIN_LOOK_AHEAD_MS } from './chainStageSettings';
 import { deEsserPresetSettings, TDeEsserPresetId } from './deEsserPresets';
 import { dynamicsPresetSettings, TDynamicsPresetId } from './dynamicsPresets';
+import type { IDynamicsBand } from './dynamicsStage';
 import { IVoiceSettings, VOICE_DEFAULTS } from './voiceStage';
 
 export const MIC_PROFILE_GROUPS = ['use', 'mic'] as const;
@@ -194,6 +195,25 @@ const band = ([type, frequency, gainDb, quality]: TBand): IEqBandSettings => ({
   thresholdDb: -24,
 });
 
+/**
+ * A Dynamics preset pressing down only. The presets also lift what is quiet
+ * (upward compression), which on music brings a soft passage forward and on
+ * a live mic brings the room forward between words: through the engine's
+ * graph the Meetings rack played a -62 dB room at -53, and Streaming's lift
+ * took back most of what its gate had cut (`mic_profiles_test.cpp`). The
+ * makeup stays: it is what keeps the pressed voice at its level.
+ */
+const pressingOnly = (id: TDynamicsPresetId): IDspSettings['dynamics'] => {
+  const preset = dynamicsPresetSettings(id, true);
+  const [low, mid, high] = preset.bands;
+  const flat = (each: IDynamicsBand): IDynamicsBand => ({
+    ...each,
+    upRatio: 1,
+    upMaxDb: 0,
+  });
+  return { ...preset, presetId: '', bands: [flat(low), flat(mid), flat(high)] };
+};
+
 /** The whole mic rack a profile is, every array its own. */
 export const micProfileSettings = (id: TMicProfileId): IDspSettings => {
   const recipe: IMicProfileRecipe = MIC_PROFILE_BY_ID[id];
@@ -228,7 +248,7 @@ export const micProfileSettings = (id: TMicProfileId): IDspSettings => {
       presetId: '',
     },
     dynamics: recipe.dynamics
-      ? dynamicsPresetSettings(recipe.dynamics, true)
+      ? pressingOnly(recipe.dynamics)
       : DSP_DEFAULTS.dynamics,
     maximizer:
       recipe.limiter === null
