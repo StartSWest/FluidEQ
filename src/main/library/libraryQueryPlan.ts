@@ -24,7 +24,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { SQLInputValue } from 'node:sqlite';
 import { normalizeForGrouping } from '../../common/library/grouping';
-import type { ILibraryListQuery } from '../../common/library/query';
+import type {
+  ILibraryListQuery,
+  TLibraryNaturalOrder,
+} from '../../common/library/query';
 import type { TLibrarySort } from '../../common/library/types';
 import {
   beneathSql,
@@ -103,7 +106,26 @@ const NATURAL_TERMS: Record<string, string[]> = {
   ],
   path: ['sort_path', 'seq'],
   ids: ['ids_order'],
+  // Each record newest first, in the albums shelf's own order by year
+  // (`COALESCE(year, 0)`, then `first_seq`, both reversed), and each as
+  // pressed: an artist's songs under the row of their covers.
+  records: [
+    'record_year DESC',
+    'record_seq DESC',
+    'COALESCE(disc_no, 1)',
+    'COALESCE(track_no, 0)',
+    'sort_title',
+    'seq',
+  ],
 };
+
+/** The record a song is on, as the albums shelf orders it — read only for
+ * the `records` order, which is an artist's songs and never a library's. */
+const recordColumns = (natural: TLibraryNaturalOrder | undefined): string =>
+  natural === 'records'
+    ? `(SELECT COALESCE(g.year, 0) FROM album_groups g WHERE g.id = t.album_key) AS record_year,
+      (SELECT g.first_seq FROM album_groups g WHERE g.id = t.album_key) AS record_seq`
+    : '0 AS record_year, 0 AS record_seq';
 
 const TRACK_COLUMNS = `
   t.seq, t.id, t.root_id, t.path, t.folder, t.kind, t.is_playable, t.title,
@@ -141,6 +163,7 @@ const tracksPlan = (query: ILibraryListQuery): ILibraryQueryPlan => {
       ${markNeedle === '' ? '0' : `(${scoreSql(bind(markNeedle))} > 0)`} AS matched,
       ${folderOnly} AS folder_only,
       ${query.natural === 'path' ? 'sort_key(t.path)' : "''"} AS sort_path,
+      ${recordColumns(query.natural)},
       ${ids === undefined ? '0' : 'CAST(listed.key AS INTEGER)'} AS ids_order
     FROM tracks t ${join}
     ${conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''}`;

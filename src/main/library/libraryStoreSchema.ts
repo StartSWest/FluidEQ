@@ -14,8 +14,9 @@ export const STORE_FILENAME = 'library.sqlite';
  * that an existing file needs moving to, and move it in `migrateStore`.
  *
  * 2: album keys joined with U+001F, not NUL (`albumKey`).
+ * 3: every song's artist credits (`track_credits`), for the artist page.
  */
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export const SCHEMA = `
   CREATE TABLE IF NOT EXISTS meta (
@@ -96,6 +97,18 @@ export const SCHEMA = `
     PRIMARY KEY (track_id, genre_id)
   );
   CREATE INDEX IF NOT EXISTS track_genres_genre ON track_genres (genre_id);
+  -- Every artist a song credits (\`trackCredits\`): its album artist and each
+  -- name of its own artist line, so an artist's page lists the songs they
+  -- are a guest on as well as their own, read off an index. \`on_album\` is a
+  -- credit for the record itself, which is what files its album under them.
+  CREATE TABLE IF NOT EXISTS track_credits (
+    track_id TEXT NOT NULL,
+    credit_key TEXT NOT NULL,
+    credit_name TEXT NOT NULL,
+    on_album INTEGER NOT NULL,
+    PRIMARY KEY (track_id, credit_key)
+  );
+  CREATE INDEX IF NOT EXISTS track_credits_key ON track_credits (credit_key, on_album);
   -- The Library's Plays column (notePlayed), in a table of its own rather
   -- than columns on tracks: an older file gains it the way it gains every
   -- table here, by CREATE IF NOT EXISTS, with no ALTER and no migration step
@@ -108,6 +121,10 @@ export const SCHEMA = `
     last_played_at REAL NOT NULL
   );
 `;
+
+/** One of a song's credits (`trackCredits`), written after its old ones go. */
+export const CREDIT_INSERT =
+  'INSERT OR IGNORE INTO track_credits (track_id, credit_key, credit_name, on_album) VALUES (?, ?, ?, ?)';
 
 export const TRACK_UPSERT = `
   INSERT INTO tracks (

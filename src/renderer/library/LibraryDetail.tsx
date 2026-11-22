@@ -38,6 +38,7 @@ import type {
   TLibraryViewMode,
 } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
+import LibraryArtistName from './LibraryArtistName';
 import LibraryDetailHeader from './LibraryDetailHeader';
 import LibraryGridView from './LibraryGridView';
 import LibraryListView from './LibraryListView';
@@ -69,7 +70,6 @@ const tagScopeOf = (
 
 interface ILibraryDetailProps {
   albumId?: string;
-  artistId?: string;
   /** A genre bucket, opened from the Genres shelf. Mutually exclusive with
    * the others the same way they are with each other. */
   genreId?: string;
@@ -105,13 +105,11 @@ interface ILibraryDetailProps {
 /** What a record's songs are in scope, and the order a record is heard in. */
 const recordOf = ({
   albumId,
-  artistId,
   genreId,
   folderPath,
   playlistTrackIds,
 }: {
   albumId?: string;
-  artistId?: string;
   genreId?: string;
   folderPath?: string;
   playlistTrackIds?: readonly string[];
@@ -125,9 +123,6 @@ const recordOf = ({
       scope: { album: albumId, withFolderMates: true },
       natural: 'disc',
     };
-  }
-  if (artistId) {
-    return { scope: { artist: artistId }, natural: 'album' };
   }
   if (genreId) {
     // By album, so a genre reads as records rather than a thousand songs.
@@ -145,8 +140,9 @@ const recordOf = ({
 
 /**
  * The drill-in behind a tile, a row or a cover: a header for the one album,
- * artist, genre, folder or playlist, then its songs — the same table the
- * shelf uses, so every badge, key and menu works here too.
+ * genre, folder or playlist, then its songs — the same table the shelf
+ * uses, so every badge, key and menu works here too. An artist has a page of
+ * its own, with their records over their songs (`LibraryArtistDetail`).
  *
  * Everything on it is asked of the store for this one record: its summary,
  * its songs a page at a time, the folders inside it. It used to group the
@@ -154,7 +150,6 @@ const recordOf = ({
  */
 const LibraryDetail = ({
   albumId,
-  artistId,
   genreId,
   folderPath,
   playlistId,
@@ -202,12 +197,11 @@ const LibraryDetail = ({
     () =>
       recordOf({
         albumId,
-        artistId,
         genreId,
         folderPath,
         playlistTrackIds: playlist?.trackIds,
       }),
-    [albumId, artistId, genreId, folderPath, playlist],
+    [albumId, genreId, folderPath, playlist],
   );
 
   /**
@@ -219,13 +213,6 @@ const LibraryDetail = ({
   const summaryQuery = useMemo((): ILibraryListQuery | undefined => {
     if (albumId) {
       return { shelf: 'albums', scope: { album: albumId }, direction: 'asc' };
-    }
-    if (artistId) {
-      return {
-        shelf: 'artists',
-        scope: { artist: artistId },
-        direction: 'asc',
-      };
     }
     if (genreId) {
       return { shelf: 'genres', scope: { genre: genreId }, direction: 'asc' };
@@ -247,11 +234,10 @@ const LibraryDetail = ({
       };
     }
     return undefined;
-  }, [albumId, artistId, genreId, folderPath, playlist]);
+  }, [albumId, genreId, folderPath, playlist]);
   const summary = useLibraryList(summaryQuery);
   const summaryItem = summary.at(0);
   const album = summaryItem?.kind === 'album' ? summaryItem : undefined;
-  const artist = summaryItem?.kind === 'artist' ? summaryItem : undefined;
   const genre = summaryItem?.kind === 'genre' ? summaryItem : undefined;
 
   /**
@@ -272,7 +258,6 @@ const LibraryDetail = ({
     [
       album?.title,
       album?.artist,
-      artist?.name,
       genre?.name,
       folderPath ? folderDisplayName(folderPath) : undefined,
     ].some(
@@ -388,18 +373,11 @@ const LibraryDetail = ({
     if (albumId) {
       return { shelf: 'folders', scope: { album: albumId }, direction: 'asc' };
     }
-    if (artistId) {
-      return {
-        shelf: 'folders',
-        scope: { artist: artistId },
-        direction: 'asc',
-      };
-    }
     if (genreId) {
       return { shelf: 'folders', scope: { genre: genreId }, direction: 'asc' };
     }
     return undefined;
-  }, [albumId, artistId, genreId, folderPath]);
+  }, [albumId, genreId, folderPath]);
   const place = useLibraryList(placeQuery);
   /**
    * What the last folder that had answered turned out to be: a record (its
@@ -415,8 +393,7 @@ const LibraryDetail = ({
    * sort or a search re-asks the lists of the same record, and the panel
    * stays on screen through those; only another record waits again.
    */
-  const recordKey =
-    albumId ?? artistId ?? genreId ?? playlistId ?? folderPath ?? '';
+  const recordKey = albumId ?? genreId ?? playlistId ?? folderPath ?? '';
   const knownRecordRef = useRef<string | undefined>(undefined);
 
   /**
@@ -489,7 +466,7 @@ const LibraryDetail = ({
   const isHeaderShown = folderShape === 'record';
   const folderName = folderPath ? folderDisplayName(folderPath) : '';
 
-  let title = artist?.name || t('library.unknownArtist');
+  let title = '';
   if (isAlbum) {
     title = album?.title || t('library.unknownAlbum');
   } else if (isFolder) {
@@ -524,6 +501,8 @@ const LibraryDetail = ({
   } else if (isPlaylist && missingCount > 0) {
     subtitle = t('library.playlist.missing', { count: missingCount });
   }
+  /** Where the line under the title is the record's artist: as tagged. */
+  const whoLine = isAlbum ? album?.artist : albumInside?.artist;
 
   /** The song the facts are read from: the first the table holds. */
   const leadItem = table.at(0);
@@ -549,16 +528,12 @@ const LibraryDetail = ({
     kind = albumInside
       ? t('library.kind.folderAlbum')
       : t('library.kind.folder');
-  } else if (artistId) {
-    kind = t('library.kind.artist');
   } else if (isGenre) {
     kind = t('library.kind.genre');
   }
 
   let counts = countText(t, 'library.trackCount', table.count);
-  if (artist) {
-    counts = `${countText(t, 'library.albumCount', artist.albumCount)} · ${countText(t, 'library.trackCount', artist.trackCount)}`;
-  } else if (genre) {
+  if (genre) {
     // A genre's pair is how many bands and how many songs: forty records say
     // nothing about how varied it is, twenty artists say exactly that.
     counts = `${countText(t, 'library.artistCount', genre.artistCount)} · ${countText(t, 'library.trackCount', genre.trackCount)}`;
@@ -599,7 +574,6 @@ const LibraryDetail = ({
    * found first beneath it, drawn inside a folder rather than as one. */
   const headerArtId =
     album?.artId ??
-    artist?.artId ??
     genre?.artId ??
     firstSong?.artId ??
     (firstBeneath?.kind === 'track' ? firstBeneath.track.artId : undefined);
@@ -673,7 +647,7 @@ const LibraryDetail = ({
 
   // The panel's own filter is not part of it: narrowing the table as the
   // reader types is the same table, and its place should hold.
-  const tableKey = `detail|${albumId ?? artistId ?? genreId ?? playlistId ?? folderPath ?? ''}|${sort ?? ''}|${sortDirection}`;
+  const tableKey = `detail|${albumId ?? genreId ?? playlistId ?? folderPath ?? ''}|${sort ?? ''}|${sortDirection}`;
   const childrenKey = `children|${folderPath ?? ''}|${sort ?? ''}|${sortDirection}`;
 
   /**
@@ -693,6 +667,12 @@ const LibraryDetail = ({
           kind={kind}
           title={title}
           subtitle={subtitle}
+          // The record's artists, each a way to their page.
+          who={
+            whoLine ? (
+              <LibraryArtistName line={whoLine} fallback={subtitle} />
+            ) : undefined
+          }
           recordFolder={recordFolder}
           counts={facts.join(' · ')}
           matchedCount={table.markedCount}

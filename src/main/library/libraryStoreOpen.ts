@@ -12,12 +12,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import fs from 'fs';
 import path from 'path';
 import { DatabaseSync } from 'node:sqlite';
+import { trackCredits } from '../../common/library/artistCredits';
 import { albumKey } from '../../common/library/grouping';
 import type { ILibraryTrack } from '../../common/library/types';
 import { GROUP_SCHEMA, rebuildGroups } from './libraryGroups';
 import { libraryIndexPath, loadLibraryIndex } from './libraryIndex';
 import { createStore, type ILibraryStore, inTransaction } from './libraryStore';
-import { SCHEMA, SCHEMA_VERSION, STORE_FILENAME } from './libraryStoreSchema';
+import {
+  CREDIT_INSERT,
+  SCHEMA,
+  SCHEMA_VERSION,
+  STORE_FILENAME,
+} from './libraryStoreSchema';
 import { TRACK_SELECT, trackFromRow, type TStoreRow } from './libraryStoreRows';
 
 export interface IOpenedLibraryStore {
@@ -71,23 +77,44 @@ const migrateStore = (database: DatabaseSync): void => {
     return;
   }
   inTransaction(database, () => {
-    const rewrite = database.prepare(
-      'UPDATE tracks SET album_key = ? WHERE seq = ?',
-    );
-    database
-      .prepare('SELECT seq, album, album_artist, artist FROM tracks')
-      .all()
-      .forEach((row) => {
-        rewrite.run(
-          albumKey({
-            album: textOrUndefined(row.album),
-            albumArtist: textOrUndefined(row.album_artist),
-            artist: textOrUndefined(row.artist),
-          }),
-          Number(row.seq),
-        );
-      });
-    rebuildGroups(database);
+    if (version < 2) {
+      const rewrite = database.prepare(
+        'UPDATE tracks SET album_key = ? WHERE seq = ?',
+      );
+      database
+        .prepare('SELECT seq, album, album_artist, artist FROM tracks')
+        .all()
+        .forEach((row) => {
+          rewrite.run(
+            albumKey({
+              album: textOrUndefined(row.album),
+              albumArtist: textOrUndefined(row.album_artist),
+              artist: textOrUndefined(row.artist),
+            }),
+            Number(row.seq),
+          );
+        });
+      rebuildGroups(database);
+    }
+    // 2 → 3: every song's credits, from its own two artist columns. Walked a
+    // row at a time (`iterate`), never read whole.
+    if (version < 3) {
+      database.exec('DELETE FROM track_credits');
+      const insert = database.prepare(CREDIT_INSERT);
+      const rows = database
+        .prepare('SELECT id, album_artist, artist FROM tracks')
+        .iterate();
+      for (let step = rows.next(); !step.done; step = rows.next()) {
+        const row = step.value as TStoreRow;
+        const trackId = String(row.id);
+        trackCredits({
+          albumArtist: textOrUndefined(row.album_artist),
+          artist: textOrUndefined(row.artist),
+        }).forEach(({ id, name, onAlbum }) => {
+          insert.run(trackId, id, name, onAlbum ? 1 : 0);
+        });
+      }
+    }
     writeSchemaVersion(database);
   });
 };

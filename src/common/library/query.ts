@@ -14,6 +14,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * sits in it, which letter starts where.
  */
 
+import type { IArtistLinkPart } from './artistCredits';
 import type {
   ILibraryRoot,
   ILibraryTrack,
@@ -31,6 +32,18 @@ export interface ILibraryScope {
   album?: string;
   /** One artist, by `artistKey`. */
   artist?: string;
+  /**
+   * Every song an artist is credited on, by `artistKeyOf` (`trackCredits`):
+   * their own, and the ones where they are a featured or track artist. The
+   * artist page's songs.
+   */
+  credit?: string;
+  /**
+   * The songs crediting an artist for the record itself — its album artist,
+   * or its own artist where it has none. On the albums shelf, the albums an
+   * artist made: the artist page's records.
+   */
+  albumCredit?: string;
   /** One genre, by `genreKey`. */
   genre?: string;
   /**
@@ -47,11 +60,12 @@ export interface ILibraryScope {
 /**
  * A track list's order when no column is chosen and nothing is searched: the
  * order the library learned them in, by record then title, a record as it was
- * pressed (its folder-mates after, by title), by file path, or the order the
- * `ids` scope gave.
+ * pressed (its folder-mates after, by title), by file path, the order the
+ * `ids` scope gave, or record by record newest first, each as pressed — an
+ * artist's songs in the order of the covers over them (`records`).
  */
 export type TLibraryNaturalOrder =
-  'library' | 'album' | 'disc' | 'path' | 'ids';
+  'library' | 'album' | 'disc' | 'path' | 'ids' | 'records';
 
 /**
  * What a list is made of.
@@ -263,7 +277,32 @@ export type TLibraryRequest =
       query: ILibraryListQuery;
       afterId: string;
       exclude: readonly string[];
-    };
+    }
+  /**
+   * One artist's page head, by `artistKeyOf`: their name, picture and how
+   * much of them there is — the albums credited to them and every song
+   * they are on (`ILibraryArtistFacts`).
+   */
+  | { type: 'artist'; id: string }
+  /**
+   * Artist lines as the runs they draw as, each name that opens a page
+   * carrying its id (`artistLinkParts`), one answer per line, in order.
+   */
+  | { type: 'artistLinks'; lines: readonly string[] };
+
+/** The artist page's head (`artist`). */
+export interface ILibraryArtistFacts {
+  /** As the Artists shelf names them, or as the first song crediting them
+   * spells it where they made no record of their own. */
+  name: string;
+  /** The first cover among their own records, then among their songs. */
+  artId?: string;
+  /** Their own records (`albumCredit`). */
+  albumCount: number;
+  /** Every song crediting them (`credit`), and how long those last. */
+  trackCount: number;
+  durationMs: number;
+}
 
 /**
  * What the window holds of the library at all times: its folders and how
@@ -309,4 +348,7 @@ export interface ILibraryAnswers {
   headings: number[];
   /** -1 when the list does not hold `afterId`. */
   rest: number;
+  /** Null when no song credits the artist. */
+  artist: ILibraryArtistFacts | null;
+  artistLinks: IArtistLinkPart[][];
 }

@@ -21,6 +21,7 @@ import type {
   TLibraryRequest,
 } from '../../common/library/query';
 import type { TLibrarySort } from '../../common/library/types';
+import { MAX_ARTIST_LINE } from '../../common/library/artistCredits';
 
 /** A page is what one screen draws, with room to scroll. */
 const MAX_PAGE_ROWS = 500;
@@ -66,6 +67,7 @@ const NATURAL_ORDERS: readonly TLibraryNaturalOrder[] = [
   'disc',
   'path',
   'ids',
+  'records',
 ];
 
 type TRecord = Record<string, unknown>;
@@ -90,6 +92,12 @@ const isIdList = (value: unknown): value is string[] =>
   value.length <= MAX_IDS &&
   value.every((entry) => isText(entry, MAX_TEXT));
 
+/** Artist lines to draw as links: a page's worth, each a line of a tag. */
+const isLineList = (value: unknown): value is string[] =>
+  Array.isArray(value) &&
+  value.length <= MAX_PAGE_ROWS &&
+  value.every((entry) => isText(entry, MAX_ARTIST_LINE));
+
 const isOneOf = <T extends string>(
   value: unknown,
   options: readonly T[],
@@ -102,6 +110,8 @@ const isScope = (value: unknown): value is ILibraryScope =>
   isOptionalText(value.folder, MAX_PATH) &&
   isOptionalText(value.album, MAX_TEXT) &&
   isOptionalText(value.artist, MAX_TEXT) &&
+  isOptionalText(value.credit, MAX_TEXT) &&
+  isOptionalText(value.albumCredit, MAX_TEXT) &&
   isOptionalText(value.genre, MAX_TEXT) &&
   (value.withFolderMates === undefined ||
     typeof value.withFolderMates === 'boolean') &&
@@ -216,6 +226,14 @@ const parseLibraryRequest = (value: unknown): TLibraryRequest | undefined => {
             afterId: value.afterId,
             exclude: value.exclude,
           }
+        : undefined;
+    case 'artist':
+      return isText(value.id, MAX_TEXT)
+        ? { type: 'artist', id: value.id }
+        : undefined;
+    case 'artistLinks':
+      return isLineList(value.lines)
+        ? { type: 'artistLinks', lines: value.lines }
         : undefined;
     default:
       return undefined;

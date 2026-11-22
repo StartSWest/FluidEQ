@@ -1,0 +1,194 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// *** An artist's name, a way to their page **********************************
+//
+// A run of the line it stands in (`LibraryArtistName`): the size, weight and
+// truncation of whatever it is set in — an album's header, a table's Artist
+// cell, the now-playing card — in the accent's ink, underlined under the
+// pointer. Inline text, not a box, so a long line still ends in an ellipsis.
+.library-artist-link {
+  border-radius: $radius-2xs;
+  color: $secondary-light;
+  text-decoration-line: none;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  cursor: pointer;
+  transition: color $motion-fast $ease-out;
+
+  &:hover {
+    text-decoration-line: underline;
+  }
+
+  &:focus-visible {
+    text-decoration-line: underline;
+    @include focus-outline(1px);
+  }
+}
+
+// *** The artist's page ******************************************************
+//
+// The record page's header and table (`_libraryDetail.scss`), with the
+// artist's picture a circle where a record's cover is a square, and their
+// records as one row of covers between the two.
+
+.library-hero > .library-artist-art {
+  display: block;
+  width: 136px;
+  height: 136px;
+  overflow: hidden;
+  border-radius: 50%;
+
+  .library-cover-art {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+    border-radius: 0;
+  }
+
+  .library-cover-art__tile {
+    font-size: 2.6rem;
+  }
+
+  // Four records in quarters, parted by a hairline of the floor.
+  &.is-mosaic {
+    display: grid;
+    grid-template: 1fr 1fr / 1fr 1fr;
+    gap: 2px;
+    background: $surface-base;
+  }
+}
+
+// A short window keeps the hero from taking the table's rows, as a record's
+// cover does there.
+@media (max-height: $bp-laptop-height) {
+  .library-hero > .library-artist-art {
+    width: 112px;
+    height: 112px;
+  }
+}
+
+.library-artist__albums {
+  display: grid;
+  min-width: 0;
+  flex: 0 0 auto;
+  gap: 4px;
+}
+
+// The shelf's own section heading (`LibrarySections.scss`), with the row's
+// two arrows at its far end.
+.library-artist__heading {
+  min-height: 30px;
+  padding: 0 2px;
+}
+
+// "Songs" stands on its table as "Albums" stands on its row, 4px over it,
+// not the page's 14 (`.library-detail`): a heading that floats between two
+// parts belongs to neither.
+.library-artist > .library-artist__heading {
+  margin-bottom: -10px;
+}
+
+.library-artist__pager {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 4px;
+
+  .library-hero__button.is-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .library-hero__button:disabled {
+    cursor: default;
+    opacity: 0.35;
+  }
+
+  // Line chevrons: the header's icon buttons fill their glyphs, which would
+  // close these into wedges.
+  .library-hero__button.is-icon svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentcolor;
+  }
+}
+
+// One row that scrolls sideways. 6px wider than the column each side, given
+// back by the margin, so a tile's hover lift and focus ring are not cut by
+// the scroller — the grid's own allowance (`.library-grid`).
+.library-artist__rail {
+  @include slim-scrollbar;
+  margin-inline: -6px;
+  padding: 6px 6px 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-padding-inline: 6px;
+  scroll-snap-type: x proximity;
+}
+
+// Content-box: the track's width is the tiles' own length, and the run of
+// padding before the mounted ones stands for those not mounted.
+.library-artist__track {
+  display: flex;
+  box-sizing: content-box;
+  width: max-content;
+  gap: $spacing-m;
+
+  > .library-grid__tile {
+    flex: 0 0 140px;
+    scroll-snap-align: start;
+  }
+}
+
+// A RECORD AS A CHIP: its cover small beside its name and year, 64px tall
+// where the card is 190. For a laptop's window, and for Cover Flow's panel,
+// which shares the column with the row of covers over it: at the app's
+// smallest window the cards left the songs' table no height at all, and the
+// table is what the page is for. The same tile, laid out sideways.
+@mixin record-chip {
+  flex-basis: 212px;
+  grid-template-columns: 52px minmax(0, 1fr);
+  grid-template-rows: 1fr 1fr;
+  align-content: center;
+  column-gap: 10px;
+  row-gap: 2px;
+  padding: 6px 12px 6px 6px;
+
+  .library-grid__art {
+    grid-row: 1 / span 2;
+    margin: 0;
+
+    .library-cover-art {
+      border-radius: $radius-s;
+    }
+  }
+
+  .library-grid__title {
+    align-self: end;
+  }
+
+  .library-grid__subtitle {
+    align-self: start;
+  }
+}
+
+@media (max-height: $bp-laptop-height) {
+  .library-artist__track > .library-grid__tile {
+    @include record-chip;
+  }
+}
+
+.library-coverflow__panel .library-artist__track > .library-grid__tile {
+  @include record-chip;
+}

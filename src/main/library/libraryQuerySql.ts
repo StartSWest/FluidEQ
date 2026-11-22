@@ -67,6 +67,20 @@ export const scopeConditions = (
   if (scope.artist !== undefined) {
     conditions.push(`t.artist_key = ${bind(scope.artist)}`);
   }
+  if (scope.credit !== undefined) {
+    conditions.push(
+      `t.id IN (SELECT track_id FROM track_credits WHERE credit_key = ${bind(
+        scope.credit,
+      )})`,
+    );
+  }
+  if (scope.albumCredit !== undefined) {
+    conditions.push(
+      `t.id IN (SELECT track_id FROM track_credits WHERE credit_key = ${bind(
+        scope.albumCredit,
+      )} AND on_album = 1)`,
+    );
+  }
   if (scope.genre !== undefined) {
     conditions.push(
       `t.id IN (SELECT track_id FROM track_genres WHERE genre_id = ${bind(

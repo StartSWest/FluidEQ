@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { useMemo } from 'react';
 import '../styles/Library.scss';
 import useLibraryWorkspaceShelf from './useLibraryWorkspaceShelf';
 import useLibraryWorkspaceNavigation from './useLibraryWorkspaceNavigation';
@@ -23,6 +24,7 @@ import useLibrarySteps from './useLibrarySteps';
 import LibraryWorkspaceView from './LibraryWorkspaceView';
 import useVideoFullScreenExit from './useVideoFullScreenExit';
 import { TagEditorProvider } from './tags/TagEditorContext';
+import { LibraryRecordLinksProvider } from './libraryRecordLinks';
 
 export interface ILibraryWorkspaceProps {
   /** Hidden instead of unmounted, matching KaraokeWorkspace and VideoBrowser:
@@ -53,17 +55,25 @@ const LibraryWorkspace = ({
   const navigation = useLibraryWorkspaceNavigation(shelf);
   useVideoFullScreenExit(shelf.videoTrackId, isFullScreen, onToggleFullScreen);
   const steps = useLibrarySteps(shelf, navigation);
+  const { handleShowArtist, handleShowAlbum } = steps;
+  // Stable while the moves are: every artist cell of a table reads it.
+  const recordLinks = useMemo(
+    () => ({ openArtist: handleShowArtist, openAlbum: handleShowAlbum }),
+    [handleShowArtist, handleShowAlbum],
+  );
   return (
     <TagEditorProvider>
-      <LibraryWorkspaceView
-        shelf={shelf}
-        navigation={navigation}
-        steps={steps}
-        isFullScreen={isFullScreen}
-        isGraphBackdrop={isGraphBackdrop}
-        isHidden={isHidden}
-        onToggleFullScreen={onToggleFullScreen}
-      />
+      <LibraryRecordLinksProvider value={recordLinks}>
+        <LibraryWorkspaceView
+          shelf={shelf}
+          navigation={navigation}
+          steps={steps}
+          isFullScreen={isFullScreen}
+          isGraphBackdrop={isGraphBackdrop}
+          isHidden={isHidden}
+          onToggleFullScreen={onToggleFullScreen}
+        />
+      </LibraryRecordLinksProvider>
     </TagEditorProvider>
   );
 };

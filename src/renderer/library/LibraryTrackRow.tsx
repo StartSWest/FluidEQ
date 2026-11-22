@@ -20,6 +20,7 @@ import { KeyboardEvent, memo, type ReactNode } from 'react';
 import { ILibraryTrack } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
+import LibraryArtistName from './LibraryArtistName';
 import LibraryPlayingBars from './LibraryPlayingBars';
 import { savedSoundName } from './librarySoundTag';
 import {
@@ -140,7 +141,8 @@ const LibraryTrackRow = ({
   const cell = (column: TLibraryColumn): ReactNode => {
     switch (column) {
       case 'artist':
-        return track.artist ?? '';
+        // Each name a way to that artist's page (`LibraryArtistName`).
+        return <LibraryArtistName line={track.artist} />;
       case 'album':
         return track.album ?? '';
       case 'year':

@@ -152,6 +152,44 @@ const useLibrarySteps = (
     [browseMode, drillInDrivenMode, handleOpenPlaylist, setBrowseMode],
   );
 
+  /**
+   * An artist's name pressed, or an album on an artist's page: the shelf
+   * that lists them with that one open, in one pass, from wherever the
+   * reader was (`libraryRecordLinks.ts`). Out of the folder the reader stood
+   * in, as "show what is playing" steps out of it: an artist's page is not
+   * narrowed to a folder, and the place bar would otherwise name a folder
+   * over a record that is mostly elsewhere. Back puts the folder back.
+   */
+  const showRecord = useCallback(
+    (mode: 'album' | 'artist', open: () => void) => {
+      if (browseMode !== mode) {
+        drillInDrivenMode.current = mode;
+        setBrowseMode(mode);
+      }
+      setOpenFolderPath(undefined);
+      setIsFolderOpened(false);
+      setOpenPlaylistId(undefined);
+      open();
+    },
+    [
+      browseMode,
+      drillInDrivenMode,
+      setBrowseMode,
+      setIsFolderOpened,
+      setOpenFolderPath,
+      setOpenPlaylistId,
+    ],
+  );
+  const showArtist = useCallback(
+    (artistId: string) =>
+      showRecord('artist', () => handleOpenArtist(artistId)),
+    [handleOpenArtist, showRecord],
+  );
+  const showAlbum = useCallback(
+    (albumId: string) => showRecord('album', () => handleOpenAlbum(albumId)),
+    [handleOpenAlbum, showRecord],
+  );
+
   /** Somewhere to step up to when there is no history behind the reader:
    * the record open, or the folder they stand in. */
   const isNarrowed = hasOpenRecord || openFolderPath !== undefined;
@@ -196,9 +234,13 @@ const useLibrarySteps = (
       handleOpenGenre: stepping(remember, handleOpenGenre),
       handleAllMusic: stepping(remember, handleAllMusic),
       handlePlaceFolder: stepping(remember, handlePlaceFolder),
+      handleShowArtist: stepping(remember, showArtist),
+      handleShowAlbum: stepping(remember, showAlbum),
     }),
     [
       remember,
+      showArtist,
+      showAlbum,
       handleBrowseMode,
       handleOpenFolder,
       showPlaylist,

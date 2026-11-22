@@ -143,8 +143,8 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
     if (openArtistId !== undefined) {
       return {
         shelf: 'tracks',
-        scope: { artist: openArtistId },
-        natural: 'album',
+        scope: { credit: openArtistId },
+        natural: 'records',
         direction: 'asc',
       };
     }
@@ -566,11 +566,13 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
         direction: 'asc',
       };
     }
+    // Every song the artist is on, guest spots included, as their page
+    // lists them (`LibraryArtistDetail`).
     if (openArtistId) {
       return {
         shelf: 'tracks',
-        scope: { artist: openArtistId },
-        natural: 'album',
+        scope: { credit: openArtistId },
+        natural: 'records',
         direction: 'asc',
       };
     }

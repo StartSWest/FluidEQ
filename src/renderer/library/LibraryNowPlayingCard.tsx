@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import type { ILibraryTrack } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
+import LibraryArtistName from './LibraryArtistName';
 import LibraryCoverArt from './LibraryCoverArt';
 
 /**
@@ -60,14 +61,19 @@ const LibraryNowPlayingCard = ({
       </div>
     );
   }
-  const who = [track.artist, track.album].filter(Boolean).join(' · ');
   return (
     <div className="library-now" title={track.title}>
       <LibraryCoverArt artId={track.artId} label={track.title} size="tile" />
       <span className="library-now__text">
         <b className="library-now__title">{track.title}</b>
         <small className="library-now__who">
-          {who || t('library.unknownArtist')}
+          {/* The artist a way to their page, the album beside it. */}
+          <LibraryArtistName
+            line={track.artist}
+            fallback={track.album ? undefined : t('library.unknownArtist')}
+          />
+          {track.artist?.trim() && track.album ? ' · ' : ''}
+          {track.album}
         </small>
       </span>
     </div>

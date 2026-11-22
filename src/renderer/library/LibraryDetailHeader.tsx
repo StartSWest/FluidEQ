@@ -10,7 +10,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * that narrows the table under it.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import type { ILibraryTrack } from '../../common/library/types';
 import { MAX_PLAYLIST_NAME_LENGTH } from '../../common/library/playlists';
 import { useTranslation } from '../utils/I18nContext';
@@ -40,6 +40,9 @@ interface ILibraryDetailHeaderProps {
   title: string;
   /** Who made it, or where it is: the line under the title. */
   subtitle: string;
+  /** The same line drawn as something to press: an album's artists, each a
+   * way to that artist's page. `subtitle` stays its tooltip. */
+  who?: ReactNode;
   /** The one directory everything in the table lives in, when there is one. */
   recordFolder?: string;
   /** The meta line: year, songs, length, format. */
@@ -48,6 +51,8 @@ interface ILibraryDetailHeaderProps {
   matchedCount: number;
   isFolder: boolean;
   artId?: string;
+  /** A picture of the record's own, in place of its cover: an artist's. */
+  picture?: ReactNode;
   /** Anything to play: withheld for an empty playlist. */
   hasTracks: boolean;
   onPlay: () => void;
@@ -84,11 +89,13 @@ const LibraryDetailHeader = ({
   kind,
   title,
   subtitle,
+  who,
   recordFolder,
   counts,
   matchedCount,
   isFolder,
   artId,
+  picture,
   hasTracks,
   onPlay,
   onShuffle,
@@ -224,11 +231,12 @@ const LibraryDetailHeader = ({
 
   return (
     <div className="library-hero">
-      {isFolder ? (
-        <LibraryFolderArt artId={artId} label={title} size="cover" />
-      ) : (
-        <LibraryCoverArt artId={artId} label={title} size="cover" />
-      )}
+      {picture ??
+        (isFolder ? (
+          <LibraryFolderArt artId={artId} label={title} size="cover" />
+        ) : (
+          <LibraryCoverArt artId={artId} label={title} size="cover" />
+        ))}
       <div className="library-hero__info">
         {kind && <div className="library-hero__kind">{kind}</div>}
         {/* The name becomes the field it is edited in, in place. A modal for
@@ -262,7 +270,7 @@ const LibraryDetailHeader = ({
         )}
         {subtitle && (
           <div className="library-hero__who" title={subtitle}>
-            {subtitle}
+            {who ?? subtitle}
           </div>
         )}
         <div className="library-hero__meta">

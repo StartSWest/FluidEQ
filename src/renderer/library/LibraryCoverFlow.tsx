@@ -35,6 +35,7 @@ import {
   type ICoverFlowItem,
 } from './coverFlowItems';
 import LibraryCoverFlowStage from './LibraryCoverFlowStage';
+import LibraryArtistDetail from './LibraryArtistDetail';
 import LibraryDetail from './LibraryDetail';
 import { useSectionLabel } from './LibrarySectionHeading';
 import { usePlaylists } from './PlaylistContext';
@@ -809,11 +810,25 @@ const LibraryCoverFlow = ({
           over the views; closing a record there collapses this panel and
           leaves the row where it was, which is the whole point of this
           view. */}
-        {isExpanded && (
+        {isExpanded && browseMode === 'artist' && expandedId !== undefined && (
+          <div className="library-coverflow__panel">
+            {/* An artist's own page: their records over their songs. */}
+            <LibraryArtistDetail
+              artistId={expandedId}
+              onBack={() => openPanel(undefined)}
+              onPlayTrack={(trackId) => onPlayTrack?.(trackId)}
+              onRestartTrack={onRestartTrack}
+              onQueueTracks={onQueueTracks}
+              playingTrackId={playingTrackId}
+              revealTrack={revealTrack}
+              query={query}
+            />
+          </div>
+        )}
+        {isExpanded && browseMode !== 'artist' && (
           <div className="library-coverflow__panel">
             <LibraryDetail
               albumId={browseMode === 'album' ? expandedId : undefined}
-              artistId={browseMode === 'artist' ? expandedId : undefined}
               genreId={browseMode === 'genre' ? expandedId : undefined}
               folderPath={browseMode === 'folder' ? expandedId : undefined}
               playlistId={browseMode === 'playlist' ? expandedId : undefined}

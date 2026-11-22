@@ -50,6 +50,8 @@ const EMPTY_ANSWERS: Omit<ILibraryAnswers, 'page'> = {
   duration: 0,
   headings: [],
   rest: -1,
+  artist: null,
+  artistLinks: [],
 };
 
 const emptyLibraryAnswer = (

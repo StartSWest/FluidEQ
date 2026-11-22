@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import type { MutableRefObject } from 'react';
 import LibraryVideoSection from './LibraryVideoSection';
+import LibraryArtistDetail from './LibraryArtistDetail';
 import LibraryDetail from './LibraryDetail';
 import LibraryListView from './LibraryListView';
 import LibraryGridView from './LibraryGridView';
@@ -158,11 +159,27 @@ const LibraryShelfViews = ({
   // The drill-in behind whichever tile or row was opened, in place of the
   // shelf rather than over it — shown whole, not narrowed further by a query
   // that was for finding it in the first place.
+  // An artist has a page of their own: their records over their songs.
+  if (isDrilledIn && openArtistId !== undefined && openAlbumId === undefined) {
+    return (
+      <LibraryArtistDetail
+        artistId={openArtistId}
+        onBack={handleBack}
+        onPlayTrack={handlePlayTrack}
+        onRestartTrack={handleRestartTrack}
+        onQueueTracks={appendToQueue}
+        offlineRootIds={offlineRootIds}
+        viewMode={viewMode}
+        playingTrackId={playingMarkId}
+        revealTrack={revealTrack}
+        query={query}
+      />
+    );
+  }
   if (isDrilledIn) {
     return (
       <LibraryDetail
         albumId={openAlbumId}
-        artistId={openArtistId}
         genreId={browseMode === 'genre' ? openGenreId : undefined}
         // Only the Folders shelf draws a folder as a panel, and under a
         // search only one opened from its results. On the others the same

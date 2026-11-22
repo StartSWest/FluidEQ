@@ -48,6 +48,7 @@ import {
 import type { ILibraryStore } from './libraryStore';
 import { trackFromRow, type TStoreRow } from './libraryStoreRows';
 import { createTrackQuestions } from './libraryTrackQuestions';
+import { createArtistQuestions } from './libraryArtistQuestions';
 
 const text = (value: unknown): string =>
   typeof value === 'string' ? value : '';
@@ -127,6 +128,7 @@ export interface ILibraryQueries {
 export const createLibraryQueries = (store: ILibraryStore): ILibraryQueries => {
   const { database } = store;
   const songs = createTrackQuestions(database);
+  const artists = createArtistQuestions(database);
 
   /**
    * A statement over one plan's parameters. The page, the count and the
@@ -530,6 +532,10 @@ export const createLibraryQueries = (store: ILibraryStore): ILibraryQueries => {
           return rest(request.query, request.afterId, request.exclude);
         case 'headings':
           return headings(request.query);
+        case 'artist':
+          return artists.facts(request.id);
+        case 'artistLinks':
+          return artists.links(request.lines);
         default: {
           // Every question has a case above; the guard in front of this
           // (`libraryRequestGuard.ts`) turns anything else away first.

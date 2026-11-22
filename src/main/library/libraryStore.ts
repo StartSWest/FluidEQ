@@ -41,7 +41,8 @@ import {
   emptyGroupKeys,
   refreshGroups,
 } from './libraryGroups';
-import { TRACK_UPSERT } from './libraryStoreSchema';
+import { trackCredits } from '../../common/library/artistCredits';
+import { CREDIT_INSERT, TRACK_UPSERT } from './libraryStoreSchema';
 import {
   rootFromRow,
   sortKey,
@@ -160,6 +161,14 @@ export const createStore = (database: DatabaseSync): ILibraryStore => {
     });
   };
 
+  const writeCredits = (track: ILibraryTrack): void => {
+    statement('DELETE FROM track_credits WHERE track_id = ?').run(track.id);
+    const insert = statement(CREDIT_INSERT);
+    trackCredits(track).forEach(({ id, name, onAlbum }) => {
+      insert.run(track.id, id, name, onAlbum ? 1 : 0);
+    });
+  };
+
   const upsertTracks = (
     tracks: readonly ILibraryTrack[],
     scanMark: number,
@@ -177,6 +186,7 @@ export const createStore = (database: DatabaseSync): ILibraryStore => {
       tracks.forEach((track) => {
         upsert.run(trackParameters(track, scanMark));
         writeGenres(track);
+        writeCredits(track);
       });
       collectGroupKeys(database, ids, touched);
       refreshGroups(database, touched);
@@ -202,6 +212,11 @@ export const createStore = (database: DatabaseSync): ILibraryStore => {
     database
       .prepare(
         `DELETE FROM track_genres WHERE track_id IN (SELECT id FROM tracks WHERE ${where})`,
+      )
+      .run(...values);
+    database
+      .prepare(
+        `DELETE FROM track_credits WHERE track_id IN (SELECT id FROM tracks WHERE ${where})`,
       )
       .run(...values);
     const { changes } = database
@@ -408,6 +423,9 @@ export const createStore = (database: DatabaseSync): ILibraryStore => {
           statement('DELETE FROM track_plays WHERE track_id = ?').run(toId);
           statement(
             'UPDATE track_genres SET track_id = ? WHERE track_id = ?',
+          ).run(toId, fromId);
+          statement(
+            'UPDATE track_credits SET track_id = ? WHERE track_id = ?',
           ).run(toId, fromId);
           statement(
             'UPDATE track_plays SET track_id = ? WHERE track_id = ?',
