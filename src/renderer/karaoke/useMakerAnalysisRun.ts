@@ -265,7 +265,7 @@ export const useMakerAnalysisRun = ({
         // Maker actually has — where is THE voice — where Basic Pitch
         // transcribed harmonics and breath as extra notes. Whichever answered
         // signs the project.
-        const { notes, provenance } = await analyzeKaraokeWithSwiftF0(
+        const { notes, provenance, sung } = await analyzeKaraokeWithSwiftF0(
           analysisFile,
           setAnalysisProgress,
           controller.signal,
@@ -285,9 +285,9 @@ export const useMakerAnalysisRun = ({
             repairBaseline
               ? mergeKaraokeMakerDetectionRepair(
                   repairBaseline,
-                  applyBasicPitchMelody(locked, notes, true, provenance),
+                  applyBasicPitchMelody(locked, notes, true, provenance, sung),
                 )
-              : applyBasicPitchMelody(locked, notes, true, provenance),
+              : applyBasicPitchMelody(locked, notes, true, provenance, sung),
           ),
         );
         projectRef.current = next;
@@ -672,7 +672,7 @@ export const useMakerAnalysisRun = ({
         );
         try {
           const windows = karaokeMakerVocalAnalysisWindows(completedProject);
-          const { notes, provenance } = await analyzeKaraokeWithSwiftF0(
+          const { notes, provenance, sung } = await analyzeKaraokeWithSwiftF0(
             analysisFile,
             (progress) => setAnalysisProgress(0.72 + progress * 0.28),
             controller.signal,
@@ -696,6 +696,7 @@ export const useMakerAnalysisRun = ({
               notes,
               needsTranscript,
               provenance,
+              sung,
             ),
           );
           if (repairMissingTiming) {

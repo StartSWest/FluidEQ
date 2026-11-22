@@ -10,6 +10,7 @@ import { decodeMono } from './audio';
 import { IKaraokeMakerAnalysisWindow } from './analysisWindows';
 import { IKaraokeMakerDownloadSummary } from './whisperProgress';
 import { karaokeMakerNotesFromPitchContour } from './pitchContourNotes';
+import { IKaraokeSungPitch, karaokeSungPitch } from './songKeys';
 
 export const SWIFT_F0_PROVENANCE: IKaraokeMakerLicenseRecord = {
   component: 'SwiftF0 vocal pitch model',
@@ -34,6 +35,11 @@ export const RMVPE_PROVENANCE: IKaraokeMakerLicenseRecord = {
 /** The notes, and the model that found them, which signs the project. */
 export interface IDetectedMelody {
   notes: IKaraokeMakerAnalysisNote[];
+  /**
+   * The contour the notes were cut from, on the song's own keys: what each
+   * note is named from once it sits on its word (`rekeyKaraokeNotes`).
+   */
+  sung: IKaraokeSungPitch;
   provenance: IKaraokeMakerLicenseRecord;
 }
 
@@ -128,6 +134,12 @@ export const analyzeKaraokeWithSwiftF0 = async (
   onProgress(1);
   return {
     notes,
+    sung: karaokeSungPitch(
+      pitchHz,
+      confidence,
+      hopSeconds * 1_000,
+      voicedThreshold,
+    ),
     provenance: model === 'rmvpe' ? RMVPE_PROVENANCE : SWIFT_F0_PROVENANCE,
   };
 };

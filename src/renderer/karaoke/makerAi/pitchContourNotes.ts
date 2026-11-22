@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { IKaraokeMakerAnalysisNote } from '../makerAnalysis';
 import { IKaraokeMakerAnalysisWindow } from './analysisWindows';
+import { karaokeSungPitch, OUT_OF_SCALE_COST } from './songKeys';
 
 /**
  * Turning a pitch contour into notes.
@@ -28,7 +29,9 @@ import { IKaraokeMakerAnalysisWindow } from './analysisWindows';
  */
 const MINIMUM_NOTE_MS = 60;
 
-const hzToMidi = (hz: number) => 69 + 12 * Math.log2(hz / 440);
+/** The keys a note may be: C2 to C6, wider than any singer. */
+const LOW_MIDI = 36;
+const HIGH_MIDI = 84;
 
 /**
  * How far from an exact octave still counts as an octave error.
@@ -149,33 +152,16 @@ export const karaokeMakerNotesFromPitchContour = (
       (window_) => timeMs >= window_.startMs && timeMs <= window_.endMs,
     );
 
-  // 1. Median-filter the pitch track (5 frames). A lone octave error or
-  //    tracker glitch cannot survive a median; real note changes can.
-  //
-  //    Deliberately not widened to cover vibrato. Five frames is 80 ms and a
-  //    vibrato cycle is around 180 ms, so a median long enough to flatten one
-  //    would also round off the attack of every real note. Vibrato is absorbed
-  //    where it belongs, in the price the decoder pays to leave a note.
+  // 1. The contour as the song is sung: smoothed, its keys where this song
+  //    has them, and the scale it is in (`songKeys.ts`).
   const frameCount = pitchHz.length;
-  const midiTrack = new Float32Array(frameCount);
-  for (let frame = 0; frame < frameCount; frame += 1) {
-    midiTrack[frame] = pitchHz[frame] > 0 ? hzToMidi(pitchHz[frame]) : NaN;
-  }
-  const smoothed = new Float32Array(frameCount);
-  for (let frame = 0; frame < frameCount; frame += 1) {
-    const window: number[] = [];
-    for (
-      let i = Math.max(0, frame - 2);
-      i <= Math.min(frameCount - 1, frame + 2);
-      i += 1
-    ) {
-      if (!Number.isNaN(midiTrack[i])) {
-        window.push(midiTrack[i]);
-      }
+  const sung = karaokeSungPitch(pitchHz, confidence, hopMs, voicedThreshold);
+  const smoothed = sung.midi;
+  const outOfScale = new Uint8Array(HIGH_MIDI - LOW_MIDI + 1);
+  if (sung.scale) {
+    for (let state = 0; state < outOfScale.length; state += 1) {
+      outOfScale[state] = sung.scale.has((LOW_MIDI + state) % 12) ? 0 : 1;
     }
-    smoothed[frame] = window.length
-      ? window.sort((a, b) => a - b)[Math.floor(window.length / 2)]
-      : NaN;
   }
 
   // 2. Voicing with hysteresis and gap-bridging: enter at the model's own
@@ -223,8 +209,6 @@ export const karaokeMakerNotesFromPitchContour = (
   //    entering or leaving silence. The best path through the whole song is
   //    the note chart — boundaries fall where the evidence globally says,
   //    not where a local heuristic flinched.
-  const LOW_MIDI = 36;
-  const HIGH_MIDI = 84;
   const noteStates = HIGH_MIDI - LOW_MIDI + 1;
   const states = noteStates + 1; // last index is silence
   const SILENCE = noteStates;
@@ -246,7 +230,9 @@ export const karaokeMakerNotesFromPitchContour = (
     }
     const distance = Math.abs(smoothed[frame] - (LOW_MIDI + state));
     return (
-      Math.log(Math.max(1e-6, level)) - distance * distance * EMISSION_SHARPNESS
+      Math.log(Math.max(1e-6, level)) -
+      distance * distance * EMISSION_SHARPNESS -
+      outOfScale[state] * OUT_OF_SCALE_COST
     );
   };
 

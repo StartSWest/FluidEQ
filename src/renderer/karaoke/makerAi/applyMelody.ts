@@ -14,8 +14,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { IKaraokeMakerAnalysisNote } from '../makerAnalysis';
 import { repairEstimatedWhisperTimingWithMelody } from '../makerAlignment';
 import {
+  IKaraokeMakerNote,
   IKaraokeMakerProject,
   karaokeMakerId,
+  karaokeMakerLineIsSection,
   synchronizeKaraokeMakerSections,
   touchKaraokeMakerProject,
 } from '../../../common/karaoke/makerProject';
@@ -23,9 +25,74 @@ import type { IKaraokeMakerLicenseRecord } from '../../../common/karaoke/makerPr
 import { upsertProvenance } from './audio';
 import { SWIFT_F0_PROVENANCE } from './swiftF0Notes';
 import {
+  IKaraokeSungPitch,
+  karaokeSungKey,
+  rekeyKaraokeNotes,
+} from './songKeys';
+import {
   autoAlignNotesOnly,
   karaokeMakerMelodyNotesForLyrics,
 } from './guideNotes';
+
+/**
+ * How much of a word has to be sung on a pitch before it is given a note of
+ * its own. Shorter than this is a consonant or a breath the tracker caught.
+ */
+const SUNG_WORD_MINIMUM_MS = 60;
+
+/**
+ * A note for each timed word the note cutter left without one.
+ *
+ * The cutter keeps a note only where it is sure for long enough, so a word
+ * sung softly or quickly could come out with nothing over it: 3 to 10% of a
+ * chart's notes on the measured songs. The word's own time says where to
+ * listen, which the cutter never knew, and the pitch sung there names the
+ * note. A word with nothing sung on a pitch still gets none.
+ */
+const withNotesForSungWords = (
+  project: IKaraokeMakerProject,
+  notes: readonly IKaraokeMakerNote[],
+  sung: IKaraokeSungPitch,
+): IKaraokeMakerNote[] => {
+  const added: IKaraokeMakerNote[] = [];
+  project.lyrics.lines.forEach((line) => {
+    if (karaokeMakerLineIsSection(line)) {
+      return;
+    }
+    line.tokens.forEach((token) => {
+      const { startMs, endMs } = token;
+      if (startMs === undefined || endMs === undefined || endMs <= startMs) {
+        return;
+      }
+      if (notes.some((note) => note.startMs < endMs && startMs < note.endMs)) {
+        return;
+      }
+      // Inside the word only: there is no note here whose held part could
+      // run past the end.
+      const key = karaokeSungKey(
+        sung,
+        startMs,
+        endMs,
+        endMs,
+        SUNG_WORD_MINIMUM_MS,
+      );
+      if (key !== undefined) {
+        added.push({
+          id: karaokeMakerId('note'),
+          tokenId: token.id,
+          startMs,
+          endMs,
+          targetMidi: key,
+          kind: 'normal',
+          source: 'basic-pitch',
+        });
+      }
+    });
+  });
+  return added.length
+    ? [...notes, ...added].sort((left, right) => left.startMs - right.startMs)
+    : [...notes];
+};
 
 export const applyBasicPitchMelody = (
   project: IKaraokeMakerProject,
@@ -36,6 +103,11 @@ export const applyBasicPitchMelody = (
   // solely because `source: 'basic-pitch'` is written into saved projects and
   // renaming the value would orphan every note in every file on disk.
   provenance: IKaraokeMakerLicenseRecord = SWIFT_F0_PROVENANCE,
+  /**
+   * The contour the notes came from. With it each note is named from the
+   * pitch under its own word rather than from the candidate that covered it.
+   */
+  sung: IKaraokeSungPitch | undefined = undefined,
 ): IKaraokeMakerProject => {
   const repairedProject = repairWordTiming
     ? repairEstimatedWhisperTimingWithMelody(project, notes)
@@ -75,6 +147,20 @@ export const applyBasicPitchMelody = (
   return touchKaraokeMakerProject(
     synchronizeKaraokeMakerSections({
       ...aligned,
+      melody: sung
+        ? {
+            ...aligned.melody,
+            notes: withNotesForSungWords(
+              aligned,
+              rekeyKaraokeNotes(
+                aligned.melody.notes,
+                sung,
+                (note) => note.source !== 'basic-pitch',
+              ),
+              sung,
+            ),
+          }
+        : aligned.melody,
       provenance: upsertProvenance(aligned.provenance, provenance),
     }),
   );
