@@ -10,6 +10,7 @@ import { isOldNote, type IStudioNotes } from 'common/studioNotes';
 import {
   askStudioChatForNote,
   askStudioChatToTranslateNote,
+  isStudioChatBusy,
 } from './chat/studioChatStore';
 import type { IPublishDraft } from './useStudioPublish';
 
@@ -139,8 +140,16 @@ export default function usePublishNote(
           setDraft({
             ...now,
             ...read,
-            // Offered or not, a reply's end means nothing is being written.
-            ...(replyEnded || read.suggestedNotes
+            // WRITING ENDS WITH THE REPLY, NEVER WITH ITS FIRST LINE (Ivan,
+            // 2026-11-23: "when the AI is writing the notes and translating
+            // them, they can still be published"). A line appearing used to
+            // end it: the chat writes its own language first and the rest
+            // after, so Send came back on the first write, and a press then
+            // sent a line half translated, or the chat, still busy, refused
+            // the translation and the line went out as written. A press the
+            // chat refused while busy still waits (`pressWaiting`), so the
+            // answer it waited behind does not end it either.
+            ...(replyEnded && !pressWaiting.current
               ? { noteWriting: false }
               : {}),
             // A translation's reply ended, whatever it wrote: the dialog
@@ -226,19 +235,27 @@ export default function usePublishNote(
     if (!now) {
       return Promise.resolve(false);
     }
+    // Writing from the press itself: Send waited only once the chat had
+    // taken the ask, and a press in between went out on an empty line.
+    setDraft({ ...now, noteWriting: true });
     // `pressed`: the member's own ask may start a scene's first conversation,
     // which the dialog's ask on opening never does.
     return askStudioChatForNote({ first: !now.published, pressed: true })
       .catch(() => false)
       .then((went) => {
+        // Refused while the chat answers something else: it is asked again
+        // when that answer ends, and Send waits for it. Refused with nothing
+        // to wait for — no chat — nothing is being written.
+        const waits =
+          !went && projectId !== undefined && isStudioChatBusy(projectId);
+        pressWaiting.current = waits;
         const later = currentDraft.current;
-        if (went && later) {
-          setDraft({ ...later, noteWriting: true });
+        if (!went && !waits && later) {
+          setDraft({ ...later, noteWriting: false });
         }
-        pressWaiting.current = !went;
         return went;
       });
-  }, [currentDraft, setDraft]);
+  }, [currentDraft, setDraft, projectId]);
   pressedAsk.current = () => {
     write().catch(() => undefined);
   };

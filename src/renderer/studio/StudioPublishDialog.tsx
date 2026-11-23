@@ -290,12 +290,18 @@ export default function StudioPublishDialog({
   // never saw: read through this, it sends with what the dialog holds now.
   const publishWithRef = useRef(publishWith);
   publishWithRef.current = publishWith;
+  // The chat writing or translating the line when the clip lands holds the
+  // send: the clip is kept, and the member sends once the line is read.
+  const waitingRef = useRef(waiting);
+  waitingRef.current = waiting;
   const previewArrived = useCallback((next: IPublishPreview | undefined) => {
     setPreview(next);
     if (next && sendingRef.current) {
       sendingRef.current = false;
       setSending(false);
-      publishWithRef.current(next);
+      if (!waitingRef.current) {
+        publishWithRef.current(next);
+      }
     }
   }, []);
   const takeMoved = useCallback((phase: TPublishVideoState['phase']) => {
@@ -554,7 +560,9 @@ export default function StudioPublishDialog({
             state={noteLines}
             setState={setNoteLines}
             mine={mine}
-            running={running}
+            // Held for the take as for the publication: the line the press
+            // checked is the line that goes, and no chat is asked meanwhile.
+            running={running || sending}
             missing={noteMissing}
             onFilled={() => setNoteMissing(false)}
             writing={noteSend.writing}

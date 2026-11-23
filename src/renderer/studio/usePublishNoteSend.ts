@@ -65,6 +65,19 @@ export default function usePublishNoteSend({
   // The member stopped waiting on the chat; the draft's own marks stay as
   // main left them, and are read through this.
   const [stopped, setStopped] = useState(false);
+  // A stop ends that wait only: once the chat starts writing or translating
+  // again, Send waits again. It used to end every later wait too, so after
+  // one Stop waiting a second Write with AI left Send free while the chat
+  // wrote (2026-11-23). Set during render, where the draft's change lands.
+  const chatAtWork =
+    draft.noteWriting === true || draft.noteTranslating === true;
+  const [wasAtWork, setWasAtWork] = useState(chatAtWork);
+  if (chatAtWork !== wasAtWork) {
+    setWasAtWork(chatAtWork);
+    if (chatAtWork) {
+      setStopped(false);
+    }
+  }
   // Nothing translated the member's line: it goes as written.
   const [notTranslated, setNotTranslated] = useState(false);
   const live = useRef({ state, mine });

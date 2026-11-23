@@ -264,6 +264,14 @@ const snapshot = () => state;
 export const useStudioChat = (): IChatState =>
   useSyncExternalStore(subscribe, snapshot, snapshot);
 
+/**
+ * Whether a project's chat is answering now, or waits on a card of its,
+ * read at the moment it is asked: an ask it refused then waits for that
+ * answer's end (`usePublishNote`).
+ */
+export const isStudioChatBusy = (projectId: string): boolean =>
+  state.work[projectId] === 'working' || state.work[projectId] === 'waiting';
+
 /** Asks Claude Code again whether it is installed and signed in. */
 export const checkStudioChat = async () => {
   const answer = await bridge()?.studioChatAvailability?.();
