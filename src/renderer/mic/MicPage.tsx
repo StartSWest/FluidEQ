@@ -19,7 +19,6 @@ import {
   isMicProfileId,
   micProfileGroup,
   MIC_PROFILE_IDS,
-  micRackDelayMs,
   TMicProfileId,
 } from '../../common/mic/micProfiles';
 import type { TranslationKey } from '../../common/i18n';
@@ -35,9 +34,17 @@ import {
 import { useRailWidth } from '../library/LibraryRailSplitter';
 import RichPick from '../widgets/RichPick';
 import StudioRail, { useRailPinned } from '../widgets/StudioRail';
-import { MIC_RAIL_PINNED_KEY, MIC_RAIL_WIDTH_KEY } from './micRail';
+import {
+  MIC_RAIL_INITIAL_WIDTH,
+  MIC_RAIL_PINNED_KEY,
+  MIC_RAIL_WIDTH_KEY,
+} from './micRail';
 import MicStage from './MicStage';
-import MicStageRail, { TMicStage } from './MicStageRail';
+import MicStageRail, { micStageOn, TMicStage } from './MicStageRail';
+import MicDelayStrip from './MicDelayStrip';
+import MicMonitor from './MicMonitor';
+import micStageSwitch from './micStageSwitch';
+import useMicEngineHealth from './useMicEngineHealth';
 import MicVoicePicture from './MicVoicePicture';
 import MicLiveBar from './MicLiveBar';
 import useMicEffects from './useMicEffects';
@@ -96,7 +103,7 @@ const MicPage = () => {
   const { mic, microphones, entry } = sound;
   const [stage, setStage] = useState<TMicStage>('lowCut');
   const [setup, setSetup] = useState<TSetup>('idle');
-  const railWidth = useRailWidth(MIC_RAIL_WIDTH_KEY);
+  const railWidth = useRailWidth(MIC_RAIL_WIDTH_KEY, MIC_RAIL_INITIAL_WIDTH);
   const [isRailPinned, setRailPinned] = useRailPinned(MIC_RAIL_PINNED_KEY);
   const isFluid = status?.engine === 'fluid';
   const attached = isFluid && mic?.attached === true;
@@ -111,6 +118,9 @@ const MicPage = () => {
   // the line says why; the recording itself harms nothing.
   const levels = useMicLevels(mic?.guid, mic?.name ?? '', mic !== undefined);
   const live = listening && levels.state === 'live';
+  // The engine's own word on the mic: its delay stage by stage, Windows'
+  // block, how often the cleaner fell behind.
+  const health = useMicEngineHealth(attached ? mic?.guid : undefined);
   const { settings } = entry;
   const { voice } = settings;
   const gateDb =
@@ -143,7 +153,7 @@ const MicPage = () => {
       return t('mic.effectsOff.short');
     }
     if (levels.state === 'live') {
-      return t('mic.live', { ms: Math.round(micRackDelayMs(settings)) });
+      return t('mic.live');
     }
     return t(LISTEN_WORDS[levels.state]);
   })();
@@ -160,6 +170,32 @@ const MicPage = () => {
     }
     return '';
   })();
+
+  // Each delay-adding stage's share, as the engine measures it.
+  const delayOf = (stage: string) => {
+    const latency = health?.latency;
+    const part = latency?.parts.find((each) => each.stage === stage);
+    return latency && part && latency.rate > 0
+      ? (part.frames * 1000) / latency.rate
+      : undefined;
+  };
+  const delays: Partial<Record<TMicStage, number>> = {
+    denoise: delayOf('restoration'),
+    deEsser: delayOf('deEsser'),
+    maximizer: delayOf('maximizer'),
+  };
+  const toggleStage = (id: TMicStage) => {
+    if (id === 'lowCut') {
+      sound.switchLowCut(!micStageOn(settings, 'lowCut'));
+      return;
+    }
+    sound.patch(micStageSwitch(id, settings));
+    sound.commit();
+  };
+  const toggleMaster = () => {
+    sound.patch({ enabled: !settings.enabled });
+    sound.commit();
+  };
 
   const setUp = () => {
     setSetup('working');
@@ -195,6 +231,11 @@ const MicPage = () => {
           active={stage}
           settings={settings}
           onSelect={setStage}
+          onToggle={toggleStage}
+          onMaster={toggleMaster}
+          delays={delays}
+          latest={levels.latest}
+          live={live}
         />
       </StudioRail>
       <div className="mic-page__main">
@@ -271,16 +312,21 @@ const MicPage = () => {
         </header>
 
         {listening && (
+          <MicDelayStrip health={health}>
+            <MicMonitor key={mic.guid} stream={levels.stream} />
+          </MicDelayStrip>
+        )}
+        {listening && (
           <MicLiveBar
             key={mic.guid}
             latest={levels.latest}
             live={live}
             gateDb={gateDb}
+            cleanerOn={micStageOn(settings, 'denoise')}
             makeupDb={
               settings.dynamics.enabled ? settings.dynamics.makeupDb : undefined
             }
             limiterOn={settings.maximizer.enabled}
-            stream={levels.stream}
           />
         )}
         {attached && effects === 'off' && (
@@ -333,6 +379,8 @@ const MicPage = () => {
           onPatch={sound.patch}
           onCommit={sound.commit}
           onSwitchLowCut={sound.switchLowCut}
+          latest={levels.latest}
+          live={live}
         />
       </div>
     </div>

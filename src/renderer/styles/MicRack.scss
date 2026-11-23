@@ -1,0 +1,317 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// THE MIC TAB’S RACK (mockup A, Ivan’s pick 2026-11-23): the delay the engine
+// measures and “Hear the final result” under the header, each stage’s switch,
+// delay and live meter on the rail, and the live parts of the Noise
+// cancelling and Gate cards. Apart from `Mic.scss`, which holds the frame and
+// the header, so neither file grows past what one can read.
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+
+// *** The delay *************************************************************
+
+// Under the header, the delay the engine measures, a bar of its parts with
+// each one's name inside it, and "Hear the final result" beside it (mockup A,
+// Ivan's pick 2026-11-23). It takes the header's hairline, so the two read as
+// one head; the readings line under it keeps its own.
+.mic-head:has(+ .mic-delay) {
+  border-bottom: 0;
+}
+
+.mic-delay {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+  padding: 12px 16px;
+  border-top: 1px solid $studio-hair;
+  border-bottom: 1px solid $studio-hair;
+}
+
+.mic-delay + .mic-live {
+  padding-top: 9px;
+}
+
+.mic-delay__figures {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 380px;
+  gap: 7px;
+}
+
+.mic-delay__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 0;
+}
+
+.mic-delay__label {
+  color: $text-muted;
+  font-size: $studio-text-label;
+  text-transform: uppercase;
+  @include tracking(0.09em);
+}
+
+.mic-delay__total {
+  color: $text-primary;
+  font-size: 22px;
+  font-weight: $weight-semibold;
+  line-height: 1;
+}
+
+.mic-delay__note {
+  color: $text-muted;
+  font-size: $studio-text-label;
+}
+
+// Each part as wide as its share, the short ones widened enough to carry
+// their names; parted by 2px of the card, never by a border.
+.mic-delay__bar {
+  display: flex;
+  height: 24px;
+  gap: 2px;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.mic-delay__part {
+  display: flex;
+  min-width: 64px;
+  align-items: center;
+  flex-basis: 0;
+  flex-shrink: 1;
+  padding: 0 8px;
+  overflow: hidden;
+  color: $text-primary;
+  font-size: $studio-text-label;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+  background: color-mix(in srgb, $text-primary 18%, transparent);
+
+  &.is-windows {
+    color: $on-accent;
+    background: color-mix(in srgb, $text-primary 62%, transparent);
+  }
+
+  &.is-cleaner {
+    color: $on-accent;
+    background: var(--accent);
+  }
+
+  &.is-short {
+    min-width: 76px;
+  }
+}
+
+.mic-delay__part-text {
+  @include truncate;
+}
+
+// The legend names the short parts, and only on a card too narrow for them
+// to carry their own names.
+.mic-delay__legend {
+  display: none;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+  padding: 0;
+  color: $text-muted;
+  font-size: $studio-text-label;
+  list-style: none;
+
+  > li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+}
+
+.mic-delay__swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: color-mix(in srgb, $text-primary 18%, transparent);
+
+  &.is-windows {
+    background: color-mix(in srgb, $text-primary 62%, transparent);
+  }
+
+  &.is-cleaner {
+    background: var(--accent);
+  }
+}
+
+.mic-delay__monitor {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.mic-monitor {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.mic-monitor__glyph {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 1.6;
+}
+
+.mic-monitor__warning {
+  max-width: 280px;
+  color: $ink-caution;
+  font-size: $studio-text-label;
+  text-align: right;
+}
+
+// *** The rail ************************************************************
+
+// Each row: the stage's own button, then its switch beside it (a switch
+// cannot live inside the button that chooses the stage). The switch is the
+// app's, at the size a tight row may set (`Switch.scss`).
+.mic-rail__row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+
+  > .dsp-rail-tab {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  &.is-off .dsp-rail-name {
+    opacity: 0.55;
+  }
+}
+
+.mic-rail__switch {
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding-right: 10px;
+
+  .switch {
+    --switch-width: 32px;
+    --switch-height: 17px;
+  }
+}
+
+// The whole mic, over its stages.
+.mic-rail__master {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  padding: 2px 0 10px 12px;
+  border-bottom: 1px solid $studio-hair;
+  font-size: $studio-text-row;
+
+  .mic-rail__switch {
+    padding-right: 10px;
+  }
+}
+
+.mic-rail__master-name {
+  min-width: 0;
+  flex: 1 1 auto;
+  font-weight: $weight-semibold;
+  @include truncate;
+}
+
+.mic-rail__master-state {
+  color: $text-muted;
+  font-size: $studio-text-label;
+}
+
+// What the stage is doing now: five bars, the newest on the right, scaled
+// from their foot. Flat when the stage is off.
+.mic-rail__meter {
+  display: flex;
+  width: 20px;
+  height: 14px;
+  flex: 0 0 auto;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.mic-rail__bar {
+  height: 100%;
+  flex: 1 1 0;
+  border-radius: 1px;
+  background: var(--accent);
+  transform: scaleY(0.12);
+  transform-origin: bottom;
+
+  .mic-rail__row.is-off & {
+    background: color-mix(in srgb, $text-primary 22%, transparent);
+    transform: scaleY(0.12);
+  }
+}
+
+.mic-rail__delay {
+  min-width: 34px;
+  flex: 0 0 auto;
+  color: $text-muted;
+  font-size: $studio-text-label;
+  text-align: right;
+
+  .dsp-rail-tab.is-on & {
+    color: $text-primary;
+  }
+}
+
+.mic-rail__note {
+  margin: 12px 12px 0;
+  color: $text-muted;
+  font-size: $studio-text-label;
+  line-height: 1.45;
+}
+
+// *** Narrower cards ********************************************************
+
+// The delay’s short parts give up their names to a legend, and the monitor
+// drops under the delay.
+@container mic-page (max-width: #{$bp-md}) {
+  .mic-delay__part.is-short {
+    min-width: 6px;
+    padding: 0;
+
+    .mic-delay__part-text {
+      display: none;
+    }
+  }
+
+  .mic-delay__legend {
+    display: flex;
+  }
+
+  .mic-delay__monitor,
+  .mic-monitor {
+    align-items: flex-start;
+    justify-items: start;
+  }
+
+  .mic-monitor__warning {
+    text-align: left;
+  }
+}

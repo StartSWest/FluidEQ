@@ -15,7 +15,7 @@ export default {
   'mic.list.heading': 'Microphones on this PC',
   'mic.list.on': 'On',
   'mic.list.off': 'Not set up',
-  'mic.live': 'Live in every app · low lag {ms} ms',
+  'mic.live': 'Live in every app',
   'mic.notSetUp': 'Not set up on this mic yet',
   'mic.state.opening': 'Opening the mic…',
   'mic.state.noInput': 'Windows lists no input for this mic right now',
@@ -25,7 +25,7 @@ export default {
   'mic.meter.gateClosed': 'Gate closed',
   'mic.meter.compressor': 'Compressor',
   'mic.meter.limiter': 'Limiter',
-  'mic.monitor.label': 'Listen to myself',
+  'mic.monitor.label': 'Hear the final result',
   'mic.monitor.hint':
     'Plays what others hear to the output you are listening on',
   'mic.monitor.warning':
@@ -84,7 +84,7 @@ export default {
   'mic.empty.body':
     'Plug a microphone in, or update the FluidEQ Engine so it can list them.',
   'mic.stage.lowCut': 'Low cut',
-  'mic.stage.cleaner': 'Voice cleaner',
+  'mic.stage.cleaner': 'Noise cancelling',
   'mic.stage.gate': 'Gate',
   'mic.stage.deEsser': 'De-esser',
   'mic.stage.eq': 'EQ',
@@ -116,4 +116,30 @@ export default {
   'mic.gate.attack': 'Opens in',
   'mic.gate.hold': 'Hold',
   'mic.gate.release': 'Closes in',
+  'mic.monitor.on': 'Hearing the final result',
+  'mic.delay.label': 'Delay',
+  'mic.delay.measured':
+    'measured by the engine on this mic, from the capsule to every app',
+  'mic.delay.unknown': 'the engine has not measured this mic yet',
+  'mic.delay.windows': 'Windows',
+  'mic.rail.master': 'Mic processing',
+  'mic.rail.note':
+    'Every switch turns its stage fully off: no sound change, no delay. The number beside a stage is the delay it adds.',
+  'mic.meter.noise': 'Noise taken',
+  'mic.cleaner.description':
+    'Takes keyboards, fans and the room out from under your voice, as you speak.',
+  'mic.cleaner.strength': 'Strength',
+  'mic.cleaner.noiseNow': 'Noise taken now',
+  'mic.cleaner.noiseHint':
+    'How far the room sits under your voice after cleaning; the faint line is the most taken in the last few seconds. Past 80% a voice starts to sound processed.',
+  'mic.cleaner.neverCuts': 'Never cuts',
+  'mic.cleaner.neverCutsHint':
+    'If the model is ever late, the voice keeps the level of the last cleaned moment and is joined without a click, never the raw room. Late moments are counted here.',
+  'mic.cleaner.lateMinute': 'late blocks in the last minute',
+  'mic.gate.live.title': 'Your voice against the gate',
+  'mic.gate.live.hint':
+    'The bar is your voice now. Under the line the gate turns it down; it closes again a little lower, so a voice on the line does not chatter.',
+  'mic.gate.live.open': 'Open — your voice is {db} dB over the gate.',
+  'mic.gate.live.closed': 'Closed — your voice is {db} dB under the gate.',
+  'mic.gate.live.opens': 'opens {db} dB',
 };

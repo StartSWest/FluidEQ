@@ -15,6 +15,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'constant' as *;
 @use 'theme' as *;
 @use 'libraryTokens' as *;
+@use 'studioRailFold' as *;
 
 // *** The frame *************************************************************
 
@@ -165,18 +166,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-.mic-live__monitor {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px 12px;
-}
-
-.mic-live__warning {
-  color: $ink-caution;
-}
-
 .mic-head__sound {
   display: flex;
   flex-wrap: wrap;
@@ -292,10 +281,21 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 1px;
 }
 
-// One line, as the Library's shelf names; each row's title names it in full.
+// Onto a second line rather than cut, as the DSP rail's names are: beside a
+// meter, a delay and a switch, a cut name read "Noise …" and "De-ess…" at
+// the default width (harness, 2026-11-23), and a translation is longer.
 .mic-rail .dsp-rail-name {
-  line-height: inherit;
-  @include truncate;
+  min-width: 0;
+  flex: 1 1 auto;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+
+  // Folded to its glyphs the name has no width and is hidden: left free to
+  // wrap, it broke a letter to a line and stood every row a hundred pixels
+  // tall under its glyph (harness at 760, 2026-11-23).
+  @include folded-at-rest {
+    white-space: nowrap;
+  }
 }
 
 // The DSP page's column air: the Library's 14px over its first row, 16 at

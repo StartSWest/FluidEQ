@@ -15,7 +15,7 @@ export default {
   'mic.list.heading': 'इस कंप्यूटर के माइक्रोफ़ोन',
   'mic.list.on': 'चालू',
   'mic.list.off': 'सेट अप नहीं',
-  'mic.live': 'हर ऐप में लाइव · कम देरी {ms} ms',
+  'mic.live': 'हर ऐप में लाइव',
   'mic.notSetUp': 'इस माइक पर अभी सेट अप नहीं हुआ',
   'mic.state.opening': 'माइक खोला जा रहा है…',
   'mic.state.noInput': 'Windows अभी इस माइक के लिए कोई इनपुट नहीं दिखा रहा',
@@ -25,7 +25,7 @@ export default {
   'mic.meter.gateClosed': 'गेट बंद',
   'mic.meter.compressor': 'कंप्रेसर',
   'mic.meter.limiter': 'लिमिटर',
-  'mic.monitor.label': 'ख़ुद को सुनें',
+  'mic.monitor.label': 'अंतिम नतीजा सुनें',
   'mic.monitor.hint':
     'दूसरों को जो सुनाई देता है, उसे उस आउटपुट पर बजाता है जिसे आप सुन रहे हैं',
   'mic.monitor.warning':
@@ -85,7 +85,7 @@ export default {
   'mic.empty.body':
     'माइक्रोफ़ोन लगाएँ, या FluidEQ Engine अपडेट करें ताकि वह उन्हें दिखा सके।',
   'mic.stage.lowCut': 'लो कट',
-  'mic.stage.cleaner': 'वॉइस क्लीनर',
+  'mic.stage.cleaner': 'नॉइज़ कैंसलिंग',
   'mic.stage.gate': 'गेट',
   'mic.stage.deEsser': 'डी-एसर',
   'mic.stage.eq': 'EQ',
@@ -117,4 +117,29 @@ export default {
   'mic.gate.attack': 'खुलना',
   'mic.gate.hold': 'थामना',
   'mic.gate.release': 'बंद होना',
+  'mic.monitor.on': 'अंतिम नतीजा सुना जा रहा है',
+  'mic.delay.label': 'देरी',
+  'mic.delay.measured': 'इस माइक पर इंजन द्वारा मापी गई, कैप्सूल से हर ऐप तक',
+  'mic.delay.unknown': 'इंजन ने अभी तक इस माइक को नहीं मापा',
+  'mic.delay.windows': 'Windows',
+  'mic.rail.master': 'माइक प्रोसेसिंग',
+  'mic.rail.note':
+    'हर स्विच अपने चरण को पूरी तरह बंद करता है: न आवाज़ में बदलाव, न देरी। चरण के पास की संख्या वह देरी है जो वह जोड़ता है।',
+  'mic.meter.noise': 'हटाया गया शोर',
+  'mic.cleaner.description':
+    'आपके बोलते समय आवाज़ के नीचे से कीबोर्ड, पंखे और कमरे की आवाज़ हटाता है।',
+  'mic.cleaner.strength': 'ताक़त',
+  'mic.cleaner.noiseNow': 'अभी हटाया गया शोर',
+  'mic.cleaner.noiseHint':
+    'सफ़ाई के बाद कमरा आपकी आवाज़ से कितना नीचे है; हल्की रेखा पिछले कुछ सेकंड का सबसे ज़्यादा है। 80% से ऊपर आवाज़ प्रोसेस की हुई लगने लगती है।',
+  'mic.cleaner.neverCuts': 'कभी नहीं कटता',
+  'mic.cleaner.neverCutsHint':
+    'अगर मॉडल कभी देर करे, तो आवाज़ आख़िरी साफ़ पल का स्तर रखती है और बिना क्लिक जुड़ती है, कभी कच्चे कमरे के साथ नहीं। ऐसे पल यहाँ गिने जाते हैं।',
+  'mic.cleaner.lateMinute': 'पिछले मिनट में देर से आए ब्लॉक',
+  'mic.gate.live.title': 'गेट के सामने आपकी आवाज़',
+  'mic.gate.live.hint':
+    'पट्टी अभी आपकी आवाज़ है। रेखा के नीचे गेट उसे धीमा करता है; वह थोड़ा नीचे जाकर फिर बंद होता है, ताकि रेखा पर रुकी आवाज़ से वह काँपे नहीं।',
+  'mic.gate.live.open': 'खुला — आपकी आवाज़ गेट से {db} dB ऊपर है।',
+  'mic.gate.live.closed': 'बंद — आपकी आवाज़ गेट से {db} dB नीचे है।',
+  'mic.gate.live.opens': '{db} dB पर खुलता है',
 };

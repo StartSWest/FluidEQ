@@ -15,7 +15,9 @@ import type { IMicLowCutParts } from '../../common/micSound';
 import DspStageCards from '../dsp/DspStageCards';
 import type { IRoomLive } from '../dsp/useRoomLive';
 import type { TMicStage } from './MicStageRail';
-import { MicCleanerCard, MicGateCard, MicLowCutCard } from './MicVoiceCards';
+import MicCleanerCard from './MicCleanerCard';
+import type { IMicLevel } from './useMicLevels';
+import { MicGateCard, MicLowCutCard } from './MicVoiceCards';
 
 /** The DSP cards' Room feed: a mic has no Room, so nothing is known of one. */
 const NO_ROOM: IRoomLive = { state: 'unknown', channels: undefined };
@@ -29,6 +31,9 @@ interface IMicStageProps {
   onPatch: (next: Partial<IDspSettings>) => void;
   onCommit: () => void;
   onSwitchLowCut: (on: boolean) => void;
+  /** The engine's latest reading on the mic, for the cards' live parts. */
+  latest: React.MutableRefObject<IMicLevel | undefined>;
+  live: boolean;
 }
 
 const MicStage = ({
@@ -39,6 +44,8 @@ const MicStage = ({
   onPatch,
   onCommit,
   onSwitchLowCut,
+  latest,
+  live,
 }: IMicStageProps) => {
   const { voice } = settings;
   return (
@@ -57,13 +64,17 @@ const MicStage = ({
           voice={voice}
           onPatch={(next) => onPatch({ voice: next })}
           onCommit={onCommit}
+          latest={latest}
+          live={live}
         />
       )}
       {stage === 'denoise' && (
         <MicCleanerCard
-          denoise={settings.denoise}
-          onPatch={(next) => onPatch({ denoise: next })}
+          settings={settings}
+          onPatch={onPatch}
           onCommit={onCommit}
+          latest={latest}
+          live={live}
         />
       )}
       {stage !== 'lowCut' && stage !== 'gate' && stage !== 'denoise' && (

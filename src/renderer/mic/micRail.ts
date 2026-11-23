@@ -12,4 +12,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 export const MIC_RAIL_WIDTH_KEY = 'fluideq.mic.railWidth';
 
+/**
+ * The rail's width until it is dragged. Each row carries a meter, a delay and
+ * a switch beside the stage's name, 163px of the row at the shared default
+ * width (measured in the harness, 2026-11-23), which left "Noise cancelling"
+ * 52px of its 101: wide enough here for the English names on one line, as
+ * mockup A drew them. A longer name wraps to a second line rather than being
+ * cut (`MicRack.scss`).
+ */
+export const MIC_RAIL_INITIAL_WIDTH = 288;
+
 export const MIC_RAIL_PINNED_KEY = 'fluideq.mic.railPinned';

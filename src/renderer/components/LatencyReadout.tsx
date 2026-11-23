@@ -15,7 +15,7 @@ import '../styles/LatencyReadout.scss';
  * Each stage by the name the app already gives it where it has one, so the
  * breakdown reads in the listener's own vocabulary for the rack and the EQ.
  */
-const STAGE_NAMES: Record<TLatencyStage, TranslationKey> = {
+export const STAGE_NAMES: Record<TLatencyStage, TranslationKey> = {
   // The card's name rather than one of its modes: the delay is its peak
   // guard's, which it keeps in every mode, leveling or not.
   leveler: 'dsp.normalizer.title',

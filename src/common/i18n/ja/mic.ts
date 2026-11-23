@@ -15,7 +15,7 @@ export default {
   'mic.list.heading': 'この PC のマイク',
   'mic.list.on': 'オン',
   'mic.list.off': '未設定',
-  'mic.live': 'すべてのアプリに適用中 · 低遅延 {ms} ms',
+  'mic.live': 'すべてのアプリに適用中',
   'mic.notSetUp': 'このマイクはまだ設定されていません',
   'mic.state.opening': 'マイクを開いています…',
   'mic.state.noInput': '現在、Windows にこのマイクの入力が見つかりません',
@@ -25,7 +25,7 @@ export default {
   'mic.meter.gateClosed': 'ゲート閉',
   'mic.meter.compressor': 'コンプレッサー',
   'mic.meter.limiter': 'リミッター',
-  'mic.monitor.label': '自分の声を聴く',
+  'mic.monitor.label': '最終結果を聴く',
   'mic.monitor.hint': '相手に聞こえる音を、今聴いている出力で再生します',
   'mic.monitor.warning':
     'ヘッドホンを使ってください。スピーカーでは声がマイクに戻り、ハウリングします。',
@@ -86,7 +86,7 @@ export default {
   'mic.empty.body':
     'マイクを接続するか、一覧を表示できるよう FluidEQ Engine を更新してください。',
   'mic.stage.lowCut': 'ローカット',
-  'mic.stage.cleaner': 'ボイスクリーナー',
+  'mic.stage.cleaner': 'ノイズキャンセリング',
   'mic.stage.gate': 'ゲート',
   'mic.stage.deEsser': 'ディエッサー',
   'mic.stage.eq': 'EQ',
@@ -118,4 +118,29 @@ export default {
   'mic.gate.attack': '開くまで',
   'mic.gate.hold': 'ホールド',
   'mic.gate.release': '閉じるまで',
+  'mic.monitor.on': '最終結果を再生中',
+  'mic.delay.label': '遅延',
+  'mic.delay.measured': 'このマイクでエンジンが測定、カプセルから各アプリまで',
+  'mic.delay.unknown': 'エンジンはまだこのマイクを測定していません',
+  'mic.delay.windows': 'Windows',
+  'mic.rail.master': 'マイクの処理',
+  'mic.rail.note':
+    '各スイッチはその段を完全にオフにします。音も遅延も変わりません。段の横の数字はその段が加える遅延です。',
+  'mic.meter.noise': '除去したノイズ',
+  'mic.cleaner.description':
+    '話している間、声の下からキーボード、ファン、部屋の音を取り除きます。',
+  'mic.cleaner.strength': '強さ',
+  'mic.cleaner.noiseNow': '現在除去しているノイズ',
+  'mic.cleaner.noiseHint':
+    'クリーニング後に部屋の音が声よりどれだけ下にあるか。薄い線は直近数秒の最大値です。80% を超えると声が加工されたように聞こえ始めます。',
+  'mic.cleaner.neverCuts': '途切れません',
+  'mic.cleaner.neverCutsHint':
+    'モデルが遅れても、声は直前にクリーニングされた瞬間のレベルを保ち、クリックなしでつながります。生の部屋の音になることはありません。そうした瞬間はここで数えます。',
+  'mic.cleaner.lateMinute': '直近 1 分間に遅れたブロック',
+  'mic.gate.live.title': 'ゲートに対するあなたの声',
+  'mic.gate.live.hint':
+    'バーは今の声です。線より下ではゲートが声を下げます。少し下で再び閉じるので、線上の声でばたつきません。',
+  'mic.gate.live.open': '開 — 声はゲートより {db} dB 上です。',
+  'mic.gate.live.closed': '閉 — 声はゲートより {db} dB 下です。',
+  'mic.gate.live.opens': '{db} dB で開く',
 };

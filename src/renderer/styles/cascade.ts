@@ -81,8 +81,11 @@ import './Dsp.scss';
 import './GamingLab.scss';
 // A game's page while its sound is off, after the Lab's own rules.
 import './GamingSoundSheet.scss';
-// The Mic tab, after the rack it borrows, as the Gaming Lab is.
+// The Mic tab, after the rack it borrows, as the Gaming Lab is: its frame and
+// header, then its rack (delay, rail rows), then its cards' live parts.
 import './Mic.scss';
+import './MicRack.scss';
+import './MicCards.scss';
 import './EqModeSelect.scss';
 import './BandLayoutMenu.scss';
 import './BandLabels.scss';

@@ -6,15 +6,23 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * The mic's stages, in the order the voice goes through them, on the DSP
- * page's own rail (`dsp-rail`). The two Voice stages draw their glyphs in
- * the same two strokes as every other stage's (`DspSectionIcon`).
+ * page's own rail (`dsp-rail`), with what mockup A gave each row (Ivan's
+ * pick, 2026-11-23): its own switch, which turns the stage fully off; the
+ * delay it adds, as the engine measures it; and a small live meter of what
+ * it is doing to the voice. Over them, the whole mic on or off. The two
+ * Voice stages draw their glyphs in the same two strokes as every other
+ * stage's (`DspSectionIcon`).
  */
 
+import { useEffect, useRef } from 'react';
 import type { IDspSettings } from '../../common/dsp/chain';
 import type { TranslationKey } from '../../common/i18n';
 import DspSectionIcon from '../dsp/DspSectionIcon';
 import type { TDspSection } from '../dsp/sections';
 import { useTranslation } from '../utils/I18nContext';
+import Switch from '../widgets/Switch';
+import { GATE_HYSTERESIS_DB, toDb } from './MicLiveBar';
+import type { IMicLevel } from './useMicLevels';
 
 export type TMicStage =
   'lowCut' | 'denoise' | 'gate' | 'deEsser' | 'eq' | 'dynamics' | 'maximizer';
@@ -56,7 +64,40 @@ export const micStageOn = (settings: IDspSettings, stage: TMicStage) => {
   }
 };
 
-/** A high-pass's slope, and the voice standing clear above it. */
+/** How many bars each row's meter keeps, oldest first. */
+const METER_BARS = 5;
+/** The meters move every this many painted frames: about ten times a second. */
+const METER_EVERY = 6;
+
+/**
+ * What a stage's meter shows, 0 to 1: how much it is doing now. The stages
+ * that only filter show the voice coming through them; the rest show their
+ * own work, which is what tells a switched-on stage from a switched-off one.
+ */
+const meterValue = (
+  stage: TMicStage,
+  level: IMicLevel,
+  gateOpen: boolean,
+  makeupDb: number,
+): number => {
+  const clamp = (value: number) => Math.min(1, Math.max(0, value));
+  switch (stage) {
+    case 'denoise':
+      return clamp(-level.noiseTakenDb / 30);
+    case 'gate':
+      return gateOpen ? 1 : 0.15;
+    case 'dynamics':
+      return clamp(
+        -Math.min(0, (level.compressorGainDb ?? makeupDb) - makeupDb) / 12,
+      );
+    case 'maximizer':
+      return clamp(-level.limiterDb / 6);
+    default:
+      return clamp((toDb(level.output) + 60) / 60);
+  }
+};
+
+/** A low cut's slope, and the voice standing clear above it. */
 const LowCutIcon = () => (
   <svg
     className="dsp-section-icon"
@@ -108,6 +149,15 @@ interface IMicStageRailProps {
   active: TMicStage;
   settings: IDspSettings;
   onSelect: (stage: TMicStage) => void;
+  /** A stage's own switch: off fully, or back as it was. */
+  onToggle: (stage: TMicStage) => void;
+  /** The whole mic's rack on or off. */
+  onMaster: () => void;
+  /** Each delay-adding stage's delay in ms, as the engine measures it. */
+  delays: Partial<Record<TMicStage, number>>;
+  latest: React.MutableRefObject<IMicLevel | undefined>;
+  /** Whether the engine is answering on this mic, so the meters move. */
+  live: boolean;
 }
 
 const MicStageRail = ({
@@ -115,28 +165,147 @@ const MicStageRail = ({
   active,
   settings,
   onSelect,
+  onToggle,
+  onMaster,
+  delays,
+  latest,
+  live,
 }: IMicStageRailProps) => {
   const { t } = useTranslation();
+  const meters = useRef<Partial<Record<TMicStage, HTMLSpanElement | null>>>({});
+  const gateDb =
+    settings.voice?.enabled && settings.voice.gateEnabled
+      ? settings.voice.gateThresholdDb
+      : undefined;
+  const { makeupDb } = settings.dynamics;
+
+  // Every row's meter from one loop, written straight into the bars: a
+  // re-render per frame of seven rows is the jank the readings avoid too.
+  useEffect(() => {
+    const history: Partial<Record<TMicStage, number[]>> = {};
+    let frame = 0;
+    let open = false;
+    let animation = 0;
+    const draw = () => {
+      frame += 1;
+      const level = latest.current;
+      if (live && level && frame % METER_EVERY === 0) {
+        if (gateDb !== undefined) {
+          const input = toDb(level.input);
+          open = open ? input > gateDb - GATE_HYSTERESIS_DB : input > gateDb;
+        }
+        MIC_STAGES.forEach(({ id }) => {
+          const bars = meters.current[id];
+          if (!bars) {
+            return;
+          }
+          const past = history[id] ?? [];
+          past.push(meterValue(id, level, open, makeupDb));
+          if (past.length > METER_BARS) {
+            past.shift();
+          }
+          history[id] = past;
+          Array.from(bars.children).forEach((bar, index) => {
+            const value = past[index] ?? 0;
+            (bar as HTMLElement).style.transform = `scaleY(${Math.max(
+              0.12,
+              value,
+            )})`;
+          });
+        });
+      }
+      animation = requestAnimationFrame(draw);
+    };
+    animation = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(animation);
+  }, [latest, live, gateDb, makeupDb]);
+
+  const delayText = (id: TMicStage, on: boolean) => {
+    // Off is no delay and no sound change: a dash, not a measurement.
+    if (!on) {
+      return '—';
+    }
+    const ms = delays[id];
+    if (ms === undefined || ms <= 0) {
+      return t('dsp.latency.ms', { ms: '0' });
+    }
+    return t('dsp.latency.ms', {
+      ms: ms >= 10 ? String(Math.round(ms)) : ms.toFixed(1).replace(/\.0$/, ''),
+    });
+  };
+
   return (
     // No heading over the stages: the header names the mic just above, and
     // its Windows name repeated here was cut to an ellipsis at every width.
     <nav className="dsp-rail mic-rail" aria-label={heading}>
-      {MIC_STAGES.map(({ id, labelKey }) => (
-        <button
-          key={id}
-          type="button"
-          className={`dsp-rail-tab${id === active ? ' is-active' : ''}${
-            micStageOn(settings, id) ? ' is-on' : ''
-          }`}
-          aria-current={id === active ? 'true' : undefined}
-          title={t(labelKey)}
-          onClick={() => onSelect(id)}
-        >
-          <StageIcon stage={id} />
-          <span className="dsp-rail-name studio-rail__word">{t(labelKey)}</span>
-          <span className="dsp-rail-lamp" aria-hidden="true" />
-        </button>
-      ))}
+      <div className="mic-rail__master">
+        <span className="mic-rail__master-name studio-rail__word">
+          {t('mic.rail.master')}
+        </span>
+        <span className="mic-rail__master-state studio-rail__word">
+          {settings.enabled ? t('dsp.enabled') : t('dsp.bypassed')}
+        </span>
+        <span className="mic-rail__switch">
+          <Switch
+            id="mic-rail-master"
+            isOn={settings.enabled}
+            isDisabled={false}
+            handleToggle={onMaster}
+            ariaLabel={t('mic.rail.master')}
+          />
+        </span>
+      </div>
+      {MIC_STAGES.map(({ id, labelKey }) => {
+        const on = settings.enabled && micStageOn(settings, id);
+        const switched = micStageOn(settings, id);
+        return (
+          <div
+            key={id}
+            className={`mic-rail__row${on ? '' : ' is-off'}${
+              id === active ? ' is-active' : ''
+            }`}
+          >
+            <button
+              type="button"
+              className={`dsp-rail-tab${id === active ? ' is-active' : ''}${
+                on ? ' is-on' : ''
+              }`}
+              aria-current={id === active ? 'true' : undefined}
+              title={t(labelKey)}
+              onClick={() => onSelect(id)}
+            >
+              <StageIcon stage={id} />
+              <span className="dsp-rail-name studio-rail__word">
+                {t(labelKey)}
+              </span>
+              <span
+                className="mic-rail__meter studio-rail__word"
+                aria-hidden="true"
+                ref={(element) => {
+                  meters.current[id] = element;
+                }}
+              >
+                {Array.from({ length: METER_BARS }, (_, index) => (
+                  <span key={index} className="mic-rail__bar" />
+                ))}
+              </span>
+              <span className="mic-rail__delay studio-rail__word">
+                {delayText(id, on)}
+              </span>
+            </button>
+            <span className="mic-rail__switch studio-rail__word">
+              <Switch
+                id={`mic-rail-${id}`}
+                isOn={switched}
+                isDisabled={!settings.enabled}
+                handleToggle={() => onToggle(id)}
+                ariaLabel={t(labelKey)}
+              />
+            </span>
+          </div>
+        );
+      })}
+      <p className="mic-rail__note studio-rail__word">{t('mic.rail.note')}</p>
     </nav>
   );
 };

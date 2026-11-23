@@ -5,10 +5,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The strip under the Mic tab's header: what the rack is doing to the voice
- * right now, and "Listen to myself".
+ * The line under the delay: what the rack is doing to the voice right now,
+ * and only what moves while you speak - the voice passing the gate, the
+ * noise taken, the compressor and the limiter (mockup A). How often the
+ * cleaner fell behind is the Noise cancelling card's, not this line's.
  *
- * The readings are written straight into the strip once per painted frame,
+ * The readings are written straight into the line once per painted frame,
  * never through React: a re-render per frame of a page this size is the
  * jank the voice picture also avoids.
  *
@@ -17,16 +19,26 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * and the picture above draws the same two things against each other.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from '../utils/I18nContext';
-import { reportError } from '../utils/logger';
 import type { IMicLevel } from './useMicLevels';
 
 /** The gate's own hysteresis (`voice.cpp`), so the light flickers as it does. */
-const GATE_HYSTERESIS_DB = 4;
+export const GATE_HYSTERESIS_DB = 4;
 
-const toDb = (amplitude: number) =>
+export const toDb = (amplitude: number) =>
   amplitude > 1e-6 ? 20 * Math.log10(amplitude) : -120;
+
+/**
+ * A reduction in dB as the readouts write it: the true minus sign, as the
+ * cards' scales beside it have ("−10"), where a hyphen stood lower and
+ * shorter, and no sign on a reading that rounds to nothing ("0.0", never
+ * "-0.0").
+ */
+export const reductionText = (db: number, digits = 1) => {
+  const shown = Math.abs(db).toFixed(digits);
+  return `${db < 0 && Number(shown) > 0 ? '−' : ''}${shown} dB`;
+};
 
 interface IMicLiveBarProps {
   latest: React.MutableRefObject<IMicLevel | undefined>;
@@ -34,27 +46,27 @@ interface IMicLiveBarProps {
   live: boolean;
   /** The gate's threshold, dBFS, while it is on. */
   gateDb: number | undefined;
+  /** Whether noise cancelling is on, so what it takes is worth a reading. */
+  cleanerOn: boolean;
   /** The compressor's make-up, dB, while it is on. */
   makeupDb: number | undefined;
   limiterOn: boolean;
-  /** The tab's own recording of the mic: what every app receives. */
-  stream: MediaStream | undefined;
 }
 
 const MicLiveBar = ({
   latest,
   live,
   gateDb,
+  cleanerOn,
   makeupDb,
   limiterOn,
-  stream,
 }: IMicLiveBarProps) => {
   const { t } = useTranslation();
   const gateLamp = useRef<HTMLSpanElement>(null);
   const gateText = useRef<HTMLSpanElement>(null);
+  const noise = useRef<HTMLSpanElement>(null);
   const compressor = useRef<HTMLSpanElement>(null);
   const limiter = useRef<HTMLSpanElement>(null);
-  const [listening, setListening] = useState(false);
   const words = useRef({ open: '', closed: '' });
   words.current = {
     open: t('mic.meter.gateOpen'),
@@ -77,14 +89,17 @@ const MicLiveBar = ({
               : words.current.closed;
           }
         }
+        if (noise.current) {
+          noise.current.textContent = reductionText(level.noiseTakenDb);
+        }
         if (compressor.current && makeupDb !== undefined) {
           const gain = level.compressorGainDb;
           const reduction =
             gain === undefined ? 0 : Math.min(0, gain - makeupDb);
-          compressor.current.textContent = `${reduction.toFixed(1)} dB`;
+          compressor.current.textContent = reductionText(reduction);
         }
         if (limiter.current) {
-          limiter.current.textContent = `${level.limiterDb.toFixed(1)} dB`;
+          limiter.current.textContent = reductionText(level.limiterDb);
         }
       }
       animation = requestAnimationFrame(draw);
@@ -93,28 +108,10 @@ const MicLiveBar = ({
     return () => cancelAnimationFrame(animation);
   }, [latest, live, gateDb, makeupDb]);
 
-  // The processed mic to the output Windows plays through, at the lowest
-  // latency the context offers. Closed the moment it is switched off or the
-  // stream goes, so it never outlives the page.
-  useEffect(() => {
-    if (!listening || !stream) {
-      return undefined;
-    }
-    const context = new AudioContext({ latencyHint: 'interactive' });
-    context.createMediaStreamSource(stream).connect(context.destination);
-    return () => {
-      context
-        .close()
-        .catch((error: unknown) =>
-          reportError('closing the mic monitor', error),
-        );
-    };
-  }, [listening, stream]);
-
   const idle = live ? '' : ' is-idle';
   return (
-    <div className="mic-live">
-      <div className="mic-live__readings" aria-live="off">
+    <div className="mic-live" aria-live="off">
+      <div className="mic-live__readings">
         {gateDb !== undefined && (
           <span className={`mic-live__reading${idle}`}>
             <span
@@ -123,6 +120,14 @@ const MicLiveBar = ({
               aria-hidden="true"
             />
             <span ref={gateText}>{t('mic.meter.gateClosed')}</span>
+          </span>
+        )}
+        {cleanerOn && (
+          <span className={`mic-live__reading${idle}`}>
+            {t('mic.meter.noise')}
+            <span ref={noise} className="mic-live__value">
+              0.0 dB
+            </span>
           </span>
         )}
         {makeupDb !== undefined && (
@@ -141,23 +146,6 @@ const MicLiveBar = ({
             </span>
           </span>
         )}
-      </div>
-      <div className="mic-live__monitor">
-        {listening && (
-          <span className="mic-live__warning" role="status">
-            {t('mic.monitor.warning')}
-          </span>
-        )}
-        <button
-          type="button"
-          className={listening ? 'button small' : 'button small subtle'}
-          aria-pressed={listening}
-          disabled={!stream}
-          title={t('mic.monitor.hint')}
-          onClick={() => setListening((was) => !was)}
-        >
-          {t('mic.monitor.label')}
-        </button>
       </div>
     </div>
   );

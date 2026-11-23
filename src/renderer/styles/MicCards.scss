@@ -1,0 +1,216 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// The live parts of the Mic tab’s Noise cancelling and Gate cards (mockup A,
+// Ivan’s pick 2026-11-23): what the cleaner is taking now and the late blocks
+// of the last minute, and the voice against the gate’s two lines. The cards
+// themselves are the DSP page’s (`ProcessorCard`, `dsp-band`).
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+
+// *** Noise cancelling ******************************************************
+
+.mic-cleaner__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 28px;
+}
+
+.mic-cleaner__noise {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 220px;
+  gap: 6px;
+}
+
+.mic-cleaner__noise-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  color: $text-muted;
+  font-size: $studio-text-label;
+}
+
+.mic-cleaner__noise-value {
+  color: $text-primary;
+  font-size: 16px;
+  font-weight: $weight-semibold;
+}
+
+.mic-cleaner__noise-track {
+  position: relative;
+  display: block;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: color-mix(in srgb, $text-primary 10%, transparent);
+}
+
+.mic-cleaner__noise-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.mic-cleaner__noise-peak {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background: $text-primary;
+  opacity: 0.4;
+}
+
+.mic-cleaner__noise-scale {
+  display: flex;
+  justify-content: space-between;
+  color: $text-muted;
+  font-size: $studio-text-label;
+}
+
+// A row, over the band's own column (`.dsp-band` stacks its children): left
+// a column, the text's 300px basis became 300px of height and pushed the
+// count out of the card.
+.mic-cleaner__late {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 24px;
+}
+
+.mic-cleaner__late-text {
+  min-width: 0;
+  flex: 1 1 300px;
+}
+
+.mic-cleaner__late-figures {
+  display: grid;
+  min-width: 200px;
+  flex: 0 1 260px;
+  gap: 5px;
+}
+
+.mic-cleaner__late-count {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  color: $text-primary;
+  font-size: 18px;
+  font-weight: $weight-semibold;
+}
+
+.mic-cleaner__late-unit {
+  color: $text-muted;
+  font-size: $studio-text-label;
+  font-weight: $weight-regular;
+}
+
+// A minute, a bar a second: low and quiet when nothing was late, tall and in
+// the caution ink for a second that had a late block.
+.mic-cleaner__strip {
+  display: flex;
+  height: 14px;
+  align-items: flex-end;
+  gap: 1px;
+
+  > span {
+    height: 2px;
+    flex: 1 1 0;
+    border-radius: 1px;
+    background: color-mix(in srgb, $text-primary 18%, transparent);
+
+    &.is-late {
+      height: 100%;
+      background: $ink-caution;
+    }
+  }
+}
+
+// *** The gate, live ********************************************************
+
+.mic-gate-live__track {
+  position: relative;
+  display: block;
+  height: 30px;
+  margin-top: 4px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: color-mix(in srgb, $text-primary 8%, transparent);
+}
+
+// Under the line, where the gate turns the voice down.
+.mic-gate-live__closed {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: color-mix(in srgb, $ink-caution 12%, transparent);
+}
+
+.mic-gate-live__fill {
+  position: absolute;
+  top: 9px;
+  left: 0;
+  width: 0;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--accent);
+
+  &.is-closed {
+    background: color-mix(in srgb, $text-primary 35%, transparent);
+  }
+}
+
+.mic-gate-live__mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: $text-primary;
+
+  &.is-closes {
+    opacity: 0.35;
+  }
+}
+
+.mic-gate-live__scale {
+  position: relative;
+  display: flex;
+  height: 16px;
+  justify-content: space-between;
+  margin-top: 4px;
+  color: $text-muted;
+  font-size: $studio-text-label;
+}
+
+.mic-gate-live__scale-mark {
+  position: absolute;
+  top: 0;
+  padding-left: 4px;
+  white-space: nowrap;
+}
+
+.mic-gate-live__line {
+  min-height: 1.4em;
+  margin: 6px 0 0;
+  color: $text-muted;
+  font-size: $studio-text-meta;
+
+  &.is-open {
+    color: $text-primary;
+  }
+}

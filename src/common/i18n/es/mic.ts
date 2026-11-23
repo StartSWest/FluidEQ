@@ -15,7 +15,7 @@ export default {
   'mic.list.heading': 'Micrófonos en este equipo',
   'mic.list.on': 'Activo',
   'mic.list.off': 'Sin configurar',
-  'mic.live': 'En vivo en todas las apps · baja latencia, {ms} ms',
+  'mic.live': 'En vivo en todas las apps',
   'mic.notSetUp': 'Aún no está configurado en este micrófono',
   'mic.state.opening': 'Abriendo el micrófono…',
   'mic.state.noInput':
@@ -27,7 +27,7 @@ export default {
   'mic.meter.gateClosed': 'Puerta cerrada',
   'mic.meter.compressor': 'Compresor',
   'mic.meter.limiter': 'Limitador',
-  'mic.monitor.label': 'Escucharme',
+  'mic.monitor.label': 'Escuchar el resultado final',
   'mic.monitor.hint':
     'Reproduce lo que oyen los demás en la salida que estás escuchando',
   'mic.monitor.warning':
@@ -91,7 +91,7 @@ export default {
   'mic.empty.body':
     'Conecta un micrófono o actualiza el FluidEQ Engine para que pueda mostrarlos.',
   'mic.stage.lowCut': 'Corte graves',
-  'mic.stage.cleaner': 'Limpiador de voz',
+  'mic.stage.cleaner': 'Cancelación de ruido',
   'mic.stage.gate': 'Puerta',
   'mic.stage.deEsser': 'De-esser',
   'mic.stage.eq': 'EQ',
@@ -123,4 +123,31 @@ export default {
   'mic.gate.attack': 'Apertura',
   'mic.gate.hold': 'Retención',
   'mic.gate.release': 'Cierre',
+  'mic.monitor.on': 'Escuchando el resultado final',
+  'mic.delay.label': 'Retardo',
+  'mic.delay.measured':
+    'medido por el motor en este micrófono, de la cápsula a cada app',
+  'mic.delay.unknown': 'el motor aún no ha medido este micrófono',
+  'mic.delay.windows': 'Windows',
+  'mic.rail.master': 'Procesar el micrófono',
+  'mic.rail.note':
+    'Cada interruptor apaga su etapa por completo: sin cambio de sonido ni retardo. El número junto a una etapa es el retardo que añade.',
+  'mic.meter.noise': 'Ruido quitado',
+  'mic.cleaner.description':
+    'Quita teclados, ventiladores y la sala de debajo de tu voz mientras hablas.',
+  'mic.cleaner.strength': 'Intensidad',
+  'mic.cleaner.noiseNow': 'Ruido quitado ahora',
+  'mic.cleaner.noiseHint':
+    'Cuánto queda la sala por debajo de tu voz tras limpiarla; la línea tenue es lo máximo quitado en los últimos segundos. Por encima del 80 % la voz empieza a sonar procesada.',
+  'mic.cleaner.neverCuts': 'Nunca corta',
+  'mic.cleaner.neverCutsHint':
+    'Si el modelo llega tarde, la voz conserva el nivel del último momento limpio y se une sin clic, nunca con la sala en bruto. Aquí se cuentan esos momentos.',
+  'mic.cleaner.lateMinute': 'bloques tardíos en el último minuto',
+  'mic.gate.live.title': 'Tu voz frente a la puerta de ruido',
+  'mic.gate.live.hint':
+    'La barra es tu voz ahora. Bajo la línea la puerta la atenúa; vuelve a cerrar un poco más abajo, para que una voz justo en la línea no la haga vibrar.',
+  'mic.gate.live.open': 'Abierta: tu voz está {db} dB por encima de la puerta.',
+  'mic.gate.live.closed':
+    'Cerrada: tu voz está {db} dB por debajo de la puerta.',
+  'mic.gate.live.opens': 'abre a {db} dB',
 };

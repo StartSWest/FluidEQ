@@ -37,6 +37,10 @@ export interface IMicLevel {
   compressorGainDb?: number;
   /** The limiter's reduction, dB, never positive. */
   limiterDb: number;
+  /** What the restoration took, dB, never positive (`IHostAnalysisDenoise`). */
+  noiseTakenDb: number;
+  /** The voice cleaner's blocks its worker missed in this reading's window. */
+  late: number;
 }
 
 /**
@@ -140,6 +144,8 @@ const useMicLevels = (
                 ? lowest(frame.dynamics.gainDb)
                 : undefined,
               limiterDb: Math.min(0, frame.maximizerReductionDb),
+              noiseTakenDb: Math.min(0, frame.denoise.reductionDb),
+              late: frame.denoise.voiceUnderruns,
             };
             latest.current = level;
             history.current.push(level);

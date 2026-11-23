@@ -15,7 +15,7 @@ export default {
   'mic.list.heading': '이 PC의 마이크',
   'mic.list.on': '켜짐',
   'mic.list.off': '설정 안 됨',
-  'mic.live': '모든 앱에 적용 중 · 저지연 {ms} ms',
+  'mic.live': '모든 앱에 적용 중',
   'mic.notSetUp': '이 마이크는 아직 설정되지 않았습니다',
   'mic.state.opening': '마이크를 여는 중…',
   'mic.state.noInput': '지금 Windows에 이 마이크의 입력이 보이지 않습니다',
@@ -25,7 +25,7 @@ export default {
   'mic.meter.gateClosed': '게이트 닫힘',
   'mic.meter.compressor': '컴프레서',
   'mic.meter.limiter': '리미터',
-  'mic.monitor.label': '내 목소리 듣기',
+  'mic.monitor.label': '최종 결과 듣기',
   'mic.monitor.hint':
     '다른 사람이 듣는 소리를 지금 듣고 있는 출력으로 재생합니다',
   'mic.monitor.warning':
@@ -87,7 +87,7 @@ export default {
   'mic.empty.body':
     '마이크를 연결하거나, 목록을 불러올 수 있도록 FluidEQ Engine을 업데이트하세요.',
   'mic.stage.lowCut': '로우 컷',
-  'mic.stage.cleaner': '음성 클리너',
+  'mic.stage.cleaner': '노이즈 캔슬링',
   'mic.stage.gate': '게이트',
   'mic.stage.deEsser': '디에서',
   'mic.stage.eq': 'EQ',
@@ -119,4 +119,29 @@ export default {
   'mic.gate.attack': '열림 시간',
   'mic.gate.hold': '홀드',
   'mic.gate.release': '닫힘 시간',
+  'mic.monitor.on': '최종 결과 듣는 중',
+  'mic.delay.label': '지연',
+  'mic.delay.measured': '이 마이크에서 엔진이 측정, 캡슐부터 모든 앱까지',
+  'mic.delay.unknown': '엔진이 아직 이 마이크를 측정하지 않았습니다',
+  'mic.delay.windows': 'Windows',
+  'mic.rail.master': '마이크 처리',
+  'mic.rail.note':
+    '각 스위치는 그 단계를 완전히 끕니다. 소리도 지연도 바뀌지 않습니다. 단계 옆의 숫자는 그 단계가 더하는 지연입니다.',
+  'mic.meter.noise': '제거한 소음',
+  'mic.cleaner.description':
+    '말하는 동안 목소리 밑의 키보드, 팬, 방 소리를 없앱니다.',
+  'mic.cleaner.strength': '강도',
+  'mic.cleaner.noiseNow': '지금 제거 중인 소음',
+  'mic.cleaner.noiseHint':
+    '정리 후 방 소리가 목소리보다 얼마나 아래에 있는지. 옅은 선은 최근 몇 초의 최대치입니다. 80%를 넘으면 목소리가 가공된 듯 들리기 시작합니다.',
+  'mic.cleaner.neverCuts': '끊기지 않음',
+  'mic.cleaner.neverCutsHint':
+    '모델이 늦어지면 목소리는 마지막으로 정리된 순간의 레벨을 유지하고 클릭 없이 이어집니다. 날것의 방 소리가 되지 않습니다. 그런 순간은 여기서 셉니다.',
+  'mic.cleaner.lateMinute': '최근 1분 동안 늦은 블록',
+  'mic.gate.live.title': '게이트와 내 목소리',
+  'mic.gate.live.hint':
+    '막대는 지금의 목소리입니다. 선 아래에서는 게이트가 목소리를 낮춥니다. 조금 아래에서 다시 닫혀, 선 위의 목소리 때문에 떨리지 않습니다.',
+  'mic.gate.live.open': '열림 — 목소리가 게이트보다 {db} dB 위입니다.',
+  'mic.gate.live.closed': '닫힘 — 목소리가 게이트보다 {db} dB 아래입니다.',
+  'mic.gate.live.opens': '{db} dB에서 열림',
 };

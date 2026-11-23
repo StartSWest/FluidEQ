@@ -33,14 +33,19 @@ export interface ILibraryRailWidth {
  * session under `storageKey`, and a flag the page wears while the drag is on
  * so the rail's own width transition stands still under the pointer. The
  * Library's shelves and the Scenes tab's places are one rail design, so one
- * width rule; each remembers its own.
+ * width rule; each remembers its own. A rail whose rows carry more than a
+ * name (the Mic tab's: a meter, a delay and a switch beside each) starts
+ * wider, at `initialWidth`, until it is dragged.
  */
-export const useRailWidth = (storageKey: string): ILibraryRailWidth => {
+export const useRailWidth = (
+  storageKey: string,
+  initialWidth = RAIL_DEFAULT_WIDTH,
+): ILibraryRailWidth => {
   const [width, setWidth] = useState(() => {
     const stored = Number(readPersistedText(storageKey));
     return Number.isFinite(stored) && stored > 0
       ? clampRail(stored)
-      : RAIL_DEFAULT_WIDTH;
+      : clampRail(initialWidth);
   });
   const [isResizing, setIsResizing] = useState(false);
   return { width, isResizing, storageKey, setWidth, setIsResizing };

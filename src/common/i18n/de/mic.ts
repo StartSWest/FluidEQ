@@ -15,7 +15,7 @@ export default {
   'mic.list.heading': 'Mikrofone an diesem PC',
   'mic.list.on': 'An',
   'mic.list.off': 'Nicht eingerichtet',
-  'mic.live': 'Live in jeder App · geringe Latenz {ms} ms',
+  'mic.live': 'Live in jeder App',
   'mic.notSetUp': 'Auf diesem Mikrofon noch nicht eingerichtet',
   'mic.state.opening': 'Mikrofon wird geöffnet …',
   'mic.state.noInput':
@@ -27,7 +27,7 @@ export default {
   'mic.meter.gateClosed': 'Gate geschlossen',
   'mic.meter.compressor': 'Kompressor',
   'mic.meter.limiter': 'Limiter',
-  'mic.monitor.label': 'Mich selbst hören',
+  'mic.monitor.label': 'Endergebnis anhören',
   'mic.monitor.hint':
     'Spielt, was andere hören, auf dem Ausgang ab, den Sie gerade hören',
   'mic.monitor.warning':
@@ -92,7 +92,7 @@ export default {
   'mic.empty.body':
     'Schließen Sie ein Mikrofon an oder aktualisieren Sie die FluidEQ Engine, damit sie Mikrofone auflisten kann.',
   'mic.stage.lowCut': 'Tiefensperre',
-  'mic.stage.cleaner': 'Stimmreiniger',
+  'mic.stage.cleaner': 'Geräuschunterdrückung',
   'mic.stage.gate': 'Gate',
   'mic.stage.deEsser': 'De-Esser',
   'mic.stage.eq': 'EQ',
@@ -124,4 +124,31 @@ export default {
   'mic.gate.attack': 'Öffnet in',
   'mic.gate.hold': 'Haltezeit',
   'mic.gate.release': 'Schließt in',
+  'mic.monitor.on': 'Endergebnis wird wiedergegeben',
+  'mic.delay.label': 'Verzögerung',
+  'mic.delay.measured':
+    'von der Engine an diesem Mikrofon gemessen, von der Kapsel bis in jede App',
+  'mic.delay.unknown': 'die Engine hat dieses Mikrofon noch nicht gemessen',
+  'mic.delay.windows': 'Windows',
+  'mic.rail.master': 'Mikrofon bearbeiten',
+  'mic.rail.note':
+    'Jeder Schalter schaltet seine Stufe ganz ab: keine Klangänderung, keine Verzögerung. Die Zahl neben einer Stufe ist die Verzögerung, die sie hinzufügt.',
+  'mic.meter.noise': 'Entferntes Rauschen',
+  'mic.cleaner.description':
+    'Entfernt Tastatur, Lüfter und Raum unter Ihrer Stimme, während Sie sprechen.',
+  'mic.cleaner.strength': 'Stärke',
+  'mic.cleaner.noiseNow': 'Jetzt entferntes Rauschen',
+  'mic.cleaner.noiseHint':
+    'Wie weit der Raum nach der Reinigung unter Ihrer Stimme liegt; die blasse Linie ist das Meiste der letzten Sekunden. Über 80 % klingt eine Stimme bearbeitet.',
+  'mic.cleaner.neverCuts': 'Schneidet nie ab',
+  'mic.cleaner.neverCutsHint':
+    'Kommt das Modell einmal zu spät, behält die Stimme den Pegel des letzten gereinigten Moments und wird ohne Klick angeschlossen, nie mit dem rohen Raum. Solche Momente werden hier gezählt.',
+  'mic.cleaner.lateMinute': 'verspätete Blöcke in der letzten Minute',
+  'mic.gate.live.title': 'Ihre Stimme am Gate',
+  'mic.gate.live.hint':
+    'Der Balken ist Ihre Stimme jetzt. Unter der Linie senkt das Gate sie ab; es schließt etwas tiefer wieder, damit eine Stimme auf der Linie nicht flattert.',
+  'mic.gate.live.open': 'Offen – Ihre Stimme liegt {db} dB über dem Gate.',
+  'mic.gate.live.closed':
+    'Geschlossen – Ihre Stimme liegt {db} dB unter dem Gate.',
+  'mic.gate.live.opens': 'öffnet bei {db} dB',
 };
