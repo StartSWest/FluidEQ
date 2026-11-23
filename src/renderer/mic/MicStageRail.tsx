@@ -245,7 +245,9 @@ const MicStageRail = ({
         <span className="mic-rail__master-state studio-rail__word">
           {settings.enabled ? t('dsp.enabled') : t('dsp.bypassed')}
         </span>
-        <span className="mic-rail__switch">
+        {/* Folded with the words, as each stage's switch is: left out, a
+            sliver of it showed past the folded rail's edge. */}
+        <span className="mic-rail__switch studio-rail__word">
           <Switch
             id="mic-rail-master"
             isOn={settings.enabled}
