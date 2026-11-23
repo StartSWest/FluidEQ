@@ -25,7 +25,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { ANALYSIS_BINS, IHostAnalysis } from '../../common/dsp/analysisWire';
 import { micInputFor } from '../../common/micInput';
+import { createNativeMeters } from '../dsp/nativeMeters';
+import { setDspSampleRate } from '../dsp/store';
 import { reportError } from '../utils/logger';
 
 export interface IMicLevel {
@@ -89,6 +92,28 @@ const useMicLevels = (
     let animation = 0;
     let opened: MediaStream | undefined;
     let hearing = false;
+    /**
+     * The mic's frames handed to the DSP page's own displays, the way the
+     * system meters hand an output's (`useSystemMeters`): the EQ, De-esser,
+     * Compressor and Limiter cards on this tab are the DSP page's, and they
+     * read the window's one meter store. Fed nothing, the EQ drew no voice
+     * behind its curve and the De-esser and Compressor never moved (Ivan,
+     * 2026-11-23: "this de-esser doesn't have any graph moving").
+     */
+    let accept: ((frame: IHostAnalysis) => void) | undefined;
+    const meters = createNativeMeters(
+      {
+        // Requests are owned by this paint loop, not the Library host.
+        setDspHostAnalysis: async () => true,
+        onDspHostAnalysis: (listener) => {
+          accept = listener;
+          return () => {
+            accept = undefined;
+          };
+        },
+      },
+      ANALYSIS_BINS,
+    );
     setState('opening');
 
     const open = async () => {
@@ -137,6 +162,8 @@ const useMicLevels = (
           }
           if (result) {
             const { frame } = result;
+            setDspSampleRate(result.sampleRate);
+            accept?.(frame);
             const level: IMicLevel = {
               input: Math.max(...frame.normalizer.inputPeaks),
               output: Math.max(...frame.peaks),
@@ -181,6 +208,8 @@ const useMicLevels = (
     return () => {
       disposed = true;
       cancelAnimationFrame(animation);
+      // Cleared, so the DSP page never opens on a frozen frame of the mic.
+      meters.release(true);
       opened?.getTracks().forEach((track) => track.stop());
       setStream(undefined);
       read(null).catch((error: unknown) =>

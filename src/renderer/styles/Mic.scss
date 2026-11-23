@@ -59,9 +59,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // *** The header ************************************************************
 
+// Every column from the row's top, so the profile and Reset stand on the mic
+// selector's line: centred, the live line under the selector and the
+// picture's key made the columns different heights and the buttons stood
+// half a line apart (Ivan, 2026-11-23: "this not aligned same as mic
+// selector need to be in same line").
 .mic-head {
   display: grid;
-  align-items: center;
+  align-items: start;
   gap: 10px 22px;
   grid-template-columns: auto minmax(0, 1fr) auto;
   padding: 14px 16px 12px;
