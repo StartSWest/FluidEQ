@@ -345,6 +345,44 @@ it.each(['project', 'build', 'invalid build'])(
   },
 );
 
+// The dialog asks the scene's chat for its line, and the chat's reply ending
+// builds the project again: each such build closed the dialog the member was
+// working in (Ivan, 2026-11-23: "after the chat ended, it closed the publish
+// window").
+it('keeps the open dialog, covers and all, through its own project’s rebuild', async () => {
+  const { result, rerender } = setup();
+  await act(async () => {
+    result.current.begin();
+  });
+  await act(async () => {
+    result.current.capture([frame]);
+  });
+  const shots = result.current.draft?.shots;
+  expect(shots?.length).toBeGreaterThan(0);
+  rerender({ ...view(), serial: 2, pack: { ...pack, version: 2 } });
+  rerender({ ...view(), serial: 3, pack: { ...pack, version: 2 } });
+  expect(result.current.draft?.shots).toEqual(shots);
+});
+
+it.each(['project', 'invalid build'])(
+  'closes the open dialog after a change of %s',
+  async (change) => {
+    const { result, rerender } = setup();
+    await act(async () => {
+      result.current.begin();
+    });
+    expect(result.current.draft).toBeDefined();
+    const next = view();
+    if (change === 'project') {
+      next.state.activeId = 'sea';
+    } else {
+      next.problems = [{ code: 'missing-file', file: 'source' }];
+    }
+    rerender(next);
+    expect(result.current.draft).toBeUndefined();
+  },
+);
+
 it('does not reopen a cancelled preparation or overwrite its replacement', async () => {
   const pending = deferred<Blob | undefined>();
   jest.mocked(renderSceneStill).mockReturnValueOnce(pending.promise);

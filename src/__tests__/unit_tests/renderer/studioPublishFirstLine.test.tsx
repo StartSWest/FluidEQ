@@ -22,9 +22,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 const askStudioChatForNote = jest.fn((_ask: { first: boolean }) =>
   Promise.resolve(true),
 );
+const askStudioChatToTranslateNote = jest.fn((_line: string, _from: string) =>
+  Promise.resolve(true),
+);
+/** Whether the project's chat is answering something else now. */
+const mockChat = { busy: false };
 jest.mock('../../../renderer/studio/chat/studioChatStore', () => ({
   askStudioChatForNote: (ask: { first: boolean }) => askStudioChatForNote(ask),
-  askStudioChatToTranslateNote: () => Promise.resolve(true),
+  askStudioChatToTranslateNote: (line: string, from: string) =>
+    askStudioChatToTranslateNote(line, from),
+  isStudioChatBusy: () => mockChat.busy,
 }));
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
@@ -39,6 +46,7 @@ import '@testing-library/jest-dom';
 import { useCallback, useRef, useState } from 'react';
 import { act, render, screen } from '@testing-library/react';
 import type { TStudioChatEntry } from '../../../common/studioChat';
+import { VERSION_NOTE_LOCALES } from '../../../common/sceneVersionNote';
 import type { IStudioNotes } from '../../../common/studioNotes';
 import StudioPublishNote, {
   FIRST_NOTE_WORDS,
@@ -55,6 +63,14 @@ type TEntryListener = (change: {
 }) => void;
 
 const LINE = 'A black hole bends the starlight with the bass';
+
+/** The line in every language a listener can read it in. */
+const WHOLE = Object.fromEntries(
+  VERSION_NOTE_LOCALES.map((locale) => [
+    locale,
+    locale === 'en' ? LINE : `${LINE} (${locale})`,
+  ]),
+) as NonNullable<IPublishDraft['suggestedNotes']>;
 
 const PUBLISHED = {
   sceneId: 'black-hole',
@@ -95,6 +111,9 @@ const setUp = (first: IPublishDraft, initial?: IStudioNotes) => {
     },
   };
   let shown: IPublishDraft | undefined;
+  let writeLine: (() => Promise<boolean>) | undefined;
+  let translateLine:
+    ((line: string, from: string) => Promise<boolean>) | undefined;
   function Host() {
     const [draft, show] = useState<IPublishDraft | undefined>(first);
     const current = useRef<IPublishDraft | undefined>(first);
@@ -102,13 +121,34 @@ const setUp = (first: IPublishDraft, initial?: IStudioNotes) => {
       current.current = next;
       show(next);
     }, []);
-    usePublishNote(draft, current, setDraft, 'project');
+    const note = usePublishNote(draft, current, setDraft, 'project');
+    writeLine = note.write;
+    translateLine = note.translate;
     shown = draft;
     return null;
   }
   render(<Host />);
   return {
     now: () => shown,
+    /** The member's Write with AI. */
+    press: () =>
+      act(async () => {
+        await writeLine?.();
+      }),
+    /** The member's line handed to the chat at Send. */
+    translate: (line: string, from: string) =>
+      act(async () => {
+        await translateLine?.(line, from);
+      }),
+    /** The press alone, its answer still to come. */
+    start: async () => {
+      let answered: Promise<boolean> | undefined;
+      await act(async () => {
+        answered = writeLine?.();
+      });
+      // Wrapped: an async function returning the promise would wait on it.
+      return { answered };
+    },
     readStudioNotes,
     write: (next: IStudioNotes) => {
       notes = next;
@@ -137,6 +177,9 @@ const setUp = (first: IPublishDraft, initial?: IStudioNotes) => {
 beforeEach(() => {
   askStudioChatForNote.mockReset();
   askStudioChatForNote.mockResolvedValue(true);
+  askStudioChatToTranslateNote.mockReset();
+  askStudioChatToTranslateNote.mockResolvedValue(true);
+  mockChat.busy = false;
 });
 
 describe('FluidEQ’s ask for the line', () => {
@@ -172,11 +215,145 @@ describe('a line written while the dialog is open', () => {
     write({ description: '', whatsNew: LINE });
     await notesChange();
     expect(now()?.suggestedNotes).toEqual({ en: LINE });
-    expect(now()?.noteWriting).toBe(false);
     // The control: another project's notes are not this dialog's.
     readStudioNotes.mockClear();
     await notesChange('another-project');
     expect(readStudioNotes).not.toHaveBeenCalled();
+  });
+});
+
+// Ivan, 2026-11-23: "when the AI is writing the notes and translating them,
+// they can still be published". The first line written ended the wait, and
+// the chat writes its own language first and the rest after.
+describe('while the chat writes the line', () => {
+  it('is writing until its reply ends, not until its first line lands', async () => {
+    const { now, write, notesChange, replyEnds } = setUp(opened());
+    await act(async () => undefined);
+    expect(now()?.noteWriting).toBe(true);
+    write({ description: '', whatsNew: LINE });
+    await notesChange();
+    expect(now()?.suggestedNotes).toEqual({ en: LINE });
+    expect(now()?.noteWriting).toBe(true);
+    await replyEnds();
+    expect(now()?.noteWriting).toBe(false);
+  });
+
+  // Ivan, 2026-11-23: "why after apparently all translations were in, it
+  // continues thinking". The chat's closing answer is no part of the line.
+  it('is done once the line is there in every language, before the reply ends', async () => {
+    const { now, write, notesChange } = setUp(opened());
+    await act(async () => undefined);
+    expect(now()?.noteWriting).toBe(true);
+    write({ description: '', whatsNewLines: WHOLE });
+    await notesChange();
+    expect(now()?.suggestedNotes).toEqual(WHOLE);
+    expect(now()?.noteWriting).toBe(false);
+  });
+
+  it('is done translating once the member’s line is there in every language', async () => {
+    const { now, write, notesChange, translate } = setUp(
+      opened({ suggestedNotes: { en: LINE } }),
+    );
+    await act(async () => undefined);
+    await translate(LINE, 'en');
+    expect(now()?.noteTranslating).toBe(true);
+    // Every language, but over another line: not this translation.
+    write({
+      description: '',
+      whatsNewLines: { ...WHOLE, en: 'Another line entirely' },
+    });
+    await notesChange();
+    expect(now()?.noteTranslating).toBe(true);
+    write({ description: '', whatsNewLines: WHOLE });
+    await notesChange();
+    expect(now()?.noteTranslating).toBe(false);
+    expect(now()?.noteTranslated).toBe(true);
+  });
+
+  // Ivan, 2026-11-23: "it shows it's written on every language, which is not
+  // good". A press while the chat finished its reply met a busy chat, and
+  // the line went out untranslated.
+  it('waits for a busy chat to translate, and asks it again when it is free', async () => {
+    const { now, translate, replyEnds, write, notesChange } = setUp(
+      opened({ suggestedNotes: { en: LINE } }),
+    );
+    await act(async () => undefined);
+    mockChat.busy = true;
+    askStudioChatToTranslateNote.mockResolvedValueOnce(false);
+    await translate(LINE, 'en');
+    expect(now()?.noteTranslating).toBe(true);
+    expect(now()?.noteAsWritten).toBeUndefined();
+    // The answer it was refused behind ends: still translating, asked again.
+    mockChat.busy = false;
+    await replyEnds();
+    expect(askStudioChatToTranslateNote).toHaveBeenCalledTimes(2);
+    expect(now()?.noteTranslating).toBe(true);
+    expect(now()?.noteTranslated).toBe(false);
+    write({ description: '', whatsNewLines: WHOLE });
+    await notesChange();
+    expect(now()?.noteTranslating).toBe(false);
+    expect(now()?.noteTranslated).toBe(true);
+  });
+
+  it('goes as written only where there is no chat to translate it', async () => {
+    const { now, translate } = setUp(opened({ suggestedNotes: { en: LINE } }));
+    await act(async () => undefined);
+    askStudioChatToTranslateNote.mockResolvedValueOnce(false);
+    await translate(LINE, 'en');
+    expect(now()?.noteTranslating).toBe(false);
+    expect(now()?.noteAsWritten).toBe(true);
+  });
+
+  it('is writing from the press itself, before the chat has answered', async () => {
+    const { now, start, replyEnds } = setUp(
+      opened({ suggestedNotes: { en: LINE } }),
+    );
+    await act(async () => undefined);
+    let answer: (went: boolean) => void = () => undefined;
+    askStudioChatForNote.mockReturnValueOnce(
+      new Promise<boolean>((resolve) => {
+        answer = resolve;
+      }),
+    );
+    const { answered } = await start();
+    expect(now()?.noteWriting).toBe(true);
+    await act(async () => {
+      answer(true);
+      await answered;
+    });
+    expect(now()?.noteWriting).toBe(true);
+    await replyEnds();
+    expect(now()?.noteWriting).toBe(false);
+  });
+
+  it('waits through the answer a busy chat was giving, and asks again after it', async () => {
+    const { now, press, replyEnds } = setUp(
+      opened({ suggestedNotes: { en: LINE } }),
+    );
+    await act(async () => undefined);
+    mockChat.busy = true;
+    askStudioChatForNote.mockResolvedValueOnce(false);
+    await press();
+    expect(now()?.noteWriting).toBe(true);
+    // The answer it was refused behind ends: still writing, and asked now.
+    mockChat.busy = false;
+    await replyEnds();
+    expect(askStudioChatForNote).toHaveBeenLastCalledWith({
+      first: true,
+      pressed: true,
+    });
+    expect(now()?.noteWriting).toBe(true);
+    // Its own answer ends: written.
+    await replyEnds();
+    expect(now()?.noteWriting).toBe(false);
+  });
+
+  it('is not writing when there is no chat to ask', async () => {
+    const { now, press } = setUp(opened({ suggestedNotes: { en: LINE } }));
+    await act(async () => undefined);
+    askStudioChatForNote.mockResolvedValueOnce(false);
+    await press();
+    expect(now()?.noteWriting).toBe(false);
   });
 });
 

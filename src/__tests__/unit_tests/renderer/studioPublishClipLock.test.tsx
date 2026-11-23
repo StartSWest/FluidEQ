@@ -5,8 +5,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The preview clip is recorded before Publish is pressed and never again
- * while the publication runs (Ivan, 2026-11-09: "is allowing me to re record
+ * The preview clip is recorded by the press on Send (2026-11-23) and never
+ * again while the publication runs (Ivan, 2026-11-09: "is allowing me to re record
  * the demo until is not publised ... we alow it only once per before
  * plublising"). Publishing writes the version it goes out under into the
  * project, which builds again: a new pack, which used to start a new
@@ -162,44 +162,75 @@ describe("the publish dialog's clip", () => {
   });
 });
 
-describe("the clip's own buttons while it is published", () => {
-  const ready = {
-    phase: 'ready' as const,
-    url: 'blob:clip',
-    video: {
-      source: 'clip',
-      blob: new Blob(['clip']),
-      durationMs: 10000,
-      width: 640,
-      height: 360,
-    },
-  };
-
-  it('are held and say why, and are free before the press', () => {
-    const { rerender } = render(
+describe("the clip's own part", () => {
+  // Recorded by the press (2026-11-23): before it there is nothing to do
+  // here, so the part says when the clip is made and offers no button.
+  it('says when the clip is made, and offers nothing, before the press', () => {
+    render(
       <StudioPublishVideo
-        state={ready}
-        away={false}
-        locked
-        onCancel={jest.fn()}
-        onRetry={jest.fn()}
-      />,
-    );
-    const again = screen.getByRole('button', {
-      name: 'studio.publish.videoAgain',
-    });
-    expect(again).toBeDisabled();
-    expect(again).toHaveAttribute('title', 'studio.publish.clipLocked');
-    rerender(
-      <StudioPublishVideo
-        state={ready}
+        state={{ phase: 'idle' }}
         away={false}
         locked={false}
         onCancel={jest.fn()}
-        onRetry={jest.fn()}
       />,
     );
-    expect(again).toBeEnabled();
-    expect(again).not.toHaveAttribute('title');
+    expect(screen.getByText('studio.publish.videoOnSend')).toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it('counts a take, and its Cancel is held and says why while it is published', () => {
+    const recording = { phase: 'recording' as const, elapsedMs: 4200 };
+    const { rerender } = render(
+      <StudioPublishVideo
+        state={recording}
+        away={false}
+        locked
+        onCancel={jest.fn()}
+      />,
+    );
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'studio.publish.videoRecording:4',
+    );
+    const cancel = screen.getByRole('button', {
+      name: 'studio.publish.videoCancel',
+    });
+    expect(cancel).toBeDisabled();
+    expect(cancel).toHaveAttribute('title', 'studio.publish.clipLocked');
+    rerender(
+      <StudioPublishVideo
+        state={recording}
+        away={false}
+        locked={false}
+        onCancel={jest.fn()}
+      />,
+    );
+    expect(cancel).toBeEnabled();
+    expect(cancel).not.toHaveAttribute('title');
+  });
+
+  it('has no button once the clip is made: the next send uses it', () => {
+    render(
+      <StudioPublishVideo
+        state={{
+          phase: 'ready',
+          url: 'blob:clip',
+          video: {
+            source: 'clip',
+            blob: new Blob(['clip']),
+            durationMs: 10000,
+            width: 640,
+            height: 360,
+          },
+        }}
+        away={false}
+        locked={false}
+        onCancel={jest.fn()}
+      />,
+    );
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'studio.publish.videoDone',
+    );
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 });

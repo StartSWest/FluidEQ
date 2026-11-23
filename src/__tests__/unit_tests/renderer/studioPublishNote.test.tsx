@@ -26,6 +26,7 @@ jest.mock('../../../renderer/studio/chat/studioChatStore', () => ({
   askStudioChatForNote: (ask: { first: boolean }) => askStudioChatForNote(ask),
   askStudioChatToTranslateNote: (line: string, from: string) =>
     askStudioChatToTranslateNote(line, from),
+  isStudioChatBusy: () => false,
 }));
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
@@ -372,7 +373,7 @@ describe('the line in every language, from the notes', () => {
     const { now, translate } = setUp(opened());
     await translate('Los picos brillan.', 'es');
     expect(now()?.noteAsWritten).toBe(true);
-    expect(now()?.noteTranslating).toBeUndefined();
+    expect(now()?.noteTranslating).toBe(false);
   });
 });
 

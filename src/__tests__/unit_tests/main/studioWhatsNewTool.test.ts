@@ -80,9 +80,18 @@ it('says which languages are still to write', async () => {
     whatsNew: { en: LINE, es: 'Un agujero' },
   });
   expect(said(result)).toMatch(/still to write in de, fr/);
+  expect(said(result)).not.toMatch(/nothing else is needed/);
   // The control: every language written, nothing left to say.
   expect(said(await toolHere().call({ whatsNew: EVERY }))).not.toMatch(
     /still to write/,
+  );
+});
+
+// The member waits on the Publish dialog while the chat finishes its reply
+// (Ivan, 2026-11-23: "it continues thinking"): a whole line says it is done.
+it('tells the chat a line in every language is all it needs', async () => {
+  expect(said(await toolHere().call({ whatsNew: EVERY }))).toMatch(
+    /nothing else is needed.*no further checks or tools/,
   );
 });
 

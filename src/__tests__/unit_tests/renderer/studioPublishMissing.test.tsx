@@ -13,46 +13,58 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 const identity = { loaded: true, missing: false };
-// Whether the camera says a take is being recorded.
-const take = { recording: false };
+// Where the camera says its take stands, how many the press asked for, and
+// whether a clip waits for the test to land it (`emit`).
+const take: {
+  phase: string;
+  asked: number;
+  deferred: boolean;
+  emit?: () => void;
+} = { phase: 'idle', asked: 0, deferred: false };
 jest.mock('../../../renderer/plus/profileStore', () => ({
   usePublicIdentity: () => identity,
   createProfile: jest.fn(() => Promise.resolve(true)),
   useProfile: () => ({ saving: false, error: undefined }),
   clearProfileError: jest.fn(),
 }));
-// A camera whose clip is ready, inside a video section like the real one's.
+// A camera that reports its take as `take.phase` says, and makes a clip at
+// once when the press asks for one, inside a video section like the real
+// one's.
 jest.mock('../../../renderer/studio/StudioPublishCamera', () => {
   const { useLayoutEffect } =
     jest.requireActual<typeof import('react')>('react');
   return function Camera({
     source,
     onPreview,
-    onRecording,
+    onTake,
+    recordRef,
   }: {
     source: string;
     onPreview: (value: unknown) => void;
-    onRecording?: (recording: boolean) => void;
+    onTake?: (phase: string) => void;
+    recordRef: { current: (() => void) | undefined };
   }) {
     useLayoutEffect(() => {
-      onRecording?.(take.recording);
-      if (take.recording) {
-        return;
-      }
-      onPreview({
-        source,
-        blob: new Blob(['clip']),
-        durationMs: 10000,
-        width: 640,
-        height: 360,
-      });
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- one clip per mount
+      onTake?.(take.phase);
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- reported once per mount
     }, []);
-    return (
-      <section data-publish-part="video">
-        <button type="button">record</button>
-      </section>
-    );
+    recordRef.current = () => {
+      take.asked += 1;
+      const emit = () =>
+        onPreview({
+          source,
+          blob: new Blob(['clip']),
+          durationMs: 10000,
+          width: 640,
+          height: 360,
+        });
+      if (take.deferred) {
+        take.emit = emit;
+      } else {
+        emit();
+      }
+    };
+    return <section data-publish-part="video" />;
   };
 });
 jest.mock('../../../renderer/utils/I18nContext', () => ({
@@ -99,22 +111,32 @@ const EVERY_LANGUAGE = Object.fromEntries(
   ]),
 ) as IPublishDraft['suggestedNotes'];
 
-const open = (more: Partial<IPublishDraft> = {}, onPublish = jest.fn()) =>
-  render(
-    <StudioPublishDialog
-      name="Alpine"
-      identity="alpine"
-      pack={pack}
-      tuning={{}}
-      onCapture={jest.fn()}
-      onChoose={jest.fn()}
-      draft={{ shots: [], chosen: 0, missed: false, agreed: true, ...more }}
-      running={false}
-      onPublish={onPublish}
-      onTranslateNote={jest.fn().mockResolvedValue(false)}
-      onCancel={jest.fn()}
-    />,
-  );
+const dialog = (
+  more: Partial<IPublishDraft> = {},
+  onPublish: jest.Mock = jest.fn(),
+  onWriteNote: (() => Promise<boolean>) | undefined = undefined,
+) => (
+  <StudioPublishDialog
+    name="Alpine"
+    identity="alpine"
+    pack={pack}
+    tuning={{}}
+    onCapture={jest.fn()}
+    onChoose={jest.fn()}
+    draft={{ shots: [], chosen: 0, missed: false, agreed: true, ...more }}
+    running={false}
+    onPublish={onPublish}
+    onTranslateNote={jest.fn().mockResolvedValue(false)}
+    onWriteNote={onWriteNote}
+    onCancel={jest.fn()}
+  />
+);
+
+const open = (
+  more: Partial<IPublishDraft> = {},
+  onPublish: jest.Mock = jest.fn(),
+  onWriteNote: (() => Promise<boolean>) | undefined = undefined,
+) => render(dialog(more, onPublish, onWriteNote));
 
 const send = () =>
   screen.getByRole('button', { name: 'studio.publish.goReview' });
@@ -128,7 +150,10 @@ beforeAll(() => {
 beforeEach(() => {
   scrolled.mockClear();
   identity.missing = false;
-  take.recording = false;
+  take.phase = 'idle';
+  take.asked = 0;
+  take.deferred = false;
+  take.emit = undefined;
 });
 
 describe('a press while a part is missing', () => {
@@ -149,6 +174,8 @@ describe('a press while a part is missing', () => {
     // The category and the line are both missing; the category comes first.
     fireEvent.click(send());
     expect(onPublish).not.toHaveBeenCalled();
+    // A press that cannot send records nothing.
+    expect(take.asked).toBe(0);
     expect(document.activeElement).toBe(
       screen.getByRole('button', { name: 'plus.category.nature' }),
     );
@@ -172,7 +199,9 @@ describe('a press while a part is missing', () => {
     expect(document.activeElement?.tagName).toBe('INPUT');
   });
 
-  it('sends once nothing is missing', async () => {
+  // The clip is the press's own (Ivan, 2026-11-23): never listed as
+  // missing, recorded once nothing else is, and sent with the scene.
+  it('records the clip and sends with it once nothing is missing', async () => {
     const onPublish = jest.fn();
     open({ suggestedNotes: EVERY_LANGUAGE }, onPublish);
     fireEvent.click(
@@ -180,16 +209,21 @@ describe('a press while a part is missing', () => {
     );
     await act(async () => undefined);
     expect(document.querySelector('.studio-publish__held')).toBeNull();
+    expect(take.asked).toBe(0);
     fireEvent.click(send());
     await act(async () => undefined);
+    expect(take.asked).toBe(1);
     expect(onPublish).toHaveBeenCalledTimes(1);
+    expect(onPublish.mock.calls[0][3]).toEqual(
+      expect.objectContaining({ durationMs: 10000 }),
+    );
     expect(scrolled).not.toHaveBeenCalled();
   });
 });
 
 describe('while something is under way', () => {
   it('holds Send with its own words while a take is recorded', () => {
-    take.recording = true;
+    take.phase = 'recording';
     open();
     const held = screen.getByRole('button', {
       name: 'studio.publish.recordingButton',
@@ -209,6 +243,159 @@ describe('while something is under way', () => {
     expect(
       screen.queryByRole('button', { name: 'studio.publish.recordingButton' }),
     ).toBeNull();
+  });
+});
+
+// Ivan, 2026-11-23: "if they don't have notes and they click publish ...
+// ask ... you want the AI to write them down?"
+describe('a press with no line', () => {
+  const ready = () => {
+    fireEvent.click(
+      screen.getByRole('button', { name: 'plus.category.water' }),
+    );
+  };
+
+  it('asks whether AI should write it, in the buttons’ place', () => {
+    const onPublish = jest.fn();
+    const onWriteNote = jest.fn().mockResolvedValue(true);
+    open({}, onPublish, onWriteNote);
+    ready();
+    fireEvent.click(send());
+    expect(screen.getByText('studio.publish.askNoteFirst')).toBeInTheDocument();
+    // Its two answers stand where Send was; the recommended one is loud and
+    // has the focus.
+    expect(
+      screen.queryByRole('button', { name: 'studio.publish.goReview' }),
+    ).toBeNull();
+    const focused = document.activeElement;
+    expect(focused?.textContent).toContain('studio.publish.noteWriteAi');
+    expect(focused?.closest('.dialog-frame__actions')).not.toBeNull();
+    expect(focused).not.toHaveClass('subtle');
+    expect(
+      screen.getByRole('button', { name: 'studio.publish.askNoteMine' }),
+    ).toHaveClass('subtle');
+    expect(take.asked).toBe(0);
+    expect(onPublish).not.toHaveBeenCalled();
+  });
+
+  it('asks the chat on Yes, and sends nothing on its behalf', async () => {
+    const onPublish = jest.fn();
+    const onWriteNote = jest.fn().mockResolvedValue(true);
+    open({}, onPublish, onWriteNote);
+    ready();
+    fireEvent.click(send());
+    const answers = document.querySelector('.dialog-frame__actions');
+    const yes = [...(answers?.querySelectorAll('button') ?? [])].find(
+      (button) => button.textContent?.includes('studio.publish.noteWriteAi'),
+    );
+    if (!yes) {
+      throw new Error('the loud answer is in the actions');
+    }
+    fireEvent.click(yes);
+    await act(async () => undefined);
+    expect(onWriteNote).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('studio.publish.askNoteFirst')).toBeNull();
+    expect(send()).toBeInTheDocument();
+    expect(take.asked).toBe(0);
+    expect(onPublish).not.toHaveBeenCalled();
+  });
+
+  it("goes to the box on I'll write it, and does not ask again", () => {
+    const onWriteNote = jest.fn().mockResolvedValue(true);
+    open({}, jest.fn(), onWriteNote);
+    ready();
+    fireEvent.click(send());
+    fireEvent.click(
+      screen.getByRole('button', { name: 'studio.publish.askNoteMine' }),
+    );
+    expect(document.activeElement?.tagName).toBe('TEXTAREA');
+    expect(part('note')).toHaveClass('is-called');
+    fireEvent.click(send());
+    expect(screen.queryByText('studio.publish.askNoteFirst')).toBeNull();
+    expect(document.activeElement?.tagName).toBe('TEXTAREA');
+    expect(onWriteNote).not.toHaveBeenCalled();
+  });
+
+  it('goes straight to the box where no chat can write it', () => {
+    open();
+    ready();
+    fireEvent.click(send());
+    expect(screen.queryByText('studio.publish.askNoteFirst')).toBeNull();
+    expect(document.activeElement?.tagName).toBe('TEXTAREA');
+  });
+
+  it('asks only once every other part is there', () => {
+    const onWriteNote = jest.fn().mockResolvedValue(true);
+    open({}, jest.fn(), onWriteNote);
+    fireEvent.click(send());
+    // The category first, as before; the question waits its turn.
+    expect(screen.queryByText('studio.publish.askNoteFirst')).toBeNull();
+    expect(part('category')).toHaveClass('is-called');
+  });
+});
+
+// Ivan, 2026-11-23: "when the AI is writing the notes and translating them,
+// they can still be published".
+describe('while the chat writes or translates the line', () => {
+  const written = { suggestedNotes: EVERY_LANGUAGE };
+
+  it('holds Send, with what it waits for, from the first second', () => {
+    open({ ...written, noteWriting: true });
+    const held = screen.getByRole('button', {
+      name: 'studio.publish.writingButton',
+    });
+    expect(held).toBeDisabled();
+    fireEvent.click(held);
+    expect(take.asked).toBe(0);
+  });
+
+  it('keeps a clip that lands while the chat writes, and sends it only on the next press', async () => {
+    take.deferred = true;
+    const onPublish = jest.fn();
+    const { rerender } = render(dialog(written, onPublish));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'plus.category.water' }),
+    );
+    fireEvent.click(send());
+    expect(take.asked).toBe(1);
+    // The chat starts writing during the take.
+    rerender(dialog({ ...written, noteWriting: true }, onPublish));
+    await act(async () => take.emit?.());
+    expect(onPublish).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole('button', { name: 'studio.publish.writingButton' }),
+    ).toBeDisabled();
+    // Its reply ends: the member presses, and the kept clip goes at once.
+    rerender(dialog({ ...written, noteWriting: false }, onPublish));
+    fireEvent.click(send());
+    await act(async () => undefined);
+    expect(onPublish).toHaveBeenCalledTimes(1);
+    expect(take.asked).toBe(1);
+  });
+
+  it('holds the line itself while the press records', () => {
+    take.deferred = true;
+    open(written);
+    fireEvent.click(
+      screen.getByRole('button', { name: 'plus.category.water' }),
+    );
+    fireEvent.click(send());
+    expect(screen.getAllByRole('textbox')[0]).toBeDisabled();
+  });
+
+  // Stop waiting ended every later wait too, so a second Write with AI left
+  // Send free while the chat wrote.
+  it('waits again for a new reply after the member stopped waiting once', () => {
+    const { rerender } = render(dialog({ ...written, noteWriting: true }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'studio.publish.noteStopWaiting' }),
+    );
+    expect(send()).toBeEnabled();
+    rerender(dialog({ ...written, noteWriting: false }));
+    rerender(dialog({ ...written, noteWriting: true }));
+    expect(
+      screen.getByRole('button', { name: 'studio.publish.writingButton' }),
+    ).toBeDisabled();
   });
 });
 

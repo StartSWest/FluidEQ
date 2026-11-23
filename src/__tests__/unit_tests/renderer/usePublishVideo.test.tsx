@@ -75,6 +75,11 @@ beforeEach(() => {
 });
 afterEach(() => jest.restoreAllMocks());
 
+// The press on Send: nothing is recorded before it (2026-11-23).
+const press = (capture: ReturnType<typeof usePublishVideo>) => {
+  act(() => capture.record());
+};
+
 const draw = (capture: ReturnType<typeof usePublishVideo>) => {
   act(() => {
     capture.input(true);
@@ -83,10 +88,29 @@ const draw = (capture: ReturnType<typeof usePublishVideo>) => {
   });
 };
 
+// The dialog used to start a take the moment it opened, on whatever was
+// playing; the take now waits for Send (Ivan, 2026-11-23), however much
+// sound and however many drawn frames arrive before it.
+it('records nothing before the press, however long the scene plays', () => {
+  const { result } = renderHook(() =>
+    usePublishVideo('source', 'Preview', jest.fn()),
+  );
+  expect(result.current.state.phase).toBe('idle');
+  draw(result.current);
+  draw(result.current);
+  expect(createPreviewVideoRecorder).not.toHaveBeenCalled();
+  expect(result.current.state.phase).toBe('idle');
+  press(result.current);
+  expect(result.current.state.phase).toBe('waiting');
+  draw(result.current);
+  expect(createPreviewVideoRecorder).toHaveBeenCalledTimes(1);
+});
+
 it('creates no recorder or countdown before real audio and a drawn frame', () => {
   const { result } = renderHook(() =>
     usePublishVideo('source', 'Preview', jest.fn()),
   );
+  press(result.current);
   expect(result.current.state.phase).toBe('waiting');
   act(() => result.current.frame(document.createElement('canvas')));
   expect(createPreviewVideoRecorder).not.toHaveBeenCalled();
@@ -103,6 +127,7 @@ it('holds a take through silence and carries it on with the sound', async () => 
   const { result } = renderHook(() =>
     usePublishVideo('source', 'Preview', changed),
   );
+  press(result.current);
   draw(result.current);
   act(() => result.current.input(false));
   expect(takes[0].pause).toHaveBeenCalledTimes(1);
@@ -123,6 +148,7 @@ it('keeps a completion that lands after a cancel off the dialog', async () => {
   const { result } = renderHook(() =>
     usePublishVideo('source', 'Preview', changed),
   );
+  press(result.current);
   draw(result.current);
   takes[0].cancel.mockImplementation(() => undefined);
   act(() => result.current.cancel());
@@ -135,6 +161,7 @@ it('rechecks audio at the queued paint and honours cancellation while waiting', 
   const { result } = renderHook(() =>
     usePublishVideo('source', 'Preview', jest.fn()),
   );
+  press(result.current);
   act(() => {
     result.current.input(true);
     result.current.frame(document.createElement('canvas'));
@@ -153,15 +180,20 @@ it('invalidates a ready clip when project, version, content or settings identity
     (source) => usePublishVideo(source, 'Preview', changed),
     { initialProps: 'project:a/version:1/settings:old' },
   );
+  press(result.current);
   draw(result.current);
   await act(async () => {
     takes[0].resolve(preview());
   });
   expect(result.current.state.phase).toBe('ready');
   rerender('project:a/version:1/settings:new');
-  expect(result.current.state.phase).toBe('waiting');
+  // Let go, and not recorded again until the next press.
+  expect(result.current.state.phase).toBe('idle');
   expect(changed).toHaveBeenLastCalledWith(undefined);
   expect(revoked).toHaveBeenCalledWith('blob:take-1');
+  draw(result.current);
+  expect(takes).toHaveLength(1);
+  press(result.current);
   draw(result.current);
   expect(takes).toHaveLength(2);
   unmount();
@@ -173,6 +205,7 @@ it('ignores an old recording that finishes after a replacement source mounts', a
     (source) => usePublishVideo(source, 'Preview', changed),
     { initialProps: 'first' },
   );
+  press(result.current);
   draw(result.current);
   takes[0].cancel.mockImplementation(() => undefined);
   rerender('second');
@@ -180,7 +213,8 @@ it('ignores an old recording that finishes after a replacement source mounts', a
     takes[0].resolve(preview());
   });
   expect(created).not.toHaveBeenCalled();
-  expect(result.current.state.phase).toBe('waiting');
+  expect(result.current.state.phase).toBe('idle');
+  press(result.current);
   draw(result.current);
   await act(async () => {
     takes[1].resolve(preview());
@@ -195,11 +229,12 @@ it('re-records from a fresh capture and revokes the old playable URL', async () 
   const { result, unmount } = renderHook(() =>
     usePublishVideo('same-source', 'Preview', jest.fn()),
   );
+  press(result.current);
   draw(result.current);
   await act(async () => {
     takes[0].resolve(preview());
   });
-  act(() => result.current.retry());
+  press(result.current);
   expect(revoked).toHaveBeenCalledWith('blob:take-1');
   expect(result.current.state.phase).toBe('waiting');
   draw(result.current);
@@ -212,6 +247,7 @@ it('cancels outstanding frame delivery on close and ignores late completion', as
     usePublishVideo('source', 'Preview', jest.fn()),
   );
   const canvas = document.createElement('canvas');
+  press(result.current);
   draw(result.current);
   jest.mocked(window.requestAnimationFrame).mockClear();
   act(() => {
@@ -230,7 +266,7 @@ it('cancels outstanding frame delivery on close and ignores late completion', as
 });
 
 it.each(['cancel', 'fail'] as const)(
-  'exposes the %s state and a retry path',
+  'exposes the %s state and records again on the next press',
   async (action) => {
     const { result, unmount } = renderHook(() =>
       usePublishVideo('source', 'Preview', jest.fn()),
@@ -241,7 +277,7 @@ it.each(['cancel', 'fail'] as const)(
     expect(result.current.state.phase).toBe(
       action === 'cancel' ? 'cancelled' : 'failed',
     );
-    act(() => result.current.retry());
+    press(result.current);
     expect(result.current.state.phase).toBe('waiting');
     unmount();
   },

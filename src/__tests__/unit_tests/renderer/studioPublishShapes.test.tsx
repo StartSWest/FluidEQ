@@ -14,24 +14,30 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * waits through the other views and carries on in Normal (Ivan, 2026-11-18:
  * "We need to keep the video displayed"), only a frame drawn as the Normal
  * view at the clip's size reaches the clip, the clip's tabs stand in every
- * view, and the view is never locked behind a clip waiting for music. Each
- * case beside the view, or the phase, that must not.
+ * view, and the view is never locked behind a take. The take itself is the
+ * press's (Ivan, 2026-11-23): it starts only when the dialog asks for it, in
+ * Normal, and the hour opens halfway. Each case beside the view, or the
+ * phase, that must not.
  */
 
 interface IPreviewProps {
   shapeFrame?: (frame: unknown) => { view?: unknown };
   onDrawn?: (frame: unknown, canvas?: unknown, report?: unknown) => void;
+  onTrouble?: (problem: string) => void;
   captureSize?: unknown;
   captureFrames?: boolean;
 }
 let preview: IPreviewProps = {};
 const video = {
-  phase: 'waiting' as string,
+  phase: 'idle' as string,
   frame: jest.fn(),
   input: jest.fn(),
   cancel: jest.fn(),
-  retry: jest.fn(),
+  record: jest.fn(),
+  fail: jest.fn(),
 };
+/** Whether the demo song could not be started. */
+const signal = { failed: false };
 
 jest.mock('../../../renderer/plus/ScenePreview', () => {
   return function ScenePreview(props: IPreviewProps) {
@@ -40,26 +46,39 @@ jest.mock('../../../renderer/plus/ScenePreview', () => {
   };
 });
 jest.mock('../../../renderer/studio/usePublishVideo', () => () => ({
-  state: { phase: video.phase },
+  state: { phase: video.phase, elapsedMs: 0 },
   frame: video.frame,
   input: video.input,
-  fail: jest.fn(),
+  fail: video.fail,
   cancel: video.cancel,
-  retry: video.retry,
+  record: video.record,
+}));
+jest.mock('../../../renderer/studio/usePublishSignal', () => () => ({
+  audio: {
+    points: [],
+    waveform: [],
+    isPaused: false,
+    readFrame: () => undefined,
+  },
+  failed: signal.failed,
 }));
 jest.mock('../../../renderer/studio/StudioStagePlayer', () => () => (
   <div data-testid="player" />
 ));
 jest.mock('../../../renderer/utils/I18nContext', () => ({
-  useTranslation: () => ({ locale: 'en', t: (key: string) => key }),
+  useTranslation: () => ({
+    locale: 'en',
+    t: (key: string, vars?: Record<string, string | number>) =>
+      vars ? `${key}:${Object.values(vars).join(',')}` : key,
+  }),
 }));
 
 /* eslint-disable import/first -- the mocks must be installed first */
 import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import type { IScenePack } from '../../../common/scenePacks';
-import { SceneAudioProvider } from '../../../renderer/audio/SceneAudioContext';
 import StudioPublishCamera from '../../../renderer/studio/StudioPublishCamera';
+import { isTakeBusy } from '../../../renderer/studio/StudioPublishShapes';
 import {
   PLAYER_PANEL_VIEW,
   ULTRA_WIDE_PANEL_VIEW,
@@ -92,39 +111,50 @@ const pack = {
   params: [],
 } as unknown as IScenePack;
 
-const QUIET = {
-  points: [],
-  waveform: [],
-  isPaused: false,
-  readFrame: () => undefined,
+const recordRef: { current: (() => void) | undefined } = {
+  current: undefined,
+};
+const onTake = jest.fn();
+
+const camera = (sending = false) => (
+  <StudioPublishCamera
+    identity="balloon-dawn"
+    pack={pack}
+    name="Balloon Dawn"
+    locked={false}
+    sending={sending}
+    tuning={{}}
+    onCapture={jest.fn()}
+    source="src"
+    onPreview={jest.fn()}
+    onTake={onTake}
+    recordRef={recordRef}
+    videoSlot={document.createElement('div')}
+  />
+);
+
+const open = (phase = 'idle', sending = false) => {
+  video.phase = phase;
+  [
+    video.frame,
+    video.input,
+    video.cancel,
+    video.record,
+    video.fail,
+    onTake,
+  ].forEach((mock) => mock.mockClear());
+  return render(camera(sending));
 };
 
-const open = (phase = 'waiting') => {
-  video.phase = phase;
-  video.frame.mockClear();
-  video.input.mockClear();
-  video.cancel.mockClear();
-  video.retry.mockClear();
-  return render(
-    <SceneAudioProvider value={QUIET}>
-      <StudioPublishCamera
-        identity="balloon-dawn"
-        pack={pack}
-        name="Balloon Dawn"
-        locked={false}
-        tuning={{}}
-        onCapture={jest.fn()}
-        source="src"
-        onPreview={jest.fn()}
-        videoSlot={document.createElement('div')}
-      />
-    </SceneAudioProvider>,
-  );
-};
+beforeEach(() => {
+  signal.failed = false;
+});
 
 const choose = (key: string) =>
   fireEvent.click(screen.getByRole('button', { name: key }));
 const viewNow = () => preview.shapeFrame?.({ playing: true }).view;
+const capture = () =>
+  screen.getByRole('button', { name: /studio\.publish\.capture/ });
 
 describe('the publish dialog’s views', () => {
   it('opens on Normal: the clip’s canvas, the scene framed whole, the clip’s tabs', () => {
@@ -147,9 +177,6 @@ describe('the publish dialog’s views', () => {
     // The clip's tabs stand on the bar over the frame, not on the picture,
     // so they are there in every view and cover no band.
     expect(
-      screen.getByRole('button', { name: 'studio.publish.viewLive' }),
-    ).toBeInTheDocument();
-    expect(
       screen
         .getByRole('button', { name: 'studio.publish.viewLive' })
         .closest('.studio-publish__stage-bar'),
@@ -166,18 +193,6 @@ describe('the publish dialog’s views', () => {
 
   it('takes covers and the clip from Normal alone', () => {
     open();
-    // The stage has drawn: Capture is there to be pressed, in Normal.
-    act(() =>
-      preview.onDrawn?.({
-        fade: 1,
-        level: 0.5,
-        deltaMs: 16,
-        spectrum: new Float32Array(8),
-        waveform: new Float32Array(8),
-      }),
-    );
-    const capture = () =>
-      screen.getByRole('button', { name: /studio\.publish\.capture/ });
     expect(capture()).toBeEnabled();
     preview.shapeFrame?.({ playing: true });
     expect(video.input).toHaveBeenLastCalledWith(true);
@@ -185,6 +200,36 @@ describe('the publish dialog’s views', () => {
     preview.shapeFrame?.({ playing: true });
     expect(video.input).toHaveBeenLastCalledWith(false);
     expect(capture()).toBeDisabled();
+  });
+});
+
+describe('the cover’s row', () => {
+  // It opened on the window's own hour, so anybody working after dark shot
+  // night covers by default (Ivan, 2026-11-23: "it will start at 50%").
+  it('opens halfway from night to day', () => {
+    open();
+    expect(screen.getByText('studio.settings.percent:50')).toBeInTheDocument();
+  });
+
+  it('has no music to choose: the scene hears the demo song alone', () => {
+    open();
+    expect(
+      screen.queryByRole('group', { name: 'studio.publish.hears' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'studio.publish.yourMusic' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('rests the shutter while the press records, and frees it after', () => {
+    const { rerender } = open('recording', true);
+    expect(capture()).toBeDisabled();
+    video.phase = 'ready';
+    rerender(camera(false));
+    // Ready shows the clip's tab, over which nothing is caught; Live again
+    // frees the shutter.
+    choose('studio.publish.viewLive');
+    expect(capture()).toBeEnabled();
   });
 });
 
@@ -210,7 +255,7 @@ describe('a take of the preview clip', () => {
     expect(preview.captureFrames).toBe(true);
     // Never thrown away, never begun again.
     expect(video.cancel).not.toHaveBeenCalled();
-    expect(video.retry).not.toHaveBeenCalled();
+    expect(video.record).not.toHaveBeenCalled();
   });
 
   // On the way back from another view the first frames are still that
@@ -258,14 +303,6 @@ describe('a take of the preview clip', () => {
     expect(video.frame).toHaveBeenCalledTimes(1);
   });
 
-  it('still waiting for music holds nothing, and simply waits', () => {
-    open('waiting');
-    choose('studio.publish.shapeUltra');
-    expect(video.cancel).not.toHaveBeenCalled();
-    choose('studio.publish.shapeNormal');
-    expect(video.retry).not.toHaveBeenCalled();
-  });
-
   it('never locks the views', () => {
     open('waiting');
     ['shapeNormal', 'shapeUltra', 'shapeAmp'].forEach((key) =>
@@ -276,44 +313,91 @@ describe('a take of the preview clip', () => {
   });
 });
 
-// Send says "Recording the preview…" and waits only while a take is really
-// under way (Ivan, 2026-11-14: "enable the button"); waiting for the music
-// is not one, so the press can still say what is missing.
-describe('what the camera tells the dialog about a take', () => {
-  const reported = (phase: string) => {
-    const onRecording = jest.fn();
-    video.phase = phase;
-    render(
-      <SceneAudioProvider value={QUIET}>
-        <StudioPublishCamera
-          identity="balloon-dawn"
-          pack={pack}
-          name="Balloon Dawn"
-          locked={false}
-          tuning={{}}
-          onCapture={jest.fn()}
-          source="src"
-          onPreview={jest.fn()}
-          videoSlot={document.createElement('div')}
-          onRecording={onRecording}
-        />
-      </SceneAudioProvider>,
+// The clip used to start itself the moment the dialog opened, on whatever
+// was playing (Ivan, 2026-11-23). It is the press's now.
+describe('the take the press asks for', () => {
+  it('is never started by the camera on its own', () => {
+    open();
+    act(() =>
+      preview.onDrawn?.({
+        fade: 1,
+        level: 0.5,
+        deltaMs: 16,
+        spectrum: new Float32Array(8),
+        waveform: new Float32Array(8),
+      }),
     );
-    const { calls } = onRecording.mock;
-    return calls[calls.length - 1]?.[0];
-  };
+    expect(video.record).not.toHaveBeenCalled();
+  });
 
-  it.each(['preparing', 'recording', 'paused', 'encoding', 'checking'])(
-    'a take that is %s is under way',
-    (phase) => {
-      expect(reported(phase)).toBe(true);
-    },
-  );
+  it('starts in the Normal view, live, from any view', () => {
+    open();
+    choose('studio.publish.shapeAmp');
+    act(() => recordRef.current?.());
+    expect(video.record).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByRole('button', { name: 'studio.publish.shapeNormal' }),
+    ).toHaveAttribute('aria-pressed', 'true');
+    expect(viewNow()).toBeUndefined();
+  });
 
-  it.each(['waiting', 'ready', 'failed', 'cancelled'])(
+  // A take on a scene at rest would wait for sound for good.
+  it('fails at once when the demo song could not start', () => {
+    signal.failed = true;
+    open();
+    act(() => recordRef.current?.());
+    expect(video.fail).toHaveBeenCalledTimes(1);
+    expect(video.record).not.toHaveBeenCalled();
+  });
+
+  it('fails when the demo song gives out mid-take, and not before one', () => {
+    const { rerender } = open('idle');
+    signal.failed = true;
+    rerender(camera());
+    expect(video.fail).not.toHaveBeenCalled();
+    signal.failed = false;
+    const recording = open('recording');
+    signal.failed = true;
+    recording.rerender(camera(true));
+    expect(video.fail).toHaveBeenCalledTimes(1);
+  });
+
+  // The clip's part used to read "could not be recorded" over a scene that
+  // could not play, before anybody had asked for a clip.
+  it('lets a scene that cannot play fail only a take under way', () => {
+    open('idle');
+    act(() => preview.onTrouble?.('heavy'));
+    expect(video.fail).not.toHaveBeenCalled();
+    expect(screen.getByText('studio.publish.stageHeavy')).toBeInTheDocument();
+    open('recording');
+    act(() => preview.onTrouble?.('heavy'));
+    expect(video.fail).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports every phase to the dialog', () => {
+    open('checking');
+    expect(onTake).toHaveBeenLastCalledWith('checking');
+  });
+});
+
+// Send says "Recording the preview…" and waits while a take the press asked
+// for is under way, from its first second; nothing else holds it.
+describe('which phases hold Send', () => {
+  it.each([
+    'waiting',
+    'preparing',
+    'recording',
+    'paused',
+    'encoding',
+    'checking',
+  ])('a take that is %s is under way', (phase) => {
+    expect(isTakeBusy(phase)).toBe(true);
+  });
+
+  it.each(['idle', 'ready', 'failed', 'cancelled'])(
     'a take that is %s is not',
     (phase) => {
-      expect(reported(phase)).toBe(false);
+      expect(isTakeBusy(phase)).toBe(false);
     },
   );
 });
