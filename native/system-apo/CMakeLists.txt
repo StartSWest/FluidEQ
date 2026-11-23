@@ -253,6 +253,11 @@ target_link_libraries(fluideq-engine-status-test
   PRIVATE feq_strict shell32 ole32)
 add_test(NAME engine-status COMMAND fluideq-engine-status-test)
 
+# How long a microphone's rack plays out on silence, at every rate.
+add_executable(fluideq-engine-silence-flush-test tests/silence_flush_test.cpp)
+target_link_libraries(fluideq-engine-silence-flush-test PRIVATE feq_strict)
+add_test(NAME engine-silence-flush COMMAND fluideq-engine-silence-flush-test)
+
 # Which channel is the subwoofer feed, from the stream's mask: the exciter
 # leaves that one alone, and a rule off by one buzzes a subwoofer.
 add_executable(fluideq-engine-channel-layout-test

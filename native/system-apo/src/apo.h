@@ -36,6 +36,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <vector>
 
 #include "block_timing.h"
+#include "silence_flush.h"
 #include "fluideq_engine/config.h"
 #include "log.h"
 #include "watcher.h"
@@ -237,6 +238,8 @@ class Apo final : public IAudioProcessingObject,
   const Graph* voice_graph_ = nullptr;
   uint32_t voice_seen_ = 0;
   uint64_t voice_told_ = 0;
+  /** What a mic's rack still owes the silence after it. Audio thread. */
+  SilenceFlush silence_flush_;
   /** Audio-thread identity only, never dereferenced after replacement. */
   const Graph* reported_graph_ = nullptr;
 

@@ -486,6 +486,13 @@ void feq_chain_wake_workers(FeqChain* chain) {
   }
 }
 
+int feq_chain_is_voice(const FeqChain* chain) {
+  return chain != nullptr && chain->settings.enabled != 0 &&
+                 chain->settings.voice.enabled != 0
+             ? 1
+             : 0;
+}
+
 uint32_t feq_chain_voice_late(const FeqChain* chain) {
   return chain == nullptr ? 0 : feq_denoise_voice_late(chain->denoise);
 }

@@ -223,6 +223,11 @@ void Apo::release_locked_state() noexcept {
   }
   timing_.reset();
   log_.reset();
+  // The next stream starts with nothing owed and no graph read.
+  silence_flush_.clear();
+  voice_graph_ = nullptr;
+  voice_seen_ = 0;
+  voice_told_ = 0;
   // Swapped with an empty vector rather than cleared and shrunk: this
   // function is `noexcept` and runs inside audiodg.exe, where an exception
   // escaping is a terminate() that takes the machine's audio with it —
@@ -293,13 +298,19 @@ Apo::APOProcess(UINT32 input_count, APO_CONNECTION_PROPERTY** inputs,
     graph->report_meter_activity((valid || mixing) && frames > 0 && usable &&
                                  !graph->is_passthrough());
   }
+  // A microphone's rack plays out what is still inside it once Windows sends
+  // silence, then skips as every rack does (`silence_flush.h`). Never an
+  // output's: there a silent block stays the free block it always was.
+  const bool flushing = usable && !valid && !mixing && graph != nullptr &&
+                        !graph->is_passthrough() && graph->is_voice() &&
+                        silence_flush_.take(frames);
   if (!usable) {
     // Refused rather than clamped. A short block is a gap the user hears
     // once; a block written past the end of somebody else's buffer is a
     // crash in the process that owns every speaker on the machine.
     out.u32ValidFrameCount = 0;
     out.u32BufferFlags = BUFFER_SILENT;
-  } else if (!valid && !mixing) {
+  } else if (!valid && !mixing && !flushing) {
     if (graph != nullptr && in.u32BufferFlags == BUFFER_SILENT) {
       graph->report_input_silence(frames);
     }
@@ -393,6 +404,10 @@ Apo::APOProcess(UINT32 input_count, APO_CONNECTION_PROPERTY** inputs,
         // Its existing handover owns any crossover; no receiver can make
         // main run another rack or wait for the receiver's graph to settle.
         graph->process(planes, frames);
+        if (valid) {
+          silence_flush_.heard(graph->latency_frames(),
+                               sample_rate_.load(std::memory_order_relaxed));
+        }
       }
       if (mixing) split->trim_output(planes, frames);
       for (uint32_t channel = 0; channel < channels; ++channel) {

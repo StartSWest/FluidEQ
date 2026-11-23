@@ -561,6 +561,9 @@ int feq_chain_transfer_state(FeqChain* prepared, FeqChain* previous);
 int feq_chain_carries_restoration(const FeqChain* prepared,
                                   const FeqChain* previous);
 
+/** Whether the rack is a microphone's: its Voice stage switched on. */
+int feq_chain_is_voice(const FeqChain* chain);
+
 /** The voice cleaner's late blocks and its hops ahead (`denoise.h`). */
 uint32_t feq_chain_voice_late(const FeqChain* chain);
 uint32_t feq_chain_voice_hops(const FeqChain* chain);

@@ -229,6 +229,11 @@ class Graph {
    */
   uint32_t latency_frames() const noexcept;
 
+  /** A microphone's rack, which plays out on silence (`silence_flush.h`). */
+  bool is_voice() const noexcept {
+    return rack_ && feq_chain_is_voice(rack_.get()) != 0;
+  }
+
   /** The rack's voice cleaner: late blocks so far, and hops ahead (0: none). */
   uint32_t voice_late() const noexcept {
     return rack_ ? feq_chain_voice_late(rack_.get()) : 0;
