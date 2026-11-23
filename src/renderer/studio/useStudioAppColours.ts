@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useMemo, useState, type RefObject } from 'react';
 import type { IScenePack } from 'common/scenePacks';
 import type { ISceneTuning } from '../graph/sceneTuner';
-import observeShown from '../utils/observeShown';
+import observeBenchShown from './observeBenchShown';
 import {
   sceneAppColourStops,
   setStudioAppColours,
@@ -33,7 +33,7 @@ export default function useStudioAppColours(
 
   useEffect(() => {
     const element = bench.current;
-    return element ? observeShown(element, setIsShown) : undefined;
+    return element ? observeBenchShown(element, setIsShown) : undefined;
   }, [bench]);
 
   const stops = useMemo(

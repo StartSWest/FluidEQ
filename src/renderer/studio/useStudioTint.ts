@@ -8,7 +8,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { useEffect, useState, type RefObject } from 'react';
 import type { IScenePack } from 'common/scenePacks';
-import observeShown from '../utils/observeShown';
+import observeBenchShown from './observeBenchShown';
 import { setStudioTintSource } from '../utils/sceneTintStore';
 
 /**
@@ -32,7 +32,7 @@ import { setStudioTintSource } from '../utils/sceneTintStore';
  * closed, and the Studio stays mounted behind every other page and behind
  * the player: going to the player from the Studio, the player wore the
  * Studio's scene's colours instead of the visualizer it was playing. Now the
- * claim follows `observeShown` on the bench itself — another page, the
+ * claim follows `observeBenchShown` on the bench itself — another page, the
  * player, a minimised window — and the window goes back to the graph's
  * choice until the bench is looked at again.
  */
@@ -65,7 +65,7 @@ export default function useStudioTint(
 
   useEffect(() => {
     const element = bench.current;
-    return element ? observeShown(element, setIsShown) : undefined;
+    return element ? observeBenchShown(element, setIsShown) : undefined;
   }, [bench]);
 
   useEffect(() => {
