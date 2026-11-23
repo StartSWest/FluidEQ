@@ -35,13 +35,20 @@ void check(bool condition, const char* what) {
 
 int main() {
   std::printf("fluideq denoise bounds\n");
-  check(feq_denoise_max_latency_frames(48000.0) == 143 + 2048 + 2400,
+  // The voice module's terms: its overlap-add hop, four hops of headroom,
+  // the converters' lag, the network's four-hop look-ahead and where the
+  // converters centre the signal (`denoise_voice_latency_for`).
+  check(feq_denoise_max_latency_frames(48000.0) ==
+            143 + 2048 + (480 + 1920 + 0 + 1920 + 0),
         "48 kHz: the window and the voice module at their own rate");
-  check(feq_denoise_max_latency_frames(192000.0) == 143 + 8192 + 9600,
-        "192 kHz: what the old constant was sized for");
-  check(feq_denoise_max_latency_frames(352800.0) == 143 + 16384 + 17640,
+  check(feq_denoise_max_latency_frames(192000.0) ==
+            143 + 8192 + (1920 + 7680 + 2048 + 7680 + 5),
+        "192 kHz");
+  check(feq_denoise_max_latency_frames(352800.0) ==
+            143 + 16384 + (3528 + 14112 + 3764 + 14112 + 8),
         "352.8 kHz");
-  check(feq_denoise_max_latency_frames(384000.0) == 143 + 16384 + 19200,
+  check(feq_denoise_max_latency_frames(384000.0) ==
+            143 + 16384 + (3840 + 15360 + 4096 + 15360 + 9),
         "384 kHz");
   // POSITIVE CONTROL: the old constant against the rate it failed at.
   check(feq_denoise_max_latency_frames(384000.0) > 32768,

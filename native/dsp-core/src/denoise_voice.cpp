@@ -65,6 +65,60 @@ uint32_t device_frames_for(double device_rate, uint32_t model_frames) {
                                             device_rate / kVoiceRate));
 }
 
+/**
+ * Hops the network itself holds a voice back before it hands it out again:
+ * DPDFNet looks four frames ahead, so the spectrum it returns for a hop is
+ * the one it was given four hops earlier. Measured, not documented: on real
+ * speech the cleaned voice landed 40 ms after the latency the chain reported,
+ * at every rate and both headroom settings (`voice_alignment_test.cpp`).
+ * Uncounted, the dry path a Strength under 100% blends in ran 40 ms ahead of
+ * the cleaned voice, and every word was heard twice — the echo Ivan heard on
+ * his mic at 55% (2026-11-23).
+ */
+constexpr uint32_t kVoiceModelLookaheadHops = 4;
+
+/** `FEQ_RESAMPLER_TAPS / 2`: what each converter primes before its first output. */
+constexpr uint32_t kConverterHalf = FEQ_RESAMPLER_TAPS / 2;
+
+/**
+ * Device frames the two converters cost the worker, at any rate but the
+ * model's own. Each primes half its window before its first output
+ * (`feq_resample`). Going in, that leaves the last few dozen frames of every
+ * block's hop short until the next block arrives, and the network only takes
+ * whole hops: the hop waits a whole hop. Coming out, the last half window of
+ * each hop's output waits for the next hop. With one hop of headroom (low
+ * lag) nothing covered either and every block was late — the cleaner never
+ * cleaned a 44.1 kHz or 96 kHz mic at all, 299 blocks of 299 late in
+ * `voice_alignment_test.cpp`.
+ */
+uint32_t converter_slack(double device_rate) {
+  if (device_rate == kVoiceRate) {
+    return 0;
+  }
+  return device_frames_for(device_rate, kVoiceHop) +
+         static_cast<uint32_t>(std::ceil(static_cast<double>(kConverterHalf) *
+                                         device_rate / kVoiceRate));
+}
+
+/**
+ * Where the converters put the signal: each centres an output on the input
+ * frame before its own, one frame of its input rate later — one device frame
+ * going to the model and one model frame coming back. Under a frame each, but
+ * at 44.1 kHz the two made two frames of comb against the dry path.
+ */
+uint32_t converter_offset(double device_rate) {
+  if (device_rate == kVoiceRate) {
+    return 0;
+  }
+  return static_cast<uint32_t>(std::llround(1.0 + device_rate / kVoiceRate));
+}
+
+/** Silence the output ring starts with: the headroom, and the converters' lag. */
+uint32_t prefill_frames(double device_rate, uint32_t headroom_hops) {
+  return device_frames_for(device_rate, kVoiceHop * headroom_hops) +
+         converter_slack(device_rate);
+}
+
 
 /**
  * A single-producer, single-consumer float ring.
@@ -456,14 +510,17 @@ void reset_runtime(VoiceRuntime& runtime) {
     runtime.dry_delay[c].assign(dry_capacity, 0.0f);
 
     /*
-     * Four finished hops are scheduling headroom. The overlap-add front end
-     * contributes one more hop: the first input hop enters the right half of
-     * the window and is emitted after the next hop. The dry path carries both
-     * terms so partial Amount stays phase-coherent with the cleaned output.
+     * The headroom hops, and the converters' lag at any other rate, are
+     * silence the worker stays ahead of. The overlap-add front end
+     * contributes one more hop (the first input hop enters the right half of
+     * the window and is emitted after the next hop) and the network four of
+     * its own; the dry path carries every term
+     * (`denoise_voice_latency_for`) so a partial Amount blends the same
+     * instant of the voice, never the voice twice.
      */
     float silence[64] = {0.0f};
-    uint32_t remaining = device_frames_for(
-        runtime.device_rate, kVoiceHop * runtime.headroom_hops);
+    uint32_t remaining =
+        prefill_frames(runtime.device_rate, runtime.headroom_hops);
     while (remaining > 0) {
       const uint32_t block = remaining < 64 ? remaining : 64;
       runtime.output[c].push(silence, block);
@@ -524,9 +581,13 @@ void retire_runtime(FeqDenoise* denoise, VoiceRuntime* runtime) {
 
 uint32_t denoise_voice_latency_for(double device_rate,
                                    uint32_t headroom_hops) {
-  // One overlap-add hop, plus the worker's scheduling headroom.
+  // One overlap-add hop, the worker's scheduling headroom and the converters'
+  // lag (the ring's prefill), the network's own look-ahead, and where the
+  // converters centre the signal: exactly where the cleaned voice lands.
   return device_frames_for(device_rate, kVoiceHop) +
-         device_frames_for(device_rate, kVoiceHop * headroom_hops);
+         prefill_frames(device_rate, headroom_hops) +
+         device_frames_for(device_rate, kVoiceHop * kVoiceModelLookaheadHops) +
+         converter_offset(device_rate);
 }
 
 uint32_t denoise_voice_low_latency_hops(double device_rate,

@@ -319,6 +319,12 @@ add_executable(fluideq-voice-handover-test dsp-core/tests/voice_handover_test.cp
 target_link_libraries(fluideq-voice-handover-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME voice-handover COMMAND fluideq-voice-handover-test)
 
+# The cleaned voice lands where the chain's latency says, so a Strength under
+# 100% is never the voice twice. Real model and recording, as above.
+add_executable(fluideq-voice-alignment-test dsp-core/tests/voice_alignment_test.cpp)
+target_link_libraries(fluideq-voice-alignment-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME voice-alignment COMMAND fluideq-voice-alignment-test)
+
 add_executable(fluideq-denoise-bounds-test
   dsp-core/tests/denoise_bounds_test.cpp)
 target_link_libraries(fluideq-denoise-bounds-test
