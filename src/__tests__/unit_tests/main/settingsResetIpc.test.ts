@@ -263,6 +263,7 @@ const KEPT_FILES = [
   'studio.json',
   'studio-notes.json',
   'studio-agent.json',
+  'tuning-agent.json',
   'my-curves.json',
   'user-presets.json',
   // The account, what it owns, and what it has agreed to or been told.

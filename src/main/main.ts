@@ -181,6 +181,7 @@ import claimTheOnlyCopy from './onlyCopy';
 import { registerAppLinks } from './appLinks';
 import { registerPresetLinks } from './presetLinks';
 import { chooseLaunchEngine, registerEngineServices } from './engineServices';
+import { registerTuningAgent } from './tuningAgent/registerTuningAgent';
 
 /**
  * Declares the `fluideq-media:` scheme's privileges before the app is ready.
@@ -453,7 +454,7 @@ registerEngineStateIpc({
   syncCustomFxFromConfig,
 });
 
-const { apoGuard, republishMicRacks } = registerEngineServices({
+const { apoGuard, republishMicRacks, micSound } = registerEngineServices({
   userDataDir,
   state,
   session,
@@ -749,6 +750,23 @@ const members = registerMemberServices({
   getMainWindow,
   userDataDir,
   getEngine: () => session.audioEngine,
+});
+
+// Local Streamable HTTP MCP door for AI-assisted audio tuning (EQ, OPRA,
+// presets, DSP rack, mic rack, and live acoustic metering). Closed by default.
+const tuningAgent = registerTuningAgent({
+  userDataDir,
+  appVersion: appVersion(),
+  state,
+  session,
+  getMainWindow,
+  shieldReferenceBands,
+  applyingLayer: profiles.applyingLayer,
+  switchToParametricEditing: profiles.switchToParametricEditing,
+  handleUpdate,
+  notifyOutputStateChanged,
+  readMicSound: micSound.read,
+  applyMicSound: micSound.apply,
 });
 
 // The tools menu's animations row: the saved choice, and the one this launch
@@ -1105,6 +1123,7 @@ app.on('will-quit', () => {
   stopRemoteAudioLan();
   stopOutputMirrors();
   members.dispose();
+  tuningAgent.dispose().catch(() => undefined);
   forumIpc.dispose();
   motionPreferenceIpc.dispose();
   clipboardTextIpc.dispose();

@@ -36,6 +36,7 @@ import LanguagePicker from './LanguagePicker';
 import MotionPicker from './MotionPicker';
 import ResetSettingsDialog from './ResetSettingsDialog';
 import EngineKeyDialog from './EngineKeyDialog';
+import TuningAgentDialog from './TuningAgentDialog';
 import SliderHandlePicker from './SliderHandlePicker';
 import StartupPicker from './StartupPicker';
 import WindowLookSection from './WindowLookSection';
@@ -172,6 +173,7 @@ const ActionsMenu = ({
   // row is pressed.
   const [isResetting, setResetting] = useState(false);
   const [isPickingKey, setPickingKey] = useState(false);
+  const [isTuningAgentOpen, setTuningAgentOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
@@ -421,6 +423,12 @@ const ActionsMenu = ({
               <Item icon="power" onSelect={run(() => setPickingKey(true))}>
                 {t('app.menu.engineKey')}
               </Item>
+              <Item
+                icon="configure"
+                onSelect={run(() => setTuningAgentOpen(true))}
+              >
+                {t('app.menu.tuningAgent')}
+              </Item>
               <hr className="actions-menu__rule" />
               <Item icon="import" onSelect={run(onImportEq)}>
                 {t('app.menu.importEq')}
@@ -545,6 +553,9 @@ const ActionsMenu = ({
         <ResetSettingsDialog onClose={() => setResetting(false)} />
       )}
       {isPickingKey && <EngineKeyDialog onClose={() => setPickingKey(false)} />}
+      {isTuningAgentOpen && (
+        <TuningAgentDialog onClose={() => setTuningAgentOpen(false)} />
+      )}
     </div>
   );
 };

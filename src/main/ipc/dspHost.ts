@@ -39,6 +39,7 @@ import { findDspHostExecutable } from '../dspHost/hostPath';
 import { DspHostSupervisor, TDspHostState } from '../dspHost/supervisor';
 import { createDspHostPublisher } from '../dspHost/windowPublisher';
 import registerDspHostLayerIpc from './dspHostLayers';
+import type { IEngineAnalysis } from '../../common/dsp/engineAnalysis';
 import { IHostAnalysis, IHostStats } from '../dspHost/wire';
 
 export interface IDspHostIpcDeps {
@@ -54,6 +55,9 @@ export interface IDspHostIpcDeps {
  * ceremony around a singleton that is already a singleton.
  */
 let supervisor: DspHostSupervisor | undefined;
+let hostSampleRate = 48_000;
+const recentHostAnalysis: IEngineAnalysis[] = [];
+const RECENT_HOST_ANALYSIS_CAP = 8;
 
 /**
  * What main last told the host its two decks hold, as it passes the window's
@@ -206,7 +210,12 @@ export const registerDspHostIpc = ({
     supervisor = new DspHostSupervisor({
       executablePath,
       expectedParameterCount: NATIVE_DSP_PARAMETERS.length,
-      onTelemetry: publishTelemetry,
+      onTelemetry: (telemetry) => {
+        if (Number.isFinite(telemetry.sampleRate) && telemetry.sampleRate > 0) {
+          hostSampleRate = telemetry.sampleRate;
+        }
+        publishTelemetry(telemetry);
+      },
       /**
        * Forwarded raw, and only sent at all while the panel has asked for it.
        *
@@ -214,8 +223,16 @@ export const registerDspHostIpc = ({
        * on this channel by two orders of magnitude, which is exactly why the
        * host stays silent until `setAnalysis` turns it on.
        */
-      onAnalysis: (analysis: IHostAnalysis) =>
-        publish('dsp-host-analysis', analysis),
+      onAnalysis: (analysis: IHostAnalysis) => {
+        recentHostAnalysis.push({
+          sampleRate: hostSampleRate,
+          frame: analysis,
+        });
+        if (recentHostAnalysis.length > RECENT_HOST_ANALYSIS_CAP) {
+          recentHostAnalysis.shift();
+        }
+        publish('dsp-host-analysis', analysis);
+      },
       onStateChange: (state: TDspHostState) => publish('dsp-host-state', state),
       onLifecycle: (event) => {
         const entry = { event: event.event, ...event.values };
@@ -756,9 +773,23 @@ export const dspHostStats = (): IHostStats | undefined =>
 export const isDspHostPlaying = (): boolean =>
   isHostPlaying && supervisor?.getState() === 'ready';
 
+export const readDspHostAnalysisFrames = (): readonly IEngineAnalysis[] =>
+  isDspHostPlaying() ? [...recentHostAnalysis] : [];
+
+export const readDspHostNowPlaying = (): {
+  isPlaying: boolean;
+  filePath?: string;
+  sampleRate: number;
+} => ({
+  isPlaying: isDspHostPlaying(),
+  filePath: decks.paths[decks.heard],
+  sampleRate: hostSampleRate,
+});
+
 export const shutdownDspHost = async (): Promise<void> => {
   const host = supervisor;
   supervisor = undefined;
   isHostPlaying = false;
+  recentHostAnalysis.length = 0;
   await host?.stop();
 };

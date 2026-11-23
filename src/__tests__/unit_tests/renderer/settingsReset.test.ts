@@ -187,6 +187,8 @@ const NOT_STORED = [
   // The feature tour's slide ids.
   'fluideq-engine',
   'fluideq-plus',
+  // MCP server identifier (not a localStorage key).
+  'fluideq-tuning',
 ];
 
 /** A name, not a sentence: "fluideq.com im Browser öffnen" is German. */

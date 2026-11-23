@@ -121,16 +121,23 @@ const useMicSound = (): IMicSoundHook => {
 
   useEffect(() => {
     let alive = true;
-    getMicSound()
-      .then((loaded) => {
-        if (alive) {
-          change(() => loaded);
-        }
-        return undefined;
-      })
-      .catch((error: unknown) => reportError('reading the mics’ sound', error));
+    const load = () => {
+      getMicSound()
+        .then((loaded) => {
+          if (alive) {
+            change(() => loaded);
+          }
+          return undefined;
+        })
+        .catch((error: unknown) =>
+          reportError('reading the mics’ sound', error),
+        );
+    };
+    load();
+    const unsubscribe = window.electron?.ipcRenderer?.onMicSoundChanged?.(load);
     return () => {
       alive = false;
+      unsubscribe?.();
     };
   }, [change]);
 

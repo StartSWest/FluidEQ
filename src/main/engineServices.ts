@@ -321,5 +321,5 @@ export const registerEngineServices = ({
       );
   };
 
-  return { apoGuard, republishMicRacks };
+  return { apoGuard, republishMicRacks, micSound };
 };
