@@ -104,7 +104,12 @@ const MicPage = () => {
   // The tab records the mic only where the engine can be on it: attached,
   // and Windows' enhancements not known to be off.
   const listening = attached && effects !== 'off';
-  const levels = useMicLevels(mic?.guid, mic?.name ?? '', listening);
+  // Recorded for as long as the tab shows the mic, not for as long as each
+  // status read agrees it is attached: a read that disagreed for a moment
+  // closed the recording and opened it again, and every reopen is Windows
+  // building the mic's effect again. Not attached, nothing is processed and
+  // the line says why; the recording itself harms nothing.
+  const levels = useMicLevels(mic?.guid, mic?.name ?? '', mic !== undefined);
   const live = listening && levels.state === 'live';
   const { settings } = entry;
   const { voice } = settings;

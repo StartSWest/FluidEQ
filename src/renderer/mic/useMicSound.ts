@@ -85,7 +85,22 @@ const lowCutPartsOf = (profileId: string): IMicLowCutParts => {
 
 const useMicSound = (): IMicSoundHook => {
   const status = useKnownAudioEngineStatus();
-  const microphones = useMemo(() => status?.fluid.microphones ?? [], [status]);
+  /**
+   * The last list the helper gave. A status read without one (the helper
+   * skipped it, or answered late) is "not known", not "no mics" — main says
+   * so where it parses it — and taken as none it unmounted the mic for one
+   * status: the tab closed its recording and opened it again 0.2 s later,
+   * which Windows answers by building the mic's effect again (engine.log
+   * 2026-11-22 23:24:59).
+   */
+  const lastMicrophones = useRef<readonly IFluidEngineMicrophone[]>([]);
+  const microphones = useMemo(() => {
+    const listed = status?.fluid.microphones;
+    if (listed !== undefined) {
+      lastMicrophones.current = listed;
+    }
+    return lastMicrophones.current;
+  }, [status]);
   const [file, setFile] = useState<IMicSoundFile>(EMPTY_MIC_SOUND);
   const [lastResult, setLastResult] = useState<TMicSoundResult>();
   /**
