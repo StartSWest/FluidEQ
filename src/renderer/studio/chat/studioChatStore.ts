@@ -402,6 +402,12 @@ export const askStudioChatForNote = ({
  * The open project's chat asked to write the line the member set in the
  * publish dialog in every language; true when the ask went, false when there
  * is no chat to ask or a reply is running.
+ *
+ * Always the member's press — Send is pressed to ask it — so it may start
+ * the scene's first conversation, as Write with AI may (Ivan, 2026-11-23:
+ * "when there is only English note already is when it happens"). Without
+ * it, a scene whose chat had never been opened refused every translation,
+ * and its English line went out as written in every language.
  */
 export const askStudioChatToTranslateNote = (
   line: string,
@@ -411,6 +417,7 @@ export const askStudioChatToTranslateNote = (
     brief: chatBrief(),
     ...scenePicks(),
     translate: { line, from },
+    pressed: true,
   }) ?? Promise.resolve(false);
 
 /** A queued message taken back before it went. */
