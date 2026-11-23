@@ -107,6 +107,14 @@ export default function usePublishNote(
   const translating = useRef<{ line: string; from: string } | undefined>(
     undefined,
   );
+  // A translation the chat refused because it was still answering: asked
+  // again when that answer ends, as a refused Write with AI is.
+  const translateWaiting = useRef<{ line: string; from: string } | undefined>(
+    undefined,
+  );
+  const pressedTranslate = useRef<(line: string, from: string) => void>(
+    () => undefined,
+  );
 
   useEffect(() => {
     if (!open || !projectId) {
@@ -115,6 +123,7 @@ export default function usePublishNote(
     opening.current += 1;
     // A press waiting from an earlier opening is not this one's.
     pressWaiting.current = false;
+    translateWaiting.current = undefined;
     const mine = opening.current;
     const still = () =>
       opening.current === mine ? currentDraft.current : undefined;
@@ -188,7 +197,8 @@ export default function usePublishNote(
               : {}),
             // A translation's reply ended, whatever it wrote: the dialog
             // sends what it has now (`StudioPublishDialog`).
-            ...((replyEnded || translated) && now.noteTranslating
+            ...(((replyEnded && !translateWaiting.current) || translated) &&
+            now.noteTranslating
               ? { noteTranslating: false, noteTranslated: true }
               : {}),
           });
@@ -214,6 +224,11 @@ export default function usePublishNote(
               pressWaiting.current = false;
               pressedAsk.current();
             }
+            const waiting = translateWaiting.current;
+            if (waiting) {
+              translateWaiting.current = undefined;
+              pressedTranslate.current(waiting.line, waiting.from);
+            }
             return undefined;
           })
           .catch(() => undefined);
@@ -235,27 +250,46 @@ export default function usePublishNote(
 
   /**
    * The member's changed line handed to the scene's chat to write in every
-   * language. False when there is no chat to ask, or it is answering
-   * something else: the dialog then says the line goes as written.
+   * language. False only when there is no chat to ask: the dialog then says
+   * the line goes as written.
+   *
+   * A chat still answering refused it, and the line went out as written in
+   * every language at once (Ivan, 2026-11-23: "it shows it's written on
+   * every language, which is not good"). The dialog now lets go of Send the
+   * moment the line it waited for is whole, while the chat finishes its
+   * reply, so a press in that moment met a busy chat every time. A busy
+   * chat's refusal now waits: Send says the line is being translated, and
+   * it is asked again when the answer ends.
    */
   const translate = useCallback(
-    (line: string, from: string) =>
-      askStudioChatToTranslateNote(line, from)
+    (line: string, from: string) => {
+      const now = currentDraft.current;
+      if (now) {
+        setDraft({ ...now, noteTranslating: true, noteTranslated: false });
+      }
+      return askStudioChatToTranslateNote(line, from)
         .catch(() => false)
         .then((asked) => {
-          translating.current = asked ? { line, from } : undefined;
-          const now = currentDraft.current;
-          if (now) {
-            setDraft(
-              asked
-                ? { ...now, noteTranslating: true, noteTranslated: false }
-                : { ...now, noteAsWritten: true },
-            );
+          const waits =
+            !asked && projectId !== undefined && isStudioChatBusy(projectId);
+          translating.current = asked || waits ? { line, from } : undefined;
+          translateWaiting.current = waits ? { line, from } : undefined;
+          const later = currentDraft.current;
+          if (!asked && !waits && later) {
+            setDraft({
+              ...later,
+              noteTranslating: false,
+              noteAsWritten: true,
+            });
           }
-          return asked;
-        }),
-    [currentDraft, setDraft],
+          return asked || waits;
+        });
+    },
+    [currentDraft, setDraft, projectId],
   );
+  pressedTranslate.current = (line, from) => {
+    translate(line, from).catch(() => undefined);
+  };
 
   /**
    * The line asked of the scene's chat at the member's press (Ivan,
