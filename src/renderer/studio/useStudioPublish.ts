@@ -258,8 +258,22 @@ export default function useStudioPublish(
   // the answer away, so a publication that went through never said so
   // (2026-11-08). A notice likewise stays until the project or account
   // changes, or the next action replaces it.
+  //
+  // AN OPEN DIALOG STAYS THROUGH ITS OWN PROJECT'S REBUILDS (Ivan,
+  // 2026-11-23: "after the chat ended, it closed the publish window"). The
+  // dialog asks the scene's chat for its line, and the chat's reply ending
+  // builds the project again: every such build closed the dialog the member
+  // was working in, covers and line with it. A new build of the same
+  // project now reaches the open dialog as its new scene — the stage plays
+  // it, and the clip is recorded from it at the press. Another project or
+  // account, a build that broke, or a build while the dialog is still being
+  // prepared (its first cover would be of the old one) still close it.
   useLayoutEffect(() => {
-    if (publishingFor.current !== projectKey) {
+    const keptOpen =
+      projectKeyRef.current === projectKey &&
+      currentDraft.current !== undefined &&
+      !view.problems;
+    if (publishingFor.current !== projectKey && !keptOpen) {
       cancel();
     }
     if (noticeFor.current !== projectKey) {

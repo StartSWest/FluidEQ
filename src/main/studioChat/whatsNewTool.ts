@@ -47,9 +47,7 @@ const SCHEMA = {
   additionalProperties: false,
 };
 
-const createWhatsNewTool = ({
-  project,
-}: IWhatsNewToolDeps): IMcpTool => {
+const createWhatsNewTool = ({ project }: IWhatsNewToolDeps): IMcpTool => {
   const call = async (
     args: Record<string, unknown>,
   ): Promise<IMcpToolResult> => {
@@ -75,7 +73,8 @@ const createWhatsNewTool = ({
           `Saved. The Publish dialog's "What's new" box shows: ${JSON.stringify(lines.en)}${
             missing.length > 0
               ? ` - still to write in ${missing.join(', ')}: call this again with every language.`
-              : '.'
+              : // The member is waiting on the dialog, not on more work.
+                '. That is every language: nothing else is needed. Answer with the English line alone, with no further checks or tools.'
           }`,
         ),
       ],

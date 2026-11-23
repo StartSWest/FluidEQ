@@ -5,7 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useCallback, useEffect, useRef, type MutableRefObject } from 'react';
-import { readVersionNote, type TVersionNotes } from 'common/sceneVersionNote';
+import {
+  readVersionNote,
+  VERSION_NOTE_LOCALES,
+  type TVersionNotes,
+} from 'common/sceneVersionNote';
 import { isOldNote, type IStudioNotes } from 'common/studioNotes';
 import {
   askStudioChatForNote,
@@ -76,6 +80,13 @@ export const noteFieldsOf = (
   };
 };
 
+/** The line held in every language a listener can read it in. */
+const isWhole = (lines: TVersionNotes | undefined): boolean =>
+  lines !== undefined &&
+  VERSION_NOTE_LOCALES.every(
+    (locale) => typeof readVersionNote(lines[locale]) === 'string',
+  );
+
 export default function usePublishNote(
   draft: IPublishDraft | undefined,
   currentDraft: MutableRefObject<IPublishDraft | undefined>,
@@ -91,6 +102,11 @@ export default function usePublishNote(
   // can make it without depending on it.
   const pressWaiting = useRef(false);
   const pressedAsk = useRef<() => void>(() => undefined);
+  // The member's line being written in every language, as it was handed to
+  // the chat (`translate`).
+  const translating = useRef<{ line: string; from: string } | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     if (!open || !projectId) {
@@ -137,6 +153,24 @@ export default function usePublishNote(
             return undefined;
           }
           const read = noteFieldsOf(notes, now.published);
+          // THE LINE IS DONE WHEN IT IS WHOLE (Ivan, 2026-11-23: "why after
+          // apparently all translations were in, it continues thinking").
+          // Once write_whats_new has the line in every language there is
+          // nothing left for the dialog to wait for; the chat still has its
+          // closing answer to think through, and the member waited on that
+          // with every language already in the box. A line in fewer
+          // languages is still being written, and waits for the reply.
+          const whole = isWhole(read.suggestedNotes);
+          const asked = translating.current;
+          const translated =
+            whole &&
+            asked !== undefined &&
+            readVersionNote(
+              read.suggestedNotes?.[asked.from as keyof TVersionNotes],
+            ) === readVersionNote(asked.line);
+          if ((replyEnded || translated) && now.noteTranslating) {
+            translating.current = undefined;
+          }
           setDraft({
             ...now,
             ...read,
@@ -149,12 +183,12 @@ export default function usePublishNote(
             // the translation and the line went out as written. A press the
             // chat refused while busy still waits (`pressWaiting`), so the
             // answer it waited behind does not end it either.
-            ...(replyEnded && !pressWaiting.current
+            ...((replyEnded || whole) && !pressWaiting.current
               ? { noteWriting: false }
               : {}),
             // A translation's reply ended, whatever it wrote: the dialog
             // sends what it has now (`StudioPublishDialog`).
-            ...(replyEnded && now.noteTranslating
+            ...((replyEnded || translated) && now.noteTranslating
               ? { noteTranslating: false, noteTranslated: true }
               : {}),
           });
@@ -209,6 +243,7 @@ export default function usePublishNote(
       askStudioChatToTranslateNote(line, from)
         .catch(() => false)
         .then((asked) => {
+          translating.current = asked ? { line, from } : undefined;
           const now = currentDraft.current;
           if (now) {
             setDraft(
