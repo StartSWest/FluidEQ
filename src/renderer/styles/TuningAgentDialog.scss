@@ -95,7 +95,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   line-height: 1.45;
   overflow-x: auto;
   white-space: pre-wrap;
-  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 .tuning-agent__row {
