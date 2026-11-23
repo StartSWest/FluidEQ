@@ -401,6 +401,7 @@ FeqChain* feq_chain_create(double sample_rate,
   chain->compander = feq_compander_create(sample_rate, chain->channels);
   // And a rack missing Voice.
   chain->voice = feq_voice_create(sample_rate, chain->channels);
+  feq_voice_set_max_frames(chain->voice, chain->max_frames);
 
   // Both sets, so the first published one is complete and the spare is not a
   // half-built rack waiting to be swapped in.

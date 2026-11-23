@@ -77,6 +77,108 @@ FeqVoiceSettings voice_on() {
   return s;
 }
 
+/**
+ * The gate run the way the chain runs it: hearing ahead on the voice as it
+ * enters the cleaner, and gating that voice `delay` frames later, as it
+ * leaves (the cleaner stood in for by the delay alone). `ahead` false is
+ * the gate as it was, deciding on what it gates.
+ */
+std::vector<float> run_keyed(double rate, const FeqVoiceSettings& settings,
+                             const std::vector<float>& samples, size_t delay,
+                             bool ahead) {
+  FeqVoice* voice = feq_voice_create(rate, 1);
+  const size_t block = static_cast<size_t>(rate / 100.0);
+  feq_voice_set_max_frames(voice, static_cast<uint32_t>(block));
+  feq_voice_configure(voice, &settings);
+  std::vector<float> entering = samples;
+  std::vector<float> leaving(samples.size(), 0.0f);
+  for (size_t i = delay; i < samples.size(); ++i) leaving[i] = samples[i - delay];
+  for (size_t at = 0; at < samples.size(); at += block) {
+    const uint32_t frames =
+        static_cast<uint32_t>(std::min(block, samples.size() - at));
+    float* const in[1] = {entering.data() + at};
+    float* const out[1] = {leaving.data() + at};
+    if (ahead) feq_voice_hear_ahead(voice, in, frames);
+    feq_voice_process_gate(voice, out, frames);
+  }
+  feq_voice_destroy(voice);
+  return leaving;
+}
+
+/** Sines spread over 3-6 kHz at `db` dBFS RMS: the hiss of an S or an F. */
+void add_fricative(std::vector<float>& s, double rate, double db, size_t from,
+                   size_t to) {
+  const double each = std::pow(10.0, db / 20.0) * std::sqrt(2.0 / 4.0);
+  const double hz[4] = {3100.0, 3900.0, 4700.0, 5600.0};
+  for (size_t i = from; i < to && i < s.size(); ++i) {
+    double sum = 0.0;
+    for (int k = 0; k < 4; ++k) sum += each * std::sin(2.0 * kPi * hz[k] * i / rate + k);
+    s[i] += static_cast<float>(sum);
+  }
+}
+
+/**
+ * A word whose first sound is a soft S, under the threshold, then its vowel.
+ * Heard ahead, the S arrives at an open gate. Control: the gate deciding on
+ * what it gates keeps the S down by most of its range until the vowel.
+ */
+void a_soft_first_consonant_meets_an_open_gate(double rate) {
+  FeqVoiceSettings s = voice_on();
+  s.gate_enabled = 1;
+  s.gate_threshold_db = -45.0;
+  s.gate_range_db = 30.0;
+  s.gate_attack_ms = 2.0;
+  s.gate_hold_ms = 200.0;
+  s.gate_release_ms = 150.0;
+  const size_t delay = static_cast<size_t>(rate * 0.02);
+  const size_t room_end = static_cast<size_t>(rate * 1.5);
+  const size_t s_end = room_end + static_cast<size_t>(rate * 0.08);
+  std::vector<float> word(static_cast<size_t>(rate * 2.0), 0.0f);
+  add_room(word, -66.0);
+  add_fricative(word, rate, -52.0, room_end, s_end);
+  add_tone(word, rate, 220.0, -20.0, s_end, word.size());
+  // Where the S is heard, past its first 5 ms (the gate's own attack).
+  const size_t from = room_end + delay + static_cast<size_t>(rate * 0.005);
+  const size_t to = s_end + delay;
+  const double dry = rms_db(std::vector<float>(word.begin(), word.end()),
+                            from - delay, to - delay);
+  const std::vector<float> keyed = run_keyed(rate, s, word, delay, true);
+  const std::vector<float> plain = run_keyed(rate, s, word, delay, false);
+  check(rms_db(keyed, from, to) > dry - 1.0,
+        "gate heard ahead: a soft S under the threshold is heard at its level");
+  check(rms_db(plain, from, to) < dry - 15.0,
+        "control: deciding on what it gates, the S stays down until the vowel");
+  // And the vowel is heard in both.
+  const size_t vowel = to + static_cast<size_t>(rate * 0.05);
+  check(rms_db(keyed, vowel, word.size()) > -24.0, "the vowel is heard, ahead");
+  check(rms_db(plain, vowel, word.size()) > -24.0, "the vowel is heard, control");
+}
+
+/**
+ * The room alone never opens a gate that hears ahead, however long it runs
+ * and from its very first sample. Control: a word in the same room opens it.
+ */
+void the_room_alone_never_opens_a_gate_heard_ahead(double rate) {
+  FeqVoiceSettings s = voice_on();
+  s.gate_enabled = 1;
+  s.gate_threshold_db = -45.0;
+  s.gate_range_db = 30.0;
+  const size_t delay = static_cast<size_t>(rate * 0.02);
+  std::vector<float> room(static_cast<size_t>(rate * 3.0), 0.0f);
+  add_room(room, -58.0);
+  const std::vector<float> keyed = run_keyed(rate, s, room, delay, true);
+  // After the gate's first release, the whole of it at the range.
+  const size_t from = static_cast<size_t>(rate * 0.5);
+  check(rms_db(keyed, from, room.size()) < rms_db(room, from, room.size()) - 28.0,
+        "the room alone keeps a gate heard ahead closed");
+  std::vector<float> spoken = room;
+  add_tone(spoken, rate, 220.0, -20.0, static_cast<size_t>(rate * 1.5),
+           static_cast<size_t>(rate * 2.0));
+  const std::vector<float> opened = run_keyed(rate, s, spoken, delay, true);
+  check(rms_db(opened, static_cast<size_t>(rate * 1.6), static_cast<size_t>(rate * 1.9)) > -24.0,
+        "control: a word in the same room opens it");
+}
+
 void off_is_the_input(double rate) {
   std::vector<float> input(static_cast<size_t>(rate), 0.0f);
   add_room(input, -50.0);
@@ -238,6 +340,12 @@ void transfer_keeps_the_gate(double rate) {
 }  // namespace
 
 int main() {
+  for (const double rate : {44100.0, 48000.0, 88200.0, 96000.0, 176400.0,
+                            192000.0, 352800.0, 384000.0}) {
+    std::printf("rate %.1f kHz (heard ahead)\n", rate / 1000.0);
+    a_soft_first_consonant_meets_an_open_gate(rate);
+    the_room_alone_never_opens_a_gate_heard_ahead(rate);
+  }
   for (const double rate : {16000.0, 44100.0, 48000.0, 96000.0}) {
     std::printf("rate %.1f kHz\n", rate / 1000.0);
     off_is_the_input(rate);

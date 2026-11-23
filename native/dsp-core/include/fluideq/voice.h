@@ -17,8 +17,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * left rather than the room.
  *
  * Neither half adds delay. A mic is always low lag (Ivan, 2026-11-20), so
- * the gate decides on the sample it hears and opens in its attack time; a
- * look-ahead would have cost every word that much latency.
+ * the gate has no look-ahead of its own; it borrows the cleaner's. It hears
+ * the voice as it enters the cleaner (`feq_voice_hear_ahead`), that delay
+ * ahead of the block it turns down, and opens on a sound rising out of the
+ * room there - a soft first consonant used to stay down by the gate's whole
+ * range until the vowel behind it crossed the threshold.
  *
  * Every level is linked across the channels: a stereo mic or an array that
  * gated one side and not the other would move the voice in the image.
@@ -98,6 +101,22 @@ void feq_voice_transfer(FeqVoice* into, const FeqVoice* from);
 /** The front half: low cut, proximity shelf, pop guard. In place, planar. */
 void feq_voice_process_front(FeqVoice* voice, float* const* channels,
                              uint32_t frames);
+/**
+ * Room for the gate's look-ahead flags, one per frame of the largest block.
+ * Control thread; without it the gate hears only what it gates.
+ */
+void feq_voice_set_max_frames(FeqVoice* voice, uint32_t max_frames);
+
+/**
+ * The block as it enters the cleaner, which is the cleaner's delay ahead of
+ * the block the gate will turn down: the gate opens on a sound rising out of
+ * the room here, so a soft first consonant arrives at an open gate instead of
+ * one still opening. Between the front half and the cleaner, every block,
+ * before `feq_voice_process_gate`. Not called, the gate decides as it did.
+ */
+void feq_voice_hear_ahead(FeqVoice* voice, const float* const* channels,
+                          uint32_t frames);
+
 /** The back half: the gate. In place, planar. */
 void feq_voice_process_gate(FeqVoice* voice, float* const* channels,
                             uint32_t frames);

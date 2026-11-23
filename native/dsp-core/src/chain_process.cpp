@@ -71,6 +71,9 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
   // A mic's low cut, proximity shelf and pop guard come before the
   // restoration: the cleaner then hears the voice, not the rumble.
   feq_voice_process_front(chain->voice, channels, frames);
+  // The gate hears the voice here, the cleaner's delay ahead of the block it
+  // turns down, so a word's first consonant meets an open gate.
+  feq_voice_hear_ahead(chain->voice, channels, frames);
   feq_denoise_process(chain->denoise, channels, frames);
   // The restoration works on the front pair and delays it by its modules;
   // the channels beyond the pair are held back by the same amount here, so

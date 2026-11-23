@@ -51,6 +51,15 @@ interface IMicProfileRecipe {
   limiter: number | null;
 }
 
+/**
+ * Every profile's gate is an expander: 12 dB at most, under a threshold
+ * set below a soft voice. The cleaner in front of it already takes the room;
+ * what is left for the gate is the last of it between words. Chat and Noisy
+ * closed by 30 and 40 dB at -45 and -40 dBFS, and on a quiet mic like Ivan's
+ * Kraken (the room peaked at -49 dBFS) that chopped the start and end of
+ * words (2026-11-22, "never cuts off"). The gate also hears ahead of the
+ * cleaner now (`voice.h`), so a first consonant meets it open.
+ */
 const gate = (thresholdDb: number, rangeDb: number) => ({
   gateEnabled: true,
   gateThresholdDb: thresholdDb,
@@ -87,7 +96,7 @@ export const MIC_PROFILE_BY_ID = {
   },
   chat: {
     group: 'use',
-    voice: { lowCutHz: 120, deplosive: 0.8, ...gate(-45, 30) },
+    voice: { lowCutHz: 120, deplosive: 0.8, ...gate(-48, 12) },
     cleaner: 0.8,
     deEsser: 'gameCallouts',
     eq: [
@@ -127,7 +136,7 @@ export const MIC_PROFILE_BY_ID = {
   },
   noisy: {
     group: 'use',
-    voice: { lowCutHz: 140, deplosive: 0.8, ...gate(-40, 40) },
+    voice: { lowCutHz: 140, deplosive: 0.8, ...gate(-46, 12) },
     cleaner: 1,
     deEsser: 'podcast',
     eq: [
@@ -153,7 +162,7 @@ export const MIC_PROFILE_BY_ID = {
   },
   laptop: {
     group: 'mic',
-    voice: { lowCutHz: 130, deplosive: 0.4, ...gate(-48, 18) },
+    voice: { lowCutHz: 130, deplosive: 0.4, ...gate(-50, 12) },
     cleaner: 0.85,
     deEsser: 'podcast',
     eq: [
@@ -166,7 +175,7 @@ export const MIC_PROFILE_BY_ID = {
   },
   headset: {
     group: 'mic',
-    voice: { lowCutHz: 100, proximityDb: 4, deplosive: 0.9, ...gate(-50, 15) },
+    voice: { lowCutHz: 100, proximityDb: 4, deplosive: 0.9, ...gate(-52, 12) },
     cleaner: 0.6,
     deEsser: 'podcast',
     eq: [

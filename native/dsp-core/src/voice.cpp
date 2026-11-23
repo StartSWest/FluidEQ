@@ -8,7 +8,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <new>
+#include <vector>
 
 #include "fluideq/biquad.h"
 
@@ -22,6 +24,31 @@ constexpr double kGateListenHighHz = 7000.0;
  * threshold does not chatter it open and shut every few milliseconds. */
 constexpr double kGateHysteresisDb = 4.0;
 constexpr double kSilenceDb = -150.0;
+/**
+ * The look-ahead opens the gate on a sound this far over the room's own
+ * level. A room's level wanders a few dB at most through a 40 ms follower; a
+ * first consonant of a word stands well clear of it.
+ */
+constexpr double kAheadRiseDb = 9.0;
+/**
+ * And never on a sound this far under the threshold: a tick in a silent room
+ * rises over a floor of nothing, and is not a word.
+ */
+constexpr double kAheadUnderThresholdDb = 12.0;
+/**
+ * How fast the room's level is followed down, and up. Down over a quarter
+ * second, not at once: a room's envelope dips for a few milliseconds all the
+ * time, and a floor that followed every dip read the room's next peak as a
+ * sound rising out of it (measured at 44.1 kHz on a -58 dBFS room).
+ */
+constexpr double kAheadFloorFallMs = 250.0;
+constexpr double kAheadFloorRiseDbPerSecond = 6.0;
+/** The look-ahead's level is the band's power over this long. */
+constexpr double kAheadLevelMs = 5.0;
+/** A rise has to last this long to be a sound; a room's peak does not. */
+constexpr double kAheadRiseMs = 3.0;
+/** Under this is digital silence, never a room (a mic's own noise is far up). */
+constexpr double kAheadSilenceDb = -110.0;
 
 double to_db(double value) {
   return value > 1e-8 ? 20.0 * std::log10(value) : kSilenceDb;
@@ -92,6 +119,27 @@ struct FeqVoice {
   uint32_t gate_hold_left = 0;
   uint32_t gate_hold_samples = 0;
 
+  // The gate's look-ahead: the voice as it enters the cleaner, the cleaner's
+  // delay ahead of what the gate turns down. `ahead_floor_db` follows the
+  // room's own level - down at once, up slowly - so a sound rising out of
+  // the room is told apart from the room. `ahead_open` says, frame by frame
+  // of the block the gate is about to run, whether such a sound is there.
+  FeqBiquadState ahead_low_state{};
+  FeqBiquadState ahead_high_state{};
+  /** Mean square over ~5 ms of the look-ahead's band. */
+  double ahead_envelope = 0.0;
+  double ahead_power_coefficient = 0.0;
+  double ahead_floor_db = kSilenceDb;
+  bool ahead_floor_known = false;
+  double ahead_floor_rise_db = 0.0;
+  double ahead_floor_fall = 0.0;
+  uint32_t ahead_rise_samples = 1;
+  uint32_t ahead_settle_samples = 1;
+  uint32_t ahead_settled = 0;
+  uint32_t ahead_run = 0;
+  std::vector<uint8_t> ahead_open;
+  uint32_t ahead_frames = 0;
+
   // The block's report, written by the audio thread only.
   float report_plosive_cut_db = 0.0f;
 };
@@ -155,6 +203,14 @@ void derive(FeqVoice& v) {
       clamp(s.gate_hold_ms, 0.0, 1000.0) * 0.001 * rate + 0.5);
   v.gate_env_attack = follower(1.0, rate);
   v.gate_env_release = follower(40.0, rate);
+  v.ahead_power_coefficient = follower(kAheadLevelMs, rate);
+  v.ahead_floor_fall = follower(kAheadFloorFallMs, rate);
+  v.ahead_floor_rise_db = kAheadFloorRiseDbPerSecond / rate;
+  // Four of its time constants: the average within 2% of its level.
+  v.ahead_settle_samples =
+      std::max<uint32_t>(1, static_cast<uint32_t>(4.0 * kAheadLevelMs * 0.001 * rate));
+  v.ahead_rise_samples =
+      std::max<uint32_t>(1, static_cast<uint32_t>(kAheadRiseMs * 0.001 * rate));
 }
 
 }  // namespace
@@ -211,7 +267,21 @@ void feq_voice_reset(FeqVoice* voice) {
   voice->gate_envelope = 0.0;
   voice->gate_gain_db = 0.0;
   voice->gate_hold_left = 0;
+  voice->ahead_low_state = FeqBiquadState{};
+  voice->ahead_high_state = FeqBiquadState{};
+  voice->ahead_envelope = 0.0;
+  voice->ahead_floor_db = kSilenceDb;
+  voice->ahead_floor_known = false;
+  voice->ahead_run = 0;
+  voice->ahead_settled = 0;
+  voice->ahead_frames = 0;
   voice->report_plosive_cut_db = 0.0f;
+}
+
+void feq_voice_set_max_frames(FeqVoice* voice, uint32_t max_frames) {
+  if (voice == nullptr) return;
+  voice->ahead_open.assign(max_frames, 0);
+  voice->ahead_frames = 0;
 }
 
 void feq_voice_transfer(FeqVoice* into, const FeqVoice* from) {
@@ -239,6 +309,80 @@ void feq_voice_transfer(FeqVoice* into, const FeqVoice* from) {
   into->gate_gain_db =
       std::max(from->gate_gain_db, -clamp(into->settings.gate_range_db, 0.0, 80.0));
   into->gate_hold_left = std::min(from->gate_hold_left, into->gate_hold_samples);
+  // What the look-ahead knows of the room is the room's, not the chain's.
+  into->ahead_low_state = from->ahead_low_state;
+  into->ahead_high_state = from->ahead_high_state;
+  into->ahead_envelope = from->ahead_envelope;
+  into->ahead_floor_db = from->ahead_floor_db;
+  into->ahead_floor_known = from->ahead_floor_known;
+  into->ahead_run = from->ahead_run;
+  into->ahead_settled = from->ahead_settled;
+}
+
+void feq_voice_hear_ahead(FeqVoice* voice, const float* const* channels,
+                          uint32_t frames) {
+  if (voice == nullptr) return;
+  voice->ahead_frames = 0;
+  if (channels == nullptr || voice->settings.enabled == 0 ||
+      voice->settings.gate_enabled == 0 || frames > voice->ahead_open.size()) {
+    return;
+  }
+  const uint32_t count = voice->channels;
+  const double threshold = clamp(voice->settings.gate_threshold_db, -80.0, -10.0);
+  for (uint32_t i = 0; i < frames; ++i) {
+    double sum = 0.0;
+    for (uint32_t c = 0; c < count; ++c) {
+      sum += channels[c] != nullptr ? channels[c][i] : 0.0;
+    }
+    // Heard through the gate's own band, so the two detectors agree on what
+    // counts as voice: a hum or a hiss opens neither.
+    double listened = sum / static_cast<double>(count);
+    listened = tick(voice->ahead_low_state, voice->listen_low, listened);
+    listened = tick(voice->ahead_high_state, voice->listen_high, listened);
+    // A level over 5 ms, not a peak: a peak follower on a room's noise jumps
+    // 10 dB from one stray sample to the next and read the room as words;
+    // 5 ms of power holds a room within about a dB and still rises on a
+    // first consonant inside the look-ahead.
+    const double power = listened * listened;
+    voice->ahead_envelope =
+        power + voice->ahead_power_coefficient * (voice->ahead_envelope - power);
+    const double level =
+        voice->ahead_envelope > 1e-16 ? 10.0 * std::log10(voice->ahead_envelope) : kSilenceDb;
+    if (level < kAheadSilenceDb) {
+      // Digital silence - a stream being primed, a muted mic - is not a room.
+      // Let it set the floor and the room that follows reads as a sound
+      // rising out of nothing, holding the gate open for as long as the floor
+      // takes to climb back (the mic profiles' quiet-room test caught it).
+      voice->ahead_run = 0;
+      voice->ahead_open[i] = 0;
+      continue;
+    }
+    if (!voice->ahead_floor_known) {
+      // The room's level is the first one the 5 ms average has settled on,
+      // not its first sample: it starts from nothing and climbs, and its
+      // first reading (-100 dB on a -62 dBFS room) taken as the floor read
+      // the room as a sound rising 38 dB out of it, gate open for seconds.
+      voice->ahead_run = 0;
+      voice->ahead_open[i] = 0;
+      voice->ahead_settled += 1;
+      if (voice->ahead_settled >= voice->ahead_settle_samples) {
+        voice->ahead_floor_db = level;
+        voice->ahead_floor_known = true;
+      }
+      continue;
+    }
+    if (level < voice->ahead_floor_db) {
+      voice->ahead_floor_db =
+          level + voice->ahead_floor_fall * (voice->ahead_floor_db - level);
+    } else {
+      voice->ahead_floor_db = std::min(level, voice->ahead_floor_db + voice->ahead_floor_rise_db);
+    }
+    const bool rising = level >= voice->ahead_floor_db + kAheadRiseDb &&
+                        level >= threshold - kAheadUnderThresholdDb;
+    voice->ahead_run = rising ? voice->ahead_run + 1 : 0;
+    voice->ahead_open[i] = voice->ahead_run >= voice->ahead_rise_samples ? 1 : 0;
+  }
+  voice->ahead_frames = frames;
 }
 
 void feq_voice_process_front(FeqVoice* voice, float* const* channels,
@@ -327,6 +471,10 @@ void feq_voice_process_gate(FeqVoice* voice, float* const* channels,
   const double range = clamp(voice->settings.gate_range_db, 0.0, 80.0);
   double gain_db = voice->gate_gain_db;
   double gain = std::pow(10.0, gain_db / 20.0);
+  // Heard ahead for exactly this block, or not at all: flags left from
+  // another block's length would open the gate on the wrong samples.
+  const bool ahead = voice->ahead_frames == frames;
+  voice->ahead_frames = 0;
   for (uint32_t i = 0; i < frames; ++i) {
     double sum = 0.0;
     for (uint32_t c = 0; c < count; ++c) {
@@ -342,7 +490,7 @@ void feq_voice_process_gate(FeqVoice* voice, float* const* channels,
     const double level = to_db(voice->gate_envelope);
 
     double target = gain_db;
-    if (level >= threshold) {
+    if (level >= threshold || (ahead && voice->ahead_open[i] != 0)) {
       target = 0.0;
       voice->gate_hold_left = voice->gate_hold_samples;
     } else if (level < threshold - kGateHysteresisDb) {
