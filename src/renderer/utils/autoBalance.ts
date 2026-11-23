@@ -33,6 +33,7 @@ import {
   MIN_BAND_CONFIDENCE,
   MIN_TRUSTED_OCTAVES,
   ROLLOFF_MIN_DB_PER_OCTAVE,
+  SOLVE_NEIGHBOUR_TIE,
   SOLVE_RIDGE,
   TRUSTED_HIGH_ANCHOR_HZ,
   TRUSTED_LOW_ANCHOR_HZ,
@@ -548,6 +549,35 @@ export const buildBalancedGains = (
     const ridge = Math.max(meanDiagonal * SOLVE_RIDGE, 1e-6);
     for (let i = 0; i < n; i += 1) {
       normal[i][i] += ridge;
+    }
+    /*
+     * And neighbours held together. The ridge stops the comb by shrinking
+     * every gain, which leaves two overlapping bells free to trade gain with
+     * each other at no cost to the fit: their sum is what the curve sees.
+     * Running on a song, the estimate moves by a fraction of a decibel
+     * between checkpoints and the trade swings from one side to the other —
+     * 1.25 kHz from +1.5 to -0.1 dB while 800 Hz went the other way, with no
+     * range's confidence or presence moving (measured on eight records,
+     * 2026-11-21). A penalty on each neighbour pair's difference prices the
+     * trade; a broad correction costs nothing under it, a correction one band
+     * wide is softened. Priced per octave between the pair, so a denser
+     * layout is held as firmly as a sparse one and gives the same curve.
+     */
+    const order = solvable
+      .map((entry, index) => ({ index, frequency: entry.filter.frequency }))
+      .sort((a, b) => a.frequency - b.frequency);
+    for (let step = 1; step < order.length; step += 1) {
+      const a = order[step - 1].index;
+      const b = order[step].index;
+      const octaves = Math.max(
+        1 / 24,
+        Math.log2(order[step].frequency / order[step - 1].frequency),
+      );
+      const tie = (meanDiagonal * SOLVE_NEIGHBOUR_TIE) / (3 * octaves);
+      normal[a][a] += tie;
+      normal[b][b] += tie;
+      normal[a][b] -= tie;
+      normal[b][a] -= tie;
     }
 
     const solved = solveLinearSystem(normal, rhs);

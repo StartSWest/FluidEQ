@@ -378,6 +378,19 @@ export const CONFIDENCE_EASE = 0.2;
  */
 export const SOLVE_RIDGE = 0.08;
 
+/**
+ * Weight of the neighbour tie in the joint gain solve, as a fraction of the
+ * mean diagonal per third of an octave between two bands: how dear it is for
+ * neighbours to differ. On two still checkpoints of a real song the curve
+ * moved 1.17 dB with none and 0.71 dB at 0.1, and no lower at any strength
+ * up to 1 (the rest is the music). At 0.1 over eight records: steps of the
+ * forming curve over half a decibel 47 to 36, two plays of a song closer on
+ * six of seven (0.87 to 0.66 dB, 0.91 to 0.61) and the same on the seventh,
+ * the held curve's peak within 0.44 dB of before. Ivan chose to hear it
+ * (2026-11-22) knowing it softens a correction one band wide.
+ */
+export const SOLVE_NEIGHBOUR_TIE = 0.1;
+
 export const MIN_TRUSTED_OCTAVES = 4;
 export const TRUSTED_LOW_ANCHOR_HZ = 560;
 export const TRUSTED_HIGH_ANCHOR_HZ = 1120;
