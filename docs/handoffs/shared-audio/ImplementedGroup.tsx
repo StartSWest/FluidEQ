@@ -1,5 +1,4 @@
 /* FluidEQ — GPL-3.0-or-later. Production UI with simulated audio I/O. */
-import { useState } from 'react';
 import RemoteAudioGroup from '../../../src/renderer/remoteAudio/RemoteAudioGroup';
 import { useRailWidth } from '../../../src/renderer/library/LibraryRailSplitter';
 import RemoteAudioLayout from '../../../src/renderer/remoteAudio/RemoteAudioLayout';
@@ -63,8 +62,7 @@ export default function ImplementedGroup({
   ): void;
   onPause(id: string): void;
 }) {
-  // The page's rail, with a pin and a width of the preview's own.
-  const [isPinned, setPinned] = useState(true);
+  // The page's rail, with a width of the preview's own: it never folds.
   const rail = useRailWidth('fluideq.preview.shareRailWidth');
   const others = group.computers.filter(
     (pc) => pc.id !== local.id && !findRoute(group, local.id, pc.id)?.unlinked,
@@ -139,8 +137,6 @@ export default function ImplementedGroup({
   return (
     <RemoteAudioLayout
       rail={rail}
-      isPinned={isPinned}
-      onPinnedChange={setPinned}
       mix={
         <RemoteAudioMix
           remote={remote}
