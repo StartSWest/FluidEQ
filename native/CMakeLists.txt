@@ -117,6 +117,8 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/denoise_live_hum.cpp
   dsp-core/src/denoise_click.cpp
   dsp-core/src/denoise_voice.cpp
+  dsp-core/src/denoise_voice_blend.cpp
+  dsp-core/src/denoise_voice_model.cpp
   dsp-core/src/deesser.cpp
   dsp-core/src/deesser_process.cpp
   dsp-core/src/deesser_decide.cpp
@@ -305,6 +307,11 @@ add_test(NAME denoise COMMAND fluideq-denoise-test)
 add_executable(fluideq-denoise-stage-test dsp-core/tests/denoise_stage_test.cpp)
 target_link_libraries(fluideq-denoise-stage-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME denoise-stage COMMAND fluideq-denoise-stage-test)
+
+# What the voice cleaner plays when its worker is late, at every rate.
+add_executable(fluideq-voice-blend-test dsp-core/tests/voice_blend_test.cpp)
+target_link_libraries(fluideq-voice-blend-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME voice-blend COMMAND fluideq-voice-blend-test)
 
 add_executable(fluideq-denoise-bounds-test
   dsp-core/tests/denoise_bounds_test.cpp)

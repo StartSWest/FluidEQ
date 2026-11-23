@@ -7,13 +7,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * The neural module: DPDFNet, behind a worker thread.
  *
- * The runtime is loaded at RUNTIME rather than linked, and that is the whole
- * shape of this file. `onnxruntime.dll` already ships with the app for karaoke
- * separation, so the host asks the operating system for it by path and reaches
- * the C API through `OrtGetApiBase`. Nothing is added to the build, the audio
- * host still links against nothing new, and a missing runtime is an ordinary
- * answer — the module reports itself unavailable and audio passes untouched —
- * rather than a host that will not start.
+ * The model and its runtime library are loaded once per process and shared
+ * by every chain (`denoise_voice_model.h`); each runtime here keeps its own
+ * worker, rings and recurrent state.
  *
  * The model is the SPECTRAL stage only: it takes one frame of complex spectrum
  * plus an explicit RNN state and returns both. The transform either side of it
@@ -27,10 +23,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * sessions would double the memory for nothing.
  *
  * The contract with the audio thread never changes: inference happens on the
- * worker, the callback only reads a ring, and a frame that is not ready in
- * time passes DRY and counts an underrun. It never stalls and never emits a
- * partial block — half a block of audio followed by whatever was in the buffer
- * is worse than a dropout, because it sounds like the material.
+ * worker, the callback only reads a ring, and it never stalls and never emits
+ * a partial block. A block whose cleaning is not ready in time is counted as
+ * late and played as the delayed input at the gain the cleaner last applied,
+ * joined to its neighbours without a step — never the raw room. In low lag
+ * the worker has one 10 ms hop for each block, and a late block used to pass
+ * the input untouched: ten milliseconds of the room at full level between
+ * two cleaned blocks, with a click at each edge. That was the mic's cutoff.
  */
 
 #include <algorithm>
@@ -43,21 +42,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <vector>
 
 #include "denoise_internal.h"
+#include "denoise_voice_blend.h"
+#include "denoise_voice_model.h"
 #include "fluideq/convolver.h"
 #include "fluideq/doorbell.h"
 #include "fluideq/resampler.h"
 
-#if defined(_WIN32)
-#define WIN32_LEAN_AND_MEAN
-// windows.h defines `min` and `max` as macros, which turns every `std::min`
-// below into a syntax error rather than into anything a reader would suspect.
-#define NOMINMAX
-#include <windows.h>
-#else
-#include <dlfcn.h>
-#endif
-
-#include "onnxruntime_c_api.h"
+using fluideq_voice::ort_ok;
 
 namespace {
 
@@ -158,22 +149,25 @@ struct VoiceChannel {
 };
 
 struct VoiceRuntime {
-#if defined(_WIN32)
-  HMODULE library = nullptr;
-#else
-  void* library = nullptr;
-#endif
+  /** The shared model; `api`, `session` and `memory` are its, copied here. */
+  fluideq_voice::VoiceModel* model = nullptr;
   const OrtApi* api = nullptr;
-  OrtEnv* env = nullptr;
   OrtSession* session = nullptr;
-  OrtSessionOptions* options = nullptr;
   OrtMemoryInfo* memory = nullptr;
 
   std::vector<double> window;
   std::vector<VoiceChannel> channels;
-  std::vector<float> initial_state;
   /** The 960-point transform. Built at load, used only by the worker. */
   FeqDft* transform = nullptr;
+  /**
+   * The worker's per-hop scratch, sized at load. A vector built per hop was
+   * three heap calls every 10 ms inside the audio service, where the heap's
+   * lock is shared with every thread in the process — time taken straight
+   * out of the one hop the worker has.
+   */
+  std::vector<double> hop_real;
+  std::vector<double> hop_imaginary;
+  std::vector<float> hop_spectrum;
 
   /**
    * One pair of rings per channel, as fixed arrays rather than vectors.
@@ -203,9 +197,15 @@ struct VoiceRuntime {
   uint32_t headroom_hops = kDenoiseVoiceLatencyFrames;
   double device_rate = kVoiceRate;
 
+  /** Audio-thread only: what carries a late block, per channel. */
+  VoiceBlend blend[FEQ_DENOISE_CHANNELS];
+  /** The delayed input for one block, unwrapped from the dry ring. */
+  std::vector<float> delayed;
+
   std::thread worker;
   std::atomic<bool> running{false};
-  std::atomic<uint32_t> underruns{0};
+  /** Whether the worker got Windows' audio scheduling class, for the bench. */
+  std::atomic<bool> worker_prioritised{false};
   uint32_t channel_count = 2;
   /**
    * Armed by the callback each block it pushes input or takes output, rung
@@ -214,132 +214,18 @@ struct VoiceRuntime {
   FeqDoorbell bell;
 };
 
-void* load_symbol(VoiceRuntime& runtime, const char* name) {
-#if defined(_WIN32)
-  return reinterpret_cast<void*>(GetProcAddress(runtime.library, name));
-#else
-  return dlsym(runtime.library, name);
-#endif
-}
-
-void close_library(VoiceRuntime& runtime) {
-  if (runtime.library == nullptr) {
-    return;
-  }
-#if defined(_WIN32)
-  FreeLibrary(runtime.library);
-#else
-  dlclose(runtime.library);
-#endif
-  runtime.library = nullptr;
-}
-
-/**
- * True when an ONNX Runtime call succeeded, releasing its status either way.
- *
- * A failed call hands back an `OrtStatus` the caller owns. Dropped on the
- * floor it is a small leak per failure, and GCC refuses to build the tree at
- * all over it (the header marks each of these results must-use; MSVC reads
- * the same mark as an annotation and says nothing).
- */
-bool ort_ok(const OrtApi* api, OrtStatus* status) {
-  if (status == nullptr) {
-    return true;
-  }
-  api->ReleaseStatus(status);
-  return false;
-}
-
-/**
- * The state the network starts a stream from, read out of the model itself.
- *
- * Not zeros. The first two spans of the state vector are running normalisation
- * estimates, and the export embeds the values they must begin at; starting
- * them at zero makes the first seconds of every track come out wrong while the
- * estimates climb. Reading them from the model rather than baking them in
- * means a re-exported model brings its own.
- */
-bool read_initial_state(VoiceRuntime& runtime) {
-  const OrtApi* api = runtime.api;
-  OrtModelMetadata* metadata = nullptr;
-  if (api->SessionGetModelMetadata(runtime.session, &metadata) != nullptr) {
-    return false;
-  }
-  OrtAllocator* allocator = nullptr;
-  if (api->GetAllocatorWithDefaultOptions(&allocator) != nullptr) {
-    api->ReleaseModelMetadata(metadata);
-    return false;
-  }
-
-  auto lookup = [&](const char* key, std::string& out) -> bool {
-    char* value = nullptr;
-    if (api->ModelMetadataLookupCustomMetadataMap(metadata, allocator, key,
-                                                  &value) != nullptr ||
-        value == nullptr) {
-      return false;
-    }
-    out.assign(value);
-    // The value is already copied out; a refused free is not a failed read.
-    ort_ok(api, api->AllocatorFree(allocator, value));
-    return true;
-  };
-
-  std::string size_text;
-  std::string erb_size_text;
-  std::string spec_size_text;
-  std::string erb_init;
-  std::string spec_init;
-  const bool complete = lookup("state_size", size_text) &&
-                        lookup("erb_norm_state_size", erb_size_text) &&
-                        lookup("spec_norm_state_size", spec_size_text) &&
-                        lookup("erb_norm_init", erb_init) &&
-                        lookup("spec_norm_init", spec_init);
-  api->ReleaseModelMetadata(metadata);
-  if (!complete) {
-    return false;
-  }
-
-  const size_t total = static_cast<size_t>(std::stol(size_text));
-  const size_t erb = static_cast<size_t>(std::stol(erb_size_text));
-  const size_t spec = static_cast<size_t>(std::stol(spec_size_text));
-  if (total == 0 || erb + spec > total) {
-    return false;
-  }
-
-  runtime.initial_state.assign(total, 0.0f);
-  auto fill = [&](const std::string& csv, size_t at, size_t limit) {
-    size_t index = 0;
-    size_t from = 0;
-    while (from <= csv.size() && index < limit) {
-      const size_t comma = csv.find(',', from);
-      const std::string piece = csv.substr(
-          from, comma == std::string::npos ? std::string::npos : comma - from);
-      if (!piece.empty()) {
-        runtime.initial_state[at + index] = std::stof(piece);
-        index += 1;
-      }
-      if (comma == std::string::npos) {
-        break;
-      }
-      from = comma + 1;
-    }
-  };
-  fill(erb_init, 0, erb);
-  fill(spec_init, erb, spec);
-  return true;
-}
-
 /** One 480-sample hop for one channel, through the transform and the model. */
 void process_hop(VoiceRuntime& runtime, VoiceChannel& channel) {
   const OrtApi* api = runtime.api;
-  std::vector<double> real(kVoiceWindow, 0.0);
-  std::vector<double> imaginary(kVoiceWindow, 0.0);
+  std::vector<double>& real = runtime.hop_real;
+  std::vector<double>& imaginary = runtime.hop_imaginary;
   for (uint32_t i = 0; i < kVoiceWindow; i += 1) {
     real[i] = static_cast<double>(channel.analysis[i]) * runtime.window[i];
+    imaginary[i] = 0.0;
   }
   feq_dft_in_place(runtime.transform, real.data(), imaginary.data(), 0);
 
-  std::vector<float> spectrum(kVoiceBins * 2, 0.0f);
+  std::vector<float>& spectrum = runtime.hop_spectrum;
   for (uint32_t bin = 0; bin < kVoiceBins; bin += 1) {
     spectrum[bin * 2] = static_cast<float>(real[bin]);
     spectrum[bin * 2 + 1] = static_cast<float>(imaginary[bin]);
@@ -522,6 +408,10 @@ bool resample_output(VoiceRuntime& runtime) {
  * between the look and the sleep is a ring the sleep returns on at once.
  */
 void worker_loop(VoiceRuntime* runtime) {
+  // For the thread's whole life: every hop has the same one-block deadline.
+  const fluideq_voice::AudioWorkerPriority priority;
+  runtime->worker_prioritised.store(priority.joined(),
+                                    std::memory_order_release);
   for (;;) {
     const uint32_t seen = runtime->bell.rung();
     if (!runtime->running.load(std::memory_order_acquire)) {
@@ -583,9 +473,15 @@ void reset_runtime(VoiceRuntime& runtime) {
     VoiceChannel& channel = runtime.channels[c];
     std::fill(channel.analysis.begin(), channel.analysis.end(), 0.0f);
     std::fill(channel.synthesis.begin(), channel.synthesis.end(), 0.0f);
-    channel.state = runtime.initial_state;
+    channel.state = runtime.model->initial_state;
+    voice_blend_reset(runtime.blend[c], runtime.device_rate,
+                      runtime.voice_latency);
   }
   runtime.scratch.assign(runtime.max_frames, 0.0f);
+  runtime.delayed.assign(runtime.max_frames, 0.0f);
+  runtime.hop_real.assign(kVoiceWindow, 0.0);
+  runtime.hop_imaginary.assign(kVoiceWindow, 0.0);
+  runtime.hop_spectrum.assign(kVoiceBins * 2, 0.0f);
   runtime.dry_cursor = 0;
   runtime.output_debt = 0;
 }
@@ -607,22 +503,9 @@ void destroy_runtime(VoiceRuntime* runtime) {
   runtime->from_model = nullptr;
   feq_dft_destroy(runtime->transform);
   runtime->transform = nullptr;
-  const OrtApi* api = runtime->api;
-  if (api != nullptr) {
-    if (runtime->memory != nullptr) {
-      api->ReleaseMemoryInfo(runtime->memory);
-    }
-    if (runtime->session != nullptr) {
-      api->ReleaseSession(runtime->session);
-    }
-    if (runtime->options != nullptr) {
-      api->ReleaseSessionOptions(runtime->options);
-    }
-    if (runtime->env != nullptr) {
-      api->ReleaseEnv(runtime->env);
-    }
-  }
-  close_library(*runtime);
+  // After the worker has joined: it was the last thing running the session.
+  fluideq_voice::release_voice_model(runtime->model);
+  runtime->model = nullptr;
   delete runtime;
 }
 
@@ -658,11 +541,54 @@ uint32_t denoise_voice_low_latency_hops(double device_rate,
   return std::clamp(hops, 1u, kDenoiseVoiceLatencyFrames);
 }
 
-void denoise_voice_configure(FeqDenoise* denoise) { (void)denoise; }
+namespace {
+
+/** Whether the cleaner is meant to be heard: the restoration and it both on. */
+bool voice_wanted(const FeqDenoise* denoise) {
+  return denoise->settings.enabled != 0 && denoise->settings.voice.enabled != 0;
+}
+
+/**
+ * The runtime retired, the model's paths kept to bring it back.
+ *
+ * A cleaner switched off used to keep its worker running the network on every
+ * block — the callback still fed it and took its output, only to throw the
+ * output away — and the Library host loads the model on every chain rebuild
+ * whether the cleaner is on or not. Parked, nothing runs and nothing is
+ * allocated beyond the two paths.
+ */
+void park_voice(FeqDenoise* denoise) {
+  auto* runtime = static_cast<VoiceRuntime*>(
+      denoise->voice.exchange(nullptr, std::memory_order_acq_rel));
+  retire_runtime(denoise, runtime);
+}
+
+}  // namespace
+
+void denoise_voice_configure(FeqDenoise* denoise) {
+  if (denoise->voice_model_path.empty() ||
+      denoise->voice_runtime_path.empty()) {
+    return;
+  }
+  const bool live = denoise->voice.load(std::memory_order_acquire) != nullptr;
+  if (!voice_wanted(denoise)) {
+    if (live) {
+      park_voice(denoise);
+    }
+    return;
+  }
+  if (!live) {
+    // Switched back on in place: the model is shared, so this builds only
+    // the stream's own worker and rings around it.
+    const std::string model_path = denoise->voice_model_path;
+    const std::string runtime_path = denoise->voice_runtime_path;
+    denoise_voice_load_model(denoise, model_path.c_str(), runtime_path.c_str());
+  }
+}
 
 void denoise_voice_reset(FeqDenoise* denoise) {
   if (denoise->voice_model_path.empty() ||
-      denoise->voice_runtime_path.empty()) {
+      denoise->voice_runtime_path.empty() || !voice_wanted(denoise)) {
     return;
   }
   // Build and publish a clean replacement. Mutating the live worker's rings
@@ -733,30 +659,23 @@ uint32_t denoise_voice_process(FeqDenoise* denoise, float* const* channels,
 
   const bool output_ready =
       can_push && runtime->output_debt == 0 && available >= frames;
-
   for (uint32_t c = 0; c < denoise->channels && c < runtime->channel_count;
        c += 1) {
-    float* buffer = channels[c];
-    const float* line = runtime->dry_delay[c].data();
     if (output_ready) {
       runtime->output[c].pop(runtime->scratch.data(), frames);
-      if (enabled) {
-        for (uint32_t i = 0; i < frames; i += 1) {
-          const uint32_t at =
-              (runtime->dry_cursor + i + dry_ring - runtime->voice_latency) %
-              dry_ring;
-          buffer[i] = static_cast<float>(line[at] * (1.0 - amount) +
-                                         runtime->scratch[i] * amount);
-        }
-      }
-    } else if (enabled) {
-      for (uint32_t i = 0; i < frames; i += 1) {
-        const uint32_t at =
-            (runtime->dry_cursor + i + dry_ring - runtime->voice_latency) %
-            dry_ring;
-        buffer[i] = line[at];
-      }
     }
+    if (!enabled) {
+      continue;
+    }
+    const float* line = runtime->dry_delay[c].data();
+    for (uint32_t i = 0; i < frames; i += 1) {
+      runtime->delayed[i] =
+          line[(runtime->dry_cursor + i + dry_ring - runtime->voice_latency) %
+               dry_ring];
+    }
+    voice_blend_block(runtime->blend[c], channels[c], runtime->delayed.data(),
+                      output_ready ? runtime->scratch.data() : nullptr, frames,
+                      amount);
   }
 
   if (!output_ready) {
@@ -789,72 +708,27 @@ int denoise_voice_load_model(FeqDenoise* denoise, const char* model_path,
   if (model_path == nullptr || runtime_path == nullptr) {
     return 0;
   }
+  if (!voice_wanted(denoise)) {
+    // Remembered, not run: switching the cleaner on loads it from here
+    // (`denoise_voice_configure`). Whether the files load is learnt then.
+    denoise->voice_model_path = model_path;
+    denoise->voice_runtime_path = runtime_path;
+    park_voice(denoise);
+    return 1;
+  }
 
   auto* runtime = new (std::nothrow) VoiceRuntime();
   if (runtime == nullptr) {
     return 0;
   }
-
-#if defined(_WIN32)
-  runtime->library = LoadLibraryA(runtime_path);
-#else
-  runtime->library = dlopen(runtime_path, RTLD_NOW | RTLD_LOCAL);
-#endif
-  if (runtime->library == nullptr) {
+  runtime->model = fluideq_voice::acquire_voice_model(model_path, runtime_path);
+  if (runtime->model == nullptr) {
     delete runtime;
     return 0;
   }
-
-  using GetApiBase = const OrtApiBase*(ORT_API_CALL*)();
-  auto base =
-      reinterpret_cast<GetApiBase>(load_symbol(*runtime, "OrtGetApiBase"));
-  if (base == nullptr) {
-    close_library(*runtime);
-    delete runtime;
-    return 0;
-  }
-  runtime->api = base()->GetApi(ORT_API_VERSION);
-  if (runtime->api == nullptr) {
-    close_library(*runtime);
-    delete runtime;
-    return 0;
-  }
-
-  const OrtApi* api = runtime->api;
-  bool ok = api->CreateEnv(ORT_LOGGING_LEVEL_ERROR, "fluideq", &runtime->env) ==
-            nullptr;
-  ok = ok && api->CreateSessionOptions(&runtime->options) == nullptr;
-  if (ok) {
-    // One thread each. The worker is already off the audio thread and ORT
-    // spawning its own pool would put unpredictable scheduling next to a
-    // real-time callback for no throughput this needs.
-    // A refusal here leaves ORT's default pool, which still runs the model,
-    // so it is released and not treated as a failed load.
-    ort_ok(api, api->SetIntraOpNumThreads(runtime->options, 1));
-    ort_ok(api, api->SetInterOpNumThreads(runtime->options, 1));
-  }
-#if defined(_WIN32)
-  std::wstring wide;
-  if (ok) {
-    const int needed =
-        MultiByteToWideChar(CP_UTF8, 0, model_path, -1, nullptr, 0);
-    wide.resize(needed > 0 ? static_cast<size_t>(needed) : 0);
-    MultiByteToWideChar(CP_UTF8, 0, model_path, -1, wide.data(), needed);
-    ok = api->CreateSession(runtime->env, wide.c_str(), runtime->options,
-                            &runtime->session) == nullptr;
-  }
-#else
-  ok = ok && api->CreateSession(runtime->env, model_path, runtime->options,
-                                &runtime->session) == nullptr;
-#endif
-  ok = ok && api->CreateCpuMemoryInfo(OrtArenaAllocator, OrtMemTypeDefault,
-                                      &runtime->memory) == nullptr;
-  ok = ok && read_initial_state(*runtime);
-
-  if (!ok) {
-    destroy_runtime(runtime);
-    return 0;
-  }
+  runtime->api = runtime->model->api;
+  runtime->session = runtime->model->session;
+  runtime->memory = runtime->model->memory;
 
   runtime->channel_count = denoise->channels;
   runtime->max_frames = denoise->max_frames;
@@ -883,7 +757,7 @@ int denoise_voice_load_model(FeqDenoise* denoise, const char* model_path,
   for (auto& channel : runtime->channels) {
     channel.analysis.assign(kVoiceWindow, 0.0f);
     channel.synthesis.assign(kVoiceWindow, 0.0f);
-    channel.state = runtime->initial_state;
+    channel.state = runtime->model->initial_state;
   }
 
   reset_runtime(*runtime);
