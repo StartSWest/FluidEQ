@@ -214,8 +214,15 @@ void Graph::adopt_state(Graph* previous) noexcept {
       source_report_.engine_owner != previous->source_report_.engine_owner ||
       source_report_.source != previous->source_report_.source ||
       source_report_.epoch != previous->source_report_.epoch) return;
+  // A restoration that cannot be carried (a cleaner switched on or off, a
+  // Library noise profile) crosses over while the new one fills. One that
+  // can — the same cleaner on both sides, as on every other switch of a
+  // mic's tab — moves across whole in the transfer below, and nothing
+  // restarts: there is no second model to run beside the first.
   if (rack_ != previous->rack_ &&
       (source_report_.warm_handover || previous->source_report_.warm_handover) &&
+      !(rack_ != nullptr && previous->rack_ != nullptr &&
+        feq_chain_carries_restoration(rack_.get(), previous->rack_.get()) != 0) &&
       start_crossing(previous)) return;
   // A graph that moves the sound in time crosses over instead of taking the
   // state: see `graph.h`. So does one replacing a graph still crossing over,

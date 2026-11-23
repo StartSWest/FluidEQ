@@ -691,6 +691,26 @@ uint32_t denoise_voice_process(FeqDenoise* denoise, float* const* channels,
   return underruns;
 }
 
+bool denoise_voice_can_swap(const FeqDenoise* prepared,
+                            const FeqDenoise* previous) {
+  const auto* fresh = static_cast<const VoiceRuntime*>(
+      prepared->voice.load(std::memory_order_acquire));
+  const auto* playing = static_cast<const VoiceRuntime*>(
+      previous->voice.load(std::memory_order_acquire));
+  return fresh != nullptr && playing != nullptr &&
+         fresh->model == playing->model &&
+         fresh->channel_count == playing->channel_count &&
+         fresh->max_frames == playing->max_frames &&
+         fresh->device_rate == playing->device_rate &&
+         fresh->voice_latency == playing->voice_latency;
+}
+
+void denoise_voice_swap(FeqDenoise* prepared, FeqDenoise* previous) {
+  void* playing = previous->voice.load(std::memory_order_acquire);
+  void* fresh = prepared->voice.exchange(playing, std::memory_order_acq_rel);
+  previous->voice.store(fresh, std::memory_order_release);
+}
+
 void denoise_voice_wake(FeqDenoise* denoise) {
   // Counted as a reader like the callback, so a model swapped on the control
   // thread cannot be retired between the load and the ring.

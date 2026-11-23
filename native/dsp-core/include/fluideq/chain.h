@@ -552,6 +552,15 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings);
 
 int feq_chain_transfer_state(FeqChain* prepared, FeqChain* previous);
 
+/**
+ * Whether `feq_chain_transfer_state` would carry the restoration across
+ * whole, a voice cleaner's running state included. Where it would not, a
+ * handover with a cleaner playing has to cross over instead, or the new
+ * chain's cleaner starts from silence in the middle of a word.
+ */
+int feq_chain_carries_restoration(const FeqChain* prepared,
+                                  const FeqChain* previous);
+
 /** Stop applying outgoing adaptive gain while the graph crosses to a fixed
  * rack. Keep the outgoing delay and its existing filter histories. */
 void feq_chain_retire_leveling(FeqChain* outgoing, const FeqChain* incoming);

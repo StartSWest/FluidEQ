@@ -224,6 +224,14 @@ void feq_denoise_set_low_latency(FeqDenoise* denoise, int low_latency);
 int feq_denoise_transfer_state(FeqDenoise* prepared, FeqDenoise* previous);
 
 /**
+ * Whether `feq_denoise_transfer_state` would carry everything across,
+ * the voice cleaner's runtime included. Read-only; any thread that owns
+ * neither stream's audio callback, or that callback itself.
+ */
+int feq_denoise_can_transfer_state(const FeqDenoise* prepared,
+                                   const FeqDenoise* previous);
+
+/**
  * One block, in place. Planar, `channels` pointers.
  *
  * Real-time safe: allocates nothing, frees nothing, takes no lock, makes no OS

@@ -441,5 +441,19 @@ uint32_t denoise_voice_latency_for(double device_rate, uint32_t headroom_hops);
 uint32_t denoise_voice_low_latency_hops(double device_rate, uint32_t max_frames);
 /** Rings the worker if a block armed it. After the block, never inside it. */
 void denoise_voice_wake(FeqDenoise* denoise);
+/**
+ * Whether the two cleaners can trade runtimes at a handover: both loaded,
+ * the same shared model, channels, block size, rate and delay. Neither or
+ * one loaded is not a trade; the restoration's other checks decide that.
+ */
+bool denoise_voice_can_swap(const FeqDenoise* prepared,
+                            const FeqDenoise* previous);
+/**
+ * The playing cleaner moves to the prepared chain whole — worker, model
+ * state, rings, the delayed input and where each sits in its hop — and the
+ * prepared chain's fresh one goes back with the chain being retired. Audio
+ * thread, at the handover: two pointer exchanges.
+ */
+void denoise_voice_swap(FeqDenoise* prepared, FeqDenoise* previous);
 
 #endif /* FLUIDEQ_DENOISE_INTERNAL_H */

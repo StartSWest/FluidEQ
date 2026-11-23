@@ -313,6 +313,12 @@ add_executable(fluideq-voice-blend-test dsp-core/tests/voice_blend_test.cpp)
 target_link_libraries(fluideq-voice-blend-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME voice-blend COMMAND fluideq-voice-blend-test)
 
+# A rack edit mid-speech with the cleaner running: no gap, no step. Needs the
+# real model, its runtime and a recording (see the test); skips without them.
+add_executable(fluideq-voice-handover-test dsp-core/tests/voice_handover_test.cpp)
+target_link_libraries(fluideq-voice-handover-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME voice-handover COMMAND fluideq-voice-handover-test)
+
 add_executable(fluideq-denoise-bounds-test
   dsp-core/tests/denoise_bounds_test.cpp)
 target_link_libraries(fluideq-denoise-bounds-test

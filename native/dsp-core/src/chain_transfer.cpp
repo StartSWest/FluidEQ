@@ -193,8 +193,11 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
 
 }
 
-extern "C" int feq_chain_transfer_state(FeqChain* prepared, FeqChain* previous) {
-  if (prepared == nullptr || previous == nullptr || prepared == previous ||
+namespace {
+
+/** Whether the prepared chain may take the playing one's histories at all. */
+bool chain_accepts(const FeqChain* prepared, const FeqChain* previous) {
+  return !(prepared == nullptr || previous == nullptr || prepared == previous ||
       prepared->sample_rate != previous->sample_rate ||
       prepared->channels != previous->channels ||
       prepared->max_frames != previous->max_frames ||
@@ -212,7 +215,19 @@ extern "C" int feq_chain_transfer_state(FeqChain* prepared, FeqChain* previous) 
       (prepared->live_normalizer == nullptr) != (previous->live_normalizer == nullptr) ||
       prepared->kernel_handoff.load(std::memory_order_relaxed) != nullptr ||
       previous->kernel_handoff.load(std::memory_order_relaxed) != nullptr ||
-      prepared->defer_convolver_retirement) {
+      prepared->defer_convolver_retirement);
+}
+
+}  // namespace
+
+extern "C" int feq_chain_carries_restoration(const FeqChain* prepared,
+                                             const FeqChain* previous) {
+  return chain_accepts(prepared, previous) &&
+         feq_denoise_can_transfer_state(prepared->denoise, previous->denoise) != 0;
+}
+
+extern "C" int feq_chain_transfer_state(FeqChain* prepared, FeqChain* previous) {
+  if (!chain_accepts(prepared, previous)) {
     return 0;
   }
   if (prepared->settings.denoise.enabled != 0 || previous->settings.denoise.enabled != 0) {
