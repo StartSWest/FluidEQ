@@ -228,6 +228,15 @@ class Apo final : public IAudioProcessingObject,
    */
   uint32_t timing_step_told_ = 0;
   uint64_t blocks_timed_ = 0;
+  /**
+   * The voice cleaner's late count as last read from the graph it came from:
+   * a carried rack hands its count on, a crossed-to one starts again, so the
+   * stream's total adds only what each graph adds while it plays. And the
+   * total the watcher was last told of, by doubling steps. Audio thread.
+   */
+  const Graph* voice_graph_ = nullptr;
+  uint32_t voice_seen_ = 0;
+  uint64_t voice_told_ = 0;
   /** Audio-thread identity only, never dereferenced after replacement. */
   const Graph* reported_graph_ = nullptr;
 

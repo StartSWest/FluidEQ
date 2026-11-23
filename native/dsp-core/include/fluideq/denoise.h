@@ -232,6 +232,14 @@ int feq_denoise_can_transfer_state(const FeqDenoise* prepared,
                                    const FeqDenoise* previous);
 
 /**
+ * The voice cleaner's late blocks since this restoration started (carried
+ * over by `feq_denoise_transfer_state`), and the finished hops its worker is
+ * given ahead of each block - 0 while no cleaner runs. Any thread.
+ */
+uint32_t feq_denoise_voice_late(const FeqDenoise* denoise);
+uint32_t feq_denoise_voice_hops(const FeqDenoise* denoise);
+
+/**
  * One block, in place. Planar, `channels` pointers.
  *
  * Real-time safe: allocates nothing, frees nothing, takes no lock, makes no OS

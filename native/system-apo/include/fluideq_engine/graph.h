@@ -228,6 +228,14 @@ class Graph {
    * `GetLatency`.
    */
   uint32_t latency_frames() const noexcept;
+
+  /** The rack's voice cleaner: late blocks so far, and hops ahead (0: none). */
+  uint32_t voice_late() const noexcept {
+    return rack_ ? feq_chain_voice_late(rack_.get()) : 0;
+  }
+  uint32_t voice_hops() const noexcept {
+    return rack_ ? feq_chain_voice_hops(rack_.get()) : 0;
+  }
   double auto_preamp_gain_db() const noexcept;
   void set_output_meters(std::atomic<float>* gain, std::atomic<bool>* enabled,
                          std::atomic<bool>* active) noexcept {

@@ -486,6 +486,14 @@ void feq_chain_wake_workers(FeqChain* chain) {
   }
 }
 
+uint32_t feq_chain_voice_late(const FeqChain* chain) {
+  return chain == nullptr ? 0 : feq_denoise_voice_late(chain->denoise);
+}
+
+uint32_t feq_chain_voice_hops(const FeqChain* chain) {
+  return chain == nullptr ? 0 : feq_denoise_voice_hops(chain->denoise);
+}
+
 void feq_chain_denoise_report(const FeqChain* chain, FeqDenoiseReport* out) {
   feq_denoise_report(chain == nullptr ? nullptr : chain->denoise, out);
 }

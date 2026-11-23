@@ -68,7 +68,14 @@ BlockTiming::Reading BlockTiming::read() const noexcept {
   reading.period_ms = static_cast<double>(slowest & 0xffffffffu) / 1000.0;
   reading.slowest_ms =
       reading.period_ms * static_cast<double>(reading.slowest_permille) / 1000.0;
+  reading.voice_late = voice_late_.load(std::memory_order_relaxed);
+  reading.voice_hops = voice_hops_.load(std::memory_order_relaxed);
   return reading;
+}
+
+uint64_t BlockTiming::record_voice(uint32_t late, uint32_t hops) noexcept {
+  voice_hops_.store(hops, std::memory_order_relaxed);
+  return voice_late_.fetch_add(late, std::memory_order_relaxed) + late;
 }
 
 uint32_t timing_step(uint32_t permille) noexcept {
@@ -88,7 +95,15 @@ std::string describe_timing(const BlockTiming::Reading& reading) {
                 static_cast<unsigned>((reading.slowest_permille + 5u) / 10u),
                 static_cast<unsigned long long>(reading.over_half),
                 static_cast<unsigned long long>(reading.blocks));
-  return text;
+  if (reading.voice_hops == 0) {
+    return text;
+  }
+  // Said only where a voice cleaner ran, so every output's line is as it was.
+  char voice[96] = {};
+  std::snprintf(voice, sizeof(voice), ", voice cleaner %llu late (%u %s ahead)",
+                static_cast<unsigned long long>(reading.voice_late),
+                reading.voice_hops, reading.voice_hops == 1 ? "hop" : "hops");
+  return std::string(text) + voice;
 }
 
 }  // namespace fluideq_engine

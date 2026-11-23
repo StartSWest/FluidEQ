@@ -425,6 +425,28 @@ Apo::APOProcess(UINT32 input_count, APO_CONNECTION_PROPERTY** inputs,
           watcher_->say_it_was_slow();
         }
       }
+      if (graph != nullptr) {
+        // The voice cleaner's late blocks, by what this graph added since it
+        // was last read: three atomic loads and two stores.
+        const uint32_t late = graph->voice_late();
+        uint32_t added = 0;
+        if (graph != voice_graph_) {
+          voice_graph_ = graph;
+        } else if (late > voice_seen_) {
+          added = late - voice_seen_;
+        }
+        voice_seen_ = late;
+        const uint64_t total = timing_->record_voice(added, graph->voice_hops());
+        // Told at the first, second, fourth, eighth late block: a cleaner
+        // falling behind shows in the status at once, a long stream of them
+        // costs a handful of writes.
+        if (total > voice_told_ && (voice_told_ == 0 || total >= voice_told_ * 2)) {
+          voice_told_ = total;
+          if (watcher_) {
+            watcher_->say_it_was_slow();
+          }
+        }
+      }
     }
   }
 

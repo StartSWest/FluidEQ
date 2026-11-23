@@ -124,6 +124,29 @@ describe('describeAudioEngine', () => {
       '  Engine load: slowest block 6.05 ms of its 11.00 ms (55%), ' +
         '1 of 102 over half',
     );
+    // Without a voice cleaner the line ends there, as the engine's does.
+    expect(text).not.toContain('voice cleaner');
+    // A mic's cleaner adds how often it was late, in the log's own words.
+    expect(
+      describeAudioEngine({
+        engine: 'fluid',
+        devices: [output],
+        fluid: installed,
+        health: health([
+          {
+            ...playing,
+            load: {
+              blocks: 102,
+              overHalf: 1,
+              slowestMs: 6.05,
+              periodMs: 11,
+              voiceLate: 3,
+              voiceHops: 1,
+            },
+          },
+        ]),
+      }),
+    ).toContain('1 of 102 over half, voice cleaner 3 late (1 hop ahead)');
     // Positive control: an engine that times nothing gets no line.
     expect(
       describeAudioEngine({

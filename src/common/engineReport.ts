@@ -66,11 +66,21 @@ const yesNo = (value: boolean | null | undefined): string => {
  * two halves of a report read alike. A block that takes longer than its own
  * time is a gap the listener hears.
  */
-const describeLoad = (load: IEngineLoad): string =>
-  `slowest block ${load.slowestMs.toFixed(2)} ms of its ` +
-  `${load.periodMs.toFixed(2)} ms ` +
-  `(${Math.round((load.slowestMs / load.periodMs) * 100)}%), ` +
-  `${load.overHalf} of ${load.blocks} over half`;
+const describeLoad = (load: IEngineLoad): string => {
+  // The engine log's own words (`describe_timing`), only where a cleaner ran.
+  const voice =
+    load.voiceLate !== undefined && load.voiceHops !== undefined
+      ? `, voice cleaner ${load.voiceLate} late (${load.voiceHops} ${
+          load.voiceHops === 1 ? 'hop' : 'hops'
+        } ahead)`
+      : '';
+  return (
+    `slowest block ${load.slowestMs.toFixed(2)} ms of its ` +
+    `${load.periodMs.toFixed(2)} ms ` +
+    `(${Math.round((load.slowestMs / load.periodMs) * 100)}%), ` +
+    `${load.overHalf} of ${load.blocks} over half${voice}`
+  );
+};
 
 /**
  * One output, in four lines: who it is, what Windows allows on it, whether

@@ -137,7 +137,8 @@ const parseLoad = (value: unknown): IEngineLoad | undefined => {
   if (!isObject(value)) {
     return undefined;
   }
-  const { blocks, overHalf, slowestMs, periodMs } = value;
+  const { blocks, overHalf, slowestMs, periodMs, voiceLate, voiceHops } = value;
+  const voiced = voiceLate !== undefined || voiceHops !== undefined;
   if (
     !isCount(blocks) ||
     !isCount(overHalf) ||
@@ -145,11 +146,19 @@ const parseLoad = (value: unknown): IEngineLoad | undefined => {
     !isFiniteNumber(slowestMs) ||
     slowestMs < 0 ||
     !isFiniteNumber(periodMs) ||
-    periodMs <= 0
+    periodMs <= 0 ||
+    // Written together or not at all (`status_json.cpp`).
+    (voiced && (!isCount(voiceLate) || !isCount(voiceHops) || voiceHops < 1))
   ) {
     return undefined;
   }
-  return { blocks, overHalf, slowestMs, periodMs };
+  return {
+    blocks,
+    overHalf,
+    slowestMs,
+    periodMs,
+    ...(voiced ? { voiceLate, voiceHops } : {}),
+  };
 };
 
 /**

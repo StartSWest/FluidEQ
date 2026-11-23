@@ -207,6 +207,26 @@ void how_long_blocks_take() {
         "\"rate\":0,\"latency\":0,\"latencyParts\":{},\"latencyActive\":[],"
         "\"gameMode\":false,\"load\":{\"blocks\":102,\"overHalf\":1,"
         "\"slowestMs\":6.05,\"periodMs\":11.00},\"at\":\"t\"}\r\n");
+  // The late count adds up across graphs and keeps the hops last given.
+  BlockTiming voiced;
+  CHECK(voiced.record_voice(1, 1) == 1);
+  CHECK(voiced.record_voice(0, 1) == 1);
+  CHECK(voiced.record_voice(2, 2) == 3);
+  CHECK(voiced.read().voice_late == 3 && voiced.read().voice_hops == 2);
+  // A mic whose voice cleaner runs says how often its worker was late and how
+  // many hops ahead it works; `engineHealth.test` holds the app to the text.
+  BlockTiming::Reading cleaned = slow;
+  cleaned.voice_late = 3;
+  cleaned.voice_hops = 1;
+  status.load = cleaned;
+  CHECK(status_json(status, 7, "t").find(
+            "\"load\":{\"blocks\":102,\"overHalf\":1,\"slowestMs\":6.05,"
+            "\"periodMs\":11.00,\"voiceLate\":3,\"voiceHops\":1},") !=
+        std::string::npos);
+  CHECK(describe_timing(cleaned).find(", voice cleaner 3 late (1 hop ahead)") !=
+        std::string::npos);
+  // Control: with no cleaner neither the status nor the log line changes.
+  CHECK(describe_timing(slow).find("voice") == std::string::npos);
   // Positive control for the field being optional: an output with no block
   // timed says nothing about it, as every earlier engine did.
   status.load.reset();

@@ -115,7 +115,14 @@ std::string status_json(const EngineStatus& status, unsigned long pid,
     load = ",\"load\":{\"blocks\":" + std::to_string(status.load->blocks) +
            ",\"overHalf\":" + std::to_string(status.load->over_half) +
            ",\"slowestMs\":" + decimal(status.load->slowest_ms) +
-           ",\"periodMs\":" + decimal(status.load->period_ms) + "}";
+           ",\"periodMs\":" + decimal(status.load->period_ms) +
+           // Only where a voice cleaner runs, so every output's status reads
+           // exactly as it did and an older app ignores what it never knew.
+           (status.load->voice_hops > 0
+                ? ",\"voiceLate\":" + std::to_string(status.load->voice_late) +
+                      ",\"voiceHops\":" + std::to_string(status.load->voice_hops)
+                : std::string()) +
+           "}";
   }
   std::string source_analysis;
   if (status.source_analysis) {

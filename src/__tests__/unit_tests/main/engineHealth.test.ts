@@ -223,6 +223,47 @@ describe('parseEngineStatus', () => {
     expect(parseEngineStatus(ENGINE_TEXT)).not.toHaveProperty('load');
   });
 
+  /**
+   * A mic's load, with its voice cleaner's late blocks and hops, exactly as
+   * status_test.cpp writes it; an output's load has neither.
+   */
+  it('reads how often the voice cleaner was late, where one runs', () => {
+    const text =
+      '{"version":1,"endpoint":"{CCCC}","pid":7,"locked":true,' +
+      '"processing":true,"carried":false,"owner":true,' +
+      '"reason":"","problems":[],"channels":0,"room":"off",' +
+      '"rate":0,"latency":0,"latencyParts":{},"latencyActive":[],' +
+      '"gameMode":false,"load":{"blocks":102,"overHalf":1,' +
+      '"slowestMs":6.05,"periodMs":11.00,"voiceLate":3,"voiceHops":1},' +
+      '"at":"t"}\r\n';
+    expect(parseEngineStatus(text)?.load).toEqual({
+      blocks: 102,
+      overHalf: 1,
+      slowestMs: 6.05,
+      periodMs: 11,
+      voiceLate: 3,
+      voiceHops: 1,
+    });
+  });
+
+  it.each([
+    ['a late count with no hops', { voiceLate: 3 }],
+    ['hops with no late count', { voiceHops: 1 }],
+    ['a fractional late count', { voiceLate: 1.5, voiceHops: 1 }],
+    ['no hops at all', { voiceLate: 0, voiceHops: 0 }],
+  ])('drops a voice load with %s, and keeps the status', (_label, bad) => {
+    const load = {
+      blocks: 102,
+      overHalf: 1,
+      slowestMs: 6.05,
+      periodMs: 11,
+      ...bad,
+    };
+    const parsed = parseEngineStatus(status({ load }));
+    expect(parsed?.locked).toBe(true);
+    expect(parsed).not.toHaveProperty('load');
+  });
+
   it.each([
     ['a fractional block count', { blocks: 1.5 }],
     ['more blocks over half than blocks', { overHalf: 103 }],

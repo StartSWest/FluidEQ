@@ -153,6 +153,14 @@ export interface IEngineLoad {
   /** The slowest block's call, and how long that block lasts. */
   slowestMs: number;
   periodMs: number;
+  /**
+   * Only where a voice cleaner runs (a mic): the blocks its worker did not
+   * deliver in time this stream, each played at the cleaner's last level
+   * rather than cleaned, and the hops ahead it works with. Absent from an
+   * output, and from an engine before these were written.
+   */
+  voiceLate?: number;
+  voiceHops?: number;
 }
 
 /**

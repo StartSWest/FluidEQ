@@ -46,6 +46,13 @@ class BlockTiming {
     double period_ms = 0.0;
     /** The slowest call as thousandths of its own block's time. */
     uint32_t slowest_permille = 0;
+    /**
+     * The voice cleaner's blocks its worker did not deliver in time, this
+     * stream, and the hops it is given ahead of each block - 0 while no
+     * cleaner runs, and then neither is written.
+     */
+    uint64_t voice_late = 0;
+    uint32_t voice_hops = 0;
   };
 
   /**
@@ -60,7 +67,15 @@ class BlockTiming {
 
   Reading read() const noexcept;
 
+  /**
+   * The voice cleaner's late blocks since the last call, and its hops now.
+   * Audio thread; two relaxed stores. Returns the stream's late total.
+   */
+  uint64_t record_voice(uint32_t late, uint32_t hops) noexcept;
+
  private:
+  std::atomic<uint64_t> voice_late_{0};
+  std::atomic<uint32_t> voice_hops_{0};
   std::atomic<uint64_t> blocks_{0};
   std::atomic<uint64_t> over_half_{0};
   /**

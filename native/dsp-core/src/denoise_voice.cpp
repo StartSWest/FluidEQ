@@ -691,6 +691,22 @@ uint32_t denoise_voice_process(FeqDenoise* denoise, float* const* channels,
   return underruns;
 }
 
+extern "C" uint32_t feq_denoise_voice_late(const FeqDenoise* denoise) {
+  return denoise == nullptr
+             ? 0
+             : denoise->reported_voice_underruns.load(std::memory_order_relaxed);
+}
+
+extern "C" uint32_t feq_denoise_voice_hops(const FeqDenoise* denoise) {
+  if (denoise == nullptr || denoise->settings.enabled == 0 ||
+      denoise->settings.voice.enabled == 0) {
+    return 0;
+  }
+  const auto* runtime = static_cast<const VoiceRuntime*>(
+      denoise->voice.load(std::memory_order_acquire));
+  return runtime == nullptr ? 0 : runtime->headroom_hops;
+}
+
 bool denoise_voice_can_swap(const FeqDenoise* prepared,
                             const FeqDenoise* previous) {
   const auto* fresh = static_cast<const VoiceRuntime*>(
