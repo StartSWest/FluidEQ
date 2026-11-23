@@ -43,8 +43,8 @@ import usePublishNote, { noteFieldsOf } from './usePublishNote';
 export type { IPreparedPublishPreview } from './preparePublishPreview';
 
 const PUBLISH_FAILURES: Record<string, TranslationKey> = {
-  cancelled: 'studio.publish.videoCancelled',
-  'preview-invalid': 'studio.publish.videoFailed',
+  cancelled: 'studio.publish.videoStopped',
+  'preview-invalid': 'studio.publish.videoNotRecorded',
   'preview-stale': 'studio.publish.videoChanged',
   'preview-upload': 'studio.publish.videoUploadFailed',
   terms: 'studio.publish.outdated',

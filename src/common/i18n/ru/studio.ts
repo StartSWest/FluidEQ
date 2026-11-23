@@ -126,10 +126,21 @@ const studio = {
   'studio.publish.videoUploadFailed':
     'Не удалось прикрепить предпросмотр. Откройте публикацию и попробуйте снова.',
   'studio.publish.videoTitle': 'Видеопредпросмотр',
-  'studio.publish.videoHint':
-    'Беззвучное видео этой сцены на 10 секунд с водяным знаком. Посмотрите его здесь перед публикацией.',
-  'studio.publish.videoWaiting':
-    'Включите музыку или демо, чтобы записать предпросмотр.',
+  'studio.publish.videoOnSend':
+    'Записывается при отправке сцены: десять секунд её движения под демо-песню, в выбранное выше время суток, без звука.',
+  'studio.publish.videoStarting': 'Запись начинается…',
+  'studio.publish.videoDone':
+    'Записано. Видео воспроизводится выше, на вкладке «Видео предпросмотра».',
+  'studio.publish.videoNotRecorded':
+    'Не удалось записать видео предпросмотра. Отправьте сцену ещё раз, чтобы попробовать снова.',
+  'studio.publish.videoStopped': 'Остановлено. Ничего не отправлено.',
+  'studio.publish.timeOfDayFor':
+    'Время суток, в которое снимаются ваши обложки и видео предпросмотра, от ночи до ясного дня. Собственная настройка приложения не меняется.',
+  'studio.publish.askNote':
+    'Строки о том, что нового, пока нет. Хотите, чтобы её написал ИИ?',
+  'studio.publish.askNoteFirst':
+    'У этой сцены пока нет описания. Хотите, чтобы его написал ИИ?',
+  'studio.publish.askNoteMine': 'Напишу самостоятельно',
   'studio.publish.videoPreparing': 'Подготовка сцены к записи…',
   'studio.publish.videoRecording': 'Запись предпросмотра · {seconds} / 10 с',
   'studio.publish.videoPaused': 'Пауза, пока тихо · {seconds} / 10 с',
@@ -139,17 +150,9 @@ const studio = {
     'Пауза в этом виде · {seconds} / 10 с. Запись продолжится в обычном виде.',
   'studio.publish.videoEncoding': 'Завершение видео…',
   'studio.publish.videoChecking': 'Проверка воспроизведения…',
-  'studio.publish.videoReady':
-    'Предпросмотр готов. Он воспроизводится выше, на вкладке «Видео предпросмотра».',
-  'studio.publish.videoFailed':
-    'Не удалось записать или воспроизвести предпросмотр. Попробуйте записать снова.',
-  'studio.publish.videoCancelled':
-    'Запись отменена. Запишите предпросмотр, чтобы продолжить.',
   'studio.publish.videoCancel': 'Отменить запись',
-  'studio.publish.videoAgain': 'Записать снова',
   'studio.publish.clipLocked':
     'Этот ролик сейчас публикуется. Если публикация не удастся, его можно будет записать снова.',
-  'studio.publish.videoRetry': 'Повторить запись',
   'studio.publish.videoPlay': 'Воспроизвести предпросмотр сцены',
   'studio.publish.viewChoice': 'Что показывает кадр',
   'studio.publish.viewLive': 'Живая сцена',
@@ -163,21 +166,12 @@ const studio = {
   'studio.publish.note': 'Что нового в этой версии',
   'studio.publish.notePlaceholder':
     'Одна строка для слушателей, например: вершины больше не обрезаются на широких панелях',
-  'studio.publish.hears': 'Что слышит сцена',
-  'studio.publish.yourMusic': 'Ваша музыка',
-  'studio.publish.demo': 'Демо',
   'studio.publish.capture': 'Поймать этот момент',
   'studio.publish.nightToDay': 'От ночи к дню',
   'studio.publish.nightToDayHint':
     'Видео предпросмотра за свои десять секунд проходит от ночи до полного дня. Если выключено, оно снимается во время суток, заданное выше.',
   'studio.publish.timeOfDay': 'Время суток',
-  'studio.publish.timeOfDayHint':
-    'Время суток, в которое снимаются обложки и видео предпросмотра, от ночи до ясного дня. При изменении предпросмотр записывается заново; собственная настройка приложения не меняется.',
   'studio.publish.capturing': 'Снимаем…',
-  'studio.publish.quietTitle': 'Ничего не играет',
-  'studio.publish.quietBody':
-    'Включите музыку в любом приложении или используйте демо.',
-  'studio.publish.useDemo': 'Включить демо',
   'studio.publish.cover': 'Обложка',
   'studio.publish.coverHint':
     'Поймайте момент, когда сцена выглядит лучше всего. Галерея покажет обложку с галочкой.',
@@ -193,8 +187,6 @@ const studio = {
   'studio.publish.categoryHint': 'Не больше двух. На карточке видна первая.',
   'studio.publish.stillNeeded': 'Ещё нужно:',
   'studio.publish.missing.name': 'ваше имя и @имя пользователя — вверху',
-  'studio.publish.missing.video':
-    'видео предпросмотра, которое воспроизводится',
   'studio.publish.missing.category': 'категория',
   'studio.publish.missing.size': 'сцена поменьше',
   'studio.publish.missing.note': 'строка о том, что нового',

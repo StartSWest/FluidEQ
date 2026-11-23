@@ -128,10 +128,21 @@ const studio = {
   'studio.publish.videoUploadFailed':
     'プレビューを添付できませんでした。公開画面を開いて再試行してください。',
   'studio.publish.videoTitle': '動画プレビュー',
-  'studio.publish.videoHint':
-    'このシーンの透かし入り10秒動画を無音で録画します。公開前にここで確認できます。',
-  'studio.publish.videoWaiting':
-    '音楽を再生するか、デモを開始してプレビューを録画してください。',
+  'studio.publish.videoOnSend':
+    'シーンを送信するときに録画されます。デモ曲に合わせて動く 10 秒間を、上で選んだ時間帯で、音なしで撮ります。',
+  'studio.publish.videoStarting': '録画を始めています…',
+  'studio.publish.videoDone':
+    '録画しました。上の「プレビュー動画」タブで再生されます。',
+  'studio.publish.videoNotRecorded':
+    'プレビュー動画を録画できませんでした。もう一度送信すると、録画し直します。',
+  'studio.publish.videoStopped': '止めました。何も送信していません。',
+  'studio.publish.timeOfDayFor':
+    'カバーとプレビュー動画を撮る時間帯です。夜から真昼まで選べます。アプリ本体の時間帯の設定は変わりません。',
+  'studio.publish.askNote':
+    '新しい点についての一文がまだありません。AI に書かせますか？',
+  'studio.publish.askNoteFirst':
+    'このシーンにはまだ説明がありません。AI に書かせますか？',
+  'studio.publish.askNoteMine': '自分で書く',
   'studio.publish.videoPreparing': 'シーンの録画を準備中…',
   'studio.publish.videoRecording': 'プレビューを録画中 · {seconds} / 10 秒',
   'studio.publish.videoPaused': '無音の間は一時停止 · {seconds} / 10 秒',
@@ -140,17 +151,9 @@ const studio = {
     'この表示では一時停止 · {seconds} / 10 秒。通常表示で続きを録画します。',
   'studio.publish.videoEncoding': '動画を仕上げています…',
   'studio.publish.videoChecking': '動画の再生を確認中…',
-  'studio.publish.videoReady':
-    'プレビューができました。上の「プレビュー動画」タブで再生されます。',
-  'studio.publish.videoFailed':
-    'プレビューを録画または再生できませんでした。もう一度録画してください。',
-  'studio.publish.videoCancelled':
-    '録画をキャンセルしました。プレビューを録画して続けてください。',
   'studio.publish.videoCancel': '録画をキャンセル',
-  'studio.publish.videoAgain': '録画し直す',
   'studio.publish.clipLocked':
     'このクリップを公開しています。公開に失敗したら、録画し直せます。',
-  'studio.publish.videoRetry': '録画を再試行',
   'studio.publish.videoPlay': 'シーンのプレビューを再生',
   'studio.publish.viewChoice': 'フレームに表示する内容',
   'studio.publish.viewLive': 'ライブのシーン',
@@ -165,21 +168,12 @@ const studio = {
   'studio.publish.note': 'このバージョンの新しい点',
   'studio.publish.notePlaceholder':
     'リスナーに表示される一行。例：横長のパネルで山頂が切れなくなりました',
-  'studio.publish.hears': 'シーンが聴く音',
-  'studio.publish.yourMusic': 'あなたの音楽',
-  'studio.publish.demo': 'デモ',
   'studio.publish.capture': 'この瞬間をキャプチャ',
   'studio.publish.nightToDay': '夜から昼へ',
   'studio.publish.nightToDayHint':
     'プレビュー動画は10秒で夜から真昼まで移り変わります。オフにすると、上の時刻で撮影されます。',
   'studio.publish.timeOfDay': '時間帯',
-  'studio.publish.timeOfDayHint':
-    'カバーとプレビュー動画を撮る時間帯です。夜から真昼まで選べます。変更するとプレビューを録り直します。アプリ本体の時間帯の設定は変わりません。',
   'studio.publish.capturing': 'キャプチャしています…',
-  'studio.publish.quietTitle': '何も再生されていません',
-  'studio.publish.quietBody':
-    'いずれかのアプリで音楽を再生するか、デモを使ってください。',
-  'studio.publish.useDemo': 'デモを使う',
   'studio.publish.cover': 'カバー',
   'studio.publish.coverHint':
     'シーンがいちばん映える瞬間をキャプチャしてください。チェックの付いたカバーがギャラリーに表示されます。',
@@ -195,7 +189,6 @@ const studio = {
   'studio.publish.categoryHint': '2つまで。カードには1つ目が表示されます。',
   'studio.publish.stillNeeded': 'まだ必要なもの:',
   'studio.publish.missing.name': '名前と @ハンドル（いちばん上）',
-  'studio.publish.missing.video': '再生できるプレビュー動画',
   'studio.publish.missing.category': 'カテゴリ',
   'studio.publish.missing.size': 'もっと小さいシーン',
   'studio.publish.missing.note': '新しい点の一文',

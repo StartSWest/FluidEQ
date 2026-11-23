@@ -138,5 +138,11 @@ export default function usePublishNoteSend({
     writing,
     /** The line goes in every language as written. */
     asWritten: goesAsWritten,
+    /**
+     * A press now sends rather than handing the line to the chat to
+     * translate: the dialog records the preview clip only for a press that
+     * will send.
+     */
+    sends: pending.length === 0 || goesAsWritten,
   };
 }

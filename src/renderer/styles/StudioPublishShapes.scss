@@ -30,13 +30,11 @@
 
 // The tabs themselves, sized to the bar, are `StudioPublish.scss`'s.
 
-.segmented.studio-publish__shapes,
-.segmented.studio-publish__hears {
+.segmented.studio-publish__shapes {
   flex-wrap: wrap;
 }
 
-.studio-publish__shapes .segmented__option,
-.studio-publish__hears .segmented__option {
+.studio-publish__shapes .segmented__option {
   flex: 0 0 auto;
 }
 
@@ -125,6 +123,54 @@
   }
 }
 
+// The take over the scene (`StudioPublishRecordingTag`): a recording light
+// and the count, in the frame's top corner where a camera's own screen puts
+// it. Always on the scene's dark, so it keeps the dark's inks on the white
+// window too; a step of ink, no shadow.
+.studio-publish__rec {
+  position: absolute;
+  z-index: 1;
+  top: 12px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 24px);
+  padding: 6px 12px 6px 10px;
+  border-radius: $radius-pill;
+  color: $white;
+  background: rgba($black, 0.62);
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+  pointer-events: none;
+  @include animate(fade-in, $motion-base);
+}
+
+.studio-publish__rec-light {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba($white, 0.55);
+
+  &.is-live {
+    background: $red;
+    animation: studio-publish-rec 1.2s ease-in-out infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+}
+
+@keyframes studio-publish-rec {
+  50% {
+    opacity: 0.35;
+  }
+}
+
 @keyframes studio-publish-flash {
   from {
     opacity: 0.6;
@@ -132,41 +178,6 @@
 
   to {
     opacity: 0;
-  }
-}
-
-// Nothing is heard: said over the scene, which is at rest anyway, with the
-// way out of it. Always on the scene's dark, so its words keep the dark's
-// inks on the white window too.
-.studio-publish__quiet {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: $spacing-m;
-  color: rgba($white, 0.72);
-  background: radial-gradient(
-    ellipse at center,
-    rgba($black, 0.72),
-    rgba($black, 0.4) 75%
-  );
-  font-size: $text-small;
-  line-height: 1.45;
-  text-align: center;
-  @include animate(fade-in, $motion-base);
-
-  strong {
-    color: $white;
-    font-size: $text-body;
-    font-weight: $weight-semibold;
-  }
-
-  .button {
-    margin-top: 8px;
   }
 }
 
@@ -187,18 +198,12 @@
 
 // ---------------------------------------------------------------- under
 
+// The cover's row (Ivan, 2026-11-23): Time of day, Night to day for a
+// scene that has one, and the shutter, at the slider's end where the hand
+// that set the hour already is. One row while the column holds them; the
+// switch and the shutter wrap under the slider once it does not, the
+// shutter keeping to the row's end.
 .studio-publish__controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: $spacing-s;
-  min-width: 0;
-}
-
-// Time of day and, for a scene that has one, Night to day beside it: one
-// row while the column holds both, the switch under the slider once not.
-.studio-publish__hour {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -212,6 +217,11 @@
   > .studio-setting--switch {
     flex: 0 0 auto;
   }
+}
+
+.studio-publish__shutter {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
 }
 
 // ---------------------------------------------------------------- name

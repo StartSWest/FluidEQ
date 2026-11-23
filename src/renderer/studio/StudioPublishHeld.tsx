@@ -9,14 +9,12 @@ import type { TPublishPart } from './publishMissing';
  */
 const WHAT: Record<TPublishPart, TranslationKey> = {
   name: 'studio.publish.missing.name',
-  video: 'studio.publish.missing.video',
   category: 'studio.publish.missing.category',
   size: 'studio.publish.missing.size',
   note: 'studio.publish.missing.note',
 };
 
 const UNDER: Record<Exclude<TPublishPart, 'name'>, TranslationKey> = {
-  video: 'studio.publish.videoTitle',
   category: 'studio.publish.category',
   size: 'studio.publish.size',
   note: 'studio.publish.note',

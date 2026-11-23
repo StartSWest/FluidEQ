@@ -138,10 +138,21 @@ const studio = {
   'studio.publish.videoUploadFailed':
     'The preview could not be attached. Open Publish and try again.',
   'studio.publish.videoTitle': 'Video preview',
-  'studio.publish.videoHint':
-    'A silent, watermarked 10-second clip of this scene. Watch it here before publishing.',
-  'studio.publish.videoWaiting':
-    'Play music or start the demo to record your preview.',
+  'studio.publish.videoOnSend':
+    'Recorded when you send the scene: ten seconds of it moving to the demo song, at the time of day above, with no sound.',
+  'studio.publish.videoStarting': 'Starting the recording…',
+  'studio.publish.videoDone':
+    'Recorded. It plays on the Preview video tab above.',
+  'studio.publish.videoNotRecorded':
+    'The preview video could not be recorded. Send the scene again to try once more.',
+  'studio.publish.videoStopped': 'Stopped. Nothing was sent.',
+  'studio.publish.timeOfDayFor':
+    "The time of day your covers and the preview video are shot at, from night to full day. The app's own Daylight stays as it is.",
+  'studio.publish.askNote':
+    "There is no line on what's new yet. Do you want AI to write it?",
+  'studio.publish.askNoteFirst':
+    'This scene has no description yet. Do you want AI to write it?',
+  'studio.publish.askNoteMine': "I'll write it",
   'studio.publish.videoPreparing': 'Preparing the scene for recording…',
   'studio.publish.videoRecording': 'Recording preview · {seconds} / 10 s',
   'studio.publish.videoPaused': "Paused while it's quiet · {seconds} / 10 s",
@@ -151,17 +162,9 @@ const studio = {
     'Paused in this view · {seconds} / 10 s. It carries on in the Normal view.',
   'studio.publish.videoEncoding': 'Finishing the video…',
   'studio.publish.videoChecking': 'Checking video playback…',
-  'studio.publish.videoReady':
-    'Your preview is ready. It plays on the Preview video tab above.',
-  'studio.publish.videoFailed':
-    'The preview could not be recorded or played. Try recording again.',
-  'studio.publish.videoCancelled':
-    'Recording cancelled. Record a preview to continue.',
   'studio.publish.videoCancel': 'Cancel recording',
-  'studio.publish.videoAgain': 'Record again',
   'studio.publish.clipLocked':
     'This clip is being published. If publishing fails, you can record it again.',
-  'studio.publish.videoRetry': 'Retry recording',
   'studio.publish.videoPlay': 'Play scene preview',
   'studio.publish.viewChoice': 'What the frame shows',
   'studio.publish.viewLive': 'Live scene',
@@ -175,20 +178,12 @@ const studio = {
   'studio.publish.note': "What's new in this version",
   'studio.publish.notePlaceholder':
     'One line listeners will see, like: the peaks no longer get cut on wide panels',
-  'studio.publish.hears': 'What the scene hears',
-  'studio.publish.yourMusic': 'Your music',
-  'studio.publish.demo': 'Demo',
   'studio.publish.capture': 'Capture this moment',
   'studio.publish.nightToDay': 'Night to day',
   'studio.publish.nightToDayHint':
     'The preview video runs from night to full day across its ten seconds. Off, it is shot at the time of day above.',
   'studio.publish.timeOfDay': 'Time of day',
-  'studio.publish.timeOfDayHint':
-    "The time of day the covers and the preview video are shot at, from night to full day. Changing it records the preview again; the app's own Daylight stays as it is.",
   'studio.publish.capturing': 'Capturing…',
-  'studio.publish.quietTitle': 'Nothing is playing',
-  'studio.publish.quietBody': 'Play music in any app, or use the demo.',
-  'studio.publish.useDemo': 'Use the demo',
   'studio.publish.cover': 'Cover',
   'studio.publish.coverHint':
     'Capture the moment the scene looks its best. The cover with the tick is the one the gallery shows.',
@@ -203,7 +198,6 @@ const studio = {
   'studio.publish.categoryHint': 'Up to two. Its card shows the first.',
   'studio.publish.stillNeeded': 'Still needed:',
   'studio.publish.missing.name': 'your name and @handle, at the top',
-  'studio.publish.missing.video': 'a playable preview video',
   'studio.publish.missing.category': 'a category',
   'studio.publish.missing.size': 'a smaller scene',
   'studio.publish.missing.note': 'a line on what is new',

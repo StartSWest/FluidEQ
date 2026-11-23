@@ -7,14 +7,15 @@
  * Cancel, and read as nothing. Now the footer names every part still
  * missing and where it is, each a way there, and the press itself — never
  * disabled for a missing part — goes to the first one.
+ *
+ * The preview video is not among them: it is recorded by the press itself
+ * (Ivan, 2026-11-23), so there is nothing to have done about it before.
  */
-export type TPublishPart = 'name' | 'video' | 'category' | 'size' | 'note';
+export type TPublishPart = 'name' | 'category' | 'size' | 'note';
 
 export interface IPublishGaps {
   /** The account has no public name and @handle yet. */
   name: boolean;
-  /** No playable preview of the scene as it is now. */
-  video: boolean;
   category: boolean;
   /** Over the most a scene can be published at. */
   size: boolean;
@@ -23,13 +24,7 @@ export interface IPublishGaps {
 }
 
 /** The dialog's own order, top to bottom. */
-const ORDER: readonly TPublishPart[] = [
-  'name',
-  'video',
-  'category',
-  'size',
-  'note',
-];
+const ORDER: readonly TPublishPart[] = ['name', 'category', 'size', 'note'];
 
 export const missingParts = (gaps: IPublishGaps): TPublishPart[] =>
   ORDER.filter((part) => gaps[part]);

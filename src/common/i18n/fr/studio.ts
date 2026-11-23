@@ -130,10 +130,21 @@ const studio = {
   'studio.publish.videoUploadFailed':
     'L’aperçu n’a pas pu être joint. Ouvrez Publier et réessayez.',
   'studio.publish.videoTitle': 'Aperçu vidéo',
-  'studio.publish.videoHint':
-    'Une vidéo silencieuse de 10 secondes de cette scène, avec filigrane. Regardez-la ici avant de publier.',
-  'studio.publish.videoWaiting':
-    'Lancez de la musique ou la démo pour enregistrer votre aperçu.',
+  'studio.publish.videoOnSend':
+    'Enregistrée à l’envoi de la scène : dix secondes où elle bouge sur la chanson de la démo, au moment de la journée choisi ci-dessus, sans le son.',
+  'studio.publish.videoStarting': 'Début de l’enregistrement…',
+  'studio.publish.videoDone':
+    'Enregistrée. Elle se lit ci-dessus, dans l’onglet Vidéo d’aperçu.',
+  'studio.publish.videoNotRecorded':
+    'La vidéo d’aperçu n’a pas pu être enregistrée. Envoyez de nouveau la scène pour réessayer.',
+  'studio.publish.videoStopped': 'Arrêté. Rien n’a été envoyé.',
+  'studio.publish.timeOfDayFor':
+    'Le moment de la journée où vos couvertures et la vidéo d’aperçu sont prises, de la nuit au plein jour. La Lumière du jour de l’application ne change pas.',
+  'studio.publish.askNote':
+    'Il n’y a pas encore de ligne sur les nouveautés. Voulez-vous que l’IA l’écrive ?',
+  'studio.publish.askNoteFirst':
+    'Cette scène n’a pas encore de description. Voulez-vous que l’IA l’écrive ?',
+  'studio.publish.askNoteMine': 'Je l’écris moi-même',
   'studio.publish.videoPreparing':
     'Préparation de la scène pour l’enregistrement…',
   'studio.publish.videoRecording':
@@ -146,17 +157,9 @@ const studio = {
     'En pause dans cette vue · {seconds} / 10 s. Elle reprend dans la vue normale.',
   'studio.publish.videoEncoding': 'Finalisation de la vidéo…',
   'studio.publish.videoChecking': 'Vérification de la lecture…',
-  'studio.publish.videoReady':
-    'Votre aperçu est prêt. Il se lit ci-dessus, dans l’onglet Vidéo d’aperçu.',
-  'studio.publish.videoFailed':
-    'L’aperçu n’a pas pu être enregistré ou lu. Réessayez l’enregistrement.',
-  'studio.publish.videoCancelled':
-    'Enregistrement annulé. Enregistrez un aperçu pour continuer.',
   'studio.publish.videoCancel': 'Annuler l’enregistrement',
-  'studio.publish.videoAgain': 'Enregistrer à nouveau',
   'studio.publish.clipLocked':
     'Ce clip est en cours de publication. Si la publication échoue, vous pourrez l’enregistrer à nouveau.',
-  'studio.publish.videoRetry': 'Réessayer l’enregistrement',
   'studio.publish.videoPlay': 'Lire l’aperçu de la scène',
   'studio.publish.viewChoice': 'Ce que montre le cadre',
   'studio.publish.viewLive': 'Scène en direct',
@@ -171,21 +174,12 @@ const studio = {
   'studio.publish.note': 'Nouveautés de cette version',
   'studio.publish.notePlaceholder':
     'Une ligne que les auditeurs verront, par exemple : les sommets ne sont plus coupés sur les panneaux larges',
-  'studio.publish.hears': 'Ce que la scène entend',
-  'studio.publish.yourMusic': 'Votre musique',
-  'studio.publish.demo': 'Démo',
   'studio.publish.capture': 'Capturer ce moment',
   'studio.publish.nightToDay': 'De la nuit au jour',
   'studio.publish.nightToDayHint':
     'La vidéo d’aperçu passe de la nuit au plein jour en dix secondes. Désactivée, elle est filmée à l’heure du jour ci-dessus.',
   'studio.publish.timeOfDay': 'Moment de la journée',
-  'studio.publish.timeOfDayHint':
-    'Le moment de la journée où les couvertures et la vidéo d’aperçu sont prises, de la nuit au plein jour. Le changer enregistre à nouveau l’aperçu ; la Lumière du jour de l’application ne change pas.',
   'studio.publish.capturing': 'Capture…',
-  'studio.publish.quietTitle': 'Rien ne joue',
-  'studio.publish.quietBody':
-    'Lancez de la musique dans n’importe quelle app, ou utilisez la démo.',
-  'studio.publish.useDemo': 'Utiliser la démo',
   'studio.publish.cover': 'Couverture',
   'studio.publish.coverHint':
     'Capturez le moment où la scène est la plus belle. La couverture cochée est celle que montre la galerie.',
@@ -200,7 +194,6 @@ const studio = {
   'studio.publish.categoryHint': 'Jusqu’à deux. Sa carte affiche la première.',
   'studio.publish.stillNeeded': 'Il manque encore :',
   'studio.publish.missing.name': 'votre nom et votre @identifiant, en haut',
-  'studio.publish.missing.video': 'une vidéo d’aperçu lisible',
   'studio.publish.missing.category': 'une catégorie',
   'studio.publish.missing.size': 'une scène plus légère',
   'studio.publish.missing.note': 'une ligne sur les nouveautés',

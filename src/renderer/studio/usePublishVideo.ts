@@ -14,7 +14,7 @@ export interface IPublishPreview extends IPreviewVideo {
 
 export type TPublishVideoState =
   | TPreviewVideoProgress
-  | { phase: 'waiting' }
+  | { phase: 'idle' | 'waiting' }
   | { phase: 'ready'; video: IPublishPreview; url: string }
   | { phase: 'failed' | 'cancelled' };
 
@@ -29,7 +29,11 @@ interface ITake {
   start: () => IPreviewVideoRecorder;
 }
 
-/** A take is armed on opening/retry, but owns no recorder until real audio
+/** A take is armed only when the member sends the scene (`record`), never
+ * on opening (Ivan, 2026-11-23: "when they click publish ... at that point,
+ * we will be recording the video always using a demo data"): until then the
+ * take is `idle`, and a new source — another hour, the scene rebuilt —
+ * leaves it idle again. An armed take owns no recorder until real audio
  * and a fully drawn scene meet. Silence or a paused player holds a take and
  * sound carries it on from the same second (Ivan, 2026-11-07: discarding it
  * at every quiet moment made the panel jump and a take over speech or a song
@@ -40,8 +44,11 @@ export default function usePublishVideo(
   watermark: string,
   onPreview: (video: IPublishPreview | undefined) => void,
 ) {
-  const [state, setState] = useState<TPublishVideoState>({ phase: 'waiting' });
+  const [state, setState] = useState<TPublishVideoState>({ phase: 'idle' });
   const [take, setTake] = useState(0);
+  // Whether the next take is armed: set by `record` just before it asks for
+  // the take, read once by the take it makes.
+  const armNext = useRef(false);
   const owner = useRef<ITake | undefined>(undefined);
   const changed = useRef(onPreview);
   changed.current = onPreview;
@@ -57,8 +64,10 @@ export default function usePublishVideo(
   }, []);
 
   useLayoutEffect(() => {
+    const armed = armNext.current;
+    armNext.current = false;
     const current: ITake = {
-      armed: true,
+      armed,
       playing: false,
       capturing: true,
       start: () => {
@@ -102,7 +111,7 @@ export default function usePublishVideo(
     };
     owner.current = current;
     changed.current(undefined);
-    setState({ phase: 'waiting' });
+    setState({ phase: armed ? 'waiting' : 'idle' });
     return () => {
       owner.current = undefined;
       stop(current);
@@ -166,6 +175,9 @@ export default function usePublishVideo(
     changed.current(undefined);
     setState({ phase: 'failed' });
   }, [stop]);
-  const retry = useCallback(() => setTake((value) => value + 1), []);
-  return { state, input, frame, cancel, retry, fail };
+  const record = useCallback(() => {
+    armNext.current = true;
+    setTake((value) => value + 1);
+  }, []);
+  return { state, input, frame, cancel, record, fail };
 }

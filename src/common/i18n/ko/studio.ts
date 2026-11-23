@@ -126,10 +126,21 @@ const studio = {
   'studio.publish.videoUploadFailed':
     '미리 보기를 첨부할 수 없습니다. 게시 화면을 열고 다시 시도하세요.',
   'studio.publish.videoTitle': '동영상 미리 보기',
-  'studio.publish.videoHint':
-    '이 장면을 워터마크가 있는 10초 무음 동영상으로 녹화합니다. 게시하기 전에 여기서 확인하세요.',
-  'studio.publish.videoWaiting':
-    '음악을 재생하거나 데모를 시작하여 미리보기를 녹화하세요.',
+  'studio.publish.videoOnSend':
+    '장면을 보낼 때 녹화됩니다. 위에서 고른 시간대에 데모 곡에 맞춰 움직이는 10초를 소리 없이 담습니다.',
+  'studio.publish.videoStarting': '녹화를 시작하는 중…',
+  'studio.publish.videoDone':
+    '녹화했습니다. 위쪽 미리 보기 동영상 탭에서 재생됩니다.',
+  'studio.publish.videoNotRecorded':
+    '미리 보기 동영상을 녹화하지 못했습니다. 장면을 다시 보내면 다시 시도합니다.',
+  'studio.publish.videoStopped': '중지했습니다. 아무것도 보내지 않았습니다.',
+  'studio.publish.timeOfDayFor':
+    '표지와 미리 보기 동영상을 촬영할 시간대로, 밤부터 한낮까지입니다. 앱 자체의 일광 설정은 그대로입니다.',
+  'studio.publish.askNote':
+    '새로운 점에 대한 문장이 아직 없습니다. AI가 쓰게 할까요?',
+  'studio.publish.askNoteFirst':
+    '이 장면에는 아직 설명이 없습니다. AI가 쓰게 할까요?',
+  'studio.publish.askNoteMine': '직접 쓸게요',
   'studio.publish.videoPreparing': '장면 녹화 준비 중…',
   'studio.publish.videoRecording': '미리 보기 녹화 중 · {seconds} / 10초',
   'studio.publish.videoPaused': '조용한 동안 일시 정지 · {seconds} / 10초',
@@ -139,17 +150,9 @@ const studio = {
     '이 보기에서는 일시 정지 · {seconds} / 10초. 일반 보기에서 이어집니다.',
   'studio.publish.videoEncoding': '동영상 마무리 중…',
   'studio.publish.videoChecking': '동영상 재생 확인 중…',
-  'studio.publish.videoReady':
-    '미리 보기가 준비되었습니다. 위쪽 미리 보기 동영상 탭에서 재생됩니다.',
-  'studio.publish.videoFailed':
-    '미리 보기를 녹화하거나 재생할 수 없습니다. 다시 녹화해 주세요.',
-  'studio.publish.videoCancelled':
-    '녹화가 취소되었습니다. 계속하려면 미리 보기를 녹화하세요.',
   'studio.publish.videoCancel': '녹화 취소',
-  'studio.publish.videoAgain': '다시 녹화',
   'studio.publish.clipLocked':
     '이 클립을 게시하는 중입니다. 게시에 실패하면 다시 녹화할 수 있습니다.',
-  'studio.publish.videoRetry': '녹화 재시도',
   'studio.publish.videoPlay': '장면 미리 보기 재생',
   'studio.publish.viewChoice': '화면에 표시할 내용',
   'studio.publish.viewLive': '실시간 장면',
@@ -163,21 +166,12 @@ const studio = {
   'studio.publish.note': '이 버전의 새로운 기능',
   'studio.publish.notePlaceholder':
     '한 줄 청취자는 다음과 같은 내용을 볼 수 있습니다. 넓은 패널에서 피크가 더 이상 잘리지 않습니다.',
-  'studio.publish.hears': '그 장면이 들리는 것',
-  'studio.publish.yourMusic': '당신의 음악',
-  'studio.publish.demo': '데모',
   'studio.publish.capture': '이 순간 캡처',
   'studio.publish.nightToDay': '밤에서 낮으로',
   'studio.publish.nightToDayHint':
     '미리보기 영상이 10초 동안 밤에서 한낮으로 바뀝니다. 끄면 위의 시간대로 촬영됩니다.',
   'studio.publish.timeOfDay': '시간대',
-  'studio.publish.timeOfDayHint':
-    '표지와 미리 보기 동영상을 촬영할 시간대로, 밤부터 한낮까지입니다. 바꾸면 미리 보기를 다시 녹화하며, 앱 자체의 일광 설정은 그대로입니다.',
   'studio.publish.capturing': '캡처 중…',
-  'studio.publish.quietTitle': '재생 중인 항목이 없습니다.',
-  'studio.publish.quietBody':
-    '모든 앱에서 음악을 재생하거나 데모를 사용하세요.',
-  'studio.publish.useDemo': '데모 사용',
   'studio.publish.cover': '표지',
   'studio.publish.coverHint':
     '장면이 가장 멋지게 보이는 순간을 포착하세요. 진드기가 있는 표지는 갤러리에서 보여주는 표지입니다.',
@@ -192,7 +186,6 @@ const studio = {
   'studio.publish.categoryHint': '최대 2개. 카드에 첫 번째가 표시됩니다.',
   'studio.publish.stillNeeded': '아직 필요한 것:',
   'studio.publish.missing.name': '이름과 @핸들(맨 위)',
-  'studio.publish.missing.video': '재생할 수 있는 미리보기 동영상',
   'studio.publish.missing.category': '카테고리',
   'studio.publish.missing.size': '더 작은 장면',
   'studio.publish.missing.note': '새로운 점 한 줄',

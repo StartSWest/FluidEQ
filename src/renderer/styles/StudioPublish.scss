@@ -417,6 +417,13 @@ $fold: 1180px;
   }
 }
 
+// Send pressed with no line (`StudioPublishNoteAsk`): the same line, asking
+// whether the chat should write it, its answers in the buttons' place. A
+// question waiting on the member, so it reads a step above a note.
+.studio-publish__ask {
+  font-weight: $weight-semibold;
+}
+
 // The part a press on Send or on its name was sent to, outlined once while
 // the focus lands in it. A colour that fades, never a movement; the class
 // goes on `animationend`, or when the focus leaves the part.

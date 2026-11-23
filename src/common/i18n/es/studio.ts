@@ -129,10 +129,21 @@ const studio = {
   'studio.publish.videoUploadFailed':
     'No se pudo adjuntar la vista previa. Abre Publicar e inténtalo de nuevo.',
   'studio.publish.videoTitle': 'Vista previa en vídeo',
-  'studio.publish.videoHint':
-    'Un vídeo silencioso de 10 segundos de esta escena, con marca de agua. Míralo aquí antes de publicar.',
-  'studio.publish.videoWaiting':
-    'Reproduce música o inicia la demo para grabar tu vista previa.',
+  'studio.publish.videoOnSend':
+    'Se graba al enviar la escena: diez segundos moviéndose con la canción de la demo, a la hora del día elegida arriba, sin sonido.',
+  'studio.publish.videoStarting': 'Empezando la grabación…',
+  'studio.publish.videoDone':
+    'Grabado. Se reproduce arriba, en la pestaña Vídeo de vista previa.',
+  'studio.publish.videoNotRecorded':
+    'No se pudo grabar el vídeo de vista previa. Envía la escena otra vez para volver a intentarlo.',
+  'studio.publish.videoStopped': 'Detenido. No se envió nada.',
+  'studio.publish.timeOfDayFor':
+    'La hora del día a la que se toman tus portadas y el vídeo de vista previa, de noche a pleno día. La Luz del día de la app no cambia.',
+  'studio.publish.askNote':
+    'Todavía no hay una línea sobre lo nuevo. ¿Quieres que la escriba la IA?',
+  'studio.publish.askNoteFirst':
+    'Esta escena todavía no tiene descripción. ¿Quieres que la escriba la IA?',
+  'studio.publish.askNoteMine': 'La escribo yo',
   'studio.publish.videoPreparing': 'Preparando la escena para grabar…',
   'studio.publish.videoRecording': 'Grabando vista previa · {seconds} / 10 s',
   'studio.publish.videoPaused':
@@ -143,17 +154,9 @@ const studio = {
     'En pausa en esta vista · {seconds} / 10 s. Continúa en la vista Normal.',
   'studio.publish.videoEncoding': 'Finalizando el vídeo…',
   'studio.publish.videoChecking': 'Comprobando la reproducción…',
-  'studio.publish.videoReady':
-    'Tu vista previa está lista. Se reproduce arriba, en la pestaña Vídeo de vista previa.',
-  'studio.publish.videoFailed':
-    'No se pudo grabar o reproducir la vista previa. Vuelve a grabarla.',
-  'studio.publish.videoCancelled':
-    'Grabación cancelada. Graba una vista previa para continuar.',
   'studio.publish.videoCancel': 'Cancelar grabación',
-  'studio.publish.videoAgain': 'Volver a grabar',
   'studio.publish.clipLocked':
     'Este clip se está publicando. Si la publicación falla, podrás volver a grabarlo.',
-  'studio.publish.videoRetry': 'Reintentar grabación',
   'studio.publish.videoPlay': 'Reproducir vista previa de la escena',
   'studio.publish.viewChoice': 'Qué muestra el cuadro',
   'studio.publish.viewLive': 'Escena en vivo',
@@ -167,21 +170,12 @@ const studio = {
   'studio.publish.note': 'Qué hay de nuevo en esta versión',
   'studio.publish.notePlaceholder':
     'Una línea que verán quienes escuchan, por ejemplo: las montañas ya no se cortan en paneles anchos',
-  'studio.publish.hears': 'Lo que oye la escena',
-  'studio.publish.yourMusic': 'Tu música',
-  'studio.publish.demo': 'Demo',
   'studio.publish.capture': 'Capturar este momento',
   'studio.publish.nightToDay': 'De noche a día',
   'studio.publish.nightToDayHint':
     'El video de vista previa va de la noche al día completo en sus diez segundos. Apagado, se graba a la hora del día de arriba.',
   'studio.publish.timeOfDay': 'Hora del día',
-  'studio.publish.timeOfDayHint':
-    'La hora del día a la que se toman las portadas y el vídeo de vista previa, de noche a pleno día. Al cambiarla se vuelve a grabar la vista previa; la Luz del día de la app no cambia.',
   'studio.publish.capturing': 'Capturando…',
-  'studio.publish.quietTitle': 'No suena nada',
-  'studio.publish.quietBody':
-    'Pon música en cualquier aplicación, o usa la demo.',
-  'studio.publish.useDemo': 'Usar la demo',
   'studio.publish.cover': 'Portada',
   'studio.publish.coverHint':
     'Captura el momento en que la escena luce mejor. La portada marcada es la que muestra la galería.',
@@ -197,7 +191,6 @@ const studio = {
   'studio.publish.categoryHint': 'Hasta dos. Su tarjeta muestra la primera.',
   'studio.publish.stillNeeded': 'Aún falta:',
   'studio.publish.missing.name': 'tu nombre y @usuario, arriba',
-  'studio.publish.missing.video': 'un vídeo de vista previa que se reproduzca',
   'studio.publish.missing.category': 'una categoría',
   'studio.publish.missing.size': 'una escena más pequeña',
   'studio.publish.missing.note': 'una línea sobre lo nuevo',

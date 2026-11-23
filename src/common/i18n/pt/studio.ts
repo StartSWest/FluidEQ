@@ -128,10 +128,21 @@ const studio = {
   'studio.publish.videoUploadFailed':
     'Não foi possível anexar a prévia. Abra Publicar e tente novamente.',
   'studio.publish.videoTitle': 'Prévia em vídeo',
-  'studio.publish.videoHint':
-    'Um vídeo silencioso de 10 segundos desta cena, com marca d’água. Assista aqui antes de publicar.',
-  'studio.publish.videoWaiting':
-    'Reproduza música ou inicie a demo para gravar sua prévia.',
+  'studio.publish.videoOnSend':
+    'Gravado quando você envia a cena: dez segundos dela se movendo com a música da demo, na hora do dia escolhida acima, sem som.',
+  'studio.publish.videoStarting': 'Começando a gravação…',
+  'studio.publish.videoDone':
+    'Gravado. Ele toca acima, na aba Vídeo da prévia.',
+  'studio.publish.videoNotRecorded':
+    'Não foi possível gravar o vídeo da prévia. Envie a cena de novo para tentar outra vez.',
+  'studio.publish.videoStopped': 'Parado. Nada foi enviado.',
+  'studio.publish.timeOfDayFor':
+    'A hora do dia em que suas capas e o vídeo da prévia são feitos, da noite ao dia pleno. A Luz do dia do app continua como está.',
+  'studio.publish.askNote':
+    'Ainda não há uma linha sobre o que há de novo. Quer que a IA a escreva?',
+  'studio.publish.askNoteFirst':
+    'Esta cena ainda não tem descrição. Quer que a IA a escreva?',
+  'studio.publish.askNoteMine': 'Eu escrevo',
   'studio.publish.videoPreparing': 'Preparando a cena para gravar…',
   'studio.publish.videoRecording': 'Gravando prévia · {seconds} / 10 s',
   'studio.publish.videoPaused':
@@ -142,17 +153,9 @@ const studio = {
     'Pausado nesta visualização · {seconds} / 10 s. Continua na visualização Normal.',
   'studio.publish.videoEncoding': 'Finalizando o vídeo…',
   'studio.publish.videoChecking': 'Verificando a reprodução…',
-  'studio.publish.videoReady':
-    'Sua prévia está pronta. Ela toca acima, na aba Vídeo da prévia.',
-  'studio.publish.videoFailed':
-    'Não foi possível gravar ou reproduzir a prévia. Grave novamente.',
-  'studio.publish.videoCancelled':
-    'Gravação cancelada. Grave uma prévia para continuar.',
   'studio.publish.videoCancel': 'Cancelar gravação',
-  'studio.publish.videoAgain': 'Gravar novamente',
   'studio.publish.clipLocked':
     'Este clipe está sendo publicado. Se a publicação falhar, você poderá gravá-lo novamente.',
-  'studio.publish.videoRetry': 'Tentar gravar novamente',
   'studio.publish.videoPlay': 'Reproduzir prévia da cena',
   'studio.publish.viewChoice': 'O que o quadro mostra',
   'studio.publish.viewLive': 'Cena ao vivo',
@@ -166,20 +169,12 @@ const studio = {
   'studio.publish.note': 'O que há de novo nesta versão',
   'studio.publish.notePlaceholder':
     'Uma linha que os ouvintes vão ver, por exemplo: as montanhas não são mais cortadas em painéis largos',
-  'studio.publish.hears': 'O que a cena ouve',
-  'studio.publish.yourMusic': 'Sua música',
-  'studio.publish.demo': 'Demo',
   'studio.publish.capture': 'Capturar este momento',
   'studio.publish.nightToDay': 'Da noite ao dia',
   'studio.publish.nightToDayHint':
     'O vídeo de pré-visualização vai da noite ao dia pleno em seus dez segundos. Desligado, é gravado na hora do dia acima.',
   'studio.publish.timeOfDay': 'Hora do dia',
-  'studio.publish.timeOfDayHint':
-    'A hora do dia em que as capas e o vídeo da prévia são feitos, da noite ao dia pleno. Mudá-la grava a prévia de novo; a Luz do dia do app continua como está.',
   'studio.publish.capturing': 'Capturando…',
-  'studio.publish.quietTitle': 'Nada está tocando',
-  'studio.publish.quietBody': 'Toque música em qualquer app, ou use a demo.',
-  'studio.publish.useDemo': 'Usar a demo',
   'studio.publish.cover': 'Capa',
   'studio.publish.coverHint':
     'Capture o momento em que a cena fica mais bonita. A capa marcada é a que a galeria mostra.',
@@ -195,7 +190,6 @@ const studio = {
   'studio.publish.categoryHint': 'Até duas. O cartão mostra a primeira.',
   'studio.publish.stillNeeded': 'Ainda falta:',
   'studio.publish.missing.name': 'seu nome e @usuário, no topo',
-  'studio.publish.missing.video': 'um vídeo de prévia que reproduza',
   'studio.publish.missing.category': 'uma categoria',
   'studio.publish.missing.size': 'uma cena menor',
   'studio.publish.missing.note': 'uma linha sobre o que há de novo',

@@ -129,10 +129,21 @@ const studio = {
   'studio.publish.videoUploadFailed':
     'Impossibile allegare l’anteprima. Apri Pubblica e riprova.',
   'studio.publish.videoTitle': 'Anteprima video',
-  'studio.publish.videoHint':
-    'Un video silenzioso di 10 secondi di questa scena, con filigrana. Guardalo qui prima di pubblicare.',
-  'studio.publish.videoWaiting':
-    'Riproduci musica o avvia la demo per registrare l’anteprima.',
+  'studio.publish.videoOnSend':
+    'Si registra quando invii la scena: dieci secondi in cui si muove sul brano della demo, all’ora del giorno scelta sopra, senza audio.',
+  'studio.publish.videoStarting': 'Avvio della registrazione…',
+  'studio.publish.videoDone':
+    'Registrato. Si riproduce qui sopra, nella scheda Video di anteprima.',
+  'studio.publish.videoNotRecorded':
+    'Non è stato possibile registrare il video di anteprima. Invia di nuovo la scena per riprovare.',
+  'studio.publish.videoStopped': 'Interrotto. Non è stato inviato nulla.',
+  'studio.publish.timeOfDayFor':
+    'L’ora del giorno in cui vengono scattate le tue copertine e il video di anteprima, dalla notte al pieno giorno. La Luce del giorno dell’app resta com’è.',
+  'studio.publish.askNote':
+    'Non c’è ancora una riga sulle novità. Vuoi che la scriva l’IA?',
+  'studio.publish.askNoteFirst':
+    'Questa scena non ha ancora una descrizione. Vuoi che la scriva l’IA?',
+  'studio.publish.askNoteMine': 'La scrivo io',
   'studio.publish.videoPreparing':
     'Preparazione della scena per la registrazione…',
   'studio.publish.videoRecording': 'Registrazione anteprima · {seconds} / 10 s',
@@ -144,17 +155,9 @@ const studio = {
     'In pausa in questa vista · {seconds} / 10 s. Riprende nella vista normale.',
   'studio.publish.videoEncoding': 'Completamento del video…',
   'studio.publish.videoChecking': 'Verifica della riproduzione…',
-  'studio.publish.videoReady':
-    'L’anteprima è pronta. Si riproduce qui sopra, nella scheda Video di anteprima.',
-  'studio.publish.videoFailed':
-    'Impossibile registrare o riprodurre l’anteprima. Prova a registrarla di nuovo.',
-  'studio.publish.videoCancelled':
-    'Registrazione annullata. Registra un’anteprima per continuare.',
   'studio.publish.videoCancel': 'Annulla registrazione',
-  'studio.publish.videoAgain': 'Registra di nuovo',
   'studio.publish.clipLocked':
     'Questo clip è in pubblicazione. Se la pubblicazione non riesce, potrai registrarlo di nuovo.',
-  'studio.publish.videoRetry': 'Riprova a registrare',
   'studio.publish.videoPlay': 'Riproduci anteprima della scena',
   'studio.publish.viewChoice': 'Cosa mostra il riquadro',
   'studio.publish.viewLive': 'Scena dal vivo',
@@ -168,21 +171,12 @@ const studio = {
   'studio.publish.note': 'Novità di questa versione',
   'studio.publish.notePlaceholder':
     'Una riga che vedrà chi ascolta, per esempio: le vette non vengono più tagliate sui pannelli larghi',
-  'studio.publish.hears': 'Cosa sente la scena',
-  'studio.publish.yourMusic': 'La tua musica',
-  'studio.publish.demo': 'Demo',
   'studio.publish.capture': 'Cattura questo momento',
   'studio.publish.nightToDay': 'Dalla notte al giorno',
   'studio.publish.nightToDayHint':
     'Il video di anteprima va dalla notte al pieno giorno nei suoi dieci secondi. Se disattivato, viene girato all’ora del giorno qui sopra.',
   'studio.publish.timeOfDay': 'Ora del giorno',
-  'studio.publish.timeOfDayHint':
-    'L’ora del giorno in cui vengono scattate le copertine e il video di anteprima, dalla notte al pieno giorno. Cambiarla registra di nuovo l’anteprima; la Luce del giorno dell’app resta com’è.',
   'studio.publish.capturing': 'Cattura in corso…',
-  'studio.publish.quietTitle': 'Non suona niente',
-  'studio.publish.quietBody':
-    'Metti musica in qualsiasi app, oppure usa la demo.',
-  'studio.publish.useDemo': 'Usa la demo',
   'studio.publish.cover': 'Copertina',
   'studio.publish.coverHint':
     'Cattura il momento in cui la scena rende di più. La copertina con la spunta è quella che mostra la galleria.',
@@ -198,7 +192,6 @@ const studio = {
   'studio.publish.categoryHint': 'Fino a due. La scheda mostra la prima.',
   'studio.publish.stillNeeded': 'Manca ancora:',
   'studio.publish.missing.name': 'il tuo nome e @handle, in alto',
-  'studio.publish.missing.video': 'un video di anteprima riproducibile',
   'studio.publish.missing.category': 'una categoria',
   'studio.publish.missing.size': 'una scena più leggera',
   'studio.publish.missing.note': 'una riga sulle novità',

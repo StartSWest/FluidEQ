@@ -127,10 +127,21 @@ const studio = {
   'studio.publish.videoUploadFailed':
     'प्रीव्यू जोड़ा नहीं जा सका। प्रकाशित करें खोलें और फिर कोशिश करें।',
   'studio.publish.videoTitle': 'वीडियो प्रीव्यू',
-  'studio.publish.videoHint':
-    'इस दृश्य का वॉटरमार्क वाला 10 सेकंड का मूक वीडियो। प्रकाशित करने से पहले इसे यहीं देखें।',
-  'studio.publish.videoWaiting':
-    'प्रीव्यू रिकॉर्ड करने के लिए संगीत चलाएँ या डेमो शुरू करें।',
+  'studio.publish.videoOnSend':
+    'दृश्य भेजते समय रिकॉर्ड होता है: डेमो गाने पर चलते दृश्य के दस सेकंड, ऊपर चुने दिन के समय पर, बिना आवाज़ के।',
+  'studio.publish.videoStarting': 'रिकॉर्डिंग शुरू हो रही है…',
+  'studio.publish.videoDone':
+    'रिकॉर्ड हो गया। यह ऊपर "प्रीव्यू वीडियो" टैब में चलता है।',
+  'studio.publish.videoNotRecorded':
+    'प्रीव्यू वीडियो रिकॉर्ड नहीं हो सका। फिर से कोशिश करने के लिए दृश्य दोबारा भेजें।',
+  'studio.publish.videoStopped': 'रोक दिया गया। कुछ भी नहीं भेजा गया।',
+  'studio.publish.timeOfDayFor':
+    'आपके कवर और प्रीव्यू वीडियो किस समय के दिखें, रात से पूरे दिन तक। ऐप का अपना दिन का उजाला वैसा ही रहता है।',
+  'studio.publish.askNote':
+    'अभी नया क्या है, इस पर कोई पंक्ति नहीं है। क्या AI से लिखवाना चाहेंगे?',
+  'studio.publish.askNoteFirst':
+    'इस दृश्य का अभी कोई विवरण नहीं है। क्या AI से लिखवाना चाहेंगे?',
+  'studio.publish.askNoteMine': 'खुद लिखें',
   'studio.publish.videoPreparing': 'दृश्य की रिकॉर्डिंग की तैयारी हो रही है…',
   'studio.publish.videoRecording':
     'प्रीव्यू रिकॉर्ड हो रहा है · {seconds} / 10 सेकंड',
@@ -142,17 +153,9 @@ const studio = {
     'इस व्यू में रुका है · {seconds} / 10 सेकंड। यह सामान्य व्यू में आगे बढ़ेगा।',
   'studio.publish.videoEncoding': 'वीडियो तैयार किया जा रहा है…',
   'studio.publish.videoChecking': 'वीडियो का प्लेबैक जाँचा जा रहा है…',
-  'studio.publish.videoReady':
-    'आपका प्रीव्यू तैयार है। यह ऊपर "प्रीव्यू वीडियो" टैब में चलता है।',
-  'studio.publish.videoFailed':
-    'प्रीव्यू रिकॉर्ड या प्ले नहीं हो सका। फिर से रिकॉर्ड करें।',
-  'studio.publish.videoCancelled':
-    'रिकॉर्डिंग रद्द कर दी गई। आगे बढ़ने के लिए प्रीव्यू रिकॉर्ड करें।',
   'studio.publish.videoCancel': 'रिकॉर्डिंग रद्द करें',
-  'studio.publish.videoAgain': 'फिर से रिकॉर्ड करें',
   'studio.publish.clipLocked':
     'यह क्लिप प्रकाशित हो रही है। प्रकाशन विफल होने पर आप इसे फिर से रिकॉर्ड कर सकते हैं।',
-  'studio.publish.videoRetry': 'रिकॉर्डिंग फिर आज़माएँ',
   'studio.publish.videoPlay': 'दृश्य का प्रीव्यू चलाएँ',
   'studio.publish.viewChoice': 'फ़्रेम में क्या दिखे',
   'studio.publish.viewLive': 'लाइव दृश्य',
@@ -166,21 +169,12 @@ const studio = {
   'studio.publish.note': 'इस संस्करण में नया क्या है',
   'studio.publish.notePlaceholder':
     'एक पंक्ति जो सुनने वाले देखेंगे, जैसे: चौड़े पैनलों पर चोटियाँ अब नहीं कटतीं',
-  'studio.publish.hears': 'सीन क्या सुनता है',
-  'studio.publish.yourMusic': 'आपका संगीत',
-  'studio.publish.demo': 'डेमो',
   'studio.publish.capture': 'यह पल कैप्चर करें',
   'studio.publish.nightToDay': 'रात से दिन',
   'studio.publish.nightToDayHint':
     'पूर्वावलोकन वीडियो अपने दस सेकंड में रात से पूरे दिन तक चलता है। बंद होने पर यह ऊपर दिए दिन के समय पर बनता है।',
   'studio.publish.timeOfDay': 'दिन का समय',
-  'studio.publish.timeOfDayHint':
-    'कवर और प्रीव्यू वीडियो किस समय के दिखें, रात से पूरे दिन तक। इसे बदलने पर प्रीव्यू फिर से रिकॉर्ड होता है; ऐप का अपना दिन का उजाला वैसा ही रहता है।',
   'studio.publish.capturing': 'कैप्चर हो रहा है…',
-  'studio.publish.quietTitle': 'कुछ नहीं बज रहा',
-  'studio.publish.quietBody':
-    'किसी भी ऐप में संगीत चलाएँ, या डेमो इस्तेमाल करें।',
-  'studio.publish.useDemo': 'डेमो इस्तेमाल करें',
   'studio.publish.cover': 'कवर',
   'studio.publish.coverHint':
     'वह पल कैप्चर करें जब सीन सबसे अच्छा दिखे। टिक वाला कवर ही गैलरी में दिखता है।',
@@ -195,7 +189,6 @@ const studio = {
   'studio.publish.categoryHint': 'अधिकतम दो। इसके कार्ड पर पहली दिखती है।',
   'studio.publish.stillNeeded': 'अभी भी चाहिए:',
   'studio.publish.missing.name': 'आपका नाम और @हैंडल, सबसे ऊपर',
-  'studio.publish.missing.video': 'चलने लायक प्रीव्यू वीडियो',
   'studio.publish.missing.category': 'एक श्रेणी',
   'studio.publish.missing.size': 'छोटा सीन',
   'studio.publish.missing.note': 'नया क्या है, इस पर एक पंक्ति',

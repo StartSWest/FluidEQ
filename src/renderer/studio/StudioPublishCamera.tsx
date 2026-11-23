@@ -4,13 +4,13 @@ import {
   useMemo,
   useRef,
   useState,
+  type MutableRefObject,
   type RefObject,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { SCENE_DAYLIGHT_MIN } from 'common/sceneDaylight';
 import type { IScenePack } from 'common/scenePacks';
 import Glyph from '../community/Glyph';
-import { pageDaylight } from '../graph/sceneDaylight';
 import { snapPercent } from '../utils/percentSnaps';
 import { SceneAudioProvider } from '../audio/SceneAudioContext';
 import type { ISceneFrame } from '../graph/sceneGl';
@@ -19,20 +19,24 @@ import type { ISceneTuning } from '../graph/useSceneRunner';
 import ScenePreview, { type TPreviewTrouble } from '../plus/ScenePreview';
 import { useTranslation } from '../utils/I18nContext';
 import { createMomentRecorder } from './momentRecorder';
-import StudioPublishVideo from './StudioPublishVideo';
+import StudioPublishVideo, {
+  StudioPublishRecordingTag,
+} from './StudioPublishVideo';
 import StudioPublishDaylightIcon from './StudioPublishDaylightIcon';
-import StudioPublishHears from './StudioPublishHears';
 import { Setting } from './StudioSettings';
 import {
   NightToDaySwitch,
   useDaylightSweep,
   useNightToDay,
 } from './StudioPublishSweep';
-import usePublishVideo, { type IPublishPreview } from './usePublishVideo';
-import usePublishSignal, { useDemoEndsWithTake } from './usePublishSignal';
+import usePublishVideo, {
+  type IPublishPreview,
+  type TPublishVideoState,
+} from './usePublishVideo';
+import usePublishSignal from './usePublishSignal';
 import { previewCaptureSize } from './previewVideo';
 import {
-  isTakeHolding,
+  isTakeBusy,
   isTakeRunning,
   StudioPublishShapeOver,
   StudioPublishShapeSwitch,
@@ -43,11 +47,8 @@ import {
 import {
   DAYLIGHT_SNAPS,
   DAYLIGHT_SPAN,
-  MAX_FRAME_MS,
-  QUIET_LEVEL,
-  QUIET_MS,
+  DAYLIGHT_START,
   TROUBLE_KEYS,
-  type TCameraSignal,
 } from './publishCameraSettings';
 import '../styles/StudioStage.scss';
 
@@ -58,6 +59,11 @@ interface IStudioPublishCameraProps {
   name: string;
   /** Publishing: nothing is caught while it runs. */
   locked: boolean;
+  /**
+   * The press is recording the clip it sends: the hour and the shutter
+   * rest for its ten seconds, since a new hour would let the take go.
+   */
+  sending: boolean;
   /** The Studio's settings: the cover is the scene as it was tuned. */
   tuning: ISceneTuning;
   /** A caught moment, at the time of day the stage was showing. */
@@ -65,24 +71,31 @@ interface IStudioPublishCameraProps {
   source: string;
   onPreview: (preview: IPublishPreview | undefined) => void;
   /**
-   * A take is being recorded or finished: Send says so and waits. Waiting
-   * for the music is not one — nothing happens until it plays.
+   * Where the take stands, each time it moves: the dialog sends the scene
+   * once its clip is ready, and gives the press back if it fails or is
+   * cancelled.
    */
-  onRecording?: (recording: boolean) => void;
+  onTake?: (phase: TPublishVideoState['phase']) => void;
+  /**
+   * Filled with the way to start a take, which the dialog calls when the
+   * member sends the scene: the clip is recorded then, never on opening.
+   */
+  recordRef: MutableRefObject<(() => void) | undefined>;
   /**
    * Where the clip's status and its button go: the dialog's side column,
    * under the covers, with the rest of what is published. Made once, before
-   * the camera first renders, so the button there can take the dialog's
-   * first focus (`usePortalSlot`).
+   * the camera first renders (`usePortalSlot`).
    */
   videoSlot: HTMLElement;
   initialFocusRef?: RefObject<HTMLButtonElement | null>;
 }
 
 /**
- * Where the cover is caught: the scene playing in the dialog, on the member's
- * music or on the demo chorus, and the shutter under it — never on it, since
- * what is framed is what is kept.
+ * Where the cover is caught: the scene playing in the dialog to the demo
+ * song, without a sound (`usePublishSignal`), the hour it is shot at, and
+ * the shutter beside them — never on the scene, since what is framed is
+ * what is kept. The preview clip is shot here too, but only when the scene
+ * is sent (`recordRef`).
  *
  * What is on screen is the scene at the stage's size; what a capture keeps is
  * the same moment drawn again at the gallery's full quality from what the
@@ -94,40 +107,38 @@ export default function StudioPublishCamera({
   pack,
   name,
   locked,
+  sending,
   tuning,
   onCapture,
   source,
   onPreview,
-  onRecording,
+  onTake,
+  recordRef,
   videoSlot,
   initialFocusRef,
 }: IStudioPublishCameraProps) {
   const { t } = useTranslation();
   const [trouble, setTrouble] = useState<TPreviewTrouble>();
-  const [ready, setReady] = useState(false);
-  const [quiet, setQuiet] = useState(false);
   const [flashes, setFlashes] = useState(0);
   // The hour the cover and the preview video are shot at (Ivan, 2026-11-07:
   // "we need sliders for time of day so we configure that from the publish
-  // screen"). It starts where the window has it and is the dialog's own:
+  // screen"). It starts halfway (`DAYLIGHT_START`) and is the dialog's own:
   // moving it leaves the app's Brightness and every other scene alone.
-  const [daylight, setDaylight] = useState(() => Math.round(pageDaylight()));
+  const [daylight, setDaylight] = useState(DAYLIGHT_START);
   const daylightRef = useRef(daylight);
   daylightRef.current = daylight;
   const nightToDay = useNightToDay(pack);
   // The hour the preview video is shot at, set when the slider is let go: a
-  // clip shot at another hour is not the one asked for, so it is recorded
-  // again — once, not at every step of the drag.
+  // clip already shot at another hour is not the one asked for, so it is
+  // let go, and the next send records it again.
   const [videoDaylight, setVideoDaylight] = useState(daylight);
   const recorder = useMemo(createMomentRecorder, []);
   // Why a control does nothing while the clip is on its way to the gallery.
   const lockedHint = locked ? t('studio.publish.clipLocked') : undefined;
+  const resting = locked || sending;
   // Drawn at the size the clip is recorded at (1280x720 where VP9 records).
   const captureSize = useMemo(previewCaptureSize, []);
-  // A demo that cannot play fails the take; the take is made below, keyed on
-  // what the scene hears, so the failure reaches it through this.
-  const failTake = useRef<() => void>(() => undefined);
-  const hearing = usePublishSignal(() => failTake.current());
+  const hearing = usePublishSignal();
   const previewChanged = useCallback(
     (preview: IPublishPreview | undefined) => {
       onPreview(preview ? { ...preview, source } : undefined);
@@ -140,33 +151,43 @@ export default function StudioPublishCamera({
     input: videoInput,
     fail: videoFail,
     cancel: videoCancel,
-    retry: videoRetry,
+    record: videoRecord,
   } = usePublishVideo(
-    `${source}\n${hearing.signal}\n${nightToDay.sweeping ? 'night-to-day' : videoDaylight}`,
+    `${source}\n${nightToDay.sweeping ? 'night-to-day' : videoDaylight}`,
     t('studio.publish.videoWatermark'),
     previewChanged,
   );
-  failTake.current = videoFail;
-  useDemoEndsWithTake(hearing, videoState.phase);
+  useEffect(() => onTake?.(videoState.phase), [videoState.phase, onTake]);
+  // A take under way, read where a failure lands outside a render.
+  const takePhase = useRef(videoState.phase);
+  takePhase.current = videoState.phase;
   // What the frame shows: the scene playing, or the clip just recorded, on
   // two tabs over the frame (Ivan, 2026-11-07: under the buttons the
   // finished clip sat below everything else). A new clip opens on its own
   // tab; Live is the member's choice for that clip only.
-  const takeBusy =
-    isTakeHolding(videoState.phase) ||
-    videoState.phase === 'encoding' ||
-    videoState.phase === 'checking';
-  useEffect(() => onRecording?.(takeBusy), [takeBusy, onRecording]);
   const recordedUrl = videoState.phase === 'ready' ? videoState.url : undefined;
   const [liveOver, setLiveOver] = useState<string>();
   const showsRecorded = recordedUrl !== undefined && liveOver !== recordedUrl;
+  // A scene that cannot play fails the take it was recording; with none
+  // asked for, the stage says why and the next send fails at once
+  // (`recordRef`), rather than the clip's part calling a recording failed
+  // that nobody started.
   const stageTrouble = useCallback(
     (problem: TPreviewTrouble) => {
       setTrouble(problem);
-      videoFail();
+      if (isTakeBusy(takePhase.current)) {
+        videoFail();
+      }
     },
     [videoFail],
   );
+  // The demo giving out mid-take would hold the take on a scene at rest for
+  // good; it fails instead, and the press is given back.
+  useEffect(() => {
+    if (hearing.failed && isTakeBusy(takePhase.current)) {
+      videoFail();
+    }
+  }, [hearing.failed, videoFail]);
 
   // The view the scene is played in. The covers and the preview video are
   // the Normal view's alone: in the others the clip waits and Capture rests,
@@ -175,26 +196,16 @@ export default function StudioPublishCamera({
   const shapeRef = useRef(shape);
   shapeRef.current = shape;
   const viewfinderRef = useRef<HTMLDivElement>(null);
-  const { livePaused } = hearing;
   const shapeFrame = useCallback(
     (frame: ISceneFrame) => {
       const normal = shapeRef.current === 'normal';
-      videoInput(normal && frame.playing === true && !livePaused());
+      videoInput(normal && frame.playing === true);
       const view = viewOfShape(shapeRef.current);
       return view ? { ...frame, view } : frame;
     },
-    [videoInput, livePaused],
+    [videoInput],
   );
-  const selectSignal = (next: TCameraSignal) => {
-    videoInput(false);
-    hearing.select(next);
-  };
 
-  // Counted on drawn frames, and state set only when it flips, so nothing
-  // above the canvas renders at frame rate.
-  const quietFor = useRef(0);
-  const quietRef = useRef(false);
-  const readyRef = useRef(false);
   const onDrawn = useCallback(
     (
       frame: ISceneFrame,
@@ -220,19 +231,6 @@ export default function StudioPublishCamera({
       ) {
         videoFrame(canvas);
       }
-      if (!readyRef.current) {
-        readyRef.current = true;
-        setReady(true);
-      }
-      quietFor.current =
-        frame.level < QUIET_LEVEL
-          ? quietFor.current + Math.min(MAX_FRAME_MS, frame.deltaMs ?? 0)
-          : 0;
-      const nowQuiet = quietFor.current >= QUIET_MS;
-      if (nowQuiet !== quietRef.current) {
-        quietRef.current = nowQuiet;
-        setQuiet(nowQuiet);
-      }
     },
     [recorder, videoFrame, captureSize],
   );
@@ -245,20 +243,28 @@ export default function StudioPublishCamera({
     setFlashes((count) => count + 1);
     onCapture(frames, daylight);
   };
-  const retryVideo = () => {
-    setTrouble(undefined);
-    videoRetry();
+
+  // THE CLIP IS SHOT WHEN THE SCENE IS SENT (Ivan, 2026-11-23: "when they
+  // click publish ... at that point, we will be recording the video"). The
+  // take is the Normal view's, so the stage goes back to it, live, for its
+  // ten seconds. A demo that could not start would leave the take waiting on
+  // a scene at rest for good, so it fails at once instead, and says so.
+  recordRef.current = () => {
+    setLiveOver(undefined);
+    setShape('normal');
+    if (hearing.failed || trouble !== undefined) {
+      videoFail();
+      return;
+    }
+    videoRecord();
   };
 
   // A VIEW NEVER COSTS THE CLIP (Ivan, 2026-11-18: "We need to keep the
   // video displayed ... when I select between Amp, Ultra wide, it's a
-  // mess"). Leaving Normal used to cancel a take under way and start it
-  // again from nothing on the way back, so a look at Amp mid-take threw the
-  // recording away and the footer asked for a preview video again. A take
-  // now waits in the other views exactly as it waits through a quiet moment
-  // — `shapeFrame` tells it nothing is playing there — and carries on from
-  // the same second in Normal; a finished clip is never touched, and its tab
-  // plays it from any view. Choosing a view shows that view live.
+  // mess"). A take waits in the other views — `shapeFrame` tells it nothing
+  // is playing there — and carries on from the same second in Normal; a
+  // finished clip is never touched, and its tab plays it from any view.
+  // Choosing a view shows that view live.
   const chooseShape = (next: TPublishShape) => {
     if (next === shape) {
       return;
@@ -286,6 +292,7 @@ export default function StudioPublishCamera({
           shape={shape}
           disabled={trouble !== undefined}
           onShape={chooseShape}
+          chosenRef={initialFocusRef}
         />
       </div>
       {/* ONE FRAME FOR EVERY VIEW. Each view's picture is fitted inside it
@@ -324,6 +331,9 @@ export default function StudioPublishCamera({
               />
             </SceneAudioProvider>
             <StudioPublishShapeOver shape={shape} frameRef={viewfinderRef} />
+            {shape === 'normal' && (
+              <StudioPublishRecordingTag state={videoState} />
+            )}
             {flashes > 0 && (
               <span
                 key={flashes}
@@ -331,22 +341,6 @@ export default function StudioPublishCamera({
                 aria-hidden="true"
               />
             )}
-            {!locked &&
-              !showsRecorded &&
-              quiet &&
-              hearing.signal === 'live' && (
-                <div className="studio-publish__quiet" role="status">
-                  <strong>{t('studio.publish.quietTitle')}</strong>
-                  <span>{t('studio.publish.quietBody')}</span>
-                  <button
-                    type="button"
-                    className="button small subtle"
-                    onClick={() => selectSignal('showcase')}
-                  >
-                    {t('studio.publish.useDemo')}
-                  </button>
-                </div>
-              )}
           </div>
         )}
         {/* The clip is the Normal view's 16:9, the frame's own shape, so it
@@ -366,20 +360,39 @@ export default function StudioPublishCamera({
         )}
       </div>
 
+      {/* The cover's whole job in one row: the hour it is shot at and the
+          shutter. The music choice that stood here went with the member's
+          own music (`usePublishSignal`). */}
       <div className="studio-publish__controls">
-        <StudioPublishHears
-          signal={hearing.signal}
-          demoPlaying={hearing.demoPlaying}
-          disabled={locked || trouble !== undefined}
+        <Setting
+          label={t('studio.publish.timeOfDay')}
+          hint={lockedHint ?? t('studio.publish.timeOfDayFor')}
+          value={t('studio.settings.percent', { percent: daylight })}
+          position={(daylight - SCENE_DAYLIGHT_MIN) / DAYLIGHT_SPAN}
+          disabled={resting || trouble !== undefined}
+          onPosition={(position) =>
+            setDaylight(
+              snapPercent(
+                Math.round(SCENE_DAYLIGHT_MIN + position * DAYLIGHT_SPAN),
+              ),
+            )
+          }
+          onCommit={() => setVideoDaylight(daylightRef.current)}
+          snaps={DAYLIGHT_SNAPS}
+          icon={<StudioPublishDaylightIcon daylight={daylight} />}
+        />
+        <NightToDaySwitch
+          choice={nightToDay}
+          disabled={resting || trouble !== undefined}
           hint={lockedHint}
-          onSelect={selectSignal}
         />
         <button
           type="button"
-          className="button small subtle"
+          className="button small subtle studio-publish__shutter"
+          // Never held for the first frame: a press before anything is
+          // drawn keeps nothing.
           disabled={
-            !ready ||
-            locked ||
+            resting ||
             trouble !== undefined ||
             showsRecorded ||
             shape !== 'normal'
@@ -394,38 +407,12 @@ export default function StudioPublishCamera({
           {t('studio.publish.capture')}
         </button>
       </div>
-      <div className="studio-publish__hour">
-        <Setting
-          label={t('studio.publish.timeOfDay')}
-          hint={lockedHint ?? t('studio.publish.timeOfDayHint')}
-          value={t('studio.settings.percent', { percent: daylight })}
-          position={(daylight - SCENE_DAYLIGHT_MIN) / DAYLIGHT_SPAN}
-          disabled={locked || trouble !== undefined}
-          onPosition={(position) =>
-            setDaylight(
-              snapPercent(
-                Math.round(SCENE_DAYLIGHT_MIN + position * DAYLIGHT_SPAN),
-              ),
-            )
-          }
-          onCommit={() => setVideoDaylight(daylightRef.current)}
-          snaps={DAYLIGHT_SNAPS}
-          icon={<StudioPublishDaylightIcon daylight={daylight} />}
-        />
-        <NightToDaySwitch
-          choice={nightToDay}
-          disabled={locked || trouble !== undefined}
-          hint={lockedHint}
-        />
-      </div>
       {createPortal(
         <StudioPublishVideo
-          initialFocusRef={initialFocusRef}
           state={videoState}
           away={shape !== 'normal'}
           locked={locked}
           onCancel={videoCancel}
-          onRetry={retryVideo}
         />,
         videoSlot,
       )}

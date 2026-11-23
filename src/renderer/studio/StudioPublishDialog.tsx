@@ -27,6 +27,8 @@ import StudioPublishCamera from './StudioPublishCamera';
 import StudioPublishCategories from './StudioPublishCategories';
 import StudioPublishCovers from './StudioPublishCovers';
 import StudioPublishHeld from './StudioPublishHeld';
+import StudioPublishNoteAsk from './StudioPublishNoteAsk';
+import { isTakeBusy } from './StudioPublishShapes';
 import StudioPublishSize from './StudioPublishSize';
 import StudioPublishTicks from './StudioPublishTicks';
 import { callPart, missingParts, type TPublishPart } from './publishMissing';
@@ -34,7 +36,7 @@ import type {
   IPublishDraft,
   IPreparedPublishPreview,
 } from './useStudioPublish';
-import type { IPublishPreview } from './usePublishVideo';
+import type { IPublishPreview, TPublishVideoState } from './usePublishVideo';
 import '../styles/Gallery.scss';
 import '../styles/StudioDialogs.scss';
 import '../styles/StudioPublish.scss';
@@ -128,11 +130,8 @@ export default function StudioPublishDialog({
   // `normalizeScenePack`, the reader for a pack as stored, where palettes and
   // colours are entries of `params`; a built pack keeps them apart, so that
   // reader dropped them, and every scene with a palette, a colour or a
-  // choice's option looks was refused as "changed after recording".
-  const publicationPack = useMemo(
-    () => ({ ...pack, version: versionToPublish(draft.held) }),
-    [pack, draft.held],
-  );
+  // choice's option looks was refused as "changed after recording". It is
+  // built from the held pack at the send (`publishWith`).
   const liveSource = useMemo(
     () =>
       JSON.stringify([
@@ -153,22 +152,31 @@ export default function StudioPublishDialog({
   // Set during render, where the press's own update lands, so not one frame
   // passes with the new pack; given back when the publication answers, so a
   // failed one can be recorded again for the retry.
+  //
+  // Held from the press itself now, not from the publication's start: the
+  // clip is recorded by the press (`sending`), and a pack rebuilt during its
+  // ten seconds would have started the take again from nothing.
+  const [sending, setSending] = useState(false);
+  const sendingRef = useRef(false);
   const [pressed, setPressed] = useState<{
     source: string;
     pack: IScenePack;
     tuning: ISceneTuning;
   }>();
-  if (running && pressed === undefined) {
+  const holding = running || sending;
+  if (holding && pressed === undefined) {
     setPressed({ source: liveSource, pack, tuning });
-  } else if (!running && pressed !== undefined) {
+  } else if (!holding && pressed !== undefined) {
     setPressed(undefined);
   }
-  const held = running ? pressed : undefined;
+  const held = holding ? pressed : undefined;
   const source = held?.source ?? liveSource;
   const cameraPack = held?.pack ?? pack;
   const cameraTuning = held?.tuning ?? tuning;
   const [preview, setPreview] = useState<IPublishPreview>();
   const previewReady = preview?.source === source;
+  // The way to start a take, filled by the camera (`StudioPublishCamera`).
+  const recordRef = useRef<(() => void) | undefined>(undefined);
   // Asked again on opening: an answer that failed earlier — offline at
   // launch — would say this account's scene waits for review when it does
   // not. The reply lands while the covers are drawn.
@@ -219,19 +227,25 @@ export default function StudioPublishDialog({
   // which the update notice and the versions page are built around, and
   // what the scene is for a first version, the first entry on that page.
   const needsNote = !noteLines.lines[sourceOf(noteLines, mine)].trim();
-  // A take of the preview being recorded or finished (`StudioPublishCamera`).
-  const [recording, setRecording] = useState(false);
+  // Where the take stands (`StudioPublishCamera`): one asked for by the
+  // press, from its start until its clip is checked, holds Send.
+  const [takePhase, setTakePhase] =
+    useState<TPublishVideoState['phase']>('idle');
+  const recording = isTakeBusy(takePhase);
+  // Send was pressed with no line: the footer asks whether the chat should
+  // write it (`StudioPublishNoteAsk`). Answered "I'll write it", a later
+  // press goes to the box as any missing part does, without asking again.
+  const [asking, setAsking] = useState(false);
+  const [declined, setDeclined] = useState(false);
   // Send is never held for a missing part (Ivan, 2026-11-14: "enable the
   // button, so when they click they can tell which is the error"): a press
   // shows what is missing, now in the alert's voice, and goes to the first.
   // Only something under way holds it, and says what: sending, the chat
   // writing the line, a take being recorded.
   const [pressedMissing, setPressedMissing] = useState(false);
-  const busy = running || waiting || recording;
+  const busy = running || waiting || recording || sending;
   const missing = missingParts({
     name: publicName.missing,
-    // A take under way is said on Send itself, not listed as missing.
-    video: !previewReady && !recording,
     category: !category,
     size: tooLarge,
     note: needsNote && !waiting,
@@ -246,6 +260,87 @@ export default function StudioPublishDialog({
       part === 'note' ? noteRef.current : null,
     );
   };
+  // The scene's chat writes the line. What the boxes hold stops counting as
+  // typed, so the line it writes takes their place instead of standing
+  // behind the member's (`publishNoteLines.ts`).
+  const writeNote =
+    onWriteNote &&
+    (() => {
+      setNoteLines((now) => ({ ...now, edited: [] }));
+      onWriteNote().catch(() => undefined);
+    });
+  const askShown = asking && needsNote && !waiting && !running;
+
+  // The publication, with the clip that was recorded for it. Built from the
+  // held pack: the scene as it was when the press recorded the clip, which
+  // is what main rebuilds to check the clip's stamp.
+  const publishWith = (ready: IPublishPreview) => {
+    if (!category) {
+      return;
+    }
+    const shot = held?.pack ?? pack;
+    const prepared = {
+      ...ready,
+      pack: { ...shot, version: versionToPublish(draft.held) },
+      sourceVersion: shot.version,
+    };
+    noteSend.press((notes) => onPublish(category, category2, notes, prepared));
+  };
+  // The clip arrives from the take's own promise, after renders the press
+  // never saw: read through this, it sends with what the dialog holds now.
+  const publishWithRef = useRef(publishWith);
+  publishWithRef.current = publishWith;
+  const previewArrived = useCallback((next: IPublishPreview | undefined) => {
+    setPreview(next);
+    if (next && sendingRef.current) {
+      sendingRef.current = false;
+      setSending(false);
+      publishWithRef.current(next);
+    }
+  }, []);
+  const takeMoved = useCallback((phase: TPublishVideoState['phase']) => {
+    setTakePhase(phase);
+    // A take that failed, was cancelled or was let go sends nothing, and
+    // gives the press back: the next one records it again.
+    if (
+      sendingRef.current &&
+      (phase === 'failed' || phase === 'cancelled' || phase === 'idle')
+    ) {
+      sendingRef.current = false;
+      setSending(false);
+    }
+  }, []);
+
+  // ONE PRESS DOES THE REST (Ivan, 2026-11-23). What is missing is shown
+  // and gone to, as before — a missing line first asks whether the chat
+  // should write it. A line still to be translated is handed to the chat,
+  // and the member presses again on what it writes. Otherwise the preview
+  // clip is recorded now, on the demo song, and the scene goes out the
+  // moment it is ready; a clip already made for this same scene, kept from
+  // a send that failed, goes out at once.
+  const pressSend = () => {
+    if (missing.length > 0) {
+      if (missing[0] === 'note' && writeNote && !declined) {
+        setAsking(true);
+        return;
+      }
+      setPressedMissing(true);
+      call(missing[0]);
+      return;
+    }
+    if (!noteSend.sends) {
+      noteSend.press(noop);
+      return;
+    }
+    if (previewReady && preview) {
+      publishWith(preview);
+      return;
+    }
+    sendingRef.current = true;
+    setSending(true);
+    recordRef.current?.();
+  };
+
   // A member's publication waits for the admin before anybody sees it
   // (server migration 0037), and the dialog says so before the press rather
   // than after it: the button sends it for review, and the first point says
@@ -276,7 +371,7 @@ export default function StudioPublishDialog({
     });
   } else if (noteSend.writing) {
     buttonLabel = t('studio.publish.writingButton');
-  } else if (recording) {
+  } else if (recording || sending) {
     buttonLabel = t('studio.publish.recordingButton');
   }
 
@@ -343,61 +438,62 @@ export default function StudioPublishDialog({
                 holds. The line's red word in its box still waits for the
                 press (`noteMissing`), and while the chat writes it the box
                 says so itself, with its working dots. */}
-            {!running && (
-              <StudioPublishHeld
-                alert={pressedMissing}
-                parts={missing}
+            {askShown && writeNote ? (
+              <StudioPublishNoteAsk
                 update={update}
-                onCall={call}
-              />
-            )}
-            <div className="dialog-frame__actions">
-              <button
-                type="button"
-                className="button small subtle"
-                disabled={!canCancel}
-                onClick={cancel}
-              >
-                {t('studio.publish.cancel')}
-              </button>
-              {/* The wait is the member's to end, never forced; ending it
-                  sends nothing. */}
-              {waiting && (
-                <button
-                  type="button"
-                  className="button small subtle"
-                  onClick={noteSend.stopWaiting}
-                >
-                  {t('studio.publish.noteStopWaiting')}
-                </button>
-              )}
-              <button
-                type="button"
-                className={`button small${busy ? ' is-running' : ''}`}
-                aria-busy={busy}
-                disabled={busy}
-                onClick={() => {
-                  if (missing.length > 0) {
-                    setPressedMissing(true);
-                    call(missing[0]);
-                    return;
-                  }
-                  if (!category || !preview) {
-                    return;
-                  }
-                  const prepared = {
-                    ...preview,
-                    pack: publicationPack,
-                    sourceVersion: pack.version,
-                  };
-                  noteSend.press((notes) =>
-                    onPublish(category, category2, notes, prepared),
-                  );
+                onWrite={() => {
+                  setAsking(false);
+                  writeNote();
                 }}
-              >
-                {buttonLabel}
-              </button>
-            </div>
+                onMine={() => {
+                  setAsking(false);
+                  setDeclined(true);
+                  setPressedMissing(true);
+                  call('note');
+                }}
+              />
+            ) : (
+              <>
+                {!running && (
+                  <StudioPublishHeld
+                    alert={pressedMissing}
+                    parts={missing}
+                    update={update}
+                    onCall={call}
+                  />
+                )}
+                <div className="dialog-frame__actions">
+                  <button
+                    type="button"
+                    className="button small subtle"
+                    disabled={!canCancel}
+                    onClick={cancel}
+                  >
+                    {t('studio.publish.cancel')}
+                  </button>
+                  {/* The wait is the member's to end, never forced; ending it
+                  sends nothing. */}
+                  {waiting && (
+                    <button
+                      type="button"
+                      className="button small subtle"
+                      onClick={noteSend.stopWaiting}
+                    >
+                      {t('studio.publish.noteStopWaiting')}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={`button small${busy ? ' is-running' : ''}`}
+                    aria-busy={busy}
+                    disabled={busy}
+                    onClick={pressSend}
+                  >
+                    {buttonLabel}
+                  </button>
+                </div>
+              </>
+            )}
           </>
         }
       >
@@ -424,8 +520,10 @@ export default function StudioPublishDialog({
             tuning={cameraTuning}
             onCapture={onCapture}
             source={source}
-            onPreview={setPreview}
-            onRecording={setRecording}
+            sending={sending}
+            onPreview={previewArrived}
+            onTake={takeMoved}
+            recordRef={recordRef}
             videoSlot={videoSlot.target}
           />
 
@@ -464,16 +562,7 @@ export default function StudioPublishDialog({
             asWritten={noteSend.asWritten}
             unreadable={draft.noteUnreadable === true}
             noteRef={noteRef}
-            onWrite={
-              onWriteNote &&
-              (() => {
-                // What the boxes hold stops counting as typed, so the line
-                // the chat writes takes their place instead of standing
-                // behind the member's (`publishNoteLines.ts`).
-                setNoteLines((now) => ({ ...now, edited: [] }));
-                onWriteNote().catch(() => undefined);
-              })
-            }
+            onWrite={writeNote}
           />
         </div>
       </DialogFrame>

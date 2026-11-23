@@ -41,6 +41,13 @@ export function isTakeHolding(phase: string): boolean {
   return phase === 'preparing' || phase === 'recording' || phase === 'paused';
 }
 
+/**
+ * A take asked for by the press, from its start until its clip has been
+ * checked: Send waits on it and says so.
+ */
+export const isTakeBusy = (phase: string): boolean =>
+  isTakeRunning(phase) || phase === 'encoding' || phase === 'checking';
+
 /** Where the scene's panel stands on the canvas in each view. */
 export const viewOfShape = (shape: TPublishShape): TSceneView | undefined => {
   if (shape === 'ultra') {
@@ -56,15 +63,21 @@ export const viewOfShape = (shape: TPublishShape): TSceneView | undefined => {
  * with the clip's tabs, and Capture and the clip's status each say in place
  * that they are the Normal view's. Held, never hidden, while the scene
  * cannot play: hidden, the bar's going lifted the frame under it.
+ *
+ * The chosen view takes the dialog's first focus (`chosenRef`): it is the
+ * top of the dialog, so focusing it scrolls nothing, where a control under
+ * the scene scrolled the frame's top out of a short window as it opened.
  */
 export function StudioPublishShapeSwitch({
   shape,
   disabled,
   onShape,
+  chosenRef,
 }: {
   shape: TPublishShape;
   disabled: boolean;
   onShape: (shape: TPublishShape) => void;
+  chosenRef?: RefObject<HTMLButtonElement | null>;
 }) {
   const { t } = useTranslation();
   return (
@@ -77,6 +90,7 @@ export function StudioPublishShapeSwitch({
       {SHAPES.map((entry) => (
         <button
           key={entry.shape}
+          ref={shape === entry.shape ? chosenRef : undefined}
           type="button"
           className={`segmented__option${shape === entry.shape ? ' is-selected' : ''}`}
           aria-pressed={shape === entry.shape}

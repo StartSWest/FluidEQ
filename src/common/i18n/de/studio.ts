@@ -131,10 +131,21 @@ const studio = {
   'studio.publish.videoUploadFailed':
     'Die Vorschau konnte nicht angehängt werden. Öffnen Sie Veröffentlichen und versuchen Sie es erneut.',
   'studio.publish.videoTitle': 'Videovorschau',
-  'studio.publish.videoHint':
-    'Ein lautloser 10-Sekunden-Clip dieser Szene mit Wasserzeichen. Sehen Sie ihn vor dem Veröffentlichen hier an.',
-  'studio.publish.videoWaiting':
-    'Spielen Sie Musik ab oder starten Sie die Demo, um Ihre Vorschau aufzunehmen.',
+  'studio.publish.videoOnSend':
+    'Wird beim Senden der Szene aufgenommen: zehn Sekunden, in denen sie sich zum Demosong bewegt, zur oben gewählten Tageszeit, ohne Ton.',
+  'studio.publish.videoStarting': 'Aufnahme startet…',
+  'studio.publish.videoDone':
+    'Aufgenommen. Es läuft oben auf dem Tab „Vorschauvideo“.',
+  'studio.publish.videoNotRecorded':
+    'Das Vorschauvideo konnte nicht aufgenommen werden. Senden Sie die Szene erneut, um es noch einmal zu versuchen.',
+  'studio.publish.videoStopped': 'Angehalten. Es wurde nichts gesendet.',
+  'studio.publish.timeOfDayFor':
+    'Die Tageszeit, zu der Ihre Titelbilder und das Vorschauvideo aufgenommen werden, von Nacht bis voller Tag. Das Tageslicht der App bleibt, wie es ist.',
+  'studio.publish.askNote':
+    'Es gibt noch keine Zeile zu den Neuerungen. Soll die KI sie schreiben?',
+  'studio.publish.askNoteFirst':
+    'Diese Szene hat noch keine Beschreibung. Soll die KI sie schreiben?',
+  'studio.publish.askNoteMine': 'Ich schreibe sie selbst',
   'studio.publish.videoPreparing': 'Szene wird für die Aufnahme vorbereitet…',
   'studio.publish.videoRecording':
     'Vorschau wird aufgenommen · {seconds} / 10 s',
@@ -146,17 +157,9 @@ const studio = {
     'In dieser Ansicht pausiert · {seconds} / 10 s. Es geht in der normalen Ansicht weiter.',
   'studio.publish.videoEncoding': 'Video wird fertiggestellt…',
   'studio.publish.videoChecking': 'Videowiedergabe wird geprüft…',
-  'studio.publish.videoReady':
-    'Ihre Vorschau ist fertig. Sie läuft oben auf dem Tab „Vorschauvideo“.',
-  'studio.publish.videoFailed':
-    'Die Vorschau konnte nicht aufgenommen oder wiedergegeben werden. Versuchen Sie die Aufnahme erneut.',
-  'studio.publish.videoCancelled':
-    'Aufnahme abgebrochen. Nehmen Sie eine Vorschau auf, um fortzufahren.',
   'studio.publish.videoCancel': 'Aufnahme abbrechen',
-  'studio.publish.videoAgain': 'Erneut aufnehmen',
   'studio.publish.clipLocked':
     'Dieser Clip wird gerade veröffentlicht. Schlägt das fehl, können Sie ihn erneut aufnehmen.',
-  'studio.publish.videoRetry': 'Aufnahme wiederholen',
   'studio.publish.videoPlay': 'Szenenvorschau abspielen',
   'studio.publish.viewChoice': 'Was das Bild zeigt',
   'studio.publish.viewLive': 'Live-Szene',
@@ -170,21 +173,12 @@ const studio = {
   'studio.publish.note': 'Neu in dieser Version',
   'studio.publish.notePlaceholder':
     'Eine Zeile, die Hörer sehen, zum Beispiel: Die Gipfel werden auf breiten Flächen nicht mehr abgeschnitten',
-  'studio.publish.hears': 'Was die Szene hört',
-  'studio.publish.yourMusic': 'Ihre Musik',
-  'studio.publish.demo': 'Demo',
   'studio.publish.capture': 'Diesen Moment festhalten',
   'studio.publish.nightToDay': 'Von Nacht zu Tag',
   'studio.publish.nightToDayHint':
     'Das Vorschauvideo läuft in seinen zehn Sekunden von der Nacht bis zum vollen Tag. Aus wird es zur Tageszeit darüber aufgenommen.',
   'studio.publish.timeOfDay': 'Tageszeit',
-  'studio.publish.timeOfDayHint':
-    'Die Tageszeit, zu der die Titelbilder und das Vorschauvideo aufgenommen werden, von Nacht bis voller Tag. Eine Änderung nimmt die Vorschau neu auf; das Tageslicht der App bleibt, wie es ist.',
   'studio.publish.capturing': 'Wird festgehalten…',
-  'studio.publish.quietTitle': 'Es läuft nichts',
-  'studio.publish.quietBody':
-    'Spielen Sie Musik in einer beliebigen App ab, oder nehmen Sie die Demo.',
-  'studio.publish.useDemo': 'Demo verwenden',
   'studio.publish.cover': 'Titelbild',
   'studio.publish.coverHint':
     'Halten Sie den Moment fest, in dem die Szene am besten aussieht. Das Titelbild mit dem Haken zeigt die Galerie.',
@@ -200,7 +194,6 @@ const studio = {
   'studio.publish.categoryHint': 'Bis zu zwei. Die Karte zeigt die erste.',
   'studio.publish.stillNeeded': 'Noch nötig:',
   'studio.publish.missing.name': 'Ihr Name und @Handle, ganz oben',
-  'studio.publish.missing.video': 'ein abspielbares Vorschauvideo',
   'studio.publish.missing.category': 'eine Kategorie',
   'studio.publish.missing.size': 'eine kleinere Szene',
   'studio.publish.missing.note': 'eine Zeile zu den Neuerungen',
