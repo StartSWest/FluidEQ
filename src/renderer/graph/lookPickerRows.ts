@@ -27,6 +27,7 @@ import foldForSearch from '../utils/foldForSearch';
 import { searchMatcher } from '../../common/searchText';
 import {
   loadMemberScene,
+  withoutOfficialCopies,
   type ILockedMemberScene,
   type IUsableMemberScene,
 } from '../utils/memberScenes';
@@ -304,33 +305,42 @@ export const buildPlusRows = ({
       },
     });
   });
-  const memberRows = members.map((scene) => {
-    const gallery = findInGallery(scene.lookId);
-    return row({
-      id: scene.lookId,
-      name: resolveSceneName(scene, locale),
-      swatch: scene.swatch,
-      maker: scene.own ? 'mine' : 'members',
-      author: author(scene),
-      categories: galleryCategories(gallery) ?? [],
-      locked: false,
-      version: scene.version,
-      ...noteFor(gallery, scene.version),
-      ...latestFor(gallery, scene.version),
-      ...listingFor(gallery),
-      thumbnail: memberSceneThumbnail(scene, gallery),
-    });
-  });
-  const memberLocked = lockedMembers.map((scene) =>
-    row({
-      id: scene.lookId,
-      name: resolveSceneName(scene, locale),
-      swatch: scene.swatch,
-      maker: scene.own ? 'mine' : 'members',
-      author: author(scene),
-      categories: [],
-      locked: true,
-    }),
+  // A publisher's own copy of one of FluidEQ's scenes is that scene again,
+  // under FluidEQ's row (`withoutOfficialCopies`).
+  const officialIds = new Set([
+    ...usable.map((scene) => scene.id),
+    ...locked.map((scene) => scene.id),
+  ]);
+  const memberRows = withoutOfficialCopies(members, officialIds).map(
+    (scene) => {
+      const gallery = findInGallery(scene.lookId);
+      return row({
+        id: scene.lookId,
+        name: resolveSceneName(scene, locale),
+        swatch: scene.swatch,
+        maker: scene.own ? 'mine' : 'members',
+        author: author(scene),
+        categories: galleryCategories(gallery) ?? [],
+        locked: false,
+        version: scene.version,
+        ...noteFor(gallery, scene.version),
+        ...latestFor(gallery, scene.version),
+        ...listingFor(gallery),
+        thumbnail: memberSceneThumbnail(scene, gallery),
+      });
+    },
+  );
+  const memberLocked = withoutOfficialCopies(lockedMembers, officialIds).map(
+    (scene) =>
+      row({
+        id: scene.lookId,
+        name: resolveSceneName(scene, locale),
+        swatch: scene.swatch,
+        maker: scene.own ? 'mine' : 'members',
+        author: author(scene),
+        categories: [],
+        locked: true,
+      }),
   );
   const byMaker = (maker: TPlusMaker) =>
     [...memberRows, ...memberLocked].filter((entry) => entry.maker === maker);

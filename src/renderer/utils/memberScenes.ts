@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react';
+import { parseMemberLookId } from 'common/memberScenes';
 import { lockedLookId, type IScenePack } from 'common/scenePacks';
 import type { ISceneWave } from 'common/sceneWave';
 import type { IMemberScenesListing } from 'main/ipc/memberScenes';
@@ -54,6 +55,27 @@ export interface ILockedMemberScene {
   /** Who sent it, for a scene another member made. */
   authorName?: string | null;
 }
+
+/**
+ * THE COPY KEPT BY WHOEVER PUBLISHES FLUIDEQ'S OWN SCENES IS NOT A SECOND
+ * SCENE (Ivan, 2026-11-23: "why they show duplicated???"). Publishing keeps
+ * the scene as the publisher's own look as well (`keepPublished`), so the
+ * account that publishes FluidEQ's scenes saw each one twice in every list:
+ * FluidEQ's row with its maker's note, and its own copy under the same name.
+ * A member's own copy of a scene FluidEQ ships (`officialPackIds`) is left
+ * out of the lists; FluidEQ's own stands for it. Nobody else can hold one:
+ * the server refuses to publish a copy of FluidEQ's own.
+ */
+export const withoutOfficialCopies = <
+  T extends { own: boolean; lookId: string },
+>(
+  scenes: readonly T[],
+  officialPackIds: ReadonlySet<string>,
+): T[] =>
+  scenes.filter((scene) => {
+    const packId = parseMemberLookId(scene.lookId)?.packId;
+    return !(scene.own && packId !== undefined && officialPackIds.has(packId));
+  });
 
 const EMPTY: IMemberScenesListing = { scenes: [], locked: [] };
 

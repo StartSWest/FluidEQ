@@ -46,6 +46,7 @@ import {
   getUsableMemberScene,
   getUsableMemberScenes,
   subscribeMemberScenes,
+  withoutOfficialCopies,
   type IUsableMemberScene,
 } from './memberScenes';
 import {
@@ -313,7 +314,11 @@ export const getSelectableLooks = (
       customLooks.map(resolveCustomLook),
     ),
     ...scenes.map(resolveSceneRow),
-    ...memberScenes.map(resolveSceneRow),
+    // A publisher's own copy of one of those is the same scene again.
+    ...withoutOfficialCopies(
+      memberScenes,
+      new Set(scenes.map((scene) => scene.id)),
+    ).map(resolveSceneRow),
   ];
 };
 
