@@ -26,6 +26,9 @@ import { gateOpenness } from './micGate';
 import type { IMicLevel } from './useMicLevels';
 
 export type TMicStage =
+  // The mic maker's own effects: Windows' registration, ahead of the rack,
+  // and on its own row above the rack's switch (`MicOwnEffectsCard`).
+  | 'own'
   | 'lowCut'
   | 'denoise'
   | 'gate'
@@ -58,6 +61,9 @@ export const MIC_STAGES: readonly {
 export const micStageOn = (settings: IDspSettings, stage: TMicStage) => {
   const { voice } = settings;
   switch (stage) {
+    case 'own':
+      // Not the rack's: its own row reads Windows' registration.
+      return false;
     case 'lowCut':
       return Boolean(
         voice?.enabled &&
@@ -192,7 +198,27 @@ const ReverbIcon = () => (
   </svg>
 );
 
+/** A capsule with its maker's chip beside it. */
+const OwnIcon = () => (
+  <svg
+    className="dsp-section-icon"
+    viewBox="0 0 20 20"
+    width="20"
+    height="20"
+    aria-hidden="true"
+  >
+    <path
+      className="dsp-section-icon__frame"
+      d="M6 3.5 a2.5 2.5 0 0 1 5 0 V9 a2.5 2.5 0 0 1 -5 0 Z M3.5 8.5 a5 5 0 0 0 10 0 M8.5 13.5 V16.5"
+    />
+    <path className="dsp-section-icon__accent" d="M14 12 h4 v4 h-4 Z" />
+  </svg>
+);
+
 const StageIcon = ({ stage }: { stage: TMicStage }) => {
+  if (stage === 'own') {
+    return <OwnIcon />;
+  }
   if (stage === 'reverb') {
     return <ReverbIcon />;
   }
@@ -222,6 +248,10 @@ interface IMicStageRailProps {
   latest: React.MutableRefObject<IMicLevel | undefined>;
   /** Whether the engine is answering on this mic, so the meters move. */
   live: boolean;
+  /** The mic maker's own effects: running, and whether there are any. */
+  ownEffects: { on: boolean; available: boolean };
+  /** Their switch, which asks Windows (`MicOwnEffectsCard`). */
+  onOwnToggle: () => void;
 }
 
 const MicStageRail = ({
@@ -234,6 +264,8 @@ const MicStageRail = ({
   delays,
   latest,
   live,
+  ownEffects,
+  onOwnToggle,
 }: IMicStageRailProps) => {
   const { t } = useTranslation();
   const meters = useRef<Partial<Record<TMicStage, HTMLSpanElement | null>>>({});
@@ -304,6 +336,38 @@ const MicStageRail = ({
     // No heading over the stages: the header names the mic just above, and
     // its Windows name repeated here was cut to an ellipsis at every width.
     <nav className="dsp-rail mic-rail" aria-label={heading}>
+      {/* The maker's own effects run ahead of everything below and are not
+          the rack's, so the rack's switch does not govern them: a row of
+          their own, first, as the voice meets them. */}
+      <div
+        className={`mic-rail__row mic-rail__own${ownEffects.on ? '' : ' is-off'}${
+          active === 'own' ? ' is-active' : ''
+        }`}
+      >
+        <button
+          type="button"
+          className={`dsp-rail-tab${active === 'own' ? ' is-active' : ''}${
+            ownEffects.on ? ' is-on' : ''
+          }`}
+          aria-current={active === 'own' ? 'true' : undefined}
+          title={t('mic.stage.own')}
+          onClick={() => onSelect('own')}
+        >
+          <StageIcon stage="own" />
+          <span className="dsp-rail-name studio-rail__word">
+            {t('mic.stage.own')}
+          </span>
+        </button>
+        <span className="mic-rail__switch studio-rail__word">
+          <Switch
+            id="mic-rail-own"
+            isOn={ownEffects.on}
+            isDisabled={!ownEffects.available}
+            handleToggle={onOwnToggle}
+            ariaLabel={t('mic.stage.own')}
+          />
+        </span>
+      </div>
       <div className="mic-rail__master">
         <span className="mic-rail__master-name studio-rail__word">
           {t('mic.rail.master')}

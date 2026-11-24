@@ -254,39 +254,42 @@ export const DYNAMICS_PRESET_BY_ID = {
     settings: profile(down(-24, 3), {}, up(-44, 1.6, 5), 3, 150, 0.6),
   },
 
-  // The Mic tab's alone (`presetScope.tsx`). A headset mic hands a voice in
-  // at -38 to -18 dBFS, far under a record, so the thresholds sit there and
-  // not at the music presets' -17 to -28, which a voice never reached: the
-  // profiles pressed nothing and only their missing lift showed. They hold
-  // and give the level back as make-up, and never lift what is quiet: a
-  // lift under a threshold lifts the room between words with it (up to
-  // +9 dB, measured, `mic_profiles_test.cpp`).
+  // The Mic tab's alone (`presetScope.tsx`). They stand behind Voice level,
+  // which hands them the voice at -15 to -13 dBFS, so the middle band's
+  // threshold sits a few dB under that and the make-up gives back what they
+  // take: the level is Voice level's, and a compressor that took it back
+  // was the first set's fight (thresholds at -28 to -38, 4 dB under the
+  // chain without them). The top band's threshold sits 18 to 21 dB under
+  // the middle's, where a voice's top lives: level with it, the middle
+  // was held and the top was not, and the make-up lifted every S by 1 to
+  // 3 dB. They never lift what is quiet: a lift under a threshold lifts
+  // the room between words with it (up to +9 dB, `mic_profiles_test.cpp`).
   micGentle: {
     id: 'micGentle',
     labelKey: 'mic.preset.dynamics.gentle',
     group: 'mic',
-    settings: profile(down(-32, 1.8), down(-30, 2), down(-36, 1.8), 10, 200, 2),
+    settings: profile(down(-24, 2), down(-17, 2), down(-35, 2), 10, 200, 2),
   },
   micBroadcast: {
     id: 'micBroadcast',
     labelKey: 'mic.preset.dynamics.broadcast',
     group: 'mic',
     // The radio voice: held firmly, level from the first word to the last.
-    settings: profile(down(-34, 3), down(-32, 3), down(-38, 2.5), 6, 160, 4),
+    settings: profile(down(-27, 3), down(-20, 3), down(-40, 3), 6, 160, 4),
   },
   micCallouts: {
     id: 'micCallouts',
     labelKey: 'mic.preset.dynamics.callouts',
     group: 'mic',
     // A shout in a firefight and a whisper both arrive at one level: fast.
-    settings: profile(down(-30, 4), down(-28, 4), down(-34, 3), 3, 120, 4),
+    settings: profile(down(-29, 4), down(-22, 4), down(-43, 4), 3, 120, 5.5),
   },
   micSinging: {
     id: 'micSinging',
     labelKey: 'mic.preset.dynamics.singing',
     group: 'mic',
     // A sung phrase keeps its swell: gentle, slow to let go.
-    settings: profile(down(-30, 2), down(-26, 2.5), down(-32, 2), 12, 250, 2),
+    settings: profile(down(-23, 2), down(-16, 2), down(-34, 2), 12, 250, 1.5),
   },
 } satisfies Record<string, IDynamicsPreset>;
 

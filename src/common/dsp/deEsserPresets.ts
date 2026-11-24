@@ -240,14 +240,16 @@ export const DE_ESSER_PRESET_BY_ID = {
     id: 'micBright',
     labelKey: 'mic.preset.deEsser.bright',
     group: 'mic',
-    // A cheap capsule's S whistles higher and harder than a voice's.
+    // A cheap capsule's S whistles higher and harder than a voice's, and
+    // still starts where a voice's does: from 6 kHz up it missed most of a
+    // voice's S and took 2.9 dB less than Podcast inside the same chain.
     settings: {
       ...vocalMusic,
       sensitivity: 0.65,
-      lowHz: 6000,
+      lowHz: 4800,
       highHz: 11000,
       rangeDb: 8,
-      widthOct: 0.5,
+      widthOct: 0.6,
       attackMs: 1,
       releaseMs: 50,
       centreOnly: false,

@@ -16,7 +16,7 @@ import { REVERB_DEFAULTS } from '../../common/dsp/reverbStage';
 import { micStageOn, type TMicStage } from './MicStageRail';
 
 const micStageSwitch = (
-  stage: Exclude<TMicStage, 'lowCut'>,
+  stage: Exclude<TMicStage, 'lowCut' | 'own'>,
   settings: IDspSettings,
 ): Partial<IDspSettings> => {
   const on = micStageOn(settings, stage);

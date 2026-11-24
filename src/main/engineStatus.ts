@@ -37,6 +37,7 @@ import {
   IEndpointEffect,
   IFluidEngineEndpoint,
   IFluidEngineMicrophone,
+  IMicEffect,
   IFluidEngineStatus,
   TAudioEngine,
   TEngineSlotName,
@@ -238,11 +239,47 @@ const parseStatusMicrophones = (value: unknown): IFluidEngineMicrophone[] => {
         : [];
     }),
   );
-  return parseStatusEndpoints(value).map((endpoint) => ({
-    ...endpoint,
-    name: names.get(endpoint.guid) ?? '',
-  }));
+  const raw = new Map<string, Record<string, unknown>>(
+    value.flatMap((entry: unknown): [string, Record<string, unknown>][] =>
+      typeof entry === 'object' &&
+      entry !== null &&
+      typeof (entry as Record<string, unknown>).guid === 'string'
+        ? [
+            [
+              String((entry as Record<string, unknown>).guid),
+              entry as Record<string, unknown>,
+            ],
+          ]
+        : [],
+    ),
+  );
+  return parseStatusEndpoints(value).map((endpoint) => {
+    const own = raw.get(endpoint.guid);
+    const runs = parseMicEffects(own?.runs);
+    const taken = parseMicEffects(own?.ownEffectsTaken);
+    return {
+      ...endpoint,
+      name: names.get(endpoint.guid) ?? '',
+      ...(runs ? { runs } : {}),
+      ...(own?.ownEffectsOff === true ? { ownEffectsOff: true } : {}),
+      ...(taken ? { ownEffectsTaken: taken } : {}),
+    };
+  });
 };
+
+/** The helper's `runs` and `ownEffectsTaken`, or nothing from an older one. */
+const parseMicEffects = (value: unknown): IMicEffect[] | undefined =>
+  Array.isArray(value)
+    ? value.flatMap((entry: unknown): IMicEffect[] => {
+        if (typeof entry !== 'object' || entry === null) {
+          return [];
+        }
+        const { clsid, name } = entry as Record<string, unknown>;
+        return typeof clsid === 'string'
+          ? [{ clsid, name: typeof name === 'string' ? name : '' }]
+          : [];
+      })
+    : undefined;
 
 interface IRawStatus {
   installed?: unknown;

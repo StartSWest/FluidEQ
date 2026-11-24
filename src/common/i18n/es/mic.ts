@@ -207,6 +207,26 @@ export default {
   'mic.profile.megaphone': 'Megáfono',
   'mic.profile.megaphone.hint':
     'Medios estrechos y empujados, y un golpe corto de sala',
+  'mic.stage.own': 'Efectos propios del micro',
+  'mic.own.title': 'Efectos propios del micro',
+  'mic.own.description':
+    'El procesado que pone el fabricante de tu micro antes de que FluidEQ oiga tu voz. Quítalo y solo FluidEQ procesa tu voz; vuelve a ponerlo y queda exactamente como estaba.',
+  'mic.own.group.brings': 'Lo que trae tu micro',
+  'mic.own.group.taken': 'Quitados',
+  'mic.own.group.how': 'Cómo cambia',
+  'mic.own.how':
+    'Windows pide permiso cada vez y su sonido se corta un momento mientras se reinicia. Todas las apps que usan este micro oyen el cambio.',
+  'mic.own.none':
+    'Este micro no trae efectos propios: solo FluidEQ lo procesa.',
+  'mic.own.unknown':
+    'Actualiza el FluidEQ Engine para ver los efectos propios de este micro.',
+  'mic.own.unnamed': 'Efecto sin nombre',
+  'mic.own.stateOn': 'Activado',
+  'mic.own.stateOff': 'Quitado',
+  'mic.own.prompt': 'Windows pedirá permiso.',
+  'mic.own.working': 'Esperando a Windows…',
+  'mic.own.declined': 'Windows no dio permiso, así que no cambió nada.',
+  'mic.own.failed': 'No se pudo cambiar en este micro.',
   'mic.empty.title': 'No se encontró ningún micrófono',
   'mic.empty.body':
     'Conecta un micrófono o actualiza el FluidEQ Engine para que pueda mostrarlos.',
@@ -255,10 +275,6 @@ export default {
   'mic.cleaner.description':
     'Quita teclados, ventiladores y la sala de debajo de tu voz mientras hablas.',
   'mic.cleaner.strength': 'Intensidad',
-  'mic.cleaner.neverCuts': 'Nunca corta',
-  'mic.cleaner.neverCutsHint':
-    'Si el modelo llega tarde, la voz conserva el nivel del último momento limpio y se une sin clic, nunca con la sala en bruto. Aquí se cuentan esos momentos.',
-  'mic.cleaner.lateMinute': 'bloques tardíos en el último minuto',
   'mic.gate.live.title': 'Tu voz frente a la puerta de ruido',
   'mic.gate.live.hint':
     'Arrastra la línea hacia arriba o hacia abajo. Los tramos grises son donde la puerta bajó la sala.',

@@ -100,6 +100,7 @@ const MicStage = ({
         stage !== 'gate' &&
         stage !== 'level' &&
         stage !== 'reverb' &&
+        stage !== 'own' &&
         stage !== 'denoise' && (
           <DspStageCards
             section={stage}

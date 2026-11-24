@@ -64,7 +64,7 @@ export const VOICE_DEFAULTS: IVoiceSettings = {
   gateAttackMs: 2,
   gateReleaseMs: 150,
   levelEnabled: false,
-  levelTargetDb: -18,
+  levelTargetDb: -14,
   levelMaxLiftDb: 18,
 };
 

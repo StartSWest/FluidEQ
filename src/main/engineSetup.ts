@@ -53,6 +53,11 @@ export type TEngineSetupCommand =
   // APO ran and the FluidEQ Engine never did, with both reported as on.
   | 'suspend-apo'
   | 'restore-apo'
+  // A microphone's own effects off, recorded first, and back from the
+  // record: every effect but the FluidEQ Engine's out of the lists Windows
+  // reads (`own_effects.h`).
+  | 'suspend-mic-effects'
+  | 'restore-mic-effects'
   | 'restart-audio'
   | 'settle';
 

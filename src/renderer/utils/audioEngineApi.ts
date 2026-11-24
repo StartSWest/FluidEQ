@@ -155,6 +155,21 @@ export const repairFluidEngineOutput = (
 export const attachFluidEngine = (guid: string): Promise<IEngineSetupResult> =>
   engineSetupCall(ChannelEnum.ATTACH_FLUID_ENGINE, [guid]);
 
+/**
+ * A microphone's own effects off so only the FluidEQ Engine processes it,
+ * or back on exactly as they were. One Windows prompt each.
+ */
+export const setMicOwnEffects = (
+  guid: string,
+  on: boolean,
+): Promise<IEngineSetupResult> =>
+  engineSetupCall(
+    on
+      ? ChannelEnum.RESTORE_MIC_OWN_EFFECTS
+      : ChannelEnum.SUSPEND_MIC_OWN_EFFECTS,
+    [guid],
+  );
+
 /** Take one output back off the engine. */
 export const detachFluidEngine = (guid: string): Promise<IEngineSetupResult> =>
   engineSetupCall(ChannelEnum.DETACH_FLUID_ENGINE, [guid]);

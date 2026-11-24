@@ -230,7 +230,7 @@ void feq_voice_settings_defaults(FeqVoiceSettings* settings) {
   settings->gate_hold_ms = 200.0;
   settings->gate_attack_ms = 2.0;
   settings->gate_release_ms = 150.0;
-  settings->level_target_db = -18.0;
+  settings->level_target_db = -14.0;
   settings->level_max_lift_db = 18.0;
 }
 

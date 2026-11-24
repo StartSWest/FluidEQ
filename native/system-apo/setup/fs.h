@@ -40,6 +40,9 @@ std::wstring backup_dir();
 /** `<engine root>\apo-off` — Equalizer APO's state per output, before it was switched off. */
 std::wstring apo_off_dir();
 
+/** `<engine root>\mic-own-off` — a microphone's own effects, before they were taken off. */
+std::wstring mic_own_off_dir();
+
 /** `<engine root>\slots` — which effect slot each output was put in. */
 std::wstring slots_dir();
 

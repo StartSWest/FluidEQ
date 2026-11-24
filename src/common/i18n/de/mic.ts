@@ -208,6 +208,27 @@ export default {
   'mic.profile.megaphone': 'Megafon',
   'mic.profile.megaphone.hint':
     'Eine schmale, gedrückte Mitte und ein kurzer Raumschlag',
+  'mic.stage.own': 'Eigene Effekte des Mikrofons',
+  'mic.own.title': 'Eigene Effekte des Mikrofons',
+  'mic.own.description':
+    'Die Bearbeitung, die der Hersteller Ihres Mikrofons anwendet, bevor FluidEQ Ihre Stimme hört. Schalten Sie sie aus, bearbeitet nur FluidEQ Ihre Stimme; schalten Sie sie ein, ist alles genau wie zuvor.',
+  'mic.own.group.brings': 'Was Ihr Mikrofon mitbringt',
+  'mic.own.group.taken': 'Ausgeschaltet',
+  'mic.own.group.how': 'Was sich ändert',
+  'mic.own.how':
+    'Windows fragt jedes Mal nach der Berechtigung, und der Ton setzt kurz aus, während er neu startet. Jede App, die dieses Mikrofon nutzt, hört die Änderung.',
+  'mic.own.none':
+    'Dieses Mikrofon bringt keine eigenen Effekte mit: Nur FluidEQ bearbeitet es.',
+  'mic.own.unknown':
+    'Aktualisieren Sie die FluidEQ Engine, um die eigenen Effekte dieses Mikrofons zu sehen.',
+  'mic.own.unnamed': 'Unbenannter Effekt',
+  'mic.own.stateOn': 'Ein',
+  'mic.own.stateOff': 'Aus',
+  'mic.own.prompt': 'Windows fragt nach der Berechtigung.',
+  'mic.own.working': 'Warten auf Windows…',
+  'mic.own.declined':
+    'Windows hat die Berechtigung nicht erteilt, daher hat sich nichts geändert.',
+  'mic.own.failed': 'Es konnte an diesem Mikrofon nicht geändert werden.',
   'mic.empty.title': 'Kein Mikrofon gefunden',
   'mic.empty.body':
     'Schließen Sie ein Mikrofon an oder aktualisieren Sie die FluidEQ Engine, damit sie Mikrofone auflisten kann.',
@@ -256,10 +277,6 @@ export default {
   'mic.cleaner.description':
     'Entfernt Tastatur, Lüfter und Raum unter Ihrer Stimme, während Sie sprechen.',
   'mic.cleaner.strength': 'Stärke',
-  'mic.cleaner.neverCuts': 'Schneidet nie ab',
-  'mic.cleaner.neverCutsHint':
-    'Kommt das Modell einmal zu spät, behält die Stimme den Pegel des letzten gereinigten Moments und wird ohne Klick angeschlossen, nie mit dem rohen Raum. Solche Momente werden hier gezählt.',
-  'mic.cleaner.lateMinute': 'verspätete Blöcke in der letzten Minute',
   'mic.gate.live.title': 'Ihre Stimme am Gate',
   'mic.gate.live.hint':
     'Ziehen Sie die Linie nach oben oder unten. Die grauen Strecken zeigen, wo das Gate den Raum gedämpft hat.',

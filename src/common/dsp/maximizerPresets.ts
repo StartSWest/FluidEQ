@@ -350,7 +350,7 @@ export const MAXIMIZER_PRESET_BY_ID = {
     labelKey: 'mic.preset.limiter.loud',
     group: 'mic',
     // Over game sound and music in the same call.
-    settings: profile(6, -1, 1, 150),
+    settings: profile(4, -1, 1, 150),
   },
 } satisfies Record<string, IMaximizerPreset>;
 

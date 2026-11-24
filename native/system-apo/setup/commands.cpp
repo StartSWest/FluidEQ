@@ -395,7 +395,11 @@ void detach_each(const std::vector<std::wstring>& guids,
     EndpointResult one;
     one.guid = guid;
     one.attached = true;
-    if (!detach_one(guid, one.attached, result.error)) {
+    // A microphone whose own effects were taken off gets them back first:
+    // without the engine and without its maker's processing it would be
+    // left with none, and the switch that took them off leaves with it.
+    if (!restore_mic_own_one(guid, result.error) ||
+        !detach_one(guid, one.attached, result.error)) {
       result.ok = false;
       result.endpoints.push_back(one);
       return;
@@ -566,8 +570,19 @@ void run_uninstall(const Options& options, CommandResult& result) {
   // the exit code, and the app logs the per-output reasons.
   CommandResult restored;
   restore_apo_all(restored);
+  // And every microphone's own effects, on the same terms: somebody else's
+  // processing, put back by the program that took it off.
+  CommandResult mics_back;
+  restore_mic_own_all(mics_back);
+  if (!mics_back.ok) {
+    restored.ok = false;
+    restored.error = mics_back.error;
+  }
   const bool apo_left_off = !restored.ok;
   for (const EndpointResult& one : restored.endpoints) {
+    result.endpoints.push_back(one);
+  }
+  for (const EndpointResult& one : mics_back.endpoints) {
     result.endpoints.push_back(one);
   }
   if (!unregister_engine(result.error)) {
@@ -600,7 +615,7 @@ bool ensure_engine_tree(std::wstring& error) {
   }
   if (!ensure_directory(root) || !ensure_directory(config_dir()) ||
       !ensure_directory(backup_dir()) || !ensure_directory(apo_off_dir()) ||
-      !ensure_directory(slots_dir())) {
+      !ensure_directory(mic_own_off_dir()) || !ensure_directory(slots_dir())) {
     const unsigned long why = GetLastError();
     error = L"could not create " + root + L": " + describe_error(why);
     return false;
@@ -610,7 +625,8 @@ bool ensure_engine_tree(std::wstring& error) {
   // it, since each of those replaces what the root just passed down. See
   // `acl.h` for who may do what, and why.
   for (const std::wstring& folder :
-       {parent, root, backup_dir(), apo_off_dir(), slots_dir()}) {
+       {parent, root, backup_dir(), apo_off_dir(), mic_own_off_dir(),
+        slots_dir()}) {
     if (!take_ownership(folder, error)) {
       return false;
     }
@@ -619,6 +635,7 @@ bool ensure_engine_tree(std::wstring& error) {
       !apply_config_acl(config_dir(), error) ||
       !apply_read_only_acl(backup_dir(), error) ||
       !apply_read_only_acl(apo_off_dir(), error) ||
+      !apply_read_only_acl(mic_own_off_dir(), error) ||
       !apply_read_only_acl(slots_dir(), error)) {
     return false;
   }
@@ -677,6 +694,15 @@ void run_command(const Options& options, CommandResult& result) {
     suspend_apo_all(result);
   } else if (options.command == L"restore-apo") {
     restore_apo_all(result);
+  } else if (options.command == L"suspend-mic-effects") {
+    // The tree, for the record's folder and its permissions.
+    if (!ensure_engine_tree(result.error)) {
+      result.ok = false;
+      return;
+    }
+    suspend_mic_own(options.guids, result);
+  } else if (options.command == L"restore-mic-effects") {
+    restore_mic_own(options.guids, result);
   } else {
     // The command line parser accepts a closed set and this function handles
     // all of it, so getting here means the two lists have drifted apart. Named

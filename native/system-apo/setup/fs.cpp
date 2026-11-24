@@ -81,6 +81,11 @@ std::wstring apo_off_dir() {
   return root.empty() ? root : root + L"\\apo-off";
 }
 
+std::wstring mic_own_off_dir() {
+  const std::wstring root = engine_root();
+  return root.empty() ? root : root + L"\\mic-own-off";
+}
+
 std::wstring slots_dir() {
   const std::wstring root = engine_root();
   return root.empty() ? root : root + L"\\slots";

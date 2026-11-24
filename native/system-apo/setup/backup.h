@@ -59,6 +59,18 @@ void remove_apo_off(const std::wstring& guid);
 /** Every endpoint currently recorded as having Equalizer APO switched off. */
 std::vector<std::wstring> apo_off_endpoints();
 
+/**
+ * The same, for a microphone's own effects taken off (`own_effects.h`) —
+ * `<engine root>\mic-own-off\<guid>.json`. A store of its own for the
+ * reason Equalizer APO has one: it is consumed when the effects go back on,
+ * and an uninstall restores from it before anything else.
+ */
+bool save_mic_own_off_once(const std::wstring& guid, const FxValues& values,
+                           std::wstring& error);
+std::optional<FxValues> load_mic_own_off(const std::wstring& guid);
+void remove_mic_own_off(const std::wstring& guid);
+std::vector<std::wstring> mic_own_off_endpoints();
+
 }  // namespace fluideq_engine::setup
 
 #endif  // FLUIDEQ_ENGINE_SETUP_BACKUP_H

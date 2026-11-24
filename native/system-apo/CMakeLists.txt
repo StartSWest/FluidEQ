@@ -328,8 +328,17 @@ add_test(NAME engine-repro
 add_library(fluideq-engine-setup-core STATIC
   setup/fx_list.cpp setup/fx_modes.cpp setup/json.cpp setup/multi_sz.cpp
   setup/attach_outcome.cpp setup/com_paths.cpp setup/service_restart.cpp
-  setup/retry.cpp setup/slot_report.cpp setup/capture_slots.cpp)
+  setup/retry.cpp setup/slot_report.cpp setup/capture_slots.cpp
+  setup/own_effects.cpp)
 target_link_libraries(fluideq-engine-setup-core PRIVATE feq_strict)
+
+# A microphone's own effects taken off and put back (`own_effects.h`): the
+# plan against the shapes real mics have, the vendor's values never
+# rewritten, and what Windows then runs.
+add_executable(fluideq-engine-own-effects-test tests/own_effects_test.cpp)
+target_link_libraries(fluideq-engine-own-effects-test
+  PRIVATE fluideq-engine-setup-core feq_strict)
+add_test(NAME engine-own-effects COMMAND fluideq-engine-own-effects-test)
 
 # Where the engine may go on a microphone: GFX is never created on one, and a
 # legacy-only mic reads its effect from LFX.
@@ -425,7 +434,7 @@ add_executable(fluideq-engine-setup
   setup/main.cpp setup/commands.cpp setup/registry.cpp
   setup/com_registration.cpp setup/endpoints.cpp
   setup/elevate.cpp setup/services.cpp setup/acl.cpp setup/backup.cpp
-  setup/slot_memory.cpp setup/digest.cpp
+  setup/slot_memory.cpp setup/digest.cpp setup/own_effects_commands.cpp
   setup/fs.cpp setup/console.cpp
   # The version resource is what the consent prompt shows the user before
   # they decide whether to let this program change their machine.

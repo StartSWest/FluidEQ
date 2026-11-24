@@ -51,8 +51,6 @@ export interface IMicLevel {
    * module's: always off on a mic, so it read 0 dB whatever the cleaner did.
    */
   room?: IRoomFloor;
-  /** The voice cleaner's blocks its worker missed in this reading's window. */
-  late: number;
   /**
    * The gate's own detector level, dBFS: the voice after the cleaner, which
    * is what its threshold is compared with. From engine 1.32, on a mic whose
@@ -233,7 +231,6 @@ const useMicLevels = (
                 : undefined,
               limiterDb: Math.min(0, frame.maximizerReductionDb),
               room: readRoom(frame, result.sampleRate, performance.now()),
-              late: frame.denoise.voiceUnderruns,
               ...(frame.voice?.active
                 ? {
                     gateLevelDb: frame.voice.gateLevelDb,

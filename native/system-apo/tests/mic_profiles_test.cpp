@@ -202,10 +202,11 @@ void a_quiet_voice_is_brought_up() {
     std::printf("  %-10s quiet %6.2f dB (Voice level off %6.2f), ordinary "
                 "%6.2f dB (in %6.2f)\n",
                 row.id, lifted, control, passed, ordinary_in);
-    // Every profile carries Voice level; the gentlest lifts 6 dB at most.
+    // Every profile carries Voice level; the gentlest lifts 12 dB at most.
     CHECK(lifted > control + 3.0);
-    // The compressor presses an ordinary voice 2-4 dB; a gate closing on
-    // the voice itself takes 10 dB and more.
+    // Voice level and the compressor's make-up give an ordinary voice back
+    // what the compressor takes; a gate closing on the voice itself takes
+    // 10 dB and more.
     CHECK(passed > ordinary_in - 6.0);
   }
 }

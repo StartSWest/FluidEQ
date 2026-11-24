@@ -196,6 +196,26 @@ export default {
   'mic.profile.whisper.hint': '前に引き出したささやき、上に空気感',
   'mic.profile.megaphone': 'メガホン',
   'mic.profile.megaphone.hint': '狭く押し出した中域と短い部屋の響き',
+  'mic.stage.own': 'マイク独自のエフェクト',
+  'mic.own.title': 'マイク独自のエフェクト',
+  'mic.own.description':
+    'FluidEQ があなたの声を聞く前に、マイクのメーカーがかける処理です。外すと FluidEQ だけが声を処理し、戻すと元どおりになります。',
+  'mic.own.group.brings': 'マイクに付いているもの',
+  'mic.own.group.taken': '外したもの',
+  'mic.own.group.how': '変わること',
+  'mic.own.how':
+    'Windows は毎回許可を求め、再起動の間は音が一瞬止まります。このマイクを使うすべてのアプリに変更が反映されます。',
+  'mic.own.none':
+    'このマイクには独自のエフェクトがありません。FluidEQ だけが処理します。',
+  'mic.own.unknown':
+    'このマイク独自のエフェクトを見るには FluidEQ Engine を更新してください。',
+  'mic.own.unnamed': '名前のないエフェクト',
+  'mic.own.stateOn': 'オン',
+  'mic.own.stateOff': 'オフ',
+  'mic.own.prompt': 'Windows が許可を求めます。',
+  'mic.own.working': 'Windows を待っています…',
+  'mic.own.declined': 'Windows が許可しなかったため、何も変わっていません。',
+  'mic.own.failed': 'このマイクでは変更できませんでした。',
   'mic.empty.title': 'マイクが見つかりません',
   'mic.empty.body':
     'マイクを接続するか、一覧を表示できるよう FluidEQ Engine を更新してください。',
@@ -243,10 +263,6 @@ export default {
   'mic.cleaner.description':
     '話している間、声の下からキーボード、ファン、部屋の音を取り除きます。',
   'mic.cleaner.strength': '強さ',
-  'mic.cleaner.neverCuts': '途切れません',
-  'mic.cleaner.neverCutsHint':
-    'モデルが遅れても、声は直前にクリーニングされた瞬間のレベルを保ち、クリックなしでつながります。生の部屋の音になることはありません。そうした瞬間はここで数えます。',
-  'mic.cleaner.lateMinute': '直近 1 分間に遅れたブロック',
   'mic.gate.live.title': 'ゲートに対するあなたの声',
   'mic.gate.live.hint':
     '線を上下にドラッグします。灰色の区間はゲートが部屋の音を下げていたところです。',

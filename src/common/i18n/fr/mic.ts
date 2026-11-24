@@ -208,6 +208,26 @@ export default {
   'mic.profile.megaphone': 'Mégaphone',
   'mic.profile.megaphone.hint':
     'Un médium étroit et poussé, et une courte claque de pièce',
+  'mic.stage.own': 'Effets propres du micro',
+  'mic.own.title': 'Effets propres du micro',
+  'mic.own.description':
+    'Le traitement que le fabricant de votre micro lui applique, avant que FluidEQ entende votre voix. Retirez-le et seul FluidEQ traite votre voix ; remettez-le et tout redevient exactement comme avant.',
+  'mic.own.group.brings': 'Ce que votre micro apporte',
+  'mic.own.group.taken': 'Retirés',
+  'mic.own.group.how': 'Ce qui change',
+  'mic.own.how':
+    'Windows demande l’autorisation à chaque fois, et son son s’interrompt un instant pendant qu’il redémarre. Toutes les applis qui utilisent ce micro entendent le changement.',
+  'mic.own.none':
+    'Ce micro n’apporte aucun effet propre : seul FluidEQ le traite.',
+  'mic.own.unknown':
+    'Mettez à jour le FluidEQ Engine pour voir les effets propres de ce micro.',
+  'mic.own.unnamed': 'Effet sans nom',
+  'mic.own.stateOn': 'Activé',
+  'mic.own.stateOff': 'Retiré',
+  'mic.own.prompt': 'Windows va demander l’autorisation.',
+  'mic.own.working': 'En attente de Windows…',
+  'mic.own.declined': 'Windows n’a pas donné l’autorisation, rien n’a changé.',
+  'mic.own.failed': 'Impossible de le changer sur ce micro.',
   'mic.empty.title': 'Aucun microphone trouvé',
   'mic.empty.body':
     'Branchez un microphone, ou mettez à jour le FluidEQ Engine pour qu’il puisse les lister.',
@@ -256,10 +276,6 @@ export default {
   'mic.cleaner.description':
     'Retire clavier, ventilateurs et pièce sous votre voix pendant que vous parlez.',
   'mic.cleaner.strength': 'Intensité',
-  'mic.cleaner.neverCuts': 'Ne coupe jamais',
-  'mic.cleaner.neverCutsHint':
-    'Si le modèle est en retard, la voix garde le niveau du dernier instant nettoyé et se raccorde sans clic, jamais avec la pièce brute. Ces instants sont comptés ici.',
-  'mic.cleaner.lateMinute': 'blocs en retard dans la dernière minute',
   'mic.gate.live.title': 'Votre voix face au gate',
   'mic.gate.live.hint':
     'Faites glisser la ligne vers le haut ou le bas. Les plages grises montrent où le gate a atténué la pièce.',

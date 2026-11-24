@@ -198,6 +198,25 @@ export default {
   'mic.profile.megaphone': 'Megaphone',
   'mic.profile.megaphone.hint':
     'A narrow, pushed middle and a short slap of room',
+  'mic.stage.own': 'Mic’s own effects',
+  'mic.own.title': 'Mic’s own effects',
+  'mic.own.description':
+    'The processing your mic’s maker puts on it, before FluidEQ hears your voice. Take it off and only FluidEQ processes your voice; put it back and it is exactly as it was.',
+  'mic.own.group.brings': 'What your mic brings',
+  'mic.own.group.taken': 'Taken off',
+  'mic.own.group.how': 'How it changes',
+  'mic.own.how':
+    'Windows asks for permission each time, and its sound stops for a moment while it restarts. Every app that uses this mic hears the change.',
+  'mic.own.none':
+    'This mic brings no effects of its own: only FluidEQ processes it.',
+  'mic.own.unknown': 'Update the FluidEQ Engine to see this mic’s own effects.',
+  'mic.own.unnamed': 'Unnamed effect',
+  'mic.own.stateOn': 'On',
+  'mic.own.stateOff': 'Off',
+  'mic.own.prompt': 'Windows will ask for permission.',
+  'mic.own.working': 'Waiting for Windows…',
+  'mic.own.declined': 'Windows did not give permission, so nothing changed.',
+  'mic.own.failed': 'It could not be changed on this mic.',
   'mic.empty.title': 'No microphone found',
   'mic.empty.body':
     'Plug a microphone in, or update the FluidEQ Engine so it can list them.',
@@ -246,10 +265,6 @@ export default {
   'mic.cleaner.description':
     'Takes keyboards, fans and the room out from under your voice, as you speak.',
   'mic.cleaner.strength': 'Strength',
-  'mic.cleaner.neverCuts': 'Never cuts',
-  'mic.cleaner.neverCutsHint':
-    'If the model is ever late, the voice keeps the level of the last cleaned moment and is joined without a click, never the raw room. Late moments are counted here.',
-  'mic.cleaner.lateMinute': 'late blocks in the last minute',
   'mic.gate.live.title': 'Your voice against the gate',
   'mic.gate.live.hint':
     'Drag the line up or down. The grey stretches are where the gate held the room down.',

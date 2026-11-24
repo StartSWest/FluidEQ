@@ -33,66 +33,6 @@ $mic-taken: #e86a34;
   flex: 1 1 220px;
 }
 
-// A row, over the band's own column (`.dsp-band` stacks its children): left
-// a column, the text's 300px basis became 300px of height and pushed the
-// count out of the card.
-.mic-cleaner__late {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 24px;
-}
-
-.mic-cleaner__late-text {
-  min-width: 0;
-  flex: 1 1 300px;
-}
-
-.mic-cleaner__late-figures {
-  display: grid;
-  min-width: 200px;
-  flex: 0 1 260px;
-  gap: 5px;
-}
-
-.mic-cleaner__late-count {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin: 0;
-  color: $text-primary;
-  font-size: 18px;
-  font-weight: $weight-semibold;
-}
-
-.mic-cleaner__late-unit {
-  color: $text-muted;
-  font-size: $studio-text-label;
-  font-weight: $weight-regular;
-}
-
-// A minute, a bar a second: low and quiet when nothing was late, tall and in
-// the caution ink for a second that had a late block.
-.mic-cleaner__strip {
-  display: flex;
-  height: 14px;
-  align-items: flex-end;
-  gap: 1px;
-
-  > span {
-    height: 2px;
-    flex: 1 1 0;
-    border-radius: 1px;
-    background: color-mix(in srgb, $text-primary 18%, transparent);
-
-    &.is-late {
-      height: 100%;
-      background: $ink-caution;
-    }
-  }
-}
-
 // *** The live pictures ****************************************************
 
 // One per card, above its dials and the card's whole width: a key in the
@@ -266,4 +206,69 @@ $mic-taken: #e86a34;
 // A key's entry kept in its place while what it names is off, unseen.
 .mic-live-picture__key > .is-hidden {
   visibility: hidden;
+}
+
+// *** The mic's own effects ***********************************************
+
+// Each effect a row: its name, its class id faint beside it, its state at
+// the end. Off, the names are struck through in the quiet ink: taken off,
+// kept on record.
+.mic-own__list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mic-own__effect {
+  display: grid;
+  align-items: baseline;
+  gap: 4px 12px;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto;
+}
+
+.mic-own__name {
+  color: $text-primary;
+  font-weight: $weight-semibold;
+}
+
+.mic-own__id {
+  overflow: hidden;
+  color: $text-faint;
+  font-family: $font-mono;
+  font-size: $studio-text-label;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mic-own__state {
+  color: var(--active);
+  font-size: $studio-text-label;
+
+  .mic-own__list.is-off & {
+    color: $text-muted;
+  }
+}
+
+.mic-own__list.is-off .mic-own__name {
+  color: $text-muted;
+  text-decoration: line-through;
+}
+
+// One line, always there, so the card never moves around it.
+.mic-own__press {
+  min-height: 1.4em;
+  margin: 0;
+  color: $text-muted;
+  font-size: $studio-text-label;
+
+  &.is-working {
+    color: $text-primary;
+  }
+
+  &.is-declined,
+  &.is-failed {
+    color: $ink-caution;
+  }
 }

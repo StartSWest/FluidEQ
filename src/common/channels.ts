@@ -272,6 +272,11 @@ enum ChannelEnum {
   // place of Equalizer APO's Device Selector.
   ATTACH_FLUID_ENGINE = 'attachFluidEngine',
   DETACH_FLUID_ENGINE = 'detachFluidEngine',
+  // A microphone's own effects (its maker's processing) taken off so only
+  // the FluidEQ Engine processes it, and put back exactly
+  // (`own_effects.h` in the setup helper). One Windows prompt each way.
+  SUSPEND_MIC_OWN_EFFECTS = 'suspendMicOwnEffects',
+  RESTORE_MIC_OWN_EFFECTS = 'restoreMicOwnEffects',
   // Each microphone's own sound (`micSound.ts`): read them all, set one
   // mic's (saved, and written to that mic's rack file under the FluidEQ
   // Engine), and remember which mic the Mic tab shows. A mic goes on and off

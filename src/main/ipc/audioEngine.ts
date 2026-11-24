@@ -696,6 +696,27 @@ export const registerAudioEngineIpc = ({
     );
   });
 
+  // Pressed on the Mic tab, never run on its own: each is somebody else's
+  // processing taken off or put back, and a Windows prompt. The helper
+  // refuses an endpoint that is not a microphone.
+  onWindowMessage(ChannelEnum.SUSPEND_MIC_OWN_EFFECTS, async (event, arg) => {
+    await endpointCommand(
+      event,
+      ChannelEnum.SUSPEND_MIC_OWN_EFFECTS,
+      'suspend-mic-effects',
+      arg,
+    );
+  });
+
+  onWindowMessage(ChannelEnum.RESTORE_MIC_OWN_EFFECTS, async (event, arg) => {
+    await endpointCommand(
+      event,
+      ChannelEnum.RESTORE_MIC_OWN_EFFECTS,
+      'restore-mic-effects',
+      arg,
+    );
+  });
+
   /**
    * The rack, system-wide — and the three ways it can decline are named
    * rather than collapsed into one `false`.

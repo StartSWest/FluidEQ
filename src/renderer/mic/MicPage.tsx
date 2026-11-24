@@ -52,6 +52,8 @@ import MicLiveBar from './MicLiveBar';
 import useMicEffects from './useMicEffects';
 import useMicLevels, { TMicListen } from './useMicLevels';
 import useMicSound from './useMicSound';
+import MicOwnEffectsCard from './MicOwnEffectsCard';
+import useMicOwnEffects from './useMicOwnEffects';
 import useWindowSeesMic from './useWindowSeesMic';
 
 /**
@@ -131,6 +133,7 @@ const MicPage = () => {
   const { status } = useAudioEngineStatus();
   const sound = useMicSound();
   const windowSeesMic = useWindowSeesMic();
+  const own = useMicOwnEffects(sound.mic);
   const { mic, microphones, entry } = sound;
   const [stage, setStage] = useState<TMicStage>('lowCut');
   const [setup, setSetup] = useState<TSetup>('idle');
@@ -248,6 +251,10 @@ const MicPage = () => {
     maximizer: delayOf('maximizer'),
   };
   const toggleStage = (id: TMicStage) => {
+    if (id === 'own') {
+      own.switchTo(!own.state.on);
+      return;
+    }
     if (id === 'lowCut') {
       sound.switchLowCut(!micStageOn(settings, 'lowCut'));
       return;
@@ -299,6 +306,8 @@ const MicPage = () => {
           delays={delays}
           latest={levels.latest}
           live={live}
+          ownEffects={{ on: own.state.on, available: own.available }}
+          onOwnToggle={() => own.switchTo(!own.state.on)}
         />
       </StudioRail>
       <div className="mic-page__main">
@@ -434,19 +443,30 @@ const MicPage = () => {
         )}
 
         {/* The borrowed DSP cards offer the Mic tab's own presets. */}
-        <DspPresetScopeProvider scope="mic">
-          <MicStage
-            stage={stage}
-            settings={settings}
-            isSystemWide={isFluid}
-            lowCutKept={sound.entry.lowCutKept}
-            onPatch={sound.patch}
-            onCommit={sound.commit}
-            onSwitchLowCut={sound.switchLowCut}
-            latest={levels.latest}
-            live={live}
-          />
-        </DspPresetScopeProvider>
+        {stage === 'own' && (
+          <div className="mic-stage dsp-stage">
+            <MicOwnEffectsCard
+              mic={mic}
+              press={own.press}
+              onSwitch={own.switchTo}
+            />
+          </div>
+        )}
+        {stage !== 'own' && (
+          <DspPresetScopeProvider scope="mic">
+            <MicStage
+              stage={stage}
+              settings={settings}
+              isSystemWide={isFluid}
+              lowCutKept={sound.entry.lowCutKept}
+              onPatch={sound.patch}
+              onCommit={sound.commit}
+              onSwitchLowCut={sound.switchLowCut}
+              latest={levels.latest}
+              live={live}
+            />
+          </DspPresetScopeProvider>
+        )}
       </div>
     </div>
   );

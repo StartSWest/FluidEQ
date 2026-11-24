@@ -81,34 +81,37 @@ void remove_backup(const std::wstring& guid) {
 
 namespace {
 
-std::wstring apo_off_path(const std::wstring& guid) {
+/**
+ * One store of "what an endpoint was before a switch took something off
+ * it": one file per endpoint under `directory`, written once. Equalizer
+ * APO's switch-off and a microphone's own effects keep one each.
+ */
+std::wstring record_path(const std::wstring& directory,
+                         const std::wstring& guid) {
   // Same reasoning as `backup_path`: the guid check is what stops a name
   // becoming a path.
-  if (!is_valid_endpoint_guid(guid)) {
+  if (!is_valid_endpoint_guid(guid) || directory.empty()) {
     return std::wstring();
   }
-  const std::wstring directory = apo_off_dir();
-  return directory.empty() ? directory : directory + L"\\" + guid + L".json";
+  return directory + L"\\" + guid + L".json";
 }
 
-}  // namespace
-
-bool save_apo_off_once(const std::wstring& guid, const FxValues& values,
-                       std::wstring& error) {
-  const std::wstring path = apo_off_path(guid);
+bool save_record_once(const std::wstring& directory, const std::wstring& guid,
+                      const FxValues& values, const wchar_t* what,
+                      std::wstring& error) {
+  const std::wstring path = record_path(directory, guid);
   if (path.empty()) {
-    error = L"no location to record Equalizer APO's state for " + guid;
+    error = std::wstring(L"no location to record ") + what + L" for " + guid;
     return false;
   }
-  // Once, for the reason the backup above is written once: switching to the
-  // FluidEQ Engine twice must not record the second state, which is one with
-  // Equalizer APO already taken out of it.
+  // Once: a second switch-off must not record the second state, which is
+  // one with the first's removal already in it.
   if (path_exists(path)) {
     return true;
   }
-  if (!ensure_directory(apo_off_dir())) {
+  if (!ensure_directory(directory)) {
     const unsigned long why = GetLastError();
-    error = L"could not create " + apo_off_dir() + L": " + describe_error(why);
+    error = L"could not create " + directory + L": " + describe_error(why);
     return false;
   }
   if (!write_utf8(path, to_json(values))) {
@@ -119,8 +122,9 @@ bool save_apo_off_once(const std::wstring& guid, const FxValues& values,
   return true;
 }
 
-std::optional<FxValues> load_apo_off(const std::wstring& guid) {
-  const std::wstring path = apo_off_path(guid);
+std::optional<FxValues> load_record(const std::wstring& directory,
+                                    const std::wstring& guid) {
+  const std::wstring path = record_path(directory, guid);
   if (path.empty()) {
     return std::nullopt;
   }
@@ -128,16 +132,15 @@ std::optional<FxValues> load_apo_off(const std::wstring& guid) {
   return text.has_value() ? from_json(*text) : std::nullopt;
 }
 
-void remove_apo_off(const std::wstring& guid) {
-  const std::wstring path = apo_off_path(guid);
+void remove_record(const std::wstring& directory, const std::wstring& guid) {
+  const std::wstring path = record_path(directory, guid);
   if (!path.empty()) {
     DeleteFileW(path.c_str());
   }
 }
 
-std::vector<std::wstring> apo_off_endpoints() {
+std::vector<std::wstring> recorded_endpoints(const std::wstring& directory) {
   std::vector<std::wstring> guids;
-  const std::wstring directory = apo_off_dir();
   if (directory.empty()) {
     return guids;
   }
@@ -152,6 +155,44 @@ std::vector<std::wstring> apo_off_endpoints() {
     }
   }
   return guids;
+}
+
+}  // namespace
+
+bool save_apo_off_once(const std::wstring& guid, const FxValues& values,
+                       std::wstring& error) {
+  return save_record_once(apo_off_dir(), guid, values,
+                          L"Equalizer APO's state", error);
+}
+
+std::optional<FxValues> load_apo_off(const std::wstring& guid) {
+  return load_record(apo_off_dir(), guid);
+}
+
+void remove_apo_off(const std::wstring& guid) {
+  remove_record(apo_off_dir(), guid);
+}
+
+std::vector<std::wstring> apo_off_endpoints() {
+  return recorded_endpoints(apo_off_dir());
+}
+
+bool save_mic_own_off_once(const std::wstring& guid, const FxValues& values,
+                           std::wstring& error) {
+  return save_record_once(mic_own_off_dir(), guid, values,
+                          L"the microphone's own effects", error);
+}
+
+std::optional<FxValues> load_mic_own_off(const std::wstring& guid) {
+  return load_record(mic_own_off_dir(), guid);
+}
+
+void remove_mic_own_off(const std::wstring& guid) {
+  remove_record(mic_own_off_dir(), guid);
+}
+
+std::vector<std::wstring> mic_own_off_endpoints() {
+  return recorded_endpoints(mic_own_off_dir());
 }
 
 }  // namespace fluideq_engine::setup

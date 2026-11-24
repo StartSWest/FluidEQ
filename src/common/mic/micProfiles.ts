@@ -29,8 +29,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *   pressing with nothing giving the level back, and a gate in every one.
  * - Only Noisy room carries a gate, an expander of 12 dB.
  *
- * The values are starting points from broadcast and podcast practice, to be
- * measured on recorded voices before they are called finished.
+ * Measured through the engine's own chain on a recorded voice at -26 and
+ * -42 dBFS over a -62 dB room, at all eight rates (2026-11-24): spoken
+ * profiles come out at -14.5 to -18 LUFS on a two-channel meter (Streaming,
+ * Broadcast and Podcast near -16, calls and headsets near -17.5, Chat the
+ * loudest, to stand over a game), singing at -18.5 with its peaks at -3 dBTP,
+ * the S never more than 1.5 dB brighter than it came in except where an
+ * effect is the point, and no gate cutting into a word.
  */
 
 import { DSP_DEFAULTS } from '../dsp/chainDefaults';
@@ -124,7 +129,7 @@ export const MIC_PROFILE_BY_ID = {
     reverb: null,
     deEsser: 'micPodcast',
     dynamics: 'micGentle',
-    limiter: 'micCalls',
+    limiter: 'micStream',
     eq: [
       ['PK', 200, -1.5, 1],
       ['PK', 4000, 2, 1],
@@ -164,9 +169,9 @@ export const MIC_PROFILE_BY_ID = {
     lowCut: 'speech',
     cleaner: 'light',
     gate: null,
-    level: 'podcast',
+    level: 'stream',
     reverb: null,
-    deEsser: 'micBright',
+    deEsser: 'micPodcast',
     dynamics: 'micBroadcast',
     limiter: 'micStream',
     eq: [
@@ -269,7 +274,7 @@ export const MIC_PROFILE_BY_ID = {
     reverb: null,
     deEsser: null,
     dynamics: 'micCallouts',
-    limiter: 'micCalls',
+    limiter: 'micStream',
     eq: [
       ['HPQ', 300, 0, 0.71],
       ['PK', 1500, 4, 0.9],
@@ -282,7 +287,7 @@ export const MIC_PROFILE_BY_ID = {
     lowCut: 'rumble',
     cleaner: 'studio',
     gate: null,
-    level: 'calls',
+    level: 'stream',
     reverb: null,
     deEsser: null,
     dynamics: 'micBroadcast',

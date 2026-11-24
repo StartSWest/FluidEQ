@@ -1077,8 +1077,8 @@ Everything worth knowing about them is available through commands:
   takes ownership of `%ProgramData%\FluidEQ` and `engine\` (the app creates
   them unelevated when it first asks for the config folder, and an owner can
   rewrite any permission), then: Users read on the root, modify on
-  `config\`, append-only on `setup.log`; `backup\`, `apo-off\` and `slots\`
-  read-only to them, because a deleted record left a detach or an uninstall
+  `config\`, append-only on `setup.log`; `backup\`, `apo-off\`,
+  `mic-own-off\` and `slots\` read-only to them, because a deleted record left a detach or an uninstall
   nothing to restore somebody's effects from; LOCAL SERVICE modify on the
   root by name, for the statuses and `engine.log` (`acl.h`). Anything the app
   writes outside `config\` fails for a standard user on an installed engine.
@@ -1162,6 +1162,30 @@ Out-String` (or any other capture) is what actually waits for it and shows
   leaves the switch made and the other engine registered, which is where every
   version before this left it. The APO class ids are written down twice — in
   `fx_list.cpp` and in `windows-audio-devices.ps1` — and must agree.
+- **A microphone's own effects come off only on the Mic tab's switch, and
+  go back byte for byte.** A headset's or a laptop's driver registers its
+  own voice processing on the capture endpoint (Razer's, Realtek's), and in
+  front of FluidEQ's rack it cleans and levels a voice twice. The rail's
+  first stage lists them and its switch runs `suspend-mic-effects <guid>`
+  or `restore-mic-effects <guid>` with `--restart-audio`: one Windows prompt
+  each way, never on its own. `plan_suspend_others` (`own_effects.cpp`)
+  mirrors the singles and the legacy pair forward into the lists, as an
+  attach does, and then leaves FluidEQ's class id and nothing else in them;
+  the single values and the legacy pair are never written, which
+  `write_fx_values` refuses anyway, and Windows does not read them while a
+  list exists. What the endpoint held is recorded first under
+  `<engine root>\mic-own-off\<guid>.json`, so a run that dies between the
+  record and the write still has it to put back. `plan_restore_own` writes
+  that record back exactly while the engine is in the slot it was in, and
+  goes through `plan_restore_apo` (the record, with our attach re-applied)
+  when it has moved. A detach puts a mic's effects back before taking the
+  engine off, and `uninstall` restores every record, folded into its
+  "somebody else's effects" verdict. What the card shows is the helper's
+  own reading — `runs` (Windows' reading rules: per slot, the list, else
+  the single; the legacy pair only with no modern values), `ownEffectsOff`
+  and `ownEffectsTaken`, each named by its registered class name — never a
+  guess from the app's side. Only an endpoint `list_capture_endpoints`
+  finds is accepted: an output's effects are its own business.
 - **Installed, attached, and never once created by Windows is its own state,
   and the app repairs it.** Two machine-wide things decide whether
   `audiodg.exe` will load this effect at all: `DisableProtectedAudioDG`, and

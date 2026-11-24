@@ -44,6 +44,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <objbase.h>
 #include <winver.h>
 
+#include <algorithm>
 #include <cstdio>
 #include <optional>
 #include <string>
@@ -60,6 +61,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fx_list.h"
 #include "fx_modes.h"
 #include "json.h"
+#include "own_effects.h"
 #include "registry.h"
 #include "retry.h"
 #include "services.h"
@@ -109,6 +111,9 @@ using fluideq_engine::setup::EndpointResult;
 using fluideq_engine::setup::describe_slots;
 using fluideq_engine::setup::held_slots;
 using fluideq_engine::setup::load_backup;
+using fluideq_engine::setup::effects_run;
+using fluideq_engine::setup::equal_ci;
+using fluideq_engine::setup::load_mic_own_off;
 using fluideq_engine::setup::mode_missing;
 using fluideq_engine::setup::slot_from_name;
 using fluideq_engine::setup::remembered_slots;
@@ -126,6 +131,8 @@ const char kUsage[] =
     "  uninstall [--purge]\n"
     "  suspend-apo [--restart-audio]\n"
     "  restore-apo [--restart-audio]\n"
+    "  suspend-mic-effects <microphone-id>... [--restart-audio]\n"
+    "  restore-mic-effects <microphone-id>... [--restart-audio]\n"
     "  restart-audio\n"
     "  status\n"
     "  settle\n"
@@ -157,7 +164,9 @@ bool parse(int argc, wchar_t** argv, Options& options) {
   }
   options.command = argv[1];
   const bool takes_guids =
-      options.command == L"attach" || options.command == L"detach";
+      options.command == L"attach" || options.command == L"detach" ||
+      options.command == L"suspend-mic-effects" ||
+      options.command == L"restore-mic-effects";
   if (options.command != L"install" && !takes_guids &&
       options.command != L"uninstall" &&
       options.command != L"suspend-apo" && options.command != L"restore-apo" &&
@@ -373,6 +382,38 @@ std::wstring endpoint_json(const Endpoint& endpoint) {
   // reported "not attached", and this says what it could see.
   out += L',';
   out += describe_slots(values, registered_class_name);
+  // What Windows actually runs here (`effects_run`): the list above also
+  // names a vendor's single value that a list now shadows, which no longer
+  // runs. And whether a microphone's own effects were taken off, with what
+  // the switch took, read from its record — the card lists those.
+  const auto named = [](const std::vector<std::wstring>& clsids) {
+    std::wstring list = L"[";
+    for (size_t at = 0; at < clsids.size(); ++at) {
+      if (at != 0) {
+        list += L',';
+      }
+      list += L"{\"clsid\":\"" + json_escape(clsids[at]) + L"\",\"name\":\"" +
+              json_escape(registered_class_name(clsids[at])) + L"\"}";
+    }
+    return list + L"]";
+  };
+  const std::vector<std::wstring> runs = effects_run(values);
+  out += L",\"runs\":" + named(runs);
+  const std::optional<FxValues> own_off = load_mic_own_off(endpoint.guid);
+  out += L",\"ownEffectsOff\":";
+  out += own_off.has_value() ? L"true" : L"false";
+  std::vector<std::wstring> taken;
+  if (own_off.has_value()) {
+    for (const std::wstring& clsid : effects_run(*own_off)) {
+      const bool still = std::any_of(
+          runs.begin(), runs.end(),
+          [&clsid](const std::wstring& each) { return equal_ci(each, clsid); });
+      if (!still) {
+        taken.push_back(clsid);
+      }
+    }
+  }
+  out += L",\"ownEffectsTaken\":" + named(taken);
   out += L'}';
   return out;
 }

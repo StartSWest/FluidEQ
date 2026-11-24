@@ -27,9 +27,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *   silence except Tight, and holds through a syllable's gap (120-300 ms),
  *   because the cleaner in front already takes the room and a gate that
  *   closes hard between words is what was heard as "gated" (2026-11-24).
- * - Voice level: targets between -20 and -16 dBFS, where a voice sits under
- *   a limiter at -1 to -3 dBTP with room for its peaks; the most lift says
- *   how quiet a voice it will still bring up.
+ * - Voice level: targets between -14.5 and -12 dBFS. The level it holds is
+ *   a syllable's (10 ms, let go over 300 ms), which reads 3.6 dB over the
+ *   loudness of the whole: -13 measured -16.6 LUFS through Streaming's chain
+ *   with no compressor or limiter, and -18, the first default, put every
+ *   profile at -21 to -25 LUFS, under the voice it was given. The most lift
+ *   says how quiet a voice it will still bring up.
+ * - Reverb: each one heard. Measured in the gaps between words (the
+ *   quietest third of the talking), Vocal plate and Intimate add 5.5 to
+ *   6 dB, a plate 9.5, the hall 11; Streaming air 2.5, ducked under the
+ *   words. Air at -22 dB and 0.5 s and Intimate at -18 dB and 0.6 s added
+ *   under 0.6 dB, which nobody hears.
  */
 
 import type { IReverbSettings } from '../dsp/reverbStage';
@@ -176,34 +184,34 @@ export const MIC_STAGE_PRESETS: {
     {
       id: 'gentle',
       labelKey: 'mic.preset.level.gentle',
-      values: { levelTargetDb: -20, levelMaxLiftDb: 6 },
+      values: { levelTargetDb: -14, levelMaxLiftDb: 12 },
     },
     {
       id: 'calls',
       labelKey: 'mic.preset.level.calls',
-      values: { levelTargetDb: -20, levelMaxLiftDb: 12 },
+      values: { levelTargetDb: -14.5, levelMaxLiftDb: 18 },
     },
     {
       id: 'podcast',
       labelKey: 'mic.preset.level.podcast',
-      values: { levelTargetDb: -18, levelMaxLiftDb: 15 },
+      values: { levelTargetDb: -12, levelMaxLiftDb: 15 },
     },
     // The stage's own default (`VOICE_DEFAULTS`), so a fresh mic reads as
     // a preset and not as Custom.
     {
       id: 'everyday',
       labelKey: 'mic.preset.level.everyday',
-      values: { levelTargetDb: -18, levelMaxLiftDb: 18 },
+      values: { levelTargetDb: -14, levelMaxLiftDb: 18 },
     },
     {
       id: 'stream',
       labelKey: 'mic.preset.level.stream',
-      values: { levelTargetDb: -16, levelMaxLiftDb: 18 },
+      values: { levelTargetDb: -13, levelMaxLiftDb: 18 },
     },
     {
       id: 'soft',
       labelKey: 'mic.preset.level.soft',
-      values: { levelTargetDb: -18, levelMaxLiftDb: 24 },
+      values: { levelTargetDb: -14, levelMaxLiftDb: 24 },
     },
   ],
   // Singing wants a long, bright tail it can sit in; a voice that talks
@@ -231,7 +239,7 @@ export const MIC_STAGE_PRESETS: {
       labelKey: 'mic.preset.reverb.vocalPlate',
       values: {
         type: 'vocalPlate',
-        mixDb: -18,
+        mixDb: -16,
         decayS: 1.2,
         predelayMs: 20,
         toneHz: 7000,
@@ -246,8 +254,8 @@ export const MIC_STAGE_PRESETS: {
       labelKey: 'mic.preset.reverb.intimate',
       values: {
         type: 'room',
-        mixDb: -18,
-        decayS: 0.6,
+        mixDb: -12,
+        decayS: 0.8,
         predelayMs: 10,
         toneHz: 8000,
         lowCutHz: 200,
@@ -291,14 +299,14 @@ export const MIC_STAGE_PRESETS: {
       labelKey: 'mic.preset.reverb.streamAir',
       values: {
         type: 'room',
-        mixDb: -22,
-        decayS: 0.5,
+        mixDb: -14,
+        decayS: 1,
         predelayMs: 0,
         toneHz: 8000,
         lowCutHz: 300,
         width: 0.6,
         duck: true,
-        duckDb: 10,
+        duckDb: 8,
       },
     },
   ],

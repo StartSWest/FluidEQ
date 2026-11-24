@@ -199,6 +199,25 @@ export default {
   'mic.profile.whisper.hint': '앞으로 끌어낸 속삭임, 위에 공기감',
   'mic.profile.megaphone': '메가폰',
   'mic.profile.megaphone.hint': '좁고 밀어낸 중역과 짧은 방 울림',
+  'mic.stage.own': '마이크 자체 효과',
+  'mic.own.title': '마이크 자체 효과',
+  'mic.own.description':
+    'FluidEQ가 목소리를 듣기 전에 마이크 제조사가 거는 처리입니다. 끄면 FluidEQ만 목소리를 처리하고, 다시 켜면 그대로 돌아옵니다.',
+  'mic.own.group.brings': '마이크에 들어 있는 것',
+  'mic.own.group.taken': '끈 효과',
+  'mic.own.group.how': '바뀌는 점',
+  'mic.own.how':
+    'Windows가 매번 권한을 묻고, 다시 시작하는 동안 소리가 잠깐 멈춥니다. 이 마이크를 쓰는 모든 앱에 변경이 적용됩니다.',
+  'mic.own.none': '이 마이크에는 자체 효과가 없습니다. FluidEQ만 처리합니다.',
+  'mic.own.unknown':
+    '이 마이크의 자체 효과를 보려면 FluidEQ Engine을 업데이트하세요.',
+  'mic.own.unnamed': '이름 없는 효과',
+  'mic.own.stateOn': '켜짐',
+  'mic.own.stateOff': '꺼짐',
+  'mic.own.prompt': 'Windows가 권한을 묻습니다.',
+  'mic.own.working': 'Windows를 기다리는 중…',
+  'mic.own.declined': 'Windows가 권한을 주지 않아 아무것도 바뀌지 않았습니다.',
+  'mic.own.failed': '이 마이크에서는 바꿀 수 없었습니다.',
   'mic.empty.title': '마이크를 찾을 수 없음',
   'mic.empty.body':
     '마이크를 연결하거나, 목록을 불러올 수 있도록 FluidEQ Engine을 업데이트하세요.',
@@ -246,10 +265,6 @@ export default {
   'mic.cleaner.description':
     '말하는 동안 목소리 밑의 키보드, 팬, 방 소리를 없앱니다.',
   'mic.cleaner.strength': '강도',
-  'mic.cleaner.neverCuts': '끊기지 않음',
-  'mic.cleaner.neverCutsHint':
-    '모델이 늦어지면 목소리는 마지막으로 정리된 순간의 레벨을 유지하고 클릭 없이 이어집니다. 날것의 방 소리가 되지 않습니다. 그런 순간은 여기서 셉니다.',
-  'mic.cleaner.lateMinute': '최근 1분 동안 늦은 블록',
   'mic.gate.live.title': '게이트와 내 목소리',
   'mic.gate.live.hint':
     '선을 위아래로 끌어 보세요. 회색 구간은 게이트가 방 소리를 낮춘 곳입니다.',

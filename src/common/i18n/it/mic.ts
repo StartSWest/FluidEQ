@@ -206,6 +206,27 @@ export default {
   'mic.profile.megaphone': 'Megafono',
   'mic.profile.megaphone.hint':
     'Medi stretti e spinti e un breve schiaffo di stanza',
+  'mic.stage.own': 'Effetti propri del microfono',
+  'mic.own.title': 'Effetti propri del microfono',
+  'mic.own.description':
+    'L’elaborazione che il produttore del tuo microfono applica prima che FluidEQ senta la tua voce. Toglila e solo FluidEQ elabora la tua voce; rimettila e torna esattamente com’era.',
+  'mic.own.group.brings': 'Cosa porta il tuo microfono',
+  'mic.own.group.taken': 'Tolti',
+  'mic.own.group.how': 'Cosa cambia',
+  'mic.own.how':
+    'Windows chiede il permesso ogni volta e il suo audio si interrompe per un attimo mentre si riavvia. Ogni app che usa questo microfono sente il cambiamento.',
+  'mic.own.none':
+    'Questo microfono non porta effetti propri: solo FluidEQ lo elabora.',
+  'mic.own.unknown':
+    'Aggiorna il FluidEQ Engine per vedere gli effetti propri di questo microfono.',
+  'mic.own.unnamed': 'Effetto senza nome',
+  'mic.own.stateOn': 'Attivo',
+  'mic.own.stateOff': 'Tolto',
+  'mic.own.prompt': 'Windows chiederà il permesso.',
+  'mic.own.working': 'In attesa di Windows…',
+  'mic.own.declined':
+    'Windows non ha dato il permesso, quindi non è cambiato nulla.',
+  'mic.own.failed': 'Non è stato possibile cambiarlo su questo microfono.',
   'mic.empty.title': 'Nessun microfono trovato',
   'mic.empty.body':
     'Collega un microfono, oppure aggiorna il FluidEQ Engine perché possa elencarli.',
@@ -254,10 +275,6 @@ export default {
   'mic.cleaner.description':
     'Toglie tastiera, ventole e stanza da sotto la tua voce mentre parli.',
   'mic.cleaner.strength': 'Intensità',
-  'mic.cleaner.neverCuts': 'Non taglia mai',
-  'mic.cleaner.neverCutsHint':
-    'Se il modello è in ritardo, la voce mantiene il livello dell’ultimo istante pulito e si unisce senza clic, mai con la stanza grezza. Questi istanti sono contati qui.',
-  'mic.cleaner.lateMinute': 'blocchi in ritardo nell’ultimo minuto',
   'mic.gate.live.title': 'La tua voce e il gate',
   'mic.gate.live.hint':
     'Trascina la linea in alto o in basso. I tratti grigi sono dove il gate ha abbassato la stanza.',

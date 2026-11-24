@@ -53,6 +53,20 @@ bool ensure_engine_tree(std::wstring& error);
 /** Runs one elevated command. COM is already initialised on this thread. */
 void run_command(const Options& options, CommandResult& result);
 
+/**
+ * A microphone's own effects off, recorded first, and back from the record
+ * (`own_effects_commands.cpp`). Each refuses an endpoint that is not a
+ * microphone; restoring one with no record is nothing to do.
+ */
+void suspend_mic_own(const std::vector<std::wstring>& guids,
+                     CommandResult& result);
+void restore_mic_own(const std::vector<std::wstring>& guids,
+                     CommandResult& result);
+/** Every microphone with a record, for the uninstall. */
+void restore_mic_own_all(CommandResult& result);
+/** One, for the detach, which puts a mic's effects back before it leaves. */
+bool restore_mic_own_one(const std::wstring& guid, std::wstring& error);
+
 /** The result document, which is both written to disk and printed. */
 std::wstring result_json(const std::wstring& command,
                          const CommandResult& result);

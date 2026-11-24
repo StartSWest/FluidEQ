@@ -205,6 +205,26 @@ export default {
   'mic.profile.megaphone': 'Megafone',
   'mic.profile.megaphone.hint':
     'Médios estreitos e empurrados e um tapa curto de sala',
+  'mic.stage.own': 'Efeitos próprios do microfone',
+  'mic.own.title': 'Efeitos próprios do microfone',
+  'mic.own.description':
+    'O processamento que o fabricante do seu microfone aplica antes de o FluidEQ ouvir sua voz. Tire-o e só o FluidEQ processa sua voz; coloque-o de volta e fica exatamente como estava.',
+  'mic.own.group.brings': 'O que seu microfone traz',
+  'mic.own.group.taken': 'Removidos',
+  'mic.own.group.how': 'O que muda',
+  'mic.own.how':
+    'O Windows pede permissão toda vez, e o som dele para por um momento enquanto reinicia. Todo app que usa este microfone ouve a mudança.',
+  'mic.own.none':
+    'Este microfone não traz efeitos próprios: só o FluidEQ o processa.',
+  'mic.own.unknown':
+    'Atualize o FluidEQ Engine para ver os efeitos próprios deste microfone.',
+  'mic.own.unnamed': 'Efeito sem nome',
+  'mic.own.stateOn': 'Ligado',
+  'mic.own.stateOff': 'Removido',
+  'mic.own.prompt': 'O Windows vai pedir permissão.',
+  'mic.own.working': 'Aguardando o Windows…',
+  'mic.own.declined': 'O Windows não deu permissão, então nada mudou.',
+  'mic.own.failed': 'Não foi possível mudar neste microfone.',
   'mic.empty.title': 'Nenhum microfone encontrado',
   'mic.empty.body':
     'Conecte um microfone ou atualize o FluidEQ Engine para que ele consiga listá-los.',
@@ -253,10 +273,6 @@ export default {
   'mic.cleaner.description':
     'Retira teclado, ventiladores e o ambiente de baixo da sua voz enquanto você fala.',
   'mic.cleaner.strength': 'Intensidade',
-  'mic.cleaner.neverCuts': 'Nunca corta',
-  'mic.cleaner.neverCutsHint':
-    'Se o modelo se atrasar, a voz mantém o nível do último momento limpo e é unida sem clique, nunca com o ambiente cru. Esses momentos são contados aqui.',
-  'mic.cleaner.lateMinute': 'blocos atrasados no último minuto',
   'mic.gate.live.title': 'Sua voz e o gate',
   'mic.gate.live.hint':
     'Arraste a linha para cima ou para baixo. Os trechos cinza são onde o gate abaixou a sala.',

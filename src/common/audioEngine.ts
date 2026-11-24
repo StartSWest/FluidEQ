@@ -199,8 +199,24 @@ export interface IFluidEngineStatus {
 }
 
 /** A microphone as the setup helper reports it: an endpoint with a name. */
+/** One effect a microphone runs, by its class id and registered name. */
+export interface IMicEffect {
+  clsid: string;
+  /** Empty where the effect registered no name. */
+  name: string;
+}
+
 export interface IFluidEngineMicrophone extends IFluidEngineEndpoint {
   name: string;
+  /**
+   * What Windows runs on the mic, by its rules (`effects_run`): absent from
+   * a helper before the own-effects switch.
+   */
+  runs?: IMicEffect[];
+  /** Its own effects were taken off by FluidEQ, and a record keeps them. */
+  ownEffectsOff?: boolean;
+  /** What that switch took off, from the record. */
+  ownEffectsTaken?: IMicEffect[];
 }
 
 export interface IAudioEngineStatus {
