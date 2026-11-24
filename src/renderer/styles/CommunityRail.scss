@@ -421,6 +421,13 @@ it under the terms of the GNU General Public License version 3 or later.
       hsl(var(--identity-hue, 170deg) 60% 50% / 7%) 75%
     );
     box-shadow: 0 0 16px hsl(var(--identity-hue, 170deg) 60% 50% / 16%);
+
+    // No glow on a white window, where it was a coloured smudge round the
+    // card (Ivan's standing rule, 2026-11-19: "no dropshadow always clean"):
+    // the deeper wash and edge above are the step of light.
+    :root[data-window-ink='dark'] & {
+      box-shadow: none;
+    }
   }
 
   &:focus-visible {

@@ -35,6 +35,18 @@ describe('a member’s name in their own hue on a white window', () => {
     expect(light[0]).toContain('min(l, var(--ink-ceiling');
   });
 
+  // The account card's hover glow, a coloured smudge on white: none there,
+  // kept on a dark window.
+  it('lifts the account card under the pointer with no glow on white', () => {
+    const shadow = (selector: string) =>
+      rules
+        .filter((rule) => rule.selectors.includes(selector))
+        .map((rule) => rule.declarations.get('box-shadow'))
+        .filter(Boolean);
+    expect(shadow('.community__account:hover').join(' ')).toContain('16px');
+    expect(shadow(`${LIGHT} .community__account:hover`)).toEqual(['none']);
+  });
+
   it('keeps its light on a dark window', () => {
     expect(colours('.community__name--hued')).toEqual([
       'hsl(var(--identity-hue, 170deg), 80%, 80%)',
