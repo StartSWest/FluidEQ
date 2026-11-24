@@ -35,6 +35,7 @@ import {
 import type { ICoverFlowArtRequest } from './coverFlowArt';
 import {
   type IArtEntry,
+  artAnisotropy,
   artKeyOf,
   createCoverFlowArtCache,
 } from './coverFlowArtCache';
@@ -119,7 +120,7 @@ export const createCoverFlowScene = (
   const canvas = renderer.domElement;
   canvas.className = 'library-coverflow__canvas';
   host.appendChild(canvas);
-  const anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  const anisotropy = artAnisotropy(renderer.capabilities.getMaxAnisotropy());
 
   const {
     world,

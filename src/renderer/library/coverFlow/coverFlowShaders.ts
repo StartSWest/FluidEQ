@@ -28,20 +28,37 @@ export const COVER_VERTEX = /* glsl */ `
   }
 `;
 
-/** The rounded sleeve's signed distance, in the cover's own 0-1 square. */
+/**
+ * The rounded sleeve's signed distance, in the cover's own 0-1 square, and
+ * how many screen pixels inside its drawn edge a fragment lies.
+ *
+ * The fade runs over the last pixel inside the mesh — opaque one pixel in,
+ * clear at the mesh's own edge — so all of it lands on fragments the mesh
+ * actually makes: centred on the mesh's edge, its outer half was never
+ * rasterised and every turned cover's top and bottom were cut off at half
+ * strength — a staircase at the slant of the cover (Ivan, 2026-11-24:
+ * "make sure the cover art has a nice very cheap and fast antialiasing").
+ * The pixel is the distance's own screen gradient, not `fwidth`, which
+ * reads a slanted edge up to 1.4 times wider than it is and blurs it —
+ * the same two derivatives `fwidth` takes, so it costs nothing over what
+ * was there, where multisampling would multiply the whole canvas.
+ */
 const ROUNDED = /* glsl */ `
   float sleeveDistance(vec2 uv, float radius) {
     vec2 q = abs(uv - 0.5) - (0.5 - radius);
     return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - radius;
   }
+  float pixelsInside(float d) {
+    float pixel = max(length(vec2(dFdx(d), dFdy(d))), 1e-6);
+    return -d / pixel - 0.5;
+  }
 `;
 
 /**
- * A cover: rounded corners antialiased by their own distance field (the
- * canvas has no multisampling, so this is what keeps a turned edge smooth),
- * a hairline of light round the edge, a broad sheen whose place follows the
- * turn, shade and colour falling off away from the centre, and the accent
- * ring round the cover the music is coming from.
+ * A cover: rounded corners and edges antialiased by their own distance field
+ * (`pixelsInside`), a hairline of light round the edge, a broad sheen whose
+ * place follows the turn, shade and colour falling off away from the
+ * centre, and the accent ring round the cover the music is coming from.
  */
 export const COVER_FRAGMENT = /* glsl */ `
   varying vec2 vUv;
@@ -72,12 +89,10 @@ export const COVER_FRAGMENT = /* glsl */ `
     vec3 shaded = colour * mix(0.42, 1.0, facing) * uShade;
     vec3 kept = colour * mix(0.84, 1.0, facing) * mix(1.0, uShade, 0.3);
     colour = mix(shaded, kept, uLight) + vec3(band * 0.12 * facing);
-    float d = sleeveDistance(vUv, uRadius);
-    float pixel = max(fwidth(d), 1e-5);
-    float inside = -d / pixel;
+    float inside = pixelsInside(sleeveDistance(vUv, uRadius));
     colour += (1.0 - smoothstep(0.0, 1.5, inside)) * 0.10 * facing;
     colour = mix(colour, uRingColour, uRing * (1.0 - smoothstep(2.0, 3.0, inside)));
-    float alpha = (1.0 - smoothstep(-pixel, pixel, d)) * texel.a;
+    float alpha = clamp(inside + 0.5, 0.0, 1.0) * texel.a;
     if (alpha < 0.003) discard;
     gl_FragColor = vec4(colour, alpha);
     #include <colorspace_fragment>
@@ -99,10 +114,9 @@ export const REFLECTION_FRAGMENT = /* glsl */ `
   ${ROUNDED}
   void main() {
     vec4 texel = texture2D(uMap, vUv);
-    float d = sleeveDistance(vUv, uRadius);
-    float pixel = max(fwidth(d), 1e-5);
+    float edge = clamp(pixelsInside(sleeveDistance(vUv, uRadius)) + 0.5, 0.0, 1.0);
     float fade = 1.0 - smoothstep(0.0, 0.62, vUv.y);
-    float alpha = (1.0 - smoothstep(-pixel, pixel, d)) * texel.a * fade * 0.3 * uShade * uStrength * mix(1.0, 0.55, uLight);
+    float alpha = edge * texel.a * fade * 0.3 * uShade * uStrength * mix(1.0, 0.55, uLight);
     if (alpha < 0.003) discard;
     gl_FragColor = vec4(texel.rgb * 0.85, alpha);
     #include <colorspace_fragment>

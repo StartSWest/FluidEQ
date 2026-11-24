@@ -24,6 +24,18 @@ import {
   releaseCoverFlowArt,
 } from './coverFlowArt';
 
+/**
+ * The anisotropic filtering the covers' pictures get, for a card that
+ * allows `maxAnisotropy`. A side cover is turned 64 degrees and pushed
+ * back, which squeezes its picture about 2.3 times across and a little more
+ * with the perspective, so 4 taps cover it: 8 drew the same pixels as 4 on
+ * the row (measured 2026-11-24) and only asks a weak card for more reads.
+ * Without it a turned picture goes soft, because the mipmap level is chosen
+ * for the squeezed direction and the other is blurred with it.
+ */
+export const artAnisotropy = (maxAnisotropy: number): number =>
+  Math.max(1, Math.min(4, maxAnisotropy));
+
 /** Pictures decoded at once; the rest wait their turn. */
 const DECODES_AT_ONCE = 4;
 /** Covers this close to where the row comes to rest take the large picture. */
@@ -146,6 +158,11 @@ export const createCoverFlowArtCache = (options: {
       texture.flipY = false;
       texture.colorSpace = THREE.SRGBColorSpace;
       texture.anisotropy = options.anisotropy;
+      // Mipmapped, trilinear: a turned or distant cover is drawn at a
+      // fraction of its 224 or 320 pixels, and sampled without them it
+      // shimmers as the row moves. WebGL2 mipmaps those non-power-of-two
+      // sizes (a 1-pixel checkerboard at both drew as one even grey, the
+      // unmipmapped control as noise; 2026-11-24).
       texture.generateMipmaps = true;
       texture.minFilter = THREE.LinearMipmapLinearFilter;
       texture.needsUpdate = true;

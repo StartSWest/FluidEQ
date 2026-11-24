@@ -116,6 +116,18 @@ const roundedRect = (
   context.roundRect(x, y, w, h, r);
 };
 
+/** The folder's body colour on the 0-100 grid: 158 degrees, as the
+ * sleeve's CSS gradient runs. */
+const folderGradient = (
+  context: CanvasRenderingContext2D,
+  colours: ICoverFlowArtColours,
+): CanvasGradient => {
+  const gradient = context.createLinearGradient(32, 0, 68, 100);
+  gradient.addColorStop(0, colours.folderTop);
+  gradient.addColorStop(1, colours.folderBottom);
+  return gradient;
+};
+
 /**
  * The folder around a picture, at the insets `LibraryFolderArt.scss` gives
  * its sheet (26% top, 8% sides, 9% bottom), on a transparent ground. Painted
@@ -132,11 +144,7 @@ const paintFolder = (
   context.save();
   context.scale(scale, scale);
   const body = new Path2D(FOLDER_PATH);
-  // 158 degrees, as the sleeve's CSS gradient runs.
-  const gradient = context.createLinearGradient(32, 0, 68, 100);
-  gradient.addColorStop(0, colours.folderTop);
-  gradient.addColorStop(1, colours.folderBottom);
-  context.fillStyle = gradient;
+  context.fillStyle = folderGradient(context, colours);
   context.fill(body);
   context.restore();
   const x = edge * 0.08;
@@ -240,6 +248,50 @@ export const liftGlow = ([r, g, b]: [number, number, number]): [
   return [r1 + m, g1 + m, b1 + m];
 };
 
+/**
+ * A folder painted upright, turned upside down as WebGL wants it, with the
+ * folder's own colour under every clear pixel.
+ *
+ * A canvas keeps a clear pixel as black, and the graphics card filters and
+ * mipmaps the colour and the opacity apart: every sample that reached past
+ * the folder's outline mixed that black in, and drew a dark line round each
+ * folder — on a light window a grey outline over a pale folder. Under the
+ * folder's own gradient the colour at the outline is the folder's whichever
+ * texels a sample takes, so the outline fades out instead of darkening.
+ * A canvas cannot hold a colour at no opacity, so the pixels go through an
+ * `ImageData` into a bitmap made without premultiplying, which keeps them.
+ */
+const folderBitmap = async (
+  folder: HTMLCanvasElement,
+  colours: ICoverFlowArtColours,
+): Promise<ImageBitmap> => {
+  const edge = folder.width;
+  const [ground, groundContext] = canvasOf(edge);
+  groundContext.scale(edge / 100, edge / 100);
+  groundContext.fillStyle = folderGradient(groundContext, colours);
+  groundContext.fillRect(0, 0, 100, 100);
+  const folderContext = folder.getContext('2d');
+  if (!folderContext) {
+    throw new Error('A folder cover could not be read back');
+  }
+  const pixels = folderContext.getImageData(0, 0, edge, edge);
+  const under = groundContext.getImageData(0, 0, edge, edge).data;
+  const { data } = pixels;
+  for (let p = 0; p < data.length; p += 4) {
+    if (data[p + 3] === 0) {
+      data[p] = under[p];
+      data[p + 1] = under[p + 1];
+      data[p + 2] = under[p + 2];
+    }
+  }
+  ground.width = 0;
+  folder.width = 0;
+  return createImageBitmap(pixels, {
+    imageOrientation: 'flipY',
+    premultiplyAlpha: 'none',
+  });
+};
+
 /** A canvas painted upright, turned upside down as WebGL wants it. */
 const flipped = (canvas: HTMLCanvasElement): HTMLCanvasElement => {
   const [out, context] = canvasOf(canvas.width);
@@ -302,7 +354,10 @@ export const loadCoverFlowArt = async (
       paintPendingBadge(badgeContext, edge);
     }
   }
-  return { source: flipped(art), glow };
+  return {
+    source: request.isFolder ? await folderBitmap(art, colours) : flipped(art),
+    glow,
+  };
 };
 
 /** Gives back what `loadCoverFlowArt` holds. */
