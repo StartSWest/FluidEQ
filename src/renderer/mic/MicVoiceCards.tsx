@@ -18,6 +18,7 @@ import {
   VOICE_RANGES,
 } from '../../common/dsp/voiceStage';
 import { Dial, ProcessorCard } from '../dsp/DspControls';
+import MicPresetBar from './MicPresetBar';
 import { useTranslation } from '../utils/I18nContext';
 import MicGateLive from './MicGateLive';
 import MicLowCutLive from './MicLowCutLive';
@@ -71,6 +72,21 @@ export const MicLowCutCard = ({
       descriptionKey="mic.lowCut.description"
       isEnabled={on}
       onToggle={() => onSwitch(!on)}
+      toolbar={
+        <MicPresetBar
+          stage="lowCut"
+          values={shown}
+          hint={(each) =>
+            `${each.lowCutHz} Hz · ${each.proximityDb} dB · ${Math.round(
+              each.deplosive * 100,
+            )}%`
+          }
+          onPick={(values) => {
+            patch(values);
+            onCommit();
+          }}
+        />
+      }
     >
       <MicLowCutLive
         voice={voice}
@@ -162,6 +178,19 @@ export const MicGateCard = ({
         patch({ gateEnabled: !on });
         onCommit();
       }}
+      toolbar={
+        <MicPresetBar
+          stage="gate"
+          values={voice}
+          hint={(each) =>
+            `${each.gateThresholdDb} dB · ${each.gateRangeDb} dB · ${each.gateHoldMs} ms`
+          }
+          onPick={(values) => {
+            patch({ ...values, gateEnabled: true });
+            onCommit();
+          }}
+        />
+      }
     >
       <MicGateLive
         thresholdDb={voice.gateThresholdDb}

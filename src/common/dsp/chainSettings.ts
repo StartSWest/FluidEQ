@@ -31,6 +31,7 @@ import {
 import type { IDeEsserSettings } from './deEsser';
 import type { IDynamicsSettings } from './dynamicsStage';
 import type { IFootstepsSettings } from './footsteps';
+import type { IReverbSettings } from './reverbStage';
 import type { IVoiceSettings } from './voiceStage';
 
 // The rest of the rack's settings - the Master, the EQ and its bands, the
@@ -410,6 +411,8 @@ export interface IDspSettings {
    * carries one; a music rack leaves it out and its line is unchanged.
    */
   voice?: IVoiceSettings;
+  /** A microphone's Reverb (`reverbStage.ts`), after Dynamics. */
+  reverb?: IReverbSettings;
   exciter: IExciterSettings;
   bassForge: IBassForgeSettings;
   bassPunch: IBassPunchSettings;

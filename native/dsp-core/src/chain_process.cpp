@@ -102,7 +102,11 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
   // The gate after the cleaner, so its threshold is set against the floor
   // the cleaner left, not the room.
   feq_voice_process_gate(chain->voice, channels, frames);
-  // What the gate itself heard and did. The level it compares is the voice
+  // Voice level after the gate, so a room the gate holds down is never what
+  // it hears, and before the De-esser, the compressor and the limiter, which
+  // then shape a voice at its level (`voice_level.h`).
+  feq_voice_process_level(chain->voice, channels, frames);
+  // What the gate and the level heard and did. The level it compares is the voice
   // after the cleaner, so the mic's own level could not stand in for it: a
   // room the cleaner took away reads 20 dB over the threshold there and keeps
   // the gate shut here.
@@ -255,6 +259,9 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
     feq_compander_block_report(chain->compander, &dynamics);
     feq_meters_publish_dynamics(chain->meters, &dynamics);
   }
+  // The Reverb's tail joins the voice before the ceiling, so the limiter
+  // holds the two together (`reverb.h`).
+  feq_reverb_process(chain->reverb, channels, frames);
   chain_process_maximizer(chain, channels, frames);
   // What it is holding down, which the spectrum cannot show either: a limiter
   // that is working looks exactly like one that is not until you see the

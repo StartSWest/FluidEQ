@@ -332,6 +332,8 @@ struct FeqChain {
   FeqCompander* compander = nullptr;
   /** Voice, for a microphone (`voice.h`): front half and gate. */
   FeqVoice* voice = nullptr;
+  /** Reverb, for a microphone (`reverb.h`): after Dynamics, wet only. */
+  FeqReverb* reverb = nullptr;
 
   ChainEqSlot slots[FEQ_CHAIN_MAX_CHANNELS];
   ChainExciterPath paths[kExciterPaths];

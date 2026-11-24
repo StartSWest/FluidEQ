@@ -44,6 +44,9 @@ const VOICE: IVoiceSettings = {
   gateHoldMs: 180,
   gateAttackMs: 1.5,
   gateReleaseMs: 140,
+  levelEnabled: true,
+  levelTargetDb: -20,
+  levelMaxLiftDb: 15,
 };
 
 const rack = (patch: Partial<IDspSettings>): IDspSettings => ({

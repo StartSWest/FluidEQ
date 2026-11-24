@@ -13,6 +13,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <vector>
 
 #include "fluideq/biquad.h"
+#include "voice_level.h"
 
 namespace {
 
@@ -140,6 +141,9 @@ struct FeqVoice {
   std::vector<uint8_t> ahead_open;
   uint32_t ahead_frames = 0;
 
+  // Voice level (`voice_level.h`), after the gate.
+  VoiceLevel level;
+
   // The block's report, written by the audio thread only.
   float report_plosive_cut_db = 0.0f;
 };
@@ -211,6 +215,7 @@ void derive(FeqVoice& v) {
       std::max<uint32_t>(1, static_cast<uint32_t>(4.0 * kAheadLevelMs * 0.001 * rate));
   v.ahead_rise_samples =
       std::max<uint32_t>(1, static_cast<uint32_t>(kAheadRiseMs * 0.001 * rate));
+  voice_level_derive(v.level, rate);
 }
 
 }  // namespace
@@ -225,6 +230,8 @@ void feq_voice_settings_defaults(FeqVoiceSettings* settings) {
   settings->gate_hold_ms = 200.0;
   settings->gate_attack_ms = 2.0;
   settings->gate_release_ms = 150.0;
+  settings->level_target_db = -18.0;
+  settings->level_max_lift_db = 18.0;
 }
 
 FeqVoice* feq_voice_create(double sample_rate, uint32_t channels) {
@@ -275,6 +282,7 @@ void feq_voice_reset(FeqVoice* voice) {
   voice->ahead_run = 0;
   voice->ahead_settled = 0;
   voice->ahead_frames = 0;
+  voice_level_reset(voice->level);
   voice->report_plosive_cut_db = 0.0f;
 }
 
@@ -317,6 +325,9 @@ void feq_voice_transfer(FeqVoice* into, const FeqVoice* from) {
   into->ahead_floor_known = from->ahead_floor_known;
   into->ahead_run = from->ahead_run;
   into->ahead_settled = from->ahead_settled;
+  // A dial moved mid-sentence keeps the lift it had, rather than the voice
+  // dropping to its own level and climbing back.
+  voice_level_transfer(into->level, from->level);
 }
 
 void feq_voice_hear_ahead(FeqVoice* voice, const float* const* channels,
@@ -527,6 +538,15 @@ void feq_voice_block_report(const FeqVoice* voice, FeqVoiceReport* out) {
   out->gate_gain_db = static_cast<float>(voice->gate_gain_db);
   out->plosive_cut_db = voice->report_plosive_cut_db;
   out->gate_level_db = static_cast<float>(to_db(voice->gate_envelope));
+  out->level_gain_db = static_cast<float>(voice->level.gain_db);
+  out->level_heard_db = voice->level.report_level_db;
+}
+
+void feq_voice_process_level(FeqVoice* voice, float* const* channels,
+                             uint32_t frames) {
+  if (voice == nullptr || channels == nullptr) return;
+  voice_level_process(voice->level, voice->settings, channels, voice->channels,
+                      frames);
 }
 
 }  // extern "C"

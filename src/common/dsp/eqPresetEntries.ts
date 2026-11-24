@@ -1131,6 +1131,47 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     ],
     setup: { ...PROTECTED, model: 'wide' },
   },
+
+  // The Mic tab's alone (`presetScope.tsx`), on the same fifteen bands. The
+  // bottom three stay flat: under the voice is the Low cut's, whose corner
+  // a curve here would fight. Gentle on purpose: a voice heard on headphones
+  // in a call is judged on intelligibility first, and a few dB is a lot.
+  {
+    id: 'micWarm',
+    labelKey: 'mic.preset.eq.warm',
+    group: 'mic',
+    // Body under the voice, the boxiness and the top left alone.
+    gains: [0, 0, 0, 1.5, 2, 0.5, -0.5, -0.5, 0, 0.5, 1, 0.5, 0, 0.5, 0.5],
+  },
+  {
+    id: 'micClear',
+    labelKey: 'mic.preset.eq.clear',
+    group: 'mic',
+    // Mud out at 200-500 Hz, presence up at 2-5 kHz: words over everything.
+    gains: [0, 0, 0, 0, -1, -1.5, -1, 0, 1, 2, 3, 2, 1, 1.5, 1],
+  },
+  {
+    id: 'micRadio',
+    labelKey: 'mic.preset.eq.radio',
+    group: 'mic',
+    // The narrow, forward voice of a radio host on air.
+    gains: [0, 0, 0, 0, 1, -1, -2, 0, 1.5, 3, 3.5, 1, -2, -4, -6],
+  },
+  {
+    id: 'micHeadset',
+    labelKey: 'mic.preset.eq.headset',
+    group: 'mic',
+    // A boom mic close to the mouth: its boom and boxiness down, the air a
+    // small capsule loses brought back.
+    gains: [0, 0, 0, -1.5, -2, -2.5, -1, 0.5, 1, 2, 2.5, 1.5, 1, 2, 2],
+  },
+  {
+    id: 'micThin',
+    labelKey: 'mic.preset.eq.thin',
+    group: 'mic',
+    // A laptop's or a webcam's thin capsule: the chest it never had.
+    gains: [0, 0, 0, 3, 3, 1.5, 0, -1, 0, 0.5, 1, 0, -1, -1, -1],
+  },
 ];
 
 export default EQ_PRESET_ENTRIES;

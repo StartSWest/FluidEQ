@@ -10,7 +10,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * before the curve (`voiceTrailer` in `voiceWire.ts`), from lines the
  * encoder wrote itself (`voice_line_fixture.h`). Every value lands where the
  * engine looks for it, a Voice the engine does not know is refused whole,
- * and a line from before the stage has it off.
+ * and a line from before the stage has it off. The Reverb's REVB trailer
+ * after Voice's likewise (`reverbTrailer` in `reverbWire.ts`).
  */
 
 #include "../src/dsp_chain.h"
@@ -30,6 +31,7 @@ using fluideq_engine_test::dsp_file;
 using fluideq_engine_test::kVoiceAloneLine;
 using fluideq_engine_test::kVoiceDynamicsToneLine;
 using fluideq_engine_test::kVoiceLowLagLine;
+using fluideq_engine_test::kVoiceReverbToneLine;
 using fluideq_engine_test::reference_values;
 using fluideq_engine_test::report;
 
@@ -51,7 +53,68 @@ bool voice_is_the_fixture(const FeqVoiceSettings& v) {
          v.deplosive == 0.6 && v.gate_enabled == 1 &&
          v.gate_threshold_db == -47 && v.gate_range_db == 22 &&
          v.gate_hold_ms == 180 && v.gate_attack_ms == 1.5 &&
-         v.gate_release_ms == 140;
+         v.gate_release_ms == 140 && v.level_enabled == 1 &&
+         v.level_target_db == -20 && v.level_max_lift_db == 15;
+}
+
+bool reverb_is_the_fixture(const FeqReverbSettings& r) {
+  return r.enabled == 1 && r.type == FEQ_REVERB_CHAMBER && r.mix_db == -21 &&
+         r.decay_s == 2.3 && r.predelay_ms == 37 && r.tone_hz == 6100 &&
+         r.low_cut_hz == 230 && r.width == 0.45 && r.duck == 1 &&
+         r.duck_db == 7.5;
+}
+
+size_t reverb_at(const std::vector<double>& values) {
+  for (size_t at = 0; at < values.size(); ++at) {
+    if (values[at] == FEQ_CHAIN_REVERB_TAG) return at;
+  }
+  return values.size();
+}
+
+void the_reverb_lands_after_voice() {
+  std::printf("the Reverb after Voice, a curve after it, all land\n");
+  FeqChainSettings settings = {};
+  CHECK(decode_dsp_chain(values_of(kVoiceReverbToneLine), &settings));
+  CHECK(voice_is_the_fixture(settings.voice));
+  CHECK(reverb_is_the_fixture(settings.reverb));
+  CHECK(settings.compander.enabled == 1);
+  CHECK(settings.tone.band_count == 1);
+  CHECK(settings.tone.bands[0].frequency == 3150);
+  // A line without it has it off.
+  FeqChainSettings without = {};
+  CHECK(decode_dsp_chain(values_of(kVoiceDynamicsToneLine), &without));
+  CHECK(without.reverb.enabled == 0);
+}
+
+void a_reverb_it_does_not_know_is_refused() {
+  std::printf("a Reverb this engine does not know is refused whole\n");
+  const std::vector<double> good = values_of(kVoiceReverbToneLine);
+  const size_t at = reverb_at(good);
+  CHECK(at < good.size());
+  FeqChainSettings settings = {};
+  CHECK(decode_dsp_chain(good, &settings));  // control
+  const auto refused = [&](size_t offset, double value, const char* what) {
+    std::vector<double> line = good;
+    line[at + offset] = value;
+    FeqChainSettings untouched = {};
+    untouched.reverb.decay_s = 0.123;
+    const bool read = decode_dsp_chain(line, &untouched);
+    std::printf("  %s: %s\n", what, read ? "read" : "refused");
+    CHECK(!read && untouched.reverb.decay_s == 0.123);
+  };
+  refused(1, 2, "a schema it does not know");
+  refused(2, 11, "a field count it does not know");
+  refused(3, 2, "a switch that is not 0 or 1");
+  refused(4, 5, "a type it does not know");
+  refused(4, 1.5, "a type that is not whole");
+  refused(5, 3, "a mix over 0 dB");
+  refused(6, 9, "a decay past 8 s");
+  refused(7, 200, "a pre-delay past 150 ms");
+  refused(8, 1000, "a tone under 2 kHz");
+  refused(9, 600, "a low cut past 500 Hz");
+  refused(10, 1.5, "a width past 1");
+  refused(11, 3, "a duck switch that is not 0 or 1");
+  refused(12, 30, "a duck past 24 dB");
 }
 
 void every_value_lands_where_it_belongs() {
@@ -106,7 +169,7 @@ void a_voice_it_does_not_know_is_refused() {
     std::printf("  %s: %s\n", what, read ? "read" : "refused");
     CHECK(!read && untouched.voice.gate_range_db == 0.123);
   };
-  refused(1, 2, "a schema it does not know");
+  refused(1, 3, "a schema it does not know");
   refused(2, 11, "a field count it does not know");
   refused(3, 2, "a switch that is not 0 or 1");
   refused(4, 10, "a low cut under 20 Hz that is not off");
@@ -126,5 +189,7 @@ int main() {
   dynamics_before_and_a_curve_after();
   a_line_from_before_has_it_off();
   a_voice_it_does_not_know_is_refused();
+  the_reverb_lands_after_voice();
+  a_reverb_it_does_not_know_is_refused();
   return report();
 }

@@ -126,6 +126,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *        and its gate's own level and gain, for the Mic tab's Low cut, Noise
  *        cancelling and Gate pictures. Audio is identical to 1.31; an older
  *        engine's frames read without them (ENGINE_VOICE_METERS_SINCE).
+ *   1.33 runs Voice level on a mic (`voice_level.h`): the voice brought to a
+ *        steady level while it speaks, from the Voice trailer's schema 2,
+ *        which an older engine refuses (ENGINE_VOICE_LEVEL_SINCE), and its
+ *        gain and level in the analysis frame (header 904); and a mic's
+ *        Reverb (`reverb.h`), a REVB trailer an older engine refuses
+ *        (ENGINE_REVERB_SINCE).
  * ENGINE_STATUS_SINCE stays at 1.1: older status-capable engines still report
  * their health even when the new display connection is unavailable.
  */
@@ -137,8 +143,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #endif
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 32, 0, 0
-PRODUCTVERSION 1, 32, 0, 0
+FILEVERSION 1, 33, 0, 0
+PRODUCTVERSION 1, 33, 0, 0
 FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 FILEFLAGS 0
 FILEOS VOS_NT_WINDOWS32

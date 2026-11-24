@@ -833,6 +833,7 @@ const dsp = {
   'dsp.scope.rawSender':
     'ऑडियो बिना प्रोसेसिंग भेजा जा रहा है। इफ़ेक्ट प्राप्त करने वाले पीसी पर लागू होते हैं।',
   'tabs.dsp': 'DSP',
+  'dsp.eqPresetGroup.mic': 'माइक्रोफ़ोन',
 };
 
 export default dsp;

@@ -55,10 +55,17 @@ import {
 } from './dynamicsWire';
 import {
   CHAIN_VOICE_TAG,
-  CHAIN_VOICE_TRAILER,
   isVoiceTrailer,
+  voiceTrailerLength,
+  voiceWithoutLevelAt,
   voiceTrailer,
 } from './voiceWire';
+import {
+  CHAIN_REVERB_TAG,
+  CHAIN_REVERB_TRAILER,
+  isReverbTrailer,
+  reverbTrailer,
+} from './reverbWire';
 import { roomMuteWire } from './roomSpeakers';
 
 /**
@@ -461,6 +468,13 @@ export const encodeChainSettings = (settings: IDspSettings): number[] => {
     }
     values.push(...voiceTrailer(settings.voice));
   }
+  // Its Reverb after Voice, on the same terms (`reverbWire.ts`).
+  if (settings.reverb?.enabled) {
+    if (values.length === gameWord) {
+      values.push(0);
+    }
+    values.push(...reverbTrailer(settings.reverb));
+  }
   return values;
 };
 
@@ -615,7 +629,13 @@ export const isChainWirePayload = (value: unknown): value is number[] => {
     if (!isVoiceTrailer(value, at)) {
       return false;
     }
-    at += CHAIN_VOICE_TRAILER;
+    at += voiceTrailerLength(value, at);
+  }
+  if (value[at] === CHAIN_REVERB_TAG) {
+    if (!isReverbTrailer(value, at)) {
+      return false;
+    }
+    at += CHAIN_REVERB_TRAILER;
   }
   if (value.length > at && !isToneTrailer(value, at)) {
     return false;
@@ -717,7 +737,46 @@ export const withoutVoice = (values: number[]): number[] => {
   const at = voiceSlot(values);
   const line = [
     ...values.slice(0, at),
-    ...values.slice(at + CHAIN_VOICE_TRAILER),
+    ...values.slice(at + voiceTrailerLength(values, at)),
+  ];
+  const gameWord = gameWordAt(line);
+  return line.length === gameWord + 1 && line[gameWord] === 0
+    ? line.slice(0, -1)
+    : line;
+};
+
+/**
+ * The line with its Voice trailer written as schema 1, without Voice level,
+ * for an engine from 1.31 to before 1.33 (`ENGINE_VOICE_LEVEL_SINCE`),
+ * which refuses schema 2 with the whole rack.
+ */
+export const voiceWithoutLevel = (values: number[]): number[] =>
+  hasVoice(values) ? voiceWithoutLevelAt(values, voiceSlot(values)) : values;
+
+/** Where the Reverb's trailer would start: after Voice's when there is one. */
+const reverbSlot = (values: readonly number[]): number => {
+  const slot = voiceSlot(values);
+  return slot + (hasVoice(values) ? voiceTrailerLength(values, slot) : 0);
+};
+
+/** Call only after isChainWirePayload at the IPC boundary. */
+export const hasReverb = (values: readonly number[]): boolean =>
+  values[reverbSlot(values)] === CHAIN_REVERB_TAG;
+
+/**
+ * The line without the Reverb's trailer, the preset's curve after it kept,
+ * for an engine older than the stage (`ENGINE_REVERB_SINCE`), which refuses
+ * a line longer than it knows. The game word goes too where it was written,
+ * off, only for the trailer to stand after.
+ */
+export const withoutReverb = (values: number[]): number[] => {
+  if (!hasReverb(values)) {
+    return values;
+  }
+  const at = reverbSlot(values);
+  const line = [
+    ...values.slice(0, at),
+    ...values.slice(at + CHAIN_REVERB_TRAILER),
   ];
   const gameWord = gameWordAt(line);
   return line.length === gameWord + 1 && line[gameWord] === 0
@@ -727,7 +786,8 @@ export const withoutVoice = (values: number[]): number[] => {
 
 /** Where the preset's curve starts on a line, or -1 for none. */
 const toneAt = (values: readonly number[]): number => {
-  const at = voiceSlot(values) + (hasVoice(values) ? CHAIN_VOICE_TRAILER : 0);
+  const slot = reverbSlot(values);
+  const at = slot + (hasReverb(values) ? CHAIN_REVERB_TRAILER : 0);
   return values.length > at && values[at] === CHAIN_TONE_TAG ? at : -1;
 };
 

@@ -16,6 +16,8 @@ import DspStageCards from '../dsp/DspStageCards';
 import type { IRoomLive } from '../dsp/useRoomLive';
 import type { TMicStage } from './MicStageRail';
 import MicCleanerCard from './MicCleanerCard';
+import MicLevelCard from './MicLevelCard';
+import MicReverbCard from './MicReverbCard';
 import type { IMicLevel } from './useMicLevels';
 import { MicGateCard, MicLowCutCard } from './MicVoiceCards';
 
@@ -69,6 +71,22 @@ const MicStage = ({
           live={live}
         />
       )}
+      {stage === 'level' && voice && (
+        <MicLevelCard
+          voice={voice}
+          onPatch={(next) => onPatch({ voice: next })}
+          onCommit={onCommit}
+          latest={latest}
+          live={live}
+        />
+      )}
+      {stage === 'reverb' && (
+        <MicReverbCard
+          reverb={settings.reverb}
+          onPatch={(next) => onPatch({ reverb: next })}
+          onCommit={onCommit}
+        />
+      )}
       {stage === 'denoise' && (
         <MicCleanerCard
           settings={settings}
@@ -78,16 +96,20 @@ const MicStage = ({
           live={live}
         />
       )}
-      {stage !== 'lowCut' && stage !== 'gate' && stage !== 'denoise' && (
-        <DspStageCards
-          section={stage}
-          settings={settings}
-          onPatch={onPatch}
-          onCommit={onCommit}
-          isSystemWide={isSystemWide}
-          roomLive={NO_ROOM}
-        />
-      )}
+      {stage !== 'lowCut' &&
+        stage !== 'gate' &&
+        stage !== 'level' &&
+        stage !== 'reverb' &&
+        stage !== 'denoise' && (
+          <DspStageCards
+            section={stage}
+            settings={settings}
+            onPatch={onPatch}
+            onCommit={onCommit}
+            isSystemWide={isSystemWide}
+            roomLive={NO_ROOM}
+          />
+        )}
     </div>
   );
 };

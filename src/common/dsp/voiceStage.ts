@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * The microphone's Voice stage, as the app holds it: low cut, "Close to the
- * mic", the pop guard and the gate. The engine's half is `voice.h`; the
+ * mic", the pop guard, the gate and Voice level. The engine's half is `voice.h`; the
  * ranges here are the ones its decoder accepts, so a value the app can store
  * is one the engine reads.
  *
@@ -30,6 +30,13 @@ export interface IVoiceSettings {
   gateHoldMs: number;
   gateAttackMs: number;
   gateReleaseMs: number;
+  /**
+   * Voice level (engine 1.33): the voice brought to `levelTargetDb` while it
+   * speaks, lifted by at most `levelMaxLiftDb`. After the gate.
+   */
+  levelEnabled: boolean;
+  levelTargetDb: number;
+  levelMaxLiftDb: number;
 }
 
 export const VOICE_RANGES = {
@@ -41,6 +48,8 @@ export const VOICE_RANGES = {
   gateHoldMs: { min: 0, max: 1000 },
   gateAttackMs: { min: 0.1, max: 50 },
   gateReleaseMs: { min: 5, max: 2000 },
+  levelTargetDb: { min: -30, max: -10 },
+  levelMaxLiftDb: { min: 0, max: 24 },
 } as const;
 
 export const VOICE_DEFAULTS: IVoiceSettings = {
@@ -54,6 +63,9 @@ export const VOICE_DEFAULTS: IVoiceSettings = {
   gateHoldMs: 200,
   gateAttackMs: 2,
   gateReleaseMs: 150,
+  levelEnabled: false,
+  levelTargetDb: -18,
+  levelMaxLiftDb: 18,
 };
 
 const clampTo = (
@@ -106,6 +118,17 @@ export const clampVoiceSettings = (value: unknown): IVoiceSettings => {
       v.gateReleaseMs,
       VOICE_RANGES.gateReleaseMs,
       d.gateReleaseMs,
+    ),
+    levelEnabled: v.levelEnabled === true,
+    levelTargetDb: clampTo(
+      v.levelTargetDb,
+      VOICE_RANGES.levelTargetDb,
+      d.levelTargetDb,
+    ),
+    levelMaxLiftDb: clampTo(
+      v.levelMaxLiftDb,
+      VOICE_RANGES.levelMaxLiftDb,
+      d.levelMaxLiftDb,
     ),
   };
 };

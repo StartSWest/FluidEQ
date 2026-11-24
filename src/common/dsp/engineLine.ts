@@ -9,11 +9,15 @@ import {
   engineRunsFootsteps,
   engineRunsGame,
   engineRunsVoice,
+  engineRunsReverb,
+  engineRunsVoiceLevel,
 } from '../engineHealth';
 import {
   asFootstepsAlone,
   withoutDynamics,
   withoutFootsteps,
+  voiceWithoutLevel,
+  withoutReverb,
   withoutVoice,
 } from './chainWire';
 
@@ -30,6 +34,10 @@ export interface IEngineReads {
   dynamics: boolean;
   /** A microphone's Voice stage (1.31). */
   voice: boolean;
+  /** Its Voice level, the trailer's schema 2 (1.33). */
+  voiceLevel: boolean;
+  /** A microphone's Reverb (1.33). */
+  reverb: boolean;
 }
 
 /** An engine as new as the app: the line as written. */
@@ -37,6 +45,8 @@ export const ENGINE_READS_ALL: IEngineReads = {
   game: 'game',
   dynamics: true,
   voice: true,
+  voiceLevel: true,
+  reverb: true,
 };
 
 /** Nothing known about the engine: the line every engine reads. */
@@ -44,6 +54,8 @@ export const ENGINE_READS_NONE: IEngineReads = {
   game: 'none',
   dynamics: false,
   voice: false,
+  voiceLevel: false,
+  reverb: false,
 };
 
 export const engineReadsOf = (dllVersion: string | undefined): IEngineReads => {
@@ -57,6 +69,8 @@ export const engineReadsOf = (dllVersion: string | undefined): IEngineReads => {
     game,
     dynamics: engineRunsDynamics(dllVersion),
     voice: engineRunsVoice(dllVersion),
+    voiceLevel: engineRunsVoiceLevel(dllVersion),
+    reverb: engineRunsReverb(dllVersion),
   };
 };
 
@@ -65,9 +79,13 @@ export const lineForEngine = (
   values: number[],
   reads: IEngineReads,
 ): number[] => {
-  // Voice first: it stands after Dynamics, and each strip finds its own
-  // trailer from the ones before it.
-  const voiced = reads.voice ? values : withoutVoice(values);
+  // The Reverb first, then Voice: each stands after the ones before it,
+  // and each strip finds its own trailer from those.
+  const reverbed = reads.reverb ? values : withoutReverb(values);
+  let voiced = withoutVoice(reverbed);
+  if (reads.voice) {
+    voiced = reads.voiceLevel ? reverbed : voiceWithoutLevel(reverbed);
+  }
   const line = reads.dynamics ? voiced : withoutDynamics(voiced);
   if (reads.game === 'game') {
     return line;

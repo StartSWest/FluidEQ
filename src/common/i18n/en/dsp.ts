@@ -847,6 +847,7 @@ const dsp = {
   'dsp.scope.rawSender':
     'Raw audio is being sent. Effects are applied on the receiving PC.',
   'tabs.dsp': 'DSP',
+  'dsp.eqPresetGroup.mic': 'Microphone',
 };
 
 export default dsp;

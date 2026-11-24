@@ -37,6 +37,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/exciter_oversample.h"
 #include "fluideq/footsteps.h"
 #include "fluideq/meters.h"
+#include "fluideq/reverb.h"
 #include "fluideq/voice.h"
 #include "fluideq/live_normalizer.h"
 #include "fluideq/room.h"
@@ -243,6 +244,12 @@ typedef struct FeqChainSettings {
    * the stage is on, as Dynamics' is.
    */
   FeqVoiceSettings voice;
+  /**
+   * Reverb, for a microphone (`reverb.h`): wet only, after Dynamics and
+   * before the Maximizer. On the wire in a tagged trailer of its own
+   * (`FEQ_CHAIN_REVERB_TAG`), written only while the stage is on.
+   */
+  FeqReverbSettings reverb;
   /**
    * Stereo width per band. Touches the side signal only, so the mono sum is
    * unchanged at every setting — `dimension_test.cpp` asserts that as equality.
@@ -497,6 +504,25 @@ typedef struct FeqChainSettings {
 #define FEQ_CHAIN_VOICE_FIELDS 10
 #define FEQ_CHAIN_VOICE_TRAILER 13
 /**
+ * Schema 2 (engine 1.33) adds Voice level after the gate's five: its
+ * switch, target and most lift. An engine before 1.33 refuses schema 2, so
+ * the app writes schema 1 for one (`voiceForEngine`).
+ */
+#define FEQ_CHAIN_VOICE_LEVEL_SCHEMA 2
+#define FEQ_CHAIN_VOICE_LEVEL_FIELDS 13
+#define FEQ_CHAIN_VOICE_LEVEL_TRAILER 16
+/**
+ * REVB tag, schema version, field count, then the Reverb's switch, type,
+ * mix, decay, pre-delay, tone, low cut, width, duck switch and duck depth.
+ * After the Voice trailer, before the tone; written only while the stage is
+ * on (`reverbTrailer` in `reverbWire.ts`). An engine before 1.33 refuses
+ * the line, so the app takes the trailer off for one.
+ */
+#define FEQ_CHAIN_REVERB_TAG 1380275778
+#define FEQ_CHAIN_REVERB_SCHEMA 1
+#define FEQ_CHAIN_REVERB_FIELDS 10
+#define FEQ_CHAIN_REVERB_TRAILER 13
+/**
  * TONE tag, schema version, band count and design, then each band's type,
  * frequency, gain and Q. Last on the line, after the low-latency word, the
  * Room's trailer and Footsteps' when there are those: `appendPresetTone` in
@@ -512,7 +538,7 @@ typedef struct FeqChainSettings {
  */
 #define FEQ_CHAIN_MAX_TRAILER                                        \
   (15 + FEQ_CHAIN_GAME_TRAILER + FEQ_CHAIN_DYNAMICS_TRAILER +        \
-   FEQ_CHAIN_VOICE_TRAILER +                                         \
+   FEQ_CHAIN_VOICE_LEVEL_TRAILER + FEQ_CHAIN_REVERB_TRAILER +        \
    FEQ_CHAIN_TONE_HEADER +                                           \
    FEQ_CHAIN_MAX_TONE_BANDS * FEQ_CHAIN_TONE_BAND_PARAMS)
 #define FEQ_CHAIN_MAX_PARAMS (FEQ_CHAIN_PARAM_LEAD + FEQ_CHAIN_MAX_EQ_BANDS * FEQ_CHAIN_BAND_PARAMS + FEQ_CHAIN_MAX_TRAILER)

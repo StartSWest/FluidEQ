@@ -69,7 +69,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * refuse that host and silence the Library to protect a frame that was never
  * at risk.
  */
-#define FEQ_WIRE_PROTOCOL_VERSION 10
+#define FEQ_WIRE_PROTOCOL_VERSION 11
 
 /**
  * `FEQ_CMD_LOAD_DECK` with the deck left to the host.
@@ -653,6 +653,9 @@ typedef struct FeqWireAnalysisFrame {
   float voice_gate_gain_db;
   uint32_t voice_detail_window;
   uint32_t voice_detail_bins;
+  /** Voice level's gain and the level it heard (engine 1.33). */
+  float voice_level_gain_db;
+  float voice_level_heard_db;
 } FeqWireAnalysisFrame;
 
 #ifdef __cplusplus
@@ -722,6 +725,8 @@ inline void feq_wire_voice_report(FeqWireAnalysisFrame& frame,
   frame.voice_gate_gain_db = report.gate_gain_db;
   frame.voice_detail_window = detail_bins != 0 ? FEQ_METER_DETAIL_WINDOW : 0u;
   frame.voice_detail_bins = detail_bins;
+  frame.voice_level_gain_db = report.level_gain_db;
+  frame.voice_level_heard_db = report.level_heard_db;
 }
 inline void feq_wire_room_report(FeqWireAnalysisFrame& frame,
                                  const FeqRoomReport& room) {
@@ -749,10 +754,12 @@ static_assert(sizeof(FeqWireStatsFrame) == 24, "stats frame size");
  * hiss-gain bands append 160 bytes, for a 560-byte header, the De-esser's
  * fifty-six words 224 more, for 784, Footsteps' seven and its pad 32 more,
  * for 816, and the Game filter's five and their pad 24 more, for 840.
- * Dynamics' tagged 32 took it to 872, and a mic's gate and long window 24
- * more, to 896.
+ * Dynamics' tagged 32 took it to 872, a mic's gate and long window 24 more,
+ * to 896, and Voice level's gain and level 8 more, to 904.
  */
-static_assert(sizeof(FeqWireAnalysisFrame) == 896, "analysis frame size");
+static_assert(sizeof(FeqWireAnalysisFrame) == 904, "analysis frame size");
+static_assert(offsetof(FeqWireAnalysisFrame, voice_level_gain_db) == 896,
+              "Voice level offset");
 static_assert(offsetof(FeqWireAnalysisFrame, voice_tag) == 872,
               "Voice offset");
 static_assert(offsetof(FeqWireAnalysisFrame, deesser_reduction_db) == 560,

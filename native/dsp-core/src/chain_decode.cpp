@@ -159,23 +159,64 @@ int feq_chain_settings_decode(const double* values,
   const bool has_voice =
       has_low_latency && count > trailer_at &&
       values[trailer_at] == FEQ_CHAIN_VOICE_TAG;
+  // Schema 1 is the Voice stage before Voice level, schema 2 with it.
+  bool has_voice_level = false;
   if (has_voice) {
-    // Two switches and eight values within the stage's own ranges: anything
-    // else is a Voice this engine does not know.
+    // Two switches and eight values within the stage's own ranges, and
+    // Voice level's switch, target and most lift in schema 2: anything else
+    // is a Voice this engine does not know.
     const double* v = values + trailer_at;
+    has_voice_level = count > trailer_at + 1 &&
+                      v[1] == FEQ_CHAIN_VOICE_LEVEL_SCHEMA;
+    const bool schema_ok =
+        has_voice_level
+            ? count >= trailer_at + FEQ_CHAIN_VOICE_LEVEL_TRAILER &&
+                  v[2] == FEQ_CHAIN_VOICE_LEVEL_FIELDS &&
+                  (v[13] == 0 || v[13] == 1) &&
+                  v[14] >= FEQ_VOICE_LEVEL_TARGET_MIN_DB &&
+                  v[14] <= FEQ_VOICE_LEVEL_TARGET_MAX_DB && v[15] >= 0 &&
+                  v[15] <= FEQ_VOICE_LEVEL_MAX_LIFT_DB
+            : count >= trailer_at + FEQ_CHAIN_VOICE_TRAILER &&
+                  v[1] == FEQ_CHAIN_VOICE_SCHEMA &&
+                  v[2] == FEQ_CHAIN_VOICE_FIELDS;
+    // The length first: nothing past the line is read.
+    if (!schema_ok) return 0;
     const bool low_cut_ok =
         v[4] == 0 || (v[4] >= FEQ_VOICE_LOW_CUT_MIN_HZ &&
                       v[4] <= FEQ_VOICE_LOW_CUT_MAX_HZ);
-    if (count < trailer_at + FEQ_CHAIN_VOICE_TRAILER ||
-        v[1] != FEQ_CHAIN_VOICE_SCHEMA || v[2] != FEQ_CHAIN_VOICE_FIELDS ||
-        (v[3] != 0 && v[3] != 1) || !low_cut_ok || v[5] < 0 ||
+    if ((v[3] != 0 && v[3] != 1) || !low_cut_ok || v[5] < 0 ||
         v[5] > FEQ_VOICE_PROXIMITY_MAX_DB || v[6] < 0 || v[6] > 1 ||
         (v[7] != 0 && v[7] != 1) || v[8] < -80 || v[8] > -10 || v[9] < 0 ||
         v[9] > 80 || v[10] < 0 || v[10] > 1000 || v[11] < 0.1 ||
         v[11] > 50 || v[12] < 5 || v[12] > 2000) {
       return 0;
     }
-    trailer_at += FEQ_CHAIN_VOICE_TRAILER;
+    trailer_at += has_voice_level ? FEQ_CHAIN_VOICE_LEVEL_TRAILER
+                                  : FEQ_CHAIN_VOICE_TRAILER;
+  }
+  const bool has_reverb =
+      has_low_latency && count > trailer_at &&
+      values[trailer_at] == FEQ_CHAIN_REVERB_TAG;
+  if (has_reverb) {
+    // The length first: nothing past the line is read. Then two switches,
+    // a type the engine knows and eight values within the stage's ranges.
+    const double* r = values + trailer_at;
+    if (count < trailer_at + FEQ_CHAIN_REVERB_TRAILER ||
+        r[1] != FEQ_CHAIN_REVERB_SCHEMA || r[2] != FEQ_CHAIN_REVERB_FIELDS) {
+      return 0;
+    }
+    if ((r[3] != 0 && r[3] != 1) || r[4] < 0 || r[4] >= FEQ_REVERB_TYPES ||
+        std::floor(r[4]) != r[4] || r[5] < FEQ_REVERB_MIX_MIN_DB ||
+        r[5] > FEQ_REVERB_MIX_MAX_DB || r[6] < FEQ_REVERB_DECAY_MIN_S ||
+        r[6] > FEQ_REVERB_DECAY_MAX_S || r[7] < 0 ||
+        r[7] > FEQ_REVERB_PREDELAY_MAX_MS || r[8] < FEQ_REVERB_TONE_MIN_HZ ||
+        r[8] > FEQ_REVERB_TONE_MAX_HZ || r[9] < FEQ_REVERB_LOW_CUT_MIN_HZ ||
+        r[9] > FEQ_REVERB_LOW_CUT_MAX_HZ || r[10] < 0 || r[10] > 1 ||
+        (r[11] != 0 && r[11] != 1) || r[12] < 0 ||
+        r[12] > FEQ_REVERB_DUCK_MAX_DB) {
+      return 0;
+    }
+    trailer_at += FEQ_CHAIN_REVERB_TRAILER;
   }
   const bool has_tone = has_low_latency && count > trailer_at;
   uint32_t tone_bands = 0;
@@ -510,6 +551,24 @@ int feq_chain_settings_decode(const double* values,
     out->voice.gate_hold_ms = next();
     out->voice.gate_attack_ms = next();
     out->voice.gate_release_ms = next();
+    if (has_voice_level) {
+      out->voice.level_enabled = flag();
+      out->voice.level_target_db = next();
+      out->voice.level_max_lift_db = next();
+    }
+  }
+  if (has_reverb) {
+    at += 3;  // validated tag, schema and field count
+    out->reverb.enabled = flag();
+    out->reverb.type = static_cast<int>(next());
+    out->reverb.mix_db = next();
+    out->reverb.decay_s = next();
+    out->reverb.predelay_ms = next();
+    out->reverb.tone_hz = next();
+    out->reverb.low_cut_hz = next();
+    out->reverb.width = next();
+    out->reverb.duck = flag();
+    out->reverb.duck_db = next();
   }
   if (has_tone) {
     at += 3; // validated tag, schema and band count

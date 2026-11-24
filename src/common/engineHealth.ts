@@ -394,6 +394,22 @@ export const ENGINE_VOICE_METERS_SINCE: readonly [number, number] = [1, 32];
 export const engineReportsVoice = (dllVersion: string | undefined): boolean =>
   engineAtLeast(dllVersion, ENGINE_VOICE_METERS_SINCE);
 
+/**
+ * Voice level on a mic: the Voice trailer's schema 2, which an engine
+ * before it refuses with the whole rack, so the app writes schema 1 for one.
+ */
+export const ENGINE_VOICE_LEVEL_SINCE: readonly [number, number] = [1, 33];
+export const engineRunsVoiceLevel = (dllVersion: string | undefined): boolean =>
+  engineAtLeast(dllVersion, ENGINE_VOICE_LEVEL_SINCE);
+
+/**
+ * A mic's Reverb: a trailer an engine before it refuses with the whole
+ * rack, so the app takes it off for one.
+ */
+export const ENGINE_REVERB_SINCE: readonly [number, number] = [1, 33];
+export const engineRunsReverb = (dllVersion: string | undefined): boolean =>
+  engineAtLeast(dllVersion, ENGINE_REVERB_SINCE);
+
 /** Versioned Room commands and truthful comparison telemetry. */
 export const ENGINE_ROOM_SINCE: readonly [number, number] = [1, 11];
 export const engineSupportsRoomUpgrade = (

@@ -207,9 +207,10 @@ $mic-taken: #e86a34;
   font-size: $studio-text-label;
   white-space: nowrap;
 
-  // Fixed width, so a number changing every frame never shoves its neighbour.
+  // As wide as the longest figure ("−12.3 dB", "1200 Hz"), so a number
+  // changing every frame never shoves its neighbour; 5ch moved them.
   > strong {
-    min-width: 5ch;
+    min-width: 8ch;
     color: $text-primary;
     font-size: 16px;
     font-weight: $weight-semibold;
@@ -243,4 +244,26 @@ $mic-taken: #e86a34;
   flex: 1 1 240px;
   margin: 0;
   white-space: normal;
+}
+
+// Voice level's state word: both words in one cell, the one not said kept
+// invisible, so the slot is the longer word's width in every language.
+.mic-live-picture__word {
+  display: inline-grid;
+
+  > strong {
+    grid-area: 1 / 1;
+    color: $text-primary;
+    font-size: 16px;
+    font-weight: $weight-semibold;
+  }
+}
+
+.mic-live-picture__sizer {
+  visibility: hidden;
+}
+
+// A key's entry kept in its place while what it names is off, unseen.
+.mic-live-picture__key > .is-hidden {
+  visibility: hidden;
 }

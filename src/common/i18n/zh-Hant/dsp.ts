@@ -783,6 +783,7 @@ const dsp = {
   'dsp.masterPresetGroup.tool': '用於比較',
   'dsp.scope.rawSender': '正在傳送原始音訊。效果應用於接收 PC。',
   'tabs.dsp': 'DSP',
+  'dsp.eqPresetGroup.mic': '麥克風',
 } satisfies Partial<Dictionary>;
 
 export default dsp;

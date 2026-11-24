@@ -801,6 +801,7 @@ const dsp = {
 
   'dsp.scope.rawSender': '正在发送未经处理的音频。效果在接收电脑上应用。',
   'tabs.dsp': 'DSP',
+  'dsp.eqPresetGroup.mic': '麦克风',
 };
 
 export default dsp;

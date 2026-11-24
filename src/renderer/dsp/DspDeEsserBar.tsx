@@ -31,6 +31,7 @@ const GROUP_KEYS: Record<TDeEsserPresetGroup, TranslationKey> = {
   speech: 'dsp.deEsserPresetGroup.speech',
   genre: 'dsp.eqPresetGroup.genre',
   gaming: 'dsp.deEsserPresetGroup.gaming',
+  mic: 'dsp.eqPresetGroup.mic',
 };
 
 export const DE_ESSER_MODE_KEYS: Record<TDeEsserMode, TranslationKey> = {

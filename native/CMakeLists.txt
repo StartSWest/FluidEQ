@@ -131,6 +131,8 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/game_shared.cpp
   dsp-core/src/compander.cpp
   dsp-core/src/voice.cpp
+  dsp-core/src/voice_level.cpp
+  dsp-core/src/reverb.cpp
   dsp-core/src/meters.cpp
   dsp-core/src/meters_deesser.cpp
   dsp-core/src/meters_footsteps.cpp
@@ -269,6 +271,12 @@ add_test(NAME dynamics-meters COMMAND fluideq-dynamics-meters-test)
 add_executable(fluideq-voice-meters-test dsp-core/tests/voice_meters_test.cpp)
 target_link_libraries(fluideq-voice-meters-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME voice-meters COMMAND fluideq-voice-meters-test)
+add_executable(fluideq-voice-level-test dsp-core/tests/voice_level_test.cpp)
+target_link_libraries(fluideq-voice-level-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME voice-level COMMAND fluideq-voice-level-test)
+add_executable(fluideq-reverb-test dsp-core/tests/reverb_test.cpp)
+target_link_libraries(fluideq-reverb-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME reverb COMMAND fluideq-reverb-test)
 
 
 # The Game filter's other two parts: a voice brought forward and the rest

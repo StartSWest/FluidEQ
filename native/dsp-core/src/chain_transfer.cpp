@@ -114,6 +114,8 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
   // The filters, the pop guard and the gate keep running: a profile
   // switched mid-word must not open a closed gate or reset the low cut.
   feq_voice_transfer(prepared.voice, previous.voice);
+  // The tail goes on ringing through a turned knob.
+  feq_reverb_transfer(prepared.reverb, previous.reverb);
   swap(prepared.bass_punch_low, previous.bass_punch_low);
   swap(prepared.bass_punch_bloom, previous.bass_punch_bloom);
   swap(prepared.bass_punch_bloom_pointers, previous.bass_punch_bloom_pointers);

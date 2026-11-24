@@ -44,6 +44,7 @@ export const EQ_PRESET_GROUPS = [
   'character',
   'repair',
   'gaming',
+  'mic',
 ] as const;
 
 export type TEqPresetGroup = (typeof EQ_PRESET_GROUPS)[number];

@@ -122,12 +122,18 @@ const MicVoicePicture = ({ history, gateDb }: IMicVoicePictureProps) => {
           <i className="mic-picture__swatch is-heard" aria-hidden="true" />
           {t('mic.picture.heard')}
         </span>
-        {gateDb !== undefined && (
-          <span>
-            <i className="mic-picture__swatch is-gate" aria-hidden="true" />
-            {t('mic.picture.gate')}
-          </span>
-        )}
+        {/* Kept in its place while the gate is off, unseen, so switching
+            the gate never moves the key or the line under it. */}
+        <span
+          className={gateDb === undefined ? 'is-hidden' : undefined}
+          aria-hidden={gateDb === undefined}
+        >
+          <i className="mic-picture__swatch is-gate" aria-hidden="true" />
+          {t('mic.picture.gate')}
+        </span>
+        {/* Said in words, because the two shades alone did not say it
+            (Ivan, 2026-11-24, asked what the grey meant). */}
+        <span className="mic-picture__taken">{t('mic.picture.taken')}</span>
       </div>
     </div>
   );

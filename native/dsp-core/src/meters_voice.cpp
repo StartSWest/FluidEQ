@@ -66,6 +66,8 @@ void voice_window_publish(VoiceMeterWindow& window,
   window.gate_level_db.store(report.gate_level_db, std::memory_order_relaxed);
   window.gate_gain_db.store(report.gate_gain_db, std::memory_order_relaxed);
   window.active.store(report.active, std::memory_order_relaxed);
+  window.level_gain_db.store(report.level_gain_db, std::memory_order_relaxed);
+  window.level_heard_db.store(report.level_heard_db, std::memory_order_relaxed);
 }
 
 void voice_window_read(const VoiceMeterWindow& window, FeqVoiceReport* out) {
@@ -80,4 +82,10 @@ void voice_window_read(const VoiceMeterWindow& window, FeqVoiceReport* out) {
   out->gate_gain_db = out->active != 0
                           ? window.gate_gain_db.load(std::memory_order_relaxed)
                           : 0.0f;
+  out->level_gain_db =
+      out->active != 0 ? window.level_gain_db.load(std::memory_order_relaxed)
+                       : 0.0f;
+  out->level_heard_db =
+      out->active != 0 ? window.level_heard_db.load(std::memory_order_relaxed)
+                       : kGateFloorDb;
 }

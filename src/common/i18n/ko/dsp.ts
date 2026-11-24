@@ -808,6 +808,7 @@ const dsp = {
   'dsp.scope.rawSender':
     '원시 오디오가 전송되고 있습니다. 효과는 수신 PC에 적용됩니다.',
   'tabs.dsp': 'DSP',
+  'dsp.eqPresetGroup.mic': '마이크',
 } satisfies Partial<Dictionary>;
 
 export default dsp;

@@ -47,6 +47,10 @@ extern "C" {
 #define FEQ_VOICE_PLOSIVE_HZ 150.0
 /** The most the pop guard takes from a plosive's low band, at full amount. */
 #define FEQ_VOICE_PLOSIVE_MAX_CUT_DB 18.0
+/** Voice level's target and most lift (`voice_level.h`). */
+#define FEQ_VOICE_LEVEL_TARGET_MIN_DB -30.0
+#define FEQ_VOICE_LEVEL_TARGET_MAX_DB -10.0
+#define FEQ_VOICE_LEVEL_MAX_LIFT_DB 24.0
 
 typedef struct FeqVoiceSettings {
   int enabled;
@@ -67,6 +71,14 @@ typedef struct FeqVoiceSettings {
   double gate_attack_ms;
   /** 5 to 2000 ms: how fast it closes all the way. */
   double gate_release_ms;
+  /**
+   * Voice level (engine 1.33): the voice brought to `level_target_db`
+   * (-30 to -10 dBFS, the power of the voice over 300 ms) while it speaks,
+   * lifted by at most `level_max_lift_db` (0 to 24 dB). After the gate.
+   */
+  int level_enabled;
+  double level_target_db;
+  double level_max_lift_db;
 } FeqVoiceSettings;
 
 /** Everything off; the gate's own values set to a speaking voice's. */
@@ -81,6 +93,9 @@ typedef struct FeqVoiceReport {
   /** The level the gate heard, at the block's end. */
   float gate_level_db;
   uint32_t active;
+  /** Voice level's gain at the block's end, and the level it heard. */
+  float level_gain_db;
+  float level_heard_db;
 } FeqVoiceReport;
 
 typedef struct FeqVoice FeqVoice;
@@ -120,6 +135,10 @@ void feq_voice_hear_ahead(FeqVoice* voice, const float* const* channels,
 /** The back half: the gate. In place, planar. */
 void feq_voice_process_gate(FeqVoice* voice, float* const* channels,
                             uint32_t frames);
+
+/** Voice level, after the gate. In place, planar; nothing while off. */
+void feq_voice_process_level(FeqVoice* voice, float* const* channels,
+                             uint32_t frames);
 
 void feq_voice_block_report(const FeqVoice* voice, FeqVoiceReport* out);
 

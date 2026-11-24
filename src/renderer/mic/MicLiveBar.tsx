@@ -20,7 +20,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * the light called the gate open over a room it was holding down.
  */
 
-import { useEffect, useRef } from 'react';
+import { ReactNode, useEffect, useRef } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import { gateOpenness, GATE_OPEN_AT } from './micGate';
 import type { IMicLevel } from './useMicLevels';
@@ -53,6 +53,8 @@ interface IMicLiveBarProps {
   /** The compressor's make-up, dB, while it is on. */
   makeupDb: number | undefined;
   limiterOn: boolean;
+  /** "Hear the final result", at the strip's end. */
+  children?: ReactNode;
 }
 
 const MicLiveBar = ({
@@ -62,9 +64,9 @@ const MicLiveBar = ({
   cleanerOn,
   makeupDb,
   limiterOn,
+  children,
 }: IMicLiveBarProps) => {
   const { t } = useTranslation();
-  const gateReading = useRef<HTMLSpanElement>(null);
   const gateLamp = useRef<HTMLSpanElement>(null);
   const gateText = useRef<HTMLSpanElement>(null);
   const noise = useRef<HTMLSpanElement>(null);
@@ -81,12 +83,6 @@ const MicLiveBar = ({
     const draw = () => {
       const level = latest.current;
       if (level && live) {
-        // Only said once the engine reports its gate (1.32): before that
-        // nothing here knows whether it is open, and "closed" would be a
-        // guess printed as a reading.
-        if (gateReading.current) {
-          gateReading.current.hidden = level.gateGainDb === undefined;
-        }
         if (gateRangeDb !== undefined && level.gateGainDb !== undefined) {
           const open =
             gateOpenness(level.gateGainDb, gateRangeDb) > GATE_OPEN_AT;
@@ -124,13 +120,25 @@ const MicLiveBar = ({
     <div className="mic-live" aria-live="off">
       <div className="mic-live__readings">
         {gateRangeDb !== undefined && (
-          <span ref={gateReading} className={`mic-live__reading${idle}`}>
+          <span className={`mic-live__reading${idle}`}>
             <span
               ref={gateLamp}
               className="mic-live__lamp"
               aria-hidden="true"
             />
-            <span ref={gateText}>{t('mic.meter.gateClosed')}</span>
+            {/* A dash until the engine reports its gate (1.32): before that
+                nothing here knows whether it is open, and "closed" would be
+                a guess printed as a reading. The slot holds the longer of
+                the two words, so the readings beside it never move. */}
+            <span className="mic-live__state">
+              <span ref={gateText}>—</span>
+              <span className="mic-live__state-sizer" aria-hidden="true">
+                {t('mic.meter.gateOpen')}
+              </span>
+              <span className="mic-live__state-sizer" aria-hidden="true">
+                {t('mic.meter.gateClosed')}
+              </span>
+            </span>
           </span>
         )}
         {cleanerOn && (
@@ -146,7 +154,7 @@ const MicLiveBar = ({
           <span className={`mic-live__reading${idle}`}>
             {t('mic.meter.compressor')}
             <span ref={compressor} className="mic-live__value">
-              0.0 dB
+              —
             </span>
           </span>
         )}
@@ -154,11 +162,12 @@ const MicLiveBar = ({
           <span className={`mic-live__reading${idle}`}>
             {t('mic.meter.limiter')}
             <span ref={limiter} className="mic-live__value">
-              0.0 dB
+              —
             </span>
           </span>
         )}
       </div>
+      {children}
     </div>
   );
 };

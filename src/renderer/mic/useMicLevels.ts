@@ -61,6 +61,9 @@ export interface IMicLevel {
   gateLevelDb?: number;
   /** The gate's gain, dB: 0 open, down to minus its range; with the level. */
   gateGainDb?: number;
+  /** Voice level's gain, dB, and the level it heard (engine 1.33). */
+  levelGainDb?: number;
+  levelHeardDb?: number;
 }
 
 /**
@@ -235,6 +238,8 @@ const useMicLevels = (
                 ? {
                     gateLevelDb: frame.voice.gateLevelDb,
                     gateGainDb: frame.voice.gateGainDb,
+                    levelGainDb: frame.voice.levelGainDb,
+                    levelHeardDb: frame.voice.levelHeardDb,
                   }
                 : {}),
             };

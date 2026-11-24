@@ -32,6 +32,7 @@ import {
   ANALYSIS_MAX_BANDS,
   ANALYSIS_SCOPE_PAIRS,
   ANALYSIS_STAGES,
+  ANALYSIS_VOICE_HEADER_BYTES,
   ANALYSIS_VOICE_TAG,
 } from '../../common/dsp/analysisWire';
 import type {
@@ -60,7 +61,7 @@ import {
  * changes, so a stale host is refused at the handshake with a legible reason
  * rather than desynchronising on its first frame of that kind.
  */
-export const HOST_WIRE_PROTOCOL_VERSION = 10;
+export const HOST_WIRE_PROTOCOL_VERSION = 11;
 
 export const HANDSHAKE_BYTES = 104;
 export const COMMAND_BYTES = 32;
@@ -590,7 +591,7 @@ const voiceDetailBinsOf = (
   header: Buffer,
   headerBytes: number,
 ): number | undefined => {
-  if (headerBytes < ANALYSIS_HEADER_BYTES) {
+  if (headerBytes < ANALYSIS_VOICE_HEADER_BYTES) {
     return 0;
   }
   if (header.readUInt32LE(872) !== ANALYSIS_VOICE_TAG) {
@@ -607,18 +608,32 @@ const voiceDetailBinsOf = (
   return bins;
 };
 
-/** A mic's gate, offsets 872 to 895; the tag was checked with the length. */
+/**
+ * A mic's gate, offsets 872 to 895, and from engine 1.33 Voice level's gain
+ * and level at 896 and 900; the tag was checked with the length.
+ */
 const decodeVoice = (
   view: DataView,
   detail: Float32Array | undefined,
+  headerBytes: number,
 ): IHostAnalysisVoice | undefined => {
   const active = view.getUint32(876, true);
   const gateLevelDb = view.getFloat32(880, true);
   const gateGainDb = view.getFloat32(884, true);
+  const level =
+    headerBytes >= ANALYSIS_HEADER_BYTES
+      ? {
+          levelGainDb: view.getFloat32(896, true),
+          levelHeardDb: view.getFloat32(900, true),
+        }
+      : undefined;
   if (
     active > 1 ||
     !Number.isFinite(gateLevelDb) ||
-    !Number.isFinite(gateGainDb)
+    !Number.isFinite(gateGainDb) ||
+    (level !== undefined &&
+      (!Number.isFinite(level.levelGainDb) ||
+        !Number.isFinite(level.levelHeardDb)))
   ) {
     return undefined;
   }
@@ -626,6 +641,7 @@ const decodeVoice = (
     active: active === 1,
     gateLevelDb,
     gateGainDb,
+    ...(level ?? {}),
     ...(detail ? { detail } : {}),
   };
 };
@@ -978,8 +994,8 @@ export const decodeAnalysis = (
       : {}),
     // After the 872 bytes that end with Dynamics, from an engine that reads
     // a mic's gate and its voice as it arrives.
-    ...(headerBytes >= ANALYSIS_HEADER_BYTES
-      ? { voice: decodeVoice(view, voiceDetail) }
+    ...(headerBytes >= ANALYSIS_VOICE_HEADER_BYTES
+      ? { voice: decodeVoice(view, voiceDetail, headerBytes) }
       : {}),
     // From a writer whose EQ spectrum is the live one; offsets 84 and 88 were
     // two of the retired guard's zeros, which is what every writer before

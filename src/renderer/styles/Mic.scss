@@ -100,6 +100,41 @@ SPDX-License-Identifier: GPL-3.0-or-later
   grid-row: 1;
 }
 
+// Under the profile, on the live line's row: the mic's whole delay. There
+// from the first frame, a dash until the engine has measured it.
+.mic-head__delay {
+  display: flex;
+  align-items: baseline;
+  align-self: start;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 0;
+  grid-column: 3;
+  grid-row: 2;
+  color: $text-muted;
+  font-size: $studio-text-label;
+  white-space: nowrap;
+}
+
+.mic-head__delay-label {
+  text-transform: uppercase;
+  @include tracking(0.09em);
+}
+
+// Wide enough for "120 ms" from the start, so the figure arriving moves
+// nothing.
+.mic-head__delay-value {
+  min-width: 6ch;
+  color: $text-primary;
+  font-weight: $weight-semibold;
+  text-align: right;
+
+  &.is-waiting {
+    color: $text-faint;
+    font-weight: $weight-regular;
+  }
+}
+
 // Under the mic's name: live in every app and the delay it adds, or why not.
 .mic-head__live {
   display: flex;
@@ -171,12 +206,27 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// Tabular already from the shell; fixed width so a changing number never
-// shoves the reading beside it.
+// Tabular already from the shell; as wide as the longest figure it shows
+// ("−12.3 dB"), so a changing number never shoves the reading beside it —
+// 5.5ch held "0.0 dB" and moved the next reading at every tenth past -10.
 .mic-live__value {
-  min-width: 5.5ch;
+  min-width: 8ch;
   color: $text-primary;
   text-align: right;
+}
+
+// The gate's word: both words in one cell, the one not said unseen, so the
+// slot is the longer one's width and the readings beside it never move.
+.mic-live__state {
+  display: inline-grid;
+
+  > span {
+    grid-area: 1 / 1;
+  }
+}
+
+.mic-live__state-sizer {
+  visibility: hidden;
 }
 
 .mic-live__lamp {
@@ -240,6 +290,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
     gap: 6px;
     white-space: nowrap;
   }
+}
+
+// The gate's entry keeps its place while the gate is off.
+.mic-picture__key > .is-hidden {
+  visibility: hidden;
+}
+
+.mic-picture__taken {
+  color: $text-muted;
 }
 
 .mic-picture__swatch {
@@ -379,7 +438,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   // The profile stays on the selector's line; the picture takes the next two.
-  .mic-head__sound {
+  .mic-head__sound,
+  .mic-head__delay {
     grid-column: 2;
   }
 
@@ -395,7 +455,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @container mic-page (max-width: #{$bp-md}) {
   .mic-head {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: repeat(5, auto);
+    grid-template-rows: repeat(6, auto);
   }
 
   .mic-head__sound {
@@ -405,7 +465,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
     padding-top: 6px;
   }
 
+  .mic-head__delay {
+    grid-column: 1;
+    grid-row: 4;
+    justify-content: flex-start;
+  }
+
   .mic-picture {
-    grid-row: 4 / span 2;
+    grid-row: 5 / span 2;
   }
 }

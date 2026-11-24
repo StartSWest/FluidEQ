@@ -10,6 +10,7 @@ import {
   ANALYSIS_GAME_HEADER_BYTES,
   ANALYSIS_HEADER_BYTES,
   ANALYSIS_LEGACY_HEADER_BYTES,
+  ANALYSIS_VOICE_HEADER_BYTES,
   IHostAnalysis,
 } from '../../common/dsp/analysisWire';
 import { decodeAnalysis } from './wire';
@@ -70,17 +71,21 @@ const decodeAt = (
 /**
  * Exact lengths keep malformed records from masquerading as legacy frames.
  *
- * The engine is installed apart from the app and may be one from before a
- * mic's readings (a header of 872 bytes), before Dynamics' (840), before the
- * rest of the Game filter (816), before Footsteps (784) or before the
- * De-esser (560): its record is read at the length that fits. None can be
- * mistaken for another, because a record's whole length follows from its
- * header, any two headers differ by 24 bytes or more, and the extensions are
- * 8, 16 or 20 bytes, 12 apart at most. Older engines have no output LUFS
+ * The engine is installed apart from the app and may be one from before
+ * Voice level (a header of 896 bytes), before a mic's readings (872),
+ * before Dynamics' (840), before the rest of the Game filter (816), before
+ * Footsteps (784) or before the De-esser (560): its record is read at the
+ * length that fits, its whole length following from its header and its
+ * tail of 8, 16 or 20 bytes. Headers 24 bytes or more apart cannot be
+ * confused through tails 12 apart at most. 904 and 896 are 8 apart, which
+ * an 8-byte tail after 904 against a 16-byte one after 896 would make up;
+ * no engine writes either, because every engine with those headers (1.32
+ * and later) writes the 20-byte tail. Older engines have no output LUFS
  * reading; leave it absent rather than guessing it from the current gain.
  */
 const decodeEngineAnalysis = (payload: Buffer): IHostAnalysis | undefined =>
   decodeAt(payload, ANALYSIS_HEADER_BYTES) ??
+  decodeAt(payload, ANALYSIS_VOICE_HEADER_BYTES) ??
   decodeAt(payload, ANALYSIS_DYNAMICS_HEADER_BYTES) ??
   decodeAt(payload, ANALYSIS_GAME_HEADER_BYTES) ??
   decodeAt(payload, ANALYSIS_FOOTSTEPS_HEADER_BYTES) ??

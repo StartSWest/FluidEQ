@@ -26,7 +26,15 @@ import { gateOpenness } from './micGate';
 import type { IMicLevel } from './useMicLevels';
 
 export type TMicStage =
-  'lowCut' | 'denoise' | 'gate' | 'deEsser' | 'eq' | 'dynamics' | 'maximizer';
+  | 'lowCut'
+  | 'denoise'
+  | 'gate'
+  | 'level'
+  | 'deEsser'
+  | 'eq'
+  | 'dynamics'
+  | 'reverb'
+  | 'maximizer';
 
 export const MIC_STAGES: readonly {
   id: TMicStage;
@@ -35,9 +43,14 @@ export const MIC_STAGES: readonly {
   { id: 'lowCut', labelKey: 'mic.stage.lowCut' },
   { id: 'denoise', labelKey: 'mic.stage.cleaner' },
   { id: 'gate', labelKey: 'mic.stage.gate' },
+  // After the gate, where the engine runs it (`voice_level.h`).
+  { id: 'level', labelKey: 'mic.stage.level' },
   { id: 'deEsser', labelKey: 'mic.stage.deEsser' },
   { id: 'eq', labelKey: 'mic.stage.eq' },
   { id: 'dynamics', labelKey: 'mic.stage.compressor' },
+  // After Dynamics and before the Maximizer, where the engine runs it
+  // (`reverb.h`): the limiter holds the voice and its tail together.
+  { id: 'reverb', labelKey: 'mic.stage.reverb' },
   { id: 'maximizer', labelKey: 'mic.stage.limiter' },
 ];
 
@@ -52,6 +65,8 @@ export const micStageOn = (settings: IDspSettings, stage: TMicStage) => {
       );
     case 'gate':
       return Boolean(voice?.enabled && voice.gateEnabled);
+    case 'level':
+      return Boolean(voice?.enabled && voice.levelEnabled);
     case 'denoise':
       return settings.denoise.enabled && settings.denoise.voice.enabled;
     case 'deEsser':
@@ -60,6 +75,8 @@ export const micStageOn = (settings: IDspSettings, stage: TMicStage) => {
       return settings.eq.enabled;
     case 'dynamics':
       return settings.dynamics.enabled;
+    case 'reverb':
+      return Boolean(settings.reverb?.enabled);
     default:
       return settings.maximizer.enabled;
   }
@@ -90,6 +107,9 @@ const meterValue = (
       );
     case 'gate':
       return 0.15 + 0.85 * gateOpen;
+    case 'level':
+      // How far it is lifting the voice, of the 24 dB it may.
+      return clamp(Math.abs(level.levelGainDb ?? 0) / 24);
     case 'dynamics':
       return clamp(
         -Math.min(0, (level.compressorGainDb ?? makeupDb) - makeupDb) / 12,
@@ -138,12 +158,52 @@ const GateIcon = () => (
   </svg>
 );
 
+/** A quiet level lifted to a line. */
+const LevelIcon = () => (
+  <svg
+    className="dsp-section-icon"
+    viewBox="0 0 20 20"
+    width="20"
+    height="20"
+    aria-hidden="true"
+  >
+    <path className="dsp-section-icon__frame" d="M2 6 H18" />
+    <path
+      className="dsp-section-icon__accent"
+      d="M3 16 H7 M7 16 V8 M7 8 L5 10 M7 8 L9 10 M11 16 H17"
+    />
+  </svg>
+);
+
+/** A sound and its tail dying away behind it. */
+const ReverbIcon = () => (
+  <svg
+    className="dsp-section-icon"
+    viewBox="0 0 20 20"
+    width="20"
+    height="20"
+    aria-hidden="true"
+  >
+    <path
+      className="dsp-section-icon__frame"
+      d="M8 6 V14 M11 7.5 V12.5 M14 8.5 V11.5 M17 9.5 V10.5"
+    />
+    <path className="dsp-section-icon__accent" d="M4 3 V17" />
+  </svg>
+);
+
 const StageIcon = ({ stage }: { stage: TMicStage }) => {
+  if (stage === 'reverb') {
+    return <ReverbIcon />;
+  }
   if (stage === 'lowCut') {
     return <LowCutIcon />;
   }
   if (stage === 'gate') {
     return <GateIcon />;
+  }
+  if (stage === 'level') {
+    return <LevelIcon />;
   }
   return <DspSectionIcon section={stage as TDspSection} />;
 };

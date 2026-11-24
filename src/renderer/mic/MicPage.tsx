@@ -19,6 +19,7 @@ import {
   isMicProfileId,
   micProfileGroup,
   MIC_PROFILE_IDS,
+  TMicProfileGroup,
   TMicProfileId,
 } from '../../common/mic/micProfiles';
 import type { TranslationKey } from '../../common/i18n';
@@ -41,10 +42,11 @@ import {
 } from './micRail';
 import MicStage from './MicStage';
 import MicStageRail, { micStageOn, TMicStage } from './MicStageRail';
-import MicDelayStrip from './MicDelayStrip';
+import MicDelayReadout from './MicDelayReadout';
 import MicMonitor from './MicMonitor';
 import micStageSwitch from './micStageSwitch';
 import useMicEngineHealth from './useMicEngineHealth';
+import { DspPresetScopeProvider } from '../dsp/presetScope';
 import MicVoicePicture from './MicVoicePicture';
 import MicLiveBar from './MicLiveBar';
 import useMicEffects from './useMicEffects';
@@ -72,6 +74,31 @@ const PROFILE_WORDS: Record<
   meet: { name: 'mic.profile.meet', hint: 'mic.profile.meet.hint' },
   laptop: { name: 'mic.profile.laptop', hint: 'mic.profile.laptop.hint' },
   headset: { name: 'mic.profile.headset', hint: 'mic.profile.headset.hint' },
+  singPlate: {
+    name: 'mic.profile.singPlate',
+    hint: 'mic.profile.singPlate.hint',
+  },
+  singHall: { name: 'mic.profile.singHall', hint: 'mic.profile.singHall.hint' },
+  singRoom: { name: 'mic.profile.singRoom', hint: 'mic.profile.singRoom.hint' },
+  streamAir: {
+    name: 'mic.profile.streamAir',
+    hint: 'mic.profile.streamAir.hint',
+  },
+  radio: { name: 'mic.profile.radio', hint: 'mic.profile.radio.hint' },
+  phone: { name: 'mic.profile.phone', hint: 'mic.profile.phone.hint' },
+  whisper: { name: 'mic.profile.whisper', hint: 'mic.profile.whisper.hint' },
+  megaphone: {
+    name: 'mic.profile.megaphone',
+    hint: 'mic.profile.megaphone.hint',
+  },
+};
+
+/** The profile picker's headings, by group. */
+const PROFILE_GROUP_WORDS: Record<TMicProfileGroup, TranslationKey> = {
+  use: 'mic.profile.group.use',
+  mic: 'mic.profile.group.mic',
+  singing: 'mic.profile.group.singing',
+  fx: 'mic.profile.group.fx',
 };
 
 const MicGlyph = () => (
@@ -311,9 +338,10 @@ const MicPage = () => {
                 icon: <MicGlyph />,
               }))}
               groupLabel={(group) =>
-                group === 'mic'
-                  ? t('mic.profile.group.mic')
-                  : t('mic.profile.group.use')
+                t(
+                  PROFILE_GROUP_WORDS[group as TMicProfileGroup] ??
+                    'mic.profile.group.use',
+                )
               }
               activeId={profileId ?? ''}
               onPick={(id) => {
@@ -345,13 +373,9 @@ const MicPage = () => {
               </button>
             )}
           </div>
+          <MicDelayReadout health={health} />
         </header>
 
-        {listening && (
-          <MicDelayStrip health={health}>
-            <MicMonitor key={mic.guid} stream={levels.stream} />
-          </MicDelayStrip>
-        )}
         {listening && (
           <MicLiveBar
             key={mic.guid}
@@ -363,7 +387,9 @@ const MicPage = () => {
               settings.dynamics.enabled ? settings.dynamics.makeupDb : undefined
             }
             limiterOn={settings.maximizer.enabled}
-          />
+          >
+            <MicMonitor key={mic.guid} stream={levels.stream} />
+          </MicLiveBar>
         )}
         {attached && effects === 'off' && (
           <div className="mic-notice" role="status">
@@ -407,17 +433,20 @@ const MicPage = () => {
           </div>
         )}
 
-        <MicStage
-          stage={stage}
-          settings={settings}
-          isSystemWide={isFluid}
-          lowCutKept={sound.entry.lowCutKept}
-          onPatch={sound.patch}
-          onCommit={sound.commit}
-          onSwitchLowCut={sound.switchLowCut}
-          latest={levels.latest}
-          live={live}
-        />
+        {/* The borrowed DSP cards offer the Mic tab's own presets. */}
+        <DspPresetScopeProvider scope="mic">
+          <MicStage
+            stage={stage}
+            settings={settings}
+            isSystemWide={isFluid}
+            lowCutKept={sound.entry.lowCutKept}
+            onPatch={sound.patch}
+            onCommit={sound.commit}
+            onSwitchLowCut={sound.switchLowCut}
+            latest={levels.latest}
+            live={live}
+          />
+        </DspPresetScopeProvider>
       </div>
     </div>
   );

@@ -62,8 +62,9 @@ export const ANALYSIS_BASS_FORGE_BANDS = 8;
  * gain bands append 160 bytes after that complete layout, taking it to 560,
  * the De-esser's fifty-six words 224 more, to 784, Footsteps' seven and one
  * pad float 32 more, to 816, and the Game filter's five and one pad 24 more,
- * to 840. Dynamics' tagged readings took it to 872, and a mic's gate and the
- * size of its arrival tap's long window 24 more, to 896.
+ * to 840. Dynamics' tagged readings took it to 872, a mic's gate and the
+ * size of its arrival tap's long window 24 more, to 896, and Voice level's
+ * gain and level 8 more, to 904.
  * Every pre-existing offset is untouched on purpose: this constant, the
  * publisher in `meters.cpp` and the reader in `dspHost/wire.ts` all have to
  * move in one commit, and new fields go after everything already decoded,
@@ -77,7 +78,13 @@ export const ANALYSIS_BASS_FORGE_BANDS = 8;
  * believed: three separate readers of it set out to add a check that has been
  * there since the graphs were first fed from the engine.
  */
-export const ANALYSIS_HEADER_BYTES = 896;
+export const ANALYSIS_HEADER_BYTES = 904;
+
+/**
+ * The header engine 1.32 writes: everything above, without Voice level's
+ * 8 bytes (`ENGINE_VOICE_LEVEL_SINCE`).
+ */
+export const ANALYSIS_VOICE_HEADER_BYTES = 896;
 export const ANALYSIS_GAME_HEADER_BYTES = 840;
 export const ANALYSIS_DYNAMICS_TAG = 0x314e5944;
 
@@ -245,6 +252,12 @@ export interface IHostAnalysisVoice {
   gateLevelDb: number;
   /** The gate's gain: 0 open, down to minus its range closed. */
   gateGainDb: number;
+  /**
+   * Voice level's gain, dB, and the level it heard, dBFS (engine 1.33):
+   * absent from an engine before it.
+   */
+  levelGainDb?: number;
+  levelHeardDb?: number;
   /**
    * The arrival tap's long window, its lowest `ANALYSIS_EQ_DETAIL_BINS` bins
    * in dB, in a frame that carries one beside a fresh short window.

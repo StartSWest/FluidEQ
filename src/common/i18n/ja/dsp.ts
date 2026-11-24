@@ -827,6 +827,7 @@ const dsp = {
   'dsp.scope.rawSender':
     '未処理の音声を送信しています。エフェクトは受信側のPCで適用されます。',
   'tabs.dsp': 'DSP',
+  'dsp.eqPresetGroup.mic': 'マイク',
 };
 
 export default dsp;

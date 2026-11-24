@@ -153,38 +153,60 @@ void the_limiter_holds_its_ceiling_on_a_loud_voice() {
 }
 
 void a_quiet_room_is_never_brought_up() {
-  std::printf("a quiet room goes down under a gate and never comes up\n");
+  std::printf("a quiet room is never brought up by Voice level\n");
   const std::vector<float> quiet = room(kFrames, kRoomDb);
   // Control: the room passes at its own level with no rack.
   CHECK(std::fabs(rms_db(through(no_rack(), quiet), kRate) - kRoomDb) < 0.1);
   for (const MicProfileRow& row : kMicProfiles) {
     const double out = rms_db(through(chain_of(row.line), quiet), kRate);
-    std::printf("  %-10s gate %d, room %6.2f dB\n", row.id, row.gate, out);
-    // With Dynamics lifting what is quiet, Podcast's room came out 1.2 dB
-    // under the input and Meetings' 8.8 dB over it. The makeup and the EQ's
-    // shelves still tilt white noise up by about 2.5 dB without a gate; a
-    // lift of the room as a whole is what this forbids. (The voice cleaner
-    // needs its model, which this test does not load, so a real room ends
-    // lower than these.)
+    const double off =
+        rms_db(through(chain_of(row.level_off_line), quiet), kRate);
+    std::printf("  %-10s gate %d, room %6.2f dB, Voice level off %6.2f dB "
+                "(may lift %.0f dB)\n",
+                row.id, row.gate, out, off, row.room_allowance_db);
+    // Voice level lifts a voice, never a room on its own: the room comes
+    // out no louder than through the same rack with it off.
+    CHECK(out < off + 1.0);
+    // And that rack lifts it by no more than its make-up, drive and EQ
+    // tilt: with Dynamics lifting what is quiet, Meetings' room came out
+    // 8.8 dB over the input. (The voice cleaner needs its model, which
+    // this test does not load, so a real room ends lower than these.)
     if (row.gate != 0) {
-      CHECK(out < kRoomDb - 4.0);
+      CHECK(off < kRoomDb + row.room_allowance_db - 4.0);
     } else {
-      CHECK(out < kRoomDb + 3.0);
+      CHECK(off < kRoomDb + row.room_allowance_db);
     }
   }
 }
 
-void an_ordinary_voice_passes() {
-  std::printf("an ordinary voice passes the gate and keeps its level\n");
+void a_quiet_voice_is_brought_up() {
+  std::printf("a quiet voice is brought up, and an ordinary one passes\n");
+  // Peaks at -38 dBFS: a soft talker, or a mic at arm's length — over its
+  // room, after a second of the room alone, as a mic hands a voice in.
+  // Voice level knows a voice by its standing over the room; syllables over
+  // digital silence taught its floor the voice itself, and nothing moved.
+  std::vector<float> quiet = room(kFrames, kRoomDb);
+  {
+    const std::vector<float> voice = scaled(loud_voice(kFrames), -37.6);
+    for (size_t at = kRate; at < quiet.size(); ++at) quiet[at] += voice[at];
+  }
   // Peaks at -18 dBFS: a headset mic at speaking level.
-  const std::vector<float> voice = scaled(loud_voice(kFrames), -17.6);
-  const double in = rms_db(voice, kRate);
+  const std::vector<float> ordinary = scaled(loud_voice(kFrames), -17.6);
+  const double ordinary_in = rms_db(ordinary, kRate);
   for (const MicProfileRow& row : kMicProfiles) {
-    const double out = rms_db(through(chain_of(row.line), voice), kRate);
-    std::printf("  %-10s voice %6.2f dB (in %6.2f)\n", row.id, out, in);
-    // The compressor presses it 2-4 dB; a gate closing on the voice itself
-    // takes 10 dB and more.
-    CHECK(out > in - 6.0);
+    const double lifted = rms_db(through(chain_of(row.line), quiet), 3 * kRate);
+    const double control =
+        rms_db(through(chain_of(row.level_off_line), quiet), 3 * kRate);
+    const double passed =
+        rms_db(through(chain_of(row.line), ordinary), kRate);
+    std::printf("  %-10s quiet %6.2f dB (Voice level off %6.2f), ordinary "
+                "%6.2f dB (in %6.2f)\n",
+                row.id, lifted, control, passed, ordinary_in);
+    // Every profile carries Voice level; the gentlest lifts 6 dB at most.
+    CHECK(lifted > control + 3.0);
+    // The compressor presses an ordinary voice 2-4 dB; a gate closing on
+    // the voice itself takes 10 dB and more.
+    CHECK(passed > ordinary_in - 6.0);
   }
 }
 
@@ -193,6 +215,6 @@ void an_ordinary_voice_passes() {
 int main() {
   the_limiter_holds_its_ceiling_on_a_loud_voice();
   a_quiet_room_is_never_brought_up();
-  an_ordinary_voice_passes();
+  a_quiet_voice_is_brought_up();
   return report();
 }

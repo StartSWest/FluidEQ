@@ -14,6 +14,7 @@ export const MAXIMIZER_PRESET_GROUPS = [
   'character',
   'repair',
   'gaming',
+  'mic',
 ] as const;
 
 export type TMaximizerPresetGroup = (typeof MAXIMIZER_PRESET_GROUPS)[number];
@@ -315,6 +316,41 @@ export const MAXIMIZER_PRESET_BY_ID = {
     // Midnight: loud moments held well down and a lower ceiling, slow enough
     // not to breathe on a voice.
     settings: profile(3, -3, 2, 200),
+  },
+
+  // The Mic tab's alone (`presetScope.tsx`). A mic always runs at low lag,
+  // so every one looks ahead the least the stage allows: its look-ahead is
+  // delay on every word. Voice level brings the voice up (engine 1.33), so
+  // the drive here is a little density and no more: a drive lifts the room
+  // between words exactly as much as the voice, which Voice level never
+  // does (2026-11-24, the first set drove 3 to 9 dB). The release is long
+  // enough not to breathe on a syllable and short enough to let the next
+  // word through at its level.
+  micCatch: {
+    id: 'micCatch',
+    labelKey: 'mic.preset.limiter.catch',
+    group: 'mic',
+    // Only the overs: a laugh, a cough, a shout into the capsule.
+    settings: profile(0, -3, 1, 80),
+  },
+  micCalls: {
+    id: 'micCalls',
+    labelKey: 'mic.preset.limiter.calls',
+    group: 'mic',
+    settings: profile(1, -2, 1, 100),
+  },
+  micStream: {
+    id: 'micStream',
+    labelKey: 'mic.preset.limiter.stream',
+    group: 'mic',
+    settings: profile(3, -1, 1, 120),
+  },
+  micLoud: {
+    id: 'micLoud',
+    labelKey: 'mic.preset.limiter.loud',
+    group: 'mic',
+    // Over game sound and music in the same call.
+    settings: profile(6, -1, 1, 150),
   },
 } satisfies Record<string, IMaximizerPreset>;
 

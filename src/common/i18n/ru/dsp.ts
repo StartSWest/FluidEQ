@@ -838,6 +838,7 @@ const dsp = {
   'dsp.scope.rawSender':
     'Передаётся необработанный звук. Эффекты применяются на принимающем ПК.',
   'tabs.dsp': 'DSP',
+  'dsp.eqPresetGroup.mic': 'Микрофон',
 };
 
 export default dsp;

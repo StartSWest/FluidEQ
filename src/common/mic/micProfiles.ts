@@ -9,14 +9,25 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * mic rack built from the rack's own stages, never changed by tuning (a mic
  * keeps its own copy in `mic-sound.json`).
  *
+ * Every profile is named stage presets and a tone: the low cut, cleaner,
+ * gate, Voice level and Reverb from `micStagePresets.ts`, the de-esser,
+ * compressor and limiter from the DSP catalogues' Mic group, and an EQ
+ * curve of its own. A profile picked therefore leaves every stage on a
+ * preset it can name (Ivan, 2026-11-24: each filter shows which preset it
+ * is on), as a DSP chain does with its stage profiles.
+ *
  * What every profile shares, and why:
  * - Low lag always (`gameMode`): the Maximizer at its shortest look-ahead,
  *   and the voice cleaner one device block ahead (engine 1.31).
  * - The de-esser listens to the whole voice, not the centre of a stereo
  *   picture: most mics are mono, and a stereo array's "centre" is the voice
  *   anyway.
- * - The rack's EQ carries the tone; the Voice stage the low cut, the
- *   proximity shelf, the pop guard and the gate.
+ * - Voice level does the lifting and the limiter only catches: a limiter's
+ *   drive lifts the room between words as much as the voice, and Voice
+ *   level never lifts a room on its own (`voice_level.h`). "It lowers the
+ *   volume, it makes it more gated" (Ivan, 2026-11-24) was the stock racks
+ *   pressing with nothing giving the level back, and a gate in every one.
+ * - Only Noisy room carries a gate, an expander of 12 dB.
  *
  * The values are starting points from broadcast and podcast practice, to be
  * measured on recorded voices before they are called finished.
@@ -31,160 +42,288 @@ import {
   TDynamicsPresetId,
 } from '../dsp/dynamicsPresets';
 import type { IDynamicsBand } from '../dsp/dynamicsStage';
-import { IVoiceSettings, VOICE_DEFAULTS } from '../dsp/voiceStage';
+import {
+  maximizerPresetSettings,
+  TMaximizerPresetId,
+} from '../dsp/maximizerPresets';
+import { REVERB_DEFAULTS } from '../dsp/reverbStage';
+import { VOICE_DEFAULTS } from '../dsp/voiceStage';
+import { micStagePreset, TMicPresetStage } from './micStagePresets';
 
-export const MIC_PROFILE_GROUPS = ['use', 'mic'] as const;
+export const MIC_PROFILE_GROUPS = ['use', 'mic', 'singing', 'fx'] as const;
 export type TMicProfileGroup = (typeof MIC_PROFILE_GROUPS)[number];
 
 /** [type, frequency, gain dB, Q] — the rack's own band types. */
-type TBand = readonly ['PK' | 'LSC' | 'HSC', number, number, number];
+type TBand = readonly [
+  'PK' | 'LSC' | 'HSC' | 'HPQ' | 'LPQ',
+  number,
+  number,
+  number,
+];
 
 interface IMicProfileRecipe {
   group: TMicProfileGroup;
-  voice: Partial<IVoiceSettings>;
-  /** 0 is off; otherwise how much of the voice cleaner. */
-  cleaner: number;
+  /** Stage presets by id (`micStagePresets.ts`); null is that stage off. */
+  lowCut: string;
+  cleaner: string | null;
+  gate: string | null;
+  level: string | null;
+  reverb: string | null;
+  /** The DSP catalogues' Mic group. */
   deEsser: TDeEsserPresetId | null;
-  eq: readonly TBand[];
   dynamics: TDynamicsPresetId | null;
-  /** The Maximizer's ceiling, dB, or null for none. */
-  limiter: number | null;
+  limiter: TMaximizerPresetId | null;
+  eq: readonly TBand[];
 }
 
-/**
- * Every profile's gate is an expander: 12 dB at most, under a threshold
- * set below a soft voice. The cleaner in front of it already takes the room;
- * what is left for the gate is the last of it between words. Chat and Noisy
- * closed by 30 and 40 dB at -45 and -40 dBFS, and on a quiet mic like Ivan's
- * Kraken (the room peaked at -49 dBFS) that chopped the start and end of
- * words (2026-11-22, "never cuts off"). The gate also hears ahead of the
- * cleaner now (`voice.h`), so a first consonant meets it open.
- */
-const gate = (thresholdDb: number, rangeDb: number) => ({
-  gateEnabled: true,
-  gateThresholdDb: thresholdDb,
-  gateRangeDb: rangeDb,
+/** The tones of the four that sing or talk to a room of their own. */
+const SING_EQ: readonly TBand[] = [
+  ['PK', 250, -2, 1],
+  ['PK', 5000, 1.5, 1],
+  ['HSC', 12000, 3, 0.7],
+];
+const STREAM_EQ: readonly TBand[] = [
+  ['LSC', 120, 2, 0.7],
+  ['PK', 320, -2.5, 1.2],
+  ['PK', 3500, 3, 1],
+  ['HSC', 10000, 2, 0.7],
+];
+
+const sing = (reverb: string): IMicProfileRecipe => ({
+  group: 'singing',
+  lowCut: 'deep',
+  cleaner: null,
+  gate: null,
+  level: 'gentle',
+  reverb,
+  deEsser: 'micSoft',
+  dynamics: 'micSinging',
+  limiter: 'micCatch',
+  eq: SING_EQ,
 });
 
 export const MIC_PROFILE_BY_ID = {
   stream: {
     group: 'use',
-    voice: { lowCutHz: 80, proximityDb: 2, deplosive: 0.6, ...gate(-52, 12) },
-    cleaner: 0.55,
-    deEsser: 'podcast',
-    eq: [
-      ['LSC', 120, 2, 0.7],
-      ['PK', 320, -2.5, 1.2],
-      ['PK', 3500, 3, 1],
-      ['HSC', 10000, 2, 0.7],
-    ],
-    dynamics: 'speech',
-    limiter: -1,
+    lowCut: 'speech',
+    cleaner: 'studio',
+    gate: null,
+    level: 'stream',
+    reverb: null,
+    deEsser: 'micPodcast',
+    dynamics: 'micBroadcast',
+    limiter: 'micStream',
+    eq: STREAM_EQ,
   },
   podcast: {
     group: 'use',
-    voice: { lowCutHz: 70, proximityDb: 1.5, deplosive: 0.6, ...gate(-56, 8) },
-    cleaner: 0.4,
-    deEsser: 'podcast',
+    lowCut: 'deep',
+    cleaner: 'light',
+    gate: null,
+    level: 'podcast',
+    reverb: null,
+    deEsser: 'micPodcast',
+    dynamics: 'micGentle',
+    limiter: 'micCalls',
     eq: [
       ['PK', 200, -1.5, 1],
       ['PK', 4000, 2, 1],
       ['HSC', 12000, 1.5, 0.7],
     ],
-    dynamics: 'speech',
-    limiter: -1,
   },
   chat: {
     group: 'use',
-    voice: { lowCutHz: 120, deplosive: 0.8, ...gate(-48, 12) },
-    cleaner: 0.8,
-    deEsser: 'gameCallouts',
+    lowCut: 'rumble',
+    cleaner: 'noisy',
+    gate: null,
+    level: 'stream',
+    reverb: null,
+    deEsser: 'micBright',
+    dynamics: 'micCallouts',
+    limiter: 'micLoud',
     eq: [
       ['LSC', 150, -3, 0.7],
       ['PK', 2500, 4, 0.9],
       ['HSC', 8000, -1, 0.7],
     ],
-    dynamics: 'speech',
-    limiter: -3,
   },
   sing: {
     group: 'use',
-    voice: { lowCutHz: 60, deplosive: 0.4 },
-    cleaner: 0,
-    deEsser: 'vocalMusic',
-    eq: [
-      ['PK', 250, -2, 1],
-      ['PK', 5000, 1.5, 1],
-      ['HSC', 12000, 3, 0.7],
-    ],
-    dynamics: 'vocal',
-    limiter: -1,
+    lowCut: 'deep',
+    cleaner: null,
+    gate: null,
+    level: 'gentle',
+    reverb: null,
+    deEsser: 'micSoft',
+    dynamics: 'micSinging',
+    limiter: 'micCatch',
+    eq: SING_EQ,
   },
   broadcast: {
     group: 'use',
-    voice: { lowCutHz: 75, deplosive: 0.7, ...gate(-50, 10) },
-    cleaner: 0.3,
-    deEsser: 'harshStreams',
+    lowCut: 'speech',
+    cleaner: 'light',
+    gate: null,
+    level: 'podcast',
+    reverb: null,
+    deEsser: 'micBright',
+    dynamics: 'micBroadcast',
+    limiter: 'micStream',
     eq: [
       ['LSC', 110, 3, 0.7],
       ['PK', 420, -3, 1.1],
       ['PK', 3000, 2.5, 1],
       ['HSC', 10000, 2, 0.7],
     ],
-    dynamics: 'lateNight',
-    limiter: -1,
   },
   noisy: {
     group: 'use',
-    voice: { lowCutHz: 140, deplosive: 0.8, ...gate(-46, 12) },
-    cleaner: 1,
-    deEsser: 'podcast',
+    lowCut: 'rumble',
+    cleaner: 'fan',
+    gate: 'calls',
+    level: 'calls',
+    reverb: null,
+    deEsser: 'micPodcast',
+    dynamics: 'micCallouts',
+    limiter: 'micCalls',
     eq: [
       ['PK', 3000, 3, 1],
       ['HSC', 9000, -2, 0.7],
     ],
-    dynamics: 'speech',
-    limiter: -2,
   },
   meet: {
     group: 'use',
     // Teams and Zoom clean the voice again on their side: a gentler hand
     // here, and no gate, which theirs would fight.
-    voice: { lowCutHz: 100, deplosive: 0.6 },
-    cleaner: 0.5,
+    lowCut: 'speech',
+    cleaner: 'studio',
+    gate: null,
+    level: 'calls',
+    reverb: null,
     deEsser: null,
+    dynamics: 'micGentle',
+    limiter: 'micCalls',
     eq: [
       ['PK', 2000, 2, 1],
       ['HSC', 8000, 1, 0.7],
     ],
-    dynamics: 'speech',
-    limiter: -3,
   },
   laptop: {
     group: 'mic',
-    voice: { lowCutHz: 130, deplosive: 0.4, ...gate(-50, 12) },
-    cleaner: 0.85,
-    deEsser: 'podcast',
+    // A laptop's array is far from the mouth and close to its own fan and
+    // keys: the rumble guard, the cleaner hard, and the most lift.
+    lowCut: 'rumble',
+    cleaner: 'noisy',
+    gate: null,
+    level: 'soft',
+    reverb: null,
+    deEsser: 'micPodcast',
+    dynamics: 'micGentle',
+    limiter: 'micCalls',
     eq: [
       ['LSC', 200, 3, 0.7],
       ['PK', 1200, -2, 1.2],
       ['PK', 3500, 2, 1],
     ],
-    dynamics: 'speech',
-    limiter: -2,
   },
   headset: {
     group: 'mic',
-    voice: { lowCutHz: 100, proximityDb: 4, deplosive: 0.9, ...gate(-52, 12) },
-    cleaner: 0.6,
-    deEsser: 'podcast',
+    lowCut: 'headset',
+    cleaner: 'home',
+    gate: null,
+    level: 'everyday',
+    reverb: null,
+    deEsser: 'micPodcast',
+    dynamics: 'micGentle',
+    limiter: 'micCalls',
     eq: [
       ['LSC', 180, 2.5, 0.7],
       ['PK', 2800, -1.5, 1.4],
       ['HSC', 9000, 1, 0.7],
     ],
-    dynamics: 'speech',
-    limiter: -2,
+  },
+  // Singing, each with its space (the plan's table, 2026-11-23).
+  singPlate: sing('plate'),
+  singHall: sing('hall'),
+  singRoom: sing('intimate'),
+  // Voice effects: what each does is all in the stages the tab shows.
+  streamAir: {
+    group: 'fx',
+    lowCut: 'speech',
+    cleaner: 'studio',
+    gate: null,
+    level: 'stream',
+    reverb: 'streamAir',
+    deEsser: 'micPodcast',
+    dynamics: 'micBroadcast',
+    limiter: 'micStream',
+    eq: STREAM_EQ,
+  },
+  radio: {
+    group: 'fx',
+    // An old receiver: the band of an AM broadcast and its pressed level.
+    lowCut: 'rumble',
+    cleaner: 'studio',
+    gate: null,
+    level: 'stream',
+    reverb: null,
+    deEsser: null,
+    dynamics: 'micCallouts',
+    limiter: 'micCalls',
+    eq: [
+      ['HPQ', 300, 0, 0.71],
+      ['PK', 1500, 4, 0.9],
+      ['LPQ', 3800, 0, 0.71],
+    ],
+  },
+  phone: {
+    group: 'fx',
+    // The telephone band, 300 Hz to 3.4 kHz, steep at both ends.
+    lowCut: 'rumble',
+    cleaner: 'studio',
+    gate: null,
+    level: 'calls',
+    reverb: null,
+    deEsser: null,
+    dynamics: 'micBroadcast',
+    limiter: 'micCatch',
+    eq: [
+      ['HPQ', 400, 0, 1],
+      ['HPQ', 400, 0, 1],
+      ['PK', 1800, 3, 1],
+      ['LPQ', 3400, 0, 1],
+      ['LPQ', 3400, 0, 1],
+    ],
+  },
+  whisper: {
+    group: 'fx',
+    // A whisper brought forward: pressed hard, lifted most, air on top.
+    lowCut: 'speech',
+    cleaner: 'light',
+    gate: null,
+    level: 'soft',
+    reverb: null,
+    deEsser: 'micSoft',
+    dynamics: 'micCallouts',
+    limiter: 'micCalls',
+    eq: [['HSC', 8000, 3, 0.7]],
+  },
+  megaphone: {
+    group: 'fx',
+    // A narrow, pushed middle and a short slap of room behind it.
+    lowCut: 'rumble',
+    cleaner: 'studio',
+    gate: null,
+    level: 'stream',
+    reverb: 'intimate',
+    deEsser: null,
+    dynamics: 'micCallouts',
+    limiter: 'micStream',
+    eq: [
+      ['HPQ', 600, 0, 0.9],
+      ['PK', 1700, 6, 1.2],
+      ['LPQ', 3000, 0, 0.9],
+    ],
   },
 } as const satisfies Record<string, IMicProfileRecipe>;
 
@@ -208,12 +347,12 @@ const band = ([type, frequency, gainDb, quality]: TBand): IEqBandSettings => ({
 });
 
 /**
- * A Dynamics preset pressing down only. The presets also lift what is quiet
- * (upward compression), which on music brings a soft passage forward and on
- * a live mic brings the room forward between words: through the engine's
- * graph the Meetings rack played a -62 dB room at -53, and Streaming's lift
- * took back most of what its gate had cut (`mic_profiles_test.cpp`). The
- * makeup stays: it is what keeps the pressed voice at its level.
+ * A Dynamics preset pressing down only. The music presets also lift what
+ * is quiet (upward compression), which on a live mic brings the room
+ * forward between words: through the engine's graph the Meetings rack
+ * played a -62 dB room at -53 (`mic_profiles_test.cpp`). The Mic group's
+ * own presets already lift nothing; this holds whichever is named, and
+ * keeps the preset's name so the compressor shows it.
  */
 const pressingOnly = (id: TDynamicsPresetId): IDspSettings['dynamics'] => {
   const preset = dynamicsPresetSettings(id, true);
@@ -223,7 +362,16 @@ const pressingOnly = (id: TDynamicsPresetId): IDspSettings['dynamics'] => {
     upRatio: 1,
     upMaxDb: 0,
   });
-  return { ...preset, presetId: '', bands: [flat(low), flat(mid), flat(high)] };
+  return { ...preset, bands: [flat(low), flat(mid), flat(high)] };
+};
+
+/** A stage preset's values, which the profile table names by id. */
+const stageValues = <S extends TMicPresetStage>(stage: S, id: string) => {
+  const preset = micStagePreset(stage, id);
+  if (!preset) {
+    throw new Error(`No ${stage} preset "${id}" for a mic profile`);
+  }
+  return preset.values;
 };
 
 /** The whole mic rack a profile is, every array its own. */
@@ -235,20 +383,33 @@ export const micProfileSettings = (id: TMicProfileId): IDspSettings => {
     enabled: true,
     presetId: '',
     gameMode: true,
-    voice: { ...VOICE_DEFAULTS, ...recipe.voice, enabled: true },
-    denoise:
-      recipe.cleaner > 0
-        ? {
-            ...denoise,
+    voice: {
+      ...VOICE_DEFAULTS,
+      enabled: true,
+      ...stageValues('lowCut', recipe.lowCut),
+      ...(recipe.gate
+        ? { gateEnabled: true, ...stageValues('gate', recipe.gate) }
+        : { gateEnabled: false }),
+      ...(recipe.level
+        ? { levelEnabled: true, ...stageValues('level', recipe.level) }
+        : { levelEnabled: false }),
+    },
+    denoise: recipe.cleaner
+      ? {
+          ...denoise,
+          enabled: true,
+          // The cleaner alone: the hiss reducer is for recordings, and on a
+          // live voice the cleaner already takes the room.
+          hiss: { ...denoise.hiss, enabled: false },
+          hum: { ...denoise.hum },
+          click: { ...denoise.click },
+          voice: {
+            ...denoise.voice,
             enabled: true,
-            // The cleaner alone: the hiss reducer is for recordings, and on a
-            // live voice the cleaner already takes the room.
-            hiss: { ...denoise.hiss, enabled: false },
-            hum: { ...denoise.hum },
-            click: { ...denoise.click },
-            voice: { ...denoise.voice, enabled: true, amount: recipe.cleaner },
-          }
-        : DSP_DEFAULTS.denoise,
+            amount: stageValues('denoise', recipe.cleaner).amount,
+          },
+        }
+      : DSP_DEFAULTS.denoise,
     deEsser: recipe.deEsser
       ? { ...deEsserPresetSettings(recipe.deEsser, true), centreOnly: false }
       : DSP_DEFAULTS.deEsser,
@@ -262,16 +423,15 @@ export const micProfileSettings = (id: TMicProfileId): IDspSettings => {
     dynamics: recipe.dynamics
       ? pressingOnly(recipe.dynamics)
       : DSP_DEFAULTS.dynamics,
-    maximizer:
-      recipe.limiter === null
-        ? DSP_DEFAULTS.maximizer
-        : {
-            ...DSP_DEFAULTS.maximizer,
-            enabled: true,
-            driveDb: 0,
-            ceilingDb: recipe.limiter,
-            lookAheadMs: MAXIMIZER_MIN_LOOK_AHEAD_MS,
-          },
+    maximizer: recipe.limiter
+      ? {
+          ...maximizerPresetSettings(recipe.limiter, true),
+          lookAheadMs: MAXIMIZER_MIN_LOOK_AHEAD_MS,
+        }
+      : DSP_DEFAULTS.maximizer,
+    reverb: recipe.reverb
+      ? { ...stageValues('reverb', recipe.reverb), enabled: true }
+      : { ...REVERB_DEFAULTS },
   };
 };
 
@@ -281,7 +441,8 @@ export const micProfileGroup = (id: TMicProfileId): TMicProfileGroup =>
 /**
  * What the mic adds in delay with this rack, ms, as the engine reports it:
  * the voice cleaner one 10 ms hop plus one device block (taken as 10 ms),
- * the De-esser's 2 ms look-ahead, the Maximizer's. Everything else adds none.
+ * the De-esser's 2 ms look-ahead, the Maximizer's. Everything else adds
+ * none, the Reverb included (wet only, `reverb.h`).
  */
 export const micRackDelayMs = (settings: IDspSettings): number => {
   if (!settings.enabled) {

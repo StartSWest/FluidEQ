@@ -11,6 +11,7 @@ export const DE_ESSER_PRESET_GROUPS = [
   'speech',
   'genre',
   'gaming',
+  'mic',
 ] as const;
 
 export type TDeEsserPresetGroup = (typeof DE_ESSER_PRESET_GROUPS)[number];
@@ -196,6 +197,61 @@ export const DE_ESSER_PRESET_BY_ID = {
       releaseMs: 45,
       centreOnly: true,
       keepCymbals: 0.9,
+    },
+  },
+
+  // The Mic tab's alone (`presetScope.tsx`). One voice and nothing else on
+  // the channel: no centre to listen to, and no cymbal to keep.
+  micSoft: {
+    id: 'micSoft',
+    labelKey: 'mic.preset.deEsser.soft',
+    group: 'mic',
+    settings: {
+      ...vocalMusic,
+      sensitivity: 0.4,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 4,
+      widthOct: 0.6,
+      attackMs: 1,
+      releaseMs: 70,
+      centreOnly: false,
+      keepCymbals: 0,
+    },
+  },
+  micPodcast: {
+    id: 'micPodcast',
+    labelKey: 'mic.preset.deEsser.podcast',
+    group: 'mic',
+    settings: {
+      ...vocalMusic,
+      sensitivity: 0.55,
+      lowHz: 4500,
+      highHz: 9500,
+      rangeDb: 6,
+      widthOct: 0.6,
+      attackMs: 1,
+      releaseMs: 80,
+      centreOnly: false,
+      keepCymbals: 0,
+    },
+  },
+  micBright: {
+    id: 'micBright',
+    labelKey: 'mic.preset.deEsser.bright',
+    group: 'mic',
+    // A cheap capsule's S whistles higher and harder than a voice's.
+    settings: {
+      ...vocalMusic,
+      sensitivity: 0.65,
+      lowHz: 6000,
+      highHz: 11000,
+      rangeDb: 8,
+      widthOct: 0.5,
+      attackMs: 1,
+      releaseMs: 50,
+      centreOnly: false,
+      keepCymbals: 0,
     },
   },
 } satisfies Record<string, IDeEsserPreset>;

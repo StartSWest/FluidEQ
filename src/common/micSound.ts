@@ -16,6 +16,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import { clampDspSettings, IDspSettings } from './dsp/chain';
+import { clampReverbSettings } from './dsp/reverbStage';
 import { clampVoiceSettings } from './dsp/voiceStage';
 
 export const MIC_SOUND_VERSION = 1;
@@ -78,6 +79,7 @@ export const clampMicSettings = (value: unknown): IDspSettings => {
     ...rack,
     gameMode: true,
     voice: clampVoiceSettings(isRecord(value) ? value.voice : undefined),
+    reverb: clampReverbSettings(isRecord(value) ? value.reverb : undefined),
   };
 };
 

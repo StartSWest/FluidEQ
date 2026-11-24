@@ -48,6 +48,9 @@ struct VoiceMeterWindow {
   std::atomic<float> gate_level_db{-120.0f};
   std::atomic<float> gate_gain_db{0.0f};
   std::atomic<uint32_t> active{0};
+  /** Voice level's gain and what it heard (engine 1.33). */
+  std::atomic<float> level_gain_db{0.0f};
+  std::atomic<float> level_heard_db{-120.0f};
 };
 
 /** Makes the arrival tap if it is not there yet. CONTROL thread. */

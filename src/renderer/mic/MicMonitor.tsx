@@ -7,9 +7,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * "Hear the final result": the tab's own recording of the mic, which comes
  * out of the engine after every stage - what Discord or OBS receives - played
- * to the output Windows plays through. It stands beside the delay it is heard
- * after (mockup A). The loud style while it plays, the quiet one off, and a
- * line saying to use headphones while it plays: a speaker would feed back.
+ * to the output Windows plays through, at the end of the live strip. The loud
+ * style while it plays, the quiet one off. The line saying to use headphones
+ * is there either way, quiet off and in the caution colour while it plays: a
+ * speaker would feed back, and a line that appeared on the press pushed the
+ * strip about (2026-11-24, nothing may move). The button holds the longer of
+ * its two labels for the same reason.
  */
 
 import { useEffect, useState } from 'react';
@@ -55,7 +58,10 @@ const MicMonitor = ({ stream }: IMicMonitorProps) => {
   }, [listening, stream]);
 
   return (
-    <div className="mic-monitor">
+    <div className={`mic-monitor${listening ? ' is-on' : ''}`}>
+      <span className="mic-monitor__warning" role="status">
+        {t('mic.monitor.warning')}
+      </span>
       <button
         type="button"
         className={listening ? 'button small' : 'button small subtle'}
@@ -65,13 +71,15 @@ const MicMonitor = ({ stream }: IMicMonitorProps) => {
         onClick={() => setListening((was) => !was)}
       >
         <HeadphonesGlyph />
-        {listening ? t('mic.monitor.on') : t('mic.monitor.label')}
-      </button>
-      {listening && (
-        <span className="mic-monitor__warning" role="status">
-          {t('mic.monitor.warning')}
+        <span className="mic-monitor__labels">
+          <span className={listening ? 'is-hidden' : undefined}>
+            {t('mic.monitor.label')}
+          </span>
+          <span className={listening ? undefined : 'is-hidden'}>
+            {t('mic.monitor.on')}
+          </span>
         </span>
-      )}
+      </button>
     </div>
   );
 };

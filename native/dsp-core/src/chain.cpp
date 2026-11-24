@@ -196,6 +196,7 @@ void feq_chain_settings_defaults(FeqChainSettings* settings) {
   feq_footsteps_settings_defaults(&settings->footsteps);
   feq_compander_settings_defaults(&settings->compander);
   feq_voice_settings_defaults(&settings->voice);
+  feq_reverb_settings_defaults(&settings->reverb);
   settings->eq.model_amount = 1.0;
   settings->eq.oversample = 1;
   // The cookbook, which is what every test and fixture was built against;
@@ -402,6 +403,8 @@ FeqChain* feq_chain_create(double sample_rate,
   // And a rack missing Voice.
   chain->voice = feq_voice_create(sample_rate, chain->channels);
   feq_voice_set_max_frames(chain->voice, chain->max_frames);
+  // And a rack missing the Reverb.
+  chain->reverb = feq_reverb_create(sample_rate, chain->channels);
 
   // Both sets, so the first published one is complete and the spare is not a
   // half-built rack waiting to be swapped in.
@@ -459,6 +462,8 @@ void feq_chain_destroy(FeqChain* chain) {
   chain->compander = nullptr;
   feq_voice_destroy(chain->voice);
   chain->voice = nullptr;
+  feq_reverb_destroy(chain->reverb);
+  chain->reverb = nullptr;
   delete chain;
 }
 
@@ -540,6 +545,7 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
   chain_configure_footsteps(chain);
   feq_compander_configure(chain->compander, &chain->settings.compander);
   feq_voice_configure(chain->voice, &chain->settings.voice);
+  feq_reverb_configure(chain->reverb, &chain->settings.reverb);
   // A rack that becomes a mic's after its meters were set.
   if (chain->settings.voice.enabled != 0 && chain->meters != nullptr) {
     feq_meters_prepare_voice(chain->meters);
@@ -770,6 +776,8 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
   feq_compander_reset(chain->compander);
   // The gate starts open and the pop guard level, as on a fresh mic.
   feq_voice_reset(chain->voice);
+  // A tail belongs to the passage it followed.
+  feq_reverb_reset(chain->reverb);
 
   if (reason != FEQ_CHAIN_RESET_SEEK) {
     /**

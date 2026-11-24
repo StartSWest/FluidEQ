@@ -841,6 +841,7 @@ const dsp = {
   'dsp.scope.rawSender':
     'L’audio viene inviato senza elaborazione. Gli effetti vengono applicati sul PC ricevente.',
   'tabs.dsp': 'DSP',
+  'dsp.eqPresetGroup.mic': 'Microfono',
 };
 
 export default dsp;

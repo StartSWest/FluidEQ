@@ -31,6 +31,7 @@ import { Dial, ProcessorCard } from '../dsp/DspControls';
 import useVoiceModel from '../dsp/useVoiceModel';
 import { useTranslation } from '../utils/I18nContext';
 import MicNoiseLive from './MicNoiseLive';
+import MicPresetBar from './MicPresetBar';
 import micStageSwitch from './micStageSwitch';
 import type { IMicLevel } from './useMicLevels';
 
@@ -109,6 +110,29 @@ const MicCleanerCard = ({
         onPatch(micStageSwitch('denoise', settings));
         onCommit();
       }}
+      toolbar={
+        <MicPresetBar
+          stage="denoise"
+          values={denoise.voice}
+          hint={(each) => `${Math.round(each.amount * 100)}%`}
+          onPick={({ amount }) => {
+            // On, as a DSP stage's pick starts it: the cleaner's own switch
+            // with the amount, and the stage around it.
+            const switched = on
+              ? settings
+              : micStageSwitch('denoise', settings);
+            const next = switched.denoise ?? denoise;
+            onPatch({
+              denoise: {
+                ...next,
+                presetId: '',
+                voice: { ...next.voice, amount },
+              },
+            });
+            onCommit();
+          }}
+        />
+      }
     >
       <MicNoiseLive on={on} live={live} latest={latest} />
       <div className="dsp-band mic-cleaner__band">

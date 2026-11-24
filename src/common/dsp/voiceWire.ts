@@ -9,6 +9,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * Dynamics' and before the preset's curve, written only while the stage is
  * on. `FEQ_CHAIN_VOICE_*` in `chain.h` is the other half; an engine before
  * 1.31 refuses a line with it, so `lineForEngine` takes it off for one.
+ *
+ * Schema 2 (engine 1.33) adds Voice level after the gate: its switch, target
+ * and most lift. An engine from 1.31 to 1.32 refuses schema 2, so
+ * `voiceWithoutLevel` writes it schema 1 for one, and the mic plays without
+ * Voice level rather than without its whole rack.
  */
 
 import { IVoiceSettings, VOICE_RANGES } from './voiceStage';
@@ -17,11 +22,14 @@ export const CHAIN_VOICE_TAG = 1448036675; // ASCII VOIC
 export const CHAIN_VOICE_SCHEMA = 1;
 export const CHAIN_VOICE_FIELDS = 10;
 export const CHAIN_VOICE_TRAILER = 13;
+export const CHAIN_VOICE_LEVEL_SCHEMA = 2;
+export const CHAIN_VOICE_LEVEL_FIELDS = 13;
+export const CHAIN_VOICE_LEVEL_TRAILER = 16;
 
 export const voiceTrailer = (voice: IVoiceSettings): number[] => [
   CHAIN_VOICE_TAG,
-  CHAIN_VOICE_SCHEMA,
-  CHAIN_VOICE_FIELDS,
+  CHAIN_VOICE_LEVEL_SCHEMA,
+  CHAIN_VOICE_LEVEL_FIELDS,
   voice.enabled ? 1 : 0,
   voice.lowCutHz,
   voice.proximityDb,
@@ -32,7 +40,19 @@ export const voiceTrailer = (voice: IVoiceSettings): number[] => [
   voice.gateHoldMs,
   voice.gateAttackMs,
   voice.gateReleaseMs,
+  voice.levelEnabled ? 1 : 0,
+  voice.levelTargetDb,
+  voice.levelMaxLiftDb,
 ];
+
+/** How long the Voice trailer starting at `at` is, by its schema. */
+export const voiceTrailerLength = (
+  values: readonly number[],
+  at: number,
+): number =>
+  values[at + 1] === CHAIN_VOICE_LEVEL_SCHEMA
+    ? CHAIN_VOICE_LEVEL_TRAILER
+    : CHAIN_VOICE_TRAILER;
 
 const within = (value: number, range: { min: number; max: number }) =>
   value >= range.min && value <= range.max;
@@ -42,16 +62,25 @@ export const isVoiceTrailer = (
   values: readonly number[],
   at: number,
 ): boolean => {
+  if (values[at] !== CHAIN_VOICE_TAG) {
+    return false;
+  }
+  const level = values[at + 1] === CHAIN_VOICE_LEVEL_SCHEMA;
+  const r = VOICE_RANGES;
+  const flag = (value: number) => value === 0 || value === 1;
   if (
-    values[at] !== CHAIN_VOICE_TAG ||
-    values.length < at + CHAIN_VOICE_TRAILER ||
-    values[at + 1] !== CHAIN_VOICE_SCHEMA ||
-    values[at + 2] !== CHAIN_VOICE_FIELDS
+    level
+      ? values.length < at + CHAIN_VOICE_LEVEL_TRAILER ||
+        values[at + 2] !== CHAIN_VOICE_LEVEL_FIELDS ||
+        !flag(values[at + 13]) ||
+        !within(values[at + 14], r.levelTargetDb) ||
+        !within(values[at + 15], r.levelMaxLiftDb)
+      : values.length < at + CHAIN_VOICE_TRAILER ||
+        values[at + 1] !== CHAIN_VOICE_SCHEMA ||
+        values[at + 2] !== CHAIN_VOICE_FIELDS
   ) {
     return false;
   }
-  const r = VOICE_RANGES;
-  const flag = (value: number) => value === 0 || value === 1;
   const lowCut = values[at + 4];
   return (
     flag(values[at + 3]) &&
@@ -66,3 +95,22 @@ export const isVoiceTrailer = (
     within(values[at + 12], r.gateReleaseMs)
   );
 };
+
+/**
+ * A schema 2 Voice trailer at `at` written as schema 1: the line an engine
+ * before Voice level reads. Any other line comes back as it was.
+ */
+export const voiceWithoutLevelAt = (
+  values: readonly number[],
+  at: number,
+): number[] =>
+  values[at] === CHAIN_VOICE_TAG && values[at + 1] === CHAIN_VOICE_LEVEL_SCHEMA
+    ? [
+        ...values.slice(0, at),
+        CHAIN_VOICE_TAG,
+        CHAIN_VOICE_SCHEMA,
+        CHAIN_VOICE_FIELDS,
+        ...values.slice(at + 3, at + CHAIN_VOICE_TRAILER),
+        ...values.slice(at + CHAIN_VOICE_LEVEL_TRAILER),
+      ]
+    : [...values];
