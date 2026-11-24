@@ -3,29 +3,25 @@ import type { IGalleryScene } from 'common/plusGallery';
 import useReducedMotion from '../utils/useReducedMotion';
 
 /**
- * A gallery card's published clip, played while the card is hovered or
- * focused (Ivan, 2026-11-13: "add hover and play the video only not the
- * scene"). The ten silent, watermarked seconds the Studio recorded when the
- * scene was published — never the scene itself: a hover starts no scene
- * worker and no GL context, on a card or anywhere else.
+ * A published scene's clip: the ten silent, watermarked seconds the Studio
+ * recorded when the scene was published (Ivan, 2026-11-13: "add hover and
+ * play the video only not the scene") - never the scene itself, so a
+ * playing card or tile starts no scene worker and no GL context. Which of
+ * them play is `clipSlots.tsx`'s: those in view, within a bound.
  *
  * Cheap by construction, because a grid can hold sixty cards:
- * - nothing is asked for until a card is hovered, and the answer is used only
- *   if the card is still the one hovered when it lands — a pointer that only
- *   passed over leaves nothing playing, without a timer to guess how long
- *   "passing" is;
- * - one card plays at a time: hovering or focusing another stops the first;
- * - leaving a card drops its video and revokes its bytes, so a long grid never
- *   holds a decoder per card;
+ * - nothing is asked for until a tile may play, and the answer is used only
+ *   if it still may when it lands - a tile that only passed through the view
+ *   leaves nothing playing, without a timer to guess how long "passing" is;
+ * - a tile that stops playing drops its video and revokes its bytes, so a
+ *   long grid never holds a decoder per card;
  * - a scene that has no clip (published before clips, or an official one
- *   without) is remembered as such for this account and session, so hovering
- *   it again asks nothing.
- * Main keeps every clip it fetched on disk by version, so a card hovered twice
+ *   without) is remembered as such for this account and session, so it is
+ *   not asked again and takes no slot.
+ * Main keeps every clip it fetched on disk by version, so a clip seen twice
  * downloads once.
  */
 
-/** Which card holds the one playing slot; each card's own token. */
-let holder: symbol | undefined;
 const listeners = new Set<() => void>();
 
 const announce = () => listeners.forEach((listener) => listener());
@@ -35,24 +31,6 @@ const subscribe = (listener: () => void) => {
   return () => {
     listeners.delete(listener);
   };
-};
-
-const currentHolder = () => holder;
-
-/** The card takes the playing slot; whichever had it stops. */
-export const claimCardClip = (card: symbol) => {
-  if (holder !== card) {
-    holder = card;
-    announce();
-  }
-};
-
-/** The card gives the slot up, if it still has it. */
-export const releaseCardClip = (card: symbol) => {
-  if (holder === card) {
-    holder = undefined;
-    announce();
-  }
 };
 
 /** Scenes asked for and found to have no clip, by account and version. */
@@ -65,9 +43,8 @@ const clipKey = (
 
 /**
  * Whether the scene was asked for and found to have no clip, as a value that
- * changes when the answer lands: a look picker tile holding one of the few
- * clip slots gives it up for a tile with something to play
- * (`lookTileClips.tsx`).
+ * changes when the answer lands: a tile holding one of the few clip slots
+ * gives it up for one with something to play (`clipSlots.tsx`).
  */
 export const useKnownWithoutClip = (
   scene: Pick<ISceneClipRef, 'authorId' | 'sceneId' | 'version'> | undefined,
@@ -78,9 +55,8 @@ export const useKnownWithoutClip = (
     () => scene !== undefined && withoutClip.has(clipKey(me, scene)),
   );
 
-/** For tests: forget the slot and every remembered "no clip". */
+/** For tests: forget every remembered "no clip". */
 export const resetCardClips = () => {
-  holder = undefined;
   withoutClip.clear();
   announce();
 };
@@ -100,7 +76,7 @@ export interface ISceneClipRef {
  * active, used only if still active when it lands, and revoked the moment
  * any of that stops being true - so nothing that only passed by keeps a
  * clip, without a timer to guess how long passing takes. A gallery card and
- * a look picker tile both play through it (`useCardClip`, `lookTileClips.tsx`).
+ * a look picker tile both play through it (`GalleryCard`, `lookTileClips.tsx`).
  */
 export const useSceneClip = (
   scene: ISceneClipRef | undefined,
@@ -160,19 +136,4 @@ export const useSceneClip = (
   }, [active, reduced, me, authorId, sceneId, version, updatedAt]);
 
   return url;
-};
-
-/**
- * The clip's object URL while this card is hovered or focused, holds the
- * playing slot, motion is welcome and the scene has a clip; undefined
- * otherwise.
- */
-export const useCardClip = (
-  scene: Pick<IGalleryScene, 'authorId' | 'sceneId' | 'version' | 'updatedAt'>,
-  me: string | undefined,
-  card: symbol,
-  wanted: boolean,
-): string | undefined => {
-  const playing = useSyncExternalStore(subscribe, currentHolder) === card;
-  return useSceneClip(scene, me, wanted && playing);
 };

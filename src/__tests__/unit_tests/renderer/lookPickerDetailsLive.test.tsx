@@ -107,7 +107,13 @@ const ScrollerObserver = jest.fn((report: IntersectionObserverCallback) => ({
   observe: (element: Element) => {
     observed.set(element, report);
     report(
-      [{ target: element, isIntersecting: true } as IntersectionObserverEntry],
+      [
+        {
+          target: element,
+          isIntersecting: true,
+          intersectionRatio: 1,
+        } as IntersectionObserverEntry,
+      ],
       {} as IntersectionObserver,
     );
   },
@@ -123,7 +129,13 @@ const scrollOut = (element: Element) => {
   }
   act(() =>
     report(
-      [{ target: element, isIntersecting: false } as IntersectionObserverEntry],
+      [
+        {
+          target: element,
+          isIntersecting: false,
+          intersectionRatio: 0,
+        } as IntersectionObserverEntry,
+      ],
       {} as IntersectionObserver,
     ),
   );

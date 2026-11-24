@@ -14,14 +14,21 @@ export type TWatchTile = (
 ) => () => void;
 
 /**
- * Whether each tile is in the scroller it sits in (`[data-look-picker-
- * scroll]`), on one observer for the grid. Made on the first tile watched,
+ * Whether each tile is in the scroller it sits in - the look picker's
+ * (`[data-look-picker-scroll]`) unless another is named, as the Gallery's
+ * is - on one observer for the grid. Made on the first tile watched,
  * whose own place says which scroller that is: the tiles watch before the
  * grid's effects run. The standard looks' live drawings (`LookStyleGrid`)
- * and the scenes' clips (`lookTileClips.tsx`) both go by it. Where there
- * is no observer at all, a tile is in view.
+ * and the scenes' clips (`clipSlots.tsx`) both go by it. Where there
+ * is no observer at all, a tile is in view. With `share`, a tile is in view
+ * only once that much of it shows: a clip is a decoder, and one spent on a
+ * tile whose picture has scrolled off, its caption alone left, plays to
+ * nobody while a whole tile under it waits.
  */
-export const createTileWatcher = () => {
+export const createTileWatcher = (
+  scroller = '[data-look-picker-scroll]',
+  share = 0,
+) => {
   let observer: IntersectionObserver | undefined;
   const listeners = new Map<Element, (inView: boolean) => void>();
   const watch: TWatchTile = (element, onChange) => {
@@ -33,9 +40,14 @@ export const createTileWatcher = () => {
       observer = new IntersectionObserver(
         (entries) =>
           entries.forEach((entry) =>
-            listeners.get(entry.target)?.(entry.isIntersecting),
+            listeners.get(entry.target)?.(
+              entry.isIntersecting && entry.intersectionRatio >= share,
+            ),
           ),
-        { root: element.closest('[data-look-picker-scroll]') },
+        {
+          root: element.closest(scroller),
+          ...(share > 0 ? { threshold: [0, share] } : {}),
+        },
       );
     }
     listeners.set(element, onChange);

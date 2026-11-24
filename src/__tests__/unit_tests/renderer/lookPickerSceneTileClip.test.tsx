@@ -47,10 +47,8 @@ import '@testing-library/jest-dom';
 import { act, render, waitFor } from '@testing-library/react';
 import { LookPickerSceneTile } from '../../../renderer/graph/LookPickerTiles';
 import type { IPlusRow } from '../../../renderer/graph/lookPickerRows';
-import {
-  SceneClipScope,
-  forgetClipDecoder,
-} from '../../../renderer/graph/lookTileClips';
+import { SceneClipScope } from '../../../renderer/graph/lookTileClips';
+import { forgetClipDecoder } from '../../../renderer/plus/clipSlots';
 import { resetLookThumbnails } from '../../../renderer/graph/lookThumbnails';
 import { resetCardClips } from '../../../renderer/plus/cardClip';
 import { applyMotionPreference } from '../../../renderer/utils/motionPreference';
@@ -91,7 +89,13 @@ const revokeUrl = jest.fn();
 const InView = jest.fn((report: IntersectionObserverCallback) => ({
   observe: (element: Element) =>
     report(
-      [{ target: element, isIntersecting: true } as IntersectionObserverEntry],
+      [
+        {
+          target: element,
+          isIntersecting: true,
+          intersectionRatio: 1,
+        } as IntersectionObserverEntry,
+      ],
       {} as IntersectionObserver,
     ),
   unobserve: () => undefined,

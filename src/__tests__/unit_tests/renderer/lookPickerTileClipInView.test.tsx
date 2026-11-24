@@ -51,10 +51,8 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { LookPickerSceneTile } from '../../../renderer/graph/LookPickerTiles';
-import {
-  SceneClipScope,
-  forgetClipDecoder,
-} from '../../../renderer/graph/lookTileClips';
+import { SceneClipScope } from '../../../renderer/graph/lookTileClips';
+import { forgetClipDecoder } from '../../../renderer/plus/clipSlots';
 import type { IPlusRow } from '../../../renderer/graph/lookPickerRows';
 /* eslint-enable import/first */
 
@@ -79,7 +77,13 @@ const ScrollerObserver = jest.fn((report: IntersectionObserverCallback) => ({
   observe: (element: Element) => {
     observed.set(element, report);
     report(
-      [{ target: element, isIntersecting: true } as IntersectionObserverEntry],
+      [
+        {
+          target: element,
+          isIntersecting: true,
+          intersectionRatio: 1,
+        } as IntersectionObserverEntry,
+      ],
       {} as IntersectionObserver,
     );
   },
@@ -90,7 +94,8 @@ const ScrollerObserver = jest.fn((report: IntersectionObserverCallback) => ({
 const itemAt = (index: number) =>
   document.querySelectorAll('.look-picker__item')[index];
 
-const scroll = (index: number, isIntersecting: boolean) => {
+/** Scrolls tile `index` so that `shown` of it is in the scroller. */
+const scrollTo = (index: number, shown: number) => {
   const element = itemAt(index);
   const report = element && observed.get(element);
   if (!element || !report) {
@@ -98,11 +103,20 @@ const scroll = (index: number, isIntersecting: boolean) => {
   }
   act(() =>
     report(
-      [{ target: element, isIntersecting } as IntersectionObserverEntry],
+      [
+        {
+          target: element,
+          isIntersecting: shown > 0,
+          intersectionRatio: shown,
+        } as IntersectionObserverEntry,
+      ],
       {} as IntersectionObserver,
     ),
   );
 };
+
+const scroll = (index: number, inView: boolean) =>
+  scrollTo(index, inView ? 1 : 0);
 
 const picker = (count: number) =>
   render(
@@ -168,6 +182,16 @@ it('plays the clip of every scene in view, and stops one scrolled out', async ()
   // Its picture stays under it all along.
   expect(screen.getAllByTestId('picture')).toHaveLength(3);
   scroll(1, true);
+  expect(playing()).toEqual(['s0', 's1', 's2']);
+});
+
+it('gives no slot to a tile less than half shown, and one to a tile more than half', async () => {
+  picker(3);
+  await decoderAnswers();
+  // Scrolled so that its caption alone is left: its picture is gone.
+  scrollTo(0, 0.3);
+  expect(playing()).toEqual(['s1', 's2']);
+  scrollTo(0, 0.6);
   expect(playing()).toEqual(['s0', 's1', 's2']);
 });
 
