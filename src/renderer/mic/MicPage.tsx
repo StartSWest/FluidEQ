@@ -321,7 +321,7 @@ const MicPage = () => {
             key={mic.guid}
             latest={levels.latest}
             live={live}
-            gateDb={gateDb}
+            gateRangeDb={gateDb === undefined ? undefined : voice?.gateRangeDb}
             cleanerOn={micStageOn(settings, 'denoise')}
             makeupDb={
               settings.dynamics.enabled ? settings.dynamics.makeupDb : undefined

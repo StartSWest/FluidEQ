@@ -129,17 +129,49 @@ export default {
   'mic.cleaner.description':
     'Takes keyboards, fans and the room out from under your voice, as you speak.',
   'mic.cleaner.strength': 'Strength',
-  'mic.cleaner.noiseNow': 'Noise taken now',
-  'mic.cleaner.noiseHint':
-    'How far the room sits under your voice after cleaning; the faint line is the most taken in the last few seconds. Past 80% a voice starts to sound processed.',
   'mic.cleaner.neverCuts': 'Never cuts',
   'mic.cleaner.neverCutsHint':
     'If the model is ever late, the voice keeps the level of the last cleaned moment and is joined without a click, never the raw room. Late moments are counted here.',
   'mic.cleaner.lateMinute': 'late blocks in the last minute',
   'mic.gate.live.title': 'Your voice against the gate',
   'mic.gate.live.hint':
-    'The bar is your voice now. Under the line the gate turns it down; it closes again a little lower, so a voice on the line does not chatter.',
-  'mic.gate.live.open': 'Open — your voice is {db} dB over the gate.',
-  'mic.gate.live.closed': 'Closed — your voice is {db} dB under the gate.',
+    'Drag the line up or down. The grey stretches are where the gate held the room down.',
   'mic.gate.live.opens': 'opens {db} dB',
+  'mic.live.ago': '−{seconds} s',
+  'mic.live.now': 'now',
+  'mic.gate.live.stateOpen': 'Open',
+  'mic.gate.live.stateClosed': 'Closed',
+  'mic.gate.live.waiting': 'Waiting for your voice',
+  'mic.gate.live.keyLevel': 'What the gate hears',
+  'mic.gate.live.keyClosed': 'Held down',
+  'mic.gate.live.keyOpens': 'Opens',
+  'mic.gate.live.keyCloses': 'Closes',
+  'mic.gate.live.label':
+    'The level the gate hears over the last five seconds, against where it opens and where it closes',
+  'mic.gate.live.openShare': 'Open, last {seconds} s',
+  'mic.lowCut.live.title': 'Where your voice sits',
+  'mic.lowCut.live.keyKept': 'Your voice, kept',
+  'mic.lowCut.live.keyTaken': 'Taken away',
+  'mic.lowCut.live.keyCut': 'The cut',
+  'mic.lowCut.live.label':
+    'Your voice as it arrives, with what the low cut takes away',
+  'mic.lowCut.live.chip': '{hz} Hz · {slope} dB/oct',
+  'mic.lowCut.live.hum': 'hum {hz} Hz',
+  'mic.lowCut.live.taken': 'Rumble taken now',
+  'mic.lowCut.live.lowest': 'Lowest note of your voice',
+  'mic.lowCut.live.hint':
+    'Drag the dot left or right, and keep it under your lowest note.',
+  'mic.cleaner.live.title': 'Voice and room, now',
+  'mic.cleaner.live.keyBefore': 'What the mic hears',
+  'mic.cleaner.live.keyAfter': 'After cleaning',
+  'mic.cleaner.live.label':
+    'Your voice and your room before and after the cleaner',
+  'mic.cleaner.live.roomBefore': 'Room before',
+  'mic.cleaner.live.roomAfter': 'Room after',
+  'mic.cleaner.live.taken': 'Room taken',
+  'mic.cleaner.live.over': 'Voice over the room',
+  'mic.cleaner.live.hint':
+    'Grey is your room as the mic hears it; the colour is what the cleaner leaves.',
+  'mic.cleaner.strengthHint':
+    'How much of the room the cleaner takes. Past 80% a voice starts to sound processed.',
 };

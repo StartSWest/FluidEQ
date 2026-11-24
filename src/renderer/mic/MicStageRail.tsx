@@ -21,7 +21,8 @@ import DspSectionIcon from '../dsp/DspSectionIcon';
 import type { TDspSection } from '../dsp/sections';
 import { useTranslation } from '../utils/I18nContext';
 import Switch from '../widgets/Switch';
-import { GATE_HYSTERESIS_DB, toDb } from './MicLiveBar';
+import { toDb } from './MicLiveBar';
+import { gateOpenness } from './micGate';
 import type { IMicLevel } from './useMicLevels';
 
 export type TMicStage =
@@ -77,15 +78,18 @@ const METER_EVERY = 6;
 const meterValue = (
   stage: TMicStage,
   level: IMicLevel,
-  gateOpen: boolean,
+  /** How open the gate is by its own gain, 0 to 1 (`micGate.ts`). */
+  gateOpen: number,
   makeupDb: number,
 ): number => {
   const clamp = (value: number) => Math.min(1, Math.max(0, value));
   switch (stage) {
     case 'denoise':
-      return clamp(-level.noiseTakenDb / 30);
+      return clamp(
+        level.room ? (level.room.beforeDb - level.room.afterDb) / 30 : 0,
+      );
     case 'gate':
-      return gateOpen ? 1 : 0.15;
+      return 0.15 + 0.85 * gateOpen;
     case 'dynamics':
       return clamp(
         -Math.min(0, (level.compressorGainDb ?? makeupDb) - makeupDb) / 12,
@@ -173,9 +177,9 @@ const MicStageRail = ({
 }: IMicStageRailProps) => {
   const { t } = useTranslation();
   const meters = useRef<Partial<Record<TMicStage, HTMLSpanElement | null>>>({});
-  const gateDb =
+  const gateRangeDb =
     settings.voice?.enabled && settings.voice.gateEnabled
-      ? settings.voice.gateThresholdDb
+      ? settings.voice.gateRangeDb
       : undefined;
   const { makeupDb } = settings.dynamics;
 
@@ -184,16 +188,18 @@ const MicStageRail = ({
   useEffect(() => {
     const history: Partial<Record<TMicStage, number[]>> = {};
     let frame = 0;
-    let open = false;
+    let open = 0;
     let animation = 0;
     const draw = () => {
       frame += 1;
       const level = latest.current;
       if (live && level && frame % METER_EVERY === 0) {
-        if (gateDb !== undefined) {
-          const input = toDb(level.input);
-          open = open ? input > gateDb - GATE_HYSTERESIS_DB : input > gateDb;
-        }
+        // The gate's own gain (engine 1.32), never the mic's level, which
+        // still carries the room the cleaner takes before the gate hears it.
+        open =
+          gateRangeDb !== undefined && level.gateGainDb !== undefined
+            ? gateOpenness(level.gateGainDb, gateRangeDb)
+            : 0;
         MIC_STAGES.forEach(({ id }) => {
           const bars = meters.current[id];
           if (!bars) {
@@ -218,7 +224,7 @@ const MicStageRail = ({
     };
     animation = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(animation);
-  }, [latest, live, gateDb, makeupDb]);
+  }, [latest, live, gateRangeDb, makeupDb]);
 
   const delayText = (id: TMicStage, on: boolean) => {
     // Off is no delay and no sound change: a dash, not a measurement.

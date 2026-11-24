@@ -129,17 +129,47 @@ export default {
   'mic.cleaner.description':
     'आपके बोलते समय आवाज़ के नीचे से कीबोर्ड, पंखे और कमरे की आवाज़ हटाता है।',
   'mic.cleaner.strength': 'ताक़त',
-  'mic.cleaner.noiseNow': 'अभी हटाया गया शोर',
-  'mic.cleaner.noiseHint':
-    'सफ़ाई के बाद कमरा आपकी आवाज़ से कितना नीचे है; हल्की रेखा पिछले कुछ सेकंड का सबसे ज़्यादा है। 80% से ऊपर आवाज़ प्रोसेस की हुई लगने लगती है।',
   'mic.cleaner.neverCuts': 'कभी नहीं कटता',
   'mic.cleaner.neverCutsHint':
     'अगर मॉडल कभी देर करे, तो आवाज़ आख़िरी साफ़ पल का स्तर रखती है और बिना क्लिक जुड़ती है, कभी कच्चे कमरे के साथ नहीं। ऐसे पल यहाँ गिने जाते हैं।',
   'mic.cleaner.lateMinute': 'पिछले मिनट में देर से आए ब्लॉक',
   'mic.gate.live.title': 'गेट के सामने आपकी आवाज़',
   'mic.gate.live.hint':
-    'पट्टी अभी आपकी आवाज़ है। रेखा के नीचे गेट उसे धीमा करता है; वह थोड़ा नीचे जाकर फिर बंद होता है, ताकि रेखा पर रुकी आवाज़ से वह काँपे नहीं।',
-  'mic.gate.live.open': 'खुला — आपकी आवाज़ गेट से {db} dB ऊपर है।',
-  'mic.gate.live.closed': 'बंद — आपकी आवाज़ गेट से {db} dB नीचे है।',
+    'रेखा को ऊपर या नीचे खींचें। धूसर हिस्से वे हैं जहाँ गेट ने कमरे की आवाज़ दबाई।',
   'mic.gate.live.opens': '{db} dB पर खुलता है',
+  'mic.live.ago': '−{seconds} से.',
+  'mic.live.now': 'अभी',
+  'mic.gate.live.stateOpen': 'खुला',
+  'mic.gate.live.stateClosed': 'बंद',
+  'mic.gate.live.waiting': 'आपकी आवाज़ की प्रतीक्षा',
+  'mic.gate.live.keyLevel': 'गेट क्या सुनता है',
+  'mic.gate.live.keyClosed': 'दबाया गया',
+  'mic.gate.live.keyOpens': 'खुलता है',
+  'mic.gate.live.keyCloses': 'बंद होता है',
+  'mic.gate.live.label':
+    'पिछले पाँच सेकंड में गेट जो स्तर सुनता है, जहाँ वह खुलता और बंद होता है उसके सामने',
+  'mic.gate.live.openShare': 'खुला, पिछले {seconds} से.',
+  'mic.lowCut.live.title': 'आपकी आवाज़ कहाँ है',
+  'mic.lowCut.live.keyKept': 'आपकी आवाज़, रखी गई',
+  'mic.lowCut.live.keyTaken': 'हटाया गया',
+  'mic.lowCut.live.keyCut': 'कट',
+  'mic.lowCut.live.label': 'आपकी आवाज़ जैसी आती है, और लो कट क्या हटाता है',
+  'mic.lowCut.live.chip': '{hz} Hz · {slope} dB/ऑक्टेव',
+  'mic.lowCut.live.hum': 'हम {hz} Hz',
+  'mic.lowCut.live.taken': 'अभी हटाई गई गड़गड़ाहट',
+  'mic.lowCut.live.lowest': 'आपकी आवाज़ का सबसे नीचा सुर',
+  'mic.lowCut.live.hint':
+    'बिंदु को बाएँ या दाएँ खींचें, और उसे अपने सबसे नीचे सुर से नीचे रखें।',
+  'mic.cleaner.live.title': 'आवाज़ और कमरा, अभी',
+  'mic.cleaner.live.keyBefore': 'माइक क्या सुनता है',
+  'mic.cleaner.live.keyAfter': 'सफ़ाई के बाद',
+  'mic.cleaner.live.label': 'सफ़ाई से पहले और बाद आपकी आवाज़ और आपका कमरा',
+  'mic.cleaner.live.roomBefore': 'कमरा पहले',
+  'mic.cleaner.live.roomAfter': 'कमरा बाद में',
+  'mic.cleaner.live.taken': 'हटाया गया कमरा',
+  'mic.cleaner.live.over': 'कमरे से ऊपर आवाज़',
+  'mic.cleaner.live.hint':
+    'धूसर आपका कमरा है जैसा माइक सुनता है; रंग वह है जो सफ़ाई छोड़ती है।',
+  'mic.cleaner.strengthHint':
+    'सफ़ाई कमरे का कितना हिस्सा हटाती है। 80% से ऊपर आवाज़ प्रोसेस की हुई लगने लगती है।',
 };

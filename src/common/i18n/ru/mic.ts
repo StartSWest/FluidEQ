@@ -134,17 +134,48 @@ export default {
   'mic.cleaner.description':
     'Убирает клавиатуру, вентиляторы и комнату из-под голоса, пока вы говорите.',
   'mic.cleaner.strength': 'Сила',
-  'mic.cleaner.noiseNow': 'Убрано шума сейчас',
-  'mic.cleaner.noiseHint':
-    'Насколько комната ниже голоса после очистки; бледная линия — максимум за последние секунды. Выше 80% голос начинает звучать обработанным.',
   'mic.cleaner.neverCuts': 'Никогда не обрывает',
   'mic.cleaner.neverCutsHint':
     'Если модель опоздает, голос сохраняет уровень последнего очищенного момента и стыкуется без щелчка, а не сырым шумом комнаты. Такие моменты считаются здесь.',
   'mic.cleaner.lateMinute': 'опоздавших блоков за последнюю минуту',
   'mic.gate.live.title': 'Ваш голос и гейт',
   'mic.gate.live.hint':
-    'Полоса — ваш голос сейчас. Ниже линии гейт его приглушает; закрывается он чуть ниже, чтобы голос на самой линии не дребезжал.',
-  'mic.gate.live.open': 'Открыт — голос на {db} дБ выше гейта.',
-  'mic.gate.live.closed': 'Закрыт — голос на {db} дБ ниже гейта.',
+    'Перетащите линию вверх или вниз. Серые участки — там, где гейт приглушал комнату.',
   'mic.gate.live.opens': 'открывается на {db} дБ',
+  'mic.live.ago': '−{seconds} с',
+  'mic.live.now': 'сейчас',
+  'mic.gate.live.stateOpen': 'Открыт',
+  'mic.gate.live.stateClosed': 'Закрыт',
+  'mic.gate.live.waiting': 'Ждём ваш голос',
+  'mic.gate.live.keyLevel': 'Что слышит гейт',
+  'mic.gate.live.keyClosed': 'Приглушено',
+  'mic.gate.live.keyOpens': 'Открывается',
+  'mic.gate.live.keyCloses': 'Закрывается',
+  'mic.gate.live.label':
+    'Уровень, который гейт слышит за последние пять секунд, на фоне линий открытия и закрытия',
+  'mic.gate.live.openShare': 'Открыт, последние {seconds} с',
+  'mic.lowCut.live.title': 'Где ваш голос',
+  'mic.lowCut.live.keyKept': 'Ваш голос, сохранённый',
+  'mic.lowCut.live.keyTaken': 'Убрано',
+  'mic.lowCut.live.keyCut': 'Срез',
+  'mic.lowCut.live.label':
+    'Ваш голос, как он приходит, и то, что убирает срез низких',
+  'mic.lowCut.live.chip': '{hz} Гц · {slope} дБ/окт',
+  'mic.lowCut.live.hum': 'фон {hz} Гц',
+  'mic.lowCut.live.taken': 'Убрано гула сейчас',
+  'mic.lowCut.live.lowest': 'Самая низкая нота вашего голоса',
+  'mic.lowCut.live.hint':
+    'Перетащите точку влево или вправо и держите её ниже вашей самой низкой ноты.',
+  'mic.cleaner.live.title': 'Голос и комната, сейчас',
+  'mic.cleaner.live.keyBefore': 'Что слышит микрофон',
+  'mic.cleaner.live.keyAfter': 'После очистки',
+  'mic.cleaner.live.label': 'Ваш голос и ваша комната до и после очистки',
+  'mic.cleaner.live.roomBefore': 'Комната до',
+  'mic.cleaner.live.roomAfter': 'Комната после',
+  'mic.cleaner.live.taken': 'Убрано комнаты',
+  'mic.cleaner.live.over': 'Голос над комнатой',
+  'mic.cleaner.live.hint':
+    'Серое — ваша комната, как её слышит микрофон; цвет — то, что оставляет очистка.',
+  'mic.cleaner.strengthHint':
+    'Сколько комнаты убирает очистка. Выше 80% голос начинает звучать обработанным.',
 };

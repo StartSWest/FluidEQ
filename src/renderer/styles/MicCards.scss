@@ -4,15 +4,18 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-// The live parts of the Mic tab’s Noise cancelling and Gate cards (mockup A,
-// Ivan’s pick 2026-11-23): what the cleaner is taking now and the late blocks
-// of the last minute, and the voice against the gate’s two lines. The cards
-// themselves are the DSP page’s (`ProcessorCard`, `dsp-band`).
+// The live parts of the Mic tab’s Low cut, Noise cancelling and Gate cards
+// (mockups A, Ivan’s picks 2026-11-23): each card’s picture, and the late
+// blocks of the last minute. The cards themselves are the DSP page’s
+// (`ProcessorCard`, `dsp-band`).
 
 @use 'color' as *;
 @use 'constant' as *;
 @use 'theme' as *;
 @use 'libraryTokens' as *;
+
+// What a stage took away, on both pictures: `TAKEN_INK` in `micPlot.ts`.
+$mic-taken: #e86a34;
 
 // *** Noise cancelling ******************************************************
 
@@ -23,61 +26,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 14px 28px;
 }
 
-.mic-cleaner__noise {
-  display: grid;
+// Beside the Strength dial, at the width a sentence reads at.
+.mic-cleaner__strength-hint {
   min-width: 0;
+  max-width: 46ch;
   flex: 1 1 220px;
-  gap: 6px;
-}
-
-.mic-cleaner__noise-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  color: $text-muted;
-  font-size: $studio-text-label;
-}
-
-.mic-cleaner__noise-value {
-  color: $text-primary;
-  font-size: 16px;
-  font-weight: $weight-semibold;
-}
-
-.mic-cleaner__noise-track {
-  position: relative;
-  display: block;
-  height: 10px;
-  overflow: hidden;
-  border-radius: 3px;
-  background: color-mix(in srgb, $text-primary 10%, transparent);
-}
-
-.mic-cleaner__noise-fill {
-  position: absolute;
-  inset: 0;
-  border-radius: 3px;
-  background: var(--accent);
-  transform: scaleX(0);
-  transform-origin: left;
-}
-
-.mic-cleaner__noise-peak {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 2px;
-  background: $text-primary;
-  opacity: 0.4;
-}
-
-.mic-cleaner__noise-scale {
-  display: flex;
-  justify-content: space-between;
-  color: $text-muted;
-  font-size: $studio-text-label;
 }
 
 // A row, over the band's own column (`.dsp-band` stacks its children): left
@@ -140,77 +93,154 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// *** The gate, live ********************************************************
+// *** The live pictures ****************************************************
 
-.mic-gate-live__track {
-  position: relative;
-  display: block;
-  height: 30px;
-  margin-top: 4px;
-  overflow: hidden;
-  border-radius: 5px;
-  background: color-mix(in srgb, $text-primary 8%, transparent);
+// One per card, above its dials and the card's whole width: a key in the
+// head, the picture, and the readings under it written each frame by the
+// picture itself. Left to `.dsp-band`'s 420px basis it stood beside the
+// dials at a third of the card (harness, 2026-11-23).
+.mic-live-picture {
+  flex-basis: 100%;
+  gap: 8px;
 }
 
-// Under the line, where the gate turns the voice down.
-.mic-gate-live__closed {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  background: color-mix(in srgb, $ink-caution 12%, transparent);
-}
-
-.mic-gate-live__fill {
-  position: absolute;
-  top: 9px;
-  left: 0;
-  width: 0;
-  height: 12px;
-  border-radius: 3px;
-  background: var(--accent);
-
-  &.is-closed {
-    background: color-mix(in srgb, $text-primary 35%, transparent);
-  }
-}
-
-.mic-gate-live__mark {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: $text-primary;
-
-  &.is-closes {
-    opacity: 0.35;
-  }
-}
-
-.mic-gate-live__scale {
-  position: relative;
+.mic-live-picture__head {
   display: flex;
-  height: 16px;
+  flex-wrap: wrap;
+  align-items: baseline;
   justify-content: space-between;
-  margin-top: 4px;
+  gap: 4px 16px;
+}
+
+.mic-live-picture__key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
   color: $text-muted;
   font-size: $studio-text-label;
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
 }
 
-.mic-gate-live__scale-mark {
-  position: absolute;
-  top: 0;
-  padding-left: 4px;
-  white-space: nowrap;
+// Each swatch in the colour its series is drawn in on the canvas
+// (`micPlot.ts`, `dspInks.ts`).
+.mic-live-picture__swatch {
+  display: inline-block;
+  width: 10px;
+  height: 8px;
+  border-radius: 2px;
+
+  &.is-voice {
+    background: color-mix(in srgb, var(--dsp-spectrum) 60%, transparent);
+  }
+
+  &.is-heard {
+    background: color-mix(in srgb, $text-primary 22%, transparent);
+  }
+
+  &.is-taken {
+    background: repeating-linear-gradient(
+      135deg,
+      $mic-taken 0 1.5px,
+      color-mix(in srgb, $mic-taken 14%, transparent) 1.5px 4px
+    );
+  }
+
+  &.is-gate {
+    background: color-mix(in srgb, var(--dsp-spectrum) 60%, transparent);
+  }
+
+  &.is-closed {
+    background: color-mix(in srgb, $text-primary 16%, transparent);
+  }
 }
 
-.mic-gate-live__line {
-  min-height: 1.4em;
-  margin: 6px 0 0;
+.mic-live-picture__rule {
+  display: inline-block;
+  width: 14px;
+  height: 0;
+  border-top: 2px solid $text-primary;
+
+  &.is-gate {
+    border-top-color: var(--dsp-contrast);
+  }
+
+  &.is-dashed {
+    border-top: 2px dashed color-mix(in srgb, $text-primary 45%, transparent);
+  }
+
+  &.is-curve {
+    border-top-color: color-mix(in srgb, $text-primary 85%, transparent);
+  }
+}
+
+// The cards' width, a fixed height: a spectrum keeps its shape at every
+// width, and its grid labels their size. A drag never scrolls the page.
+.mic-live-picture__canvas {
+  display: block;
+  width: 100%;
+  height: 190px;
+  touch-action: none;
+}
+
+.mic-gate-live__canvas {
+  height: 160px;
+}
+
+.mic-live-picture__readouts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 26px;
+}
+
+.mic-live-picture__reading {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
   color: $text-muted;
-  font-size: $studio-text-meta;
+  font-size: $studio-text-label;
+  white-space: nowrap;
+
+  // Fixed width, so a number changing every frame never shoves its neighbour.
+  > strong {
+    min-width: 5ch;
+    color: $text-primary;
+    font-size: 16px;
+    font-weight: $weight-semibold;
+
+    &.is-taken {
+      color: $mic-taken;
+    }
+  }
+
+  // The cut stands above the voice's lowest note: it is thinning the voice.
+  &.is-over > strong {
+    color: $ink-caution;
+  }
+}
+
+.mic-live-picture__lamp {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  align-self: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, $text-primary 28%, transparent);
 
   &.is-open {
-    color: $text-primary;
+    background: var(--active);
   }
+}
+
+.mic-live-picture__hint {
+  min-width: 0;
+  flex: 1 1 240px;
+  margin: 0;
+  white-space: normal;
 }

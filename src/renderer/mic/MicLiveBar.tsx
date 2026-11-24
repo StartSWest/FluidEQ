@@ -14,13 +14,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * never through React: a re-render per frame of a page this size is the
  * jank the voice picture also avoids.
  *
- * The gate's light compares what reaches the rack with the gate's threshold,
- * with the gate's own 4 dB of hysteresis: the engine reports no gate reading,
- * and the picture above draws the same two things against each other.
+ * The gate's light is the gate's own gain, as the engine reports it (1.32):
+ * it used to compare the mic's level with the threshold, and the mic's level
+ * still carries the room the cleaner takes away before the gate hears it, so
+ * the light called the gate open over a room it was holding down.
  */
 
 import { useEffect, useRef } from 'react';
 import { useTranslation } from '../utils/I18nContext';
+import { gateOpenness, GATE_OPEN_AT } from './micGate';
 import type { IMicLevel } from './useMicLevels';
 
 /** The gate's own hysteresis (`voice.cpp`), so the light flickers as it does. */
@@ -44,8 +46,8 @@ interface IMicLiveBarProps {
   latest: React.MutableRefObject<IMicLevel | undefined>;
   /** Whether the engine is answering on this mic. */
   live: boolean;
-  /** The gate's threshold, dBFS, while it is on. */
-  gateDb: number | undefined;
+  /** The gate's range, dB, while it is on. */
+  gateRangeDb: number | undefined;
   /** Whether noise cancelling is on, so what it takes is worth a reading. */
   cleanerOn: boolean;
   /** The compressor's make-up, dB, while it is on. */
@@ -56,12 +58,13 @@ interface IMicLiveBarProps {
 const MicLiveBar = ({
   latest,
   live,
-  gateDb,
+  gateRangeDb,
   cleanerOn,
   makeupDb,
   limiterOn,
 }: IMicLiveBarProps) => {
   const { t } = useTranslation();
+  const gateReading = useRef<HTMLSpanElement>(null);
   const gateLamp = useRef<HTMLSpanElement>(null);
   const gateText = useRef<HTMLSpanElement>(null);
   const noise = useRef<HTMLSpanElement>(null);
@@ -75,13 +78,18 @@ const MicLiveBar = ({
 
   useEffect(() => {
     let animation = 0;
-    let open = false;
     const draw = () => {
       const level = latest.current;
       if (level && live) {
-        if (gateDb !== undefined) {
-          const input = toDb(level.input);
-          open = open ? input > gateDb - GATE_HYSTERESIS_DB : input > gateDb;
+        // Only said once the engine reports its gate (1.32): before that
+        // nothing here knows whether it is open, and "closed" would be a
+        // guess printed as a reading.
+        if (gateReading.current) {
+          gateReading.current.hidden = level.gateGainDb === undefined;
+        }
+        if (gateRangeDb !== undefined && level.gateGainDb !== undefined) {
+          const open =
+            gateOpenness(level.gateGainDb, gateRangeDb) > GATE_OPEN_AT;
           gateLamp.current?.classList.toggle('is-open', open);
           if (gateText.current) {
             gateText.current.textContent = open
@@ -90,7 +98,10 @@ const MicLiveBar = ({
           }
         }
         if (noise.current) {
-          noise.current.textContent = reductionText(level.noiseTakenDb);
+          const { room } = level;
+          noise.current.textContent = room
+            ? reductionText(room.afterDb - room.beforeDb)
+            : '—';
         }
         if (compressor.current && makeupDb !== undefined) {
           const gain = level.compressorGainDb;
@@ -106,14 +117,14 @@ const MicLiveBar = ({
     };
     animation = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(animation);
-  }, [latest, live, gateDb, makeupDb]);
+  }, [latest, live, gateRangeDb, makeupDb]);
 
   const idle = live ? '' : ' is-idle';
   return (
     <div className="mic-live" aria-live="off">
       <div className="mic-live__readings">
-        {gateDb !== undefined && (
-          <span className={`mic-live__reading${idle}`}>
+        {gateRangeDb !== undefined && (
+          <span ref={gateReading} className={`mic-live__reading${idle}`}>
             <span
               ref={gateLamp}
               className="mic-live__lamp"
@@ -125,8 +136,9 @@ const MicLiveBar = ({
         {cleanerOn && (
           <span className={`mic-live__reading${idle}`}>
             {t('mic.meter.noise')}
+            {/* Unknown, not nothing, until the room has been heard. */}
             <span ref={noise} className="mic-live__value">
-              0.0 dB
+              —
             </span>
           </span>
         )}

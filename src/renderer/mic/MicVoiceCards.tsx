@@ -11,7 +11,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * (`voiceStage.ts`); each card switches its own half.
  */
 
-import { useEffect, useRef } from 'react';
 import { IMicLowCutParts, LOW_CUT_WHEN_ON } from '../../common/micSound';
 import {
   IVoiceSettings,
@@ -19,103 +18,10 @@ import {
   VOICE_RANGES,
 } from '../../common/dsp/voiceStage';
 import { Dial, ProcessorCard } from '../dsp/DspControls';
-import signedTick from '../graph/signedTick';
 import { useTranslation } from '../utils/I18nContext';
-import { GATE_HYSTERESIS_DB, toDb } from './MicLiveBar';
+import MicGateLive from './MicGateLive';
+import MicLowCutLive from './MicLowCutLive';
 import type { IMicLevel } from './useMicLevels';
-
-/** The gate bar's scale: the quietest level it draws, dBFS, up to 0. */
-const GATE_FLOOR_DB = -90;
-
-const gateBarAt = (db: number) =>
-  `${Math.min(100, Math.max(0, ((db - GATE_FLOOR_DB) / -GATE_FLOOR_DB) * 100))}%`;
-
-interface IMicGateLiveProps {
-  thresholdDb: number;
-  latest: React.MutableRefObject<IMicLevel | undefined>;
-  live: boolean;
-}
-
-/**
- * The voice against the gate, live (mockup A): the bar is what reaches the
- * rack now, the line is where the gate opens and the faint line where it
- * closes again, 4 dB under, as `voice.cpp` does. Written straight into the
- * bar once per painted frame, never through React.
- */
-const MicGateLive = ({ thresholdDb, latest, live }: IMicGateLiveProps) => {
-  const { t } = useTranslation();
-  const fill = useRef<HTMLSpanElement>(null);
-  const line = useRef<HTMLParagraphElement>(null);
-  const translate = useRef(t);
-  translate.current = t;
-
-  useEffect(() => {
-    let open = false;
-    let animation = 0;
-    const draw = () => {
-      const level = latest.current;
-      if (live && level) {
-        const input = toDb(level.input);
-        open = open
-          ? input > thresholdDb - GATE_HYSTERESIS_DB
-          : input > thresholdDb;
-        if (fill.current) {
-          fill.current.style.width = gateBarAt(input);
-          fill.current.classList.toggle('is-closed', !open);
-        }
-        if (line.current) {
-          const db = Math.round(Math.abs(input - thresholdDb));
-          line.current.textContent = translate.current(
-            open ? 'mic.gate.live.open' : 'mic.gate.live.closed',
-            { db },
-          );
-          line.current.classList.toggle('is-open', open);
-        }
-      }
-      animation = requestAnimationFrame(draw);
-    };
-    animation = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(animation);
-  }, [latest, live, thresholdDb]);
-
-  const closesDb = thresholdDb - GATE_HYSTERESIS_DB;
-  return (
-    <div className="dsp-band mic-gate-live">
-      <div className="dsp-band-head">
-        <span className="dsp-band-title">{t('mic.gate.live.title')}</span>
-      </div>
-      <p className="dsp-band-hint">{t('mic.gate.live.hint')}</p>
-      <span className="mic-gate-live__track" aria-hidden="true">
-        <span
-          className="mic-gate-live__closed"
-          style={{ width: gateBarAt(thresholdDb) }}
-        />
-        <span ref={fill} className="mic-gate-live__fill" />
-        <span
-          className="mic-gate-live__mark is-closes"
-          style={{ left: gateBarAt(closesDb) }}
-        />
-        <span
-          className="mic-gate-live__mark"
-          style={{ left: gateBarAt(thresholdDb) }}
-        />
-      </span>
-      <span className="mic-gate-live__scale" aria-hidden="true">
-        <span>{signedTick(GATE_FLOOR_DB)} dB</span>
-        <span
-          className="mic-gate-live__scale-mark"
-          style={{ left: gateBarAt(thresholdDb) }}
-        >
-          {t('mic.gate.live.opens', {
-            db: signedTick(Math.round(thresholdDb)),
-          })}
-        </span>
-        <span>0 dB</span>
-      </span>
-      <p ref={line} className="mic-gate-live__line" role="status" />
-    </div>
-  );
-};
 
 interface IMicVoiceCardProps {
   voice: IVoiceSettings;
@@ -124,6 +30,8 @@ interface IMicVoiceCardProps {
 }
 
 interface IMicLowCutCardProps extends IMicVoiceCardProps {
+  /** The engine answering on this mic, for the picture. */
+  live: boolean;
   /** The three parts as the switch turned them off, shown greyed while off. */
   kept: IMicLowCutParts | undefined;
   /** The card's switch: all three parts off together, or back as they were. */
@@ -141,6 +49,7 @@ export const MicLowCutCard = ({
   onPatch,
   onCommit,
   onSwitch,
+  live,
 }: IMicLowCutCardProps) => {
   const { t } = useTranslation();
   const on =
@@ -163,6 +72,13 @@ export const MicLowCutCard = ({
       isEnabled={on}
       onToggle={() => onSwitch(!on)}
     >
+      <MicLowCutLive
+        voice={voice}
+        on={on}
+        live={live}
+        onCut={(lowCutHz) => patch({ lowCutHz })}
+        onCommit={onCommit}
+      />
       <div className="dsp-band">
         <div className="dsp-band-head">
           <span className="dsp-band-title">{t('mic.lowCut.group.below')}</span>
@@ -249,8 +165,12 @@ export const MicGateCard = ({
     >
       <MicGateLive
         thresholdDb={voice.gateThresholdDb}
+        rangeDb={voice.gateRangeDb}
         latest={latest}
         live={live && on}
+        isDisabled={!on}
+        onThreshold={(gateThresholdDb) => patch({ gateThresholdDb })}
+        onCommit={onCommit}
       />
       <div className="dsp-band">
         <div className="dsp-band-head">

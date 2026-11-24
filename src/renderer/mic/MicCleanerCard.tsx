@@ -7,8 +7,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * Noise cancelling, for a mic: the neural module of the rack's Denoise, which
  * the engine runs on live audio from the model in its folder. Mockup A's
- * card (Ivan's pick, 2026-11-23): the Strength beside what it is taking now,
- * and the late blocks counted where they can be checked.
+ * card (Ivan's pick, 2026-11-23): the voice and the room before and after
+ * the cleaner (`MicNoiseLive`), the Strength, and the late blocks counted
+ * where they can be checked. The picture's "Room taken" replaced a bar fed
+ * by the restoration's reduction reading, which is its hiss module's: off on
+ * every mic, so the bar read 0 dB whatever the cleaner took.
  *
  * Not the DSP page's Denoise card, which calls the module Library-only while
  * the rack runs system-wide - true of music, where the cleaner is wrong
@@ -27,14 +30,12 @@ import type { IDenoiseSettings, IDspSettings } from '../../common/dsp/chain';
 import { Dial, ProcessorCard } from '../dsp/DspControls';
 import useVoiceModel from '../dsp/useVoiceModel';
 import { useTranslation } from '../utils/I18nContext';
-import { reductionText } from './MicLiveBar';
+import MicNoiseLive from './MicNoiseLive';
 import micStageSwitch from './micStageSwitch';
 import type { IMicLevel } from './useMicLevels';
 
 /** How many seconds the late-block strip keeps, one bar each. */
 const LATE_SECONDS = 60;
-/** The noise meter's scale: what the cleaner takes, 0 to this many dB. */
-const NOISE_SCALE_DB = 30;
 
 interface IMicCleanerCardProps {
   settings: IDspSettings;
@@ -56,9 +57,6 @@ const MicCleanerCard = ({
   const { denoise } = settings;
   const on = denoise.enabled && denoise.voice.enabled;
   const missing = model.state !== 'ready';
-  const noiseFill = useRef<HTMLSpanElement>(null);
-  const noisePeak = useRef<HTMLSpanElement>(null);
-  const noiseValue = useRef<HTMLSpanElement>(null);
   const lateCount = useRef<HTMLSpanElement>(null);
   const lateStrip = useRef<HTMLSpanElement>(null);
 
@@ -69,7 +67,6 @@ const MicCleanerCard = ({
     const seconds: number[] = Array.from({ length: LATE_SECONDS }, () => 0);
     let second = Math.floor(performance.now() / 1000);
     let seen: IMicLevel | undefined;
-    let peakDb = 0;
     let animation = 0;
     const draw = () => {
       const now = Math.floor(performance.now() / 1000);
@@ -77,23 +74,11 @@ const MicCleanerCard = ({
         second += 1;
         seconds.shift();
         seconds.push(0);
-        peakDb *= 0.85;
       }
       const level = latest.current;
       if (live && level && level !== seen) {
         seen = level;
         seconds[LATE_SECONDS - 1] += level.late;
-        const taken = Math.min(NOISE_SCALE_DB, -level.noiseTakenDb);
-        peakDb = Math.max(peakDb, taken);
-        if (noiseFill.current) {
-          noiseFill.current.style.transform = `scaleX(${taken / NOISE_SCALE_DB})`;
-        }
-        if (noisePeak.current) {
-          noisePeak.current.style.left = `${(peakDb / NOISE_SCALE_DB) * 100}%`;
-        }
-        if (noiseValue.current) {
-          noiseValue.current.textContent = reductionText(-taken, 0);
-        }
       }
       if (lateCount.current) {
         lateCount.current.textContent = String(
@@ -125,6 +110,7 @@ const MicCleanerCard = ({
         onCommit();
       }}
     >
+      <MicNoiseLive on={on} live={live} latest={latest} />
       <div className="dsp-band mic-cleaner__band">
         <div className="mic-cleaner__row">
           <Dial
@@ -143,25 +129,9 @@ const MicCleanerCard = ({
             }
             onCommit={onCommit}
           />
-          <div className="mic-cleaner__noise">
-            <div className="mic-cleaner__noise-head">
-              <span>{t('mic.cleaner.noiseNow')}</span>
-              <span ref={noiseValue} className="mic-cleaner__noise-value">
-                0 dB
-              </span>
-            </div>
-            <span className="mic-cleaner__noise-track" aria-hidden="true">
-              <span ref={noiseFill} className="mic-cleaner__noise-fill" />
-              <span ref={noisePeak} className="mic-cleaner__noise-peak" />
-            </span>
-            <span className="mic-cleaner__noise-scale" aria-hidden="true">
-              <span>0</span>
-              <span>−10</span>
-              <span>−20</span>
-              <span>−30 dB</span>
-            </span>
-            <p className="dsp-band-hint">{t('mic.cleaner.noiseHint')}</p>
-          </div>
+          <p className="dsp-band-hint mic-cleaner__strength-hint">
+            {t('mic.cleaner.strengthHint')}
+          </p>
         </div>
         {missing && (
           <>

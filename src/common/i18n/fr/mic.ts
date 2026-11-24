@@ -137,17 +137,49 @@ export default {
   'mic.cleaner.description':
     'Retire clavier, ventilateurs et pièce sous votre voix pendant que vous parlez.',
   'mic.cleaner.strength': 'Intensité',
-  'mic.cleaner.noiseNow': 'Bruit retiré maintenant',
-  'mic.cleaner.noiseHint':
-    'À quelle distance la pièce reste sous votre voix après nettoyage ; la ligne pâle est le maximum des dernières secondes. Au-delà de 80 %, une voix commence à sonner traitée.',
   'mic.cleaner.neverCuts': 'Ne coupe jamais',
   'mic.cleaner.neverCutsHint':
     'Si le modèle est en retard, la voix garde le niveau du dernier instant nettoyé et se raccorde sans clic, jamais avec la pièce brute. Ces instants sont comptés ici.',
   'mic.cleaner.lateMinute': 'blocs en retard dans la dernière minute',
   'mic.gate.live.title': 'Votre voix face au gate',
   'mic.gate.live.hint':
-    'La barre est votre voix maintenant. Sous la ligne, le gate l’abaisse ; il se referme un peu plus bas, pour qu’une voix sur la ligne ne le fasse pas battre.',
-  'mic.gate.live.open': 'Ouvert : votre voix est {db} dB au-dessus du gate.',
-  'mic.gate.live.closed': 'Fermé : votre voix est {db} dB sous le gate.',
+    'Faites glisser la ligne vers le haut ou le bas. Les plages grises montrent où le gate a atténué la pièce.',
   'mic.gate.live.opens': 's’ouvre à {db} dB',
+  'mic.live.ago': '−{seconds} s',
+  'mic.live.now': 'maintenant',
+  'mic.gate.live.stateOpen': 'Ouvert',
+  'mic.gate.live.stateClosed': 'Fermé',
+  'mic.gate.live.waiting': 'En attente de votre voix',
+  'mic.gate.live.keyLevel': 'Ce que le gate entend',
+  'mic.gate.live.keyClosed': 'Atténué',
+  'mic.gate.live.keyOpens': 'S’ouvre',
+  'mic.gate.live.keyCloses': 'Se ferme',
+  'mic.gate.live.label':
+    'Le niveau que le gate entend sur les cinq dernières secondes, face aux lignes où il s’ouvre et se ferme',
+  'mic.gate.live.openShare': 'Ouvert, {seconds} dernières s',
+  'mic.lowCut.live.title': 'Où se trouve votre voix',
+  'mic.lowCut.live.keyKept': 'Votre voix, gardée',
+  'mic.lowCut.live.keyTaken': 'Retiré',
+  'mic.lowCut.live.keyCut': 'La coupe',
+  'mic.lowCut.live.label':
+    'Votre voix telle qu’elle arrive, avec ce que le coupe-bas retire',
+  'mic.lowCut.live.chip': '{hz} Hz · {slope} dB/oct',
+  'mic.lowCut.live.hum': 'ronflement {hz} Hz',
+  'mic.lowCut.live.taken': 'Grondement retiré maintenant',
+  'mic.lowCut.live.lowest': 'Note la plus grave de votre voix',
+  'mic.lowCut.live.hint':
+    'Faites glisser le point à gauche ou à droite, et gardez-le sous votre note la plus grave.',
+  'mic.cleaner.live.title': 'Voix et pièce, maintenant',
+  'mic.cleaner.live.keyBefore': 'Ce que le micro entend',
+  'mic.cleaner.live.keyAfter': 'Après nettoyage',
+  'mic.cleaner.live.label':
+    'Votre voix et votre pièce avant et après le nettoyage',
+  'mic.cleaner.live.roomBefore': 'Pièce avant',
+  'mic.cleaner.live.roomAfter': 'Pièce après',
+  'mic.cleaner.live.taken': 'Pièce retirée',
+  'mic.cleaner.live.over': 'Voix au-dessus de la pièce',
+  'mic.cleaner.live.hint':
+    'Le gris est votre pièce telle que le micro l’entend ; la couleur est ce que le nettoyage laisse.',
+  'mic.cleaner.strengthHint':
+    'Quelle part de la pièce le nettoyage retire. Au-delà de 80 %, une voix commence à sonner traitée.',
 };

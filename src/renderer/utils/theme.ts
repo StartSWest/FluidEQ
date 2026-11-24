@@ -231,6 +231,7 @@ export type TSurfaceName =
   | '--accent-darker'
   | '--active'
   | '--dsp-base-curve'
+  | '--dsp-contrast'
   | '--dsp-output'
   | '--dsp-applied'
   | '--dsp-sky'

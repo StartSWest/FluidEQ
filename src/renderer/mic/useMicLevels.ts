@@ -18,7 +18,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *
  * The readings come from the engine's analysis link for that mic: the rack's
  * input peaks (the live Normalizer's tap), its output peaks, the compressor's
- * gains and the limiter's reduction. Read once per painted frame and never
+ * gains, the limiter's reduction and the gate's own level and gain. Read once per painted frame and never
  * while the window is hidden; one analysis reader exists for the whole
  * window, so the tab takes it while it is open and gives it back
  * (`read(null)`) when it closes.
@@ -30,6 +30,7 @@ import { micInputFor } from '../../common/micInput';
 import { createNativeMeters } from '../dsp/nativeMeters';
 import { setDspSampleRate } from '../dsp/store';
 import { reportError } from '../utils/logger';
+import { createRoomReading, IRoomFloor } from './micRoomFloor';
 
 export interface IMicLevel {
   /** Linear peak reaching the rack, 0 to 1. */
@@ -40,10 +41,26 @@ export interface IMicLevel {
   compressorGainDb?: number;
   /** The limiter's reduction, dB, never positive. */
   limiterDb: number;
-  /** What the restoration took, dB, never positive (`IHostAnalysisDenoise`). */
-  noiseTakenDb: number;
+  /**
+   * The room under the voice before the cleaner and after it, from the
+   * engine's two spectra either side of it (1.32, `micRoomFloor.ts`): what
+   * the strip, the rail and the Noise cancelling card all say was taken.
+   * Absent until a few seconds have been heard, and from an older engine.
+   *
+   * It replaced the restoration's own reduction reading, which is its hiss
+   * module's: always off on a mic, so it read 0 dB whatever the cleaner did.
+   */
+  room?: IRoomFloor;
   /** The voice cleaner's blocks its worker missed in this reading's window. */
   late: number;
+  /**
+   * The gate's own detector level, dBFS: the voice after the cleaner, which
+   * is what its threshold is compared with. From engine 1.32, on a mic whose
+   * Voice stage is on; absent otherwise.
+   */
+  gateLevelDb?: number;
+  /** The gate's gain, dB: 0 open, down to minus its range; with the level. */
+  gateGainDb?: number;
 }
 
 /**
@@ -101,6 +118,7 @@ const useMicLevels = (
      * 2026-11-23: "this de-esser doesn't have any graph moving").
      */
     let accept: ((frame: IHostAnalysis) => void) | undefined;
+    const readRoom = createRoomReading();
     const meters = createNativeMeters(
       {
         // Requests are owned by this paint loop, not the Library host.
@@ -171,8 +189,14 @@ const useMicLevels = (
                 ? lowest(frame.dynamics.gainDb)
                 : undefined,
               limiterDb: Math.min(0, frame.maximizerReductionDb),
-              noiseTakenDb: Math.min(0, frame.denoise.reductionDb),
+              room: readRoom(frame, result.sampleRate, performance.now()),
               late: frame.denoise.voiceUnderruns,
+              ...(frame.voice?.active
+                ? {
+                    gateLevelDb: frame.voice.gateLevelDb,
+                    gateGainDb: frame.voice.gateGainDb,
+                  }
+                : {}),
             };
             latest.current = level;
             history.current.push(level);

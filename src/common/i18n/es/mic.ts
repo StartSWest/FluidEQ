@@ -136,18 +136,48 @@ export default {
   'mic.cleaner.description':
     'Quita teclados, ventiladores y la sala de debajo de tu voz mientras hablas.',
   'mic.cleaner.strength': 'Intensidad',
-  'mic.cleaner.noiseNow': 'Ruido quitado ahora',
-  'mic.cleaner.noiseHint':
-    'Cuánto queda la sala por debajo de tu voz tras limpiarla; la línea tenue es lo máximo quitado en los últimos segundos. Por encima del 80 % la voz empieza a sonar procesada.',
   'mic.cleaner.neverCuts': 'Nunca corta',
   'mic.cleaner.neverCutsHint':
     'Si el modelo llega tarde, la voz conserva el nivel del último momento limpio y se une sin clic, nunca con la sala en bruto. Aquí se cuentan esos momentos.',
   'mic.cleaner.lateMinute': 'bloques tardíos en el último minuto',
   'mic.gate.live.title': 'Tu voz frente a la puerta de ruido',
   'mic.gate.live.hint':
-    'La barra es tu voz ahora. Bajo la línea la puerta la atenúa; vuelve a cerrar un poco más abajo, para que una voz justo en la línea no la haga vibrar.',
-  'mic.gate.live.open': 'Abierta: tu voz está {db} dB por encima de la puerta.',
-  'mic.gate.live.closed':
-    'Cerrada: tu voz está {db} dB por debajo de la puerta.',
+    'Arrastra la línea hacia arriba o hacia abajo. Los tramos grises son donde la puerta bajó la sala.',
   'mic.gate.live.opens': 'abre a {db} dB',
+  'mic.live.ago': '−{seconds} s',
+  'mic.live.now': 'ahora',
+  'mic.gate.live.stateOpen': 'Abierta',
+  'mic.gate.live.stateClosed': 'Cerrada',
+  'mic.gate.live.waiting': 'Esperando tu voz',
+  'mic.gate.live.keyLevel': 'Lo que oye la puerta',
+  'mic.gate.live.keyClosed': 'Atenuado',
+  'mic.gate.live.keyOpens': 'Abre',
+  'mic.gate.live.keyCloses': 'Cierra',
+  'mic.gate.live.label':
+    'El nivel que oye la puerta en los últimos cinco segundos, frente a donde abre y donde cierra',
+  'mic.gate.live.openShare': 'Abierta, últimos {seconds} s',
+  'mic.lowCut.live.title': 'Dónde está tu voz',
+  'mic.lowCut.live.keyKept': 'Tu voz, conservada',
+  'mic.lowCut.live.keyTaken': 'Quitado',
+  'mic.lowCut.live.keyCut': 'El corte',
+  'mic.lowCut.live.label':
+    'Tu voz tal como llega, con lo que quita el corte de graves',
+  'mic.lowCut.live.chip': '{hz} Hz · {slope} dB/oct',
+  'mic.lowCut.live.hum': 'zumbido {hz} Hz',
+  'mic.lowCut.live.taken': 'Retumbe quitado ahora',
+  'mic.lowCut.live.lowest': 'La nota más grave de tu voz',
+  'mic.lowCut.live.hint':
+    'Arrastra el punto a izquierda o derecha y mantenlo por debajo de tu nota más grave.',
+  'mic.cleaner.live.title': 'Voz y sala, ahora',
+  'mic.cleaner.live.keyBefore': 'Lo que oye el micrófono',
+  'mic.cleaner.live.keyAfter': 'Tras la limpieza',
+  'mic.cleaner.live.label': 'Tu voz y tu sala antes y después de la limpieza',
+  'mic.cleaner.live.roomBefore': 'Sala antes',
+  'mic.cleaner.live.roomAfter': 'Sala después',
+  'mic.cleaner.live.taken': 'Sala quitada',
+  'mic.cleaner.live.over': 'Voz sobre la sala',
+  'mic.cleaner.live.hint':
+    'El gris es tu sala tal como la oye el micrófono; el color es lo que deja la limpieza.',
+  'mic.cleaner.strengthHint':
+    'Cuánto de la sala quita la limpieza. Por encima del 80 % la voz empieza a sonar procesada.',
 };

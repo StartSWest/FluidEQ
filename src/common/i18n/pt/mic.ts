@@ -135,17 +135,48 @@ export default {
   'mic.cleaner.description':
     'Retira teclado, ventiladores e o ambiente de baixo da sua voz enquanto você fala.',
   'mic.cleaner.strength': 'Intensidade',
-  'mic.cleaner.noiseNow': 'Ruído retirado agora',
-  'mic.cleaner.noiseHint':
-    'Quanto o ambiente fica abaixo da sua voz depois da limpeza; a linha clara é o máximo dos últimos segundos. Acima de 80% a voz começa a soar processada.',
   'mic.cleaner.neverCuts': 'Nunca corta',
   'mic.cleaner.neverCutsHint':
     'Se o modelo se atrasar, a voz mantém o nível do último momento limpo e é unida sem clique, nunca com o ambiente cru. Esses momentos são contados aqui.',
   'mic.cleaner.lateMinute': 'blocos atrasados no último minuto',
   'mic.gate.live.title': 'Sua voz e o gate',
   'mic.gate.live.hint':
-    'A barra é a sua voz agora. Abaixo da linha o gate a abaixa; ele fecha de novo um pouco mais embaixo, para que uma voz na linha não o faça tremular.',
-  'mic.gate.live.open': 'Aberto: sua voz está {db} dB acima do gate.',
-  'mic.gate.live.closed': 'Fechado: sua voz está {db} dB abaixo do gate.',
+    'Arraste a linha para cima ou para baixo. Os trechos cinza são onde o gate abaixou a sala.',
   'mic.gate.live.opens': 'abre em {db} dB',
+  'mic.live.ago': '−{seconds} s',
+  'mic.live.now': 'agora',
+  'mic.gate.live.stateOpen': 'Aberto',
+  'mic.gate.live.stateClosed': 'Fechado',
+  'mic.gate.live.waiting': 'Esperando sua voz',
+  'mic.gate.live.keyLevel': 'O que o gate ouve',
+  'mic.gate.live.keyClosed': 'Abaixado',
+  'mic.gate.live.keyOpens': 'Abre',
+  'mic.gate.live.keyCloses': 'Fecha',
+  'mic.gate.live.label':
+    'O nível que o gate ouve nos últimos cinco segundos, contra onde ele abre e onde fecha',
+  'mic.gate.live.openShare': 'Aberto, últimos {seconds} s',
+  'mic.lowCut.live.title': 'Onde sua voz fica',
+  'mic.lowCut.live.keyKept': 'Sua voz, mantida',
+  'mic.lowCut.live.keyTaken': 'Retirado',
+  'mic.lowCut.live.keyCut': 'O corte',
+  'mic.lowCut.live.label':
+    'Sua voz como chega, com o que o corte de graves retira',
+  'mic.lowCut.live.chip': '{hz} Hz · {slope} dB/oit',
+  'mic.lowCut.live.hum': 'zumbido {hz} Hz',
+  'mic.lowCut.live.taken': 'Ronco retirado agora',
+  'mic.lowCut.live.lowest': 'A nota mais grave da sua voz',
+  'mic.lowCut.live.hint':
+    'Arraste o ponto para a esquerda ou a direita e mantenha-o abaixo da sua nota mais grave.',
+  'mic.cleaner.live.title': 'Voz e sala, agora',
+  'mic.cleaner.live.keyBefore': 'O que o microfone ouve',
+  'mic.cleaner.live.keyAfter': 'Depois da limpeza',
+  'mic.cleaner.live.label': 'Sua voz e sua sala antes e depois da limpeza',
+  'mic.cleaner.live.roomBefore': 'Sala antes',
+  'mic.cleaner.live.roomAfter': 'Sala depois',
+  'mic.cleaner.live.taken': 'Sala retirada',
+  'mic.cleaner.live.over': 'Voz acima da sala',
+  'mic.cleaner.live.hint':
+    'O cinza é sua sala como o microfone ouve; a cor é o que a limpeza deixa.',
+  'mic.cleaner.strengthHint':
+    'Quanto da sala a limpeza retira. Acima de 80% a voz começa a soar processada.',
 };

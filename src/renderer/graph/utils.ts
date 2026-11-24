@@ -59,7 +59,10 @@ interface ITransferFuncCoeffs {
 const realizable = (frequency: number, sampleRate: number): number =>
   Math.min(frequency, sampleRate * 0.499);
 
-const getTFCoefficients = (filter: IFilter, sampleRate: number) => {
+/** The four fields that make a band's shape; the rest are bookkeeping. */
+type TBandShape = Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>;
+
+const getTFCoefficients = (filter: TBandShape, sampleRate: number) => {
   const {
     type: filterType,
     frequency,
@@ -221,6 +224,20 @@ export const getFilterLineData = (
   }
 
   return data;
+};
+
+/**
+ * One cookbook band's gain in dB at any frequency, at `sampleRate`: what
+ * `getFilterLineData` draws, for a picture on an axis of its own. The Mic
+ * tab's Low cut draws its high-pass and proximity shelf this way, both built
+ * by the engine with `feq_biquad_coefficients` (`voice.cpp`).
+ */
+export const cookbookGain = (
+  band: TBandShape,
+  sampleRate: number,
+): ((frequency: number) => number) => {
+  const tf = getTFCoefficients(band, sampleRate);
+  return (frequency) => gainAtFrequency(frequency, tf, sampleRate);
 };
 
 /**

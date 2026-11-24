@@ -137,18 +137,49 @@ export default {
   'mic.cleaner.description':
     'Entfernt Tastatur, Lüfter und Raum unter Ihrer Stimme, während Sie sprechen.',
   'mic.cleaner.strength': 'Stärke',
-  'mic.cleaner.noiseNow': 'Jetzt entferntes Rauschen',
-  'mic.cleaner.noiseHint':
-    'Wie weit der Raum nach der Reinigung unter Ihrer Stimme liegt; die blasse Linie ist das Meiste der letzten Sekunden. Über 80 % klingt eine Stimme bearbeitet.',
   'mic.cleaner.neverCuts': 'Schneidet nie ab',
   'mic.cleaner.neverCutsHint':
     'Kommt das Modell einmal zu spät, behält die Stimme den Pegel des letzten gereinigten Moments und wird ohne Klick angeschlossen, nie mit dem rohen Raum. Solche Momente werden hier gezählt.',
   'mic.cleaner.lateMinute': 'verspätete Blöcke in der letzten Minute',
   'mic.gate.live.title': 'Ihre Stimme am Gate',
   'mic.gate.live.hint':
-    'Der Balken ist Ihre Stimme jetzt. Unter der Linie senkt das Gate sie ab; es schließt etwas tiefer wieder, damit eine Stimme auf der Linie nicht flattert.',
-  'mic.gate.live.open': 'Offen – Ihre Stimme liegt {db} dB über dem Gate.',
-  'mic.gate.live.closed':
-    'Geschlossen – Ihre Stimme liegt {db} dB unter dem Gate.',
+    'Ziehen Sie die Linie nach oben oder unten. Die grauen Strecken zeigen, wo das Gate den Raum gedämpft hat.',
   'mic.gate.live.opens': 'öffnet bei {db} dB',
+  'mic.live.ago': '−{seconds} s',
+  'mic.live.now': 'jetzt',
+  'mic.gate.live.stateOpen': 'Offen',
+  'mic.gate.live.stateClosed': 'Geschlossen',
+  'mic.gate.live.waiting': 'Wartet auf Ihre Stimme',
+  'mic.gate.live.keyLevel': 'Was das Gate hört',
+  'mic.gate.live.keyClosed': 'Gedämpft',
+  'mic.gate.live.keyOpens': 'Öffnet',
+  'mic.gate.live.keyCloses': 'Schließt',
+  'mic.gate.live.label':
+    'Der Pegel, den das Gate in den letzten fünf Sekunden hört, gegen die Linien, an denen es öffnet und schließt',
+  'mic.gate.live.openShare': 'Offen, letzte {seconds} s',
+  'mic.lowCut.live.title': 'Wo Ihre Stimme liegt',
+  'mic.lowCut.live.keyKept': 'Ihre Stimme, behalten',
+  'mic.lowCut.live.keyTaken': 'Entfernt',
+  'mic.lowCut.live.keyCut': 'Die Sperre',
+  'mic.lowCut.live.label':
+    'Ihre Stimme, wie sie ankommt, und was die Tiefensperre entfernt',
+  'mic.lowCut.live.chip': '{hz} Hz · {slope} dB/Okt.',
+  'mic.lowCut.live.hum': 'Brummen {hz} Hz',
+  'mic.lowCut.live.taken': 'Jetzt entferntes Rumpeln',
+  'mic.lowCut.live.lowest': 'Tiefster Ton Ihrer Stimme',
+  'mic.lowCut.live.hint':
+    'Ziehen Sie den Punkt nach links oder rechts und halten Sie ihn unter Ihrem tiefsten Ton.',
+  'mic.cleaner.live.title': 'Stimme und Raum, jetzt',
+  'mic.cleaner.live.keyBefore': 'Was das Mikrofon hört',
+  'mic.cleaner.live.keyAfter': 'Nach der Reinigung',
+  'mic.cleaner.live.label':
+    'Ihre Stimme und Ihr Raum vor und nach der Reinigung',
+  'mic.cleaner.live.roomBefore': 'Raum vorher',
+  'mic.cleaner.live.roomAfter': 'Raum nachher',
+  'mic.cleaner.live.taken': 'Entfernter Raum',
+  'mic.cleaner.live.over': 'Stimme über dem Raum',
+  'mic.cleaner.live.hint':
+    'Grau ist Ihr Raum, wie das Mikrofon ihn hört; die Farbe ist, was die Reinigung übrig lässt.',
+  'mic.cleaner.strengthHint':
+    'Wie viel vom Raum die Reinigung entfernt. Über 80 % klingt eine Stimme bearbeitet.',
 };

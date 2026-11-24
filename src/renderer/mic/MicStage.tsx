@@ -57,6 +57,7 @@ const MicStage = ({
           onPatch={(next) => onPatch({ voice: next })}
           onCommit={onCommit}
           onSwitch={onSwitchLowCut}
+          live={live}
         />
       )}
       {stage === 'gate' && voice && (
