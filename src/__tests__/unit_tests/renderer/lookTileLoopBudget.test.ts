@@ -6,11 +6,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * Ivan, 2026-11-24: "make sure they are very light, we don't want to block
- * the user's PC loading or showing the animated graphs". The look picker's
- * live tiles draw thirty times a second each at most, and all of them
- * together within a share of one core however many there are and however
- * fast the display asks for frames - measured by what each drawing cost on
- * the page's clock. A first drawing is never held back.
+ * the user's PC loading or showing the animated graphs", then "12 fps,
+ * 10% of the CPU max, the 16 together": sixteen tiles held back by a CPU budget moved unevenly ("when I put
+ * all 16 in view they get slow"). The look picker's live tiles draw twelve
+ * times a second each, spread over the frames rather than all on one, and all of
+ * them together within a share of one core as a safety net - measured by what
+ * each drawing cost on the page's clock. A first drawing is never held back.
  */
 
 import { createLookTileLoop } from '../../../renderer/graph/lookTileLoop';
@@ -62,12 +63,35 @@ const runSecond = (hz: number, from: number) => {
   }
 };
 
-it('draws a tile thirty times a second, not at the display’s rate', () => {
+it('draws a tile twelve times a second, not at the display’s rate', () => {
   const loop = createLookTileLoop();
   const [tile] = tilesOn(loop, 1);
   runSecond(144, 0);
-  expect(tile.drawn).toBeGreaterThanOrEqual(28);
-  expect(tile.drawn).toBeLessThanOrEqual(37);
+  expect(tile.drawn).toBeGreaterThanOrEqual(11);
+  expect(tile.drawn).toBeLessThanOrEqual(14);
+  loop.dispose();
+});
+
+it('spreads sixteen tiles over the frames, a few on each', () => {
+  const loop = createLookTileLoop();
+  const tiles = tilesOn(loop, 16);
+  const total = () => tiles.reduce((sum, tile) => sum + tile.drawn, 0);
+  runSecond(60, 0);
+  // A second second, frame by frame: never more than a frame's share.
+  let most = 0;
+  let before = total();
+  for (let index = 1; index <= 60; index += 1) {
+    const at = 1000 + (index * 1000) / 60;
+    clock = at;
+    const due = frames;
+    frames = [];
+    due.forEach((callback) => callback(at));
+    most = Math.max(most, total() - before);
+    before = total();
+  }
+  expect(most).toBeLessThanOrEqual(4);
+  // And every tile still at its twelve a second.
+  tiles.forEach((tile) => expect(tile.drawn).toBeGreaterThanOrEqual(22));
   loop.dispose();
 });
 
@@ -80,9 +104,9 @@ it('holds all the tiles together to a share of one core, fairly', () => {
   const firstSecond = tiles.reduce((sum, tile) => sum + tile.drawn, 0);
   runSecond(144, 1000);
   const spent = tiles.reduce((sum, tile) => sum + tile.drawn, 0) - firstSecond;
-  // 80 ms of drawing a second, give or take one frame's spend.
-  expect(spent).toBeGreaterThanOrEqual(70);
-  expect(spent).toBeLessThanOrEqual(90);
+  // 100 ms of drawing a second, give or take one frame's spend.
+  expect(spent).toBeGreaterThanOrEqual(90);
+  expect(spent).toBeLessThanOrEqual(110);
   // Each tile has its turn: none starved, none drawn far more than another.
   const counts = tiles.map((tile) => tile.drawn);
   expect(Math.min(...counts)).toBeGreaterThan(0);
@@ -96,7 +120,7 @@ it('lets cheap drawings run at their full pace', () => {
   const loop = createLookTileLoop();
   const tiles = tilesOn(loop, 40);
   runSecond(60, 0);
-  tiles.forEach((tile) => expect(tile.drawn).toBeGreaterThanOrEqual(28));
+  tiles.forEach((tile) => expect(tile.drawn).toBeGreaterThanOrEqual(11));
   loop.dispose();
 });
 

@@ -8,29 +8,30 @@ import { displayTickMs, isFrameDue } from '../utils/framePace';
 import type { ILiveTraceDriver } from './LiveTraceCanvas';
 
 /**
- * Each tile's pace: thirty drawings a second. Ivan, 2026-11-24: "make sure
- * they are very light, we don't want to block the user's PC loading or
- * showing the animated graphs". At sixty, sixteen tiles took 241 ms of
- * script a second in the harness (a quarter of a core, for drawings 140 px
- * wide); a preview this size is still read as moving at thirty. The window's
- * own graph keeps the display's rate - the thirty Ivan took out of it on
- * 2026-09-27 was the look itself, at full size.
+ * Each tile's pace: twelve drawings a second, steady (Ivan, 2026-11-24:
+ * "put them all at 12 fps"). At thirty, with a CPU budget doing the rest, sixteen tiles in
+ * view were held back by the budget on his machine and moved unevenly -
+ * "when I put all 16 in view they get slow". A fixed slow pace every tile
+ * keeps reads as a calm preview; a budget that decides who draws reads as
+ * stutter. At sixty, sixteen tiles took 241 ms of script a second in the
+ * harness. The window's own graph keeps the display's rate - the thirty Ivan
+ * took out of it on 2026-09-27 was the look itself, at full size.
  */
-const TILE_PACE_MS = 1000 / 30;
+const TILE_PACE_MS = 1000 / 12;
 
 /**
- * The share of one core the tiles may spend drawing, all of them together,
- * measured on the page's own clock: 80 ms of every second. A budget per
- * animation frame was not one - a display or a headless page giving 150
- * frames a second spent it 150 times - so it is earned with the time that
- * passes and spent by what each drawing measured. When it runs out the
- * tiles still due wait, the one that waited first drawing first: on a
- * machine where a drawing costs more the tiles draw less often, instead of
- * the menu taking the window, the music and the graph behind it. A tile's
- * very first drawing is never held back, so no plate stands empty for want
- * of a turn.
+ * A safety net, not the pace: the share of one core the tiles may spend
+ * drawing, all of them together, measured on the page's own clock - ten
+ * per cent, 100 ms of every second (Ivan, 2026-11-24: "adjust the budget so
+ * it takes 10% of the CPU max, the 16 together"). Sixteen tiles at twelve a
+ * second are 192 drawings, so it bites only where a drawing costs more than
+ * half a millisecond. Earned with the time that
+ * passes and spent by what each drawing measured (a budget per animation
+ * frame was spent 150 times a second on a display giving 150 frames). A
+ * tile's very first drawing is never held back, so no plate stands empty for
+ * want of a turn.
  */
-const CORE_SHARE = 0.08;
+const CORE_SHARE = 0.1;
 
 /**
  * The most that can be saved up and spent in one animation frame: after a
@@ -42,7 +43,8 @@ const LONGEST_SPEND_MS = 4;
  * The one animation loop behind every live tile of the look picker's
  * standard looks (`LookStyleGrid`). Each tile's drawing hands its frames
  * over (`LiveTraceCanvas`'s `onDriver`) and this draws them in one
- * animation frame, each at `TILE_PACE_MS` and all within `CORE_SHARE`:
+ * animation frame, each at `TILE_PACE_MS`, a share of them each frame, and
+ * all within `CORE_SHARE`:
  * a loop per tile would be forty loops, each asking the display for its own
  * frames. The music is not read here at all - every tile draws the frame
  * the sound published (`lookTileSound.tsx`), read once for all of them.
@@ -97,13 +99,21 @@ export const createLookTileLoop = (): ILookTileLoop => {
     }
     tickMs = displayTickMs(now, lastTickAt, tickMs);
     lastTickAt = now;
+    // Spread over the frames between two of a tile's drawings, never all on
+    // one: sixteen tiles at twelve a second on a 60 Hz display are four a
+    // frame, not sixteen every fifth frame and none in between - a hitch
+    // twelve times a second.
+    let share = Math.max(1, Math.ceil((tiles.length * tickMs) / TILE_PACE_MS));
     const drawn: ITile[] = [];
     const waiting: ITile[] = [];
     tiles.forEach((tile) => {
       const first = tile.drawnAt === undefined;
       const elapsed = first ? tickMs : Math.max(0, now - (tile.drawnAt ?? now));
       const due = first || isFrameDue(elapsed, TILE_PACE_MS, tickMs);
-      if (due && (first || saved > 0)) {
+      if (due && (first || (saved > 0 && share > 0))) {
+        if (!first) {
+          share -= 1;
+        }
         tile.drawnAt = now;
         const startedAt = performance.now();
         tile.driver.draw(elapsed);
