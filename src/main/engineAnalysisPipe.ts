@@ -50,11 +50,19 @@ interface ISource {
   statsQueued?: boolean;
   /** Everyone waiting for this connection's next stats answer. */
   statsWaiters: ((stats: IEngineProcessStats | undefined) => void)[];
+  /** On-demand frame waiters (Tuning MCP live measurement). */
+  frameWaiters: ((frame: IEngineAnalysis | undefined) => void)[];
+  /** On-demand preamp waiters (Tuning MCP headroom measurement). */
+  preampWaiters: ((preamp: IEnginePreamp | undefined) => void)[];
   queued?: TCommand;
 }
 
 /** Every engine connection: the DSP page reads them, and `measureEngineProcesses`. */
 const sources = new Set<ISource>();
+/** Endpoint currently watched by the renderer's DSP surface, if any. */
+let rendererWanted: string | undefined;
+/** True while the Tuning Agent MCP door is open so FFT ring buffers stay warm. */
+let tuningMeterHold = false;
 
 /** One request on the wire; each connection carries one at a time. */
 const send = (source: ISource, command: TCommand | 3) => {
@@ -145,12 +153,102 @@ export const measureEngineProcesses = async (): Promise<
   return [...byPid.values()];
 };
 
-/** Hands one answer, or none, to everyone waiting on this connection. */
-const answerStats = (
-  source: ISource,
-  stats: IEngineProcessStats | undefined,
+const flushWaiters = <T>(
+  waiters: ((value: T | undefined) => void)[],
+  value: T | undefined,
 ) => {
-  source.statsWaiters.splice(0).forEach((resolve) => resolve(stats));
+  waiters.splice(0).forEach((resolve) => resolve(value));
+};
+
+const requestOne = <T>(
+  source: ISource,
+  command: TCommand,
+  waiters: ((value: T | undefined) => void)[],
+): Promise<T | undefined> =>
+  new Promise((resolve) => {
+    waiters.push(resolve);
+    requestFrame(source, command);
+  });
+
+/**
+ * Keep the engine's lock-free meter ring buffers warm while the Tuning Agent
+ * Door is open (`feq_meters_capture` only copies into its ring on the audio
+ * thread; FFTs run lazily only when queried).
+ */
+export const setTuningMeterHold = (active: boolean): void => {
+  tuningMeterHold = active;
+  sources.forEach((source) => {
+    if (!source.endpoint) {
+      return;
+    }
+    if (active) {
+      if (!source.enabled) {
+        requestFrame(source, 1);
+      }
+    } else if (
+      source.enabled &&
+      source.endpoint !== rendererWanted &&
+      source.frameWaiters.length === 0
+    ) {
+      source.socket.write(Buffer.from([0]));
+      source.enabled = false;
+    }
+  });
+};
+
+/** Request live Auto-Preamp readings from every engine source on `endpointGuid`. */
+export const requestEndpointPreamp = async (
+  endpointGuid: string,
+): Promise<(IEnginePreamp | undefined)[]> => {
+  if (!GUID.test(endpointGuid)) {
+    return [];
+  }
+  const target = normaliseEndpointGuid(endpointGuid);
+  return Promise.all(
+    [...sources]
+      .filter((source) => source.endpoint === target && source.supportsPreamp)
+      .map((source) => requestOne(source, 2, source.preampWaiters)),
+  );
+};
+
+/**
+ * Request one analysis frame from every engine source on `endpointGuid`.
+ * Returns `null` when no engine connection exists for that endpoint.
+ */
+export const requestEndpointFrames = async (
+  endpointGuid: string,
+): Promise<(IEngineAnalysis | undefined)[] | null> => {
+  if (!GUID.test(endpointGuid)) {
+    return null;
+  }
+  const target = normaliseEndpointGuid(endpointGuid);
+  const live = [...sources].filter((source) => source.endpoint === target);
+  if (live.length === 0) {
+    return null;
+  }
+  return Promise.all(
+    live.map((source) => requestOne(source, 1, source.frameWaiters)),
+  );
+};
+
+/** Turn engine meters back off on `endpointGuid` if nothing else holds them. */
+export const releaseEndpointMeters = (endpointGuid: string): void => {
+  if (!GUID.test(endpointGuid)) {
+    return;
+  }
+  const target = normaliseEndpointGuid(endpointGuid);
+  sources.forEach((source) => {
+    if (
+      source.endpoint === target &&
+      source.enabled &&
+      !tuningMeterHold &&
+      source.endpoint !== rendererWanted &&
+      source.frameWaiters.length === 0
+    ) {
+      source.socket.write(Buffer.from([0]));
+      source.enabled = false;
+    }
+  });
 };
 
 // Pull only while the DSP surface is painting. A single outstanding request
@@ -187,15 +285,18 @@ const startEngineAnalysisPipe = (
     });
     return result;
   });
-  let wanted: string | undefined;
   let owner: WebContents | undefined;
   const disable = () => {
-    wanted = undefined;
+    rendererWanted = undefined;
     sources.forEach((source) => {
-      if (source.enabled) {
+      if (
+        source.enabled &&
+        !tuningMeterHold &&
+        source.frameWaiters.length === 0
+      ) {
         source.socket.write(Buffer.from([0]));
+        source.enabled = false;
       }
-      source.enabled = false;
       source.active = false;
       source.latest = undefined;
       if (source.queued === 1) {
@@ -221,14 +322,14 @@ const startEngineAnalysisPipe = (
       return undefined;
     }
     const next = normaliseEndpointGuid(endpoint);
-    if (wanted !== next) {
+    if (rendererWanted !== next) {
       disable();
     }
-    wanted = next;
+    rendererWanted = next;
     let result: IEngineAnalysis | undefined;
     let connected = false;
     sources.forEach((source) => {
-      if (source.endpoint !== wanted) {
+      if (source.endpoint !== rendererWanted) {
         return;
       }
       connected = connected || source.active;
@@ -256,6 +357,8 @@ const startEngineAnalysisPipe = (
       enabled: false,
       active: false,
       statsWaiters: [],
+      frameWaiters: [],
+      preampWaiters: [],
     };
     sources.add(source);
     let buffered = Buffer.alloc(0);
@@ -286,6 +389,9 @@ const startEngineAnalysisPipe = (
         source.supportsStats = Math.floor(capabilities / 2) % 2 === 1;
         source.rate = rate;
         buffered = buffered.subarray(44);
+        if (tuningMeterHold) {
+          requestFrame(source, 1);
+        }
       }
       while (buffered.length >= 4) {
         const size = buffered.readUInt32LE(0);
@@ -317,6 +423,7 @@ const startEngineAnalysisPipe = (
           source.preampPending = false;
           source.pending = false;
           buffered = buffered.subarray(16);
+          flushWaiters(source.preampWaiters, source.preamp);
         } else if (source.statsPending) {
           if (size !== STATS_SIZE) {
             socket.destroy();
@@ -336,12 +443,17 @@ const startEngineAnalysisPipe = (
           source.statsPending = false;
           source.pending = false;
           buffered = buffered.subarray(STATS_SIZE + 4);
-          answerStats(source, { pid, workingSetBytes, cpuSeconds });
+          flushWaiters(source.statsWaiters, {
+            pid,
+            workingSetBytes,
+            cpuSeconds,
+          });
         } else if (size === 0xffffffff && source.pending) {
           source.pending = false;
           source.active = false;
           source.latest = undefined;
           buffered = buffered.subarray(4);
+          flushWaiters(source.frameWaiters, undefined);
         } else {
           if (size > MAX_FRAME || !source.pending) {
             socket.destroy();
@@ -359,9 +471,13 @@ const startEngineAnalysisPipe = (
               socket.destroy();
               return;
             }
-            if (source.enabled && source.endpoint === wanted) {
-              source.latest = { sampleRate: source.rate, frame };
+            const sample: IEngineAnalysis = { sampleRate: source.rate, frame };
+            if (source.enabled && source.endpoint === rendererWanted) {
+              source.latest = sample;
             }
+            flushWaiters(source.frameWaiters, sample);
+          } else {
+            flushWaiters(source.frameWaiters, undefined);
           }
           buffered = buffered.subarray(size + 4);
         }
@@ -382,7 +498,9 @@ const startEngineAnalysisPipe = (
     });
     socket.on('close', () => {
       sources.delete(source);
-      answerStats(source, undefined);
+      flushWaiters(source.statsWaiters, undefined);
+      flushWaiters(source.frameWaiters, undefined);
+      flushWaiters(source.preampWaiters, undefined);
     });
   });
   return new Promise((resolve) => {

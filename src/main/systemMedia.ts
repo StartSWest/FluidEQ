@@ -527,6 +527,9 @@ export const watchSystemMedia = (
 export const getSystemMediaCover = (id: string): string | undefined =>
   lastCover?.id === id ? lastCover.url : undefined;
 
+export const getLatestSystemMedia = (): ISystemMediaSnapshot | undefined =>
+  lastSnapshot;
+
 /** Stop reporting. The bar has an owner of its own again, or the window has
  * gone. */
 export const stopWatchingSystemMedia = (): void => {

@@ -53,6 +53,36 @@ const app: Partial<Dictionary> = {
   'app.menu.importConvolution': 'Impulsantwort importieren…',
   'app.menu.restartAudio': 'Windows-Audio neu starten',
   'app.menu.engineKey': 'Ein/Aus-Taste…',
+  'app.menu.tuningAgent': 'KI-Abstimmung (MCP)…',
+  'tuningAgent.title': 'KI-Audioabstimmung (MCP)',
+  'tuningAgent.body':
+    'Erlaubt einem lokalen KI-Assistenten oder einer CLI, Live-Messwerte zu lesen und EQ, Kopfhörerkorrektur, DSP-Rack und Mikrofon auf diesem PC abzustimmen.',
+  'tuningAgent.switchTitle': 'KI-Abstimmung auf diesem PC erlauben',
+  'tuningAgent.safetyHint':
+    'Nur Localhost mit privatem Schlüssel. Manueller Preamp bleibt bei höchstens 0 dB, Isolate-Modi sind gesperrt und alle Änderungen lassen sich mit einem Klick zurücksetzen.',
+  'tuningAgent.failed':
+    'FluidEQ konnte den lokalen Tuning-Endpunkt nicht öffnen.',
+  'tuningAgent.assistantLabel': 'Verbindungsformat',
+  'tuningAgent.assistant.claude': 'Claude Code',
+  'tuningAgent.assistant.codex': 'Codex',
+  'tuningAgent.assistant.other': 'MCP JSON',
+  'tuningAgent.assistant.cli': 'CLI',
+  'tuningAgent.setupLabel': 'KI-Abstimmung einrichten',
+  'tuningAgent.copy': 'Konfiguration kopieren',
+  'tuningAgent.copied': 'Kopiert',
+  'tuningAgent.copyFailed': 'Konnte nicht in die Zwischenablage kopieren.',
+  'tuningAgent.newKey': 'Neuer Schlüssel',
+  'tuningAgent.keyHint':
+    'Der Schlüssel ist auf dem Bildschirm maskiert und wird vollständig kopiert. Ein neuer Schlüssel sperrt frühere Assistenten sofort.',
+  'tuningAgent.sessionSummary':
+    'KI-Sitzung aktiv: {count} Änderung(en) · Aktiv: {mode}',
+  'tuningAgent.modeOriginal': 'Original',
+  'tuningAgent.modeTuned': 'KI-abgestimmt',
+  'tuningAgent.listenOriginal': 'Original anhören (A)',
+  'tuningAgent.listenTuned': 'KI-Abstimmung anhören (B)',
+  'tuningAgent.revert': 'Alle KI-Änderungen rückgängig machen',
+  'tuningAgent.actionFailed': 'Aktion konnte nicht ausgeführt werden.',
+  'tuningAgent.done': 'Fertig',
   'engineKey.title': 'Ein/Aus-Taste',
   'engineKey.body':
     'Drücken Sie die Tasten, mit denen Sie die FluidEQ-Engine aus- und wieder einschalten, aus jedem Programm, auch aus einem Spiel.',

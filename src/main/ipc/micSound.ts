@@ -203,5 +203,20 @@ export const registerMicSoundIpc = ({
     }
   });
 
-  return { republish };
+  /** Programmatic update for the Tuning Agent Door, keeping disk & engine in step. */
+  const apply = async (
+    guid: string,
+    raw: IMicSoundEntry,
+  ): Promise<TMicSoundResult> => {
+    if (!MIC_GUID.test(guid)) {
+      return 'rejected';
+    }
+    const id = guid.toUpperCase();
+    const entry = clampMicSoundEntry(raw);
+    file = { ...file, mics: { ...file.mics, [id]: entry } };
+    save();
+    return writeRack(id, entry);
+  };
+
+  return { republish, read: (): IMicSoundFile => file, apply };
 };

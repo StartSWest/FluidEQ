@@ -1,0 +1,129 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'theme' as *;
+
+.tuning-agent {
+  display: grid;
+  gap: 12px;
+}
+
+.tuning-agent__card {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-m;
+  background: $surface-well;
+
+  &.is-open {
+    border-color: color-mix(in srgb, $secondary-light 36%, transparent);
+    background:
+      radial-gradient(
+        120% 90% at 0% 0%,
+        color-mix(in srgb, $secondary-default 12%, transparent),
+        transparent 60%
+      ),
+      $surface-well;
+  }
+}
+
+.tuning-agent__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: 12px;
+}
+
+.tuning-agent__words {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tuning-agent__title {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  cursor: pointer;
+}
+
+.tuning-agent__text,
+.tuning-agent__hint {
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.5;
+}
+
+.tuning-agent__assistants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tuning-agent__tab {
+  padding: 4px 10px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-xs;
+  background: transparent;
+  color: $text-faint;
+  font-size: $text-small;
+  font-weight: $weight-medium;
+  cursor: pointer;
+
+  &[aria-pressed='true'] {
+    border-color: color-mix(in srgb, $secondary-light 50%, transparent);
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
+    color: $text-primary;
+  }
+}
+
+.tuning-agent__code {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid $border-field;
+  border-radius: $radius-s;
+  background: $surface-field;
+  color: $text-primary;
+  font-family: $font-mono;
+  font-size: $text-small;
+  line-height: 1.45;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.tuning-agent__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.tuning-agent__session {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, $secondary-light 32%, transparent);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $secondary-default 8%, transparent);
+}
+
+.tuning-agent__session-title {
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+}
+
+.tuning-agent__error {
+  margin: 0;
+  color: $amber;
+  font-size: $text-small;
+  line-height: 1.45;
+}

@@ -68,6 +68,7 @@ import { creatorBridge } from './creatorBridge';
 import { plusReviewBridge } from './plusReviewBridge';
 import { studioAgentBridge } from './studioAgentBridge';
 import studioChatBridge from './studioChatBridge';
+import tuningAgentBridge from './tuningAgentBridge';
 
 export type Channels = string;
 
@@ -445,6 +446,7 @@ export default {
     ...plusReviewBridge,
     ...studioAgentBridge,
     ...studioChatBridge,
+    ...tuningAgentBridge,
     ...engineHealthBridge,
     ...lightingBridge,
     ...wallpaperBridge,

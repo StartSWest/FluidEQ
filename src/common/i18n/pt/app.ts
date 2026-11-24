@@ -53,6 +53,36 @@ const app: Partial<Dictionary> = {
   'app.menu.importConvolution': 'Importar resposta ao impulso…',
   'app.menu.restartAudio': 'Reiniciar o áudio do Windows',
   'app.menu.engineKey': 'Tecla liga/desliga…',
+  'app.menu.tuningAgent': 'Ajuste com IA (MCP)…',
+  'tuningAgent.title': 'Ajuste de áudio com IA (MCP)',
+  'tuningAgent.body':
+    'Permite que um assistente de IA ou CLI local leia medições de áudio ao vivo e ajuste seu EQ, correção de fone, rack DSP e microfone neste computador.',
+  'tuningAgent.switchTitle': 'Permitir ajuste com IA neste computador',
+  'tuningAgent.safetyHint':
+    'Apenas localhost com chave privada. O pré-amp manual fica em até 0 dB, modos isolate são bloqueados e qualquer mudança pode ser revertida em um clique.',
+  'tuningAgent.failed': 'O FluidEQ não conseguiu abrir o endpoint local.',
+  'tuningAgent.assistantLabel': 'Formato de conexão',
+  'tuningAgent.assistant.claude': 'Claude Code',
+  'tuningAgent.assistant.codex': 'Codex',
+  'tuningAgent.assistant.other': 'MCP JSON',
+  'tuningAgent.assistant.cli': 'CLI',
+  'tuningAgent.setupLabel': 'Configuração de conexão IA',
+  'tuningAgent.copy': 'Copiar configuração',
+  'tuningAgent.copied': 'Copiado',
+  'tuningAgent.copyFailed':
+    'Não foi possível copiar para a área de transferência.',
+  'tuningAgent.newKey': 'Nova chave',
+  'tuningAgent.keyHint':
+    'A chave fica mascarada na tela e é copiada por completo. Gerar uma nova revoga os assistentes anteriores imediatamente.',
+  'tuningAgent.sessionSummary':
+    'Sessão de IA ativa: {count} alteração(ões) · Ouvindo: {mode}',
+  'tuningAgent.modeOriginal': 'Original',
+  'tuningAgent.modeTuned': 'Ajuste IA',
+  'tuningAgent.listenOriginal': 'Ouvir original (A)',
+  'tuningAgent.listenTuned': 'Ouvir ajuste IA (B)',
+  'tuningAgent.revert': 'Reverter todas as alterações da IA',
+  'tuningAgent.actionFailed': 'Não foi possível concluir essa ação.',
+  'tuningAgent.done': 'Concluído',
   'engineKey.title': 'Tecla liga/desliga',
   'engineKey.body':
     'Pressione as teclas que desligam e ligam de novo o motor do FluidEQ em qualquer programa, inclusive num jogo.',
