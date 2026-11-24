@@ -9,7 +9,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * "what ever user picks for that scene makes app goes that palette in wave
  * and meters"): in the palette's own order, readable on every theme shade,
  * the first palette the scene shows, the single colour a choice shows in its
- * place, the swatch where there is neither, and the Studio's project over
+ * place, never the swatch where there is neither, and the Studio's project over
  * the graph's visualizer while its bench is on screen.
  */
 
@@ -337,10 +337,32 @@ describe('the window’s Colourful palette', () => {
     );
   });
 
-  // The control: before any pack is drawn, the swatch's warm colours.
-  it('wears the swatch until then, and for a scene that chose no colours', () => {
+  // Chrome-like: a palette of four, every colour kept and in its order, bass
+  // to treble, never re-sorted round the wheel or cut to two (Ivan,
+  // 2026-11-24: "the colours to be more than 2 colours").
+  it('keeps every colour of a longer palette, in its order', () => {
+    const viridis = ['#46327e', '#277f8e', '#4ac16d', '#fde725'];
+    const stops = stopsAfter(({ reportSceneColourControls }) =>
+      reportSceneColourControls(
+        'premium:forest',
+        pack({ palettes: [palette('colours', viridis)] }),
+      ),
+    );
+    expect(stops).toEqual(rainbowFromPalette({ stops: viridis }));
+    // Violet first, through teal and green, to yellow last.
+    const hues = [0, 2, 4, 6].map((at) => lchOf(stops[at]).h);
+    viridis.forEach((stop, index) => {
+      expect(hueDistance(hues[index], lchOf(stop).h)).toBeLessThan(25);
+    });
+  });
+
+  // The control: before any pack is drawn, and for a scene that chose no
+  // colours and names none for the window, the window's own pair - never
+  // the swatch's warm colours.
+  it('wears the window’s own pair, never the swatch, for a scene that chose no colours', () => {
     const warm = rainbowFromColours(['#1a0500', '#ff6a00', '#ffd000']);
-    expect(stopsAfter(() => undefined)).toEqual(warm);
+    const own = stopsAfter(() => undefined);
+    expect(own).not.toEqual(warm);
     expect(
       stopsAfter(({ reportSceneColourControls }) =>
         reportSceneColourControls(
@@ -348,7 +370,7 @@ describe('the window’s Colourful palette', () => {
           pack({ palettes: undefined }),
         ),
       ),
-    ).toEqual(warm);
+    ).toEqual(own);
   });
 
   it('follows the listener’s own choice on the graph', () => {

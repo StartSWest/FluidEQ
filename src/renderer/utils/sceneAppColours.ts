@@ -35,9 +35,9 @@ import { rainbowFromColours, rainbowFromPalette } from './rainbowPalette';
  *   a rainbow — ahead of a second palette, which is the scene's sky or
  *   ground, not its subject. With neither, a second palette it is showing.
  *   Switching the choice back hands the first palette back.
- * - Neither, or only greys: nothing, and the scene's swatch or its measured
- *   colours stand as they did before palettes existed. A FluidEQ older than
- *   contract 9 never reads a palette, so it keeps the swatch too.
+ * - Neither, or only greys: nothing, and the wave runs from the accent the
+ *   scene lends the window to its second colour (`RainbowSource`, Ivan
+ *   2026-11-24) - never its swatch or its measured picture.
  */
 
 /** What of a pack decides the colours it hands over. */

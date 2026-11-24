@@ -12,24 +12,21 @@ import { isPremiumLookId } from 'common/scenePacks';
 import { usePageDaylight } from '../graph/sceneDaylight';
 import useStudioDayColours from '../studio/useStudioDayColours';
 import { useSelectedLookId } from '../utils/graphStyle';
-import { useUsableMemberScenes } from '../utils/memberScenes';
 import {
   sceneAppColourStops,
   useSceneColourControls,
   useStudioAppColours,
 } from '../utils/sceneAppColours';
 import { useListenerParams } from '../utils/sceneParamStore';
+import { rainbowBetween, setRainbowStops } from '../utils/rainbowPalette';
 import {
-  rainbowFromColours,
-  sceneColourHex,
-  setRainbowStops,
-} from '../utils/rainbowPalette';
-import { stopColoursAt } from '../utils/sceneDayColours';
+  stopColoursAt,
+  WINDOW_COLOUR_STOPS,
+  type TSceneStopColours,
+} from '../utils/sceneDayColours';
 import { studioDraftOwner, useDraftedSides } from '../utils/windowColourDraft';
-import { useUsableScenes } from '../utils/scenePacks';
 import {
   useAmpHoldsWindow,
-  useRememberedSceneSky,
   useSceneTintEnabled,
   useStudioTintSource,
 } from '../utils/sceneTintStore';
@@ -44,6 +41,25 @@ import {
 } from '../utils/windowTint';
 
 /**
+ * `sides` without a set the app measured off the scene's picture. A drawing
+ * of a scene catches whatever small bright thing is in it - Alpine's
+ * lanterns lent its wave a yellow the scene does not have, under an aurora
+ * of cyan and magenta - so the wave never takes its colours from one: what
+ * the scene names, what the listener or the member chose, and what its
+ * palette gives by the fixed rule (`sceneOwnColours.ts`) are kept.
+ */
+const withoutMeasured = (sides: TSceneStopColours): TSceneStopColours => {
+  const kept: TSceneStopColours = {};
+  WINDOW_COLOUR_STOPS.forEach((stop) => {
+    const side = sides[stop];
+    if (side && side.source !== 'measured') {
+      kept[stop] = side;
+    }
+  });
+  return kept;
+};
+
+/**
  * Chooses the stops the window draws its colourful marks in — the graph's
  * curves, the faders, the meters, the wave. Renders nothing. Colourful mode
  * has no switch any more (`euphoriaMode.ts`): this is simply what they wear.
@@ -51,43 +67,42 @@ import {
  * With a standard look, the window's own pair (`windowTint.ts`): one colour,
  * or the Tint's gradient once the listener gives it a second colour.
  *
- * While the graph's look is a Plus visualizer — a Plus look or a scene a
- * member made — the palette is that scene's own colours (Ivan, 2026-09-26:
- * "when plus viz and rainbow mode we need the plus viz rainbow matching its
- * current theme, like different rainbow modes depending on the current plus
- * viz"): the five read from its own frames (`findSceneSky`'s `palette`) once
- * it has been measured, since the visualizers know nothing about colours
- * ("read from the same viz automatically"), and the two to four its picker
- * icon is drawn in until then. A scene in greys lends none and the window's
- * own pair stands, and so does a Tint the listener touched while the window
- * is set to Original (the rule is written beside the effect below).
+ * While the graph's look is a Plus scene - a Plus look or a scene a member
+ * made - the stops are the scene's, in this order:
  *
- * A scene that chose its colours says so first (`sceneAppColours.ts`): its
- * palette, or the single colour its choices show instead, as the listener's
- * choices on the graph stand — and while the Studio's bench is on screen,
- * the project there, as the member is editing it.
+ * 1. A scene that chose the colours of its wave says so first
+ *    (`sceneAppColours.ts`): its first palette, as many colours as it names,
+ *    in its order bass to treble, or the single colour its choices show
+ *    instead, as the listener's choices on the graph leave them (Ivan,
+ *    2026-11-24: "some scenes do have a specific colour for the wave, for
+ *    example Chrome"). While the Studio lends the window its project, the
+ *    project's palette as the member is editing it - and never the graph
+ *    look's: a project with no palette on the bench used to wear the palette
+ *    of whatever scene was on the graph (Chrome's violet to yellow under
+ *    Alpine, "not sure where they came from").
+ * 2. Otherwise its window accent to its second colour (Ivan, 2026-11-24:
+ *    "let's use the same settings, the colours the scene has ... so it's from
+ *    primary to secondary colour"): the pair the window already wears at the
+ *    scene's hour, its points blended as the window blends them
+ *    (`sceneDayColours.ts`) - named by the scene, chosen by the listener, or
+ *    worked out from its palette by the fixed rule - drawn as the window's
+ *    own pair is (`rainbowBetween`).
+ * 3. Otherwise the window's own pair. Never the scene's picture as measured,
+ *    nor its picker swatch (`withoutMeasured`).
  *
- * A scene without a palette - every official one - hands over the colours
- * it lends the window at its hour, its points blended as the
- * window blends them (`sceneDayColours.ts`): the accent and the glow. It
- * used to hand over its picture's colours as measured at night, so on Alpine
- * by day the wave and the meters stayed the aurora's cyan under a window in
- * lavender (Ivan, 2026-11-18: "el Rainbow Color no está machando los colores
- * de la escena de día de noche"). The swatch and the measured colours are
- * what a scene with no window colours yet still hands over.
+ * A Tint the listener touched while the window is set to Original stands
+ * over all three (the rule is written beside the effect below).
  *
  * Mounted beside `SceneTint`, at the root, because the palette
  * belongs to the window and stays while the graph is on another tab.
  */
 const RainbowSource = () => {
   const lookId = useSelectedLookId();
-  const scenes = useUsableScenes();
-  const memberScenes = useUsableMemberScenes();
   const isScene = isPremiumLookId(lookId) || isMemberLookId(lookId);
-  const measured = useRememberedSceneSky(isScene ? lookId : '');
   const controls = useSceneColourControls(isScene ? lookId : '');
   const chosen = useListenerParams(lookId);
   const studio = useStudioAppColours();
+  const studioSource = useStudioTintSource();
 
   // The stops a scene chose, ready to use: never re-sorted round the wheel
   // as a swatch is, because a palette's order is bass to treble. As text, so
@@ -96,35 +111,20 @@ const RainbowSource = () => {
     if (studio) {
       return studio.join(' ');
     }
-    if (!isScene || !controls) {
+    if (studioSource || !isScene || !controls) {
       return undefined;
     }
     return sceneAppColourStops(
       controls,
       chosen ? { params: chosen } : {},
     )?.join(' ');
-  }, [studio, isScene, controls, chosen]);
-
-  // As text too: the lists are rebuilt whenever either arrives, with the same
-  // swatch in a new array.
-  const swatch = useMemo(() => {
-    if (!isScene) {
-      return undefined;
-    }
-    if (measured?.palette && measured.palette.length > 0) {
-      return measured.palette.map(sceneColourHex).join(' ');
-    }
-    const scene = isPremiumLookId(lookId)
-      ? scenes.find((entry) => entry.lookId === lookId)
-      : memberScenes.find((entry) => entry.lookId === lookId);
-    return scene?.swatch.join(' ');
-  }, [isScene, measured, lookId, scenes, memberScenes]);
+  }, [studio, studioSource, isScene, controls, chosen]);
 
   // The scene's window colours at its hour - the Studio's project while the
   // bench lends the window its colours, else the graph's scene - as the
-  // accent and the glow the rainbow is made from. As text, compared by value.
+  // accent and the second colour the stops run between. As text, compared
+  // by value.
   const daylight = Math.round(usePageDaylight());
-  const studioSource = useStudioTintSource();
   // The colour being picked in an editor stands in at its point, as on the
   // window (`windowColourDraft.ts`).
   const studioSides = useDraftedSides(
@@ -141,7 +141,7 @@ const RainbowSource = () => {
   );
   const timeColours = useMemo(() => {
     const colours = stopColoursAt(
-      studioSource ? studioSides : sceneSides,
+      withoutMeasured(studioSource ? studioSides : sceneSides),
       daylight,
     );
     return colours && `${colours.accent} ${colours.glow}`;
@@ -182,22 +182,19 @@ const RainbowSource = () => {
   // A layout effect, so the first frame a new scene is drawn in already has
   // its rainbow round it.
   useLayoutEffect(() => {
-    const fromTime = timeColours && rainbowFromColours(timeColours.split(' '));
-    const fromSwatch = swatch && rainbowFromColours(swatch.split(' '));
     if (isOwn) {
       setRainbowStops(ownStops.split(' '));
     } else if (chosenStops) {
       setRainbowStops(chosenStops.split(' '));
-    } else if (fromTime) {
-      setRainbowStops(fromTime);
-    } else if (fromSwatch) {
-      setRainbowStops(fromSwatch);
+    } else if (timeColours) {
+      const [accent, glow] = timeColours.split(' ');
+      setRainbowStops(rainbowBetween(accent, glow));
     } else {
-      // A scene in greys lends no colour: the window's own, as with a
-      // standard look.
+      // A scene that names no colours and has no palette to work them out
+      // from: the window's own, as with a standard look.
       setRainbowStops(ownStops.split(' '));
     }
-  }, [isOwn, ownStops, chosenStops, timeColours, swatch]);
+  }, [isOwn, ownStops, chosenStops, timeColours]);
 
   return null;
 };
