@@ -58,6 +58,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // through the wide one alone.
   --player-text-shadow:
     0 1px 2px #{rgba($black, 0.6)}, 0 1px 12px #{rgba($black, 0.65)};
+  // What the picture fades into under the words, and how far up: black at
+  // a fifth to a quarter over a scene, the pane rising over a standard look
+  // to 60% at 38% of the panel's height and gone at 74%. A white window
+  // fades into its white further (`MiniPlayer.scss`).
+  --player-scrim: #{$black};
+  --player-shade-mid: 60%;
+  --player-shade-reach: 74%;
+  // How much of its glows and drops the amp keeps (`player-glow` in
+  // `_miniPlayerParts.scss`): all of them here, none on a white window
+  // (`MiniPlayer.scss`).
+  --player-glow-share: 100%;
+  // Play's glyph on its accent face: the floor, a step darker.
+  --player-play-ink: color-mix(in srgb, var(--surface-base), #{$black} 40%);
   // A pill on the glass: the page's own pickers and buttons, Smart EQ's key,
   // the chips — a wash of light and the glass's own hairline round it.
   --player-key-wash: color-mix(in srgb, #{$edge-tint} 8%, transparent);

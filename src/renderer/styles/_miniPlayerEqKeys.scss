@@ -219,7 +219,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
     .player-led__lamp {
       background: var(--player-curve-smart);
-      box-shadow: 0 0 7px var(--player-curve-smart);
+      box-shadow: 0 0 7px player-glow(var(--player-curve-smart));
     }
   }
 

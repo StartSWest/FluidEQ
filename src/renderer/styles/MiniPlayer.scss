@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 @use 'sass:meta';
+@use 'color' as *;
 @use 'glass';
 @use 'playerMotion';
 
@@ -123,6 +124,40 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // Windows' border marks where it stops, as it does for every other window.
 :root[data-amp] body::after {
   display: none;
+}
+
+// THE AMP ON A WHITE WINDOW (`data-window-ink`, Ivan, 2026-11-24: "we need
+// to fix the white theme"). The amp's theme was written for a dark floor:
+// its words over the picture stood on a black shadow, which round the white
+// window's dark ink read as a smudge, and its play key, faders, lamps and art
+// carried glows and drops that on white made grey and teal blurs. Here the
+// words carry no shadow at all (Ivan, the same day: "that text with
+// dropshadow, hate it" - a halo of white round them was a shadow still):
+// they are the window's ink, and the picture under them fades into the
+// panes' own white further up than on a dark window (`--player-scrim`,
+// `--player-shade-*`), so the song stands on the panel's ground and not on
+// the wave's busiest part. Every glow and drop goes out (`player-glow`,
+// `_miniPlayerParts.scss`), and play takes the accent's own label
+// (`--on-accent`), stepping toward its far ink under the pointer as the
+// app's loud buttons do on a light window (`button-lit-on-light`).
+//
+// Outside the amp's scope and weightier than its `:scope` (an attribute
+// beside the root, and a class beside it for a picture of the player drawn
+// in a page), so it wins over the dark values on the same element whichever
+// sheet lands last; inside the scope `:root` matches nothing.
+:root[data-window-ink='dark'],
+:root[data-window-ink='dark'] :is(.player-picture, .player-part) {
+  --player-glow-share: 0%;
+  --player-text-shadow: none;
+  --player-scrim: var(--surface-panel);
+  --player-shade-mid: 88%;
+  --player-shade-reach: 86%;
+  --player-play-ink: #{$on-accent};
+  --player-play-hover-fill: color-mix(
+    in oklab,
+    var(--accent) 86%,
+    #{$on-accent-far}
+  );
 }
 
 @scope (:root[data-amp], .player-picture, .player-part) {

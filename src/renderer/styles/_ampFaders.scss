@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 @use 'color' as *;
 @use 'theme' as *;
+@use 'miniPlayerParts' as *;
 
 // THE EQUALIZER'S FADERS — the same in both amps (Ivan, 2026-09-28: "also the
 // sliders", for the 2.0 amp): the name, the EQ page's step arrows, the travel
@@ -286,8 +287,11 @@ $player-fader-around: 58px;
       var(--surface-field);
     box-shadow:
       0 0 0 2px var(--player-fader-colour),
-      0 4px 10px rgba($black, 0.5),
-      0 0 12px color-mix(in srgb, var(--player-fader-colour) 45%, transparent);
+      0 4px 10px player-glow(rgba($black, 0.5)),
+      0 0 12px
+        player-glow(
+          color-mix(in srgb, var(--player-fader-colour) 45%, transparent)
+        );
     pointer-events: none;
   }
 
@@ -295,8 +299,11 @@ $player-fader-around: 58px;
     box-shadow:
       0 0 0 2px var(--player-fader-colour),
       0 0 0 5px color-mix(in srgb, var(--player-fader-colour) 16%, transparent),
-      0 4px 10px rgba($black, 0.5),
-      0 0 16px color-mix(in srgb, var(--player-fader-colour) 55%, transparent);
+      0 4px 10px player-glow(rgba($black, 0.5)),
+      0 0 16px
+        player-glow(
+          color-mix(in srgb, var(--player-fader-colour) 55%, transparent)
+        );
   }
 
   .player-band__input:focus-visible + .player-band__cap {
@@ -356,8 +363,11 @@ $player-fader-around: 58px;
           color-mix(in srgb, var(--surface-field), $black 28%)
         );
       box-shadow:
-        0 5px 12px rgba($black, 0.55),
-        0 0 14px color-mix(in srgb, var(--player-fader-colour) 28%, transparent);
+        0 5px 12px player-glow(rgba($black, 0.55)),
+        0 0 14px
+          player-glow(
+            color-mix(in srgb, var(--player-fader-colour) 28%, transparent)
+          );
     }
 
     .player-band__input:hover + .player-band__cap {
@@ -369,15 +379,18 @@ $player-fader-around: 58px;
       box-shadow:
         0 0 0 3px
           color-mix(in srgb, var(--player-fader-colour) 14%, transparent),
-        0 5px 12px rgba($black, 0.55),
-        0 0 16px color-mix(in srgb, var(--player-fader-colour) 40%, transparent);
+        0 5px 12px player-glow(rgba($black, 0.55)),
+        0 0 16px
+          player-glow(
+            color-mix(in srgb, var(--player-fader-colour) 40%, transparent)
+          );
     }
 
     .player-band__input:focus-visible + .player-band__cap {
       box-shadow:
         0 0 0 2px var(--player-floor),
         0 0 0 4px var(--player-ink-bright),
-        0 5px 12px rgba($black, 0.55);
+        0 5px 12px player-glow(rgba($black, 0.55));
     }
   }
 

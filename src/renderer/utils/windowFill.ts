@@ -159,9 +159,16 @@ const LIGHT_FILL_APART = 0.1;
 
 /** What a filled control stands on and may be labelled in. */
 export interface IFillGround {
-  /** The window's floor: the label on every dark window and on a deep fill. */
+  /**
+   * The window's floor: the label on every dark window, and what a deep fill
+   * on the white window is solved against (its label there is the panes'
+   * white, lighter still).
+   */
   floor: string;
-  /** The panes the controls stand on, which a light fill must stand apart from. */
+  /**
+   * The panes the controls stand on, which a light fill must stand apart
+   * from, and the white a deep fill is labelled in on the white window.
+   */
   pane: string;
   /** The window's strongest ink (`--ink`): the label on a light fill. */
   ink: string;
@@ -198,7 +205,8 @@ const distance = (left: ILab, right: ILab) =>
  *   the white window, lighter on a dark one;
  * - the floor's colour where that reaches `LABEL_CONTRAST`: a deep accent
  *   on the white window, a light one on a dark window, as every accent
- *   always had;
+ *   always had - written on the white window in the panes' white, which
+ *   only reads better than the floor it was measured against;
  * - else the window's ink where that reaches it - its dark ink on the white
  *   window, on the colour AND on the colour a pressed step darker
  *   (`ACCENT_DARK_STEP`), because the fill's own darker end carries the
@@ -214,8 +222,15 @@ export const filledFace = (
   colour: ILab,
   { floor, pane, ink, isLight }: IFillGround,
 ): IFilledFace => {
+  // THE LIGHT LABEL ON THE WHITE WINDOW IS THE PANES' WHITE, not the floor's
+  // grey (Ivan, 2026-11-24: "also the gray text / icon on green button"):
+  // the floor there is #ececec, and on the deep teal it read as a grey glyph
+  // on every loud button, the amp's play key worst. The fill is still solved
+  // against the floor, so the panes' lighter white only reads better; on a
+  // dark window the floor is the dark label and stays it.
+  const lightLabel = isLight && lumOf(pane) > lumOf(floor) ? pane : floor;
   if (chromaOf(colour) < GREY_CHROMA) {
-    return { fill: filledOn(colour, floor, isLight), label: floor };
+    return { fill: filledOn(colour, floor, isLight), label: lightLabel };
   }
   // Away from the panes, and the way the floor's label wants the colour:
   // darker on the white window, lighter on a dark one; the ink's the other.
@@ -235,7 +250,7 @@ export const filledFace = (
   const apart = movedUntil(colour, awayFromPanes, apartAt);
   const floorReads = reachesAt(apart, lumOf(floor), LABEL_CONTRAST);
   if (floorReads(apart.l)) {
-    return { fill: labToHex(apart), label: floor };
+    return { fill: labToHex(apart), label: lightLabel };
   }
   const inkReachesAt = reachesAt(apart, lumOf(ink), LABEL_CONTRAST);
   const inkReads = (l: number) =>
@@ -251,5 +266,5 @@ export const filledFace = (
     Math.abs(forInk.l - apart.l) < Math.abs(apart.l - forFloor.l);
   return inkFits
     ? { fill: labToHex(forInk), label: ink }
-    : { fill: labToHex(forFloor), label: floor };
+    : { fill: labToHex(forFloor), label: lightLabel };
 };

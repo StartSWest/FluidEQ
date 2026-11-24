@@ -14,6 +14,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // on it, and the title that scrolls. Every piece of the amp is built from
 // these, in the amp's own colours (`_miniPlayerShell.scss`).
 
+// ============================================================ the lights ===
+//
+// THE AMP'S GLOWS AND DROPS GO OUT ON A WHITE WINDOW. A lamp's halo, a lit
+// key's glow, the shadow under the art, the faders' caps and the glass panes
+// are light and depth on a dark floor; on white each one read as a grey or
+// teal smudge round the thing it stood under, and the play key as a heavy
+// slab (Ivan, 2026-11-24, the amp on white; his standing rule from
+// 2026-11-19: "no dropshadow always clean"). Each is mixed by
+// `--player-glow-share` (`_miniPlayerShell.scss`): all of it on a dark
+// window, where nothing moves, none of it on a light one (`MiniPlayer.scss`).
+@function player-glow($colour) {
+  @return color-mix(
+    in srgb,
+    #{$colour} var(--player-glow-share, 100%),
+    transparent
+  );
+}
+
 // ============================================================ the scrims ===
 //
 // A SHADE THAT EASES IN AND OUT, as gradient stops from `$from` to `$to`:
@@ -60,7 +78,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     box-shadow:
       inset 0 1px 0 var(--player-glass-lip),
       inset 0 0 0 1px var(--player-glass-edge),
-      0 24px 60px rgba($black, 0.35);
+      0 24px 60px player-glow(rgba($black, 0.35));
   } @else {
     box-shadow:
       inset 0 1px 0 var(--player-glass-lip),
@@ -256,7 +274,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     border-radius: 8px;
     box-shadow:
       inset 0 1px 0 color-mix(in srgb, #{$white} 8%, transparent),
-      0 3px 10px color-mix(in srgb, var(--logo-4) 22%, transparent);
+      0 3px 10px player-glow(color-mix(in srgb, var(--logo-4) 22%, transparent));
     transition: box-shadow 150ms ease;
 
     svg {
@@ -270,7 +288,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     box-shadow:
       inset 0 1px 0 color-mix(in srgb, #{$white} 12%, transparent),
       0 0 0 1px color-mix(in srgb, var(--logo-3) 40%, transparent),
-      0 3px 14px color-mix(in srgb, var(--logo-4) 42%, transparent);
+      0 3px 14px player-glow(color-mix(in srgb, var(--logo-4) 42%, transparent));
   }
 
   &:focus-visible {

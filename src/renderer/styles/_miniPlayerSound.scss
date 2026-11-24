@@ -231,7 +231,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
     .player-led__lamp {
       background: var(--accent);
-      box-shadow: 0 0 8px var(--accent);
+      box-shadow: 0 0 8px player-glow(var(--accent));
       opacity: 1;
     }
   }
@@ -389,7 +389,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   height: 6px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 8px var(--accent);
+  box-shadow: 0 0 8px player-glow(var(--accent));
 
   .is-off > & {
     background: var(--player-text-soft);

@@ -84,8 +84,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
     linear-gradient(
       0deg,
       var(--player-pane) 0%,
-      color-mix(in srgb, var(--player-pane) 60%, transparent) 38%,
-      transparent 74%
+      color-mix(
+          in srgb,
+          var(--player-pane) var(--player-shade-mid),
+          transparent
+        )
+        38%,
+      transparent var(--player-shade-reach)
     );
   pointer-events: none;
 }
@@ -109,9 +114,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
   inset: 0;
   background: linear-gradient(
     180deg,
-    eased-ramp($black, 0%, 20%, 0.3, 0),
-    eased-ramp($black, 28%, 54%, 0, 0.24),
-    eased-ramp($black, 54%, 100%, 0.24, 0)
+    eased-ramp(var(--player-scrim), 0%, 20%, 0.3, 0),
+    eased-ramp(var(--player-scrim), 28%, 54%, 0, 0.24),
+    eased-ramp(var(--player-scrim), 54%, 100%, 0.24, 0)
   );
   content: '';
   pointer-events: none;
@@ -123,8 +128,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 .mini-player.is-backdrop .player-top::after {
   background: linear-gradient(
     180deg,
-    eased-ramp($black, 28%, 54%, 0, 0.24),
-    eased-ramp($black, 54%, 100%, 0.24, 0)
+    eased-ramp(var(--player-scrim), 28%, 54%, 0, 0.24),
+    eased-ramp(var(--player-scrim), 54%, 100%, 0.24, 0)
   );
 }
 
@@ -288,7 +293,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   overflow: hidden;
   border-radius: 10px;
   box-shadow:
-    0 10px 26px rgba($black, 0.55),
+    0 10px 26px player-glow(rgba($black, 0.55)),
     inset 0 0 0 1px color-mix(in srgb, #{$white} 8%, transparent);
 
   .library-cover-art {
@@ -307,12 +312,21 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // The one thing on the amp read from across the room, and still scrolling
 // when it is longer than its line.
+//
+// ITS LINE HOLDS THE LETTERS WHOLE (Ivan, 2026-11-24: "the text is cutted,
+// the g"): the marquee clips at its box, and a 1.2 line is shorter than the
+// face itself - Segoe UI's ascent and descent are 1.33em - so the foot of a
+// g, a p or a y was cut by the 0.065em that hung under the line. The line is
+// the face's own height now, and the box grows by the same 0.07em above and
+// below into the gaps round it, given back by its margins: the title's place
+// and its baseline are where they were, to the pixel.
 .player-hero__title {
-  height: 1.2em;
+  height: 1.34em;
+  margin-block: -0.07em;
   color: var(--player-text);
   font-size: 21px;
   font-weight: $weight-bold;
-  line-height: 1.2;
+  line-height: 1.34;
   text-shadow: var(--player-text-shadow);
   @include tracking(-0.01em);
 }
@@ -481,7 +495,8 @@ button.player-readouts__chip {
   &.is-on {
     border-color: color-mix(in srgb, var(--accent) 70%, transparent);
     background: color-mix(in srgb, var(--accent) 22%, transparent);
-    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 30%, transparent);
+    box-shadow: 0 0 10px
+      player-glow(color-mix(in srgb, var(--accent) 30%, transparent));
   }
 
   &:focus-visible {

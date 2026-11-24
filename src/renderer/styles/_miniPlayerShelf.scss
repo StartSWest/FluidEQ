@@ -145,7 +145,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
       height: 2px;
       border-radius: 1px;
       background: var(--accent);
-      box-shadow: 0 0 8px var(--accent);
+      box-shadow: 0 0 8px player-glow(var(--accent));
       content: '';
       transition: opacity 220ms ease;
     }
