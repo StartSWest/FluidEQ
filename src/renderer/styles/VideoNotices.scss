@@ -42,7 +42,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   color: $secondary-light;
 
   .video-browser__download.is-failed & {
-    color: $red;
+    color: $ink-removed;
   }
 
   svg {

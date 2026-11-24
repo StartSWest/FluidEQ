@@ -131,7 +131,7 @@ $name-column: 34ch;
   font-size: $text-body;
 
   &--error {
-    color: $red;
+    color: $ink-removed;
   }
 }
 
@@ -185,7 +185,7 @@ $name-column: 34ch;
   }
 
   &--off {
-    color: $red;
+    color: $ink-removed;
 
     &::before {
       background: $red;
@@ -672,7 +672,7 @@ $name-column: 34ch;
 
   &--missing {
     background: tone-fill-lit($red);
-    color: $red;
+    color: $ink-removed;
   }
 
   // The one file here that is not going to be overwritten, and the badge is
@@ -762,7 +762,7 @@ $name-column: 34ch;
 
 .config-node__error {
   margin: 0;
-  color: $red;
+  color: $ink-removed;
   font-size: $text-micro;
 }
 
@@ -802,7 +802,7 @@ $name-column: 34ch;
 }
 
 .config-node--missing .config-node__name {
-  color: $red;
+  color: $ink-removed;
   font-family: $font-mono;
   font-size: $text-small;
   text-decoration: line-through;

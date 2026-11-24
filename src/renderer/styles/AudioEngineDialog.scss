@@ -161,7 +161,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // it explains, the explanation for why the row cannot be used is the least
 // readable thing on screen.
 .engine-dialog__note {
-  color: $amber;
+  color: $ink-caution;
   font-size: $text-small;
   line-height: 1.45;
 }
@@ -196,7 +196,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .engine-dialog__error {
   flex: 1 0 100%;
   margin: 0;
-  color: $red;
+  color: $ink-removed;
   font-size: $text-body;
   line-height: 1.45;
 }

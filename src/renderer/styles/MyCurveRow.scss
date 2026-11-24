@@ -216,7 +216,7 @@
 
   .my-curve__delete,
   .my-curve__delete .my-curve__menu-icon {
-    color: $red;
+    color: $ink-removed;
   }
 
   .my-curve__delete:hover,
@@ -224,7 +224,7 @@
     background: tone-fill-hover($red);
 
     .my-curve__menu-icon {
-      color: $red;
+      color: $ink-removed;
     }
   }
 }
@@ -273,7 +273,7 @@
   place-items: center;
   border-radius: $radius-s;
   background: color-mix(in srgb, $red 14%, transparent);
-  color: $red;
+  color: $ink-removed;
 }
 
 .my-curve__confirm-body {

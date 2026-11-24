@@ -295,7 +295,7 @@
   }
 
   &.is-congested {
-    color: $red;
+    color: $ink-removed;
 
     &::before {
       background: $red;

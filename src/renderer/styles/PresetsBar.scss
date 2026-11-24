@@ -173,13 +173,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .preset-confirm-prompt {
     flex: none;
-    color: $red;
+    color: $ink-removed;
     font-weight: $weight-semibold;
   }
 
   .icons {
     .iconButton:first-child {
-      color: $red;
+      color: $ink-removed;
 
       &:hover,
       &:focus-visible {

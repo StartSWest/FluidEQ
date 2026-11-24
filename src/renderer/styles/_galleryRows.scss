@@ -162,7 +162,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .gallery-row__blocked {
   justify-self: start;
   padding: 1px 8px;
-  color: $red;
+  color: $ink-removed;
   border: 1px solid color-mix(in srgb, $red 45%, transparent);
   border-radius: $radius-2xs;
   font-size: $text-micro;
@@ -306,7 +306,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .gallery-dialog__error {
   margin: 0;
-  color: $amber;
+  color: $ink-caution;
   font-size: $text-small;
 }
 
@@ -655,6 +655,6 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .gallery-versions__failed {
-  color: $red;
+  color: $ink-removed;
   line-height: 1.45;
 }

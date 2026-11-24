@@ -629,7 +629,7 @@ $studio-stage-floor: 148px;
   // Its AI is stopped on a card only the member can answer: amber, the one
   // state here that holds the work up, and the one the eye should find first.
   &.is-waiting {
-    color: $amber;
+    color: $ink-caution;
     border-color: color-mix(in srgb, $amber 50%, transparent);
     background: color-mix(in srgb, $amber 14%, transparent);
 

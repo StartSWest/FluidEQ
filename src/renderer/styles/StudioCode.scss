@@ -250,12 +250,12 @@ $code-bar: 10px;
   white-space: nowrap;
 
   &.is-dirty {
-    color: $amber;
+    color: $ink-caution;
   }
 
   // A draft the scene does not build with: nothing is saved until it is fixed.
   &.is-wrong {
-    color: $red;
+    color: $ink-removed;
   }
 }
 
@@ -310,7 +310,7 @@ $code-bar: 10px;
 }
 
 .studio-code__delta-remove {
-  color: $red;
+  color: $ink-removed;
 }
 
 // What has to be read whether the file is open or folded.
@@ -353,7 +353,7 @@ $code-bar: 10px;
 }
 
 .studio-code__trouble {
-  color: $amber;
+  color: $ink-caution;
 }
 
 // Why a draft cannot be saved, in words, each with the line it is on: the
@@ -392,7 +392,7 @@ $code-bar: 10px;
 .studio-code__why-line {
   flex: 0 0 auto;
   padding: 0;
-  color: $red;
+  color: $ink-removed;
   border: 0;
   background: none;
   font: inherit;
@@ -478,7 +478,7 @@ $code-bar: 10px;
   }
 
   .is-wrong {
-    color: $red;
+    color: $ink-removed;
     font-weight: $weight-bold;
   }
 }
@@ -649,7 +649,7 @@ $code-bar: 10px;
   }
 
   .studio-code__row--remove & {
-    color: $red;
+    color: $ink-removed;
   }
 }
 
@@ -671,7 +671,7 @@ $code-bar: 10px;
 }
 
 .studio-code__glsl--number {
-  color: $amber;
+  color: $ink-caution;
 }
 
 .studio-code__glsl--uniform {
@@ -755,6 +755,6 @@ $code-bar: 10px;
 .studio-notes__problem {
   margin: 0;
   padding: 8px 12px 0;
-  color: $amber;
+  color: $ink-caution;
   font-size: $text-small;
 }

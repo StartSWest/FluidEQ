@@ -64,7 +64,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .studio-publish__note-wrong {
   margin: 0;
-  color: $red;
+  color: $ink-removed;
   font-size: $text-small;
   line-height: 1.35;
 }
@@ -100,7 +100,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // the count says it: amber rather than red, because a full note is finished,
 // not wrong.
 .studio-publish__note-count--full {
-  color: $amber;
+  color: $ink-caution;
   font-weight: $weight-bold;
 }
 

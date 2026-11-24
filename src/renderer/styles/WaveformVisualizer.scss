@@ -196,12 +196,12 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .is-clipping .waveform-visualizer__peak {
-  color: $red;
+  color: $ink-removed;
 }
 
 .waveform-visualizer__clip {
   padding: 1px 5px;
-  color: $red;
+  color: $ink-removed;
   border: 1px solid rgba($red, 0.45);
   border-radius: 4px;
   background: rgba($red, 0.14);

@@ -36,7 +36,7 @@ it under the terms of the GNU General Public License version 3 or later.
   font-variant-numeric: tabular-nums;
 
   .is-over & {
-    color: $red;
+    color: $ink-removed;
   }
 }
 
@@ -137,7 +137,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .studio-publish-size__over {
   margin: 0;
-  color: $red;
+  color: $ink-removed;
   font-size: $text-small;
   line-height: 1.4;
 }

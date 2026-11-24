@@ -208,12 +208,12 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &.is-near {
     --context: #{$amber};
-    color: $amber;
+    color: $ink-caution;
   }
 
   &.is-full {
     --context: #{$red};
-    color: $red;
+    color: $ink-removed;
   }
 
   &:hover,

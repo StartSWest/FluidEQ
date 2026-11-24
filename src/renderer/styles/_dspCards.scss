@@ -87,7 +87,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .is-warning {
     background: rgba($red, 0.1);
-    color: $red;
+    color: $ink-removed;
   }
 }
 
@@ -138,7 +138,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
 
     &.is-warning {
-      color: $red;
+      color: $ink-removed;
     }
   }
 }
@@ -402,7 +402,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 1px solid rgba($red, 0.4);
   border-radius: $radius-xs;
   background: rgba($red, 0.08);
-  color: $red;
+  color: $ink-removed;
   font-size: $text-body;
   line-height: 1.4;
 }

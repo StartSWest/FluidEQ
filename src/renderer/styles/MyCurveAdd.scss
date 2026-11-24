@@ -185,7 +185,7 @@
 }
 .my-curve-add__unread {
   margin: 0;
-  color: $amber;
+  color: $ink-caution;
   font-size: $text-small;
   overflow-wrap: anywhere;
 }
@@ -194,7 +194,7 @@
   padding: 8px 10px;
   border: 1px solid color-mix(in srgb, $amber 45%, transparent);
   border-radius: $radius-s;
-  color: $amber;
+  color: $ink-caution;
   font-size: $text-small;
 }
 .my-curve-add__row {

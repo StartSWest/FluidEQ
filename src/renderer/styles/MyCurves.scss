@@ -217,7 +217,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 .my-curve-dialog__error {
   margin: 10px 0 0;
-  color: $red;
+  color: $ink-removed;
   font-size: $text-small;
 }
 
@@ -282,14 +282,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   [role='alert'] {
     margin: 0;
-    color: $amber;
+    color: $ink-caution;
     font-size: $text-small;
   }
 }
 
 .my-curve-import__room {
   margin: 8px 0 0;
-  color: $amber;
+  color: $ink-caution;
   font-size: $text-small;
 }
 
@@ -338,7 +338,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 .my-curve-import__clash {
-  color: $amber;
+  color: $ink-caution;
   font-size: $text-micro;
 }
 

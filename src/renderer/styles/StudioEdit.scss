@@ -637,7 +637,7 @@ $edit-z: #5aa9ff;
 // Hidden while editing: amber, as every "careful, not as listeners see it"
 // here is.
 .studio-edit__flag--hide[aria-pressed='true'] {
-  color: $amber;
+  color: $ink-caution;
 }
 
 // Solo: lit on the rows it shows, and dimmer but always there on every row
@@ -680,12 +680,12 @@ $edit-z: #5aa9ff;
 // A thing the scene's own file switches off: always there, the one press
 // that turns it back on, as a change.
 .studio-edit__flag--on {
-  color: $amber;
+  color: $ink-caution;
   opacity: 1;
 }
 
 .studio-edit__name small.is-off {
-  color: $amber;
+  color: $ink-caution;
 }
 
 .studio-edit__thing {
@@ -919,7 +919,7 @@ $edit-z: #5aa9ff;
     flex: none;
     width: 14px;
     height: 14px;
-    color: $red;
+    color: $ink-removed;
   }
 }
 
@@ -1027,7 +1027,7 @@ $edit-z: #5aa9ff;
 
   > span {
     padding: 0 4px;
-    color: $amber;
+    color: $ink-caution;
     font-size: $text-micro;
     font-weight: $weight-semibold;
     white-space: nowrap;

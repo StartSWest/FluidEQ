@@ -89,13 +89,13 @@ $rail-width: 16.5rem;
   }
 
   &.is-warn {
-    color: $amber;
+    color: $ink-caution;
     border-color: color-mix(in srgb, $amber 32%, transparent);
     background: color-mix(in srgb, $amber 13%, transparent);
   }
 
   &.is-danger {
-    color: $red;
+    color: $ink-removed;
     border-color: color-mix(in srgb, $red 34%, transparent);
     background: color-mix(in srgb, $red 13%, transparent);
   }

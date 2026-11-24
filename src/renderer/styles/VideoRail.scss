@@ -151,7 +151,7 @@ $video-sign-out-said: 4s;
   }
 
   &.is-failed {
-    color: $red;
+    color: $ink-removed;
   }
 
   // Two plain selectors rather than one `:is()`: `momentHolds.test.ts` reads

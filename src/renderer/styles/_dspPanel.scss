@@ -218,7 +218,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &.is-idle {
     border-color: color-mix(in srgb, $amber 34%, transparent);
     background: color-mix(in srgb, $amber 7%, transparent);
-    color: $amber;
+    color: $ink-caution;
   }
 }
 
@@ -256,7 +256,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-unavailable {
   margin: 2px 0 0;
-  color: $red;
+  color: $ink-removed;
   font-size: $text-body;
   line-height: 1.4;
 }

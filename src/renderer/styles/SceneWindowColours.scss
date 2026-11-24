@@ -93,7 +93,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // A colour changed from the scene's own carries a dot after its name.
 .window-colour-swatch.is-changed .window-colour-swatch__name::after {
   content: ' •';
-  color: $amber;
+  color: $ink-caution;
 }
 
 .window-colour-swatch__about {
@@ -159,7 +159,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   &.is-warning {
-    color: $amber;
+    color: $ink-caution;
   }
 }
 
@@ -356,7 +356,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 .studio-window-colours__failed {
   margin: 0;
-  color: $amber;
+  color: $ink-caution;
   font-size: $text-micro;
   line-height: 1.45;
 }

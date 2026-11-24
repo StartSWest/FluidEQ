@@ -320,7 +320,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   &.is-danger .gaming-save__label,
   &.is-danger .gaming-save__icon {
-    color: $red;
+    color: $ink-removed;
   }
 }
 
@@ -906,7 +906,7 @@ $gaming-kind-colours: (
   margin-left: auto;
 
   .is-danger {
-    color: $red;
+    color: $ink-removed;
   }
 }
 

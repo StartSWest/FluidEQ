@@ -84,7 +84,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   &.is-warn {
     border-color: color-mix(in srgb, $amber 45%, transparent);
-    color: $amber;
+    color: $ink-caution;
   }
 }
 

@@ -28,7 +28,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   // The rail's tile in the danger tone: the account is what is at stake.
   .dialog-frame__tile {
-    color: $red;
+    color: $ink-removed;
     border-color: color-mix(in srgb, $red 34%, transparent);
     background: color-mix(in srgb, $red 13%, transparent);
   }
@@ -142,5 +142,5 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 .suspension-screen__failed {
   margin: 0;
-  color: $amber;
+  color: $ink-caution;
 }

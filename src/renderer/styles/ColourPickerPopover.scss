@@ -210,7 +210,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     outline: none;
 
     &[aria-invalid='true'] {
-      color: $amber;
+      color: $ink-caution;
     }
   }
 

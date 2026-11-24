@@ -171,7 +171,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // buttons: it is a sentence about what happened, and it has to be read
 // before the same button is pressed again.
 .device-apo-notice__error {
-  color: $red;
+  color: $ink-removed;
 }
 
 // One row for both places the output is drawn: the list, and the picker's
@@ -264,7 +264,7 @@ it under the terms of the GNU General Public License version 3 or later.
     font-weight: $weight-regular;
 
     &.is-off {
-      color: $red;
+      color: $ink-removed;
     }
 
     .battery-level {

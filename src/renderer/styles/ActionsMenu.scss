@@ -210,7 +210,7 @@
   background: tone-fill-hover($red);
 
   .actions-menu__badge {
-    color: $red;
+    color: $ink-removed;
     background: tone-fill-lit($red);
     box-shadow: inset 0 0 0 1px tone-edge-lit($red);
   }
@@ -236,7 +236,7 @@
 
 .actions-menu__engine-fix {
   padding: 2px 8px;
-  color: $red;
+  color: $ink-removed;
   border: 1px solid rgba($red, 0.45);
   border-radius: $radius-xs;
   font-size: $text-micro;

@@ -406,10 +406,10 @@ $fold: 1180px;
 // After a press with parts missing, the line says it in the alert's voice:
 // the member has acted, and this is what stood in the way.
 .studio-publish__held.is-alert {
-  color: $red;
+  color: $ink-removed;
 
   .studio-publish__held-icon {
-    color: $red;
+    color: $ink-removed;
   }
 
   .studio-publish__held-link {

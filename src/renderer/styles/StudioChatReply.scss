@@ -133,7 +133,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   .is-failed > & {
-    color: $amber;
+    color: $ink-caution;
   }
 
   .is-running > & {
@@ -305,7 +305,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   [role='alert'] {
-    color: $amber;
+    color: $ink-caution;
   }
 }
 
@@ -335,7 +335,7 @@ it under the terms of the GNU General Public License version 3 or later.
     flex: none;
     width: 14px;
     height: 14px;
-    color: $amber;
+    color: $ink-caution;
   }
 
   > span {

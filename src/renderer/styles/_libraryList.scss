@@ -708,7 +708,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // A format Chromium cannot decode — marked, not silently broken.
 .library-list__badge--unplayable {
-  color: $red;
+  color: $ink-removed;
 }
 
 // Quiet on purpose: this says the file's own tags could not be read, which
@@ -873,7 +873,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Why the press did nothing, said in the menu rather than swallowed.
 .library-list__menu-error {
   margin: 4px 6px 2px;
-  color: $red;
+  color: $ink-removed;
   font-size: $text-small;
   line-height: 1.35;
 }

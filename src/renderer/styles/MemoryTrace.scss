@@ -55,7 +55,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Recording is a state worth being unmistakable about, because a trace left
   // running distorts the measurement it was opened for.
   &.is-recording {
-    color: $red;
+    color: $ink-removed;
     border-color: rgba($red, 0.6);
     border-style: solid;
     background: rgba($red, 0.12);

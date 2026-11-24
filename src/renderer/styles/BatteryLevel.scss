@@ -34,7 +34,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     --battery-fill: #{$red};
 
     .battery-level__value {
-      color: $red;
+      color: $ink-removed;
     }
   }
 }

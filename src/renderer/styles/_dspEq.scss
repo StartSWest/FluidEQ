@@ -719,14 +719,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-import__error {
-  color: $red;
+  color: $ink-removed;
   font-size: $text-body;
 }
 
 // A name already taken, said before Save rather than after it: a caution,
 // not a fault.
 .dsp-import__warning {
-  color: $amber;
+  color: $ink-caution;
   font-size: $text-body;
 }
 

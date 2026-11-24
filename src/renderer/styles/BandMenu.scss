@@ -93,12 +93,12 @@ $band-menu-width: 200px;
 // Delete armed: the next press deletes, in the red the band editor's armed
 // bin wears.
 .band-menu button.is-armed:not(.button) {
-  color: $red;
+  color: $ink-removed;
   border-color: color-mix(in srgb, $red 45%, transparent);
   background: color-mix(in srgb, $red 12%, transparent);
 
   .band-menu__icon {
-    color: $red;
+    color: $ink-removed;
   }
 }
 

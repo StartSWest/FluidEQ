@@ -30,7 +30,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 .scene-review-mark--rejected {
-  color: $amber;
+  color: $ink-caution;
   cursor: pointer;
 
   &.scene-review-mark--still {
@@ -73,7 +73,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   display: flex;
   align-items: center;
   gap: 6px;
-  color: $amber;
+  color: $ink-caution;
   font-size: $text-small;
   font-weight: $weight-semibold;
 
