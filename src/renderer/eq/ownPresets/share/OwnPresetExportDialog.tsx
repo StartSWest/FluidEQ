@@ -20,6 +20,7 @@ import {
   rackStageNames,
   type TShareFormat,
 } from './presetShareText';
+import PRESET_LINKS_OPEN from './presetLinksRelease';
 import usePresetShortLink from './usePresetShortLink';
 
 /** Why the export's short link was not made, as the box under it says. */
@@ -85,7 +86,7 @@ const OwnPresetExportDialog = ({
   const link = usePresetShortLink(
     preset,
     code,
-    isSignedIn && withLink && tab === 'forum',
+    PRESET_LINKS_OPEN && isSignedIn && withLink && tab === 'forum',
   );
   const [done, setDone] = useState<TExportTab | undefined>(undefined);
   const [failed, setFailed] = useState(false);
@@ -280,7 +281,7 @@ const OwnPresetExportDialog = ({
             <pre className="preset-share-dialog__text" aria-live="polite">
               {forumText}
             </pre>
-            {isSignedIn && (
+            {PRESET_LINKS_OPEN && isSignedIn && (
               <label className="preset-share-dialog__check" htmlFor={linkId}>
                 <input
                   id={linkId}
@@ -307,7 +308,7 @@ const OwnPresetExportDialog = ({
                 )}
               </label>
             )}
-            {!isSignedIn && isAccountKnown && (
+            {PRESET_LINKS_OPEN && !isSignedIn && isAccountKnown && (
               <button
                 type="button"
                 className="button small subtle preset-share-dialog__sign-in"

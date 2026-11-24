@@ -14,6 +14,7 @@ import AnchoredMenu, { isInsideAnchoredMenu } from '../../widgets/AnchoredMenu';
 import PresetCardCurve from '../presetCard/PresetCardCurve';
 import type { IPresetCurveDesign } from '../presetCard/presetCardDrawing';
 import type { TCopyLinkResult } from './share/presetShareActions';
+import PRESET_LINKS_OPEN from './share/presetLinksRelease';
 
 /** Copy share link's line in place of the hint, by what came of the press. */
 const LINK_LINE = {
@@ -159,7 +160,7 @@ const OwnPresetTile = ({
     };
   }, [anchor, isMenuOpen]);
 
-  const items: TMenuItem[] = [
+  const allItems: TMenuItem[] = [
     { key: 'edit', icon: 'eqBars', label: t('eq.own.edit'), run: onEdit },
     {
       key: 'rename',
@@ -202,6 +203,8 @@ const OwnPresetTile = ({
       icon: 'upload',
       label: t('presetShare.menu.export'),
       run: onExport,
+      // The share group's head while the two links wait for 2.7.
+      startsGroup: !PRESET_LINKS_OPEN,
     },
     {
       key: 'delete',
@@ -213,12 +216,21 @@ const OwnPresetTile = ({
     },
   ];
 
+  // The community and the link wait for 2.7 (`PRESET_LINKS_OPEN`).
+  const items = PRESET_LINKS_OPEN
+    ? allItems
+    : allItems.filter((item) => item.key !== 'share' && item.key !== 'link');
+
   let linkLineClass: string | undefined;
   if (linkState === 'copied') {
     linkLineClass = 'own-preset-tile__done';
   } else if (linkState && linkState !== 'making') {
     linkLineClass = 'own-preset-tile__problem';
   }
+
+  const shareLabel = PRESET_LINKS_OPEN
+    ? t('presetShare.share', { name: preset.name })
+    : t('presetShare.export.title', { name: preset.name });
 
   const finishRename = () => {
     const next = draft.trim();
@@ -301,14 +313,15 @@ const OwnPresetTile = ({
         <MenuIcon name="star" />
       </button>
       {/* Share beside the star: under the pointer or the focus as the
-          star is, and always on the preset that plays. */}
+          star is, and always on the preset that plays. The export until
+          the community and the link open (`PRESET_LINKS_OPEN`). */}
       <button
         type="button"
         className="own-preset-tile__share"
-        aria-label={t('presetShare.share', { name: preset.name })}
-        title={t('presetShare.share', { name: preset.name })}
+        aria-label={shareLabel}
+        title={shareLabel}
         onPointerEnter={onPoint}
-        onClick={onShare}
+        onClick={PRESET_LINKS_OPEN ? onShare : onExport}
       >
         <MenuIcon name="upload" />
       </button>
