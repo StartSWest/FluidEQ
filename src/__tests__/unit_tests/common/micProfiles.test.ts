@@ -17,7 +17,6 @@ import {
   MIC_PROFILE_IDS,
   micProfileGroup,
   micProfileSettings,
-  micRackDelayMs,
 } from '../../../common/mic/micProfiles';
 import { dynamicsPresetSettings } from '../../../common/dsp/dynamicsPresets';
 import micProfilesFixture from '../../../common/mic/micProfilesFixture';
@@ -61,15 +60,6 @@ describe('the mic profiles', () => {
     const stream = micProfileSettings('stream');
     expect(stream.denoise.voice.enabled).toBe(true);
     expect(stream.voice?.gateEnabled).toBe(true);
-  });
-
-  it('says what each adds in delay: the cleaner, the De-esser, the limiter', () => {
-    expect(micRackDelayMs(micProfileSettings('stream'))).toBe(23);
-    expect(micRackDelayMs(micProfileSettings('sing'))).toBe(3);
-    expect(micRackDelayMs(micProfileSettings('meet'))).toBe(21);
-    expect(
-      micRackDelayMs({ ...micProfileSettings('stream'), enabled: false }),
-    ).toBe(0);
   });
 
   it('groups them by use and by mic, and knows its own ids', () => {

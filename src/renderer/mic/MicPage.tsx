@@ -245,11 +245,14 @@ const MicPage = () => {
       ? (part.frames * 1000) / latency.rate
       : undefined;
   };
-  const delays: Partial<Record<TMicStage, number>> = {
-    denoise: delayOf('restoration'),
-    deEsser: delayOf('deEsser'),
-    maximizer: delayOf('maximizer'),
-  };
+  const measured = (health?.latency?.rate ?? 0) > 0;
+  const delays: Partial<Record<TMicStage, number>> | undefined = measured
+    ? {
+        denoise: delayOf('restoration'),
+        deEsser: delayOf('deEsser'),
+        maximizer: delayOf('maximizer'),
+      }
+    : undefined;
   const toggleStage = (id: TMicStage) => {
     if (id === 'own') {
       own.switchTo(!own.state.on);

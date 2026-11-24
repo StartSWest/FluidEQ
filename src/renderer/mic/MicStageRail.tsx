@@ -58,6 +58,13 @@ export const MIC_STAGES: readonly {
 ];
 
 /** Whether a stage is doing anything to the voice right now. */
+/** The stages whose delay the engine reports (`latency.parts`). */
+const DELAY_STAGES: ReadonlySet<TMicStage> = new Set<TMicStage>([
+  'denoise',
+  'deEsser',
+  'maximizer',
+]);
+
 export const micStageOn = (settings: IDspSettings, stage: TMicStage) => {
   const { voice } = settings;
   switch (stage) {
@@ -243,8 +250,11 @@ interface IMicStageRailProps {
   onToggle: (stage: TMicStage) => void;
   /** The whole mic's rack on or off. */
   onMaster: () => void;
-  /** Each delay-adding stage's delay in ms, as the engine measures it. */
-  delays: Partial<Record<TMicStage, number>>;
+  /**
+   * Each delay-adding stage's delay in ms, as the engine measures it;
+   * undefined until the engine has written a status for the mic.
+   */
+  delays: Partial<Record<TMicStage, number>> | undefined;
   latest: React.MutableRefObject<IMicLevel | undefined>;
   /** Whether the engine is answering on this mic, so the meters move. */
   live: boolean;
@@ -323,7 +333,14 @@ const MicStageRail = ({
     if (!on) {
       return '—';
     }
-    const ms = delays[id];
+    // Not measured yet: a dash, as the header's total, never a figure from
+    // the dials. Those read "0 ms" for the cleaner, which adds 61-63 ms at
+    // 48 kHz (74 ms at 352.8 and 384), and the app's own 20 ms estimate was
+    // as wrong, so neither stands in for the engine's reading.
+    if (delays === undefined && DELAY_STAGES.has(id)) {
+      return '—';
+    }
+    const ms = delays?.[id];
     if (ms === undefined || ms <= 0) {
       return t('dsp.latency.ms', { ms: '0' });
     }

@@ -442,22 +442,3 @@ export const micProfileSettings = (id: TMicProfileId): IDspSettings => {
 
 export const micProfileGroup = (id: TMicProfileId): TMicProfileGroup =>
   MIC_PROFILE_BY_ID[id].group;
-
-/**
- * What the mic adds in delay with this rack, ms, as the engine reports it:
- * the voice cleaner one 10 ms hop plus one device block (taken as 10 ms),
- * the De-esser's 2 ms look-ahead, the Maximizer's. Everything else adds
- * none, the Reverb included (wet only, `reverb.h`).
- */
-export const micRackDelayMs = (settings: IDspSettings): number => {
-  if (!settings.enabled) {
-    return 0;
-  }
-  const cleaner =
-    settings.denoise.enabled && settings.denoise.voice.enabled ? 20 : 0;
-  const deEsser = settings.deEsser.enabled ? 2 : 0;
-  const limiter = settings.maximizer.enabled
-    ? settings.maximizer.lookAheadMs
-    : 0;
-  return cleaner + deEsser + limiter;
-};
