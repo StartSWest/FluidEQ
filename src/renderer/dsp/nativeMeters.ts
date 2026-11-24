@@ -38,6 +38,7 @@ import { setDspRoomReport } from './roomTelemetry';
  * tell the difference. Not one of them is touched by this file.
  */
 import {
+  ANALYSIS_EQ_DETAIL_WINDOW,
   IHostAnalysis,
   IHostAnalysisEqLive,
   TAnalysisStage,
@@ -180,6 +181,14 @@ export const createNativeMeters = (
       analyser.accept(bins);
       if (stage === 'eq' && frame.eqLive) {
         analyser.acceptLive(frame.eqLive);
+      }
+      // A mic's arrival tap is live as the EQ tap is, with its own long
+      // window for the bottom octaves its Low cut picture draws.
+      if (stage === 'voiceIn') {
+        analyser.acceptLive({
+          detailWindow: ANALYSIS_EQ_DETAIL_WINDOW,
+          detail: frame.voice?.detail,
+        });
       }
 
       /**

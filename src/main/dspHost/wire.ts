@@ -26,11 +26,13 @@ import {
   ANALYSIS_EQ_DETAIL_WINDOW,
   ANALYSIS_FOOTSTEPS_HEADER_BYTES,
   ANALYSIS_GAME_HEADER_BYTES,
+  ANALYSIS_DYNAMICS_HEADER_BYTES,
   ANALYSIS_DYNAMICS_TAG,
   ANALYSIS_HEADER_BYTES,
   ANALYSIS_MAX_BANDS,
   ANALYSIS_SCOPE_PAIRS,
   ANALYSIS_STAGES,
+  ANALYSIS_VOICE_TAG,
 } from '../../common/dsp/analysisWire';
 import type {
   IHostAnalysis,
@@ -38,6 +40,7 @@ import type {
   IHostAnalysisFootsteps,
   IHostAnalysisDynamics,
   IHostAnalysisGame,
+  IHostAnalysisVoice,
   TAnalysisStage,
 } from '../../common/dsp/analysisWire';
 import { CHAIN_PARAM_LEAD } from '../../common/dsp/chainWire';
@@ -57,7 +60,7 @@ import {
  * changes, so a stale host is refused at the handshake with a legible reason
  * rather than desynchronising on its first frame of that kind.
  */
-export const HOST_WIRE_PROTOCOL_VERSION = 9;
+export const HOST_WIRE_PROTOCOL_VERSION = 10;
 
 export const HANDSHAKE_BYTES = 104;
 export const COMMAND_BYTES = 32;
@@ -577,6 +580,56 @@ const decodeDynamics = (view: DataView): IHostAnalysisDynamics | undefined => {
   return { active: active === 1, levelDb, gainDb };
 };
 
+/**
+ * How many of the arrival tap's long-window bins follow the EQ tap's: 0 in a
+ * header before the mic's readings, `undefined` for a header that cannot be
+ * this build's (the tag missing, or a size this build never writes), which
+ * refuses the frame as a bad EQ detail size does.
+ */
+const voiceDetailBinsOf = (
+  header: Buffer,
+  headerBytes: number,
+): number | undefined => {
+  if (headerBytes < ANALYSIS_HEADER_BYTES) {
+    return 0;
+  }
+  if (header.readUInt32LE(872) !== ANALYSIS_VOICE_TAG) {
+    return undefined;
+  }
+  const window = header.readUInt32LE(888);
+  const bins = header.readUInt32LE(892);
+  if (window !== 0 && window !== ANALYSIS_EQ_DETAIL_WINDOW) {
+    return undefined;
+  }
+  if (bins !== 0 && (window === 0 || bins !== ANALYSIS_EQ_DETAIL_BINS)) {
+    return undefined;
+  }
+  return bins;
+};
+
+/** A mic's gate, offsets 872 to 895; the tag was checked with the length. */
+const decodeVoice = (
+  view: DataView,
+  detail: Float32Array | undefined,
+): IHostAnalysisVoice | undefined => {
+  const active = view.getUint32(876, true);
+  const gateLevelDb = view.getFloat32(880, true);
+  const gateGainDb = view.getFloat32(884, true);
+  if (
+    active > 1 ||
+    !Number.isFinite(gateLevelDb) ||
+    !Number.isFinite(gateGainDb)
+  ) {
+    return undefined;
+  }
+  return {
+    active: active === 1,
+    gateLevelDb,
+    gateGainDb,
+    ...(detail ? { detail } : {}),
+  };
+};
+
 export const decodeTelemetry = (frame: Buffer): IHostTelemetry | undefined => {
   if (frame.length < TELEMETRY_BYTES) {
     return undefined;
@@ -689,6 +742,10 @@ export const analysisFrameLength = (
   ) {
     return 0;
   }
+  const voiceBins = voiceDetailBinsOf(header, headerBytes);
+  if (voiceBins === undefined) {
+    return 0;
+  }
   let present = 0;
   for (let stage = 0; stage < ANALYSIS_STAGES.length; stage += 1) {
     // stage_mask IS a bit field on the wire; spelling a mask test as
@@ -703,7 +760,8 @@ export const analysisFrameLength = (
     present * bins * Float32Array.BYTES_PER_ELEMENT +
     pairs * 2 * Float32Array.BYTES_PER_ELEMENT +
     bands * 2 * Float32Array.BYTES_PER_ELEMENT +
-    detailBins * Float32Array.BYTES_PER_ELEMENT
+    detailBins * Float32Array.BYTES_PER_ELEMENT +
+    voiceBins * Float32Array.BYTES_PER_ELEMENT
   );
 };
 
@@ -810,6 +868,17 @@ export const decodeAnalysis = (
     Buffer.from(frame.subarray(at, at + bytes)).copy(
       Buffer.from(detail.buffer, detail.byteOffset, bytes),
     );
+    at += bytes;
+  }
+  // A mic's arrival tap's long window, after the EQ tap's, copied out too.
+  const voiceBins = voiceDetailBinsOf(frame, headerBytes) ?? 0;
+  let voiceDetail: Float32Array | undefined;
+  if (voiceBins > 0) {
+    const bytes = voiceBins * Float32Array.BYTES_PER_ELEMENT;
+    voiceDetail = new Float32Array(voiceBins);
+    Buffer.from(frame.subarray(at, at + bytes)).copy(
+      Buffer.from(voiceDetail.buffer, voiceDetail.byteOffset, bytes),
+    );
   }
 
   return {
@@ -904,8 +973,13 @@ export const decodeAnalysis = (
     ...(headerBytes >= ANALYSIS_GAME_HEADER_BYTES
       ? { game: decodeGame(view) }
       : {}),
-    ...(headerBytes >= ANALYSIS_HEADER_BYTES
+    ...(headerBytes >= ANALYSIS_DYNAMICS_HEADER_BYTES
       ? { dynamics: decodeDynamics(view) }
+      : {}),
+    // After the 872 bytes that end with Dynamics, from an engine that reads
+    // a mic's gate and its voice as it arrives.
+    ...(headerBytes >= ANALYSIS_HEADER_BYTES
+      ? { voice: decodeVoice(view, voiceDetail) }
       : {}),
     // From a writer whose EQ spectrum is the live one; offsets 84 and 88 were
     // two of the retired guard's zeros, which is what every writer before

@@ -60,6 +60,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/footsteps.h"
 #include "fluideq/loudness_meter.h"
 #include "fluideq/room.h"
+#include "fluideq/voice.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -112,7 +113,17 @@ typedef enum FeqMeterStage {
   FEQ_METER_STAGE_DENOISE = 3,
   FEQ_METER_STAGE_DYNAMICS_IN = 4,
   FEQ_METER_STAGE_DYNAMICS_OUT = 5,
-  FEQ_METER_STAGE_COUNT = 6
+  /**
+   * A mic's rack only (engine 1.32). The voice as it arrives, before the
+   * Voice stage's low cut, kept as the EQ tap is — the newest audio and a
+   * long window for the bottom octaves (`meters_voice.h`) — and the voice as
+   * the cleaner hears it, after the low cut, windowed and smoothed exactly
+   * as the denoise tap after the cleaner is, so the gap between those two is
+   * the cleaner's work and nothing else.
+   */
+  FEQ_METER_STAGE_VOICE_IN = 6,
+  FEQ_METER_STAGE_CLEANER_IN = 7,
+  FEQ_METER_STAGE_COUNT = 8
 } FeqMeterStage;
 
 /**
@@ -211,6 +222,31 @@ int feq_meters_read_spectrum(FeqMeters* meters,
 int feq_meters_read_eq_detail(FeqMeters* meters,
                               float* out_db,
                               uint32_t bins);
+
+/**
+ * Give these meters a mic's arrival tap (`FEQ_METER_STAGE_VOICE_IN`).
+ * **Control thread**, before or while the rack runs; once is enough and a
+ * second call does nothing. Until it is called that tap captures and reads
+ * nothing, so an output's meters never carry its 0.7 MB.
+ */
+void feq_meters_prepare_voice(FeqMeters* meters);
+
+/**
+ * The arrival tap's long window, as `feq_meters_read_eq_detail` reads the
+ * EQ tap's. **Control thread.** 0 when unprepared or nothing new.
+ */
+int feq_meters_read_voice_detail(FeqMeters* meters,
+                                 float* out_db,
+                                 uint32_t bins);
+
+/** The gate's level and gain at a block's end. **Audio thread.** */
+void feq_meters_publish_voice(FeqMeters* meters, const FeqVoiceReport* report);
+
+/**
+ * The latest gate reading. **Control thread.** Inactive (level at the floor,
+ * gain 0) while the rack is not a mic's or its Voice stage is off.
+ */
+void feq_meters_read_voice(const FeqMeters* meters, FeqVoiceReport* report);
 
 /**
  * The goniometer's pairs, the correlation and the peaks. **Control thread.**

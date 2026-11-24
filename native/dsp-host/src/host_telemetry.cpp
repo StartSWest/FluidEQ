@@ -167,6 +167,11 @@ void drain_analysis(HostState& state) {
   FeqCompanderReport dynamics{};
   feq_meters_read_dynamics(state.meters, &dynamics);
   feq_wire_dynamics_report(frame, dynamics);
+  // The Library plays no mic: its rack never prepares the arrival tap, so
+  // this says inactive with no bins, and the frame stays the size it was.
+  FeqVoiceReport voice{};
+  feq_meters_read_voice(state.meters, &voice);
+  feq_wire_voice_report(frame, voice, 0u);
   frame.peak_left = peaks[0];
   frame.peak_right = peaks[1];
 

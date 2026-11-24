@@ -122,6 +122,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *        voice cleaner one device block ahead instead of four hops (about
  *        20 ms instead of 50). An engine before 1.31 refuses a line with the
  *        trailer, so the app takes it off for one (ENGINE_VOICE_SINCE).
+ *   1.32 reports a mic's voice as it arrives and as the cleaner hears it,
+ *        and its gate's own level and gain, for the Mic tab's Low cut, Noise
+ *        cancelling and Gate pictures. Audio is identical to 1.31; an older
+ *        engine's frames read without them (ENGINE_VOICE_METERS_SINCE).
  * ENGINE_STATUS_SINCE stays at 1.1: older status-capable engines still report
  * their health even when the new display connection is unavailable.
  */
@@ -133,8 +137,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #endif
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 31, 0, 0
-PRODUCTVERSION 1, 31, 0, 0
+FILEVERSION 1, 32, 0, 0
+PRODUCTVERSION 1, 32, 0, 0
 FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 FILEFLAGS 0
 FILEOS VOS_NT_WINDOWS32

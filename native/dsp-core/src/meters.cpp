@@ -16,6 +16,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "meters_eq_live.h"
 #include "meters_footsteps.h"
 #include "meters_transform.h"
+#include "meters_voice.h"
 
 /*
  * `meters.h` mirrors this count rather than including the header, so that
@@ -282,6 +283,8 @@ struct FeqMeters {
    * the EQ graph reads the newest audio, not windows in a row.
    */
   EqLiveWindow eq_live;
+  /** A mic's arrival tap and gate (`meters_voice.h`); its `stages` slot too. */
+  VoiceMeterWindow voice;
   std::vector<double> window;
   /** Reader-side scratch, so the transform allocates nothing per frame. */
   std::vector<double> real;
@@ -359,6 +362,7 @@ void feq_meters_set_enabled(FeqMeters* meters, int enabled) {
   // switch: the engine's link says "on" with every frame it asks for.
   if (enabled != 0 && meters->enabled.load(std::memory_order_acquire) == 0) {
     eq_live_restart(meters->eq_live);
+    voice_window_restart(meters->voice);
   }
   meters->enabled.store(enabled != 0 ? 1 : 0, std::memory_order_release);
 }
@@ -385,6 +389,10 @@ void feq_meters_capture(FeqMeters* meters,
   }
   if (stage == FEQ_METER_STAGE_EQ) {
     eq_live_capture(meters->eq_live, left, right, frames);
+    return;
+  }
+  if (stage == FEQ_METER_STAGE_VOICE_IN) {
+    voice_window_capture(meters->voice, left, right, frames);
     return;
   }
 
@@ -480,6 +488,9 @@ int feq_meters_read_spectrum(FeqMeters* meters,
   if (stage == FEQ_METER_STAGE_EQ) {
     return eq_live_read_short(meters->eq_live, sample_rate, out_db);
   }
+  if (stage == FEQ_METER_STAGE_VOICE_IN) {
+    return voice_window_read_short(meters->voice, sample_rate, out_db);
+  }
   StageWindow& target = meters->stages[stage];
   const uint64_t generation = target.generation.load(std::memory_order_acquire);
   if (generation == target.drawn) {
@@ -523,7 +534,10 @@ int feq_meters_read_spectrum(FeqMeters* meters,
 
     // Dynamics draws its own time-based ballistics. Both taps must share the
     // same window and smoothing so their gap describes the processor alone.
-    const double smoothing = stage >= FEQ_METER_STAGE_DYNAMICS_IN
+    // Named, not `>=`: the mic's cleaner tap after them is smoothed like the
+    // denoise tap it is compared with.
+    const double smoothing = stage == FEQ_METER_STAGE_DYNAMICS_IN ||
+                                     stage == FEQ_METER_STAGE_DYNAMICS_OUT
         ? 0.0 : smoothing_for(sample_rate);
     for (uint32_t bin = 0; bin < FEQ_METER_BINS; bin += 1) {
       const double previous = meters->stages[stage].smoothed[bin];
@@ -794,6 +808,40 @@ void feq_meters_publish_dynamics(FeqMeters* meters,
                                         std::memory_order_relaxed);
   }
   meters->dynamics_active.store(report->active, std::memory_order_relaxed);
+}
+
+void feq_meters_prepare_voice(FeqMeters* meters) {
+  if (meters != nullptr) {
+    voice_window_prepare(meters->voice);
+  }
+}
+
+int feq_meters_read_voice_detail(FeqMeters* meters,
+                                 float* out_db,
+                                 uint32_t bins) {
+  if (meters == nullptr || out_db == nullptr ||
+      bins != FEQ_METER_DETAIL_BINS) {
+    return 0;
+  }
+  return voice_window_read_long(
+      meters->voice, meters->sample_rate.load(std::memory_order_relaxed),
+      out_db);
+}
+
+void feq_meters_publish_voice(FeqMeters* meters, const FeqVoiceReport* report) {
+  if (meters == nullptr || report == nullptr ||
+      meters->enabled.load(std::memory_order_acquire) == 0) {
+    return;
+  }
+  voice_window_publish(meters->voice, *report);
+}
+
+void feq_meters_read_voice(const FeqMeters* meters, FeqVoiceReport* report) {
+  if (meters == nullptr) {
+    if (report != nullptr) *report = FeqVoiceReport{};
+    return;
+  }
+  voice_window_read(meters->voice, report);
 }
 
 void feq_meters_read_dynamics(const FeqMeters* meters,

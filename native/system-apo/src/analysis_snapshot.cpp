@@ -102,11 +102,24 @@ std::vector<unsigned char> AnalysisLink::snapshot() {
   FeqCompanderReport dynamics{};
   feq_meters_read_dynamics(meters_, &dynamics);
   feq_wire_dynamics_report(frame, dynamics);
+  // A mic's arrival tap's long window, beside a fresh short one for the
+  // EQ tap's reason: the graph times the detail by the short window.
+  std::array<float, FEQ_METER_DETAIL_BINS> voice_detail{};
+  const bool voice_fresh =
+      (frame.stage_mask & (1u << FEQ_METER_STAGE_VOICE_IN)) != 0;
+  const uint32_t voice_bins = voice_fresh && feq_meters_read_voice_detail(
+      meters_, voice_detail.data(), FEQ_METER_DETAIL_BINS) != 0
+      ? FEQ_METER_DETAIL_BINS : 0;
+  FeqVoiceReport voice{};
+  feq_meters_read_voice(meters_, &voice);
+  feq_wire_voice_report(frame, voice, voice_bins);
   const size_t scope_bytes = sizeof(float) * frame.pairs * 2;
   const size_t band_bytes = sizeof(float) * frame.bands;
   const size_t detail_bytes = sizeof(float) * detail_bins;
+  const size_t voice_detail_bytes = sizeof(float) * voice_bins;
   std::vector<unsigned char> packet(sizeof(frame) + spectrum_bytes +
-      scope_bytes + band_bytes * 2 + detail_bytes + sizeof(float) * 5);
+      scope_bytes + band_bytes * 2 + detail_bytes + voice_detail_bytes +
+      sizeof(float) * 5);
   size_t offset = 0;
   const auto append = [&](const void* source, size_t size) {
     std::memcpy(packet.data() + offset, source, size);
@@ -118,6 +131,7 @@ std::vector<unsigned char> AnalysisLink::snapshot() {
   append(amounts.data(), band_bytes);
   append(levels.data(), band_bytes);
   append(detail.data(), detail_bytes);
+  append(voice_detail.data(), voice_detail_bytes);
   float live_input[5] = {-120, -120, -120, 0, -120};
   feq_meters_read_live_input(meters_, live_input);
   append(live_input, sizeof(live_input));

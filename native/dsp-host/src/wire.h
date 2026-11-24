@@ -35,6 +35,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/denoise.h"
 #include "fluideq/footsteps.h"
 #include "fluideq/compander.h"
+/* For the gate's report and the long window's size, `feq_wire_voice_report`. */
+#include "fluideq/meters.h"
+#include "fluideq/voice.h"
 /* For FEQ_BASS_FORGE_BANDS, which sizes the two runs in the analysis frame. */
 #include "fluideq/bass_forge.h"
 
@@ -66,7 +69,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * refuse that host and silence the Library to protect a frame that was never
  * at risk.
  */
-#define FEQ_WIRE_PROTOCOL_VERSION 9
+#define FEQ_WIRE_PROTOCOL_VERSION 10
 
 /**
  * `FEQ_CMD_LOAD_DECK` with the deck left to the host.
@@ -638,6 +641,18 @@ typedef struct FeqWireAnalysisFrame {
   uint32_t dynamics_active;
   float dynamics_level_db[FEQ_COMPANDER_BANDS];
   float dynamics_gain_db[FEQ_COMPANDER_BANDS];
+  /**
+   * VOI1 (engine 1.32): a mic's gate as it heard and acted - its detector's
+   * level, which is the voice after the cleaner, and its gain - and how many
+   * of the arrival tap's long-window bins follow the EQ tap's in the payload
+   * (`FEQ_METER_STAGE_VOICE_IN`). Inactive and zero bins on an output's rack.
+   */
+  uint32_t voice_tag;
+  uint32_t voice_active;
+  float voice_gate_level_db;
+  float voice_gate_gain_db;
+  uint32_t voice_detail_window;
+  uint32_t voice_detail_bins;
 } FeqWireAnalysisFrame;
 
 #ifdef __cplusplus
@@ -694,6 +709,20 @@ inline void feq_wire_dynamics_report(FeqWireAnalysisFrame& frame,
     frame.dynamics_gain_db[band] = report.gain_db[band];
   }
 }
+/**
+ * A mic's gate and how many arrival-tap detail bins follow; both writers
+ * call this, the Library host with no voice and no bins.
+ */
+inline void feq_wire_voice_report(FeqWireAnalysisFrame& frame,
+                                  const FeqVoiceReport& report,
+                                  uint32_t detail_bins) {
+  frame.voice_tag = 0x31494f56u;  // VOI1
+  frame.voice_active = report.active;
+  frame.voice_gate_level_db = report.gate_level_db;
+  frame.voice_gate_gain_db = report.gate_gain_db;
+  frame.voice_detail_window = detail_bins != 0 ? FEQ_METER_DETAIL_WINDOW : 0u;
+  frame.voice_detail_bins = detail_bins;
+}
 inline void feq_wire_room_report(FeqWireAnalysisFrame& frame,
                                  const FeqRoomReport& room) {
   frame.reserved_tail = room.flags;
@@ -720,8 +749,12 @@ static_assert(sizeof(FeqWireStatsFrame) == 24, "stats frame size");
  * hiss-gain bands append 160 bytes, for a 560-byte header, the De-esser's
  * fifty-six words 224 more, for 784, Footsteps' seven and its pad 32 more,
  * for 816, and the Game filter's five and their pad 24 more, for 840.
+ * Dynamics' tagged 32 took it to 872, and a mic's gate and long window 24
+ * more, to 896.
  */
-static_assert(sizeof(FeqWireAnalysisFrame) == 872, "analysis frame size");
+static_assert(sizeof(FeqWireAnalysisFrame) == 896, "analysis frame size");
+static_assert(offsetof(FeqWireAnalysisFrame, voice_tag) == 872,
+              "Voice offset");
 static_assert(offsetof(FeqWireAnalysisFrame, deesser_reduction_db) == 560,
               "De-esser offset");
 static_assert(offsetof(FeqWireAnalysisFrame, footsteps_level_db) == 784,

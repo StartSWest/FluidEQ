@@ -135,6 +135,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/meters_deesser.cpp
   dsp-core/src/meters_footsteps.cpp
   dsp-core/src/meters_eq_live.cpp
+  dsp-core/src/meters_voice.cpp
   dsp-core/src/meters_transform.cpp
   dsp-core/src/chain.cpp
   dsp-core/src/chain_process.cpp
@@ -262,6 +263,12 @@ add_test(NAME voice COMMAND fluideq-voice-test)
 add_executable(fluideq-dynamics-meters-test dsp-core/tests/dynamics_meters_test.cpp)
 target_link_libraries(fluideq-dynamics-meters-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME dynamics-meters COMMAND fluideq-dynamics-meters-test)
+# A mic's taps either side of its low cut and its gate's own reading, at
+# every shared-mode rate, beside the controls that tell a tap from its
+# neighbour.
+add_executable(fluideq-voice-meters-test dsp-core/tests/voice_meters_test.cpp)
+target_link_libraries(fluideq-voice-meters-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME voice-meters COMMAND fluideq-voice-meters-test)
 
 
 # The Game filter's other two parts: a voice brought forward and the rest

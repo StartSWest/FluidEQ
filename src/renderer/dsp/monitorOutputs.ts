@@ -25,6 +25,8 @@ export const DSP_ANALYSER_STAGES = [
   'denoise',
   'dynamicsIn',
   'dynamicsOut',
+  'voiceIn',
+  'cleanerIn',
 ] as const;
 
 export type TDspAnalyserStage = (typeof DSP_ANALYSER_STAGES)[number];

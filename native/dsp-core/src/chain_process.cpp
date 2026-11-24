@@ -68,12 +68,24 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
    * reporting it. Above the exciter because the alternative is generating
    * harmonics from hiss and then trying to remove the result.
    */
+  // A mic's two taps around its low cut, for the Mic tab's Low cut and Noise
+  // cancelling pictures. Only on a mic's rack: on an output's they would be
+  // work done every block for pictures nobody draws.
+  const bool voice = chain->settings.voice.enabled != 0;
+  if (voice) {
+    feq_meters_capture(chain->meters, FEQ_METER_STAGE_VOICE_IN, channels,
+                       frames);
+  }
   // A mic's low cut, proximity shelf and pop guard come before the
   // restoration: the cleaner then hears the voice, not the rumble.
   feq_voice_process_front(chain->voice, channels, frames);
   // The gate hears the voice here, the cleaner's delay ahead of the block it
   // turns down, so a word's first consonant meets an open gate.
   feq_voice_hear_ahead(chain->voice, channels, frames);
+  if (voice) {
+    feq_meters_capture(chain->meters, FEQ_METER_STAGE_CLEANER_IN, channels,
+                       frames);
+  }
   feq_denoise_process(chain->denoise, channels, frames);
   // The restoration works on the front pair and delays it by its modules;
   // the channels beyond the pair are held back by the same amount here, so
@@ -90,6 +102,15 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
   // The gate after the cleaner, so its threshold is set against the floor
   // the cleaner left, not the room.
   feq_voice_process_gate(chain->voice, channels, frames);
+  // What the gate itself heard and did. The level it compares is the voice
+  // after the cleaner, so the mic's own level could not stand in for it: a
+  // room the cleaner took away reads 20 dB over the threshold there and keeps
+  // the gate shut here.
+  if (feq_meters_enabled(chain->meters)) {
+    FeqVoiceReport gate{};
+    if (voice) feq_voice_block_report(chain->voice, &gate);
+    feq_meters_publish_voice(chain->meters, &gate);
+  }
 
   // The De-esser between the repair and the Exciter: see
   // `chain_deesser.cpp` for why it stands exactly there.

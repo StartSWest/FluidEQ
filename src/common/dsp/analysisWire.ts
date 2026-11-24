@@ -62,7 +62,8 @@ export const ANALYSIS_BASS_FORGE_BANDS = 8;
  * gain bands append 160 bytes after that complete layout, taking it to 560,
  * the De-esser's fifty-six words 224 more, to 784, Footsteps' seven and one
  * pad float 32 more, to 816, and the Game filter's five and one pad 24 more,
- * to 840.
+ * to 840. Dynamics' tagged readings took it to 872, and a mic's gate and the
+ * size of its arrival tap's long window 24 more, to 896.
  * Every pre-existing offset is untouched on purpose: this constant, the
  * publisher in `meters.cpp` and the reader in `dspHost/wire.ts` all have to
  * move in one commit, and new fields go after everything already decoded,
@@ -76,9 +77,19 @@ export const ANALYSIS_BASS_FORGE_BANDS = 8;
  * believed: three separate readers of it set out to add a check that has been
  * there since the graphs were first fed from the engine.
  */
-export const ANALYSIS_HEADER_BYTES = 872;
+export const ANALYSIS_HEADER_BYTES = 896;
 export const ANALYSIS_GAME_HEADER_BYTES = 840;
 export const ANALYSIS_DYNAMICS_TAG = 0x314e5944;
+
+/**
+ * The header every engine from Dynamics' readings to before a mic's own
+ * (`ENGINE_VOICE_METERS_SINCE`) writes: everything above, without the gate's
+ * and the arrival tap's 24 bytes.
+ */
+export const ANALYSIS_DYNAMICS_HEADER_BYTES = 872;
+
+/** VOI1: the mic's gate and long window, written by both writers. */
+export const ANALYSIS_VOICE_TAG = 0x31494f56;
 
 /**
  * The header the engines with Footsteps and before the rest of the Game
@@ -127,6 +138,11 @@ export const ANALYSIS_STAGES = [
   'denoise',
   'dynamicsIn',
   'dynamicsOut',
+  // A mic's rack only (engine 1.32): the voice as it arrives, before the
+  // low cut, kept live as the EQ tap is; and as the cleaner hears it, after
+  // the low cut, windowed and smoothed as `denoise` after the cleaner is.
+  'voiceIn',
+  'cleanerIn',
 ] as const;
 
 export type TAnalysisStage = (typeof ANALYSIS_STAGES)[number];
@@ -137,7 +153,7 @@ export const ANALYSIS_MAX_FRAME_BYTES =
   (ANALYSIS_STAGES.length * ANALYSIS_BINS +
     ANALYSIS_SCOPE_PAIRS * 2 +
     ANALYSIS_MAX_BANDS * 2 +
-    ANALYSIS_EQ_DETAIL_BINS +
+    ANALYSIS_EQ_DETAIL_BINS * 2 +
     5) *
     Float32Array.BYTES_PER_ELEMENT;
 
@@ -212,6 +228,28 @@ export interface IHostAnalysis {
    * spectrum is one smoothed window in every 2048 samples.
    */
   eqLive?: IHostAnalysisEqLive;
+  /** A mic's gate and arrival tap, from an engine with them; absent before. */
+  voice?: IHostAnalysisVoice;
+}
+
+/**
+ * A mic's own readings (engine 1.32). The gate's level is what its detector
+ * compares with the threshold: the voice AFTER the cleaner, through the
+ * gate's 90 Hz to 7 kHz band - never the mic's level, which still carries the
+ * room the cleaner took away.
+ */
+export interface IHostAnalysisVoice {
+  /** Whether the rack is a mic's, with its Voice stage on. */
+  active: boolean;
+  /** The gate detector's level, dBFS, -120 when inactive. */
+  gateLevelDb: number;
+  /** The gate's gain: 0 open, down to minus its range closed. */
+  gateGainDb: number;
+  /**
+   * The arrival tap's long window, its lowest `ANALYSIS_EQ_DETAIL_BINS` bins
+   * in dB, in a frame that carries one beside a fresh short window.
+   */
+  detail?: Float32Array;
 }
 
 export interface IHostAnalysisDynamics {

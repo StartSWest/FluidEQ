@@ -540,6 +540,10 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
   chain_configure_footsteps(chain);
   feq_compander_configure(chain->compander, &chain->settings.compander);
   feq_voice_configure(chain->voice, &chain->settings.voice);
+  // A rack that becomes a mic's after its meters were set.
+  if (chain->settings.voice.enabled != 0 && chain->meters != nullptr) {
+    feq_meters_prepare_voice(chain->meters);
+  }
   {
     FeqRoomSettings room{};
     feq_room_settings_defaults(&room);
@@ -900,6 +904,8 @@ uint32_t feq_chain_processed_stages(const FeqChain* chain) {
 void feq_chain_set_meters(FeqChain* chain, FeqMeters* meters) {
   if (chain != nullptr) {
     chain->meters = meters;
+    // A mic's rack needs its arrival tap made before its first block.
+    if (chain->settings.voice.enabled != 0) feq_meters_prepare_voice(meters);
   }
 }
 

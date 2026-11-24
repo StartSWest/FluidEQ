@@ -385,6 +385,15 @@ export const ENGINE_VOICE_SINCE: readonly [number, number] = [1, 31];
 export const engineRunsVoice = (dllVersion: string | undefined): boolean =>
   engineAtLeast(dllVersion, ENGINE_VOICE_SINCE);
 
+/**
+ * A mic's voice as it arrives and as the cleaner hears it, and its gate's own
+ * level and gain: the Mic tab's Low cut, Noise cancelling and Gate pictures.
+ * Readings only; an older engine's frames decode without them.
+ */
+export const ENGINE_VOICE_METERS_SINCE: readonly [number, number] = [1, 32];
+export const engineReportsVoice = (dllVersion: string | undefined): boolean =>
+  engineAtLeast(dllVersion, ENGINE_VOICE_METERS_SINCE);
+
 /** Versioned Room commands and truthful comparison telemetry. */
 export const ENGINE_ROOM_SINCE: readonly [number, number] = [1, 11];
 export const engineSupportsRoomUpgrade = (
