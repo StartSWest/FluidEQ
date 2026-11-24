@@ -14,7 +14,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 interface IDriverProps {
   picture: unknown;
-  onDriver?: (driver: { draw: (ms: number) => void } | undefined) => void;
+  onDriver?: (
+    driver: { draw: (ms: number) => void; canvas: () => unknown } | undefined,
+  ) => void;
 }
 const drawnFrames: unknown[] = [];
 jest.mock('../../../renderer/graph/LiveTraceCanvas', () => {
@@ -23,7 +25,10 @@ jest.mock('../../../renderer/graph/LiveTraceCanvas', () => {
   // A drawing that hands its frames over and counts each one drawn.
   const LiveDrawing = ({ picture, onDriver }: IDriverProps) => {
     useEffect(() => {
-      onDriver?.({ draw: () => drawnFrames.push(picture) });
+      onDriver?.({
+        draw: () => drawnFrames.push(picture),
+        canvas: () => null,
+      });
       return () => onDriver?.(undefined);
     }, [picture, onDriver]);
     return <span data-testid="live-drawing" />;
@@ -35,6 +40,10 @@ jest.mock('../../../renderer/graph/lookStillStore', () => ({
   useLookStill: () => ({ url: 'blob:still', width: 72 }),
   useLookStillsUnavailable: () => false,
   useStillTurn: () => ({ mine: false, done: () => undefined }),
+  keepLookStill: () => undefined,
+}));
+jest.mock('../../../renderer/graph/lookStillSong', () => ({
+  stillSecondsOf: () => 3,
 }));
 jest.mock('../../../renderer/player/playerTrace', () => () => ({
   curves: [],

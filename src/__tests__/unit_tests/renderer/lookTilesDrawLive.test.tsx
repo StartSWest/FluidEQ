@@ -7,19 +7,29 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * The look picker's standard looks are drawn live, every tile in the
  * picker's scroller at once, on one shared loop (Ivan, 2026-11-23: "since
- * they are small, I want all of them to animate in this view"). A tile out
- * of the scroller, a picker with no sound yet and reduced motion show the
- * still instead. Each "nothing drawn" case stands beside its control - the
+ * they are small, I want all of them to animate in this view"), from the
+ * moment there is sound. A tile out of the scroller, a picker with no sound
+ * yet and reduced motion show the still instead. Each "nothing drawn" case stands beside its control - the
  * same tile drawing once the condition lifts - so it cannot pass by a tile
  * that never draws at all.
  */
 
 interface IDriverProps {
   picture: unknown;
-  onDriver?: (driver: { draw: (ms: number) => void } | undefined) => void;
+  onDriver?: (
+    driver: { draw: (ms: number) => void; canvas: () => unknown } | undefined,
+  ) => void;
 }
 const drawnFrames: unknown[] = [];
 const mounted = new Set<unknown>();
+// The canvas each drawing paints on: what a settled tile leaves as its still.
+const encoded: string[] = [];
+const fakeCanvas = {
+  toBlob: (done: (blob: Blob | null) => void) => {
+    encoded.push('png');
+    done(new Blob(['png']));
+  },
+};
 jest.mock('../../../renderer/graph/LiveTraceCanvas', () => {
   // eslint-disable-next-line global-require -- jest.mock factories cannot close over imports
   const { useEffect } = require('react');
@@ -27,7 +37,10 @@ jest.mock('../../../renderer/graph/LiveTraceCanvas', () => {
   const LiveDrawing = ({ picture, onDriver }: IDriverProps) => {
     useEffect(() => {
       mounted.add(picture);
-      onDriver?.({ draw: () => drawnFrames.push(picture) });
+      onDriver?.({
+        draw: () => drawnFrames.push(picture),
+        canvas: () => fakeCanvas,
+      });
       return () => {
         mounted.delete(picture);
         onDriver?.(undefined);
@@ -40,10 +53,20 @@ jest.mock('../../../renderer/graph/LiveTraceCanvas', () => {
 jest.mock('../../../renderer/graph/LookStillPainter', () => () => null);
 // Each look's still, kept already - or not yet painted.
 let stills = true;
+// Whether each tile asked, at its last render, for a turn to paint a still.
+const turnsWanted: boolean[] = [];
+const kept: string[] = [];
 jest.mock('../../../renderer/graph/lookStillStore', () => ({
   useLookStill: () => (stills ? { url: 'blob:still', width: 160 } : undefined),
   useLookStillsUnavailable: () => false,
-  useStillTurn: () => ({ mine: false, done: () => undefined }),
+  useStillTurn: (wanted: boolean) => {
+    turnsWanted.push(wanted);
+    return { mine: false, done: () => undefined };
+  },
+  keepLookStill: (key: string) => kept.push(key),
+}));
+jest.mock('../../../renderer/graph/lookStillSong', () => ({
+  stillSecondsOf: () => 3,
 }));
 jest.mock('../../../renderer/player/playerTrace', () => () => ({
   curves: [],
@@ -72,7 +95,7 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 
 /* eslint-disable import/first -- the mocks must be installed first */
 import '@testing-library/jest-dom';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import LookStyleGrid from '../../../renderer/graph/LookStyleGrid';
 import { LookPickerStyleTile } from '../../../renderer/graph/LookPickerTiles';
 import type { IStyleRow } from '../../../renderer/graph/lookPickerRows';
@@ -161,6 +184,8 @@ const shownStills = () =>
   ).length;
 
 beforeAll(() => {
+  // jsdom has no object URLs; a settled tile asks for one for its still.
+  URL.createObjectURL = () => 'blob:settled';
   window.ResizeObserver = SizedObserver as unknown as typeof ResizeObserver;
   window.IntersectionObserver =
     ScrollerObserver as unknown as typeof IntersectionObserver;
@@ -181,7 +206,13 @@ beforeEach(() => {
   sound = { frames: {}, readFrame: () => undefined };
   reduced = false;
   stills = true;
+  turnsWanted.length = 0;
+  kept.length = 0;
+  encoded.length = 0;
 });
+
+/** Whether any tile, at its latest render, wants a turn to paint a still. */
+const wantsStills = () => turnsWanted.slice(-ROWS.length).some(Boolean);
 
 it('draws every tile in view at once, on one loop', () => {
   grid();
@@ -240,20 +271,54 @@ it('shows the still until the frame that draws the look, and hides it then', () 
   expect(shownStills()).toBe(1);
 });
 
-it('never goes live from an empty plate', () => {
+// Ivan, 2026-11-24: "the standard viz needs to load faster, instant if
+// possible". A tile waited for its still - the demo played offline, ninety
+// drawings and a PNG, one tile at a time - before it moved, and then showed
+// that still for one frame.
+it('goes live at once with no still, and paints none while it is live', () => {
   stills = false;
-  const { rerender } = grid();
-  expect(screen.queryByTestId('live-drawing')).not.toBeInTheDocument();
-  expect(screen.queryByTestId('icon')).not.toBeInTheDocument();
-  expect(frames).toHaveLength(0);
-  // The still arrives and fades in; the look goes live once it is in.
-  stills = true;
-  rerender(tiles());
-  expect(screen.queryByTestId('live-drawing')).not.toBeInTheDocument();
-  document
-    .querySelectorAll('.look-tile-art__still')
-    .forEach((still) => fireEvent.animationEnd(still));
+  grid();
   expect(screen.getAllByTestId('live-drawing')).toHaveLength(3);
+  expect(screen.queryByTestId('icon')).not.toBeInTheDocument();
+  expect(frames).toHaveLength(1);
+  expect(wantsStills()).toBe(false);
+});
+
+it('paints stills for tiles that cannot be drawn live', () => {
+  // The control for the case above: the same tiles, no sound yet.
+  stills = false;
+  sound = undefined;
+  grid();
+  expect(screen.queryByTestId('live-drawing')).not.toBeInTheDocument();
+  expect(wantsStills()).toBe(true);
+});
+
+it('keeps a tile’s last picture as its still once it has drawn a still’s worth', () => {
+  stills = false;
+  grid();
+  runFrame(1000);
+  runFrame(4100);
+  scrollOut(1);
+  expect(encoded).toHaveLength(1);
+  expect(kept).toHaveLength(1);
+});
+
+it('keeps nothing from a tile that went before it had drawn enough', () => {
+  stills = false;
+  grid();
+  runFrame(1000);
+  runFrame(1100);
+  scrollOut(1);
+  expect(encoded).toHaveLength(0);
+  expect(kept).toHaveLength(0);
+});
+
+it('keeps no picture over a still that already serves', () => {
+  grid();
+  runFrame(1000);
+  runFrame(4100);
+  scrollOut(1);
+  expect(encoded).toHaveLength(0);
 });
 
 it('moves nothing under reduced motion', () => {

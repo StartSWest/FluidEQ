@@ -25,10 +25,12 @@ import { PANEL_MIN_DEPTH, PANEL_MIN_WIDTH } from './analysis/loudnessPanel';
 import LiveTraceCanvas, { type ILiveTraceDriver } from './LiveTraceCanvas';
 import LookStillPainter from './LookStillPainter';
 import {
+  keepLookStill,
   useLookStill,
   useLookStillsUnavailable,
   useStillTurn,
 } from './lookStillStore';
+import { stillSecondsOf } from './lookStillSong';
 import { useTileGrid } from './LookStyleGrid';
 import type { ILookTileLoop } from './lookTileLoop';
 import { useTileSound } from './lookTileSound';
@@ -78,6 +80,9 @@ const drawnSizeOf = (
  * by the grid's one loop (`lookTileLoop.ts`), never a loop of its own.
  * `onFirstFrame` is told inside the animation frame that drew the first
  * one, so the still can give way before that frame is painted.
+ * `onSettled` is handed the canvas as the drawing goes, once it has drawn
+ * as much music as a still hears (`stillSecondsOf`): the picture it leaves
+ * is that look's still, had for nothing.
  */
 const LookTileLive = ({
   look,
@@ -86,6 +91,7 @@ const LookTileLive = ({
   width,
   height,
   onFirstFrame,
+  onSettled,
 }: {
   look: IResolvedLook;
   sound: IAudioStandIn;
@@ -93,11 +99,16 @@ const LookTileLive = ({
   width: number;
   height: number;
   onFirstFrame: () => void;
+  onSettled: (canvas: HTMLCanvasElement) => void;
 }) => {
   const { curves, xScale, yScale } = usePlayerTrace(width, height);
   const leaveRef = useRef<(() => void) | undefined>(undefined);
   const onFirstFrameRef = useRef(onFirstFrame);
   onFirstFrameRef.current = onFirstFrame;
+  const onSettledRef = useRef(onSettled);
+  onSettledRef.current = onSettled;
+  const settleMsRef = useRef(stillSecondsOf(look.style) * 1000);
+  settleMsRef.current = stillSecondsOf(look.style) * 1000;
   const onDriver = useCallback(
     (driver: ILiveTraceDriver | undefined) => {
       leaveRef.current?.();
@@ -105,17 +116,29 @@ const LookTileLive = ({
       if (!driver) {
         return;
       }
-      let drawn = false;
-      leaveRef.current = loop.add({
+      let drawnMs = 0;
+      // Held from the first frame: by the time the drawing goes, its ref
+      // to the canvas has been let go, and the canvas keeps its pixels.
+      let canvas: HTMLCanvasElement | null = null;
+      let first = true;
+      const remove = loop.add({
         ...driver,
         draw: (deltaMs) => {
           driver.draw(deltaMs);
-          if (!drawn) {
-            drawn = true;
+          drawnMs += deltaMs;
+          if (first) {
+            first = false;
+            canvas = driver.canvas();
             onFirstFrameRef.current();
           }
         },
       });
+      leaveRef.current = () => {
+        remove();
+        if (canvas && drawnMs >= settleMsRef.current) {
+          onSettledRef.current(canvas);
+        }
+      };
     },
     [loop],
   );
@@ -179,14 +202,14 @@ const usePlate = () => {
  *
  * NOTHING BLINKS (Ivan's standing rule: nothing in the UI moves or flickers
  * as data arrives). The plate holds its size from the first frame. A tile
- * goes live only from its still, never from an empty plate or an icon; the
- * live drawing arrives whole (`LiveTraceCanvas`'s `picture`) and the still
- * is hidden inside the very animation frame that drew it, so the two are
- * never both on screen and never both off it; and the still is back before
- * the frame that takes the drawing away is painted. A still painted while
- * the tile is open fades into the empty plate, as a scene's clip does; one
- * already kept is there from the first frame. The icon stands only where no
- * still can be had at all (no demo song, no offline audio).
+ * goes live as soon as there is sound; the live drawing arrives whole
+ * (`LiveTraceCanvas`'s `picture`) and a still on the plate is hidden inside
+ * the very animation frame that drew it, so the two are never both on
+ * screen and never both off it; and the still is back before the frame
+ * that takes the drawing away is painted. A still painted while the tile
+ * is open fades into the empty plate, as a scene's clip does; one already
+ * kept is there from the first frame. The icon stands only where no still
+ * can be had at all (no demo song, no offline audio) and nothing is live.
  */
 const LookTileArt = ({ look }: { look: IResolvedLook }) => {
   const { ref, box, inView } = usePlate();
@@ -206,37 +229,68 @@ const LookTileArt = ({ look }: { look: IResolvedLook }) => {
   shownRef.current = still ?? shownRef.current;
   const picture = shownRef.current;
   const unavailable = useLookStillsUnavailable();
-  // A still that arrives after the tile is up fades in, and the look goes
-  // live only once it is in; one kept is simply there.
+  // A still that arrives after the tile is up fades in; one kept is simply
+  // there.
   const [arriving] = useState(picture === undefined);
-  const [stillIn, setStillIn] = useState(!arriving);
   const stillRef = useRef<HTMLImageElement>(null);
   const drawn = drawnSizeOf(look.style, box);
   const fits =
     still !== undefined &&
     Math.abs(still.width - drawn.width) <= drawn.width * STILL_SIZE_TOLERANCE;
+  // Live the moment the sound is there, never waiting on a still (Ivan,
+  // 2026-11-24: "the standard viz needs to load faster, instant if
+  // possible"). A tile used to go live only once its still was painted -
+  // the demo song played offline, ninety drawings and a PNG, one tile at a
+  // time across the window - and that still was then on screen for a
+  // single frame, until the first live frame hid it: sixteen tiles took
+  // about 2.8 s to start moving on a fast machine, every look a wait for
+  // a picture nobody saw.
   const live =
     inView &&
     sound !== undefined &&
     loop !== undefined &&
     box.width > 0 &&
-    ((picture !== undefined && stillIn) || unavailable) &&
     !prefersReducedMotion();
-  // A still is painted only for a tile in view that has none fitting: one
-  // scrolled out of the picker is painted when it comes into it.
+  // A still is painted only for a tile in view that cannot be drawn live -
+  // under reduced motion, or while the sound is not there yet - and has
+  // none fitting. A live tile leaves its own (`keepSettled`).
   const { mine, done } = useStillTurn(
-    box.width > 0 && inView && !fits && !unavailable,
+    box.width > 0 && inView && !fits && !unavailable && !live,
   );
+  // Whether the drawing's first frame is in: the still stays hidden under
+  // it, also one that arrives after.
+  const liveShownRef = useRef(false);
   // Shown again in the commit that takes the drawing away, before it paints.
   useLayoutEffect(() => {
-    if (!live && stillRef.current) {
-      stillRef.current.style.visibility = '';
+    if (!live) {
+      liveShownRef.current = false;
     }
-  }, [live]);
+    if (stillRef.current) {
+      stillRef.current.style.visibility =
+        live && liveShownRef.current ? 'hidden' : '';
+    }
+  }, [live, picture]);
   const hideStill = useCallback(() => {
+    liveShownRef.current = true;
     if (stillRef.current) {
       stillRef.current.style.visibility = 'hidden';
     }
+  }, []);
+  // The live drawing's last picture, kept as this look's still where none
+  // serves: the look after as much music as a painted still hears, in
+  // these colours, without the offline song. Read when it goes.
+  const keptRef = useRef({ stillKey, width: drawn.width, fits });
+  keptRef.current = { stillKey, width: drawn.width, fits };
+  const keepSettled = useCallback((canvas: HTMLCanvasElement) => {
+    const { stillKey: key, width, fits: served } = keptRef.current;
+    if (served) {
+      return;
+    }
+    canvas.toBlob((blob) => {
+      if (blob) {
+        keepLookStill(key, { url: URL.createObjectURL(blob), width });
+      }
+    }, 'image/png');
   }, []);
   // Where the drawing stands: the plate, or a larger box shrunk onto it.
   const stage = {
@@ -251,7 +305,6 @@ const LookTileArt = ({ look }: { look: IResolvedLook }) => {
         <img
           ref={stillRef}
           className={`look-tile-art__still${arriving ? ' is-arriving' : ''}`}
-          onAnimationEnd={() => setStillIn(true)}
           src={picture.url}
           alt=""
           draggable={false}
@@ -285,6 +338,7 @@ const LookTileArt = ({ look }: { look: IResolvedLook }) => {
             width={drawn.width}
             height={drawn.height}
             onFirstFrame={hideStill}
+            onSettled={keepSettled}
           />
         </span>
       )}
