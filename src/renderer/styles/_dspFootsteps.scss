@@ -341,3 +341,46 @@ $environment-ink: list.nth($lagoon, 1);
     line-height: 1.4;
   }
 }
+
+// THE GAME FILTER ON A WHITE WINDOW (2026-11-24, the white theme). Its inks
+// are lights for a dark window - the calm's amber, the voice's gold, the
+// environment's blue - and as words on white they stood at 1.2 to 2:1: the
+// old engine's notice, the calm's chip, the dials' reach and the meters'
+// figures could hardly be read. Each takes the ink that reads there: the
+// caution ink for the amber (`$ink-caution`, 5 to 6:1), and the same hue
+// held under the light window's ink ceiling for the others
+// (`readable-ink`). The lamps lose their glow, a smudge round a bar on
+// white, and the voice's lamp fills in the star's deep gold (`$ink-star`),
+// where the neon yellow was 1.2:1 against its track. A dark window keeps
+// every rule above as it is.
+:root[data-window-ink='dark'] {
+  .dsp-footsteps-status .is-calm,
+  .dsp-footsteps-reach.is-calm,
+  .dsp-footsteps-engine > p {
+    color: $ink-caution;
+  }
+
+  .dsp-game-figure,
+  .dsp-game-meter.is-voice .dsp-footsteps-lamp-figure,
+  .dsp-footsteps-reach.is-voice {
+    color: readable-ink($neon-yellow);
+  }
+
+  .dsp-game-meter.is-ambience .dsp-footsteps-lamp-figure,
+  .dsp-footsteps-reach.is-environment {
+    color: readable-ink($environment-ink);
+  }
+
+  .dsp-footsteps-lamp-fill,
+  .dsp-game-meter .dsp-footsteps-lamp-fill {
+    box-shadow: none;
+  }
+
+  .dsp-game-meter.is-voice .dsp-footsteps-lamp-fill {
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, #{$ink-star} 55%, transparent),
+      #{$ink-star}
+    );
+  }
+}
