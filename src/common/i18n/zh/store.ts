@@ -115,6 +115,11 @@ const store: Partial<Dictionary> = {
   'store.like.ownersOnly': '{count} 个赞。获取场景后即可点赞。',
   'store.error.termsOutdated':
     '条款已更新。请先更新 FluidEQ 并阅读新版本，再购买点数。',
+  'store.download.limit': '你已达到今天的场景下载上限。{time}恢复下载。',
+  'store.download.limitTomorrow':
+    '你已达到今天的场景下载上限。明天{time}恢复下载。',
+  'store.download.busy':
+    '图库目前非常繁忙，今天剩余时间内场景预览已暂停。你拥有的场景仍可下载。',
 };
 
 export default store;

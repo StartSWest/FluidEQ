@@ -126,6 +126,14 @@ const store = {
   'store.like.ownersOnly': '{count} likes. Get the scene to like it.',
   'store.error.termsOutdated':
     'The terms have changed. Update FluidEQ to read the new version before buying credits.',
+  // The server's daily download allowance (server 0117): {time} is when
+  // downloads come back, on the reader's clock (`SceneDownloadsPausedNotice`).
+  'store.download.limit':
+    "You've reached today's limit for scene downloads. They start again at {time}.",
+  'store.download.limitTomorrow':
+    "You've reached today's limit for scene downloads. They start again tomorrow at {time}.",
+  'store.download.busy':
+    'Scene previews are paused for the rest of the day while the gallery is very busy. Scenes you own still download.',
 };
 
 export default store;

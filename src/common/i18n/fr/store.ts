@@ -135,6 +135,12 @@ const store: Partial<Dictionary> = {
   'store.like.ownersOnly': '{count} j’aime. Obtenez la scène pour l’aimer.',
   'store.error.termsOutdated':
     'Les conditions ont changé. Mettez FluidEQ à jour pour lire la nouvelle version avant d’acheter des crédits.',
+  'store.download.limit':
+    'Vous avez atteint la limite de téléchargements de scènes pour aujourd’hui. Ils reprennent à {time}.',
+  'store.download.limitTomorrow':
+    'Vous avez atteint la limite de téléchargements de scènes pour aujourd’hui. Ils reprennent demain à {time}.',
+  'store.download.busy':
+    'Les aperçus des scènes sont en pause pour le reste de la journée, car la galerie est très sollicitée. Les scènes que vous possédez se téléchargent toujours.',
 };
 
 export default store;

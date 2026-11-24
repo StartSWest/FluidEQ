@@ -124,6 +124,12 @@ const store = {
   'store.like.ownersOnly': '{count}가 좋아합니다. 장면을 좋아하게 만드세요.',
   'store.error.termsOutdated':
     '약관이 변경되었습니다. 크레딧을 구매하기 전에 새 버전을 읽으려면 FluidEQ를 업데이트하세요.',
+  'store.download.limit':
+    '오늘의 장면 다운로드 한도에 도달했습니다. {time}에 다시 시작됩니다.',
+  'store.download.limitTomorrow':
+    '오늘의 장면 다운로드 한도에 도달했습니다. 내일 {time}에 다시 시작됩니다.',
+  'store.download.busy':
+    '갤러리가 매우 붐벼 오늘 남은 시간 동안 장면 미리보기를 일시 중지합니다. 보유한 장면은 계속 다운로드됩니다.',
 } satisfies Partial<Dictionary>;
 
 export default store;

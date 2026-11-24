@@ -6,6 +6,7 @@ import {
 } from '../../common/scenePacks';
 import { verifyScenePackEnvelope } from '../scenePackVerify';
 import type { IGalleryAuth } from './galleryAccess';
+import { fetchSceneMedia } from './sceneMediaApi';
 
 /** Same bounded envelope as the official pack download, including artwork. */
 export const MAX_ENVELOPE_BYTES = 12 * 1024 * 1024;
@@ -21,10 +22,50 @@ export interface IFetchedOfficialScene {
  * the scenes chosen as free samples taste live without it (server migration
  * 0023), and the page shows the rest's picture and the way to Plus instead.
  */
+/** An envelope's bytes, verified and parsed, when they are this scene's. */
+const officialSceneOf = (
+  bytes: Uint8Array | ArrayBuffer,
+  sceneId: string,
+): IFetchedOfficialScene | undefined => {
+  const envelope: unknown = JSON.parse(
+    Buffer.from(
+      bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes),
+    ).toString('utf8'),
+  );
+  if (!isScenePackEnvelope(envelope)) {
+    return undefined;
+  }
+  const payload = verifyScenePackEnvelope(envelope);
+  const pack = payload ? parseScenePackPayload(payload) : undefined;
+  // Taken whatever contract it names: a scene written against a newer
+  // FluidEQ that uses nothing new plays here, and one that does need
+  // something this build has not got is shown as the scene that could not build here.
+  return pack && pack.id === sceneId ? { pack, envelope } : undefined;
+};
+
 export const fetchOfficialScene = async (
   auth: IGalleryAuth,
   sceneId: string,
 ): Promise<IFetchedOfficialScene | 'plus-required' | undefined> => {
+  // From R2 first (`sceneMediaApi.ts`), owners only, as the RPC below.
+  const fromMedia = await fetchSceneMedia(
+    auth,
+    { pack: sceneId },
+    MAX_ENVELOPE_BYTES,
+  );
+  if (fromMedia.kind === 'refused') {
+    return 'plus-required';
+  }
+  if (fromMedia.kind === 'paused') {
+    return undefined;
+  }
+  if (fromMedia.kind === 'bytes') {
+    try {
+      return officialSceneOf(fromMedia.bytes, sceneId);
+    } catch {
+      return undefined;
+    }
+  }
   try {
     const response = await (auth.fetchImpl ?? fetch)(
       new URL(
@@ -54,16 +95,7 @@ export const fetchOfficialScene = async (
     if (bytes.byteLength > MAX_ENVELOPE_BYTES) {
       return undefined;
     }
-    const envelope: unknown = JSON.parse(Buffer.from(bytes).toString('utf8'));
-    if (!isScenePackEnvelope(envelope)) {
-      return undefined;
-    }
-    const payload = verifyScenePackEnvelope(envelope);
-    const pack = payload ? parseScenePackPayload(payload) : undefined;
-    // Taken whatever contract it names: a scene written against a newer
-    // FluidEQ that uses nothing new plays here, and one that does need
-    // something this build has not got is shown as the scene that could not build here.
-    return pack && pack.id === sceneId ? { pack, envelope } : undefined;
+    return officialSceneOf(bytes, sceneId);
   } catch {
     return undefined;
   }

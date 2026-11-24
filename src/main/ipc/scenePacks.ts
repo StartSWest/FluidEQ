@@ -8,6 +8,8 @@ import {
 import type { IEntitlement } from '../account/entitlement';
 import type { IAccountSession } from '../account/session';
 import type { IVersionPins } from '../keptVersions';
+import { MAX_ENVELOPE_BYTES as MAX_PACK_ENVELOPE_BYTES } from '../plus/officialGallery';
+import { fetchSceneMedia } from '../plus/sceneMediaApi';
 import type { ISceneOwnership } from '../plus/sceneOwnership';
 import { createScenePackCatalogue } from '../scenePackCatalogue';
 import {
@@ -218,6 +220,38 @@ export const registerScenePacksIpc = ({
     }
   };
 
+  /**
+   * One owned pack from R2: its listing, `null` to read it from the table
+   * instead, or `undefined` for nothing at all (not owned, the allowance used
+   * up, bytes that are not an envelope).
+   */
+  const packFromMedia = async (
+    token: string,
+    id: string,
+  ): Promise<IScenePackListing | null | undefined> => {
+    const outcome = await fetchSceneMedia(
+      { config, accessToken: token, fetchImpl },
+      { pack: id },
+      MAX_PACK_ENVELOPE_BYTES,
+    );
+    if (outcome.kind === 'fallback') {
+      return null;
+    }
+    if (outcome.kind !== 'bytes' || outcome.version === undefined) {
+      return undefined;
+    }
+    try {
+      const envelope: unknown = JSON.parse(
+        Buffer.from(outcome.bytes).toString('utf8'),
+      );
+      return isScenePackEnvelope(envelope)
+        ? { id, version: outcome.version, envelope }
+        : undefined;
+    } catch {
+      return undefined;
+    }
+  };
+
   const fetchListings = async () => {
     if (!entitled()) {
       await fetchCatalogue();
@@ -252,13 +286,27 @@ export const registerScenePacksIpc = ({
     if (changed.length === 0) {
       return;
     }
-    const body = await readPacks(token, 'id,version,envelope', changed);
+    // From R2 first, all asked at once (`sceneMediaApi.ts`); only what the
+    // server answers `fallback` for is read from the table, which is what
+    // every pack of FluidEQ 2.5 is read from.
+    const fromMedia = await Promise.all(
+      changed.map((id) => packFromMedia(token, id)),
+    );
+    const viaTable = changed.filter((_, index) => fromMedia[index] === null);
+    const body =
+      viaTable.length > 0
+        ? await readPacks(token, 'id,version,envelope', viaTable)
+        : [];
     if (body === undefined || !entitled()) {
       return;
     }
-    const listings = readListings(body).filter((pack) =>
-      changed.includes(pack.id),
-    );
+    const listings = [
+      ...fromMedia.filter(
+        (listing): listing is IScenePackListing =>
+          listing !== null && listing !== undefined,
+      ),
+      ...readListings(body),
+    ].filter((pack) => changed.includes(pack.id));
     const adopted = store.adopt(listings);
     // Taken whatever the store made of them: a pack that did not verify is
     // not downloaded again until the server publishes it again. A listing

@@ -111,6 +111,11 @@ const store = {
   'store.like.ownersOnly': '{count} 讚。讓場景變得喜歡。',
   'store.error.termsOutdated':
     '條款已更改。更新 FluidEQ 以在購買點數之前閱讀新版本。',
+  'store.download.limit': '您已達到今天的場景下載上限。{time}恢復下載。',
+  'store.download.limitTomorrow':
+    '您已達到今天的場景下載上限。明天{time}恢復下載。',
+  'store.download.busy':
+    '畫廊目前非常繁忙，今天剩餘時間內場景預覽已暫停。您擁有的場景仍可下載。',
 } satisfies Partial<Dictionary>;
 
 export default store;

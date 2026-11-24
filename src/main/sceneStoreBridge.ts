@@ -8,6 +8,10 @@ import type {
   TStarterOutcome,
   TSuspensionRefundOutcome,
 } from '../common/sceneStore';
+import {
+  isSceneDownloadsPaused,
+  type ISceneDownloadsPaused,
+} from '../common/sceneDownloads';
 
 // The scene store (premium 0055 and 0057): credits, owned scenes, a buy, a
 // pack paid for in the browser.
@@ -69,6 +73,21 @@ export const sceneStoreBridge = {
     version: number | null,
   ): Promise<boolean> =>
     ipcRenderer.invoke('scene-versions-play', authorId, sceneId, version),
+  // The server stopped handing out scene downloads until `resetsAt`: this
+  // account's daily allowance, or the service's (server 0117).
+  onSceneDownloadsPaused: (
+    listener: (paused: ISceneDownloadsPaused) => void,
+  ): (() => void) => {
+    const handler = (_event: IpcRendererEvent, paused: unknown) => {
+      if (isSceneDownloadsPaused(paused)) {
+        listener(paused);
+      }
+    };
+    ipcRenderer.on('scene-downloads-paused', handler);
+    return () => {
+      ipcRenderer.removeListener('scene-downloads-paused', handler);
+    };
+  },
   onSceneStoreChanged: (
     listener: (store: ISceneStore | null) => void,
   ): (() => void) => {

@@ -129,6 +129,12 @@ const store: Partial<Dictionary> = {
   'store.like.ownersOnly': '{count} curtidas. Obtenha a cena para curti-la.',
   'store.error.termsOutdated':
     'Os termos mudaram. Atualize o FluidEQ para ler a nova versão antes de comprar créditos.',
+  'store.download.limit':
+    'Você atingiu o limite de downloads de cenas de hoje. Eles voltam às {time}.',
+  'store.download.limitTomorrow':
+    'Você atingiu o limite de downloads de cenas de hoje. Eles voltam amanhã às {time}.',
+  'store.download.busy':
+    'As prévias das cenas estão pausadas pelo resto do dia porque a galeria está muito movimentada. As cenas que você tem continuam sendo baixadas.',
 };
 
 export default store;

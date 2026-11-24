@@ -33,6 +33,7 @@ import { registerMemberSharingIpc } from './ipc/memberSharing';
 import registerSharedPresetLinksIpc from './ipc/sharedPresetLinks';
 import { registerPlusGalleryIpc } from './ipc/plusGallery';
 import { registerGalleryClipIpc } from './ipc/plusGalleryClip';
+import registerSceneDownloadsPausedNotice from './ipc/sceneDownloadsPaused';
 import { registerPlusProfileIpc } from './ipc/plusProfile';
 import { registerPlusPublishingIpc } from './ipc/plusPublishing';
 import { registerPlusReviewIpc } from './ipc/plusReview';
@@ -417,6 +418,10 @@ const registerMemberServices = ({
     clipDir: path.join(userDataDir, 'gallery-clips'),
     logger: log,
   });
+  // The server's daily download allowance, said in words (server 0117).
+  const disposeDownloadsPaused = registerSceneDownloadsPausedNotice({
+    getMainWindow,
+  });
   // Scenes under review (premium migration 0037): a maker's list of what
   // they sent, and the corner notice telling them an answer came. Signing
   // out must take the notice away too, which the membership alone never says
@@ -606,6 +611,7 @@ const registerMemberServices = ({
     sceneRecoveryIpc.dispose();
     keptSceneSync.dispose();
     galleryClipIpc.dispose();
+    disposeDownloadsPaused();
     memberSharingIpc.dispose();
     sharedPresetLinksIpc.dispose();
     memberScenesIpc.dispose();

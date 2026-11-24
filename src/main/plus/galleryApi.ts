@@ -19,6 +19,7 @@ import {
 import { MAX_MEMBER_SCENE_FILE_BYTES } from '../../common/memberSceneFile';
 import { readWebpSize } from '../../common/sceneArtwork';
 import galleryPublishedFile from './galleryPublishedFile';
+import { fetchSceneMedia } from './sceneMediaApi';
 
 /**
  * The gallery's server, spoken to with the member's own token, so every rule
@@ -306,6 +307,21 @@ export const download = async (
   /** Stops the download: it then answers nothing, as any failure does. */
   signal?: AbortSignal,
 ): Promise<Uint8Array | undefined> => {
+  // From R2 first (`sceneMediaApi.ts`). The name is the one this path reads,
+  // so its read rules are the same; a refusal or a paused allowance answers
+  // nothing, as a refused read here always did, and never falls back.
+  const fromMedia = await fetchSceneMedia(
+    auth,
+    { object: path },
+    maxBytes,
+    signal,
+  );
+  if (fromMedia.kind === 'bytes') {
+    return fromMedia.bytes;
+  }
+  if (fromMedia.kind !== 'fallback') {
+    return undefined;
+  }
   try {
     const url = new URL(objectUrl(auth.config, path));
     if (version !== undefined) {

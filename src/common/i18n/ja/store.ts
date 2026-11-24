@@ -133,6 +133,12 @@ const store: Partial<Dictionary> = {
     'いいね：{count} 件。シーンを入手すると、いいねできます。',
   'store.error.termsOutdated':
     '利用条件が変わりました。クレジットを購入する前に、FluidEQ を更新して新しい版をお読みください。',
+  'store.download.limit':
+    '今日のシーンのダウンロード上限に達しました。{time}に再開します。',
+  'store.download.limitTomorrow':
+    '今日のシーンのダウンロード上限に達しました。明日の{time}に再開します。',
+  'store.download.busy':
+    'ギャラリーが非常に混み合っているため、今日はこのあとシーンのプレビューを一時停止しています。お持ちのシーンは引き続きダウンロードできます。',
 };
 
 export default store;

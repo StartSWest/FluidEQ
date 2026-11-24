@@ -134,6 +134,12 @@ const store: Partial<Dictionary> = {
     '{count} „Gefällt mir“. Holen Sie die Szene, um sie zu markieren.',
   'store.error.termsOutdated':
     'Die Bedingungen haben sich geändert. Aktualisieren Sie FluidEQ, um die neue Fassung zu lesen, bevor Sie Credits kaufen.',
+  'store.download.limit':
+    'Sie haben das heutige Limit für Szenen-Downloads erreicht. Um {time} geht es weiter.',
+  'store.download.limitTomorrow':
+    'Sie haben das heutige Limit für Szenen-Downloads erreicht. Morgen um {time} geht es weiter.',
+  'store.download.busy':
+    'Szenenvorschauen sind für den Rest des Tages pausiert, weil in der Galerie gerade sehr viel los ist. Ihre eigenen Szenen werden weiterhin heruntergeladen.',
 };
 
 export default store;

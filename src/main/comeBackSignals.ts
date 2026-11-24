@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { recheckSceneMedia } from './plus/sceneMediaApi';
 import type { IAuthorizedAutoUpdater } from './signedAutoUpdates';
 
 /**
@@ -95,6 +96,9 @@ export const accountComeBackSteps = ({
   addons,
 }: IAccountRefreshers): IComeBackStep[] => [
   { name: 'membership', run: (reason) => entitlement.checkIfDue(reason) },
+  // First of the scene steps: the server's R2 switch may have been turned on
+  // since it last said it was off (`plus/sceneMediaApi.ts`). Asks nothing.
+  { name: 'scene downloads', run: async () => recheckSceneMedia() },
   // Right after: every scene step below plays or keeps only what is owned.
   { name: 'owned scenes', run: (reason) => sceneStore.refreshIfDue(reason) },
   {

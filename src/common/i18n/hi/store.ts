@@ -134,6 +134,12 @@ const store: Partial<Dictionary> = {
   'store.like.ownersOnly': '{count} पसंद। पसंद करने के लिए सीन पाएँ।',
   'store.error.termsOutdated':
     'शर्तें बदल गई हैं। क्रेडिट ख़रीदने से पहले नया संस्करण पढ़ने के लिए FluidEQ अपडेट करें।',
+  'store.download.limit':
+    'आप आज की सीन डाउनलोड सीमा तक पहुँच गए हैं। डाउनलोड {time} पर फिर शुरू होंगे।',
+  'store.download.limitTomorrow':
+    'आप आज की सीन डाउनलोड सीमा तक पहुँच गए हैं। डाउनलोड कल {time} पर फिर शुरू होंगे।',
+  'store.download.busy':
+    'गैलरी पर अभी बहुत भीड़ है, इसलिए आज बाकी दिन सीन प्रीव्यू रुके हुए हैं। आपके अपने सीन अब भी डाउनलोड होते हैं।',
 };
 
 export default store;

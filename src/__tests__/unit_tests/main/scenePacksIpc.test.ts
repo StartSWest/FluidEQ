@@ -1,4 +1,13 @@
 /** @jest-environment node */
+// These hold the server's old download paths. Scene files from R2 (server
+// 0117) are held by sceneMediaApi.test.ts; here every download is told to
+// read the old way, which is what an app hears while the server's switch is
+// off.
+jest.mock('../../../main/plus/sceneMediaApi', () => ({
+  ...jest.requireActual('../../../main/plus/sceneMediaApi'),
+  fetchSceneMedia: jest.fn(async () => ({ kind: 'fallback' })),
+}));
+/* eslint-disable import/first -- the mock above goes before the imports, as the Electron one does */
 import fs from 'fs';
 import os from 'os';
 import path from 'path';

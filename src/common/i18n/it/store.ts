@@ -130,6 +130,12 @@ const store: Partial<Dictionary> = {
     '{count} mi piace. Ottieni la scena per mettere mi piace.',
   'store.error.termsOutdated':
     'Le condizioni sono cambiate. Aggiorna FluidEQ per leggere la nuova versione prima di comprare crediti.',
+  'store.download.limit':
+    'Hai raggiunto il limite di download di scene per oggi. Riprendono alle {time}.',
+  'store.download.limitTomorrow':
+    'Hai raggiunto il limite di download di scene per oggi. Riprendono domani alle {time}.',
+  'store.download.busy':
+    'Le anteprime delle scene sono in pausa per il resto della giornata perché la galleria è molto affollata. Le scene che possiedi continuano a scaricarsi.',
 };
 
 export default store;

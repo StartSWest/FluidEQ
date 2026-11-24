@@ -38,6 +38,7 @@ import {
 } from './utils/soundPane';
 import GameSound from './games/GameSound';
 import EngineKeySwitch from './components/EngineKeySwitch';
+import SceneDownloadsPausedNotice from './plus/SceneDownloadsPausedNotice';
 import { OPEN_GAMING_LAB_EVENT } from './games/gamingLabEvents';
 import { OPEN_AUTO_EQ_EVENT } from './eq/autoEq/autoEqOpen';
 import RackFollowsEngine from './dsp/RackFollowsEngine';
@@ -967,6 +968,9 @@ const AppContent = () => {
         {/* The on/off key: here, outside every page and the amp, because it
             is pressed while FluidEQ is behind a game. Renders nothing. */}
         <EngineKeySwitch />
+        {/* The server's daily download allowance, said in words wherever the
+            download was asked from (server 0117). Nothing until then. */}
+        <SceneDownloadsPausedNotice />
         {/* The notices' stack, bottom right, standing on the sound panel's
             foot while that is on screen so fluideq.com stays in view. */}
         <NoticeDock />
