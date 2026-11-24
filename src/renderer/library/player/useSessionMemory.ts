@@ -51,6 +51,25 @@ export interface ISessionMemory {
   isQueueKnown: boolean;
 }
 
+/**
+ * Whether a queue is the listener's to keep, and so to write.
+ *
+ * THE CAUSE OF A PRESS COMING BACK AS THE SONG BEFORE IT: the gate that kept
+ * the first render's empty queue from erasing the stored session held back
+ * every queue until the read-back answered, so a song pressed in that window
+ * lived only in memory, and a rebuild of the player before the answer
+ * (leaving the tab before the song had started, a reload) read the old
+ * session back over it — an untagged "Track 6" from the last session,
+ * shuffled, in place of the song pressed (Ivan, 2026-11-24). Only the empty
+ * queue is held back now: before the answer any queue at all is one the
+ * listener made, since the read-back puts its own in place only after it
+ * has stopped restoring, and declines once a queue exists.
+ */
+const isWorthWriting = (
+  isRestoring: boolean,
+  queue: ILibraryQueue | undefined,
+): boolean => !isRestoring || queue !== undefined;
+
 export const useSessionMemory = (options: {
   queue: ILibraryQueue | undefined;
   queueRef: MutableRefObject<ILibraryQueue | undefined>;
@@ -74,9 +93,9 @@ export const useSessionMemory = (options: {
   const pendingRestore = useRef<
     { trackId: string; positionMs: number } | undefined
   >(undefined);
-  /** True until the stored session has been read back. Nothing is written
-   * before that, or the first render's empty queue would erase the very
-   * thing being restored. */
+  /** True until the stored session has been read back. No EMPTY queue is
+   * written before that, or the first render's would erase the very thing
+   * being restored (`isWorthWriting`). */
   const isRestoringRef = useRef(true);
   /** The same moment as state, for what draws from it (`isQueueKnown`). */
   const [isQueueKnown, setIsQueueKnown] = useState(false);
@@ -87,9 +106,11 @@ export const useSessionMemory = (options: {
    * Asks the library for the stored queue's songs, because a queue is a list
    * of ids and every one of them has to still exist — a rescan that dropped
    * the folder must leave the player empty rather than pointing at files that
-   * are gone. Waits for the library's first answer, and writes nothing until
-   * this one has come back (`isRestoringRef`), or the empty queue of the
-   * first render would erase the very thing being restored.
+   * are gone. Waits for the library's first answer, and writes no empty queue
+   * until this one has come back (`isWorthWriting`), or the empty queue of
+   * the first render would erase the very thing being restored. A queue the
+   * listener made meanwhile wins: it is written at once, and the answer puts
+   * nothing over it.
    */
   useEffect(() => {
     if (!isRestoringRef.current || !isIndexLoaded) {
@@ -189,14 +210,19 @@ export const useSessionMemory = (options: {
         if (restoreMs !== undefined) {
           setPositionMs(restoreMs);
         }
-        setQueue({
-          trackIds,
-          order,
-          position,
-          repeat: memory.repeat,
-          isShuffled: memory.isShuffled,
-          ...(memory.source === undefined ? {} : { source: memory.source }),
-        });
+        // Over nothing but the empty queue: a press that landed after the
+        // check above, in the same turn, is newer than anything stored.
+        setQueue(
+          (current) =>
+            current ?? {
+              trackIds,
+              order,
+              position,
+              repeat: memory.repeat,
+              isShuffled: memory.isShuffled,
+              ...(memory.source === undefined ? {} : { source: memory.source }),
+            },
+        );
         return undefined;
       })
       .catch((error: unknown) => {
@@ -229,7 +255,7 @@ export const useSessionMemory = (options: {
   const positionRef = useRef(positionMs);
   positionRef.current = positionMs;
   useEffect(() => {
-    if (isRestoringRef.current) {
+    if (!isWorthWriting(isRestoringRef.current, queue)) {
       return;
     }
     writePlaybackMemory(queue, positionRef.current);
@@ -237,7 +263,7 @@ export const useSessionMemory = (options: {
 
   useEffect(() => {
     const save = () => {
-      if (!isRestoringRef.current) {
+      if (isWorthWriting(isRestoringRef.current, queueRef.current)) {
         writePlaybackMemory(queueRef.current, positionRef.current);
       }
     };

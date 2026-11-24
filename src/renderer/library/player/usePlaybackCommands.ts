@@ -38,6 +38,7 @@ import {
 } from '../../audio/playbackOwner';
 import type { TSetPlaybackHandoff } from '../../audio/playbackHandoff';
 import { letGoOfDspPlacement } from '../../dsp/placementLetGo';
+import { readStoredQueueSettings } from './playbackMemory';
 import { uniqueTrackIds } from './upNextRules';
 
 export interface IPlaybackCommands {
@@ -121,17 +122,19 @@ export const usePlaybackCommands = (options: {
       // keeps a list; this is the half that starts one.
       setAddedIds((current) => (current.size === 0 ? current : new Set()));
       setQueue((current) => {
+        // Shuffle and repeat are player preferences, not properties of one
+        // list — picking a new album should not silently turn Repeat off.
+        // With no queue yet, they are the stored session's.
+        const { isShuffled, repeat } = current ?? readStoredQueueSettings();
         // Each song once: a playlist can name a song twice, and Up Next
         // holds no song twice (Ivan, 2026-10-25: "make sure it doesn't
         // duplicate").
         const next = buildQueue(
           uniqueTrackIds(trackIds),
           startTrackId,
-          current?.isShuffled ?? false,
+          isShuffled,
         );
-        // Shuffle and repeat are player preferences, not properties of one
-        // list — picking a new album should not silently turn Repeat off.
-        return current ? { ...next, repeat: current.repeat } : next;
+        return { ...next, repeat };
       });
 
       // ASKING FOR THE TRACK THAT IS ALREADY CUED IS STILL ASKING FOR IT.

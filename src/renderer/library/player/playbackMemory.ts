@@ -195,6 +195,27 @@ export const readPlaybackMemory = (): IPlaybackMemory | undefined => {
   }
 };
 
+/**
+ * Shuffle and repeat as the listener last left them, for a queue started
+ * while the player holds none.
+ *
+ * They are kept on the queue, so with no queue in hand they are the stored
+ * one's. A song pressed while the last session was still being read back
+ * found no queue to take them from and started unshuffled with repeat off:
+ * the read-back that carried them then declined, as it must, to replace the
+ * press, and the setting was gone with it.
+ */
+export const readStoredQueueSettings = (): Pick<
+  IPlaybackMemory,
+  'isShuffled' | 'repeat'
+> => {
+  const memory = readPlaybackMemory();
+  return {
+    isShuffled: memory?.isShuffled ?? false,
+    repeat: memory?.repeat ?? 'off',
+  };
+};
+
 export const writePlaybackMemory = (
   queue: ILibraryQueue | undefined,
   positionMs: number,
