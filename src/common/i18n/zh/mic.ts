@@ -71,6 +71,10 @@ export default {
   'mic.setup.failed': '无法在这个麦克风上完成设置。',
   'mic.notFluid.title': '麦克风的专属声音需要 FluidEQ Engine 来播放。',
   'mic.notFluid.body': '声音设置已保存，选用 FluidEQ Engine 后会立即生效。',
+  'mic.empty.backTitle': 'Windows 正在恢复你的麦克风',
+  'mic.empty.backBody':
+    'Windows 重新列出它们后会立即显示在这里，通常是在音频重启后片刻。',
+  'mic.empty.lookAgain': '重新查找',
   'mic.empty.title': '没有找到麦克风',
   'mic.empty.body': '请插入麦克风，或更新 FluidEQ Engine 以便它列出麦克风。',
   'mic.stage.lowCut': '低切',

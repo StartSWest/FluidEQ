@@ -28,8 +28,8 @@ import { useTranslation } from '../utils/I18nContext';
 import { reportError } from '../utils/logger';
 import { openWindowsSoundSettings } from '../utils/soundSettings';
 import {
+  useAudioEngineStatus,
   refreshAudioEngineStatus,
-  useKnownAudioEngineStatus,
 } from '../utils/useAudioEngineStatus';
 import { useRailWidth } from '../library/LibraryRailSplitter';
 import RichPick from '../widgets/RichPick';
@@ -50,6 +50,7 @@ import MicLiveBar from './MicLiveBar';
 import useMicEffects from './useMicEffects';
 import useMicLevels, { TMicListen } from './useMicLevels';
 import useMicSound from './useMicSound';
+import useWindowSeesMic from './useWindowSeesMic';
 
 /**
  * Each profile's name and line, spelled out: the guard that finds keys no
@@ -98,8 +99,11 @@ const SETUP_WORDS: Record<TSetup, TranslationKey> = {
 
 const MicPage = () => {
   const { t } = useTranslation();
-  const status = useKnownAudioEngineStatus();
+  // Asked again on every visit: the list it carries is Windows' at the
+  // moment the helper ran, and one read mid-restart listed no mics at all.
+  const { status } = useAudioEngineStatus();
   const sound = useMicSound();
+  const windowSeesMic = useWindowSeesMic();
   const { mic, microphones, entry } = sound;
   const [stage, setStage] = useState<TMicStage>('lowCut');
   const [setup, setSetup] = useState<TSetup>('idle');
@@ -116,7 +120,12 @@ const MicPage = () => {
   // closed the recording and opened it again, and every reopen is Windows
   // building the mic's effect again. Not attached, nothing is processed and
   // the line says why; the recording itself harms nothing.
-  const levels = useMicLevels(mic?.guid, mic?.name ?? '', mic !== undefined);
+  const levels = useMicLevels(
+    mic?.guid,
+    mic?.name ?? '',
+    mic !== undefined,
+    status,
+  );
   const live = listening && levels.state === 'live';
   // The engine's own word on the mic: its delay stage by stage, Windows'
   // block, how often the cleaner fell behind.
@@ -129,10 +138,37 @@ const MicPage = () => {
   if (!mic) {
     return (
       <div className="mic-page mic-page--empty">
-        <div className="mic-empty">
+        {/* Unseen until the window has asked Windows for its devices, so
+            neither sentence flashes before the right one. */}
+        <div
+          className="mic-empty"
+          style={
+            windowSeesMic === undefined ? { visibility: 'hidden' } : undefined
+          }
+        >
           <MenuIcon name="microphoneSettings" className="mic-empty__icon" />
-          <h2 className="mic-empty__title">{t('mic.empty.title')}</h2>
-          <p className="mic-empty__body">{t('mic.empty.body')}</p>
+          {windowSeesMic ? (
+            <>
+              <h2 className="mic-empty__title">{t('mic.empty.backTitle')}</h2>
+              <p className="mic-empty__body">{t('mic.empty.backBody')}</p>
+              <button
+                type="button"
+                className="button small subtle"
+                onClick={() => {
+                  refreshAudioEngineStatus().catch((error: unknown) =>
+                    reportError('looking for the microphones again', error),
+                  );
+                }}
+              >
+                {t('mic.empty.lookAgain')}
+              </button>
+            </>
+          ) : (
+            <>
+              <h2 className="mic-empty__title">{t('mic.empty.title')}</h2>
+              <p className="mic-empty__body">{t('mic.empty.body')}</p>
+            </>
+          )}
         </div>
       </div>
     );

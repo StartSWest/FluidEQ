@@ -28,6 +28,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useSyncExternalStore } from 'react';
 import type { IAudioEngineStatus } from 'common/audioEngine';
+import type { IEngineHealth } from 'common/engineHealth';
 import { getAudioEngineStatus } from './audioEngineApi';
 import { reportError } from './logger';
 import { subscribeAudioEngineChanged } from './audioEngineEvents';
@@ -127,14 +128,68 @@ const ensureAudioEngineStatus = (): void => {
   }
 };
 
+/**
+ * What makes the answer worth asking for again: the app's own engine
+ * changes, and Windows adding, removing or rebuilding an audio device.
+ *
+ * The helper lists the outputs and microphones Windows has at the moment it
+ * runs, and the read after a restart of Windows audio ran while Windows was
+ * still building them: one output short and no microphone at all, and with
+ * nothing asking again the Mic tab said "No microphone found" over a mic
+ * that was there (Ivan, 2026-11-24, after the engine's Restart). Windows
+ * says when its devices are back in two ways the window hears: a
+ * `devicechange`, and the engine starting on a device the list does not
+ * have — Windows builds the engine on an endpoint only once that endpoint
+ * exists, so an engine locked on one the helper did not list says the list
+ * is older than Windows. Each such endpoint asks once, so one the helper
+ * never lists cannot make every engine report a new question.
+ */
+const listenForChanges = (): (() => void) => {
+  const stopEngine = subscribeAudioEngineChanged(refreshAudioEngineStatus);
+  const ask = (why: string) => {
+    refreshAudioEngineStatus().catch((error: unknown) =>
+      reportError(`re-reading the engine after ${why}`, error),
+    );
+  };
+  const devices = navigator.mediaDevices;
+  const onDevices = () => ask('a device change');
+  devices?.addEventListener('devicechange', onDevices);
+  const askedFor = new Set<string>();
+  const onHealth = (health: IEngineHealth) => {
+    const fluid = known?.fluid;
+    if (!fluid) {
+      return;
+    }
+    const listed = new Set(
+      [...fluid.endpoints, ...(fluid.microphones ?? [])].map((each) =>
+        each.guid.toUpperCase(),
+      ),
+    );
+    const unlisted = health.outputs.filter(
+      (each) =>
+        each.locked &&
+        !listed.has(each.endpoint) &&
+        !askedFor.has(each.endpoint),
+    );
+    if (unlisted.length > 0) {
+      unlisted.forEach((each) => askedFor.add(each.endpoint));
+      ask('the engine started on a device not yet listed');
+    }
+  };
+  const stopHealth = window.electron?.ipcRenderer?.onEngineHealth?.(onHealth);
+  return () => {
+    stopEngine();
+    devices?.removeEventListener('devicechange', onDevices);
+    stopHealth?.();
+  };
+};
+
 const subscribe = (listener: () => void): (() => void) => {
   listeners.add(listener);
   // One engine-changed listener for the window, held while anything shows the
   // answer. One per holder turned each notification into a round trip per
   // holder.
-  stopListeningForChanges ??= subscribeAudioEngineChanged(
-    refreshAudioEngineStatus,
-  );
+  stopListeningForChanges ??= listenForChanges();
   return () => {
     listeners.delete(listener);
     if (listeners.size === 0 && stopListeningForChanges) {

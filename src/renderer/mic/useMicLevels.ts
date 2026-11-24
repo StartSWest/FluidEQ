@@ -81,11 +81,23 @@ const lowest = (values: readonly number[]) =>
  * `history` is filled oldest first and read by the picture's own frame; the
  * newest reading is also in `latest`. Only `state` and `stream` render React,
  * and each changes a handful of times, never per frame.
+ *
+ * The recording is opened again whenever it is lost: when Windows ends it
+ * (its track's `ended`, which a restart of Windows audio causes — the
+ * engine's setup restarts it, and so does its Restart button), when Windows
+ * reports a device change, and when `retry` changes (the engine's list of
+ * devices read again) while nothing is open. It used to be opened once per
+ * mic: after setting up the laptop's mic, whose setup restarts Windows
+ * audio, "Listen to myself" played the dead recording in silence and the
+ * engine never ran on the mic, because nothing recorded from it (engine.log
+ * 2026-11-24 14:34-14:46: no stream on it after the setup, while a test
+ * recording locked it at once).
  */
 const useMicLevels = (
   guid: string | undefined,
   name: string,
   active: boolean,
+  retry?: unknown,
 ): {
   history: React.MutableRefObject<IMicLevel[]>;
   latest: React.MutableRefObject<IMicLevel | undefined>;
@@ -96,6 +108,7 @@ const useMicLevels = (
   const latest = useRef<IMicLevel | undefined>(undefined);
   const [state, setState] = useState<TMicListen>('idle');
   const [stream, setStream] = useState<MediaStream>();
+  const reopen = useRef<(() => void) | undefined>(undefined);
 
   useEffect(() => {
     const read = window.electron?.ipcRenderer?.readDspEngineAnalysis;
@@ -108,6 +121,7 @@ const useMicLevels = (
     let disposed = false;
     let animation = 0;
     let opened: MediaStream | undefined;
+    let opening = false;
     let hearing = false;
     /**
      * The mic's frames handed to the DSP page's own displays, the way the
@@ -158,15 +172,41 @@ const useMicLevels = (
         return;
       }
       opened = result;
+      result.getAudioTracks().forEach((track) => {
+        track.addEventListener('ended', () => {
+          if (disposed || opened !== result) {
+            return;
+          }
+          opened = undefined;
+          setStream(undefined);
+          setState('opening');
+          ensureOpen();
+        });
+      });
       setStream(result);
       setState(hearing ? 'live' : 'waiting');
     };
-    open().catch((error: unknown) => {
-      reportError('opening the microphone for its picture', error);
-      if (!disposed) {
-        setState('blocked');
+    /** Opens the recording unless one is open or on its way. */
+    const ensureOpen = () => {
+      if (disposed || opened || opening) {
+        return;
       }
-    });
+      opening = true;
+      open()
+        .catch((error: unknown) => {
+          reportError('opening the microphone for its picture', error);
+          if (!disposed) {
+            setState('blocked');
+          }
+        })
+        .finally(() => {
+          opening = false;
+        });
+    };
+    ensureOpen();
+    reopen.current = ensureOpen;
+    const devices = navigator.mediaDevices;
+    devices.addEventListener('devicechange', ensureOpen);
 
     const paint = async () => {
       if (disposed) {
@@ -231,6 +271,8 @@ const useMicLevels = (
 
     return () => {
       disposed = true;
+      reopen.current = undefined;
+      devices.removeEventListener('devicechange', ensureOpen);
       cancelAnimationFrame(animation);
       // Cleared, so the DSP page never opens on a frozen frame of the mic.
       meters.release(true);
@@ -241,6 +283,10 @@ const useMicLevels = (
       );
     };
   }, [active, guid, name]);
+
+  useEffect(() => {
+    reopen.current?.();
+  }, [retry]);
 
   return { history, latest, state, stream };
 };

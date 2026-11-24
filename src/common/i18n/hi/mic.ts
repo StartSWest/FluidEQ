@@ -81,6 +81,10 @@ export default {
   'mic.notFluid.title': 'माइक की अपनी आवाज़ FluidEQ Engine पर बजती है।',
   'mic.notFluid.body':
     'इसकी आवाज़ सहेजी रहती है, और FluidEQ Engine चुनते ही बजने लगती है।',
+  'mic.empty.backTitle': 'Windows आपके माइक्रोफ़ोन वापस ला रहा है',
+  'mic.empty.backBody':
+    'Windows के उन्हें फिर से सूचीबद्ध करते ही वे यहाँ दिखेंगे, आमतौर पर उसके ऑडियो के फिर से शुरू होने के कुछ ही पल बाद।',
+  'mic.empty.lookAgain': 'फिर से खोजें',
   'mic.empty.title': 'कोई माइक्रोफ़ोन नहीं मिला',
   'mic.empty.body':
     'माइक्रोफ़ोन लगाएँ, या FluidEQ Engine अपडेट करें ताकि वह उन्हें दिखा सके।',

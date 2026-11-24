@@ -88,6 +88,10 @@ export default {
     'Le son propre d’un micro est joué par le FluidEQ Engine.',
   'mic.notFluid.body':
     'Son réglage est conservé et s’appliquera dès que le FluidEQ Engine sera le moteur choisi.',
+  'mic.empty.backTitle': 'Windows rétablit vos micros',
+  'mic.empty.backBody':
+    'Ils apparaissent ici dès que Windows les liste de nouveau, en général peu après le redémarrage de son audio.',
+  'mic.empty.lookAgain': 'Chercher à nouveau',
   'mic.empty.title': 'Aucun microphone trouvé',
   'mic.empty.body':
     'Branchez un microphone, ou mettez à jour le FluidEQ Engine pour qu’il puisse les lister.',

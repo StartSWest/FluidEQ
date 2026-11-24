@@ -83,6 +83,10 @@ export default {
   'mic.notFluid.title': '마이크별 사운드는 FluidEQ Engine에서 재생됩니다.',
   'mic.notFluid.body':
     '사운드는 저장되어 있으며, FluidEQ Engine을 선택하면 바로 적용됩니다.',
+  'mic.empty.backTitle': 'Windows가 마이크를 다시 불러오는 중입니다',
+  'mic.empty.backBody':
+    'Windows가 다시 목록에 올리는 즉시 여기에 표시됩니다. 보통 오디오가 다시 시작된 직후입니다.',
+  'mic.empty.lookAgain': '다시 찾기',
   'mic.empty.title': '마이크를 찾을 수 없음',
   'mic.empty.body':
     '마이크를 연결하거나, 목록을 불러올 수 있도록 FluidEQ Engine을 업데이트하세요.',

@@ -72,6 +72,10 @@ export default {
   'mic.setup.failed': '無法在這支麥克風上完成設定。',
   'mic.notFluid.title': '麥克風的專屬聲音需要 FluidEQ Engine 來播放。',
   'mic.notFluid.body': '聲音設定已保存，只要選用 FluidEQ Engine 就會立即套用。',
+  'mic.empty.backTitle': 'Windows 正在恢復你的麥克風',
+  'mic.empty.backBody':
+    'Windows 重新列出它們後會立即顯示在這裡，通常是在音訊重新啟動後片刻。',
+  'mic.empty.lookAgain': '重新尋找',
   'mic.empty.title': '找不到麥克風',
   'mic.empty.body': '請插入麥克風，或更新 FluidEQ Engine 讓它能列出麥克風。',
   'mic.stage.lowCut': '低切',

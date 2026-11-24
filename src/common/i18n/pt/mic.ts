@@ -86,6 +86,10 @@ export default {
     'O som próprio de um microfone é tocado pelo FluidEQ Engine.',
   'mic.notFluid.body':
     'O som dele fica guardado e passa a tocar assim que o FluidEQ Engine for o escolhido.',
+  'mic.empty.backTitle': 'O Windows está trazendo seus microfones de volta',
+  'mic.empty.backBody':
+    'Eles aparecem aqui assim que o Windows voltar a listá-los, normalmente logo depois de reiniciar o áudio.',
+  'mic.empty.lookAgain': 'Procurar de novo',
   'mic.empty.title': 'Nenhum microfone encontrado',
   'mic.empty.body':
     'Conecte um microfone ou atualize o FluidEQ Engine para que ele consiga listá-los.',

@@ -103,6 +103,7 @@ const useMicSound = (): IMicSoundHook => {
   }, [status]);
   const [file, setFile] = useState<IMicSoundFile>(EMPTY_MIC_SOUND);
   const [lastResult, setLastResult] = useState<TMicSoundResult>();
+  const [fileRead, setFileRead] = useState(false);
   /**
    * The file as of the last change, kept in step with every change rather
    * than copied from `file` at render. A switch patches and commits in one
@@ -125,6 +126,7 @@ const useMicSound = (): IMicSoundHook => {
       .then((loaded) => {
         if (alive) {
           change(() => loaded);
+          setFileRead(true);
         }
         return undefined;
       })
@@ -165,6 +167,21 @@ const useMicSound = (): IMicSoundHook => {
     },
     [change, guid],
   );
+
+  /**
+   * A mic the engine is on with no sound saved gets the one the tab shows,
+   * saved and written. Shown and never sent, the tab said a profile was on
+   * while the engine passed the mic through untouched, "no configuration
+   * block names this endpoint", until a dial was moved (the laptop's mic,
+   * set up 2026-11-24). Only once the saved file is read, so a sound that
+   * was saved is never overwritten by the default.
+   */
+  const attached = mic?.attached === true;
+  useEffect(() => {
+    if (fileRead && guid && attached && !latest.current.mics[guid]) {
+      send(entry, true);
+    }
+  }, [attached, entry, guid, fileRead, send]);
 
   const select = useCallback(
     (next: string) => {

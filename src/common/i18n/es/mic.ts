@@ -87,6 +87,10 @@ export default {
     'El sonido de cada micrófono se reproduce en el FluidEQ Engine.',
   'mic.notFluid.body':
     'Su sonido queda guardado y empieza a sonar en cuanto elijas el FluidEQ Engine.',
+  'mic.empty.backTitle': 'Windows está recuperando tus micrófonos',
+  'mic.empty.backBody':
+    'Aparecen aquí en cuanto Windows vuelve a listarlos, normalmente un momento después de reiniciar su audio.',
+  'mic.empty.lookAgain': 'Buscar de nuevo',
   'mic.empty.title': 'No se encontró ningún micrófono',
   'mic.empty.body':
     'Conecta un micrófono o actualiza el FluidEQ Engine para que pueda mostrarlos.',

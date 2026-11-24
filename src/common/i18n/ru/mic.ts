@@ -85,6 +85,10 @@ export default {
     'Собственный звук микрофона воспроизводит FluidEQ Engine.',
   'mic.notFluid.body':
     'Его звук сохранён и зазвучит, как только будет выбран FluidEQ Engine.',
+  'mic.empty.backTitle': 'Windows возвращает ваши микрофоны',
+  'mic.empty.backBody':
+    'Они появятся здесь, как только Windows снова их покажет, обычно вскоре после перезапуска звука.',
+  'mic.empty.lookAgain': 'Искать снова',
   'mic.empty.title': 'Микрофон не найден',
   'mic.empty.body':
     'Подключите микрофон или обновите FluidEQ Engine, чтобы он мог их показать.',

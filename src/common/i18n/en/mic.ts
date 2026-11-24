@@ -80,6 +80,10 @@ export default {
   'mic.notFluid.title': 'A mic’s own sound plays on the FluidEQ Engine.',
   'mic.notFluid.body':
     'Its sound is kept, and plays as soon as the FluidEQ Engine is the one chosen.',
+  'mic.empty.backTitle': 'Windows is bringing your microphones back',
+  'mic.empty.backBody':
+    'They show here as soon as Windows lists them again, usually a moment after its audio restarts.',
+  'mic.empty.lookAgain': 'Look again',
   'mic.empty.title': 'No microphone found',
   'mic.empty.body':
     'Plug a microphone in, or update the FluidEQ Engine so it can list them.',

@@ -82,6 +82,10 @@ export default {
     'マイクごとのサウンドは FluidEQ Engine で再生されます。',
   'mic.notFluid.body':
     'サウンドは保存されており、FluidEQ Engine を選ぶとすぐに適用されます。',
+  'mic.empty.backTitle': 'Windows がマイクを復元しています',
+  'mic.empty.backBody':
+    'Windows が再び一覧に表示するとすぐにここに表示されます。通常はオーディオの再起動から少し後です。',
+  'mic.empty.lookAgain': 'もう一度探す',
   'mic.empty.title': 'マイクが見つかりません',
   'mic.empty.body':
     'マイクを接続するか、一覧を表示できるよう FluidEQ Engine を更新してください。',

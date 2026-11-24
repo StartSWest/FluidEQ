@@ -88,6 +88,10 @@ export default {
     'Der eigene Klang eines Mikrofons läuft über die FluidEQ Engine.',
   'mic.notFluid.body':
     'Sein Klang bleibt gespeichert und ist zu hören, sobald die FluidEQ Engine ausgewählt ist.',
+  'mic.empty.backTitle': 'Windows stellt Ihre Mikrofone wieder her',
+  'mic.empty.backBody':
+    'Sie erscheinen hier, sobald Windows sie wieder auflistet – meist einen Moment nach dem Neustart seines Audios.',
+  'mic.empty.lookAgain': 'Erneut suchen',
   'mic.empty.title': 'Kein Mikrofon gefunden',
   'mic.empty.body':
     'Schließen Sie ein Mikrofon an oder aktualisieren Sie die FluidEQ Engine, damit sie Mikrofone auflisten kann.',
