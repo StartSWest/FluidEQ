@@ -48,6 +48,10 @@ const declarationsOf = (css: string, selector: string) => {
   return css.slice(open + 1, css.indexOf('}', open));
 };
 
+/** What paints a surface: its colour, the blur behind it, its shadow. */
+const FACE =
+  /(?:^|;)\s*(?:background(?:-color)?|backdrop-filter|box-shadow)\s*:/;
+
 describe('the menus’ floor', () => {
   it.each([
     ['List.scss', '.list-wrapper'],
@@ -84,5 +88,35 @@ describe('the menus’ floor', () => {
     // Positive control: the amp's sheet does paint its menu with the floor.
     expect(amp).toContain('background: var(--surface-menu-floor)');
     expect(amp).not.toContain('--surface-menu-floor:');
+  });
+
+  // The amp's own menu, off its mark, paints no face of its own (Ivan,
+  // 2026-11-24: "the amp ui menu, it is too much transparent, not following
+  // the rest of the app"). It wore the window's floor at 82% and counted on a
+  // 26px blur behind it, which the menus' shared rule in `Rainbow.scss`
+  // always overrode with `var(--menu-glass, none)`: the player read through
+  // it. Its menu and its settings tray take the face `.player-menu` gives
+  // every amp menu, the floor above.
+  it('is the face of the amp’s mark menu, which paints none of its own', () => {
+    const amp = compiledCss('MiniPlayer.scss');
+    const rules = [...amp.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+      .map(([, selector, body]) => ({
+        selectors: selector.split(',').map((part) => part.trim()),
+        body,
+      }))
+      .filter(({ selectors }) =>
+        selectors.some((part) =>
+          /\.player-menu--mark(\s+\.actions-menu__prefs)?$/.test(part),
+        ),
+      );
+    // Positive control: the menu's own rules were found, the menu itself and
+    // its tray, so finding no face in them is not finding nothing at all.
+    expect(rules.length).toBeGreaterThanOrEqual(2);
+    rules.forEach(({ selectors, body }) => {
+      expect({ selectors, face: body.match(FACE) }).toEqual({
+        selectors,
+        face: null,
+      });
+    });
   });
 });

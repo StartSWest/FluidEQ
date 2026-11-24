@@ -24,7 +24,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   padding: 6px;
 }
 
-// The mark's menu, on glass: the same in both amps (`_ampMarkMenu.scss`).
+// The mark's menu: the same in both amps (`_ampMarkMenu.scss`).
 @include mark-menu.mark-menu;
 
 // A row of Smart EQ's modes, as the actions menu draws its commands: glyph

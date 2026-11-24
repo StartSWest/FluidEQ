@@ -7,11 +7,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'color' as *;
 @use 'theme' as *;
 
-// THE MARK'S MENU, ON GLASS — the same menu in both amps (Ivan, 2026-09-28:
-// "the main menu, I loved the one on the glass version"), included by each
-// amp's own menus stylesheet so it stands in each amp's scope
-// (`MiniPlayer.scss`). A mixin and not a stylesheet, because a module's CSS
-// is written once however many trees load it.
+// THE MARK'S MENU — the same menu in both amps, included by each amp's own
+// menus stylesheet so it stands in each amp's scope (`MiniPlayer.scss`). A
+// mixin and not a stylesheet, because a module's CSS is written once however
+// many trees load it.
 //
 // In the order it is used: the way back to the app, large; the app's pages
 // four to a row; the app's own settings tray; and the fold at its foot.
@@ -19,13 +18,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // the window's own width less a margin — the amp can be 360px across, and a
 // German or French row is wider than the 320px the modes menu stops at.
 //
-// ITS OWN COLOURS, on the menu itself, so it reads the same over either amp:
-// the 2.0 amp's tokens are its decks' and would have painted this glass in
+// ITS OWN INKS, on the menu itself, so it reads the same over either amp:
+// the 2.0 amp's tokens are its decks' and would have painted these rows in
 // them.
+//
+// ITS FACE IS EVERY MENU'S (`menu-surface`, from `.player-menu`): the 98%
+// card floor, the menus' edge and lift. It used to wear a glass of its own
+// here - the window's floor at 82% with a 26px blur behind it and a drop
+// shadow (2026-09-28) - and that glass was see-through, because the menus'
+// shared rule in `Rainbow.scss` (`html body :is([data-anchored-menu], ...)`,
+// heavier than this one) sets every menu's `backdrop-filter` to
+// `var(--menu-glass, none)`: the blur never applied, and an unblurred 82%
+// floor let the album art, the title, the time and the transport read
+// through the rows (Ivan, 2026-11-24: "it is too much transparent, not
+// following the rest of the app"). Nothing here paints the face, so the
+// amp's Transparency, which is the panes' and never a menu's, cannot reach
+// it either.
 @mixin mark-menu {
   .player-menu--mark {
-    --player-glass-lip: color-mix(in srgb, #{$white} 12%, transparent);
-    --player-glass-edge: color-mix(in srgb, #{$edge-tint} 12%, transparent);
     --player-hover: color-mix(in srgb, #{$edge-tint} 10%, transparent);
     --player-chosen: color-mix(in srgb, #{$edge-tint} 13%, transparent);
     --player-text: #{$text-primary};
@@ -37,24 +47,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
     max-width: calc(100vw - 16px);
     gap: 4px;
     padding: 8px;
-    background: color-mix(in srgb, var(--surface-base) 82%, transparent);
-    backdrop-filter: blur(26px) saturate(150%);
-    box-shadow:
-      inset 0 1px 0 var(--player-glass-lip),
-      inset 0 0 0 1px var(--player-glass-edge),
-      0 24px 60px rgba($black, 0.45);
 
-    // The tray is glass of the menu, not a solid slab laid on it. Its corner,
-    // the way-back card's and the rows' are the menu's own (`$card-radius`,
-    // the app's corner for every menu and panel), so each shape inside
-    // follows the one round it (Ivan, 2026-10-25: "match the back to full app
-    // card border to panel borders, not do the opposite"). They were rounder
-    // than the menu holding them.
+    // The settings tray stands on the menu's own face with no well under
+    // it, as it does in the full app's menu (`ActionsMenu.scss`; Ivan,
+    // 2026-11-17: "remove the dark bg on it"). The way-back card's corner
+    // and the rows' are the menu's own (`$card-radius`, the app's corner for
+    // every menu and panel), so each shape inside follows the one round it
+    // (Ivan, 2026-10-25: "match the back to full app card border to panel
+    // borders, not do the opposite").
     .actions-menu__prefs {
       margin-top: 2px;
-      border-radius: $card-radius;
-      background: color-mix(in srgb, #{$black} 22%, transparent);
-      box-shadow: inset 0 0 0 1px var(--player-glass-edge);
     }
   }
 
