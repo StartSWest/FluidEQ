@@ -258,8 +258,10 @@ describe('the cards the chat puts up', () => {
       show: (_projectId, ask) => shown.push(ask),
     });
     // Nothing is left to ask who makes a picture, or to connect ChatGPT.
+    // `trusted` puts up no card of its own: it turns the tool card standing
+    // into the member's own once a scene from outside is trusted.
     expect(Object.keys(asks).sort()).toEqual(
-      ['answer', 'drop', 'forget', 'standing', 'tool'].sort(),
+      ['answer', 'drop', 'forget', 'standing', 'tool', 'trusted'].sort(),
     );
     const answer = asks.tool(
       'p',

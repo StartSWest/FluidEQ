@@ -180,6 +180,9 @@ export const SETTING_STEMS: readonly string[] = [
   // widths too on all pages").
   'fluideq.dsp.railWidth',
   'fluideq.dsp.railPinned',
+  // The Mic tab's rail, the same two, reset with every other page's.
+  'fluideq.mic.railWidth',
+  'fluideq.mic.railPinned',
   // Share Audio's rail: its dragged width; and the pin it had for one day
   // before it stayed open (2026-11-19), read by nothing now, so a reset
   // leaves no trace of it.
