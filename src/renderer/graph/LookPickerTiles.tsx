@@ -14,7 +14,7 @@ import GraphSceneReport from './GraphSceneReport';
 import { originOf, type TFreshness } from './lookPickerFilter';
 import { FAMILY_KEYS, type IPlusRow, type IStyleRow } from './lookPickerRows';
 import { LockBadge, SceneThumbnail } from './lookPickerParts';
-import { useTileClip } from './lookTileClips';
+import useTileClip from './lookTileClips';
 import SceneClip from '../plus/SceneClip';
 
 /**
@@ -125,12 +125,26 @@ export function LookPickerSceneTile({
 }: ISceneTileProps) {
   const { t } = useTranslation();
   const caption = useSceneCaption(row, fresh);
-  // The scene's published clip over its picture while the tile is in view
-  // (`lookTileClips.ts`); the picture stays under it until a frame is painted.
-  const [art, setArt] = useState<HTMLSpanElement | null>(null);
-  const clip = useTileClip(row.thumbnail, art);
+  // The scene's published clip over its picture while the pointer or the
+  // focus is on the tile (`lookTileClips.ts`); the picture stays under it
+  // until a frame is painted. The whole item answers, its report and remove
+  // buttons included: a hand resting on them is still on the tile.
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const clip = useTileClip(row.thumbnail, hovered || focused);
   return (
-    <div className="look-picker__item">
+    <div
+      className="look-picker__item"
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={(event) => {
+        const next = event.relatedTarget;
+        if (!(next instanceof Node && event.currentTarget.contains(next))) {
+          setFocused(false);
+        }
+      }}
+    >
       <button
         type="button"
         className={`look-picker__pick look-picker__tile${
@@ -141,7 +155,7 @@ export function LookPickerSceneTile({
         title={row.locked ? t('graph.scene.locked') : row.name}
         onClick={() => onChoose(row.id)}
       >
-        <span ref={setArt} className="look-picker__art">
+        <span className="look-picker__art">
           <SceneThumbnail row={row} />
           {clip && <SceneClip url={clip} className="look-picker__clip" />}
           {fresh === 'new' && (
