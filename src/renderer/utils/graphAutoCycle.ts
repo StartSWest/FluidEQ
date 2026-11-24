@@ -86,6 +86,25 @@ export const useGraphAutoCycleSeconds = () =>
  */
 let holds = 0;
 
+/**
+ * Told whenever a hold is taken or let go, or a cycle starts or stops: what
+ * Auto prepares ahead (`scenePreload.ts`) waits for the look on screen to have
+ * drawn and for nobody to be choosing.
+ */
+const cycleListeners = new Set<() => void>();
+const tellCycleListeners = () =>
+  cycleListeners.forEach((listener) => listener());
+
+export const subscribeGraphAutoCycle = (listener: () => void) => {
+  cycleListeners.add(listener);
+  return () => {
+    cycleListeners.delete(listener);
+  };
+};
+
+/** Whether anything is holding the cycle right now. */
+export const isGraphAutoCycleHeld = () => holds > 0;
+
 /** While `isHeld`, every running cycle waits at the start of its interval. */
 export const useHoldGraphAutoCycle = (isHeld: boolean) => {
   // Layout, not passive: the cycle runs on animation frames, and a passive
@@ -96,8 +115,10 @@ export const useHoldGraphAutoCycle = (isHeld: boolean) => {
       return undefined;
     }
     holds += 1;
+    tellCycleListeners();
     return () => {
       holds -= 1;
+      tellCycleListeners();
     };
   }, [isHeld]);
 };
@@ -114,6 +135,9 @@ export const useHoldGraphAutoCycle = (isHeld: boolean) => {
  */
 const runningCycles: symbol[] = [];
 
+/** Whether Auto is on and counting somewhere in the window. */
+export const isGraphAutoCycleRunning = () => runningCycles.length > 0;
+
 /** One visible interval per look, including after a manual selection or edit. */
 export const useGraphAutoCycle = (
   seconds: number,
@@ -126,6 +150,7 @@ export const useGraphAutoCycle = (
     }
     const claim = Symbol('graph auto cycle');
     runningCycles.push(claim);
+    tellCycleListeners();
     let elapsed = 0;
     let previous = performance.now();
     let frame: number;
@@ -164,6 +189,7 @@ export const useGraphAutoCycle = (
       window.cancelAnimationFrame(frame);
       document.removeEventListener('visibilitychange', reset);
       runningCycles.splice(runningCycles.indexOf(claim), 1);
+      tellCycleListeners();
     };
   }, [seconds, suspended, selectedLookId]);
 };

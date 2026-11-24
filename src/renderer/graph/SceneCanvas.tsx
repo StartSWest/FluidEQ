@@ -7,7 +7,6 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { sceneMakerOf } from 'common/sceneMaker';
 import { premiumLookId, type IScenePack } from 'common/scenePacks';
 import type { TSceneFailure } from 'main/scenePackStore';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
@@ -17,16 +16,8 @@ import {
   reportOwnResponse,
   useListenerResponse,
 } from '../utils/sceneResponseStore';
-import {
-  blockScene,
-  loadScenePack,
-  type IUsableScene,
-} from '../utils/scenePacks';
-import {
-  blockMemberScene,
-  loadMemberScene,
-  type IUsableMemberScene,
-} from '../utils/memberScenes';
+import { blockScene, loadScenePack } from '../utils/scenePacks';
+import { blockMemberScene, loadMemberScene } from '../utils/memberScenes';
 import { useWatchedSceneWave } from '../utils/sceneWaveStore';
 import { lastSceneBuild, reportSceneBuilt } from '../utils/sceneBuilds';
 import { clearLookRefusal, refuseLook, type TLookRefusal } from './lookRefusal';
@@ -53,8 +44,17 @@ import { FULL_VIEW, sceneViewOf, type TSceneView } from './sceneView';
 import { publishGraphSceneRun, type IScenePlot } from './graphScenePlace';
 import { useGraphArriving } from './graphArrival';
 import { useGraphSceneBlur } from '../utils/graphOverlay';
+import {
+  isMemberScene,
+  sceneIdentityOf,
+  sceneMakerOfDrawable,
+  sceneVersionOf,
+  type TDrawableScene,
+} from './sceneIdentity';
+import { settlePreparedScene, takePreparedScene } from './scenePreload';
 
-export type TDrawableScene = IUsableScene | IUsableMemberScene;
+export type { TDrawableScene } from './sceneIdentity';
+export { sceneIdentityOf } from './sceneIdentity';
 
 interface ISceneCanvasProps {
   scene: TDrawableScene;
@@ -90,13 +90,6 @@ const isSameCover = (a: ICoverFrame | undefined, b: ICoverFrame): boolean =>
   a.view.every(
     (value, index) => Math.abs(value - b.view[index]) < VIEW_EPSILON,
   );
-
-const isMemberScene = (scene: TDrawableScene): scene is IUsableMemberScene =>
-  'kind' in scene && scene.kind === 'member';
-
-/** What a scene is drawn as: a new one starts the clock and the fade again. */
-export const sceneIdentityOf = (scene: TDrawableScene): string =>
-  isMemberScene(scene) ? scene.lookId : scene.id;
 
 /**
  * The graph's Plus look, or a member's scene, drawn on the GPU — one renderer
@@ -134,9 +127,9 @@ export default function SceneCanvas({
   const member = isMemberScene(scene);
   // A scene this listener made is one they have watched: the source says so
   // below, and the runner alone decides what follows (`sceneRules.ts`).
-  const madeBy = sceneMakerOf({ member, own: member && scene.own });
+  const madeBy = sceneMakerOfDrawable(scene);
   const key = sceneIdentityOf(scene);
-  const version = scene.revision ?? String(scene.version);
+  const version = sceneVersionOf(scene);
   const name = scene.names.en;
   const { names } = scene;
   const source = useMemo<ISceneSource>(() => {
@@ -312,6 +305,16 @@ export default function SceneCanvas({
     });
   }, [interaction, drawnIdentity, isOnLayer]);
   useLayoutEffect(() => () => publishGraphSceneRun(undefined), []);
+  // A scene Auto built ahead goes on without the plot's loading ring
+  // (`scenePreload.ts`) until its first frame says so through the run above,
+  // published first in this same commit so the plot never sees neither; and
+  // a scene handed over or put away before drawing gives the claim up.
+  useLayoutEffect(() => {
+    if (drawnIdentity === key) {
+      settlePreparedScene(key);
+    }
+  }, [drawnIdentity, key]);
+  useLayoutEffect(() => () => settlePreparedScene(key), [key]);
 
   // The root marked with the layer the scene is drawn on while it is there
   // (`data-scene-layer`, `sceneCover.ts`): `is-scene-column` lifts the EQ
@@ -420,6 +423,7 @@ export default function SceneCanvas({
     interaction,
     placement: target,
     ...(ink ? { probe: ink } : {}),
+    adopt: takePreparedScene,
   });
 
   // On the plot, not on the scene's own layer, which takes no pointer: the

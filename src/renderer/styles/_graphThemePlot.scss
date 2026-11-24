@@ -186,6 +186,15 @@ it under the terms of the GNU General Public License version 3 or later.
   pointer-events: none;
 }
 
+// One over another, never one under the other: a scene Auto built ahead
+// fades in over the picture it replaces, which stays in this host until
+// then (`scenePreload.ts`). Laid out in flow, the second canvas stood below
+// the first, outside the panel.
+.chart-scene-canvas > canvas {
+  position: absolute;
+  inset: 0;
+}
+
 // On the two layers that stand on the window's floor — behind the EQ head and
 // graph (`SceneColumnLayer`) and behind the whole window under the Backdrop
 // (`SceneCover`) — the worker's canvas has that floor behind it as its own

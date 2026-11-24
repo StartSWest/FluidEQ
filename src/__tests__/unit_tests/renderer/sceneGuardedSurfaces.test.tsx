@@ -107,7 +107,11 @@ describe('how a scene is run', () => {
   });
 
   it('asks every place for the same fact, the desktop included', () => {
-    expect(wiring('graph/SceneCanvas.tsx')).toContain('sceneMakerOf(');
+    // The graph's canvas and Auto's scene built ahead of it ask one place,
+    // so the two agree on how the scene they share is run.
+    expect(wiring('graph/sceneIdentity.ts')).toContain('sceneMakerOf(');
+    expect(wiring('graph/SceneCanvas.tsx')).toContain('sceneMakerOfDrawable(');
+    expect(wiring('graph/scenePreload.ts')).toContain('sceneMakerOfDrawable(');
     expect(wiring('plus/ScenePage.tsx')).toContain('sceneMakerOf(');
     expect(wiring('player/useGraphScenePack.ts')).toContain('sceneMakerOf(');
     // Main's word, never worked out by the page (`wallpaperScenes.test.ts`).

@@ -51,7 +51,12 @@ import { createSceneTuner } from './sceneTuner';
 import { sceneProgramKey } from './sceneLinkTurns';
 import sameSceneProgramInputs from './sceneProgramInputs';
 import { logSceneFailure } from '../utils/sceneFailureLog';
-import type { ISceneDrawReport, ISceneRunnerOptions } from './sceneRunnerTypes';
+import type {
+  ISceneDrawReport,
+  ISceneRendererHandlers,
+  ISceneRunnerOptions,
+} from './sceneRunnerTypes';
+import type { TSceneBuildResult } from './sceneWorkerMessages';
 import { createStereoFollower } from './stereoImage';
 import { noteGraphFrame } from './graphLabelInk';
 import {
@@ -149,6 +154,7 @@ export default function useSceneRunner({
   onUpdating,
   interaction,
   probe,
+  adopt,
 }: ISceneRunnerOptions): RefObject<HTMLDivElement | null> {
   const { points, waveform, isPaused, readFrame } = useSceneAudio();
   // The listener's frame rate and resolution, from this window's store unless
@@ -844,76 +850,152 @@ export default function useSceneRunner({
     measureRef.current?.();
   }, [moved]);
 
+  // What a worker's failure and its context's return mean, the same for a
+  // worker started here and one taken ready-built (`adopt`).
+  const rendererFailed = useCallback(
+    (reason: 'unavailable' | 'context-lost' | 'gpu-reset', log?: string) => {
+      if (log) {
+        console.error(
+          `Scene "${sourceRef.current.name}" renderer failed: ${log}`,
+        );
+      }
+      dropProgram();
+      setWaiting(false);
+      logFailure(
+        reason === 'context-lost' || reason === 'gpu-reset'
+          ? reason
+          : 'unavailable',
+        log,
+      );
+      if (reason === 'context-lost' || reason === 'gpu-reset') {
+        sourceRef.current.reportFailure(reason);
+      } else {
+        sourceRef.current.block();
+      }
+    },
+    [dropProgram, setWaiting, logFailure],
+  );
+  const rendererRecovered = useCallback(() => {
+    drawnAtRef.current = undefined;
+    ladderRef.current = sceneRulesFor(sourceRef.current.madeBy).createLadder(
+      ladderTopRef.current,
+      ladderFloorRef.current,
+    );
+    const proved =
+      ladderProgramRef.current === undefined
+        ? undefined
+        : provenScales.get(ladderProgramRef.current);
+    if (proved !== undefined) {
+      ladderRef.current.resume(proved);
+    }
+    kick();
+    const lostBuild = lostBuildRef.current;
+    lostBuildRef.current = null;
+    if (lostBuild && lostBuild === wantedRef.current) {
+      buildRef.current(lostBuild).catch(() => undefined);
+    }
+  }, [kick]);
+
+  /**
+   * The two above for one worker, heard only while it is the one drawing:
+   * the picture kept on screen through a crossfade is a worker too, and its
+   * failure is not the scene now being drawn.
+   */
+  const handlersFor = useCallback(
+    (
+      renderer: () => ISceneWorkerClient | undefined,
+    ): ISceneRendererHandlers => {
+      const isCurrent = () =>
+        renderer() !== undefined && renderer() === rendererRef.current;
+      return {
+        failed: (reason, log) => {
+          if (isCurrent()) {
+            rendererFailed(reason, log);
+          }
+        },
+        recovered: () => {
+          if (isCurrent()) {
+            rendererRecovered();
+          }
+        },
+      };
+    },
+    [rendererFailed, rendererRecovered],
+  );
+
+  /** The renderer drawn with from now on, told what the page already holds. */
+  const installRenderer = useCallback((renderer: ISceneWorkerClient) => {
+    rendererRef.current = renderer;
+    renderer.holdPicture(heldRef.current);
+    if (probeRef.current) {
+      renderer.probe(probeRef.current.rects, probeRef.current.heard);
+    }
+  }, []);
+
   const startRenderer = useCallback(() => {
     const host = hostRef.current;
     if (!host) {
       return undefined;
     }
+    let started: ISceneWorkerClient | undefined;
+    const handlers = handlersFor(() => started);
     try {
-      rendererRef.current = createSceneWorkerClient(
+      started = createSceneWorkerClient(
         host,
-        (reason, log) => {
-          if (log) {
-            console.error(
-              `Scene "${sourceRef.current.name}" renderer failed: ${log}`,
-            );
-          }
-          dropProgram();
-          setWaiting(false);
-          logFailure(
-            reason === 'context-lost' || reason === 'gpu-reset'
-              ? reason
-              : 'unavailable',
-            log,
-          );
-          if (reason === 'context-lost' || reason === 'gpu-reset') {
-            sourceRef.current.reportFailure(reason);
-          } else {
-            sourceRef.current.block();
-          }
-        },
-        () => {
-          drawnAtRef.current = undefined;
-          ladderRef.current = sceneRulesFor(
-            sourceRef.current.madeBy,
-          ).createLadder(ladderTopRef.current, ladderFloorRef.current);
-          const proved =
-            ladderProgramRef.current === undefined
-              ? undefined
-              : provenScales.get(ladderProgramRef.current);
-          if (proved !== undefined) {
-            ladderRef.current.resume(proved);
-          }
-          kick();
-          const lostBuild = lostBuildRef.current;
-          lostBuildRef.current = null;
-          if (lostBuild && lostBuild === wantedRef.current) {
-            buildRef.current(lostBuild).catch(() => undefined);
-          }
-        },
+        handlers.failed,
+        handlers.recovered,
         arrivalFadeRef.current === 1 ? 'at-once' : 'fade',
       );
     } catch (error) {
       console.error('Scene worker could not start:', error);
       logFailure('no-worker', String(error));
     }
-    if (!rendererRef.current) {
+    if (!started) {
+      rendererRef.current = undefined;
       setWaiting(false);
       sourceRef.current.block();
+      return undefined;
     }
-    rendererRef.current?.holdPicture(heldRef.current);
-    if (probeRef.current) {
-      rendererRef.current?.probe(
-        probeRef.current.rects,
-        probeRef.current.heard,
-      );
-    }
-    return rendererRef.current;
-  }, [dropProgram, kick, setWaiting, logFailure]);
+    installRenderer(started);
+    return started;
+  }, [handlersFor, installRenderer, setWaiting, logFailure]);
+
+  /**
+   * The picture drawn before a scene that was taken ready-built: idle, left
+   * on screen under the new canvas until that one's first picture has faded
+   * in over it, then given back (`adopt`). Never drawn to meanwhile.
+   */
+  const outgoingRef = useRef<ISceneWorkerClient | undefined>(undefined);
+  const letOutgoingGo = useCallback(() => {
+    outgoingRef.current?.dispose();
+    outgoingRef.current = undefined;
+  }, []);
+  /** A ready build taken with its worker, for the load below to put up. */
+  const adoptedRef = useRef<
+    | {
+        identity: string;
+        renderer: ISceneWorkerClient;
+        pack: IScenePack;
+        result: TSceneBuildResult;
+      }
+    | undefined
+  >(undefined);
+  /** Whether the scene just taken comes in over a picture still on screen. */
+  const crossingRef = useRef(false);
+  const adoptRef = useRef(adopt);
+  adoptRef.current = adopt;
 
   /** A worker prepares the next scene while the interface remains available. */
   const build = useCallback(
-    async (pack: IScenePack) => {
+    async (
+      pack: IScenePack,
+      /**
+       * What a worker taken ready-built answered when it built this pack
+       * (`adopt`): used, rather than asked again, while that worker is the
+       * one drawing.
+       */
+      built?: { renderer: ISceneWorkerClient; result: TSceneBuildResult },
+    ) => {
       const rules = sceneRulesFor(sourceRef.current.madeBy);
       // Unseen, it waits to be seen before it costs a worker.
       if (!shownRef.current) {
@@ -967,9 +1049,12 @@ export default function useSceneRunner({
       } else {
         setWaiting(true);
       }
-      let result;
+      let result: TSceneBuildResult;
       try {
-        result = await renderer.load(pack, rules.unwatched);
+        result =
+          built?.renderer === renderer
+            ? built.result
+            : await renderer.load(pack, rules.unwatched);
       } finally {
         if (generation === generationRef.current) {
           buildingRef.current = false;
@@ -1091,25 +1176,95 @@ export default function useSceneRunner({
   // Not for a scene mounted where nobody can see it: its first build starts
   // one when it is shown.
   useEffect(() => {
-    if (shownRef.current) {
-      startRenderer();
+    crossingRef.current = false;
+    const { identity, version } = sourceRef.current;
+    const host = hostRef.current;
+    // Built ahead (`adopt`): the worker taken as it stands, its canvas moved
+    // here, and its build put up by the load below without asking again.
+    const prepared =
+      shownRef.current && host
+        ? adoptRef.current?.(identity, version)
+        : undefined;
+    if (prepared && host) {
+      prepared.client.rehost(host);
+      prepared.bind(handlersFor(() => prepared.client));
+      installRenderer(prepared.client);
+      adoptedRef.current = {
+        identity,
+        renderer: prepared.client,
+        pack: prepared.pack,
+        result: prepared.result,
+      };
+      // The picture before it stays up, idle, until this one's first
+      // picture has faded in over it: a crossfade, never the loading ring
+      // or a frame of nothing between them.
+      const outgoing = outgoingRef.current;
+      crossingRef.current = outgoing !== undefined;
+      if (outgoing) {
+        prepared.client
+          .whenShown()
+          .then(() => {
+            if (outgoingRef.current === outgoing) {
+              letOutgoingGo();
+            }
+            return undefined;
+          })
+          .catch(() => undefined);
+      }
+    } else {
+      letOutgoingGo();
+      if (shownRef.current) {
+        startRenderer();
+      }
     }
     return () => {
       generationRef.current += 1;
-      dropProgram();
+      adoptedRef.current = undefined;
+      // A runner that may take its next scene ready-built keeps the picture
+      // it was drawing on screen until it knows: the setup above lets it go
+      // at once unless what comes next was built ahead. Idle meanwhile, so
+      // its worker draws nothing more.
+      const renderer = rendererRef.current;
+      if (
+        adoptRef.current &&
+        renderer &&
+        packRef.current &&
+        waitingRef.current === false
+      ) {
+        letOutgoingGo();
+        renderer.idle();
+        outgoingRef.current = renderer;
+        rendererRef.current = undefined;
+        setUpdating(false);
+      } else {
+        dropProgram();
+      }
       packRef.current = null;
       shelvedRef.current = null;
       wantedRef.current = null;
       standInRef.current = null;
     };
-  }, [source.identity, startRenderer, dropProgram]);
+  }, [
+    source.identity,
+    startRenderer,
+    dropProgram,
+    installRenderer,
+    letOutgoingGo,
+    handlersFor,
+    setUpdating,
+  ]);
+  // Unmounted mid-crossfade: the picture kept for it goes too. After the
+  // effect above, whose cleanup is what may hand it the last one.
+  useEffect(() => () => letOutgoingGo(), [letOutgoingGo]);
 
   // A different scene starts from the beginning: clock, fade and energy. Not
   // the music's time, which is
   // the music's: a new look dances from its first frame instead of listening
   // for the tempo all over again.
   useEffect(() => {
-    fadeRef.current = arrivalFadeRef.current;
+    // Over a picture still on screen the canvas's own fade is the crossfade;
+    // a scene fading up from black inside it as well would dip through dark.
+    fadeRef.current = crossingRef.current ? 1 : arrivalFadeRef.current;
     clockRef.current = 0;
     musicClockRef.current = 0;
     energyRef.current = {
@@ -1134,6 +1289,17 @@ export default function useSceneRunner({
   // another look was chosen, because only the id was tracked.
   useEffect(() => {
     let cancelled = false;
+    // Taken ready-built (`adopt`): nothing to load or compile, its first
+    // frame is the next one.
+    const adopted = adoptedRef.current;
+    if (
+      adopted?.identity === sourceRef.current.identity &&
+      adopted.renderer === rendererRef.current
+    ) {
+      adoptedRef.current = undefined;
+      build(adopted.pack, adopted).catch(() => undefined);
+      return undefined;
+    }
     sourceRef.current
       .load()
       .then((pack) => {

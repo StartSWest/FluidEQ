@@ -78,6 +78,18 @@ export interface ISceneWorkerClient {
     rects: readonly TSceneProbeRect[],
     heard: ((luminances: readonly number[]) => void) | undefined,
   ): void;
+  /**
+   * The canvas moved into `host`, worker, context and program kept: a scene
+   * built ahead on a canvas nobody saw (`scenePreload.ts`) taking its place
+   * on the page. Unseen until its first frame, as a new canvas is.
+   */
+  rehost(host: HTMLElement): void;
+  /**
+   * Settles once the first picture is fully on: its fade-in finished, or at
+   * once where it arrives without one. Settles too if the worker goes first,
+   * so nothing waiting on it waits for ever.
+   */
+  whenShown(): Promise<void>;
   dispose(): void;
 }
 
@@ -287,6 +299,32 @@ export const createSceneWorkerClient = (
   let hasShown = false;
   // Held from outside (`holdPicture`): no frame settles the scene.
   let pinned = false;
+  let canvasHost = host;
+  let shownFully: () => void = () => undefined;
+  const fullyShown = new Promise<void>((resolve) => {
+    shownFully = resolve;
+  });
+  /**
+   * The first picture's fade has run its course. Read from the transition
+   * itself (`getAnimations`), never from a duration written down here: a
+   * runner crossfading over the picture before this one lets that one go on
+   * this (`useSceneRunner`). No transition — arriving at once, or styles
+   * that turn transitions off — and it is on now.
+   */
+  const settleWhenFaded = () => {
+    const fades =
+      typeof canvas.getAnimations === 'function' ? canvas.getAnimations() : [];
+    Promise.all(
+      fades.map((fade) =>
+        fade.finished.then(
+          () => undefined,
+          () => undefined,
+        ),
+      ),
+    )
+      .then(shownFully)
+      .catch(shownFully);
+  };
   const hold = () => {
     boxTurn += 1;
     if (settled) {
@@ -310,6 +348,7 @@ export const createSceneWorkerClient = (
       canvas.style.transition =
         arrival === 'fade' ? `opacity ${SETTLE_FADE_MS}ms ease-out` : 'none';
       canvas.style.opacity = '1';
+      settleWhenFaded();
     }
   };
   const watchBox = new ResizeObserver(hold);
@@ -411,6 +450,7 @@ export const createSceneWorkerClient = (
     cancelLoads();
     letTurnsGo();
     releaseFrame(true);
+    shownFully();
     worker.terminate();
     failed('unavailable', log);
   };
@@ -562,8 +602,22 @@ export const createSceneWorkerClient = (
         fail(String(error));
       }
     },
+    rehost: (next) => {
+      if (disposed || next === canvasHost) {
+        return;
+      }
+      watchBox.disconnect();
+      canvasHost = next;
+      next.appendChild(canvas);
+      watchBox.observe(next);
+      // A new box: off the screen until a frame drawn for it, which for a
+      // canvas that has shown nothing yet is its first, faded in.
+      hold();
+    },
+    whenShown: () => fullyShown,
     dispose: () => {
       disposed = true;
+      shownFully();
       shown = undefined;
       probed = undefined;
       watchBox.disconnect();

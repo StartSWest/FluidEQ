@@ -403,18 +403,21 @@ const playsUnattended = (id: string) => {
 };
 
 /**
- * The next look along, skipping any the app may not put on by itself.
+ * The next look along from the selection, skipping any `allowed` refuses, or
+ * undefined when nothing in the list qualifies. Changes nothing: the step
+ * below and the look prepared ahead of it (`scenePreload.ts`) both ask this,
+ * so what is prepared is exactly what the step will put on.
  *
  * The order is the whole list, so the walk keeps its place and its direction
  * whatever is skipped, and it gives up after a full turn rather than looping
  * for ever when nothing in the list qualifies.
  */
-const stepLook = (direction: 1 | -1, allowed: (id: string) => boolean) => {
+const nextLookId = (
+  direction: 1 | -1,
+  allowed: (id: string) => boolean,
+): string | undefined => {
   const ids = getSelectableLooks().map((look) => look.id);
   const count = ids.length;
-  if (count === 0) {
-    return;
-  }
   // Found as the look the lists show for it: a publisher's own copy of one
   // of FluidEQ's scenes is that scene's row (`listedLookOf`). Found nowhere,
   // the walk used to start again from the first look.
@@ -430,12 +433,21 @@ const stepLook = (direction: 1 | -1, allowed: (id: string) => boolean) => {
     const at = (((from + direction * step) % count) + count) % count;
     const next = ids[at];
     if (next !== undefined && allowed(next)) {
-      selectedId = next;
-      persistSelection();
-      refresh();
-      return;
+      return next;
     }
   }
+  return undefined;
+};
+
+/** The selection moved one look along the walk above. */
+const stepLook = (direction: 1 | -1, allowed: (id: string) => boolean) => {
+  const next = nextLookId(direction, allowed);
+  if (next === undefined) {
+    return;
+  }
+  selectedId = next;
+  persistSelection();
+  refresh();
 };
 
 /**
@@ -445,6 +457,14 @@ const stepLook = (direction: 1 | -1, allowed: (id: string) => boolean) => {
  */
 export const cycleGraphLookUnattended = (direction: 1 | -1 = 1) =>
   stepLook(direction, playsUnattended);
+
+/**
+ * The look `cycleGraphLookUnattended` would put on next, without putting it
+ * on: what Auto prepares while the current look plays (`scenePreload.ts`).
+ */
+export const peekGraphLookUnattended = (
+  direction: 1 | -1 = 1,
+): string | undefined => nextLookId(direction, playsUnattended);
 
 export const cycleGraphLook = (direction: 1 | -1 = 1) => {
   // Deliberately live while the designer is open.
@@ -508,6 +528,13 @@ const subscribe = (listener: () => void) => {
     listeners.delete(listener);
   };
 };
+
+/**
+ * Told of every change to the selection, the draft or the lists behind
+ * them, outside React: what Auto prepares next follows them
+ * (`scenePreload.ts`).
+ */
+export const subscribeGraphLook = subscribe;
 
 const DEFAULT_RESOLVED = resolveBuiltInLook(DEFAULT_GRAPH_LOOK);
 
@@ -575,18 +602,22 @@ export const useIsPaletteSelectable = () =>
  * Null while a draft is open as well: the designer edits a look's tuning, and
  * a scene has none to edit.
  */
-const selectedScene = (): TDrawableScene | null => {
-  if (draft) {
-    return null;
+/**
+ * The scene a look id names, while it can be drawn; undefined for a
+ * standard look or a scene that cannot play right now.
+ */
+export const drawableSceneOf = (id: string): TDrawableScene | undefined => {
+  if (isPremiumLookId(id)) {
+    return getUsableScene(packIdOfLook(id));
   }
-  if (isPremiumLookId(selectedId)) {
-    return getUsableScene(packIdOfLook(selectedId)) ?? null;
+  if (isMemberLookId(id)) {
+    return getUsableMemberScene(id);
   }
-  if (isMemberLookId(selectedId)) {
-    return getUsableMemberScene(selectedId) ?? null;
-  }
-  return null;
+  return undefined;
 };
+
+const selectedScene = (): TDrawableScene | null =>
+  draft ? null : (drawableSceneOf(selectedId) ?? null);
 
 /**
  * The scene the graph's selection names, whether or not it can be drawn

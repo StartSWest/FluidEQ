@@ -10,7 +10,8 @@ import {
   publishScenePlot,
   useGraphSceneRun,
 } from './graphScenePlace';
-import { sceneIdentityOf, type TDrawableScene } from './SceneCanvas';
+import { sceneIdentityOf, type TDrawableScene } from './sceneIdentity';
+import { usePreparedSceneIdentity } from './scenePreload';
 import SceneLoading from './SceneLoading';
 import SceneLoadingFloor from './SceneLoadingFloor';
 import SceneViewReset from './SceneViewReset';
@@ -73,7 +74,12 @@ export default function ScenePlot({
   }, []);
 
   const run = useGraphSceneRun();
-  const settled = run?.drawnIdentity === sceneIdentityOf(scene);
+  const identity = sceneIdentityOf(scene);
+  const settled = run?.drawnIdentity === identity;
+  // Built ahead by Auto (`scenePreload.ts`): its first frame is a frame away,
+  // drawn over the picture it replaces, so no loading ring comes between.
+  const prepared = usePreparedSceneIdentity();
+  const isLoading = !settled && prepared !== identity;
 
   return (
     <>
@@ -87,7 +93,7 @@ export default function ScenePlot({
         {!run?.isOnLayer && (
           <SceneLoadingFloor settled={settled} width={width} height={height} />
         )}
-        {!settled && (
+        {isLoading && (
           <SceneLoading
             lookId={scene.lookId}
             swatch={scene.swatch}

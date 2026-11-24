@@ -9,7 +9,11 @@ import type { ISceneFrame } from './sceneGl';
 import type { TSceneProbeRect } from './sceneInk';
 import type { ISceneInteraction } from './sceneInteraction';
 import type { ISceneTuning } from './sceneTuner';
-import type { ISceneShownFrames } from './sceneWorkerMessages';
+import type {
+  ISceneShownFrames,
+  TSceneBuildResult,
+} from './sceneWorkerMessages';
+import type { ISceneWorkerClient } from './sceneWorkerClient';
 import type { TSceneView } from './sceneView';
 
 /**
@@ -117,6 +121,28 @@ export interface ISceneRunnerProbe {
   rects: readonly TSceneProbeRect[];
   /** Each place's mean relative luminance, in the order of `rects`. */
   heard: (luminances: readonly number[]) => void;
+}
+
+/** What a runner is told when its worker fails or its context comes back. */
+export interface ISceneRendererHandlers {
+  failed: (
+    reason: 'unavailable' | 'context-lost' | 'gpu-reset',
+    log?: string,
+  ) => void;
+  recovered: () => void;
+}
+
+/**
+ * A scene built ahead in a worker of its own, on a canvas nobody sees
+ * (`scenePreload.ts`), handed to the runner that is about to draw it.
+ */
+export interface IPreparedScene {
+  client: ISceneWorkerClient;
+  /** The pack it was built from, and what building it answered. */
+  pack: IScenePack;
+  result: Extract<TSceneBuildResult, { kind: 'ready' }>;
+  /** From now on the worker's failures and restores are the runner's. */
+  bind: (handlers: ISceneRendererHandlers) => void;
 }
 
 export interface ISceneRunnerOptions {
@@ -242,6 +268,15 @@ export interface ISceneRunnerOptions {
    * nothing is read.
    */
   probe?: ISceneRunnerProbe;
+  /**
+   * A worker that already holds this scene built, for the runner to draw
+   * with instead of starting one (`scenePreload.ts`): the graph's Auto
+   * prepares the next look while the current one plays. Asked once per
+   * scene, as it becomes the one drawn; undefined builds as ever. A runner
+   * that adopts keeps the picture it was drawing on screen, idle, until the
+   * adopted scene's first picture has faded in over it.
+   */
+  adopt?: (identity: string, version: string) => IPreparedScene | undefined;
   /**
    * Every frame the moment it is made, before the GPU is asked for it: what
    * the scene gets, what it heard before its response bent it, and the

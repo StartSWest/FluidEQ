@@ -18,6 +18,7 @@ import {
 } from './graphScenePlace';
 import SceneCanvas from './SceneCanvas';
 import { useGraphSceneStoodIn } from './sceneStandIn';
+import { useScenePreload } from './scenePreload';
 
 /**
  * The graph's Plus visualizer, run once for the whole window.
@@ -40,6 +41,8 @@ export default function GraphScene() {
   // Video page's own in its full screen - and this one stops rather than
   // draw a second (`sceneStandIn.ts`).
   const isStoodIn = useGraphSceneStoodIn();
+  // Auto's next Plus scene, built while this one plays (`scenePreload.ts`).
+  useScenePreload();
   const target = graphScenePlace({
     drawsScene:
       scene !== null &&

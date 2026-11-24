@@ -71,6 +71,10 @@ const subscribe = (listener: () => void) => {
   };
 };
 
+/** The same, outside React: Auto stops building ahead on a heavy refusal. */
+export const subscribeLookRefusal = subscribe;
+export const readLookRefusal = () => current;
+
 export const useLookRefusal = () =>
   useSyncExternalStore(
     subscribe,
