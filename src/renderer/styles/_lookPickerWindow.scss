@@ -20,11 +20,9 @@ $grip-corner: 16px;
 $light-radius: $card-radius - 1px;
 
 // The look picker's resize grips (`LookPickerWindow.tsx`): just outside the
-// edge, as Windows' resize borders are, invisible until the pointer or the
-// keyboard finds one - then the edge it moves lights in the accent, a step
-// of light on the hairline, and stays lit while it is held. Every edge has
-// one, the edge beside the select too: the window may stand under its
-// select, over it or past it on both sides.
+// edge, as Windows' resize borders are, invisible until the pointer finds
+// one - then the edge it moves lights in the accent, a step of light on the
+// hairline, and stays lit while it is held.
 @mixin styles {
   // The window clips its contents, and lets the grips past. The clip keeps
   // the window's rounded corners, grown by its margin, so a margin of only
@@ -49,16 +47,8 @@ $light-radius: $card-radius - 1px;
       transition: opacity 120ms ease;
     }
 
-    // The lit edge is the focus mark as well: a ring round a strip ten
-    // pixels thick, half of it outside the window, said less than the edge
-    // that will move.
-    &:focus-visible {
-      outline: none;
-    }
-
     &:hover::after,
-    &:active::after,
-    &:focus-visible::after {
+    &:active::after {
       opacity: 1;
     }
   }
@@ -190,6 +180,17 @@ $light-radius: $card-radius - 1px;
       border-width: 0 2px 2px 0;
       border-bottom-right-radius: $light-radius;
     }
+  }
+
+  // Only the edges away from the trigger move: the one beside it is where
+  // the window hangs from.
+  [data-side='down'] > .look-picker__grip--top,
+  [data-side='down'] > .look-picker__grip--top-left,
+  [data-side='down'] > .look-picker__grip--top-right,
+  [data-side='up'] > .look-picker__grip--bottom,
+  [data-side='up'] > .look-picker__grip--bottom-left,
+  [data-side='up'] > .look-picker__grip--bottom-right {
+    display: none;
   }
 
   @media (prefers-reduced-motion: reduce) {

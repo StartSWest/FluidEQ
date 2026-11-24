@@ -5,102 +5,98 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useRef, useState } from 'react';
-import type {
-  KeyboardEvent as ReactKeyboardEvent,
-  PointerEvent as ReactPointerEvent,
-  ReactNode,
-} from 'react';
-import { useTranslation } from '../utils/I18nContext';
-import AnchoredMenu from '../widgets/AnchoredMenu';
-import { bandOf, menuRoom, type TMenuFrame } from '../widgets/menuFrame';
-import {
-  DEFAULT_FRAME,
-  forgetFrame,
-  type IResizeStart,
-  KEY_STEP,
-  MAX_HEIGHT,
-  MAX_WIDTH,
-  MIN_HEIGHT,
-  MIN_WIDTH,
-  readFrame,
-  resizeFrame,
-  type TGrip,
-  writeFrame,
-} from './lookPickerResize';
+import type { PointerEvent as ReactPointerEvent, ReactNode } from 'react';
+import { readStored, removeStored, writeStored } from '../utils/graphStorage';
+import AnchoredMenu, {
+  type IMenuFrame,
+  MENU_MARGIN,
+} from '../widgets/AnchoredMenu';
 
 /**
- * The look picker's window, which the reader sizes and places (Ivan,
- * 2026-11-19: "make the windows resizable too"; 2026-11-23: "resize it down
- * so it shows below the select or up so it shows on top of the select"):
- * dragged at any edge or corner, and opened that way again next time. The
- * top and bottom edges both move, the one beside the select too, so the
- * window can hang under the select, stand over it, or reach past it both
- * ways and cover it - an edge that reaches the select goes past it in one
- * step, at its middle, and never stops halfway across it
- * (`menuFrame.ts`).
+ * The look picker's window, which the reader sizes (Ivan, 2026-11-19: "make
+ * the windows resizable too"): dragged at either side, at the edge away from
+ * its trigger or at the corners between them, and opened at that size again
+ * next time. Where it stands stays its trigger's - right-aligned under or
+ * over it - so only the size is remembered; a side dragged outwards moves
+ * that side alone for as long as the picker is on the page.
  *
  * The grips stand just outside the window's edge, as Windows' own resize
  * borders do, so they never cover the rail, the lists' scrollbars or the
  * foot's buttons. A double press on one puts the window back to its first
- * size and place. The four edges take the keyboard as the app's other
- * splitters do - focused, the arrows move them - and the corners, which are
- * two edges at once, are the pointer's alone.
+ * size.
  */
 
-const EDGES = ['top', 'bottom', 'left', 'right'] as const;
-const CORNERS = [
+const SIZE_KEY = 'fluideq.lookPicker.size';
+
+/** The size it has always opened at, before anybody sized it. */
+const DEFAULT_WIDTH = 880;
+const DEFAULT_HEIGHT = 600;
+
+/**
+ * The smallest window is the one the narrowest app window (720px) opened it
+ * at, which the layout was drawn for: the rail, then a name, its mark, a
+ * maker and a version side by side (Kind goes first, `_lookPickerTiles.scss`).
+ * At 600 the name and the maker were down to three letters each. The largest
+ * is three screens of pictures, past which a picker is a page.
+ */
+const MIN_WIDTH = 700;
+const MIN_HEIGHT = 400;
+const MAX_WIDTH = 1440;
+const MAX_HEIGHT = 1000;
+
+type TGrip =
+  | 'left'
+  | 'right'
+  | 'top'
+  | 'bottom'
+  | 'top-left'
+  | 'top-right'
+  | 'bottom-left'
+  | 'bottom-right';
+
+const GRIPS: readonly TGrip[] = [
+  'left',
+  'right',
+  'top',
+  'bottom',
   'top-left',
   'top-right',
   'bottom-left',
   'bottom-right',
-] as const;
+];
 
-const EDGE_LABEL = {
-  top: 'graph.picker.edgeTop',
-  bottom: 'graph.picker.edgeBottom',
-  left: 'graph.picker.edgeLeft',
-  right: 'graph.picker.edgeRight',
-} as const;
+const clampSize = (value: number, low: number, high: number) =>
+  Math.min(high, Math.max(low, value));
+
+/** `lo` gives way to `hi`: the window's edge wins over the smallest size. */
+const clampEdge = (value: number, lo: number, hi: number) =>
+  Math.max(Math.min(lo, hi), Math.min(hi, value));
+
+const readSize = (): Pick<IMenuFrame, 'width' | 'height'> => {
+  const [width, height] = (readStored(SIZE_KEY) ?? '').split('x').map(Number);
+  return Number.isFinite(width) &&
+    Number.isFinite(height) &&
+    width > 0 &&
+    height > 0
+    ? {
+        width: clampSize(width, MIN_WIDTH, MAX_WIDTH),
+        height: clampSize(height, MIN_HEIGHT, MAX_HEIGHT),
+      }
+    : { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT };
+};
 
 interface IDrag {
   grip: TGrip;
   pointerId: number;
   x: number;
   y: number;
-  start: IResizeStart;
+  /** Where the window stood when the drag began. */
+  rect: DOMRect;
+  /** The trigger's right edge, which the window's is measured from. */
+  anchorRight: number;
+  /** The room on the window's side, which AnchoredMenu caps it to. */
+  room: number;
 }
-
-/**
- * The height the window asks for, as a separator's value: over its select
- * this leaves the select's own band out, which a value read aloud as a
- * share of the range does not miss.
- */
-const heightOf = (frame: TMenuFrame) => (frame.above ?? 0) + (frame.below ?? 0);
-
-/** Where everything stood as a resize began, or nothing to resize. */
-const startOf = (
-  grip: HTMLElement,
-  anchor: HTMLElement | null,
-): IResizeStart | undefined => {
-  const menu = grip.closest<HTMLElement>('[data-anchored-menu]');
-  if (!menu || !anchor) {
-    return undefined;
-  }
-  const rect = menu.getBoundingClientRect();
-  const select = anchor.getBoundingClientRect();
-  return {
-    rect: {
-      left: rect.left,
-      right: rect.right,
-      top: rect.top,
-      bottom: rect.bottom,
-    },
-    band: bandOf(select),
-    anchorRight: select.right,
-    room: menuRoom(),
-    viewWidth: window.innerWidth,
-  };
-};
 
 interface ILookPickerWindowProps {
   anchor: HTMLElement | null;
@@ -115,31 +111,34 @@ export default function LookPickerWindow({
   ariaLabel,
   children,
 }: ILookPickerWindowProps) {
-  const { t } = useTranslation();
-  const [frame, setFrame] = useState<TMenuFrame>(readFrame);
+  const [frame, setFrame] = useState<IMenuFrame>(() => ({
+    ...readSize(),
+    nudge: 0,
+  }));
   const dragRef = useRef<IDrag | undefined>(undefined);
   /** What the drag last asked for, written to storage once it ends. */
   const sizedRef = useRef(frame);
 
-  const show = (next: TMenuFrame) => {
-    sizedRef.current = next;
-    setFrame(next);
-  };
-
   const begin = (grip: TGrip, event: ReactPointerEvent<HTMLElement>) => {
-    const start = startOf(event.currentTarget, anchor);
-    if (!start || event.button !== 0) {
+    const menu = event.currentTarget.closest<HTMLElement>(
+      '[data-anchored-menu]',
+    );
+    if (!menu || !anchor || event.button !== 0) {
       return;
     }
     // No text selected, and the caret left in the search.
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
+    const rect = menu.getBoundingClientRect();
+    const cap = Number.parseFloat(getComputedStyle(menu).maxHeight);
     dragRef.current = {
       grip,
       pointerId: event.pointerId,
       x: event.clientX,
       y: event.clientY,
-      start,
+      rect,
+      anchorRight: anchor.getBoundingClientRect().right,
+      room: Number.isFinite(cap) ? cap : rect.height,
     };
   };
 
@@ -160,17 +159,52 @@ export default function LookPickerWindow({
 
   const move = (event: ReactPointerEvent<HTMLElement>) => {
     const drag = heldBy(event);
-    if (drag) {
-      show(
-        resizeFrame(
-          frame,
-          drag.grip,
-          drag.start,
-          event.clientX - drag.x,
-          event.clientY - drag.y,
-        ),
+    if (!drag) {
+      return;
+    }
+    const { grip, rect, room } = drag;
+    const dx = event.clientX - drag.x;
+    const dy = event.clientY - drag.y;
+    let { left, right, top, bottom } = rect;
+    if (grip.includes('left')) {
+      left = clampEdge(
+        rect.left + dx,
+        Math.max(MENU_MARGIN, rect.right - MAX_WIDTH),
+        rect.right - MIN_WIDTH,
       );
     }
+    if (grip.includes('right')) {
+      right = clampEdge(
+        rect.right + dx,
+        rect.left + MIN_WIDTH,
+        Math.min(window.innerWidth - MENU_MARGIN, rect.left + MAX_WIDTH),
+      );
+    }
+    // Only the edge away from the trigger has a grip (`data-side`), and the
+    // window is held to the room on its side.
+    if (grip.includes('bottom')) {
+      bottom = clampEdge(
+        rect.bottom + dy,
+        rect.top + MIN_HEIGHT,
+        rect.top + Math.min(room, MAX_HEIGHT),
+      );
+    }
+    if (grip.includes('top')) {
+      top = clampEdge(
+        rect.top + dy,
+        rect.bottom - Math.min(room, MAX_HEIGHT),
+        rect.bottom - MIN_HEIGHT,
+      );
+    }
+    const horizontal = grip.includes('left') || grip.includes('right');
+    const vertical = grip.includes('top') || grip.includes('bottom');
+    const next: IMenuFrame = {
+      width: horizontal ? right - left : frame.width,
+      height: vertical ? bottom - top : frame.height,
+      nudge: horizontal ? right - drag.anchorRight : frame.nudge,
+    };
+    sizedRef.current = next;
+    setFrame(next);
   };
 
   const end = (event: ReactPointerEvent<HTMLElement>) => {
@@ -179,49 +213,16 @@ export default function LookPickerWindow({
     }
     dragRef.current = undefined;
     event.currentTarget.releasePointerCapture(event.pointerId);
-    writeFrame(sizedRef.current);
-  };
-
-  /**
-   * An arrow on a focused edge moves it a step, from where the window
-   * stands now, and is remembered at once: a step is a whole resize.
-   */
-  const step = (
-    edge: (typeof EDGES)[number],
-    event: ReactKeyboardEvent<HTMLElement>,
-  ) => {
-    const upright = edge === 'top' || edge === 'bottom';
-    const back = upright ? 'ArrowUp' : 'ArrowLeft';
-    const forth = upright ? 'ArrowDown' : 'ArrowRight';
-    if (event.key !== back && event.key !== forth) {
-      return;
-    }
-    const start = startOf(event.currentTarget, anchor);
-    if (!start) {
-      return;
-    }
-    // Held here: the picker's own walk would otherwise read the arrow too.
-    event.preventDefault();
-    event.stopPropagation();
-    const delta = event.key === forth ? KEY_STEP : -KEY_STEP;
-    const next = resizeFrame(
-      frame,
-      edge,
-      start,
-      upright ? 0 : delta,
-      upright ? delta : 0,
-      delta > 0 ? 'down' : 'up',
-    );
-    show(next);
-    writeFrame(next);
+    const { width, height } = sizedRef.current;
+    writeStored(SIZE_KEY, `${Math.round(width)}x${Math.round(height)}`);
   };
 
   const reset = () => {
-    forgetFrame();
-    show(DEFAULT_FRAME);
+    removeStored(SIZE_KEY);
+    const first = { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT, nudge: 0 };
+    sizedRef.current = first;
+    setFrame(first);
   };
-
-  const height = heightOf(frame);
 
   return (
     <AnchoredMenu
@@ -233,43 +234,14 @@ export default function LookPickerWindow({
       frame={frame}
     >
       {children}
-      {EDGES.map((edge) => {
-        const upright = edge === 'top' || edge === 'bottom';
-        const [value, low, high] = upright
-          ? [height, MIN_HEIGHT, MAX_HEIGHT]
-          : [frame.width, MIN_WIDTH, MAX_WIDTH];
-        return (
-          // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- a focusable separator is the ARIA window splitter, which the plugin counts as static
-          <span
-            key={edge}
-            className={`look-picker__grip look-picker__grip--${edge}`}
-            role="separator"
-            aria-label={t(EDGE_LABEL[edge])}
-            aria-orientation={upright ? 'horizontal' : 'vertical'}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(
-              (Math.min(high, Math.max(low, value)) - low) /
-                ((high - low) / 100),
-            )}
-            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- the window splitter pattern: a separator that moves takes the focus
-            tabIndex={0}
-            onKeyDown={(event) => step(edge, event)}
-            onPointerDown={(event) => begin(edge, event)}
-            onPointerMove={move}
-            onPointerUp={end}
-            onPointerCancel={end}
-            onDoubleClick={reset}
-          />
-        );
-      })}
-      {CORNERS.map((corner) => (
-        // Two edges at once: the keyboard has both already.
+      {GRIPS.map((grip) => (
+        // A pointer's affordance only: the window is as usable at any size,
+        // and the keyboard already walks everything inside it.
         <span
-          key={corner}
-          className={`look-picker__grip look-picker__grip--${corner}`}
+          key={grip}
+          className={`look-picker__grip look-picker__grip--${grip}`}
           aria-hidden="true"
-          onPointerDown={(event) => begin(corner, event)}
+          onPointerDown={(event) => begin(grip, event)}
           onPointerMove={move}
           onPointerUp={end}
           onPointerCancel={end}
