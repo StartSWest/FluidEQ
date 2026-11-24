@@ -5,7 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
 import type { TAudioEngine } from 'common/audioEngine';
 import type { IAudioDevice } from 'common/constants';
 import type { IOutputFormat } from 'main/outputFormat';
@@ -21,8 +20,9 @@ import { reportError, reportInfo } from '../utils/logger';
 import { useNoticeClaim } from '../utils/noticeTurn';
 import Button from '../widgets/Button';
 import CompactFrame from './CompactFrame';
-// The engine's spot under the titlebar, which this shares with the output
-// notice that renders it.
+import { DockedNotice } from './NoticeDock';
+// The engine notices' card, which this shares with the output notice that
+// renders it.
 import '../styles/DeviceProfiles.scss';
 
 interface IRoomOutputNoticeProps {
@@ -141,79 +141,85 @@ const RoomOutputNotice = ({
   };
   const isDone = phase === 'done' || phase === 'undoing';
 
-  return createPortal(
-    <CompactFrame
-      className="device-apo-notice room-output-notice"
-      // The speaker for the offer; the tick once the output is 7.1.
-      icon={<MenuIcon name={isDone ? 'check' : 'volume'} />}
-      title={t(isDone ? 'output.roomSevenOneTitle' : 'output.roomStereoTitle', {
-        device: device.name,
-      })}
-      titleId="room-output-notice-title"
-      // An offer over the page, not a dialog in front of it.
-      role="dialog"
-      aria-modal="false"
-      aria-describedby="room-output-notice-body"
-      onClose={() => setDismissedId(deviceId)}
-      closeLabel={t('app.dismiss')}
-      actions={
-        isDone ? (
-          <>
-            <Button
-              ariaLabel={t('output.undoSevenOne')}
-              isDisabled={phase === 'undoing'}
-              className="small subtle"
-              handleChange={() => {
-                undo().catch(() => undefined);
-              }}
-            >
-              {t('output.undoSevenOne')}
-            </Button>
-            <Button
-              ariaLabel={t('output.gotIt')}
-              isDisabled={false}
-              className="small"
-              handleChange={() => setDismissedId(deviceId)}
-            >
-              {t('output.gotIt')}
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button
-              ariaLabel={t('output.notNow')}
-              isDisabled={false}
-              className="small subtle"
-              handleChange={() => setDismissedId(deviceId)}
-            >
-              {t('output.notNow')}
-            </Button>
-            <Button
-              ariaLabel={t('output.setSevenOne')}
-              isDisabled={phase === 'setting'}
-              className={`small${phase === 'setting' ? ' is-running' : ''}`}
-              handleChange={() => {
-                press().catch(() => undefined);
-              }}
-            >
-              {t(
-                phase === 'setting'
-                  ? 'output.settingSevenOne'
-                  : 'output.setSevenOne',
-              )}
-            </Button>
-          </>
-        )
-      }
-    >
-      <p id="room-output-notice-body">
-        {t(isDone ? 'output.roomSevenOneBody' : 'output.roomStereoBody')}
-      </p>
-      {phase === 'failed' ? (
-        <p className="device-apo-notice__error">{t('output.sevenOneFailed')}</p>
-      ) : undefined}
-    </CompactFrame>,
-    document.body,
+  return (
+    <DockedNotice>
+      <CompactFrame
+        className="device-apo-notice room-output-notice"
+        // The speaker for the offer; the tick once the output is 7.1.
+        icon={<MenuIcon name={isDone ? 'check' : 'volume'} />}
+        title={t(
+          isDone ? 'output.roomSevenOneTitle' : 'output.roomStereoTitle',
+          {
+            device: device.name,
+          },
+        )}
+        titleId="room-output-notice-title"
+        // An offer over the page, not a dialog in front of it.
+        role="dialog"
+        aria-modal="false"
+        aria-describedby="room-output-notice-body"
+        onClose={() => setDismissedId(deviceId)}
+        closeLabel={t('app.dismiss')}
+        actions={
+          isDone ? (
+            <>
+              <Button
+                ariaLabel={t('output.undoSevenOne')}
+                isDisabled={phase === 'undoing'}
+                className="small subtle"
+                handleChange={() => {
+                  undo().catch(() => undefined);
+                }}
+              >
+                {t('output.undoSevenOne')}
+              </Button>
+              <Button
+                ariaLabel={t('output.gotIt')}
+                isDisabled={false}
+                className="small"
+                handleChange={() => setDismissedId(deviceId)}
+              >
+                {t('output.gotIt')}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                ariaLabel={t('output.notNow')}
+                isDisabled={false}
+                className="small subtle"
+                handleChange={() => setDismissedId(deviceId)}
+              >
+                {t('output.notNow')}
+              </Button>
+              <Button
+                ariaLabel={t('output.setSevenOne')}
+                isDisabled={phase === 'setting'}
+                className={`small${phase === 'setting' ? ' is-running' : ''}`}
+                handleChange={() => {
+                  press().catch(() => undefined);
+                }}
+              >
+                {t(
+                  phase === 'setting'
+                    ? 'output.settingSevenOne'
+                    : 'output.setSevenOne',
+                )}
+              </Button>
+            </>
+          )
+        }
+      >
+        <p id="room-output-notice-body">
+          {t(isDone ? 'output.roomSevenOneBody' : 'output.roomStereoBody')}
+        </p>
+        {phase === 'failed' ? (
+          <p className="device-apo-notice__error">
+            {t('output.sevenOneFailed')}
+          </p>
+        ) : undefined}
+      </CompactFrame>
+    </DockedNotice>
   );
 };
 

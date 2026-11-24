@@ -16,6 +16,7 @@ import { markSceneReviewSeen, useSceneReview } from '../plus/sceneReviewStore';
 import { useTranslation } from '../utils/I18nContext';
 import { useNoticeTurn } from '../utils/noticeTurn';
 import CompactFrame from './CompactFrame';
+import { DockedNotice } from './NoticeDock';
 import '../styles/SceneReviewNotice.scss';
 
 /** A scene let through, one sent back. */
@@ -141,33 +142,35 @@ export default function SceneReviewNotice() {
   }
 
   return (
-    <CompactFrame
-      className="scene-review-notice"
-      tone={notice.kind === 'rejected' ? 'warn' : 'accent'}
-      icon={<MenuIcon name={MARKS[notice.kind]} />}
-      title={title}
-      titleId="scene-review-notice-title"
-      role="dialog"
-      aria-modal="false"
-      style={edge}
-      onClose={putAway}
-      closeLabel={t('app.dismiss')}
-      actions={
-        <>
-          <button
-            type="button"
-            className="button small subtle"
-            onClick={putAway}
-          >
-            {quiet}
-          </button>
-          <button type="button" className="button small" onClick={action.run}>
-            {action.label}
-          </button>
-        </>
-      }
-    >
-      {body}
-    </CompactFrame>
+    <DockedNotice>
+      <CompactFrame
+        className="scene-review-notice"
+        tone={notice.kind === 'rejected' ? 'warn' : 'accent'}
+        icon={<MenuIcon name={MARKS[notice.kind]} />}
+        title={title}
+        titleId="scene-review-notice-title"
+        role="dialog"
+        aria-modal="false"
+        style={edge}
+        onClose={putAway}
+        closeLabel={t('app.dismiss')}
+        actions={
+          <>
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={putAway}
+            >
+              {quiet}
+            </button>
+            <button type="button" className="button small" onClick={action.run}>
+              {action.label}
+            </button>
+          </>
+        }
+      >
+        {body}
+      </CompactFrame>
+    </DockedNotice>
   );
 }

@@ -5,28 +5,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 @use 'color' as *;
-@use 'constant' as *;
 @use 'dialog' as dialog;
-@use 'motion' as *;
 @use 'theme' as *;
 
-// The same corner and layer as the Plus terms notice (`PlusTermsNotice.scss`,
-// which says why the corner and why the lowest layer), and the same
-// `CompactFrame`. It goes before the terms notice in that corner
-// (`noticeTurn.ts`): it is about the sound being heard.
+// The same `CompactFrame` as the Plus terms notice, in the notices' stack
+// (`NoticeDock.scss`). It goes before the terms notice (`noticeTurn.ts`): it
+// is about the sound being heard.
 //
-// Against the frame's own class as well, so the corner wins over the frame's
-// `position: relative` whichever of the two sheets the cascade reads last.
+// Against the frame's own class as well, so this wins over the frame's sheet
+// whichever of the two the cascade reads last.
 .compact-frame.profile-recovered-notice {
-  --surface-motion: slide-in-right #{$motion-base} #{$ease-out} 0ms backwards;
-  position: fixed;
-  z-index: 990;
-  top: calc($title-bar-height + 16px);
-  right: 18px;
-  width: min(420px, calc(100vw - 36px));
-  max-height: calc(
-    100vh - $title-bar-height - 16px - var(--now-playing-bar-height, 0px) - 12px
-  );
   grid-template-rows: minmax(0, 1fr);
   background: linear-gradient(dialog.$sheet, dialog.$sheet), $surface-base;
 

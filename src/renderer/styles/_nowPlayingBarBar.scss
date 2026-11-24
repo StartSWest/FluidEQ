@@ -26,9 +26,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // *** The now-playing bar ****************************************************
 //
 // Fixed to the foot of the window rather than a row inside `.app-workspace`'s
-// grid, the same way `.update-notice` floats over everything else — it has to
-// stay visible while any tab is showing, and every tab lives in a different
-// branch of that grid. `App.scss`'s `.has-now-playing` reserves the strip of
+// grid, the same way the notices' stack (`.notice-dock`, which stands on
+// this bar) floats over everything else — it has to stay visible while any
+// tab is showing, and every tab lives in a different branch of that grid. `App.scss`'s `.has-now-playing` reserves the strip of
 // window this occupies so it never sits over the last row of content instead
 // of beside it.
 

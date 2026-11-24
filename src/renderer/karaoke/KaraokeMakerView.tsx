@@ -33,6 +33,7 @@ import KaraokeMakerPreview from './KaraokeMakerPreview';
 import KaraokeMakerInspector from './KaraokeMakerInspector';
 import KaraokeMakerAnalysisPanels from './KaraokeMakerAnalysisPanels';
 import CompactFrame from '../components/CompactFrame';
+import { DockedNotice } from '../components/NoticeDock';
 import MenuIcon from '../icons/MenuIcon';
 import KaraokeMakerConfirmDialog from './KaraokeMakerConfirmDialog';
 import KaraokeMakerLyricsDialog from './KaraokeMakerLyricsDialog';
@@ -922,28 +923,29 @@ const KaraokeMakerView = ({
         </div>
       )}
       {restoreToast && (
-        // A corner notice, not a question: it passes clicks through to the
-        // tools under it and goes by itself, so it carries no ×.
-        <CompactFrame
-          key={restoreToast}
-          className="karaoke-maker__toast"
-          role="status"
-          aria-modal={undefined}
-          aria-live="polite"
-          icon={<MenuIcon name="check" />}
-          title={restoreToast}
-          titleId="karaoke-maker-toast-title"
-          onAnimationEnd={(event) => {
-            // The fade that is its lifetime, not the drift beside it (which
-            // reduced motion ends at once) nor anything inside it.
-            if (
-              event.target === event.currentTarget &&
-              event.animationName === 'karaoke-maker-toast'
-            ) {
-              dismissRestoreToast();
-            }
-          }}
-        />
+        // A notice in the window's stack, not a question: it passes clicks
+        // through to what is under it and goes by itself, so it carries no ×.
+        <DockedNotice key={restoreToast}>
+          <CompactFrame
+            className="karaoke-maker__toast"
+            role="status"
+            aria-modal={undefined}
+            aria-live="polite"
+            icon={<MenuIcon name="check" />}
+            title={restoreToast}
+            titleId="karaoke-maker-toast-title"
+            onAnimationEnd={(event) => {
+              // The linger that is its lifetime, not the rise beside it (which
+              // reduced motion ends at once) nor anything inside it.
+              if (
+                event.target === event.currentTarget &&
+                event.animationName === 'karaoke-maker-toast'
+              ) {
+                dismissRestoreToast();
+              }
+            }}
+          />
+        </DockedNotice>
       )}
 
       <KaraokeMakerConfirmDialog

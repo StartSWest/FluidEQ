@@ -17,6 +17,7 @@ import { useNoticeTurn } from '../utils/noticeTurn';
 import useModalKeys from '../utils/useModalKeys';
 import MenuIcon from '../icons/MenuIcon';
 import CompactFrame from './CompactFrame';
+import { DockedNotice } from './NoticeDock';
 import DialogFrame from './DialogFrame';
 import '../styles/AppNews.scss';
 import '../styles/WhatsNew.scss';
@@ -53,39 +54,41 @@ export function AppNewsNotice({ obscured = false }: { obscured?: boolean }) {
     return null;
   }
   return (
-    <CompactFrame
-      className="app-news-notice"
-      role="status"
-      aria-modal={undefined}
-      icon={<MenuIcon name="gift" />}
-      title={
-        <>
-          <span className="app-news-notice__label">
-            {t('announce.news.title')}
-          </span>
-          {item.title}
-        </>
-      }
-      titleId="app-news-notice-title"
-      onClose={() => {
-        putNewsAway(item.id).catch(() => undefined);
-      }}
-      closeLabel={t('app.dismiss')}
-      actions={
-        <button
-          type="button"
-          className="button small"
-          onClick={() => {
-            putNewsAway(item.id).catch(() => undefined);
-            openAppNews();
-          }}
-        >
-          {t('announce.news.read')}
-        </button>
-      }
-    >
-      <p className="app-news-notice__summary">{newsPreviewText(item.body)}</p>
-    </CompactFrame>
+    <DockedNotice>
+      <CompactFrame
+        className="app-news-notice"
+        role="status"
+        aria-modal={undefined}
+        icon={<MenuIcon name="gift" />}
+        title={
+          <>
+            <span className="app-news-notice__label">
+              {t('announce.news.title')}
+            </span>
+            {item.title}
+          </>
+        }
+        titleId="app-news-notice-title"
+        onClose={() => {
+          putNewsAway(item.id).catch(() => undefined);
+        }}
+        closeLabel={t('app.dismiss')}
+        actions={
+          <button
+            type="button"
+            className="button small"
+            onClick={() => {
+              putNewsAway(item.id).catch(() => undefined);
+              openAppNews();
+            }}
+          >
+            {t('announce.news.read')}
+          </button>
+        }
+      >
+        <p className="app-news-notice__summary">{newsPreviewText(item.body)}</p>
+      </CompactFrame>
+    </DockedNotice>
   );
 }
 

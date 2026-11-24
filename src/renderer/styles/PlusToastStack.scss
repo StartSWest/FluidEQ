@@ -8,51 +8,46 @@ it under the terms of the GNU General Public License version 3 or later.
 
 @use 'color' as *;
 @use 'motion' as *;
+@use 'spacing' as *;
 @use 'theme' as *;
 
-// What an action in the Plus tab said back (`PlusToastStack.tsx`).
-//
-// Hung from the right of whatever pinned bar holds it and never part of the
-// page's flow, so arriving and leaving move nothing under it. The stack itself
-// lets the pointer through; only the cards take it.
+// What an action in the Plus tab said back (`PlusToastStack.tsx`), in the
+// window's stack of notices at its bottom right (`NoticeDock.scss`), which
+// places it, lets the pointer through everywhere but the cards, and is never
+// part of the page's flow, so arriving and leaving move nothing in the page.
+// The toasts run their own way out, which the dock leaves to them.
 
 // How long something that went well stays up while nobody is on it. Read at a
 // glance: the longest of these sentences is about fifteen words.
 $toast-life: 7s;
 
 .plus-toasts {
-  position: absolute;
-  z-index: 4;
-  top: calc(100% + 6px);
-  right: 0;
   display: grid;
-  box-sizing: border-box;
-  width: min(440px, 100%);
-  // Clipped sideways, never up or down. A card slides in from 16px to the
-  // right of the bar and leaves 14px to the right of it; the bar sits 4px
-  // from the edge of the Studio's scroll area, so for the length of either
-  // animation the card poked past it and a horizontal scrollbar appeared
-  // under the whole page. Clipped at this box, the card slides in from the
-  // stack's own edge and nothing outside it is asked to scroll. The room on
-  // the left is for the card's shadow, which the clip would otherwise cut.
-  padding-left: 40px;
-  overflow-x: clip;
-  pointer-events: none;
+  min-width: 0;
 }
 
-// Carries the gap below each card, so a card leaving takes its gap with it and
-// the ones under it close up rather than jump.
+// Carries the gap above each card, the stack's own, so a card leaving takes
+// its gap with it and the ones above it close up rather than jump; and grows
+// from nothing as a card rises into it, so they glide up to make room.
 .plus-toast-slot {
   display: grid;
   grid-template-rows: 1fr;
-  padding-bottom: 8px;
+  padding-top: $spacing-s;
+  @include animate(plus-toast-open, $motion-base);
 }
 
-// A `CompactFrame` like every notice that arrives on its own, sliding in from
-// the side it hangs from. Against the frame's class as well, so these win
-// over the frame's own rules whichever sheet the cascade reads last.
+@keyframes plus-toast-open {
+  from {
+    grid-template-rows: 0fr;
+    padding-top: 0;
+  }
+}
+
+// A `CompactFrame` like every notice that arrives on its own, rising into the
+// stack as they all do. Against the frame's class as well, so these win over
+// the frame's own rules whichever sheet the cascade reads last.
 .compact-frame.plus-toast {
-  --surface-motion: slide-in-right #{$motion-base} #{$ease-out} 0ms backwards;
+  --surface-motion: rise-in #{$motion-base} #{$ease-out} 0ms backwards;
   // Lets the place close to nothing when the toast leaves.
   min-height: 0;
   pointer-events: auto;
@@ -118,9 +113,9 @@ $toast-life: 7s;
   }
 }
 
-// The way out: the card fades off to the right, then its place closes. The
-// place's own end is what removes it, so under reduced motion the card only
-// fades — something has to end for the toast to go.
+// The way out: the card sinks back toward the corner, then its place
+// closes. The place's own end is what removes it, so under reduced motion
+// the card only fades — something has to end for the toast to go.
 .plus-toast-slot.is-leaving {
   animation: plus-toast-collapse $motion-base $ease-out 90ms forwards;
 
@@ -133,14 +128,14 @@ $toast-life: 7s;
 @keyframes plus-toast-collapse {
   to {
     grid-template-rows: 0fr;
-    padding-bottom: 0;
+    padding-top: 0;
   }
 }
 
 @keyframes plus-toast-out {
   to {
     opacity: 0;
-    translate: 14px 0;
+    translate: 0 12px;
   }
 }
 

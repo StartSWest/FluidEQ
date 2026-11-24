@@ -12,6 +12,7 @@ import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import { useNoticeTurn } from '../utils/noticeTurn';
 import CompactFrame from './CompactFrame';
+import { DockedNotice } from './NoticeDock';
 import '../styles/ProfileRecoveredNotice.scss';
 
 const bridge = () => window.electron?.ipcRenderer;
@@ -76,34 +77,38 @@ const ProfileRecoveredNotice = () => {
   };
 
   return (
-    <CompactFrame
-      className="profile-recovered-notice"
-      role="status"
-      aria-modal={undefined}
-      icon={<MenuIcon name="eqBars" />}
-      title={t(
-        recovered.length === 1
-          ? 'notice.profileRecovered.title'
-          : 'notice.profileRecovered.titleMany',
-      )}
-      titleId="profile-recovered-notice-title"
-      onClose={putAway}
-      closeLabel={t('app.dismiss')}
-    >
-      <ul className="profile-recovered-notice__list">
-        {recovered.map(({ deviceName, missing, now, how }) => (
-          <li
-            key={`${deviceName}/${missing}`}
-            className="profile-recovered-notice__output"
-          >
-            <span className="profile-recovered-notice__name">{deviceName}</span>
-            <span className="profile-recovered-notice__what">
-              {t(SAYS[how], { missing: shown(missing), now: shown(now) })}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </CompactFrame>
+    <DockedNotice>
+      <CompactFrame
+        className="profile-recovered-notice"
+        role="status"
+        aria-modal={undefined}
+        icon={<MenuIcon name="eqBars" />}
+        title={t(
+          recovered.length === 1
+            ? 'notice.profileRecovered.title'
+            : 'notice.profileRecovered.titleMany',
+        )}
+        titleId="profile-recovered-notice-title"
+        onClose={putAway}
+        closeLabel={t('app.dismiss')}
+      >
+        <ul className="profile-recovered-notice__list">
+          {recovered.map(({ deviceName, missing, now, how }) => (
+            <li
+              key={`${deviceName}/${missing}`}
+              className="profile-recovered-notice__output"
+            >
+              <span className="profile-recovered-notice__name">
+                {deviceName}
+              </span>
+              <span className="profile-recovered-notice__what">
+                {t(SAYS[how], { missing: shown(missing), now: shown(now) })}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </CompactFrame>
+    </DockedNotice>
   );
 };
 

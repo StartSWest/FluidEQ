@@ -15,7 +15,7 @@ import {
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import CompactFrame from './CompactFrame';
-import '../styles/SpeechMemoryNotice.scss';
+import { DockedNotice } from './NoticeDock';
 
 /**
  * Asks whether the idle speech model may give its RAM back.
@@ -43,45 +43,49 @@ const SpeechMemoryNotice = () => {
     return null;
   }
 
+  // A notice over whatever page is open, not a gate: it blocks nothing.
+  // Its × is "Keep loaded" — the answer that changes nothing.
   return (
-    // A notice over whatever page is open, not a gate: it blocks nothing.
-    // Its × is "Keep loaded" — the answer that changes nothing.
-    <CompactFrame
-      className="speech-memory-notice"
-      role="dialog"
-      aria-modal="false"
-      aria-describedby="speech-memory-notice-body"
-      icon={<MenuIcon name="microphone" />}
-      title={t('karaoke.maker.memoryPromptTitle')}
-      titleId="speech-memory-notice-title"
-      closeLabel={t('support.close')}
-      onClose={keepKaraokeWhisperModelForNow}
-      actions={
-        <>
-          <button
-            type="button"
-            className="button small subtle"
-            onClick={keepKaraokeWhisperModelForNow}
-          >
-            {t('karaoke.maker.keepLoaded')}
-          </button>
-          {/* Loud, because it is the recommendation: the question is only
+    <DockedNotice>
+      <CompactFrame
+        className="speech-memory-notice"
+        role="dialog"
+        aria-modal="false"
+        aria-describedby="speech-memory-notice-body"
+        icon={<MenuIcon name="microphone" />}
+        title={t('karaoke.maker.memoryPromptTitle')}
+        titleId="speech-memory-notice-title"
+        closeLabel={t('support.close')}
+        onClose={keepKaraokeWhisperModelForNow}
+        actions={
+          <>
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={keepKaraokeWhisperModelForNow}
+            >
+              {t('karaoke.maker.keepLoaded')}
+            </button>
+            {/* Loud, because it is the recommendation: the question is only
               asked once the Maker, the one thing that runs the model, has
               closed. */}
-          <button
-            type="button"
-            className="button small"
-            onClick={() => releaseKaraokeWhisperModel().catch(() => undefined)}
-          >
-            {t('karaoke.maker.freeMemory')}
-          </button>
-        </>
-      }
-    >
-      <p id="speech-memory-notice-body">
-        {t('karaoke.maker.memoryPromptBody')}
-      </p>
-    </CompactFrame>
+            <button
+              type="button"
+              className="button small"
+              onClick={() =>
+                releaseKaraokeWhisperModel().catch(() => undefined)
+              }
+            >
+              {t('karaoke.maker.freeMemory')}
+            </button>
+          </>
+        }
+      >
+        <p id="speech-memory-notice-body">
+          {t('karaoke.maker.memoryPromptBody')}
+        </p>
+      </CompactFrame>
+    </DockedNotice>
   );
 };
 

@@ -234,8 +234,8 @@ const ShellDialogs = ({
           onDismiss={() => dialogs.setImportNotice('')}
         />
       )}
-      {/* Bottom left, opposite the failure notices, so two things arriving
-          at once do not land on top of each other. */}
+      {/* In the notices' stack with the rest (`NoticeDock`): two things
+          arriving at once stand one above the other. */}
       <UpdateNotice />
       {/* Here rather than in the Karaoke tab that owns the model: the idle
           timer that raises it runs for as long as the model is loaded, and

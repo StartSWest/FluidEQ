@@ -28,6 +28,7 @@ import { useTranslation } from '../utils/I18nContext';
 import isOwnAnimationEnd from '../utils/ownAnimationEnd';
 import { useNoticeTurn } from '../utils/noticeTurn';
 import CompactFrame from './CompactFrame';
+import { DockedNotice } from './NoticeDock';
 import '../styles/SongEqNotice.scss';
 
 /**
@@ -90,45 +91,47 @@ const SongEqNotice = () => {
       : t('songEq.noticeBody', { title, plays: entry.plays });
 
   return (
-    <CompactFrame
-      // Keyed on the match, so a second one while this is still up starts its
-      // linger over rather than inheriting what was left of the first.
-      key={notice.id}
-      className="song-eq-notice"
-      onAnimationEnd={(event) => {
-        if (isOwnAnimationEnd(event, 'song-eq-notice-linger')) {
-          endSongEqNotice(notice.id);
+    <DockedNotice>
+      <CompactFrame
+        // Keyed on the match, so a second one while this is still up starts its
+        // linger over rather than inheriting what was left of the first.
+        key={notice.id}
+        className="song-eq-notice"
+        onAnimationEnd={(event) => {
+          if (isOwnAnimationEnd(event, 'song-eq-notice-linger')) {
+            endSongEqNotice(notice.id);
+          }
+        }}
+        role="dialog"
+        aria-modal="false"
+        aria-describedby="song-eq-notice-body"
+        icon={<MenuIcon name="song" />}
+        title={t('songEq.noticeTitle')}
+        titleId="song-eq-notice-title"
+        closeLabel={t('support.close')}
+        onClose={() => endSongEqNotice(notice.id)}
+        actions={
+          <>
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={undoSongEqLoan}
+            >
+              {t('songEq.undo')}
+            </button>
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={forgetCurrentSongEq}
+            >
+              {t('songEq.forget')}
+            </button>
+          </>
         }
-      }}
-      role="dialog"
-      aria-modal="false"
-      aria-describedby="song-eq-notice-body"
-      icon={<MenuIcon name="song" />}
-      title={t('songEq.noticeTitle')}
-      titleId="song-eq-notice-title"
-      closeLabel={t('support.close')}
-      onClose={() => endSongEqNotice(notice.id)}
-      actions={
-        <>
-          <button
-            type="button"
-            className="button small subtle"
-            onClick={undoSongEqLoan}
-          >
-            {t('songEq.undo')}
-          </button>
-          <button
-            type="button"
-            className="button small subtle"
-            onClick={forgetCurrentSongEq}
-          >
-            {t('songEq.forget')}
-          </button>
-        </>
-      }
-    >
-      <p id="song-eq-notice-body">{body}</p>
-    </CompactFrame>
+      >
+        <p id="song-eq-notice-body">{body}</p>
+      </CompactFrame>
+    </DockedNotice>
   );
 };
 

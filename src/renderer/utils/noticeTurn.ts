@@ -21,25 +21,27 @@ import { useLayoutEffect, useReducer, useSyncExternalStore } from 'react';
  * rules, so a notice that is itself waiting still holds back the ones below
  * it, exactly as a `display: none` element still matched their `:has()`.
  *
- * The order is the one the stylesheets encoded, unchanged:
+ * The order is the one the stylesheets encoded, unchanged. Every notice is
+ * drawn in one stack at the window's bottom right (`NoticeDock`), where two
+ * no longer land on top of each other; the order still decides which say
+ * something at once, because a pile of cards arriving together reads as a
+ * malfunction and a prompt with a deadline comes before news:
  *
- * - **The engine's spot**, centred under the titlebar, holds one card at a
- *   time. The output notice and the Room's 7.1 offer come first; the engine
- *   trouble notice waits for both; the engine update notice waits for all
- *   three. (The output notice over the Room's offer is the output panel's
- *   own decision, made where both are rendered.)
- * - **The corner** holds one card at a time, and gives way to everything
- *   that opens in the strip under the titlebar and reaches it below about
- *   1500px of width: anything modal, any card in the engine's spot, the
- *   restart and capture notices, the missing-engine banner, the two song
- *   toasts that share the corner (the Smart EQ one before the song's own
- *   sound, one card at a time), and full screen, which takes away the
- *   titlebar the corner is placed under. Then the outputs whose lost profile
+ * - **The engine's notices** show one card at a time. The output notice and
+ *   the Room's 7.1 offer come first; the engine trouble notice waits for
+ *   both; the engine update notice waits for all three. (The output notice
+ *   over the Room's offer is the output panel's own decision, made where
+ *   both are rendered.)
+ * - **The news** shows one card at a time, and gives way to every prompt:
+ *   anything modal, any of the engine's cards, the restart and capture
+ *   notices, the missing-engine banner, the two song toasts (the Smart EQ
+ *   one before the song's own sound, one card at a time), and full screen,
+ *   which keeps the picture clear. Then the outputs whose lost profile
  *   the launch replaced, then the Plus terms notice, then news of a scene
  *   reviewed, then an add-on's own corner notices in the add-on's order
  *   (`renderer/addons.ts`), then new scenes announced.
  *
- * - **Auto EQ's panel**, open, holds every notice back, in both places:
+ * - **Auto EQ's panel**, open, holds every notice back, engine and news:
  *   it opens above its button when the page has no room below, up to the
  *   titlebar, and a card arriving while it is open covered its top — the
  *   song's own notice over its Forget (2026-11-20). A notice waits, never

@@ -13,6 +13,7 @@ import { useTranslation } from '../utils/I18nContext';
 import isOwnAnimationEnd from '../utils/ownAnimationEnd';
 import { useNoticeTurn } from '../utils/noticeTurn';
 import CompactFrame from './CompactFrame';
+import { DockedNotice } from './NoticeDock';
 import songSoundPresetName from './songSoundPresetName';
 import '../styles/SongEqNotice.scss';
 
@@ -79,27 +80,29 @@ const SongSoundNotice = () => {
   );
 
   return (
-    <CompactFrame
-      // Keyed on the match, so a second one while this is up starts its
-      // linger over rather than inheriting what was left of the first.
-      key={notice.id}
-      className="song-eq-notice"
-      onAnimationEnd={(event) => {
-        if (isOwnAnimationEnd(event, 'song-eq-notice-linger')) {
-          endSongSoundNotice(notice.id);
-        }
-      }}
-      role="dialog"
-      aria-modal="false"
-      aria-describedby="song-sound-notice-body"
-      icon={<MenuIcon name="song" />}
-      title={heading}
-      titleId="song-sound-notice-title"
-      closeLabel={t('support.close')}
-      onClose={() => endSongSoundNotice(notice.id)}
-    >
-      <p id="song-sound-notice-body">{body}</p>
-    </CompactFrame>
+    <DockedNotice>
+      <CompactFrame
+        // Keyed on the match, so a second one while this is up starts its
+        // linger over rather than inheriting what was left of the first.
+        key={notice.id}
+        className="song-eq-notice"
+        onAnimationEnd={(event) => {
+          if (isOwnAnimationEnd(event, 'song-eq-notice-linger')) {
+            endSongSoundNotice(notice.id);
+          }
+        }}
+        role="dialog"
+        aria-modal="false"
+        aria-describedby="song-sound-notice-body"
+        icon={<MenuIcon name="song" />}
+        title={heading}
+        titleId="song-sound-notice-title"
+        closeLabel={t('support.close')}
+        onClose={() => endSongSoundNotice(notice.id)}
+      >
+        <p id="song-sound-notice-body">{body}</p>
+      </CompactFrame>
+    </DockedNotice>
   );
 };
 

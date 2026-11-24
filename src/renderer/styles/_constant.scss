@@ -132,6 +132,10 @@ $sound-pane-rail: 36px;
 $sound-pane-fold: 32px;
 $sound-pane-fold-inset: 5px;
 
+// The sound panel's foot, the row fluideq.com stands in. Read twice: by the
+// foot, and by the notices' stack (`NoticeDock.scss`), which stands on it.
+$sound-pane-foot: 54px;
+
 // The tab each drawer is pulled out by, and the lane the centre column keeps
 // clear for it while it shows (`App.scss`). On the open floor the page runs to
 // the window's edge, and a tab standing on it covered the graph's level labels

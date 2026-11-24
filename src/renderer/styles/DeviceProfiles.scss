@@ -7,7 +7,6 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
-@use 'constant' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
@@ -151,24 +150,15 @@ it under the terms of the GNU General Public License version 3 or later.
   @include badge($red, $red);
 }
 
-// The engine's spot: one notice at a time, centred under the titlebar — this
-// output is not enabled, the Room's 7.1 offer, the engine failing, a new
-// engine to install — each a `CompactFrame` floating over the page it does
-// not block. Which one holds the spot is decided in React (`noticeTurn.ts`).
+// The engine's notices, one at a time — this output is not enabled, the
+// Room's 7.1 offer, the engine failing, a new engine to install — each a
+// `CompactFrame` in the notices' stack (`NoticeDock.scss`), over the page it
+// does not block. Which one is up is decided in React (`noticeTurn.ts`).
 //
-// Against the frame's own class as well, so the spot wins over the frame's
-// `position: relative` whichever of the two sheets the cascade reads last.
+// A long translation at the 200% interface scrolls inside the card, which
+// the stack holds under the titlebar, rather than running out of it.
 .compact-frame.device-apo-notice {
-  position: fixed;
-  z-index: 1250;
-  top: calc($title-bar-height + 16px);
-  left: 50%;
-  width: min(560px, calc(100vw - 32px));
-  // A long translation at the 200% interface scrolls inside the card rather
-  // than running past the window's foot.
-  max-height: calc(100vh - $title-bar-height - 32px);
   overflow-y: auto;
-  transform: translateX(-50%);
 }
 
 // Why the last press did not take. Under the message rather than beside the

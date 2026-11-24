@@ -1,5 +1,6 @@
 import { useId, useState, type AnimationEvent } from 'react';
 import CompactFrame from '../components/CompactFrame';
+import { intoNoticeDock, useNoticeDock } from '../components/NoticeDock';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import {
@@ -38,8 +39,9 @@ const own = (event: AnimationEvent<HTMLElement>) =>
  * Those notices used to be a line at the head of the page, and the buttons
  * that raise them sit well down it — Add to looks at the foot of the Studio's
  * column — so the answer landed above the fold, where nobody pressing the
- * button was looking. The stack is absolutely placed, and its parent is what
- * keeps it in view: somewhere pinned while the page scrolls under it.
+ * button was looking. The toasts are drawn in the window's stack of notices
+ * at its bottom right (`NoticeDock`), in view however far the page scrolls,
+ * and the stack keeps its own way out, which the dock leaves to it.
  *
  * Each toast is a `CompactFrame`, the card every notice that arrives on its
  * own is drawn on, with what the action said as its one line.
@@ -70,10 +72,14 @@ export default function PlusToastStack<T extends IPlusToastNotice>({
     setState((current) => reconcileToasts(current, seen, sources));
   }
 
+  // In the window's one stack of notices, at its bottom right, wherever the
+  // action that said this was pressed (`NoticeDock`).
+  const dock = useNoticeDock();
+
   const dismiss = (id: number) =>
     setState((current) => dismissToast(current, id));
 
-  return (
+  return intoNoticeDock(
     <div className="plus-toasts" aria-live="polite">
       {state.toasts.map((toast) => {
         const offered = action?.(toast.notice);
@@ -139,6 +145,7 @@ export default function PlusToastStack<T extends IPlusToastNotice>({
           </div>
         );
       })}
-    </div>
+    </div>,
+    dock,
   );
 }

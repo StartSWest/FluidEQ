@@ -5,7 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { createPortal } from 'react-dom';
 import { isEngineProblem, type TEngineProblem } from 'common/engineHealth';
 import type { TranslationKey } from 'common/i18n/en';
 import type { TEngineTrouble } from '../audio/engineTrouble';
@@ -14,6 +13,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { useNoticeTurn } from '../utils/noticeTurn';
 import Button from '../widgets/Button';
 import CompactFrame from './CompactFrame';
+import { DockedNotice } from './NoticeDock';
 // The output notice's spot, which this shares: it is the same message — this
 // output is not being processed — for a different reason.
 import '../styles/DeviceProfiles.scss';
@@ -286,54 +286,55 @@ const EngineTroubleNotice = ({
     );
   }
 
-  return createPortal(
-    <CompactFrame
-      className="device-apo-notice engine-trouble-notice"
-      tone="warn"
-      icon={<MenuIcon name="alert" />}
-      title={t(titleKey, { device: trouble.device.name })}
-      titleId="engine-trouble-notice-title"
-      // A notice over the page, not a dialog in front of it: nothing here has
-      // to be answered before the window is usable again.
-      role="dialog"
-      aria-modal="false"
-      aria-describedby={
-        newEngineHelps
-          ? 'engine-trouble-notice-body engine-trouble-notice-repair'
-          : 'engine-trouble-notice-body'
-      }
-      onClose={dismiss}
-      closeLabel={t('app.dismiss')}
-      actions={actions}
-    >
-      {isOff ? (
-        <p id="engine-trouble-notice-body">
-          {bypassed && t('engineHealth.bypassedBody')}
-          {!bypassed &&
-            neverRan &&
-            t('engineHealth.neverRanBody', { device: trouble.device.name })}
-          {!bypassed && !neverRan && t('engineHealth.offBody')}
-        </p>
-      ) : (
-        <ul
-          id="engine-trouble-notice-body"
-          className="engine-trouble-notice__problems"
-        >
-          {problemLines(trouble.problems).map((line) => (
-            <li key={line}>{t(line)}</li>
-          ))}
-        </ul>
-      )}
-      {/* Sits under the list rather than in it: the list is what is off,
+  return (
+    <DockedNotice>
+      <CompactFrame
+        className="device-apo-notice engine-trouble-notice"
+        tone="warn"
+        icon={<MenuIcon name="alert" />}
+        title={t(titleKey, { device: trouble.device.name })}
+        titleId="engine-trouble-notice-title"
+        // A notice over the page, not a dialog in front of it: nothing here has
+        // to be answered before the window is usable again.
+        role="dialog"
+        aria-modal="false"
+        aria-describedby={
+          newEngineHelps
+            ? 'engine-trouble-notice-body engine-trouble-notice-repair'
+            : 'engine-trouble-notice-body'
+        }
+        onClose={dismiss}
+        closeLabel={t('app.dismiss')}
+        actions={actions}
+      >
+        {isOff ? (
+          <p id="engine-trouble-notice-body">
+            {bypassed && t('engineHealth.bypassedBody')}
+            {!bypassed &&
+              neverRan &&
+              t('engineHealth.neverRanBody', { device: trouble.device.name })}
+            {!bypassed && !neverRan && t('engineHealth.offBody')}
+          </p>
+        ) : (
+          <ul
+            id="engine-trouble-notice-body"
+            className="engine-trouble-notice__problems"
+          >
+            {problemLines(trouble.problems).map((line) => (
+              <li key={line}>{t(line)}</li>
+            ))}
+          </ul>
+        )}
+        {/* Sits under the list rather than in it: the list is what is off,
           this is what mends it. */}
-      {newEngineHelps && (
-        <p id="engine-trouble-notice-repair">
-          {engineIsOld ? `${t('engineHealth.engineIsOld')} ` : ''}
-          {t('engineHealth.rackNeedsEngine')}
-        </p>
-      )}
-    </CompactFrame>,
-    document.body,
+        {newEngineHelps && (
+          <p id="engine-trouble-notice-repair">
+            {engineIsOld ? `${t('engineHealth.engineIsOld')} ` : ''}
+            {t('engineHealth.rackNeedsEngine')}
+          </p>
+        )}
+      </CompactFrame>
+    </DockedNotice>
   );
 };
 

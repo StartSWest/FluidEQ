@@ -190,7 +190,6 @@ import './LibraryPlaceBar.scss';
 import './LibrarySections.scss';
 import './Karaoke.scss';
 import './LookDesigner.scss';
-import './SceneUpdateNotice.scss';
 import './GraphSceneRemove.scss';
 import './LookPicker.scss';
 import './GraphTheme.scss';
@@ -227,8 +226,6 @@ import './LabelledKnob.scss';
 import './DspRoom.scss';
 import './LanguagePicker.scss';
 import './ActionsMenu.scss';
-import './UpdateNotice.scss';
-import './SpeechMemoryNotice.scss';
 import './SongEqNotice.scss';
 import './PlusTermsNotice.scss';
 import './SceneReviewNotice.scss';
@@ -262,6 +259,9 @@ import './ScenePointerLayer.scss';
 import './SceneColumn.scss';
 import './EngineTroubleNotice.scss';
 import './EngineUpdateNotice.scss';
+// The stack every notice above is drawn in, after the sheets of the notices
+// it places.
+import './NoticeDock.scss';
 import './AudioEngineDialog.scss';
 import './EngineKeyDialog.scss';
 // Every dialog's frame and the small frame for questions and notices, after

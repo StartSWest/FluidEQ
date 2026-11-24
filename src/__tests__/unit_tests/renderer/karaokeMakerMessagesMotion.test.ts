@@ -60,18 +60,24 @@ describe("the Maker's messages under reduced motion", () => {
     );
   });
 
-  it("keeps the toast's fade and cuts only its drift", () => {
+  it("keeps the toast's linger and cuts only its rise into the notices' stack", () => {
+    // The whole shorthand, so the stand-down's 1 ms reaches neither half: the
+    // rise is gone and the linger keeps its length.
     expect(
-      reducedRule('.karaoke-maker__toast')?.declarations.get(
-        'animation-duration',
-      ),
-    ).toBe('2.6s, 1ms !important');
+      reducedRule('.karaoke-maker__toast')?.declarations.get('animation'),
+    ).toBe('karaoke-maker-toast 2.6s linear !important');
+    // A hold: it changes nothing that can be seen, only how long it stays.
     expect(animatedProperties('karaoke-maker-toast')).toEqual(
-      new Set(['opacity']),
+      new Set(['visibility']),
     );
-    // The control: the motion is all in the other one.
-    expect(animatedProperties('karaoke-maker-toast-drift')).toEqual(
-      new Set(['transform']),
+    // The control: everywhere else the toast rises in first, then lingers.
+    const toast = styleRules(css).find(
+      ({ selectors, within }) =>
+        within.length === 0 &&
+        selectors.includes('.compact-frame.karaoke-maker__toast'),
+    );
+    expect(toast?.declarations.get('animation')).toMatch(
+      /^rise-in .*, karaoke-maker-toast 2\.6s linear$/,
     );
   });
 });

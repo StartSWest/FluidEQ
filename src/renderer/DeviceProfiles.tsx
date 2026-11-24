@@ -14,7 +14,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { createPortal } from 'react-dom';
 import {
   AUTOMATIC_PRESET_PREFIX,
   IAudioDevice,
@@ -27,6 +26,7 @@ import Dropdown from './widgets/Dropdown';
 import Button from './widgets/Button';
 import SidebarSection from './components/SidebarSection';
 import CompactFrame from './components/CompactFrame';
+import { DockedNotice } from './components/NoticeDock';
 import RoomOutputNotice from './components/RoomOutputNotice';
 import MenuIcon from './icons/MenuIcon';
 import { IOptionEntry } from './widgets/List';
@@ -436,9 +436,8 @@ const DeviceProfiles = ({
     >
       {children}
       <p className="device-profiles__hint">{t('output.hint')}</p>
-      {showEngineNotice &&
-        selectedDevice &&
-        createPortal(
+      {showEngineNotice && selectedDevice && (
+        <DockedNotice>
           <CompactFrame
             className="device-apo-notice"
             tone="warn"
@@ -541,9 +540,9 @@ const DeviceProfiles = ({
                 )}
               </p>
             )}
-          </CompactFrame>,
-          document.body,
-        )}
+          </CompactFrame>
+        </DockedNotice>
+      )}
       {/* The Room's one press to 7.1, on the output being played through,
           when the engine reports the room folding a stereo stream there. It
           steps aside for the engine notice above: an output the engine is

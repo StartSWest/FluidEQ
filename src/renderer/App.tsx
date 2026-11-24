@@ -144,6 +144,7 @@ import SoundPanel from './shell/SoundPanel';
 import WorkspacePages, { EqGroupPills } from './shell/WorkspacePages';
 import WorkspacePlayers from './shell/WorkspacePlayers';
 import ShellDialogs from './shell/ShellDialogs';
+import { NoticeDock, NoticeDockProvider } from './components/NoticeDock';
 import {
   CaptureFailedNotice,
   RestartRecommendedNotice,
@@ -966,6 +967,9 @@ const AppContent = () => {
         {/* The on/off key: here, outside every page and the amp, because it
             is pressed while FluidEQ is behind a game. Renders nothing. */}
         <EngineKeySwitch />
+        {/* The notices' stack, bottom right, standing on the sound panel's
+            foot while that is on screen so fluideq.com stays in view. */}
+        <NoticeDock isAboveSoundFoot={isSoundPaneShown} />
         {/* Drawn at the foot of the document, over the app it puts away. */}
         {windowMode === 'player' && (
           <MiniPlayer onOpenPage={openPageFromPlayer} />
@@ -1024,7 +1028,11 @@ export default function App() {
                 places with state (`activeWorkspaceTab`). A MemoryRouter with
                 a single route stood here, and its package shipped in the
                 window's script for it. */}
-            <AppContent />
+            {/* Every notice that arrives on its own is drawn in one stack,
+                whichever part of the window raises it (`NoticeDock`). */}
+            <NoticeDockProvider>
+              <AppContent />
+            </NoticeDockProvider>
           </RemoteAudioProvider>
         </LiveAudioProvider>
       </FluidEqProvider>

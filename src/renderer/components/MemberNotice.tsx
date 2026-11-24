@@ -13,6 +13,7 @@ import { dismissMemberNotices, useSceneStore } from '../plus/sceneStore';
 import { useTranslation } from '../utils/I18nContext';
 import { useNoticeTurn } from '../utils/noticeTurn';
 import CompactFrame from './CompactFrame';
+import { DockedNotice } from './NoticeDock';
 import '../styles/MemberNotice.scss';
 
 const MARKS: Record<IMemberNotice['kind'], MenuIconName> = {
@@ -112,23 +113,25 @@ export default function MemberNotice() {
   const { title, body } = wordsOf(notice, t, locale);
 
   return (
-    <CompactFrame
-      className="member-notice"
-      tone={notice.kind === 'scene-taken-down' ? 'warn' : 'accent'}
-      icon={<MenuIcon name={MARKS[notice.kind]} />}
-      title={title}
-      titleId="member-notice-title"
-      role="dialog"
-      aria-modal="false"
-      onClose={putAway}
-      closeLabel={t('app.dismiss')}
-      actions={
-        <button type="button" className="button small" onClick={putAway}>
-          {t('review.notice.gotIt')}
-        </button>
-      }
-    >
-      {body}
-    </CompactFrame>
+    <DockedNotice>
+      <CompactFrame
+        className="member-notice"
+        tone={notice.kind === 'scene-taken-down' ? 'warn' : 'accent'}
+        icon={<MenuIcon name={MARKS[notice.kind]} />}
+        title={title}
+        titleId="member-notice-title"
+        role="dialog"
+        aria-modal="false"
+        onClose={putAway}
+        closeLabel={t('app.dismiss')}
+        actions={
+          <button type="button" className="button small" onClick={putAway}>
+            {t('review.notice.gotIt')}
+          </button>
+        }
+      >
+        {body}
+      </CompactFrame>
+    </DockedNotice>
   );
 }

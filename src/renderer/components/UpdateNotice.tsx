@@ -21,7 +21,7 @@ import { APP_UPDATE_EVENT, IAppUpdateStatus } from 'common/constants';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import CompactFrame from './CompactFrame';
-import '../styles/UpdateNotice.scss';
+import { DockedNotice } from './NoticeDock';
 
 /**
  * Says a new FluidEQ is on the way, and then that it is ready.
@@ -94,40 +94,42 @@ const UpdateNotice = () => {
   }
 
   return (
-    <CompactFrame
-      className="update-notice"
-      icon={<MenuIcon name="download" />}
-      title={t('update.title')}
-      titleId="update-notice-title"
-      // A live region rather than a dialog: the download's progress is read
-      // out as it moves, and nothing here asks for an answer until it is
-      // ready.
-      role="status"
-      aria-modal={undefined}
-      onClose={() => setIsDismissed(true)}
-      closeLabel={t('app.dismiss')}
-      actions={
-        // The one action, and it is loud on purpose: it is the whole reason
-        // the notice is on screen, and it costs the user their session.
-        isReady && (
-          <button
-            type="button"
-            className="button small"
-            disabled={isInstalling}
-            onClick={() => {
-              setIsInstalling(true);
-              window.electron.ipcRenderer
-                .installUpdate()
-                .catch(() => setIsInstalling(false));
-            }}
-          >
-            {isInstalling ? t('update.restarting') : t('update.restart')}
-          </button>
-        )
-      }
-    >
-      <p>{message}</p>
-    </CompactFrame>
+    <DockedNotice>
+      <CompactFrame
+        className="update-notice"
+        icon={<MenuIcon name="download" />}
+        title={t('update.title')}
+        titleId="update-notice-title"
+        // A live region rather than a dialog: the download's progress is read
+        // out as it moves, and nothing here asks for an answer until it is
+        // ready.
+        role="status"
+        aria-modal={undefined}
+        onClose={() => setIsDismissed(true)}
+        closeLabel={t('app.dismiss')}
+        actions={
+          // The one action, and it is loud on purpose: it is the whole reason
+          // the notice is on screen, and it costs the user their session.
+          isReady && (
+            <button
+              type="button"
+              className="button small"
+              disabled={isInstalling}
+              onClick={() => {
+                setIsInstalling(true);
+                window.electron.ipcRenderer
+                  .installUpdate()
+                  .catch(() => setIsInstalling(false));
+              }}
+            >
+              {isInstalling ? t('update.restarting') : t('update.restart')}
+            </button>
+          )
+        }
+      >
+        <p>{message}</p>
+      </CompactFrame>
+    </DockedNotice>
   );
 };
 

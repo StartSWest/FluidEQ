@@ -5,85 +5,31 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 @use 'color' as *;
-@use 'constant' as *;
 @use 'motion' as *;
 @use 'theme' as *;
 
-// Below the titlebar, top-right — deliberately not `speech-memory-notice`'s
-// corner.
-//
-// That notice and this one share nothing but the same visual language: both
-// used to sit at `bottom: 18px`, one `left` and one `right` of it, which
-// looks like two corners until you notice they differ only by z-index. A
-// fixed corner does not stack two boxes at the same coordinates — it only
-// decides which one is drawn on top, and the one covered here would have been
-// `speech-memory-notice`'s own Keep / Free-memory buttons: unlike this
-// notice's own actions, that one is an unanswered question sitting behind a
-// toast the user has no reason to think is hiding anything.
-//
-// So this moves instead of racing for the same pixels. Every other region is
-// already spoken for:
-//   - the now-playing bar is fixed to the foot of the window, full width
-//     (`NowPlayingBar.scss`) — anything anchored to `bottom` shares its strip,
-//     and its height is published as `--now-playing-bar-height` for exactly
-//     that reason. This notice does not need it: it never goes near `bottom`.
-//   - `update-notice` (bottom-left) and `speech-memory-notice` /
-//     `workspace-notice` (bottom-right — `App.scss`'s `.workspace-notice`
-//     already shares that corner with it) account for both bottom corners;
-//   - the titlebar (`window-titlebar`, `top: 0`, height `$title-bar-height`)
-//     is a drag region carrying the brand mark on its left and the window
-//     controls on its right.
-// `top: calc($title-bar-height + 16px)` is not a new idiom here —
-// `Modal.scss`, `GraphTheme.scss` and this app's own `.audio-restart-notice`
-// (`App.scss`) already anchor overlays there for the same reason: the first
-// row clear of the titlebar. Right rather than centred, which is
-// `.audio-restart-notice`'s own spot — but that only keeps the two apart when
-// the window is wide. `.audio-restart-notice` is `min(760px, 100vw - 40px)`
-// wide and centred; below roughly 1050px of window width it reaches far
-// enough right to overlap this notice's box regardless of which side either
-// one favours, and at this app's own enforced floor (`WINDOW_MIN_WIDTH`,
-// 720px) the overlap covers nearly this notice's entire width. No position
-// avoids that at this app's minimum size — only the z-index below decides who
-// is readable when it happens.
+// In the notices' stack at the bottom right (`NoticeDock.scss`), beside
+// whatever else is up rather than over it. It used to stand top right under
+// the titlebar, and a page of argument about which notice it would cover and
+// which would cover it went with it: a fixed corner does not stack two boxes,
+// it only decides which one is drawn on top. The stack does.
 //
 // How long it stays up: the linger below, whose end takes it down.
 $song-eq-notice-linger: 6s;
 
-// On the small frame (`CompactFrame`), which draws it; this places it and
-// times it. Against the frame's class as well, so its own animation — the
-// linger that ends it — wins over the frame's arrival whichever sheet the
-// cascade reads last.
+// On the small frame (`CompactFrame`), which draws it; this times it.
+// Against the frame's class as well, so its own animation — the linger that
+// ends it — wins over the frame's arrival whichever sheet the cascade reads
+// last.
 .compact-frame.song-eq-notice {
-  // The entrance, then the linger — and the linger's end is what takes the
-  // notice away (`endSongEqNotice`), where a six-second timer beside it used
-  // to. Written out rather than through `animate`, which sets the whole
+  // The stack's rise, then the linger — and the linger's end is what takes
+  // the notice away (`endSongEqNotice`), where a six-second timer beside it
+  // used to. Written out rather than through `animate`, which sets the whole
   // property and would drop the second, and which stands itself down under
-  // reduced motion, where the entrance may go but the linger may not.
+  // reduced motion, where the rise may go but the linger may not.
   animation:
-    slide-in-right $motion-base $ease-out backwards,
+    rise-in $motion-base $ease-out backwards,
     song-eq-notice-linger $song-eq-notice-linger linear;
-  position: fixed;
-  // This notice deliberately loses every stacking contest. It is the only one
-  // of the app's notices that asks nothing of the user — it is informational,
-  // it fades on its own, and its two actions are optional by design, since
-  // doing nothing is the recommendation the fade expresses. Everything else
-  // sharing this strip under the titlebar is a prompt: `.audio-restart-notice`
-  // (App.scss) carries Restart Now / Try Again / Dismiss, `.prereq-notice`
-  // (Modal.scss) carries its own install/retry actions, and
-  // `.karaoke-microphone-popover` (Karaoke.scss) is a device picker the user
-  // opened on purpose — all three sit at `z-index: 1200`. A passive toast
-  // must never cover a prompt's buttons, so when they collide this one goes
-  // underneath: below that whole 1200 tier (which also puts it below
-  // `update-notice`, `workspace-notice` and `speech-memory-notice`, all
-  // higher still), but above the ordinary UI it would otherwise be lost
-  // beneath — the now-playing bar (`NowPlayingBar.scss`, 1100), a fullscreen
-  // video (`.library-video-stage.is-fullscreen`, `NowPlayingBar.scss`, 1150),
-  // and every plain dropdown menu in the app (`.dropdown-menu-layer
-  // .list-wrapper`, `Dropdown.scss`, 1001).
-  z-index: 1190;
-  top: calc($title-bar-height + 16px);
-  right: 18px;
-  width: min(420px, calc(100vw - 36px));
 }
 
 // The linger holds `visibility`, which the notice already has, and nothing
@@ -97,7 +43,7 @@ $song-eq-notice-linger: 6s;
   }
 }
 
-// Reduced motion takes the entrance and keeps the linger, which is not a
+// Reduced motion takes the rise and keeps the linger, which is not a
 // movement and has to end for the notice to go. Against the stand-down's 1ms
 // (`App.scss`) that needs a class more than its `*` and `!important` to meet
 // its own; the media query is the launch switch's half of the same setting.

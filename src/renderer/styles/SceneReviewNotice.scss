@@ -5,29 +5,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 @use 'color' as *;
-@use 'constant' as *;
-@use 'motion' as *;
 @use 'theme' as *;
 
-// The same corner and layer as the Plus terms notice (`PlusTermsNotice.scss`,
-// which says why the corner and why the lowest layer), and the same
-// `CompactFrame`: one visual language for "something to know about Plus". The
-// two never stand in the corner together — the terms notice is about the
+// The same `CompactFrame` as the Plus terms notice, in the notices' stack
+// (`NoticeDock.scss`): one visual language for "something to know about
+// Plus". The two never stand there together — the terms notice is about the
 // account's agreement and goes first; this one steps aside for it and comes
 // back when it is put away (`noticeTurn.ts`).
 //
-// Against the frame's own class as well, so the corner wins over the frame's
-// `position: relative` whichever of the two sheets the cascade reads last.
+// Against the frame's own class as well, so this wins over the frame's sheet
+// whichever of the two the cascade reads last.
 .compact-frame.scene-review-notice {
-  --surface-motion: slide-in-right #{$motion-base} #{$ease-out} 0ms backwards;
-  position: fixed;
-  z-index: 990;
-  top: calc($title-bar-height + 16px);
-  right: 18px;
-  width: min(400px, calc(100vw - 36px));
-  max-height: calc(
-    100vh - $title-bar-height - 16px - var(--now-playing-bar-height, 0px) - 12px
-  );
   grid-template-rows: minmax(0, 1fr);
 
   // What makes it this notice rather than the terms one is the edge: the

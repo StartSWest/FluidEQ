@@ -1,0 +1,124 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+
+// The one place a notice that arrives on its own is drawn (`NoticeDock.tsx`):
+// the window's bottom right corner, standing on the sound panel's foot where
+// fluideq.com is, the newest nearest the corner and the older ones above it
+// (Ivan, 2026-11-24). Every notice used to place itself — top right under the
+// titlebar, centred under it for the engine's cards, a bottom corner for the
+// rest, two of those over the transport bar — and covered the page where the
+// work happens. Here they stand in one column, over the panel's foot and
+// clear of everything at the window's bottom edge, and a notice arriving
+// moves nothing in the page: the dock floats, and lets the pointer through
+// everywhere but the cards.
+.notice-dock {
+  // What the dock stands on, from the window's bottom edge up: the transport
+  // bar while one is up (`useTransportStrip`), then the sound panel's foot
+  // while it is on screen, then a gap the width of the one at the side.
+  --notice-dock-bar: 0px;
+  --notice-dock-foot: 0px;
+  --notice-dock-floor: calc(
+    var(--notice-dock-bar) + var(--notice-dock-foot) + #{$spacing-s}
+  );
+  position: fixed;
+  // Over the transport bar (1100) and a full-screen video (1150), so a card
+  // is never cut by them; under every dialog's scrim (1450 and up), which
+  // dims notices with the rest of the window.
+  z-index: 1300;
+  right: $spacing-m;
+  bottom: var(--notice-dock-floor);
+  display: flex;
+  // As wide as the small frame ever draws itself (`DialogFrame.scss`); the
+  // engine's cards, which stood 560 wide under the titlebar, wrap a long
+  // translation's buttons onto a second row rather than widening the stack.
+  width: min(460px, calc(100vw - #{2 * $spacing-m}));
+  // Up to the titlebar and no further: a stack taller than the window
+  // scrolls inside itself. Reversed, so the box scrolls from its foot — the
+  // newest notice stays at the corner and the oldest goes out of view at the
+  // top; laid the plain way, an overflowing stack cut off the newest.
+  max-height: calc(100vh - #{$title-bar-height} - var(--notice-dock-floor));
+  flex-direction: column-reverse;
+  overflow-x: clip;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  pointer-events: none;
+  scrollbar-width: none;
+
+  &.is-above-sound-foot {
+    --notice-dock-foot: #{$sound-pane-foot};
+  }
+}
+
+// The bar's height is published on the root, and only counts while a bar is
+// up: the variable keeps the last bar's height after it has gone.
+#root.has-now-playing .notice-dock {
+  --notice-dock-bar: calc(
+    var(--now-playing-bar-height, 86px) + var(--shell-gutter-bottom, 0px)
+  );
+}
+
+// The notices, oldest first, newest at the foot.
+.notice-dock__stack {
+  display: flex;
+  min-width: 0;
+  flex: 0 0 auto;
+  flex-direction: column;
+}
+
+// One notice's place in the stack. It carries the gap above its card, so a
+// notice leaving takes its gap with it, and it grows from nothing as the card
+// rises into it: the notices above glide up to make room instead of jumping.
+.notice-dock__slot {
+  display: grid;
+  min-height: 0;
+  flex: 0 0 auto;
+  padding-top: $spacing-s;
+  interpolate-size: allow-keywords;
+  overflow: clip;
+  // The room the slot's padding leaves under the dock's ceiling: a notice
+  // with more to say than that scrolls its words inside its card, as each
+  // did under its own ceiling before (the news, the terms, the long
+  // translations at 200%).
+  --notice-dock-card: calc(
+    100vh - #{$title-bar-height} - var(--notice-dock-floor) - #{$spacing-s}
+  );
+  @include animate(row-enter, $motion-base);
+
+  // Every card rises into its place from below, whatever it arrived with
+  // where it stood before. Against the frame's class as well, over the
+  // frame's own arrival whichever sheet the cascade reads last.
+  > .compact-frame {
+    --surface-motion: rise-in #{$motion-base} #{$ease-out} 0ms backwards;
+    width: 100%;
+    max-height: var(--notice-dock-card);
+    pointer-events: auto;
+  }
+}
+
+// The way out, played by the copy a notice leaves as it goes (`leaveTheDock`):
+// the card sinks back toward the corner while its place folds shut over it.
+// Through the dock as well, over the modal's way out (`DialogFrame.scss`,
+// `[data-closing]:has(> .compact-frame)`), which this copy would otherwise
+// match and which the cascade reads last.
+.notice-dock__stack > .notice-dock__slot[data-closing] {
+  pointer-events: none;
+  @include animate(row-leave, $motion-base, $ease-out, 0ms, forwards);
+
+  > .compact-frame {
+    @include animate(notice-dock-sink, $motion-fast, ease-in, 0ms, forwards);
+  }
+}
+
+@keyframes notice-dock-sink {
+  to {
+    opacity: 0;
+    translate: 0 12px;
+  }
+}

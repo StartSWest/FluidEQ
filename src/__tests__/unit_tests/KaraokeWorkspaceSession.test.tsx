@@ -297,12 +297,12 @@ describe('KaraokeWorkspace sessions and layout', () => {
         'Using the current player timing. Undo restores your saved draft.',
       ),
     ).toBeVisible();
-    // Gone on its fade's end: the drift beside it ends at once under reduced
+    // Gone on its linger's end: the rise beside it ends at once under reduced
     // motion and must not take it down.
     const toast = container.querySelector(
       '.karaoke-maker__toast',
     ) as HTMLElement;
-    animationEnd(toast, 'karaoke-maker-toast-drift');
+    animationEnd(toast, 'rise-in');
     expect(toast).toBeInTheDocument();
     animationEnd(toast, 'karaoke-maker-toast');
     expect(toast).not.toBeInTheDocument();

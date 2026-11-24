@@ -5,13 +5,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import MenuIcon from '../icons/MenuIcon';
 import type { IAudioRestart } from '../utils/useAudioRestart';
 import { useTranslation } from '../utils/I18nContext';
 import { useNoticeTurn } from '../utils/noticeTurn';
 import Button from '../widgets/Button';
 import CompactFrame from './CompactFrame';
+import { DockedNotice } from './NoticeDock';
 // The output notice's spot, which this shares.
 import '../styles/DeviceProfiles.scss';
 import '../styles/EngineUpdateNotice.scss';
@@ -80,81 +80,82 @@ const EngineUpdateNotice = ({ update, isHidden }: IEngineUpdateNoticeProps) => {
     phase === 'failed' ? t('restart.tryAgain') : t('engineUpdate.action');
   const quietLabel = isRunning ? t('restart.close') : t('output.notNow');
 
-  return createPortal(
-    <CompactFrame
-      className="device-apo-notice engine-update-notice"
-      icon={<MenuIcon name={isDone ? 'check' : 'download'} />}
-      title={isDone ? t('engineUpdate.doneTitle') : t('engineUpdate.title')}
-      titleId="engine-update-notice-title"
-      // An offer over the page, not a dialog in front of it.
-      role="dialog"
-      aria-modal="false"
-      aria-describedby="engine-update-notice-body"
-      aria-busy={isRunning}
-      onClose={close}
-      closeLabel={t('app.dismiss')}
-      actions={
-        <>
-          {/* Kept in the row even when empty, so the buttons do not jump the
+  return (
+    <DockedNotice>
+      <CompactFrame
+        className="device-apo-notice engine-update-notice"
+        icon={<MenuIcon name={isDone ? 'check' : 'download'} />}
+        title={isDone ? t('engineUpdate.doneTitle') : t('engineUpdate.title')}
+        titleId="engine-update-notice-title"
+        // An offer over the page, not a dialog in front of it.
+        role="dialog"
+        aria-modal="false"
+        aria-describedby="engine-update-notice-body"
+        aria-busy={isRunning}
+        onClose={close}
+        closeLabel={t('app.dismiss')}
+        actions={
+          <>
+            {/* Kept in the row even when empty, so the buttons do not jump the
               moment the update starts. */}
-          <p className="engine-update-notice__status" aria-live="polite">
-            {isRunning ? t('engineUpdate.running') : ''}
-          </p>
-          {isDone ? (
-            <Button
-              ariaLabel={t('output.gotIt')}
-              isDisabled={false}
-              className="small"
-              handleChange={close}
-            >
-              {t('output.gotIt')}
-            </Button>
-          ) : (
-            <>
+            <p className="engine-update-notice__status" aria-live="polite">
+              {isRunning ? t('engineUpdate.running') : ''}
+            </p>
+            {isDone ? (
               <Button
-                ariaLabel={quietLabel}
+                ariaLabel={t('output.gotIt')}
                 isDisabled={false}
-                className="small subtle"
+                className="small"
                 handleChange={close}
               >
-                {quietLabel}
+                {t('output.gotIt')}
               </Button>
-              {/* Not disabled while it works, as in the restart card and the
+            ) : (
+              <>
+                <Button
+                  ariaLabel={quietLabel}
+                  isDisabled={false}
+                  className="small subtle"
+                  handleChange={close}
+                >
+                  {quietLabel}
+                </Button>
+                {/* Not disabled while it works, as in the restart card and the
                   engine dialog: a disabled `Button` paints the dim outline of
                   an unavailable action and drops the `is-running` breath, so
                   the one control saying the update is under way read as dead.
                   A second press is refused by the update's owner
                   (`useEngineMaintenance`), not by the look of the button. */}
-              <Button
-                ariaLabel={primaryLabel}
-                isDisabled={false}
-                className={`small${isRunning ? ' is-running' : ''}`}
-                handleChange={run}
-              >
-                {primaryLabel}
-              </Button>
-            </>
-          )}
-        </>
-      }
-    >
-      <p id="engine-update-notice-body">
-        {isDone ? t('engineUpdate.doneBody') : t('engineUpdate.body')}
-      </p>
-      {phase === 'failed' && (
-        <p className="device-apo-notice__error">
-          {outcome?.declined
-            ? t('engineUpdate.declined')
-            : t('engineUpdate.failed')}
-          {outcome?.detail && (
-            <span className="engine-update-notice__reason">
-              {outcome.detail}
-            </span>
-          )}
+                <Button
+                  ariaLabel={primaryLabel}
+                  isDisabled={false}
+                  className={`small${isRunning ? ' is-running' : ''}`}
+                  handleChange={run}
+                >
+                  {primaryLabel}
+                </Button>
+              </>
+            )}
+          </>
+        }
+      >
+        <p id="engine-update-notice-body">
+          {isDone ? t('engineUpdate.doneBody') : t('engineUpdate.body')}
         </p>
-      )}
-    </CompactFrame>,
-    document.body,
+        {phase === 'failed' && (
+          <p className="device-apo-notice__error">
+            {outcome?.declined
+              ? t('engineUpdate.declined')
+              : t('engineUpdate.failed')}
+            {outcome?.detail && (
+              <span className="engine-update-notice__reason">
+                {outcome.detail}
+              </span>
+            )}
+          </p>
+        )}
+      </CompactFrame>
+    </DockedNotice>
   );
 };
 

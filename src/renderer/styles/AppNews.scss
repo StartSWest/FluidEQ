@@ -1,20 +1,14 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 @use 'theme' as *;
 @use 'spacing' as *;
-@use 'constant' as *;
 @use 'dialog' as dialog;
 
+// Placed, sized and held under the titlebar by the notices' stack
+// (`NoticeDock.scss`); its words scroll inside it when they are taller than
+// the room the stack leaves.
 .compact-frame.app-news-notice {
-  position: fixed;
-  z-index: 990;
-  top: calc($title-bar-height + 16px);
-  right: calc(var(--sound-pane-width, 0px) + 18px);
   min-width: 0;
-  width: min(420px, calc(100vw - var(--sound-pane-width, 0px) - 36px));
   background: linear-gradient(dialog.$sheet, dialog.$sheet), $surface-base;
-  max-height: calc(
-    100vh - $title-bar-height - 16px - var(--now-playing-bar-height, 0px) - 12px
-  );
   grid-template-rows: minmax(0, 1fr);
 
   .compact-frame__main {
@@ -36,15 +30,6 @@
 
   .compact-frame__message {
     min-width: 0;
-  }
-}
-
-// Below the dock breakpoint the shell keeps only its rail, even when the
-// remembered desktop column width is still 330px. Keep that handle reachable.
-@media (max-width: $bp-three-column) {
-  .compact-frame.app-news-notice {
-    right: calc($sound-pane-rail + 18px);
-    width: min(420px, calc(100vw - $sound-pane-rail - 36px));
   }
 }
 

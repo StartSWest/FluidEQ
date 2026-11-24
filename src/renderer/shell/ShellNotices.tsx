@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { errorText, type ErrorDescription } from 'common/errors';
 import CompactFrame from '../components/CompactFrame';
+import { DockedNotice } from '../components/NoticeDock';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 
@@ -35,33 +36,35 @@ export const RestartRecommendedNotice = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <CompactFrame
-      className="audio-restart-notice"
-      role="status"
-      aria-modal={undefined}
-      tone="warn"
-      icon={<MenuIcon name="restart" />}
-      title={t('notice.apoReconfiguredTitle')}
-      titleId="apo-reconfigured-title"
-      onClose={onDismiss}
-      closeLabel={t('app.dismiss')}
-      actions={
-        <>
-          <button
-            type="button"
-            className="button small subtle"
-            onClick={onDismiss}
-          >
-            {t('app.dismiss')}
-          </button>
-          <button type="button" className="button small" onClick={onRestart}>
-            {t('notice.restartNow')}
-          </button>
-        </>
-      }
-    >
-      <p>{t('notice.apoReconfigured')}</p>
-    </CompactFrame>
+    <DockedNotice>
+      <CompactFrame
+        className="audio-restart-notice"
+        role="status"
+        aria-modal={undefined}
+        tone="warn"
+        icon={<MenuIcon name="restart" />}
+        title={t('notice.apoReconfiguredTitle')}
+        titleId="apo-reconfigured-title"
+        onClose={onDismiss}
+        closeLabel={t('app.dismiss')}
+        actions={
+          <>
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={onDismiss}
+            >
+              {t('app.dismiss')}
+            </button>
+            <button type="button" className="button small" onClick={onRestart}>
+              {t('notice.restartNow')}
+            </button>
+          </>
+        }
+      >
+        <p>{t('notice.apoReconfigured')}</p>
+      </CompactFrame>
+    </DockedNotice>
   );
 };
 
@@ -81,39 +84,41 @@ export const CaptureFailedNotice = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <CompactFrame
-      className="audio-restart-notice"
-      role="status"
-      aria-modal={undefined}
-      tone="warn"
-      icon={<MenuIcon name="alert" />}
-      title={t('notice.captureFailed')}
-      titleId="capture-failed-title"
-      onClose={onHide}
-      closeLabel={t('app.dismiss')}
-      actions={
-        <>
-          <button
-            type="button"
-            className="button small subtle"
-            onClick={onHide}
-          >
-            {t('app.dismiss')}
-          </button>
-          <button
-            type="button"
-            className="button small"
-            onClick={() => {
-              onRetry();
-            }}
-          >
-            {t('notice.tryAgain')}
-          </button>
-        </>
-      }
-    >
-      <p>{t('notice.captureFailedBody')}</p>
-    </CompactFrame>
+    <DockedNotice>
+      <CompactFrame
+        className="audio-restart-notice"
+        role="status"
+        aria-modal={undefined}
+        tone="warn"
+        icon={<MenuIcon name="alert" />}
+        title={t('notice.captureFailed')}
+        titleId="capture-failed-title"
+        onClose={onHide}
+        closeLabel={t('app.dismiss')}
+        actions={
+          <>
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={onHide}
+            >
+              {t('app.dismiss')}
+            </button>
+            <button
+              type="button"
+              className="button small"
+              onClick={() => {
+                onRetry();
+              }}
+            >
+              {t('notice.tryAgain')}
+            </button>
+          </>
+        }
+      >
+        <p>{t('notice.captureFailedBody')}</p>
+      </CompactFrame>
+    </DockedNotice>
   );
 };
 
@@ -131,19 +136,21 @@ export const RecoverableErrorNotice = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <CompactFrame
-      className="workspace-notice"
-      role="alert"
-      aria-modal={undefined}
-      tone="warn"
-      icon={<MenuIcon name="alert" />}
-      title={errorText(error, t).title}
-      titleId="workspace-error-title"
-      onClose={onDismiss}
-      closeLabel={t('app.dismiss')}
-    >
-      <p>{errorText(error, t).action}</p>
-    </CompactFrame>
+    <DockedNotice>
+      <CompactFrame
+        className="workspace-notice"
+        role="alert"
+        aria-modal={undefined}
+        tone="warn"
+        icon={<MenuIcon name="alert" />}
+        title={errorText(error, t).title}
+        titleId="workspace-error-title"
+        onClose={onDismiss}
+        closeLabel={t('app.dismiss')}
+      >
+        <p>{errorText(error, t).action}</p>
+      </CompactFrame>
+    </DockedNotice>
   );
 };
 
@@ -161,17 +168,19 @@ export const ImportNotice = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <CompactFrame
-      className="workspace-notice"
-      role="status"
-      aria-modal={undefined}
-      icon={<MenuIcon name="import" />}
-      title={t('notice.importComplete')}
-      titleId="import-complete-title"
-      onClose={onDismiss}
-      closeLabel={t('app.dismiss')}
-    >
-      <p>{summary}</p>
-    </CompactFrame>
+    <DockedNotice>
+      <CompactFrame
+        className="workspace-notice"
+        role="status"
+        aria-modal={undefined}
+        icon={<MenuIcon name="import" />}
+        title={t('notice.importComplete')}
+        titleId="import-complete-title"
+        onClose={onDismiss}
+        closeLabel={t('app.dismiss')}
+      >
+        <p>{summary}</p>
+      </CompactFrame>
+    </DockedNotice>
   );
 };

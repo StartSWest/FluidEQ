@@ -560,8 +560,9 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
             {t(status)}
           </span>
         )}
-        {/* In the bar, so what an action says is in view wherever the page
-            was left when it was pressed. */}
+        {/* Drawn in the window's stack of notices (`NoticeDock`), so what an
+            action says is in view wherever the page was left when it was
+            pressed. */}
         <PlusToastStack<ISharingNotice>
           sources={{
             picture: picture.notice,

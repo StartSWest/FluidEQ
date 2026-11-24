@@ -5,42 +5,22 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 @use 'color' as *;
-@use 'constant' as *;
 @use 'dialog' as dialog;
-@use 'motion' as *;
 @use 'theme' as *;
 
-// Top right, under the titlebar — below the Plus tab and the account the
-// notice is about — a `CompactFrame` like every other notice that arrives on
-// its own: one visual language for "something to know", whoever raised it.
+// A `CompactFrame` like every other notice that arrives on its own, in their
+// one stack at the bottom right (`NoticeDock.scss`): one visual language and
+// one place for "something to know", whoever raised it. The prompts make it
+// step aside — it waits its turn (`noticeTurn.ts`).
 //
-// The LOWEST of the app's overlays, on purpose. It asks nothing urgent and it
-// stays until it is put away, so it must never be in front of something the
-// person opened or something with a deadline: every menu and popover
-// (`menu-surface`, 1000 and up), a modal's backdrop (1000 and up), the
-// now-playing bar (1100), a full-screen video (1150), the song EQ toast whose
-// Undo only lasts as long as it does (1190), and every prompt (1200 and up).
-// Above the workspace itself, which is all it has to be seen over. A menu
-// opened across it simply covers it; the prompts make it step aside — see
-// the note at the end of this file.
+// Its shape holds in a short window: the stack stands clear of the
+// now-playing bar and stops under the titlebar, and the sentences scroll
+// inside the card so the two answers stay in reach. At 720x480 the bar used
+// to be drawn over both buttons.
 //
-// Against the frame's own class as well, so the corner wins over the frame's
-// `position: relative` and its sheet whichever the cascade reads last.
+// Against the frame's own class as well, so this wins over the frame's sheet
+// whichever the cascade reads last.
 .compact-frame.plus-terms-notice {
-  --surface-motion: slide-in-right #{$motion-base} #{$ease-out} 0ms backwards;
-  position: fixed;
-  z-index: 990;
-  top: calc($title-bar-height + 16px);
-  right: 18px;
-  width: min(420px, calc(100vw - 36px));
-  // Its shape holds in a short window: the sentences scroll inside it and the
-  // two answers stay in reach. The floor is the top of the now-playing bar,
-  // not the window's edge — the bar is drawn over this, and at 720x480 it hid
-  // both buttons. `--now-playing-bar-height` is the bar and its inset, as the
-  // bar publishes it; with no bar it falls to nothing.
-  max-height: calc(
-    100vh - $title-bar-height - 16px - var(--now-playing-bar-height, 0px) - 12px
-  );
   grid-template-rows: minmax(0, 1fr);
   // Solid, where the frame's sheet lets a little through: this one stays put
   // over the panel beside the Plus tab, and measured there the cyan Save
@@ -119,15 +99,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// One thing at a time. Being lowest keeps whatever lands on it readable; it
-// does not stop the two being drawn across each other, and measured in the
-// running window at 1026px that is what happened — the output notice
-// (`.device-apo-notice`, centred under the titlebar) lay over most of this one
-// with its buttons sticking out beside it. Every prompt in the app opens in
-// that strip under the titlebar, centred, and below about 1500px of width each
-// of them reaches this corner. So while one is up — or anything modal, the
-// song EQ toast that shares this corner, or full screen, which takes away the
-// titlebar this is placed under — the notice steps aside, and slides back in
-// when they are gone. Decided in React, where each of them says it wants the
-// screen (`noticeTurn.ts`): a `body:has()` rule here made every change in the
-// window a question about the whole document.
+// One thing at a time. While a prompt is up — the engine's cards, the
+// restart and capture notices, the missing-engine banner, anything modal,
+// the song toasts, or full screen — the notice steps aside, and comes back
+// when they are gone: a pile of cards at once reads as a malfunction, and
+// the prompts have a deadline this one has not. Decided in React, where each
+// of them says it wants the screen (`noticeTurn.ts`): a `body:has()` rule
+// here made every change in the window a question about the whole document.

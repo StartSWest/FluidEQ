@@ -1234,20 +1234,6 @@ select option {
   letter-spacing: -0.02em;
 }
 
-// Something that happened, bottom right: a recoverable failure in amber, an
-// import done in the accent. It floats over the workspace rather than
-// displacing it, so nothing the user was doing moves. Drawn by the small
-// frame (`CompactFrame`); this places it, against the frame's class as well
-// so the slide wins over the frame's arrival.
-.compact-frame.workspace-notice {
-  @include animate(slide-in-right, $motion-base);
-  position: fixed;
-  z-index: 1300;
-  right: 18px;
-  bottom: 18px;
-  width: min(420px, calc(100vw - 36px));
-}
-
 // Quiet by design: useful in a bug report, not something to read every day —
 // a small suffix to the name rather than a badge beside it (Ivan, 2026-10-25,
 // trying "C · Clean wordmark").
@@ -2068,7 +2054,9 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
 
-  > .audio-restart-notice {
+  // The restart and capture notices wait for the picture to be put away;
+  // their place in the notices' stack goes with them.
+  > .notice-dock .notice-dock__slot:has(> .audio-restart-notice) {
     display: none;
   }
 
@@ -4209,7 +4197,7 @@ $graph-controls-past-fold: calc(
 .right-content__footer {
   position: relative;
   display: flex;
-  min-height: 54px;
+  min-height: $sound-pane-foot;
   align-items: center;
   justify-content: center;
   padding: 9px 12px 11px;
@@ -4861,22 +4849,6 @@ button.graph-legend {
   &--off .graph-edit-point__core {
     display: none;
   }
-}
-
-// *** Floating notices *******************************************************
-
-// Under the titlebar, centred, where the engine's own notices stand, and
-// drawn by the same small frame. Against the frame's class as well, so the
-// spot and the rise win over the frame's `position: relative` and arrival.
-.compact-frame.audio-restart-notice {
-  @include animate(rise-in, $motion-slow);
-  position: fixed;
-  // Above every workspace panel, including the chain raised for open menus.
-  z-index: 1200;
-  top: calc($title-bar-height + 16px);
-  left: 50%;
-  width: min(560px, calc(100vw - 32px));
-  transform: translateX(-50%);
 }
 
 // *** Responsive shell *******************************************************

@@ -5,26 +5,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 @use 'color' as *;
-@use 'constant' as *;
-@use 'motion' as *;
 @use 'theme' as *;
 
-// The corner and layer every notice that arrives on its own shares
-// (`PlusTermsNotice.scss` says why that corner and why the lowest layer). It
-// never stands there with another: it waits its turn (`noticeTurn.ts`).
-//
-// Against the frame's own class as well, so the corner wins over the frame's
-// `position: relative` whichever of the two sheets the cascade reads last.
+// In the notices' stack (`NoticeDock.scss`), which places it and holds it
+// under the titlebar; it waits its turn with the other account notices
+// (`noticeTurn.ts`). What it says scrolls inside it when it is taller than
+// that.
 .compact-frame.member-notice {
-  --surface-motion: slide-in-right #{$motion-base} #{$ease-out} 0ms backwards;
-  position: fixed;
-  z-index: 990;
-  top: calc($title-bar-height + 16px);
-  right: 18px;
-  width: min(400px, calc(100vw - 36px));
-  max-height: calc(
-    100vh - $title-bar-height - 16px - var(--now-playing-bar-height, 0px) - 12px
-  );
   grid-template-rows: minmax(0, 1fr);
 
   .compact-frame__main {

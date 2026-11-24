@@ -519,63 +519,49 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// The restore notice: the small frame (`CompactFrame`) in the editor's top
-// right corner, under the header, as wide as its one line. It says one thing
-// and asks nothing, so it lets every click through to the tools it covers
-// for its two seconds.
-.compact-frame.karaoke-maker__toast {
-  position: absolute;
-  z-index: 20;
-  top: calc(var(--karaoke-maker-header-height) + 12px);
-  right: 16px;
-  width: auto;
-  max-width: min(380px, calc(100% - 32px));
+// The restore notice: the small frame (`CompactFrame`) in the notices' stack
+// at the window's bottom right (`NoticeDock.scss`), where it used to stand in
+// the editor's top right corner under the header. It says one thing and asks
+// nothing, so it lets every click through to whatever it covers for its two
+// seconds — through the stack as well, which takes the pointer for its
+// cards.
+.notice-dock .compact-frame.karaoke-maker__toast {
   pointer-events: none;
-  // Two animations on one timeline, so it looks as the single one did: the
-  // fade is the toast's lifetime — the Maker takes it down on that one's
-  // end — and the drift is only motion, which reduced motion may cut. They
-  // stand in for the frame's own arrival: the fade is how this one arrives.
+}
+
+// The stack's rise, then the linger, which is the toast's lifetime: the Maker
+// takes it down on that one's end, and the stack folds it out. Written out
+// rather than through `animate`, which sets the whole property and would drop
+// the second, and which stands itself down under reduced motion, where the
+// rise may go but the linger may not.
+.compact-frame.karaoke-maker__toast {
   animation:
-    karaoke-maker-toast 2.6s ease both,
-    karaoke-maker-toast-drift 2.6s ease both;
+    rise-in $motion-base $ease-out backwards,
+    karaoke-maker-toast 2.6s linear;
 }
 
+// The linger holds `visibility`, which the toast already has, and nothing
+// else: it changes nothing that can be seen, only how long the toast stays.
 @keyframes karaoke-maker-toast {
-  0% {
-    opacity: 0;
-  }
-
-  10%,
-  82% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0;
+  from,
+  to {
+    visibility: visible;
   }
 }
 
-@keyframes karaoke-maker-toast-drift {
-  0% {
-    transform: translateY(-5px) scale(0.98);
-  }
-
-  10%,
-  82% {
-    transform: none;
-  }
-
-  100% {
-    transform: translateY(-4px);
+// Reduced motion takes the rise and keeps the linger, which is not a
+// movement and has to end for the toast to go: at the stand-down's 1 ms
+// (`App.scss`) it ended before anyone saw it. Against that stand-down's `*`
+// and `!important` it needs a class more; the media query is the launch
+// switch's half of the same setting.
+@media (prefers-reduced-motion: reduce) {
+  .compact-frame.karaoke-maker__toast {
+    animation: karaoke-maker-toast 2.6s linear;
   }
 }
 
-// The stand-down in App.scss shortens every animation to 1 ms: the drift
-// may go, but the fade is how long the toast is up, and at 1 ms it ended
-// faded out before anyone saw it. The fade does not move, so it keeps its
-// length; the drift keeps the stand-down's.
 :root[data-motion='reduced'] .karaoke-maker__toast {
-  animation-duration: 2.6s, 1ms !important;
+  animation: karaoke-maker-toast 2.6s linear !important;
 }
 
 .karaoke-maker__modal-backdrop {
