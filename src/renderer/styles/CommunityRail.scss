@@ -565,6 +565,15 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &--hued {
     color: hsl(var(--identity-hue, 170deg) 80% 80%);
+
+    // The same hue as words on a white window (`readable-ink`, held under
+    // the light window's ink ceiling): at 80% lightness a member's name
+    // stood at 1.8:1 on white - "Ivan" in the Scenes rail's account card,
+    // rgb(245, 182, 163), could hardly be read (2026-11-24, the white
+    // theme). A dark window keeps its light.
+    :root[data-window-ink='dark'] & {
+      color: readable-ink(hsl(var(--identity-hue, 170deg) 80% 80%));
+    }
   }
 }
 
