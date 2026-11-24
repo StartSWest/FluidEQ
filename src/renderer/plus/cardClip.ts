@@ -1,6 +1,6 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import type { IGalleryScene } from 'common/plusGallery';
-import { prefersReducedMotion } from '../utils/bandReveal';
+import useReducedMotion from '../utils/useReducedMotion';
 
 /**
  * A gallery card's published clip, played while the card is hovered or
@@ -63,6 +63,21 @@ const clipKey = (
   scene: Pick<IGalleryScene, 'authorId' | 'sceneId' | 'version'>,
 ) => `${me ?? ''}|${scene.authorId}/${scene.sceneId}@${scene.version}`;
 
+/**
+ * Whether the scene was asked for and found to have no clip, as a value that
+ * changes when the answer lands: a look picker tile holding one of the few
+ * clip slots gives it up for a tile with something to play
+ * (`lookTileClips.tsx`).
+ */
+export const useKnownWithoutClip = (
+  scene: Pick<ISceneClipRef, 'authorId' | 'sceneId' | 'version'> | undefined,
+  me: string | undefined,
+): boolean =>
+  useSyncExternalStore(
+    subscribe,
+    () => scene !== undefined && withoutClip.has(clipKey(me, scene)),
+  );
+
 /** For tests: forget the slot and every remembered "no clip". */
 export const resetCardClips = () => {
   holder = undefined;
@@ -85,7 +100,7 @@ export interface ISceneClipRef {
  * active, used only if still active when it lands, and revoked the moment
  * any of that stops being true - so nothing that only passed by keeps a
  * clip, without a timer to guess how long passing takes. A gallery card and
- * a look picker tile both play through it (`useCardClip`, `lookTileClips.ts`).
+ * a look picker tile both play through it (`useCardClip`, `lookTileClips.tsx`).
  */
 export const useSceneClip = (
   scene: ISceneClipRef | undefined,
@@ -97,6 +112,10 @@ export const useSceneClip = (
   const sceneId = scene?.sceneId;
   const version = scene?.version;
   const updatedAt = scene?.updatedAt;
+  // Followed while the clip plays: Animations off takes every clip away at
+  // once, on a tile and on a gallery card alike, and on again lets the ones
+  // still wanted ask again.
+  const reduced = useReducedMotion();
 
   useEffect(() => {
     const ask = window.electron?.ipcRenderer?.galleryClip;
@@ -108,14 +127,7 @@ export const useSceneClip = (
       return undefined;
     }
     const key = clipKey(me, { authorId, sceneId, version });
-    if (
-      !active ||
-      !ask ||
-      withoutClip.has(key) ||
-      // Read as it becomes active, so the app's own Animations switch counts
-      // at once.
-      prefersReducedMotion()
-    ) {
+    if (!active || !ask || withoutClip.has(key) || reduced) {
       return undefined;
     }
     let cancelled = false;
@@ -124,6 +136,7 @@ export const useSceneClip = (
       .then((clip) => {
         if (!clip) {
           withoutClip.add(key);
+          announce();
           return undefined;
         }
         if (cancelled) {
@@ -144,7 +157,7 @@ export const useSceneClip = (
         URL.revokeObjectURL(made);
       }
     };
-  }, [active, me, authorId, sceneId, version, updatedAt]);
+  }, [active, reduced, me, authorId, sceneId, version, updatedAt]);
 
   return url;
 };

@@ -20,7 +20,7 @@ import { LockBadge, SceneThumbnail } from './lookPickerParts';
 import { OriginMark, useSceneCaption } from './LookPickerTiles';
 import { LookTileScope } from './LookStyleGrid';
 import LookTileArt from './LookTileArt';
-import useTileClip from './lookTileClips';
+import useTileClip, { SceneClipScope } from './lookTileClips';
 
 interface ILookPickerDetailsProps {
   value: string;
@@ -67,16 +67,19 @@ export default function LookPickerDetails({
         </span>
         <span>{t('graph.picker.colVersion')}</span>
       </div>
-      {scenes.map((row) => (
-        <SceneRow
-          key={row.id}
-          row={row}
-          fresh={freshness.get(row.id)}
-          selected={row.id === value}
-          tabbable={row.id === stop}
-          onChoose={onChoose}
-        />
-      ))}
+      {/* The scenes' clips in view share their slots (`lookTileClips.tsx`). */}
+      <SceneClipScope>
+        {scenes.map((row) => (
+          <SceneRow
+            key={row.id}
+            row={row}
+            fresh={freshness.get(row.id)}
+            selected={row.id === value}
+            tabbable={row.id === stop}
+            onChoose={onChoose}
+          />
+        ))}
+      </SceneClipScope>
       {/* Each standard look's small picture drawn live, as the grid's are
           (`LookStyleGrid`): one loop and one sound for the whole list. */}
       <LookTileScope>
@@ -157,14 +160,17 @@ function SceneRow({
   // The maker in its own column; the caption's version, or its note.
   const { text, version } = useSceneCaption(row, undefined);
   const note = useSceneCaption(row, fresh);
-  // The scene's published clip over its picture while the pointer or the
-  // focus is on the row, as on a grid tile (`lookTileClips.ts`): the whole
-  // item answers, its report and remove buttons included.
+  // The scene's published clip over its picture while the row is in the
+  // picker's scroller, or the pointer or the focus is on it, as on a grid
+  // tile (`lookTileClips.tsx`): the whole item answers, its report and
+  // remove buttons included.
+  const [element, setElement] = useState<HTMLDivElement | null>(null);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
-  const clip = useTileClip(row.thumbnail, hovered || focused);
+  const clip = useTileClip(row.thumbnail, element, hovered || focused);
   return (
     <div
+      ref={setElement}
       className="look-picker__item"
       role="listitem"
       onPointerEnter={() => setHovered(true)}

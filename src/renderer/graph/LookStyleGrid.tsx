@@ -15,6 +15,7 @@ import {
 import { useRainbowStops } from '../utils/rainbowPalette';
 import { useLiveSurface, useThemeShade } from '../utils/theme';
 import { createLookTileLoop, type ILookTileLoop } from './lookTileLoop';
+import { createTileWatcher, type TWatchTile } from './lookTileWatcher';
 import { LookTileSoundScope } from './lookTileSound';
 
 /**
@@ -31,50 +32,10 @@ import { LookTileSoundScope } from './lookTileSound';
 interface ITileGrid {
   loop: ILookTileLoop | undefined;
   /** Tells `onChange` whether `element` is in the picker's scroller. */
-  watch: (element: Element, onChange: (inView: boolean) => void) => () => void;
+  watch: TWatchTile;
   /** The window's colours, as part of what names a still. */
   paintKey: string;
 }
-
-/**
- * Whether each tile is in the scroller it sits in (`[data-look-picker-
- * scroll]`), on one observer for the grid. Made on the first tile watched,
- * whose own place says which scroller that is: the tiles watch before the
- * grid's effects run. Where there is no observer at all, a tile is in view.
- */
-const createWatcher = () => {
-  let observer: IntersectionObserver | undefined;
-  const listeners = new Map<Element, (inView: boolean) => void>();
-  const watch = (element: Element, onChange: (inView: boolean) => void) => {
-    if (typeof IntersectionObserver === 'undefined') {
-      onChange(true);
-      return () => undefined;
-    }
-    if (!observer) {
-      observer = new IntersectionObserver(
-        (entries) =>
-          entries.forEach((entry) =>
-            listeners.get(entry.target)?.(entry.isIntersecting),
-          ),
-        { root: element.closest('[data-look-picker-scroll]') },
-      );
-    }
-    listeners.set(element, onChange);
-    observer.observe(element);
-    return () => {
-      listeners.delete(element);
-      observer?.unobserve(element);
-    };
-  };
-  return {
-    watch,
-    dispose: () => {
-      observer?.disconnect();
-      observer = undefined;
-      listeners.clear();
-    },
-  };
-};
 
 const TileGridContext = createContext<ITileGrid | undefined>(undefined);
 
@@ -107,7 +68,7 @@ const usePaintKey = () => {
  */
 export const LookTileScope = ({ children }: { children: ReactNode }) => {
   const [loop] = useState(createLookTileLoop);
-  const [watcher] = useState(createWatcher);
+  const [watcher] = useState(createTileWatcher);
   useEffect(
     () => () => {
       loop.dispose();

@@ -99,6 +99,7 @@ import { act, render, screen } from '@testing-library/react';
 import LookStyleGrid from '../../../renderer/graph/LookStyleGrid';
 import { LookPickerStyleTile } from '../../../renderer/graph/LookPickerTiles';
 import type { IStyleRow } from '../../../renderer/graph/lookPickerRows';
+import { applyMotionPreference } from '../../../renderer/utils/motionPreference';
 /* eslint-enable import/first */
 
 // The plate has a size, as it does in the window: no size, no drawing.
@@ -137,10 +138,11 @@ const scrollOut = (index: number) => {
 
 // The loop's animation frames, run by hand.
 let frames: FrameRequestCallback[] = [];
+// In act: a tile's first drawing tells the tile it has a picture on show.
 const runFrame = (at: number) => {
   const due = frames;
   frames = [];
-  due.forEach((callback) => callback(at));
+  act(() => due.forEach((callback) => callback(at)));
 };
 
 const row = (id: string): IStyleRow =>
@@ -327,6 +329,55 @@ it('moves nothing under reduced motion', () => {
   expect(screen.queryByTestId('live-drawing')).not.toBeInTheDocument();
   expect(shownStills()).toBe(3);
   expect(frames).toHaveLength(0);
+});
+
+/** The app's Animations switch pressed while the picker is open. */
+const switchAnimations = (on: boolean) => {
+  reduced = !on;
+  act(() => applyMotionPreference(on ? 'full' : 'reduced'));
+};
+
+// Ivan, 2026-11-24: "if user selects animation off in the app we don't show
+// the videos or the standard viz animated either". Felt at once, not at the
+// tiles' next render.
+it('stills every tile the moment Animations go off, and draws them again when on', () => {
+  grid();
+  runFrame(1000);
+  expect(shownStills()).toBe(0);
+  switchAnimations(false);
+  expect(screen.queryByTestId('live-drawing')).not.toBeInTheDocument();
+  expect(shownStills()).toBe(3);
+  expect(frames).toHaveLength(0);
+  switchAnimations(true);
+  expect(screen.getAllByTestId('live-drawing')).toHaveLength(3);
+  expect(frames).toHaveLength(1);
+});
+
+it('holds a drawing where it stands when Animations go off before its still is in', () => {
+  stills = false;
+  grid();
+  runFrame(1000);
+  drawnFrames.length = 0;
+  switchAnimations(false);
+  // Its last picture stays on the plate rather than an empty one, and
+  // nothing is drawn or asked for any more.
+  expect(screen.getAllByTestId('live-drawing')).toHaveLength(3);
+  expect(frames).toHaveLength(0);
+  expect(drawnFrames).toHaveLength(0);
+  // A still is painted for it meanwhile.
+  expect(wantsStills()).toBe(true);
+  switchAnimations(true);
+  expect(frames).toHaveLength(1);
+  runFrame(1100);
+  expect(drawnFrames).toHaveLength(3);
+});
+
+it('keeps no drawing on a plate whose look was never drawn', () => {
+  // The control for the hold above: off before any frame, nothing held.
+  stills = false;
+  grid();
+  switchAnimations(false);
+  expect(screen.queryByTestId('live-drawing')).not.toBeInTheDocument();
 });
 
 it('stops the loop when the picker closes', () => {

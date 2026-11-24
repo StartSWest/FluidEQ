@@ -8,8 +8,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * The look picker's Details list does what the grid does (Ivan,
  * 2026-11-24): each standard look's small picture is drawn live on the
  * tiles' one loop, from its still and out of view not at all; and a scene's
- * row plays its published clip only while the pointer or the focus is on
- * it. Each "nothing" case stands beside its control.
+ * row plays its published clip while it is in the list's view, or the
+ * pointer or the focus is on it. Each "nothing" case stands beside its control.
  */
 
 interface IDriverProps {
@@ -67,6 +67,7 @@ jest.mock('../../../renderer/plus/cardClip', () => ({
     asked.push(active);
     return active ? 'blob:clip' : undefined;
   },
+  useKnownWithoutClip: () => false,
 }));
 jest.mock('../../../renderer/plus/SceneClip', () => () => (
   <span data-testid="clip" />
@@ -114,11 +115,26 @@ const ScrollerObserver = jest.fn((report: IntersectionObserverCallback) => ({
   disconnect: () => observed.clear(),
 }));
 
+/** Tells the scroller's observer `element` left its view. */
+const scrollOut = (element: Element) => {
+  const report = observed.get(element);
+  if (!report) {
+    throw new Error('the element is watched');
+  }
+  act(() =>
+    report(
+      [{ target: element, isIntersecting: false } as IntersectionObserverEntry],
+      {} as IntersectionObserver,
+    ),
+  );
+};
+
 let frames: FrameRequestCallback[] = [];
+// In act: a tile's first drawing tells the tile it has a picture on show.
 const runFrame = (at: number) => {
   const due = frames;
   frames = [];
-  due.forEach((callback) => callback(at));
+  act(() => due.forEach((callback) => callback(at)));
 };
 
 const style = (id: string): IStyleRow =>
@@ -193,13 +209,8 @@ it("draws every standard look's picture live, on one loop", () => {
 
 it('stops drawing a row scrolled out of the list', () => {
   list();
-  const [element, report] = [...observed.entries()][0];
-  act(() =>
-    report(
-      [{ target: element, isIntersecting: false } as IntersectionObserverEntry],
-      {} as IntersectionObserver,
-    ),
-  );
+  const [plate] = document.querySelectorAll('.look-tile-art');
+  scrollOut(plate);
   expect(screen.getAllByTestId('live-drawing')).toHaveLength(1);
   runFrame(1000);
   expect(drawnFrames).toEqual([STYLES[1].look]);
@@ -213,23 +224,32 @@ it('keeps the stills under reduced motion', () => {
   expect(frames).toHaveLength(0);
 });
 
-it("plays a scene row's clip only under the pointer", () => {
+it("plays a scene row's clip while it is in the list's view, and not once scrolled out", () => {
   const { container } = list();
   expect(screen.getByTestId('picture')).toBeInTheDocument();
-  expect(screen.queryByTestId('clip')).not.toBeInTheDocument();
-  expect(asked.every((active) => !active)).toBe(true);
+  expect(screen.getByTestId('clip')).toBeInTheDocument();
   const item = container.querySelector('.look-picker__item');
   if (!item) {
     throw new Error('the list has the scene row');
   }
+  scrollOut(item);
+  expect(screen.queryByTestId('clip')).not.toBeInTheDocument();
+  expect(asked[asked.length - 1]).toBe(false);
+  // Its picture stays.
+  expect(screen.getByTestId('picture')).toBeInTheDocument();
+});
+
+it("plays a scrolled-out scene row's clip under the pointer and with the keyboard", () => {
+  const { container } = list();
+  const item = container.querySelector('.look-picker__item');
+  if (!item) {
+    throw new Error('the list has the scene row');
+  }
+  scrollOut(item);
   fireEvent.pointerEnter(item);
   expect(screen.getByTestId('clip')).toBeInTheDocument();
   fireEvent.pointerLeave(item);
   expect(screen.queryByTestId('clip')).not.toBeInTheDocument();
-});
-
-it("plays a scene row's clip while the keyboard is on it", () => {
-  list();
   const row = screen.getByRole('button', { name: /Koi Pond/ });
   fireEvent.focus(row);
   expect(screen.getByTestId('clip')).toBeInTheDocument();

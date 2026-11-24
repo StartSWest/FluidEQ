@@ -20,7 +20,7 @@ import {
 } from '../audio/LiveAudioContext';
 import LookIcon from '../icons/LookIcon';
 import usePlayerTrace from '../player/playerTrace';
-import { prefersReducedMotion } from '../utils/bandReveal';
+import useReducedMotion from '../utils/useReducedMotion';
 import { PANEL_MIN_DEPTH, PANEL_MIN_WIDTH } from './analysis/loudnessPanel';
 import LiveTraceCanvas, { type ILiveTraceDriver } from './LiveTraceCanvas';
 import LookStillPainter from './LookStillPainter';
@@ -82,7 +82,9 @@ const drawnSizeOf = (
  * one, so the still can give way before that frame is painted.
  * `onSettled` is handed the canvas as the drawing goes, once it has drawn
  * as much music as a still hears (`stillSecondsOf`): the picture it leaves
- * is that look's still, had for nothing.
+ * is that look's still, had for nothing. While `running` is false the
+ * drawing stands still where it is, out of the loop, and its canvas keeps
+ * its last picture.
  */
 const LookTileLive = ({
   look,
@@ -90,6 +92,7 @@ const LookTileLive = ({
   loop,
   width,
   height,
+  running,
   onFirstFrame,
   onSettled,
 }: {
@@ -98,50 +101,76 @@ const LookTileLive = ({
   loop: ILookTileLoop;
   width: number;
   height: number;
+  running: boolean;
   onFirstFrame: () => void;
   onSettled: (canvas: HTMLCanvasElement) => void;
 }) => {
   const { curves, xScale, yScale } = usePlayerTrace(width, height);
   const leaveRef = useRef<(() => void) | undefined>(undefined);
+  const driverRef = useRef<ILiveTraceDriver | undefined>(undefined);
+  // What the drawing has done, kept across a pause: it settles on the music
+  // it drew in all.
+  const drawnRef = useRef({
+    ms: 0,
+    canvas: null as HTMLCanvasElement | null,
+  });
+  const runningRef = useRef(running);
+  runningRef.current = running;
   const onFirstFrameRef = useRef(onFirstFrame);
   onFirstFrameRef.current = onFirstFrame;
   const onSettledRef = useRef(onSettled);
   onSettledRef.current = onSettled;
   const settleMsRef = useRef(stillSecondsOf(look.style) * 1000);
   settleMsRef.current = stillSecondsOf(look.style) * 1000;
+  const leave = useCallback(() => {
+    leaveRef.current?.();
+    leaveRef.current = undefined;
+  }, []);
+  const join = useCallback(() => {
+    const driver = driverRef.current;
+    if (!driver || leaveRef.current) {
+      return;
+    }
+    const drawn = drawnRef.current;
+    const remove = loop.add({
+      ...driver,
+      draw: (deltaMs) => {
+        driver.draw(deltaMs);
+        drawn.ms += deltaMs;
+        if (!drawn.canvas) {
+          // Held from the first frame: by the time the drawing goes, its
+          // ref to the canvas has been let go, and the canvas keeps its
+          // pixels.
+          drawn.canvas = driver.canvas();
+          onFirstFrameRef.current();
+        }
+      },
+    });
+    leaveRef.current = () => {
+      remove();
+      if (drawn.canvas && drawn.ms >= settleMsRef.current) {
+        onSettledRef.current(drawn.canvas);
+      }
+    };
+  }, [loop]);
   const onDriver = useCallback(
     (driver: ILiveTraceDriver | undefined) => {
-      leaveRef.current?.();
-      leaveRef.current = undefined;
-      if (!driver) {
-        return;
+      leave();
+      driverRef.current = driver;
+      drawnRef.current = { ms: 0, canvas: null };
+      if (runningRef.current) {
+        join();
       }
-      let drawnMs = 0;
-      // Held from the first frame: by the time the drawing goes, its ref
-      // to the canvas has been let go, and the canvas keeps its pixels.
-      let canvas: HTMLCanvasElement | null = null;
-      let first = true;
-      const remove = loop.add({
-        ...driver,
-        draw: (deltaMs) => {
-          driver.draw(deltaMs);
-          drawnMs += deltaMs;
-          if (first) {
-            first = false;
-            canvas = driver.canvas();
-            onFirstFrameRef.current();
-          }
-        },
-      });
-      leaveRef.current = () => {
-        remove();
-        if (canvas && drawnMs >= settleMsRef.current) {
-          onSettledRef.current(canvas);
-        }
-      };
     },
-    [loop],
+    [join, leave],
   );
+  useEffect(() => {
+    if (running) {
+      join();
+    } else {
+      leave();
+    }
+  }, [running, join, leave]);
   return (
     <LiveAudioStandIn standIn={sound}>
       <LiveTraceCanvas
@@ -215,6 +244,8 @@ const LookTileArt = ({ look }: { look: IResolvedLook }) => {
   const { ref, box, inView } = usePlate();
   const { loop, paintKey } = useTileGrid();
   const sound = useTileSound();
+  // Followed, not read once: Animations off stills every tile at once.
+  const reduced = useReducedMotion();
   const stillKey = useMemo(
     () => `${JSON.stringify(look)}|${paintKey}`,
     [look, paintKey],
@@ -245,12 +276,21 @@ const LookTileArt = ({ look }: { look: IResolvedLook }) => {
   // single frame, until the first live frame hid it: sixteen tiles took
   // about 2.8 s to start moving on a fast machine, every look a wait for
   // a picture nobody saw.
-  const live =
-    inView &&
-    sound !== undefined &&
-    loop !== undefined &&
-    box.width > 0 &&
-    !prefersReducedMotion();
+  const drawable =
+    inView && sound !== undefined && loop !== undefined && box.width > 0;
+  const live = drawable && !reduced;
+  // Animations off while the look is drawn: the drawing stops where it
+  // stands and stays on the plate until a still that fits is in - its own,
+  // kept as it stops if it heard enough music, or one painted - so the plate
+  // never stands empty while a still is painted (Ivan's rule: nothing in
+  // the UI flickers). Measured in the tiles harness: unmounted at once, a
+  // Details list of eleven looks stood blank for up to 3 s.
+  const [drawnOnce, setDrawnOnce] = useState(false);
+  if (drawnOnce && !drawable) {
+    setDrawnOnce(false);
+  }
+  const held = drawable && reduced && drawnOnce && !fits;
+  const shown = live || held;
   // A still is painted only for a tile in view that cannot be drawn live -
   // under reduced motion, or while the sound is not there yet - and has
   // none fitting. A live tile leaves its own (`keepSettled`).
@@ -262,16 +302,17 @@ const LookTileArt = ({ look }: { look: IResolvedLook }) => {
   const liveShownRef = useRef(false);
   // Shown again in the commit that takes the drawing away, before it paints.
   useLayoutEffect(() => {
-    if (!live) {
+    if (!shown) {
       liveShownRef.current = false;
     }
     if (stillRef.current) {
       stillRef.current.style.visibility =
-        live && liveShownRef.current ? 'hidden' : '';
+        shown && liveShownRef.current ? 'hidden' : '';
     }
-  }, [live, picture]);
+  }, [shown, picture]);
   const hideStill = useCallback(() => {
     liveShownRef.current = true;
+    setDrawnOnce(true);
     if (stillRef.current) {
       stillRef.current.style.visibility = 'hidden';
     }
@@ -310,7 +351,7 @@ const LookTileArt = ({ look }: { look: IResolvedLook }) => {
           draggable={false}
         />
       )}
-      {!picture && unavailable && !live && (
+      {!picture && unavailable && !shown && (
         <LookIcon
           className="look-picker__drawing"
           style={look.style}
@@ -329,7 +370,7 @@ const LookTileArt = ({ look }: { look: IResolvedLook }) => {
           />
         </span>
       )}
-      {live && sound && loop && (
+      {shown && sound && loop && (
         <span className="look-tile-art__stage" style={stage}>
           <LookTileLive
             look={look}
@@ -337,6 +378,7 @@ const LookTileArt = ({ look }: { look: IResolvedLook }) => {
             loop={loop}
             width={drawn.width}
             height={drawn.height}
+            running={live}
             onFirstFrame={hideStill}
             onSettled={keepSettled}
           />

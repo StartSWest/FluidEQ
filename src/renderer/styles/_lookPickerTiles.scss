@@ -130,7 +130,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   // The scene's clip over its picture while the tile is in view
-  // (`lookTileClips.ts`): laid over it so the tile keeps its size and the
+  // (`lookTileClips.tsx`): laid over it so the tile keeps its size and the
   // flags stay on top, and transparent until its first frame is painted, so
   // the picture never gives way to a black box while the file is read.
   .look-picker__clip {

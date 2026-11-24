@@ -17,6 +17,7 @@ import LookPickerRail from './LookPickerRail';
 import LookPickerSearch from './LookPickerSearch';
 import LookPickerSort from './LookPickerSort';
 import LookStyleGrid from './LookStyleGrid';
+import { SceneClipScope } from './lookTileClips';
 import { LookPickerSceneTile, LookPickerStyleTile } from './LookPickerTiles';
 import {
   freshnessOf,
@@ -211,16 +212,20 @@ const LookPickerBody = ({
       )}
       {scenes.length > 0 && (
         <div className="look-picker__grid">
-          {scenes.map((row) => (
-            <LookPickerSceneTile
-              key={row.id}
-              row={row}
-              fresh={freshness.get(row.id)}
-              selected={row.id === value}
-              tabbable={row.id === stop}
-              onChoose={onChoose}
-            />
-          ))}
+          {/* Each scene in view plays its clip, within one bound for the
+              grid (`lookTileClips.tsx`). */}
+          <SceneClipScope>
+            {scenes.map((row) => (
+              <LookPickerSceneTile
+                key={row.id}
+                row={row}
+                fresh={freshness.get(row.id)}
+                selected={row.id === value}
+                tabbable={row.id === stop}
+                onChoose={onChoose}
+              />
+            ))}
+          </SceneClipScope>
         </div>
       )}
       {both && (

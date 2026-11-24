@@ -26,8 +26,38 @@ import type { TMotionPreference } from 'main/motionPreference';
  */
 const ATTRIBUTE = 'data-motion';
 
+/** Told whenever the choice on the document may have changed. */
+const listeners = new Set<() => void>();
+
 export const applyMotionPreference = (motion: TMotionPreference) => {
   document.documentElement.setAttribute(ATTRIBUTE, motion);
+  listeners.forEach((listener) => listener());
+};
+
+/**
+ * Calls `listener` whenever the answer to `prefersReducedMotion` may have
+ * changed: the app's own switch written here, or the media query it falls
+ * back on. What animates for as long as it is on screen - the look picker's
+ * live tiles, a scene's clip on a tile or a gallery card - follows it this
+ * way, so Animations off stills them at once rather than at their next
+ * render (`useReducedMotion`). Ivan, 2026-11-24: "if user selects animation
+ * off in the app we don't show the videos or the standard viz animated
+ * either, on those lists or even gallery".
+ *
+ * The query's listener is optional-called because test doubles of
+ * `matchMedia` often answer `matches` alone.
+ */
+export const subscribeMotionPreference = (listener: () => void) => {
+  listeners.add(listener);
+  const query =
+    typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)')
+      : undefined;
+  query?.addEventListener?.('change', listener);
+  return () => {
+    listeners.delete(listener);
+    query?.removeEventListener?.('change', listener);
+  };
 };
 
 /** The choice as written on the document, or nothing if none has been. */

@@ -125,15 +125,18 @@ export function LookPickerSceneTile({
 }: ISceneTileProps) {
   const { t } = useTranslation();
   const caption = useSceneCaption(row, fresh);
-  // The scene's published clip over its picture while the pointer or the
-  // focus is on the tile (`lookTileClips.ts`); the picture stays under it
-  // until a frame is painted. The whole item answers, its report and remove
-  // buttons included: a hand resting on them is still on the tile.
+  // The scene's published clip over its picture while the tile is in the
+  // picker's scroller, or the pointer or the focus is on it
+  // (`lookTileClips.tsx`); the picture stays under it until a frame is
+  // painted. The whole item answers, its report and remove buttons included:
+  // a hand resting on them is still on the tile.
+  const [element, setElement] = useState<HTMLDivElement | null>(null);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
-  const clip = useTileClip(row.thumbnail, hovered || focused);
+  const clip = useTileClip(row.thumbnail, element, hovered || focused);
   return (
     <div
+      ref={setElement}
       className="look-picker__item"
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}

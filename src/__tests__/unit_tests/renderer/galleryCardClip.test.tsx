@@ -26,6 +26,7 @@ import { resetCardClips } from '../../../renderer/plus/cardClip';
 import GalleryCard from '../../../renderer/plus/GalleryCard';
 import { resetGalleryActions } from '../../../renderer/plus/galleryActions';
 import { resetScenePictures } from '../../../renderer/plus/scenePictures';
+import { applyMotionPreference } from '../../../renderer/utils/motionPreference';
 
 const SOMEONE = '9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d';
 let mockReduced = false;
@@ -252,6 +253,22 @@ it('plays nothing under reduced motion', async () => {
   mockReduced = false;
   fireEvent.pointerLeave(thumbOf('Neon City'));
   fireEvent.pointerEnter(thumbOf('Neon City'));
+  await waitFor(() => expect(clipIn(container)).not.toBeNull());
+});
+
+// Ivan, 2026-11-24: "if user selects animation off in the app we don't show
+// the videos ... on those lists or even gallery". The switch is felt while
+// the card is still hovered, not at the next hover.
+it('lets a playing clip go the moment Animations are switched off, and plays it again when on', async () => {
+  const { container } = renderCard();
+  fireEvent.pointerEnter(thumbOf('Neon City'));
+  await waitFor(() => expect(clipIn(container)).not.toBeNull());
+  mockReduced = true;
+  act(() => applyMotionPreference('reduced'));
+  expect(clipIn(container)).toBeNull();
+  expect(revokeUrl).toHaveBeenCalledWith('blob:clip-1');
+  mockReduced = false;
+  act(() => applyMotionPreference('full'));
   await waitFor(() => expect(clipIn(container)).not.toBeNull());
 });
 
