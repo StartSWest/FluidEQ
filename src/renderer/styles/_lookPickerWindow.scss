@@ -20,9 +20,10 @@ $grip-corner: 16px;
 $light-radius: $card-radius - 1px;
 
 // The look picker's resize grips (`LookPickerWindow.tsx`): just outside the
-// edge, as Windows' resize borders are, invisible until the pointer finds
-// one - then the edge it moves lights in the accent, a step of light on the
-// hairline, and stays lit while it is held.
+// edge, as Windows' resize borders are, invisible until the pointer or the
+// keyboard finds one - then the edge it moves lights in the accent, a step
+// of light on the hairline, and stays lit while it is held. The edge beside
+// the select has none: the window hangs from its select and never covers it.
 @mixin styles {
   // The window clips its contents, and lets the grips past. The clip keeps
   // the window's rounded corners, grown by its margin, so a margin of only
@@ -47,10 +48,25 @@ $light-radius: $card-radius - 1px;
       transition: opacity 120ms ease;
     }
 
+    // The lit edge is the focus mark as well: a ring round a strip ten
+    // pixels thick, half of it outside the window, said less than the edge
+    // that will move.
+    &:focus-visible {
+      outline: none;
+    }
+
     &:hover::after,
-    &:active::after {
+    &:focus-visible::after,
+    &.is-lit::after {
       opacity: 1;
     }
+  }
+
+  // While a grip is held, the light is the edge that moves (`is-lit`), and
+  // nothing else lights under the passing pointer: after a flip the grip
+  // holding the pointer stands beside the select, where nothing moves.
+  .look-picker__menu--resizing > .look-picker__grip:not(.is-lit)::after {
+    opacity: 0;
   }
 
   // The edges: the whole side, short of the corners.
@@ -182,14 +198,15 @@ $light-radius: $card-radius - 1px;
     }
   }
 
-  // Only the edges away from the trigger move: the one beside it is where
-  // the window hangs from.
-  [data-side='down'] > .look-picker__grip--top,
-  [data-side='down'] > .look-picker__grip--top-left,
-  [data-side='down'] > .look-picker__grip--top-right,
-  [data-side='up'] > .look-picker__grip--bottom,
-  [data-side='up'] > .look-picker__grip--bottom-left,
-  [data-side='up'] > .look-picker__grip--bottom-right {
+  // Only the edges away from the select move: the one beside it is where
+  // the window hangs from. The grip holding a drag stays, even when a flip
+  // puts it beside the select, or the pointer would be let go mid-drag.
+  [data-side='down'] > .look-picker__grip--top:not(.is-held),
+  [data-side='down'] > .look-picker__grip--top-left:not(.is-held),
+  [data-side='down'] > .look-picker__grip--top-right:not(.is-held),
+  [data-side='up'] > .look-picker__grip--bottom:not(.is-held),
+  [data-side='up'] > .look-picker__grip--bottom-left:not(.is-held),
+  [data-side='up'] > .look-picker__grip--bottom-right:not(.is-held) {
     display: none;
   }
 
