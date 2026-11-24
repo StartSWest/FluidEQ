@@ -22,6 +22,7 @@ import {
 } from '../../../renderer/components/NoticeDock';
 import {
   compileStylesheet,
+  keyframes,
   styleRules,
   type IRule,
 } from '../../utils/stylesheetRules';
@@ -184,6 +185,25 @@ describe('where the notices stand', () => {
     expect(dock?.has('left')).toBe(false);
     // Scrolls from its foot: an overflowing stack keeps the newest in view.
     expect(dock?.get('flex-direction')).toBe('column-reverse');
+    // An overflowing stack fades out at its top edge instead of slicing its
+    // oldest card, on the box's own scroll timeline: inactive, and so no
+    // mask at all, while everything fits.
+    expect(dock?.has('mask-image')).toBe(false);
+    expect(dock?.get('animation-timeline')).toBe('scroll(self block)');
+    expect(dock?.get('animation')).toMatch(/^notice-dock-overflow /);
+    // Scrolled up to the oldest notice, nothing is hidden above: no fade.
+    const fade = keyframes(
+      compileStylesheet('NoticeDock.scss'),
+      'notice-dock-overflow',
+    );
+    const at = (stop: string) =>
+      [...fade].find(([stops]) =>
+        stops.split(',').some((each) => each.trim() === stop),
+      )?.[1];
+    expect(at('0%')?.get('mask-image')).toMatch(
+      /^linear-gradient\(to bottom, transparent, #000 24px\)$/,
+    );
+    expect(at('100%')?.get('mask-image')).toBe('none');
     // The bar counts only while one is up; the foot only while it shows.
     expect(dock?.get('--notice-dock-bar')).toBe('0px');
     expect(

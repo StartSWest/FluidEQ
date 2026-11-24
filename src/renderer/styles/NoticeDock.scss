@@ -50,9 +50,34 @@ SPDX-License-Identifier: GPL-3.0-or-later
   overscroll-behavior: contain;
   pointer-events: none;
   scrollbar-width: none;
+  // An overflowing stack ends in a fade at its top edge, not a card sliced
+  // through its title under the titlebar (Ivan's review, 2026-11-24). Run on
+  // the box's own scroll timeline: with nothing to scroll the timeline is
+  // inactive and no mask is drawn at all — a mask is a layer of its own, and
+  // a stack that fits is the common case — and scrolled up to the oldest
+  // notice, where nothing is hidden above, the fade lets go. No shadow:
+  // light only, as everywhere in the window.
+  animation: notice-dock-overflow linear both;
+  animation-timeline: scroll(self block);
 
   &.is-above-sound-foot {
     --notice-dock-foot: #{$sound-pane-foot};
+  }
+}
+
+// The stack scrolls from its foot (`column-reverse`), so the timeline starts
+// with the oldest notice out of view above and ends with it in view: faded
+// for all of that but the end. `mask-image` changes in a step, never a
+// blend, so the two values say exactly where the fade is and where it is
+// not.
+@keyframes notice-dock-overflow {
+  0%,
+  98% {
+    mask-image: linear-gradient(to bottom, transparent, #000 24px);
+  }
+
+  100% {
+    mask-image: none;
   }
 }
 
