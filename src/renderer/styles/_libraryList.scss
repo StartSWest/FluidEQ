@@ -85,6 +85,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-weight: $weight-bold;
   @include tracking(0.02em);
 
+  // The tile is dark on every window (`libraryTileBackground`: a hue at 34%
+  // and 20% lightness), so its initials stay light on a white one, where the
+  // window's ink is near-black: dark letters on the deep hue stood at 2:1
+  // at best on every song without a cover, in the Library, the bar and the
+  // amp (Ivan, 2026-11-24, the white theme).
+  :root[data-window-ink='dark'] & {
+    color: $white;
+  }
+
   .library-cover-art--row & {
     font-size: $text-eyebrow;
   }
