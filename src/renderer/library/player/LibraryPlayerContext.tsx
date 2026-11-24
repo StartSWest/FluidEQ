@@ -258,6 +258,7 @@ export const LibraryPlayerProvider = ({
     publishedPositionMs,
     publishedDurationMs,
     endedTrackRef,
+    hostClockTrackId,
   } = usePlayerEngine({
     dspSettings,
     audioElements,
@@ -342,6 +343,8 @@ export const LibraryPlayerProvider = ({
     hostOwnsTransportRef,
     seekHost,
     hostEnded,
+    hostClockTrackId,
+    elementTrackRef,
     dspSettings,
     publishedPositionMs,
     publishedDurationMs,

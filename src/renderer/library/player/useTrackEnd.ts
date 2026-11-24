@@ -64,6 +64,13 @@ const useTrackEnd = (options: {
   seekHost: (positionMs: number) => void;
   /** True when the deck has reached the end of its file. */
   hostEnded: boolean;
+  /**
+   * The song the host's clock and `hostEnded` describe, or nothing while the
+   * host is still on the song before (`hostClockTrackOf`).
+   */
+  hostClockTrackId: string | undefined;
+  /** The song each element was last loaded with (`useDeckBookkeeping`). */
+  elementTrackRef: MutableRefObject<Map<HTMLMediaElement, string>>;
   dspSettings: IDspSettings;
   publishedPositionMs: number;
   publishedDurationMs: number;
@@ -89,6 +96,8 @@ const useTrackEnd = (options: {
     hostOwnsTransportRef,
     seekHost,
     hostEnded,
+    hostClockTrackId,
+    elementTrackRef,
     dspSettings,
     publishedPositionMs,
     publishedDurationMs,
@@ -181,6 +190,10 @@ const useTrackEnd = (options: {
    * whenever `handleEnded` is rebuilt, and with repeat one letting go of the
    * per-track mark so the same song can end again, a re-run against a held
    * `ended` would restart the song a second time.
+   *
+   * And only an end of the song playing: until the host has it, `ended` is
+   * the song before's (`hostClockTrackId`), and acting on it skipped the song
+   * just asked for.
    */
   const seenEndedRef = useRef(false);
   useEffect(() => {
@@ -189,7 +202,12 @@ const useTrackEnd = (options: {
     }
     seenEndedRef.current = hostEnded;
     const playing = trackIdRef.current;
-    if (!hostEnded || !playing || endedTrackRef.current === playing) {
+    if (
+      !hostEnded ||
+      !playing ||
+      hostClockTrackId !== playing ||
+      endedTrackRef.current === playing
+    ) {
       return;
     }
     endedTrackRef.current = playing;
@@ -197,7 +215,14 @@ const useTrackEnd = (options: {
     if (element) {
       handleEnded(element);
     }
-  }, [hostEnded, handleEnded, audioElementRef, endedTrackRef, trackIdRef]);
+  }, [
+    hostEnded,
+    hostClockTrackId,
+    handleEnded,
+    audioElementRef,
+    endedTrackRef,
+    trackIdRef,
+  ]);
 
   /**
    * Start the overlap while there is still music to overlap with.
@@ -211,16 +236,29 @@ const useTrackEnd = (options: {
    * One path serves both engines: `publishedPositionMs` is the host's when
    * there is a deck and the element's otherwise, so this reads whichever one
    * is making the sound.
+   *
+   * THE CLOCK HAS TO BE THE PLAYING SONG'S. A press moves the queue at once
+   * and the clock only once the song is loaded: the element's when the loader
+   * tags it, before it can tick again (`elementTrackRef`), the host's when
+   * the mirror has the song there (`hostClockTrackId`). In between it is the
+   * song before's, and read as the new song's it said the new song was over.
+   * "It's Gonna Be Me" (3:11) pressed while a longer song played at 4:10 was
+   * handed over at once to the first song Keep playing had drawn under it —
+   * an untagged "Track 6" from elsewhere in the library (Ivan, 2026-11-24).
    */
   useEffect(() => {
     const { current } = queueRef;
     const transition = dspSettings.crossfade;
     const playingId = current ? currentTrackId(current) : undefined;
     const element = audioElementRef.current;
+    const clockTrackId = hostOwnsTransportRef.current
+      ? hostClockTrackId
+      : element && elementTrackRef.current.get(element);
     if (
       !current ||
       !playingId ||
       !element ||
+      clockTrackId !== playingId ||
       !dspSettings.enabled ||
       !transition.enabled ||
       current.repeat === 'one' ||
@@ -258,9 +296,12 @@ const useTrackEnd = (options: {
   }, [
     publishedPositionMs,
     publishedDurationMs,
+    hostClockTrackId,
     dspSettings,
     naturalCrossfadeTrackRef,
     audioElementRef,
+    elementTrackRef,
+    hostOwnsTransportRef,
     programmeEdgesRef,
     queueRef,
     setQueue,

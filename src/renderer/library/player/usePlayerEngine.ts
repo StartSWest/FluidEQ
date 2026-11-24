@@ -21,7 +21,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * PREVIOUS track had reached played from the middle while the seek bar read
  * zero, because each side was telling the truth about a different player.
  */
-import { MutableRefObject, useCallback, useReducer, useRef } from 'react';
+import {
+  MutableRefObject,
+  useCallback,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
 import { IDspSettings } from '../../../common/dsp/chain';
 import { ILibraryTrack } from '../../../common/library/types';
 import { readDspNativeTransport, useDspNativeTransport } from '../../dsp/store';
@@ -54,7 +60,29 @@ export interface IPlayerEngine {
   publishedDurationMs: number;
   /** Fired for at most one track. */
   endedTrackRef: MutableRefObject<string | undefined>;
+  /**
+   * The song the host's clock and `hostEnded` describe, while the host owns
+   * the transport. See `hostClockTrackOf`.
+   */
+  hostClockTrackId: string | undefined;
 }
+
+/**
+ * The player's song, once the host's clock describes it; nothing before.
+ *
+ * Telemetry names no file, so the host's position, duration and end are the
+ * song the mirror has finished bringing it to (`onClockTrack`). Until the
+ * host has the new song they are still the one it had before — and an end
+ * judged by them was judged for the wrong song: "It's Gonna Be Me" (3:11),
+ * pressed while another song played at 4:10, read as already past its end,
+ * and the player handed over at once to the first song Keep playing had
+ * drawn under it (Ivan, 2026-11-24).
+ */
+export const hostClockTrackOf = (
+  hostClockPath: string | undefined,
+  track: Pick<ILibraryTrack, 'id' | 'path'> | undefined,
+): string | undefined =>
+  track !== undefined && hostClockPath === track.path ? track.id : undefined;
 
 export const usePlayerEngine = (options: {
   dspSettings: IDspSettings;
@@ -182,36 +210,46 @@ export const usePlayerEngine = (options: {
   /** Fired for at most one track; see the effect beside `handleEnded`. */
   const endedTrackRef = useRef<string | undefined>(undefined);
   const measuredLeadInMs = track?.normalization?.edges?.leadInMs ?? 0;
-  const mirrorSeek = useNativeMirror(nativeBackend, audioElements, {
-    mediaPath: track?.path,
-    isPlaying,
-    positionMs,
-    upcoming:
-      upcoming === undefined
-        ? undefined
-        : {
-            path: upcoming.path,
+  const [hostClockPath, setHostClockPath] = useState<string | undefined>(
+    undefined,
+  );
+  const mirrorSeek = useNativeMirror(
+    nativeBackend,
+    audioElements,
+    {
+      mediaPath: track?.path,
+      isPlaying,
+      positionMs,
+      upcoming:
+        upcoming === undefined
+          ? undefined
+          : {
+              path: upcoming.path,
+              startPositionMs:
+                upcoming.leadInMs >= MIN_LEAD_IN_TRIM_MS
+                  ? upcoming.leadInMs
+                  : 0,
+            },
+      /**
+       * The fade the mirror should use if the track changes under it.
+       *
+       * Passed as state rather than called as an event: the player sets the new
+       * track, React re-renders, and the mirror sees the change on the very next
+       * sync — which is exactly when the fade should start. A method called
+       * afterwards always arrived to find the track already cued as a cut.
+       */
+      transition: dspSettings.crossfade.enabled
+        ? {
+            durationMs: dspSettings.crossfade.durationMs,
+            curve: dspSettings.crossfade.curve,
+            shape: dspSettings.crossfade.shape,
             startPositionMs:
-              upcoming.leadInMs >= MIN_LEAD_IN_TRIM_MS ? upcoming.leadInMs : 0,
-          },
-    /**
-     * The fade the mirror should use if the track changes under it.
-     *
-     * Passed as state rather than called as an event: the player sets the new
-     * track, React re-renders, and the mirror sees the change on the very next
-     * sync — which is exactly when the fade should start. A method called
-     * afterwards always arrived to find the track already cued as a cut.
-     */
-    transition: dspSettings.crossfade.enabled
-      ? {
-          durationMs: dspSettings.crossfade.durationMs,
-          curve: dspSettings.crossfade.curve,
-          shape: dspSettings.crossfade.shape,
-          startPositionMs:
-            measuredLeadInMs >= MIN_LEAD_IN_TRIM_MS ? measuredLeadInMs : 0,
-        }
-      : undefined,
-  });
+              measuredLeadInMs >= MIN_LEAD_IN_TRIM_MS ? measuredLeadInMs : 0,
+          }
+        : undefined,
+    },
+    { onClockTrack: setHostClockPath },
+  );
   /**
    * The clock comes from the engine making the sound. See `hostTransport`.
    *
@@ -267,5 +305,6 @@ export const usePlayerEngine = (options: {
     publishedPositionMs,
     publishedDurationMs,
     endedTrackRef,
+    hostClockTrackId: hostClockTrackOf(hostClockPath, track),
   };
 };

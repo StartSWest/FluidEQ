@@ -153,6 +153,8 @@ describe('the player at the end of its list', () => {
         hostOwnsTransportRef: { current: true },
         seekHost: jest.fn(),
         hostEnded: false,
+        hostClockTrackId: 'b',
+        elementTrackRef: { current: new Map() },
         dspSettings: DSP_DEFAULTS,
         publishedPositionMs: 0,
         publishedDurationMs: 180_000,

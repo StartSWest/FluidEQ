@@ -468,6 +468,7 @@ export const useNativeMirror = (
         readHostPosition: built?.readHostPosition,
         onTrackRefused: () => optionsRef.current?.onTrackRefused?.(),
         onPlacement: setPlacementHeld,
+        onClockTrack: (path) => optionsRef.current?.onClockTrack?.(path),
       },
     );
     mirrorRef.current = mirror;

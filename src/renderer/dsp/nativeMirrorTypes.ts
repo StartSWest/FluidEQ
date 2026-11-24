@@ -148,4 +148,11 @@ export interface INativeMirrorOptions {
    * (`mirrorPlacement.ts`).
    */
   onPlacement?: (held: boolean) => void;
+  /**
+   * The file the host's clock is about: named once the host holds the track
+   * the player wants, undefined while a change of track is on its way and
+   * while the host holds nothing. Telemetry carries no file, and until the
+   * host has the new track its position is the previous one's.
+   */
+  onClockTrack?: (mediaPath: string | undefined) => void;
 }

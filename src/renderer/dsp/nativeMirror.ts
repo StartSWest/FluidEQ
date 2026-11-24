@@ -138,6 +138,26 @@ const createNativeMirror = (
     }
   };
   /**
+   * The file on the deck the host reports in telemetry, as far as the host
+   * has answered: the deck selected by a cut, or the deck a fade goes to,
+   * which the host reports from the moment the fade starts.
+   */
+  let deckPath: string | undefined;
+  /**
+   * The track the host's clock describes, for the player (`onClockTrack`):
+   * named once a track step has finished with that deck holding the track
+   * wanted, and taken back the moment another step starts. In between,
+   * telemetry still describes the deck the host had before, and the player
+   * read that song's position as the new one's.
+   */
+  let clockPath: string | undefined;
+  const tellClock = (path: string | undefined) => {
+    if (path !== clockPath) {
+      clockPath = path;
+      options.onClockTrack?.(path);
+    }
+  };
+  /**
    * The deck the current track is on, as the host answered. Seeks are
    * addressed here, never to a literal: which deck a track lands on is the
    * host's choice (`loadFor`).
@@ -180,6 +200,8 @@ const createNativeMirror = (
       return;
     }
     own(false);
+    deckPath = undefined;
+    tellClock(undefined);
     // The host lets go of the next track with its decks (UNLOAD_DECK).
     spareTold = undefined;
     handBack(resume);
@@ -247,6 +269,7 @@ const createNativeMirror = (
     if (released) {
       return;
     }
+    deckPath = mediaPath;
     /**
      * Told either way, and recorded either way. A cue that is not playing has
      * to leave the host stopped, or the next track inherits the previous one's
@@ -330,6 +353,7 @@ const createNativeMirror = (
     if (released) {
       return;
     }
+    deckPath = mediaPath;
     if (!playing) {
       // The fade was asked for with the host stopped, so it is this track
       // coming in alone; starting the transport is what lets it.
@@ -360,6 +384,7 @@ const createNativeMirror = (
   const settleClock = () => {
     if (loadedPath === wanted?.mediaPath) {
       clock.settle();
+      tellClock(deckPath === loadedPath ? loadedPath : undefined);
     }
   };
 
@@ -385,9 +410,11 @@ const createNativeMirror = (
       const previous = loadedPath;
       const incoming = want.mediaPath;
       loadedPath = incoming;
+      tellClock(undefined);
       if (incoming === undefined) {
         return async () => {
           own(false);
+          deckPath = undefined;
           // An emptied deck is not playing, and the flag has to say so or the
           // next track that arrives already playing agrees with it and is
           // never started.
@@ -613,6 +640,8 @@ const createNativeMirror = (
       loadedPath = undefined;
       playing = false;
       own(false);
+      deckPath = undefined;
+      tellClock(undefined);
       stopWatchingLetGo?.();
       const stopped = controller.transport.pause();
       placement.letGo(stopped).catch(() => undefined);

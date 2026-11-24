@@ -32,6 +32,8 @@ const setUp = (hostOwns: boolean) => {
     hostOwnsTransportRef: { current: hostOwns },
     seekHost,
     hostEnded,
+    hostClockTrackId: 'song',
+    elementTrackRef: { current: new Map([[element, 'song']]) },
     dspSettings: DSP_DEFAULTS,
     publishedPositionMs: 180_000,
     publishedDurationMs: 180_000,
