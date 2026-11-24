@@ -74,4 +74,19 @@ describe('the Game filter on a white window', () => {
       ).join(' '),
     ).toContain('var(--ink-star');
   });
+
+  // The strip's steps band and calm, keyed in the legend: a pale grey and
+  // the amber on a dark window, a cool grey and the caution ink on white,
+  // as `DspFootstepsGraph.tsx` draws them.
+  it('keys the steps band and the calm in inks that show on white', () => {
+    expect(value('.dsp-footsteps-legend .is-steps', 'color')).toEqual([
+      'rgba(206, 218, 228, 0.85)',
+    ]);
+    expect(value(`${LIGHT} .dsp-footsteps-legend .is-steps`, 'color')).toEqual([
+      'rgba(112, 124, 134, 0.85)',
+    ]);
+    expect(value(`${LIGHT} .dsp-footsteps-legend .is-calmed`, 'color')).toEqual(
+      ['var(--ink-caution, #ffb059)'],
+    );
+  });
 });

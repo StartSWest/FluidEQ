@@ -360,6 +360,16 @@ $environment-ink: list.nth($lagoon, 1);
     color: $ink-caution;
   }
 
+  // The legend's keys, as the strip now draws them (`CUE_INK_ON_WHITE`,
+  // `CALMED_INK_ON_WHITE` in `DspFootstepsGraph.tsx`).
+  .dsp-footsteps-legend .is-steps {
+    color: rgb(112 124 134 / 85%);
+  }
+
+  .dsp-footsteps-legend .is-calmed {
+    color: $ink-caution;
+  }
+
   .dsp-game-figure,
   .dsp-game-meter.is-voice .dsp-footsteps-lamp-figure,
   .dsp-footsteps-reach.is-voice {

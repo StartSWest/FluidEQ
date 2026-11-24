@@ -9,6 +9,7 @@ import LiveFigure from '../components/LiveFigure';
 import { useTranslation } from '../utils/I18nContext';
 import writeLiveText from '../utils/liveText';
 import { readTextInk } from '../utils/theme';
+import { isLightWindow } from '../utils/windowSide';
 import { appliedInk, outputInk } from './dspInks';
 import { readDspFootstepsReport } from './footstepsTelemetry';
 import { drawFootsteps, IFootstepsInks } from './footstepsPlot';
@@ -47,8 +48,16 @@ const PAD_T = 64;
 const PAD_B = 20;
 const PAD_X = 12;
 
+// The calm in the amber, and the steps band in a fixed pale grey, on a dark
+// window. On a white one both were lights on white - the band at 1.3:1 all
+// but gone, the calm at 1.8:1 - so there the calm is the caution ink
+// (`--ink-caution`, App.scss) and the band a cool grey of the same family
+// that stands about 4:1 off the white (2026-11-24, the white theme). The
+// legend's keys follow (`_dspFootsteps.scss`).
 const CALMED_INK = '255, 176, 89';
 const CUE_INK = '206, 218, 228';
+const CALMED_INK_ON_WHITE = '143, 86, 0';
+const CUE_INK_ON_WHITE = '112, 124, 134';
 
 const formatLift = (db: number): string =>
   db < 0.05 ? '0.0 dB' : `+${db.toFixed(1)} dB`;
@@ -182,14 +191,16 @@ const DspFootstepsGraph = ({ enabled, isolate }: IDspFootstepsGraphProps) => {
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
       context.clearRect(0, 0, width, height);
 
-      // The band in a fixed pale grey, as the De-esser draws what it leaves,
+      // The band in a fixed grey (pale on a dark window, deeper on white), as
+      // the De-esser draws what it leaves,
       // so the lift is the one coloured thing on the strip whatever colours
       // a scene gives the page.
+      const onWhite = isLightWindow();
       const inks: IFootstepsInks = {
         level: outputInk(),
-        cue: CUE_INK,
+        cue: onWhite ? CUE_INK_ON_WHITE : CUE_INK,
         lifted: appliedInk(),
-        calmed: CALMED_INK,
+        calmed: onWhite ? CALMED_INK_ON_WHITE : CALMED_INK,
         text: readTextInk(),
       };
       drawFootsteps(
