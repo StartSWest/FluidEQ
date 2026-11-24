@@ -76,6 +76,12 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $neon-yellow;
   font-size: $text-small;
 
+  // Words in the yellow stood at 1.2:1 on a white window: the caution ink
+  // there (`$ink-caution`, 5 to 6:1). A dark window keeps the yellow.
+  :root[data-window-ink='dark'] & {
+    color: $ink-caution;
+  }
+
   > span {
     overflow-wrap: anywhere;
   }

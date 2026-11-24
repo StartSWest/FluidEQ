@@ -830,7 +830,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // this" and must not be near it.
 .library-list__menu-icon--on,
 .library-list__badge--favorite {
-  color: $neon-yellow;
+  // A deep gold on a white window (`$ink-star`), where the yellow stood at
+  // 1.2:1 beside the title.
+  color: $ink-star;
 
   svg {
     fill: currentcolor;

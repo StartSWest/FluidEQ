@@ -120,6 +120,13 @@ $ink-added: var(--ink-added, #{$analogous-2});
 $ink-caution: var(--ink-caution, #{$amber});
 $ink-removed: var(--ink-removed, #{$red});
 
+// The reader's own yellow mark, a filled star (a favourite, a given star):
+// the neon yellow on a dark window, and on a white one a deep gold of the
+// same hue (`--ink-star`, App.scss) past the 3:1 a mark needs, where the
+// yellow stood at 1.2:1 (2026-11-24). A mark, not words: words in that
+// yellow take `$ink-caution` on white, which reaches 4.5:1.
+$ink-star: var(--ink-star, #{$neon-yellow});
+
 // "Tuned", as the Gaming Lab says a game's copy moved away from its profile:
 // the lavender on a dark window, and on a white one a deep violet of the same
 // meaning (7:1 on white), where the lavender measured 1.4:1 and the word
