@@ -51,14 +51,14 @@ describe('the notices’ stack', () => {
     const { container, rerender } = render(
       <NoticeDockProvider>
         <Raised id="a">The engine is off</Raised>
-        <NoticeDock isAboveSoundFoot />
+        <NoticeDock />
       </NoticeDockProvider>,
     );
     rerender(
       <NoticeDockProvider>
         <Raised id="a">The engine is off</Raised>
         <Raised id="b">A new FluidEQ</Raised>
-        <NoticeDock isAboveSoundFoot />
+        <NoticeDock />
       </NoticeDockProvider>,
     );
     const stack = stackOf(container);
@@ -72,25 +72,6 @@ describe('the notices’ stack', () => {
       ['notice-dock__slot', 'The engine is off'],
       ['notice-dock__slot', 'A new FluidEQ'],
     ]);
-  });
-
-  it('stands on the sound panel’s foot only while the foot is on screen', () => {
-    const { container, rerender } = render(
-      <NoticeDockProvider>
-        <NoticeDock isAboveSoundFoot />
-      </NoticeDockProvider>,
-    );
-    expect(container.querySelector('.notice-dock')).toHaveClass(
-      'is-above-sound-foot',
-    );
-    rerender(
-      <NoticeDockProvider>
-        <NoticeDock isAboveSoundFoot={false} />
-      </NoticeDockProvider>,
-    );
-    expect(container.querySelector('.notice-dock')).not.toHaveClass(
-      'is-above-sound-foot',
-    );
   });
 
   it('draws a notice where it is raised when there is no dock at all', () => {
@@ -119,7 +100,7 @@ describe('the notices’ stack', () => {
           <button type="button" onClick={() => setShown(false)}>
             hide
           </button>
-          <NoticeDock isAboveSoundFoot={false} />
+          <NoticeDock />
         </NoticeDockProvider>
       );
     };
@@ -175,7 +156,7 @@ describe('where the notices stand', () => {
         within.length === 0 && selectors.includes(selector),
     )?.declarations;
 
-  it('is the bottom right corner, over the transport bar and the panel’s foot', () => {
+  it('is the bottom right corner, standing on the bottom bar', () => {
     const rules = styleRules(compileStylesheet('NoticeDock.scss'));
     const dock = rule(rules, '.notice-dock');
     expect(dock?.get('position')).toBe('fixed');
@@ -204,18 +185,24 @@ describe('where the notices stand', () => {
       /^linear-gradient\(to bottom, transparent, #000 24px\)$/,
     );
     expect(at('100%')?.get('mask-image')).toBe('none');
-    // The bar counts only while one is up; the foot only while it shows.
+    // The bar counts only while one is up.
     expect(dock?.get('--notice-dock-bar')).toBe('0px');
     expect(
       rule(rules, '#root.has-now-playing .notice-dock')?.get(
         '--notice-dock-bar',
       ),
     ).toMatch(/var\(--now-playing-bar-height/);
+    // On the bar itself, never lifted over the sound panel's foot and its
+    // fluideq.com (Ivan, 2026-11-24: "it needs to be on top of the bottom
+    // bar, not on top of the fluideq.com").
+    expect(dock?.get('--notice-dock-floor')).toBe(
+      'calc(var(--notice-dock-bar) + 8px)',
+    );
     expect(
-      rule(rules, '.notice-dock.is-above-sound-foot')?.get(
-        '--notice-dock-foot',
+      rules.some(({ selectors }) =>
+        selectors.some((selector) => selector.includes('sound-foot')),
       ),
-    ).toBe('54px');
+    ).toBe(false);
   });
 
   // The positive control for the stack: none of them places itself any more,

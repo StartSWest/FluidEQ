@@ -969,7 +969,7 @@ const AppContent = () => {
         <EngineKeySwitch />
         {/* The notices' stack, bottom right, standing on the sound panel's
             foot while that is on screen so fluideq.com stays in view. */}
-        <NoticeDock isAboveSoundFoot={isSoundPaneShown} />
+        <NoticeDock />
         {/* Drawn at the foot of the document, over the app it puts away. */}
         {windowMode === 'player' && (
           <MiniPlayer onOpenPage={openPageFromPlayer} />

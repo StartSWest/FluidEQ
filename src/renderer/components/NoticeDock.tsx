@@ -18,10 +18,11 @@ import '../styles/NoticeDock.scss';
 
 /**
  * Where every notice that arrives on its own is drawn: one stack in the
- * window's bottom right corner, over the foot of the sound panel where
- * fluideq.com stands, newest nearest the corner (Ivan, 2026-11-24: "move all
- * notifications to the bottom right where the fluideq.com is so it doesn't
- * clutter the view on the top right").
+ * window's bottom right corner, standing on the bottom bar, newest nearest
+ * the corner (Ivan, 2026-11-24: "move all notifications to the bottom right
+ * where the fluideq.com is so it doesn't clutter the view on the top right",
+ * then "it needs to be on top of the bottom bar, not on top of the
+ * fluideq.com").
  *
  * Each notice used to place itself — top right under the titlebar, centred
  * under it for the engine's cards, the two bottom corners for the rest — and
@@ -105,26 +106,16 @@ export function NoticeDockProvider({ children }: { children: ReactNode }) {
   );
 }
 
-interface INoticeDockProps {
-  /**
-   * The sound panel's foot is on screen at the window's right edge, with
-   * fluideq.com in it: the stack stands above it rather than over the link.
-   */
-  isAboveSoundFoot: boolean;
-}
-
 /**
  * The stack itself: an empty column at the corner the notices fill. Two
  * boxes, because the outer one scrolls from its foot: a stack taller than the
  * window keeps its newest notice in view at the corner and lets the oldest go
  * out of view at the top, where one box would have cut off the newest.
  */
-export function NoticeDock({ isAboveSoundFoot }: INoticeDockProps) {
+export function NoticeDock() {
   const context = useContext(NoticeDockContext);
   return (
-    <div
-      className={`notice-dock${isAboveSoundFoot ? ' is-above-sound-foot' : ''}`}
-    >
+    <div className="notice-dock">
       <div ref={context?.setDock} className="notice-dock__stack" />
     </div>
   );

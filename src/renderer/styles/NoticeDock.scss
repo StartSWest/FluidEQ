@@ -9,24 +9,23 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'spacing' as *;
 
 // The one place a notice that arrives on its own is drawn (`NoticeDock.tsx`):
-// the window's bottom right corner, standing on the sound panel's foot where
-// fluideq.com is, the newest nearest the corner and the older ones above it
-// (Ivan, 2026-11-24). Every notice used to place itself — top right under the
-// titlebar, centred under it for the engine's cards, a bottom corner for the
-// rest, two of those over the transport bar — and covered the page where the
-// work happens. Here they stand in one column, over the panel's foot and
-// clear of everything at the window's bottom edge, and a notice arriving
-// moves nothing in the page: the dock floats, and lets the pointer through
-// everywhere but the cards.
+// the window's bottom right corner, standing on the bottom bar, the newest
+// nearest the corner and the older ones above it (Ivan, 2026-11-24). Every
+// notice used to place itself — top right under the titlebar, centred under
+// it for the engine's cards, a bottom corner for the rest, two of those over
+// the transport bar — and covered the page where the work happens. Here they
+// stand in one column, clear of the bar, and a notice arriving moves nothing
+// in the page: the dock floats, and lets the pointer through everywhere but
+// the cards. It stood on the sound panel's foot first, over fluideq.com, and
+// Ivan moved it down onto the bar the same day ("it needs to be on top of
+// the bottom bar, not on top of the fluideq.com"): a card covers the link
+// while it is up.
 .notice-dock {
   // What the dock stands on, from the window's bottom edge up: the transport
-  // bar while one is up (`useTransportStrip`), then the sound panel's foot
-  // while it is on screen, then a gap the width of the one at the side.
+  // bar while one is up (`useTransportStrip`), then a gap the width of the
+  // one at the side.
   --notice-dock-bar: 0px;
-  --notice-dock-foot: 0px;
-  --notice-dock-floor: calc(
-    var(--notice-dock-bar) + var(--notice-dock-foot) + #{$spacing-s}
-  );
+  --notice-dock-floor: calc(var(--notice-dock-bar) + #{$spacing-s});
   position: fixed;
   // Over the transport bar (1100) and a full-screen video (1150), so a card
   // is never cut by them; under every dialog's scrim (1450 and up), which
@@ -59,10 +58,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // light only, as everywhere in the window.
   animation: notice-dock-overflow linear both;
   animation-timeline: scroll(self block);
-
-  &.is-above-sound-foot {
-    --notice-dock-foot: #{$sound-pane-foot};
-  }
 }
 
 // The stack scrolls from its foot (`column-reverse`), so the timeline starts
