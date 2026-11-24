@@ -841,6 +841,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: rgba($neon-yellow, 0.85);
 }
 
+// The yellow is a light, 1.2:1 on a white window: there the badge and the
+// title below are the same warm hue held under the light window's ink
+// ceiling (`readable-ink`). A dark window keeps the yellow.
+:root[data-window-ink='dark'] .library-list__badge--folder,
+:root[data-window-ink='dark']
+  .library-list__row--folder-only
+  .library-list__title-label {
+  color: readable-ink($neon-yellow);
+}
+
 // In this folder, not on this record.
 //
 // The badge beside the title has always said so, and one glyph among fifteen

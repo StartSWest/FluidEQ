@@ -24,6 +24,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import fs from 'fs';
 import path from 'path';
+import { compileStylesheet, styleRules } from '../../utils/stylesheetRules';
 
 const STYLES = path.join(__dirname, '..', '..', '..', 'renderer', 'styles');
 const OWN_DARK_STAGE = /^(_tour-|Wallpaper|RhythmGame|Support\.scss)/;
@@ -60,5 +61,35 @@ describe('words in a state colour', () => {
       ...fs.readFileSync(file, 'utf8').matchAll(INK_AS_WORDS),
     ]);
     expect(inks.length).toBeGreaterThan(100);
+  });
+});
+
+// The same lights worn with an alpha, which the source scan above does not
+// read: each has a light window's rule of its own.
+describe('words in a state light worn with an alpha, on a white window', () => {
+  const LIGHT = ':root[data-window-ink=dark]';
+  const colourOf = (sheet: string, selector: string) =>
+    styleRules(compileStylesheet(sheet))
+      .filter((rule) => rule.selectors.includes(selector))
+      .map((rule) => rule.declarations.get('color'))
+      .filter(Boolean);
+
+  it.each([
+    ['Dsp.scss', '.dsp-de-esser-status .is-cut', 'var(--ink-caution'],
+    ['ErrorBoundary.scss', '.crash-screen__detail', 'var(--ink-removed'],
+    [
+      'Library.scss',
+      '.library-list__badge--folder',
+      'min(l, var(--ink-ceiling',
+    ],
+    [
+      'Library.scss',
+      '.library-list__row--folder-only .library-list__title-label',
+      'min(l, var(--ink-ceiling',
+    ],
+  ])('%s %s takes a readable ink', (sheet, selector, ink) => {
+    // Positive control: the dark window's rule is the light with an alpha.
+    expect(colourOf(sheet, selector).join(' ')).toMatch(/rgba\(/);
+    expect(colourOf(sheet, `${LIGHT} ${selector}`).join(' ')).toContain(ink);
   });
 });

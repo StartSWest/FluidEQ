@@ -40,6 +40,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
   .is-cut,
   .is-isolate {
     color: rgba($amber, 0.92);
+
+    // The amber is a light: 1.8:1 as words on a white window, where the
+    // caution ink reads (`$ink-caution`). A dark window keeps the amber.
+    :root[data-window-ink='dark'] & {
+      color: $ink-caution;
+    }
   }
 
   .is-hidden {

@@ -55,6 +55,12 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 12px 14px;
   color: rgba($red, 0.92);
   border: 1px solid rgba($red, 0.28);
+
+  // The red is a light, 2.9:1 on a white window's well: the stack in the
+  // removed ink there (`$ink-removed`). A dark window keeps the red.
+  :root[data-window-ink='dark'] & {
+    color: $ink-removed;
+  }
   border-radius: $radius-xs;
   // The plot well, like every other block of fixed-width evidence in the
   // app. It was a near-black of its own, which is a colour this window does
