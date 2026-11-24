@@ -130,6 +130,9 @@ export const ENERGY_BARS: IBarView = {
   radius: (width) => Math.min(6, width / 3),
 };
 
+/** The figure over each column, in CSS pixels: its size and its lift. */
+const FIGURE_PX = 11;
+
 /** A band's reading as the decibels the right-hand scale would name. */
 const asDecibels = (level: number) =>
   level <= 0 ? '—' : `${((level - 1) * ANALYSIS_RANGE_DB).toFixed(0)}`;
@@ -148,10 +151,14 @@ export const paintEnergyWords = (
   const front = rows[rows.length - 1];
   const { bands, hold } = front;
   const labels = energyBandLabels(bands.length);
-  const inward = band.flipped ? 1 : -1;
   // The band names on the measuring views' word row, over the frequency
   // names rather than across them (`footWords.ts`).
   const line = footWordLine(band);
+  // A word goes only where it fits its column: on a narrow plot (the look
+  // picker's tile) the names ran into one another as one line of letters,
+  // and the figures over five columns into a smear.
+  const fits = (text: string, width: number) =>
+    context.measureText(text).width <= width;
   context.save();
   context.textAlign = 'center';
   for (let index = 0; index < bands.length; index += 1) {
@@ -161,12 +168,24 @@ export const paintEnergyWords = (
     context.textBaseline = line.baseline;
     context.globalAlpha = band.opacity * 0.85;
     context.fillStyle = readInk(0.82);
-    context.fillText(labels[index], middle, line.y);
+    if (fits(labels[index], width)) {
+      context.fillText(labels[index], middle, line.y);
+    }
     const head = placeLevel(band, Math.max(bands[index], hold[index]));
-    context.font = '600 11px system-ui, sans-serif';
+    context.font = `600 ${FIGURE_PX}px system-ui, sans-serif`;
     context.textBaseline = band.flipped ? 'top' : 'bottom';
     context.globalAlpha = band.opacity * 0.7;
-    context.fillText(asDecibels(hold[index]), middle, head + inward * 11);
+    // Over the column's head, clear of its hold mark, or not at all: a
+    // column near the top of its scale printed its figure off the plot, cut
+    // in half, and pushed back inside it the figure sat on the hold mark.
+    const at = band.flipped ? head + FIGURE_PX : head - FIGURE_PX;
+    const room = band.flipped
+      ? at + FIGURE_PX <= band.bottom
+      : at - FIGURE_PX >= band.top;
+    const figure = asDecibels(hold[index]);
+    if (room && fits(figure, width)) {
+      context.fillText(figure, middle, at);
+    }
   }
   context.restore();
   context.globalAlpha = 1;

@@ -384,11 +384,26 @@ export const cabinetFrameLayout = (
     );
   };
 
+  // A readout is printed only where it stands whole and clear of the one
+  // beside it: on a screen the width of the look picker's tile the two
+  // scores and the credit printed through each other as one smear. The
+  // score goes first, then the best if it clears it, then the credit.
+  const edge = width - margin * 2;
   const score = `SCORE ${digits(state.score)}`;
   const scoreLeft = margin * 2;
-  print(score, scoreLeft, top);
+  const scoreRight = scoreLeft + textWidth(score);
+  const scoreFits = scoreRight <= edge;
+  if (scoreFits) {
+    print(score, scoreLeft, top);
+  }
   const best = `HI-SCORE ${digits(state.best)}`;
-  print(best, (width - textWidth(best)) / 2, top);
+  const bestLeft = (width - textWidth(best)) / 2;
+  if (
+    bestLeft >= (scoreFits ? scoreRight + GLYPH_PITCH * label : scoreLeft) &&
+    bestLeft + textWidth(best) <= edge
+  ) {
+    print(best, bestLeft, top);
+  }
 
   // The ground across the whole screen, lifted clear of anything the app
   // pins over the bottom edge — and alive: still one thin line, but traced
@@ -450,14 +465,21 @@ export const cabinetFrameLayout = (
     );
   }
   const credit = 'CREDIT 00';
-  readout.push(
-    ...spriteRects(
-      textBitmap(credit),
-      width - margin * 2 - textWidth(credit) / 2,
-      floor - relief / 2 - label * 9,
-      label,
-    ),
-  );
+  // Clear of the spare ships on its left, or not printed.
+  const sparesRight =
+    state.lives > 0
+      ? scoreLeft + SHIP.width * icon * (1 + (state.lives - 1) * 1.5)
+      : scoreLeft;
+  if (edge - textWidth(credit) >= sparesRight + GLYPH_PITCH * label) {
+    readout.push(
+      ...spriteRects(
+        textBitmap(credit),
+        edge - textWidth(credit) / 2,
+        floor - relief / 2 - label * 9,
+        label,
+      ),
+    );
+  }
 
   return { ground, readout, spare };
 };
