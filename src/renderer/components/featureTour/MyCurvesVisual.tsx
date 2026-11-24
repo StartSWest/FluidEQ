@@ -68,8 +68,8 @@ interface ITurn {
 function CurvesPage({ turn, index }: { turn: ITurn; index: number }) {
   const { t } = useTranslation();
   const tabs: [string, TranslationKey][] = [
-    ['opra', 'myCurves.tab.opra'],
     ['mine', 'myCurves.tab.mine'],
+    ['opra', 'myCurves.tab.opra'],
   ];
   return (
     <div className={`my-curves-visual__turn my-curves-visual__turn--${index}`}>

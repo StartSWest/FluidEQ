@@ -55,10 +55,14 @@ const LibraryTab = ({
  * Squiglink is a source for My curves, rather than a second library holding
  * the same imports (Ivan, 2026-10-25, approved Unified library mockup). Its
  * shortcut stays above the saved list so a growing list cannot bury it.
+ *
+ * My curves comes first and is where the page opens (Ivan, 2026-11-24: "move
+ * my curves first then OPRA"): the curves somebody chose to keep are what
+ * they come back for; the library of thousands is where they go looking once.
  */
 const EqPresetsPanel = () => {
   const { t } = useTranslation();
-  const [library, setLibrary] = useState<TLibrary>('opra');
+  const [library, setLibrary] = useState<TLibrary>('mine');
   // An open that names a list shows it, the page already up or not: Add a
   // curve's From OPRA, with no OPRA correction to copy, leads to the library.
   useEffect(() => {
@@ -86,12 +90,12 @@ const EqPresetsPanel = () => {
       </div>
 
       <div className="autoeq-panel__libraries" role="tablist">
-        <LibraryTab id="opra" library={library} onPick={setLibrary}>
-          {t('myCurves.tab.opra')}
-        </LibraryTab>
         <LibraryTab id="mine" library={library} onPick={setLibrary}>
           {t('myCurves.tab.mine')}
           <span className="autoeq-panel__tab-count">{myCurves.length}</span>
+        </LibraryTab>
+        <LibraryTab id="opra" library={library} onPick={setLibrary}>
+          {t('myCurves.tab.opra')}
         </LibraryTab>
       </div>
 

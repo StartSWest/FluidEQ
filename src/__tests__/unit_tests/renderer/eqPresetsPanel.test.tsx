@@ -22,27 +22,17 @@ jest.mock('renderer/eq/myCurvesStore', () => ({
   useMyCurves: () => [],
 }));
 
-it('offers OPRA and My curves as the two libraries, with their panels correctly labelled', async () => {
+// Ivan, 2026-11-24: "move my curves first then OPRA".
+it('offers My curves first and opens on it, then OPRA, with their panels correctly labelled', async () => {
   render(<EqPresetsPanel />);
   await act(async () => undefined);
   expect(
     screen
       .getAllByRole('tab')
       .map((tab) => tab.textContent?.replace(/\d+$/, '')),
-  ).toEqual(['OPRA library', 'My curves']);
-  // OPRA's library opens, and nothing else is on the page with it.
-  expect(screen.getByTestId('opra')).toBeInTheDocument();
-  expect(screen.getByRole('tabpanel')).toHaveAttribute(
-    'aria-labelledby',
-    'autoeq-tab-opra',
-  );
-  expect(screen.queryByTestId('mine')).not.toBeInTheDocument();
-  // My curves is the list alone.
-  fireEvent.click(screen.getByRole('tab', { name: /My curves/ }));
+  ).toEqual(['My curves', 'OPRA library']);
+  // My curves opens, the list alone.
   expect(screen.getByTestId('mine')).toBeInTheDocument();
-  expect(
-    screen.queryByRole('tab', { name: 'Squiglink' }),
-  ).not.toBeInTheDocument();
   expect(screen.getByRole('tab', { name: /My curves/ })).toHaveAttribute(
     'aria-selected',
     'true',
@@ -52,7 +42,18 @@ it('offers OPRA and My curves as the two libraries, with their panels correctly 
     'autoeq-tab-mine',
   );
   expect(screen.queryByTestId('opra')).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole('tab', { name: 'Squiglink' }),
+  ).not.toBeInTheDocument();
+  // OPRA's library, and nothing else is on the page with it.
   fireEvent.click(screen.getByRole('tab', { name: 'OPRA library' }));
   expect(screen.getByTestId('opra')).toBeInTheDocument();
+  expect(screen.getByRole('tabpanel')).toHaveAttribute(
+    'aria-labelledby',
+    'autoeq-tab-opra',
+  );
   expect(screen.queryByTestId('mine')).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('tab', { name: /My curves/ }));
+  expect(screen.getByTestId('mine')).toBeInTheDocument();
+  expect(screen.queryByTestId('opra')).not.toBeInTheDocument();
 });
