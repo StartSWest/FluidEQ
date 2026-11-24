@@ -21,7 +21,12 @@ import {
   setRainbowStops,
 } from '../../../../renderer/utils/rainbowPalette';
 import { windowLevelRamps } from '../../../../renderer/utils/windowInk';
-import { setWindowTintSecondary } from '../../../../renderer/utils/windowTint';
+import {
+  restoreWindowTint,
+  setWindowTintSecondary,
+  windowTintSnapshot,
+  type IWindowTintSnapshot,
+} from '../../../../renderer/utils/windowTint';
 
 /**
  * The light window's ground, its accent walk and the colour Colourful mode
@@ -122,8 +127,14 @@ describe('one colour as a loudness ramp', () => {
 
 describe('which views climb the ramp', () => {
   const root = document.documentElement;
+  // A window has a second colour by default (the violet, 2026-11-24); one
+  // colour is what the listener asks for with the Tint's ×, and that is the
+  // case these views climb the ramp in.
+  let asItCame: IWindowTintSnapshot;
 
   beforeEach(() => {
+    asItCame = windowTintSnapshot();
+    setWindowTintSecondary(undefined);
     root.style.setProperty('--surface-base', WHITE_GROUND);
     root.style.setProperty('--accent', WHITE_ACCENT);
     root.style.setProperty('--active', '#4a7bd6');
@@ -131,7 +142,7 @@ describe('which views climb the ramp', () => {
 
   afterEach(() => {
     setRainbowStops(undefined);
-    setWindowTintSecondary(undefined);
+    restoreWindowTint(asItCame);
     root.classList.remove('is-euphoric');
     ['--surface-base', '--accent', '--active'].forEach((token) =>
       root.style.removeProperty(token),
@@ -151,7 +162,7 @@ describe('which views climb the ramp', () => {
   });
 
   it("Colourful mode's stops when they are seven copies of one colour", () => {
-    // What the white window draws in with no second colour on the Tint:
+    // What the white window draws in with one colour on the Tint:
     // the case Ivan saw, which Rainbow alone had let through as "colours".
     setRainbowStops(Array.from({ length: 7 }, () => '#00a5ae'));
     root.classList.add('is-euphoric');
@@ -163,6 +174,9 @@ describe('which views climb the ramp', () => {
   it('nothing when there are colours enough to ramp between already', () => {
     expect(windowLevelRamps(['#c0392b', '#2980b9'])).toBeUndefined();
     setWindowTintSecondary('#8e44ad');
+    expect(windowLevelRamps([])).toBeUndefined();
+    // Nothing chosen: the default violet is a second colour to ramp to.
+    restoreWindowTint(asItCame);
     expect(windowLevelRamps([])).toBeUndefined();
     setWindowTintSecondary(undefined);
     // A Plus scene's own rainbow.

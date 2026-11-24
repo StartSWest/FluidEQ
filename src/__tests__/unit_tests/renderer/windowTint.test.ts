@@ -181,12 +181,76 @@ describe('a colour picked whole for the Tint', () => {
   });
 });
 
+/** The second colour as a launch on `stored` wears it and as it was chosen. */
+const secondOnLaunch = (stored: Record<string, string>) => {
+  const { tint, rtl } = launchWithHooks(stored);
+  const worn = rtl.renderHook(() => tint.useWindowTintSecondary());
+  const chosen = rtl.renderHook(() => tint.useWindowTintSecondChosen());
+  const one = rtl.renderHook(() => tint.useWindowTintOneColour());
+  const seen = {
+    worn: worn.result.current,
+    read: tint.getWindowTintSecondary(),
+    chosen: chosen.result.current,
+    isOneColour: one.result.current,
+  };
+  rtl.cleanup();
+  return seen;
+};
+
 describe('the Tint’s second colour', () => {
-  it('follows the first until one is chosen, is remembered, and goes back to one colour', () => {
+  // Ivan, 2026-11-24: "I think we should default a second color for the app
+  // UI. Pick a nice purple one"; he picked the violet from the board.
+  it('is the default violet on a window where nothing was chosen, and never writes it', () => {
+    const tint = launch();
+    expect(tint.DEFAULT_SECOND_COLOUR).toBe('#8b6cff');
+    expect(secondOnLaunch({})).toEqual({
+      worn: '#8b6cff',
+      read: '#8b6cff',
+      // Worn, not chosen: the default is no choice of the listener's.
+      chosen: undefined,
+      isOneColour: false,
+    });
+    expect(window.localStorage.getItem(SECONDARY_KEY)).toBeNull();
+  });
+
+  // Ivan's own window holds #ae00ff: it must still be #ae00ff after the
+  // default arrives, because a colour chosen wins over it.
+  it('keeps a colour chosen before the default, #ae00ff staying #ae00ff', () => {
+    expect(secondOnLaunch({ [SECONDARY_KEY]: '#ae00ff' })).toEqual({
+      worn: '#ae00ff',
+      read: '#ae00ff',
+      chosen: '#ae00ff',
+      isOneColour: false,
+    });
+    expect(window.localStorage.getItem(SECONDARY_KEY)).toBe('#ae00ff');
+  });
+
+  it('keeps one colour asked for across a launch, and the default does not come back', () => {
+    const { tint, rtl } = launchWithHooks();
+    const { result } = rtl.renderHook(() => tint.useWindowTintSecondary());
+    rtl.act(() => tint.setWindowTintSecondary(undefined));
+    expect(result.current).toBeUndefined();
+    expect(window.localStorage.getItem(SECONDARY_KEY)).toBe('none');
+    rtl.cleanup();
+
+    expect(secondOnLaunch({ [SECONDARY_KEY]: 'none' })).toEqual({
+      worn: undefined,
+      read: undefined,
+      chosen: undefined,
+      isOneColour: true,
+    });
+    // CONTROL: the key taken away is the default again.
+    expect(secondOnLaunch({}).worn).toBe('#8b6cff');
+  });
+
+  it('opens on the default from nonsense in the key', () => {
+    expect(secondOnLaunch({ [SECONDARY_KEY]: 'purple' }).worn).toBe('#8b6cff');
+  });
+
+  it('is remembered when chosen, kept when the first colour moves, and gives way to one colour', () => {
     const { tint, rtl } = launchWithHooks();
     const { act } = rtl;
     const { result } = rtl.renderHook(() => tint.useWindowTintSecondary());
-    expect(result.current).toBeUndefined();
 
     act(() => tint.setWindowTintSecondary('#D03F8A'));
     expect(result.current).toBe('#d03f8a');
@@ -200,7 +264,31 @@ describe('the Tint’s second colour', () => {
 
     act(() => tint.setWindowTintSecondary(undefined));
     expect(result.current).toBeUndefined();
-    expect(window.localStorage.getItem(SECONDARY_KEY)).toBeNull();
+    expect(window.localStorage.getItem(SECONDARY_KEY)).toBe('none');
     rtl.cleanup();
+  });
+
+  // The picker's Cancel puts back the choice, not the colour worn: nothing
+  // chosen goes back to nothing chosen, never to the default written down.
+  it('puts back each of the three choices exactly on a restore', () => {
+    const tint = launch();
+    const before = tint.windowTintSnapshot();
+    tint.setWindowTintSecondary('#d03f8a');
+    tint.restoreWindowTint(before);
+    expect(window.localStorage.getItem(SECONDARY_KEY)).toBeNull();
+    expect(tint.getWindowTintSecondary()).toBe('#8b6cff');
+
+    tint.setWindowTintSecondary(undefined);
+    const one = tint.windowTintSnapshot();
+    tint.setWindowTintSecondary('#d03f8a');
+    tint.restoreWindowTint(one);
+    expect(window.localStorage.getItem(SECONDARY_KEY)).toBe('none');
+    expect(tint.getWindowTintSecondary()).toBeUndefined();
+
+    tint.setWindowTintSecondary('#ae00ff');
+    const picked = tint.windowTintSnapshot();
+    tint.setWindowTintSecondary(undefined);
+    tint.restoreWindowTint(picked);
+    expect(window.localStorage.getItem(SECONDARY_KEY)).toBe('#ae00ff');
   });
 });

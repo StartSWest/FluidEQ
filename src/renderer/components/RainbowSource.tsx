@@ -37,6 +37,7 @@ import useSceneWindowColours from '../utils/useSceneWindowColours';
 import {
   useWindowTint,
   useWindowTintColour,
+  useWindowTintSecondChosen,
   useWindowTintSecondary,
   windowPrimaryColour,
   windowTintStops,
@@ -153,6 +154,7 @@ const RainbowSource = () => {
   const tint = useWindowTint();
   const picked = useWindowTintColour();
   const second = useWindowTintSecondary();
+  const secondChosen = useWindowTintSecondChosen();
   const ownStops = useMemo(
     () => windowTintStops(windowPrimaryColour(tint, picked), second).join(' '),
     [tint, picked, second],
@@ -163,7 +165,8 @@ const RainbowSource = () => {
   // the window), where it wears the Tint instead; there a Tint the listener
   // has touched — a hue, a colour picked whole, or a second colour — draws
   // the stops as well, ahead of the scene's palette and its colours of the
-  // hour. A Tint left as it came still lets the scene's colours through.
+  // hour. A Tint left as it came still lets the scene's colours through,
+  // its default second colour included: only a second colour CHOSEN counts.
   // The Studio's bench is never overridden: a member there is judging their
   // own scene.
   const isSceneTintOn = useSceneTintEnabled();
@@ -172,7 +175,7 @@ const RainbowSource = () => {
   const isOwnOverScene =
     isScene &&
     !isSceneWorn &&
-    (tint !== undefined || picked !== undefined || second !== undefined);
+    (tint !== undefined || picked !== undefined || secondChosen !== undefined);
   const isStudio = studio !== undefined || studioSource !== undefined;
   const isOwn = !isStudio && (!isScene || isOwnOverScene);
 

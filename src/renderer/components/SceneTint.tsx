@@ -30,6 +30,7 @@ import {
   tintedLagoon,
   useWindowTint,
   useWindowTintColour,
+  useWindowTintSecondChosen,
   useWindowTintSecondary,
 } from '../utils/windowTint';
 import { isUsableGlow } from '../utils/pickedWindow';
@@ -124,6 +125,7 @@ const SceneTint = () => {
   const tint = useWindowTint();
   const tintColour = useWindowTintColour();
   const tintSecond = useWindowTintSecondary();
+  const tintSecondChosen = useWindowTintSecondChosen();
   const studio = useStudioTintSource();
   const lookId = useSelectedLookId();
   const scenes = useUsableScenes();
@@ -173,16 +175,22 @@ const SceneTint = () => {
   // second colour where the listener gave one. With a scene on Original and
   // the Tint left as it came, the scene's glow of the hour, as its colours
   // draw the stops there too (`RainbowSource`, the same rule); a glow that
-  // cannot say "on" (`isUsableGlow`) is passed over. Otherwise none, and
-  // "on" is the first colour itself.
+  // cannot say "on" (`isUsableGlow`) is passed over, and "on" is the first
+  // colour itself. Everywhere else the Tint's second colour as worn: the
+  // default violet where nothing was chosen, none with one colour asked for.
+  // Touched means CHOSEN: the default second colour is no choice, so a scene
+  // on Original keeps saying "on" in its own colours under it, as it did
+  // before there was a default (Ivan, 2026-11-24).
   const isTintTouched =
-    tint !== undefined || tintColour !== undefined || tintSecond !== undefined;
-  const sceneGlow =
-    isSceneLook && !isTintTouched ? own?.split(' ')[3] : undefined;
+    tint !== undefined ||
+    tintColour !== undefined ||
+    tintSecondChosen !== undefined;
+  const isSceneUntouched = isSceneLook && !isTintTouched;
+  const sceneGlow = isSceneUntouched ? own?.split(' ')[3] : undefined;
   const sceneGlowLab = sceneGlow === undefined ? undefined : labOf(sceneGlow);
-  const ownSecond =
-    tintSecond ??
-    (sceneGlowLab && isUsableGlow(sceneGlowLab) ? sceneGlow : undefined);
+  const usableGlow =
+    sceneGlowLab && isUsableGlow(sceneGlowLab) ? sceneGlow : undefined;
+  const ownSecond = isSceneUntouched ? usableGlow : tintSecond;
   const { version, swatch } = useMemo(() => {
     const scene = isPremiumLookId(lookId)
       ? scenes.find((entry) => entry.lookId === lookId)

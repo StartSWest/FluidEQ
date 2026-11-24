@@ -396,4 +396,37 @@ describe('Reset all settings', () => {
     expect(autoCycle).toBe(0);
     window.localStorage.clear();
   });
+
+  // The Tint's second colour is kept as a choice - a colour, or one colour
+  // asked for - and its default violet is never written (2026-11-24). A
+  // reset forgets the choice, so the next launch wears the default again.
+  it('brings the default second colour back, from a colour and from one colour', () => {
+    const secondAfterReset = (stored: string) => {
+      window.localStorage.clear();
+      window.localStorage.setItem('fluideq.windowTintSecondary', stored);
+      resetSettings(window.localStorage);
+      let second: string | undefined = 'unread';
+      jest.isolateModules(() => {
+        /* eslint-disable global-require */
+        second =
+          require('../../../renderer/utils/windowTint').getWindowTintSecondary();
+        /* eslint-enable global-require */
+      });
+      window.localStorage.clear();
+      return second;
+    };
+    expect(secondAfterReset('none')).toBe('#8b6cff');
+    expect(secondAfterReset('#ae00ff')).toBe('#8b6cff');
+    // CONTROL: without the reset, each choice is read back as it was kept.
+    window.localStorage.setItem('fluideq.windowTintSecondary', 'none');
+    let kept: string | undefined = 'unread';
+    jest.isolateModules(() => {
+      /* eslint-disable global-require */
+      kept =
+        require('../../../renderer/utils/windowTint').getWindowTintSecondary();
+      /* eslint-enable global-require */
+    });
+    expect(kept).toBeUndefined();
+    window.localStorage.clear();
+  });
 });

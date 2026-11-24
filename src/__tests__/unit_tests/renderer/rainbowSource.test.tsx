@@ -6,8 +6,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * What Colourful mode draws in (`RainbowSource`). With a standard look, the
- * window's own pair (2026-11-18, `windowTint.ts`): its first colour seven
- * times, or a gradient to a second the listener chose. With a Plus
+ * window's own pair (2026-11-18, `windowTint.ts`): a gradient from its first
+ * colour to the second - the default violet until the listener chooses
+ * (2026-11-24) - or the first colour seven times once one colour is asked
+ * for. With a Plus
  * visualizer, the scene's: its palette, else the accent and the glow it
  * lends the window at its hour (made from its picture as measured, where it
  * names none), else its picker icon's colours until then (Ivan, 2026-09-26:
@@ -29,6 +31,10 @@ import {
   type ISceneColour,
   type ISceneSky,
 } from 'renderer/utils/sceneTint';
+import {
+  DEFAULT_SECOND_COLOUR,
+  windowPrimaryColour,
+} from 'renderer/utils/windowTint';
 
 let mockLookId = 'premium:forest';
 let mockSwatch: string[] = ['#1a0500', '#ff6a00', '#ffd000'];
@@ -167,13 +173,49 @@ describe('Colourful mode with a Plus visualizer', () => {
     });
   });
 
-  it('draws a scene in greys in the window’s own colour, not a rainbow', () => {
+  it('draws a scene in greys in the window’s own colours, not a rainbow', () => {
     mockSwatch = ['#101010', '#808080', '#e0e0e0'];
     const stops = stopsWith(undefined, {
       'fluideq.windowTintColour': '#40c0a0',
       'fluideq.windowTint': '165',
+      'fluideq.windowTintSecondary': 'none',
     });
     expect(stops).toEqual(Array(RAINBOW_STOP_COUNT).fill('#40c0a0'));
+    // With the second colour left as it came, the window's own pair: the
+    // first colour to the default violet.
+    expect(
+      stopsWith(undefined, {
+        'fluideq.windowTintColour': '#40c0a0',
+        'fluideq.windowTint': '165',
+      }),
+    ).toEqual(rainbowBetween('#40c0a0', DEFAULT_SECOND_COLOUR));
+  });
+
+  // The default second colour is no choice of the listener's: a scene the
+  // window is set to Original over keeps its own colours under it, exactly
+  // as with no second colour at all (Ivan, 2026-11-24).
+  it('leaves a scene its colours on Original under the default second colour', () => {
+    const untouched = stopsWith(MEASURED, { 'fluideq.sceneTintMode': 'off' });
+    const oneColour = stopsWith(MEASURED, {
+      'fluideq.sceneTintMode': 'off',
+      'fluideq.windowTintSecondary': 'none',
+    });
+    expect(untouched).toEqual(oneColour);
+    expect(untouched).not.toEqual(
+      rainbowBetween(
+        windowPrimaryColour(undefined, undefined),
+        DEFAULT_SECOND_COLOUR,
+      ),
+    );
+    // CONTROL: a second colour CHOSEN does take the scene over.
+    expect(
+      stopsWith(MEASURED, {
+        'fluideq.sceneTintMode': 'off',
+        'fluideq.windowTintSecondary': '#00c0ff',
+      }),
+    ).toEqual(
+      rainbowBetween(windowPrimaryColour(undefined, undefined), '#00c0ff'),
+    );
   });
 });
 
@@ -182,8 +224,22 @@ describe('Colourful mode with a standard look', () => {
     mockLookId = 'look:signal';
   });
 
-  it('draws in one colour by default, seven times', () => {
+  // A new window: Lagoon's accent to the default violet (Ivan, 2026-11-24).
+  it('draws a gradient to the default violet on a window where nothing was chosen', () => {
     const stops = stopsWith(undefined);
+    expect(stops).toEqual(
+      rainbowBetween(
+        windowPrimaryColour(undefined, undefined),
+        DEFAULT_SECOND_COLOUR,
+      ),
+    );
+    expect(new Set(stops).size).toBeGreaterThan(2);
+  });
+
+  it('draws in one colour, seven times, once one colour is asked for', () => {
+    const stops = stopsWith(undefined, {
+      'fluideq.windowTintSecondary': 'none',
+    });
     expect(stops).toHaveLength(RAINBOW_STOP_COUNT);
     expect(new Set(stops).size).toBe(1);
   });

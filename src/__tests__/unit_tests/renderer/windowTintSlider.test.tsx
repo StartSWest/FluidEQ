@@ -10,10 +10,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * colours"; "by default the primary and the secondary have the same colour,
  * and if the user changes it, the gradient is created"). Each opens FluidEQ's
  * own colour picker, the Studio's, with Accept and Cancel ("use the same
- * colour picker we did for the Studio in the app settings"). The second
- * follows the first, drawn as a ring of it with a plus, until a colour is
- * picked there; then it is filled, with a small cross that gives back one
- * colour. Cancel puts the Tint back as it stood when the picker opened.
+ * colour picker we did for the Studio in the app settings"). The second is
+ * the default violet on a new window (2026-11-24), filled, with a small
+ * cross that asks for one colour; after it the second follows the first,
+ * drawn as a ring of it with a plus, until a colour is picked there. Cancel
+ * puts the Tint back as it stood when the picker opened.
  */
 
 import '@testing-library/jest-dom';
@@ -84,15 +85,52 @@ afterEach(() => {
 });
 
 describe('the Tint’s second swatch', () => {
-  it('follows the first colour until a colour is picked there', () => {
+  // Ivan, 2026-11-24: a new window has a second colour, the violet he picked.
+  it('wears the default violet, filled, with a cross, where nothing was chosen', () => {
     const rtl = mount({ 'fluideq.windowTintColour': '#40c0a0' });
+    const second = rtl.screen.getByRole('button', {
+      name: 'graph.windowTintSecond',
+    });
+    expect(worn(second)).toBe('#8b6cff');
+    expect(second).not.toHaveClass('graph-view-menu__swatch--follows');
+    expect(
+      rtl.screen.getByRole('button', { name: 'graph.windowTintOneColour' }),
+    ).toBeInTheDocument();
+    // Worn, never written: nothing was chosen.
+    expect(
+      window.localStorage.getItem('fluideq.windowTintSecondary'),
+    ).toBeNull();
+  });
+
+  it('follows the first colour once the cross asks for one, and still after a reload', () => {
+    const rtl = mount({ 'fluideq.windowTintColour': '#40c0a0' });
+    rtl.fireEvent.click(
+      rtl.screen.getByRole('button', { name: 'graph.windowTintOneColour' }),
+    );
+    expect(window.localStorage.getItem('fluideq.windowTintSecondary')).toBe(
+      'none',
+    );
     const second = rtl.screen.getByRole('button', {
       name: 'graph.windowTintSecond',
     });
     expect(worn(second)).toBe('#40c0a0');
     expect(second).toHaveClass('graph-view-menu__swatch--follows');
+    rtl.cleanup();
+
+    // The reload: the choice is read back, and the default stays away.
+    const reloaded = mount({
+      'fluideq.windowTintColour': '#40c0a0',
+      'fluideq.windowTintSecondary': 'none',
+    });
+    const again = reloaded.screen.getByRole('button', {
+      name: 'graph.windowTintSecond',
+    });
+    expect(worn(again)).toBe('#40c0a0');
+    expect(again).toHaveClass('graph-view-menu__swatch--follows');
     expect(
-      rtl.screen.queryByRole('button', { name: 'graph.windowTintOneColour' }),
+      reloaded.screen.queryByRole('button', {
+        name: 'graph.windowTintOneColour',
+      }),
     ).toBeNull();
   });
 
@@ -115,9 +153,9 @@ describe('the Tint’s second swatch', () => {
     rtl.fireEvent.click(
       rtl.screen.getByRole('button', { name: 'graph.windowTintOneColour' }),
     );
-    expect(
-      window.localStorage.getItem('fluideq.windowTintSecondary'),
-    ).toBeNull();
+    expect(window.localStorage.getItem('fluideq.windowTintSecondary')).toBe(
+      'none',
+    );
     expect(worn(second)).toBe('#40c0a0');
   });
 
@@ -127,10 +165,11 @@ describe('the Tint’s second swatch', () => {
       name: 'graph.windowTintSecond',
     });
     pick(rtl, second, '#D03F8A', 'cancel');
+    // Back to nothing chosen: the default worn, not written.
     expect(
       window.localStorage.getItem('fluideq.windowTintSecondary'),
     ).toBeNull();
-    expect(second).toHaveClass('graph-view-menu__swatch--follows');
+    expect(worn(second)).toBe('#8b6cff');
     // The control: Accept on the same colour keeps it.
     pick(rtl, second, '#D03F8A', 'accept');
     expect(window.localStorage.getItem('fluideq.windowTintSecondary')).toBe(

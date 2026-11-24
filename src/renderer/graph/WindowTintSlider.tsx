@@ -19,6 +19,7 @@ import {
   useWindowTint,
   useWindowTintColour,
   restoreWindowTint,
+  useWindowTintOneColour,
   useWindowTintSecondary,
   windowPrimaryColour,
   windowTintSnapshot,
@@ -111,11 +112,13 @@ const TintSwatch = ({
  *
  * The second is the other end of the window's gradient (Ivan, 2026-11-18:
  * "I need to be able to also select the secondary colour in the picker, so I
- * have control of both colours"). Until it is picked it follows the first,
- * drawn as a ring of it with a plus — a slot waiting, not a second copy of
- * the same dot — and the window draws in one colour; picked, it is filled
- * and the curves, faders and meters run from the first colour to it. Its ×
- * makes it follow the first again. A button beside the swatch rather than a
+ * have control of both colours"). A new window has one already, the default
+ * violet (`DEFAULT_SECOND_COLOUR`): filled, and the curves, faders and
+ * meters run from the first colour to it. Its × asks for one colour, and that
+ * choice is kept: the swatch then follows the first, drawn as a ring of it
+ * with a plus — a slot waiting, not a second copy of the same dot — and the
+ * window draws in one colour until a colour is picked there. A button beside
+ * the swatch rather than a
  * double-click on it: the first press of a double-click already opens the
  * picker.
  */
@@ -137,7 +140,7 @@ const WindowTintSlider = () => {
   // the hue under the thumb (`pickPrimary`), and the picker opens on it so a
   // move off the grey colours with that hue, not with red.
   const pickerHue = hsvOfHex(windowPrimaryColour(hue, undefined)).h;
-  const isLinked = second === undefined;
+  const isLinked = useWindowTintOneColour();
   const pickPrimary = (value: string) => {
     const lab = labOf(value);
     // A grey has no hue of its own: the slider stays where it stands.

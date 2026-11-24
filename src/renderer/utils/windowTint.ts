@@ -52,17 +52,53 @@ const parseColour = (raw: string | null): string | undefined =>
  * THE SECOND COLOUR (Ivan, 2026-11-18: "I need to be able to also select
  * the secondary colour in the picker, so I have control of both colours",
  * "by default the primary and the secondary have the same colour, and if
- * the user changes it, the gradient is created"). Unset, it is the first
- * colour, whatever that is, and what the window draws in its stops is that
- * one colour; set, the stops run from the first to this one
- * (`windowTintStops`). Kept apart from the first, so moving the slider or
+ * the user changes it, the gradient is created"). With one colour asked for
+ * it is the first colour, whatever that is, and what the window draws in its
+ * stops is that one colour; otherwise the stops run from the first to this
+ * one (`windowTintStops`). Kept apart from the first, so moving the slider or
  * picking a new first colour keeps the second where the listener put it.
+ *
+ * A NEW WINDOW HAS ONE ALREADY (Ivan, 2026-11-24: "I think we should default
+ * a second color for the app UI. Pick a nice purple one"; he chose the violet
+ * from a board of six measured in the app). Without it the gradient, the
+ * Colouring row and the Spectrogram were one flat cyan until somebody found
+ * the swatch. Stored, the key holds one of three things, and only the first
+ * is the default's:
+ *
+ *   absent      nothing chosen: the default violet
+ *   `#rrggbb`   a colour chosen there, worn whatever the default is
+ *   `none`      one colour chosen on purpose (the swatch's ×), kept so
+ *
+ * The default is never written: a listener who chose a colour or chose one
+ * colour keeps that choice, and Reset all settings, which removes the key,
+ * brings the default back.
  */
 const SECONDARY_KEY = 'fluideq.windowTintSecondary';
 
+/** The second colour a window has before anybody chooses one. */
+export const DEFAULT_SECOND_COLOUR = '#8b6cff';
+
+/** What the key holds once the listener asked for one colour. */
+const ONE_COLOUR = 'none';
+
+/** What the listener chose for the second colour: a colour, one colour, or
+ * nothing yet (`undefined`). */
+type TSecondChoice = string | typeof ONE_COLOUR | undefined;
+
+const parseSecondChoice = (raw: string | null): TSecondChoice =>
+  raw === ONE_COLOUR ? ONE_COLOUR : parseColour(raw);
+
+/** The second colour the window wears for a choice: none for one colour. */
+const secondOf = (choice: TSecondChoice): string | undefined => {
+  if (choice === ONE_COLOUR) {
+    return undefined;
+  }
+  return choice ?? DEFAULT_SECOND_COLOUR;
+};
+
 let tint = parse(readStored(STORAGE_KEY));
 let colour = parseColour(readStored(COLOUR_KEY));
-let secondary = parseColour(readStored(SECONDARY_KEY));
+let secondChoice = parseSecondChoice(readStored(SECONDARY_KEY));
 const listeners = new Set<() => void>();
 
 const announce = () => listeners.forEach((listener) => listener());
@@ -109,21 +145,28 @@ export const setWindowTintColour = (next: string, hue: number) => {
   announce();
 };
 
-/** The second colour (`#rrggbb`), or undefined for the first colour again. */
-export const setWindowTintSecondary = (next: string | undefined) => {
-  const value = next?.toLowerCase();
-  if (value !== undefined && !HEX.test(value)) {
-    return;
-  }
-  if (value === secondary) {
-    return;
-  }
-  secondary = value;
-  if (value === undefined) {
+const storeSecondChoice = (next: TSecondChoice) => {
+  secondChoice = next;
+  if (next === undefined) {
     removeStored(SECONDARY_KEY);
   } else {
-    writeStored(SECONDARY_KEY, value);
+    writeStored(SECONDARY_KEY, next);
   }
+};
+
+/**
+ * The second colour (`#rrggbb`), or undefined for one colour: the first
+ * colour again, kept as a choice so the default does not come back.
+ */
+export const setWindowTintSecondary = (next: string | undefined) => {
+  const value = next === undefined ? ONE_COLOUR : next.toLowerCase();
+  if (value !== ONE_COLOUR && !HEX.test(value)) {
+    return;
+  }
+  if (value === secondChoice) {
+    return;
+  }
+  storeSecondChoice(value);
   announce();
 };
 
@@ -131,13 +174,14 @@ export const setWindowTintSecondary = (next: string | undefined) => {
 export interface IWindowTintSnapshot {
   tint: number | undefined;
   colour: string | undefined;
-  secondary: string | undefined;
+  /** The second colour as chosen, not as worn: nothing chosen stays so. */
+  secondChoice: TSecondChoice;
 }
 
 export const windowTintSnapshot = (): IWindowTintSnapshot => ({
   tint,
   colour,
-  secondary,
+  secondChoice,
 });
 
 /** Puts the Tint back exactly as `snapshot` held it. */
@@ -149,12 +193,7 @@ export const restoreWindowTint = (snapshot: IWindowTintSnapshot) => {
     writeStored(STORAGE_KEY, String(tint));
   }
   storeColour(snapshot.colour);
-  secondary = snapshot.secondary;
-  if (secondary === undefined) {
-    removeStored(SECONDARY_KEY);
-  } else {
-    writeStored(SECONDARY_KEY, secondary);
-  }
+  storeSecondChoice(snapshot.secondChoice);
   announce();
 };
 
@@ -165,14 +204,40 @@ const subscribe = (listener: () => void) => {
   };
 };
 
-/** The second colour as the drawings read it outside React. */
-export const getWindowTintSecondary = (): string | undefined => secondary;
+/**
+ * The second colour as the window wears it, read by the drawings outside
+ * React: the one chosen, the default where none was, undefined for one
+ * colour.
+ */
+export const getWindowTintSecondary = (): string | undefined =>
+  secondOf(secondChoice);
 
 export const useWindowTintSecondary = () =>
   useSyncExternalStore(
     subscribe,
-    () => secondary,
+    () => secondOf(secondChoice),
+    () => secondOf(undefined),
+  );
+
+/**
+ * A second colour the listener CHOSE, never the default: what decides
+ * whether the Tint was touched, so a scene the window is set to Original
+ * over keeps its own colours until somebody picks one (`SceneTint`,
+ * `RainbowSource`).
+ */
+export const useWindowTintSecondChosen = () =>
+  useSyncExternalStore(
+    subscribe,
+    () => (secondChoice === ONE_COLOUR ? undefined : secondChoice),
     () => undefined,
+  );
+
+/** Whether the listener asked for one colour: the second follows the first. */
+export const useWindowTintOneColour = () =>
+  useSyncExternalStore(
+    subscribe,
+    () => secondChoice === ONE_COLOUR,
+    () => false,
   );
 
 export const useWindowTintColour = () =>
