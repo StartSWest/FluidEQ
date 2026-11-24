@@ -99,6 +99,8 @@ export interface IStudioProjectsIpcDeps {
    * `.agents/skills` - for every project on the list, once at start.
    */
   tidyProject?: (folder: string) => void;
+  /** The member trusted a scene from outside FluidEQ (`studioChat.ts`). */
+  onTrusted?: (id: string) => void;
 }
 
 export interface IStudioProjectsIpcRegistration {
@@ -161,6 +163,7 @@ export const registerStudioProjectsIpc = ({
   publishedOf,
   adoptPublished,
   tidyProject,
+  onTrusted,
 }: IStudioProjectsIpcDeps): IStudioProjectsIpcRegistration => {
   const studioPath = path.join(userDataDir, STUDIO_FILE);
 
@@ -371,6 +374,7 @@ export const registerStudioProjectsIpc = ({
     const project = projects.projects.find((entry) => entry.id === id);
     if (typeof id === 'string' && project && originOf(project) === 'outside') {
       adopt(withTrusted(projects, id));
+      onTrusted?.(id);
     }
     return studioState();
   });

@@ -145,7 +145,12 @@ const createChatSessions = ({
             session.process,
             event,
             session.controller?.signal ?? nothingRunning.signal,
-            startedCareful(session.brief) ? session.folder : undefined,
+            // Careful while the process was started so AND the scene is
+            // still from outside: trusted mid-reply, its next question is
+            // the member's own card (Ivan, 2026-11-23).
+            startedCareful(session.brief) && (mustAsk?.(projectId) ?? true)
+              ? session.folder
+              : undefined,
           ).catch(() => undefined);
           return;
         }

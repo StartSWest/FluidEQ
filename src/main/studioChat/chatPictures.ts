@@ -127,6 +127,8 @@ export interface IChatPicturesDeps {
   signalOf(projectId: string): AbortSignal;
   door: IStudioLook;
   version: string;
+  /** Whether a project is still one from outside FluidEQ (`chatAsks.ts`). */
+  stillOutside?: (projectId: string) => boolean;
   logger?: { info(message: string): void; warn(message: string): void };
 }
 
@@ -214,12 +216,14 @@ export const createChatPictures = ({
   signalOf,
   door,
   version,
+  stillOutside,
   logger,
 }: IChatPicturesDeps) => {
   const asks = createChatAsks({
     root,
     show: (projectId, ask) =>
       pageOf()?.send('studio-chat-ask', { projectId, ask }),
+    ...(stillOutside ? { stillOutside } : {}),
   });
 
   /**

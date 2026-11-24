@@ -40,9 +40,18 @@ export interface IChatAsksDeps {
   root: string;
   /** Tells the window an ask appeared, or (undefined) that it went. */
   show(projectId: string, ask: TStudioChatAsk | undefined): void;
+  /**
+   * Whether a project is still one from outside FluidEQ, asked at each
+   * answer: the member may trust it while its reply runs.
+   */
+  stillOutside?: (projectId: string) => boolean;
 }
 
-export const createChatAsks = ({ root, show }: IChatAsksDeps) => {
+export const createChatAsks = ({
+  root,
+  show,
+  stillOutside = () => true,
+}: IChatAsksDeps) => {
   const pending = new Map<string, IPending>();
   /**
    * Per project, for the life of its chat: tools said "Always allow" to
@@ -141,8 +150,13 @@ export const createChatAsks = ({ root, show }: IChatAsksDeps) => {
       signal: AbortSignal,
     ): Promise<TStudioChatAnswer> => {
       // In a scene from outside FluidEQ nothing is allowed for always: not
-      // what was said in this chat before, and not from this card.
-      const always = !what.foreign && toolsOf(projectId).has(what.tool);
+      // what was said in this chat before, and not from this card. Looked at
+      // again at every step, never only as the question came in (Ivan,
+      // 2026-11-23: after "I trust this scene" the reply still asked as if
+      // the scene came from outside): a scene trusted mid-reply is the
+      // member's own from that moment, for its cards and its answers.
+      const foreign = () => what.foreign === true && stillOutside(projectId);
+      const always = !foreign() && toolsOf(projectId).has(what.tool);
       if (always) {
         return 'yes';
       }
@@ -156,11 +170,16 @@ export const createChatAsks = ({ root, show }: IChatAsksDeps) => {
       if (signal.aborted) {
         return 'no';
       }
-      if (!what.foreign && toolsOf(projectId).has(what.tool)) {
+      if (!foreign() && toolsOf(projectId).has(what.tool)) {
         return 'yes';
       }
-      const answer = await put(projectId, { kind: 'tool', ...what });
-      if (what.foreign) {
+      const answer = await put(projectId, {
+        kind: 'tool',
+        tool: what.tool,
+        detail: what.detail,
+        ...(foreign() ? { foreign: true as const } : {}),
+      });
+      if (foreign()) {
         return answer === 'no' ? 'no' : 'yes';
       }
       if (answer === 'chat') {
@@ -188,6 +207,22 @@ export const createChatAsks = ({ root, show }: IChatAsksDeps) => {
       [...pending.values()]
         .filter((entry) => entry.ask.projectId === projectId)
         .forEach((entry) => settle(entry.ask.id, 'no'));
+    },
+
+    /**
+     * The member trusted a scene from outside FluidEQ: the card standing on
+     * it, put up while it was still from outside, is put up again as one of
+     * the member's own, with Always allow and without the outside line.
+     */
+    trusted: (projectId: string) => {
+      const entry = [...pending.values()].find(
+        (one) => one.ask.projectId === projectId,
+      );
+      if (entry?.ask.kind === 'tool' && entry.ask.foreign) {
+        const { foreign: _was, ...own } = entry.ask;
+        entry.ask = own;
+        show(projectId, own);
+      }
     },
 
     /** A new chat starts with nothing allowed. */

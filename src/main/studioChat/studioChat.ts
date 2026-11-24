@@ -126,6 +126,7 @@ export const createStudioChat = ({
       sessions.get(projectId)?.controller?.signal ?? nothingRunning.signal,
     door,
     version,
+    ...(mustAsk ? { stillOutside: mustAsk } : {}),
     ...(logger ? { logger } : {}),
   });
 
@@ -493,6 +494,13 @@ export const createStudioChat = ({
   });
 
   return {
+    /**
+     * The member trusted a scene from outside FluidEQ: its waiting card is
+     * one of their own now. Its next question in this reply asks as one of
+     * theirs too (`chatSessions.ts`), and its next reply runs on their own
+     * Claude Code rules.
+     */
+    trusted: (projectId: string) => pictures.asks.trusted(projectId),
     dispose: () => {
       chatWindow.dispose();
       usageRead.dispose();

@@ -250,7 +250,11 @@ const registerMemberServices = ({
   // The last version of each look that built here (`sceneBuilds.ts`): made
   // once both stores exist, and told of a look removed from the member's.
   let sceneBuilds: ISceneBuilds | undefined;
+  // The Studio's chat is made after the projects it works in, so the trust
+  // a project is given reaches it through this, once it exists.
+  const chatTrust: { trusted?: (id: string) => void } = {};
   const memberScenesIpc = registerMemberScenesIpc({
+    onTrusted: (id) => chatTrust.trusted?.(id),
     forgetBuild: (lookId) => sceneBuilds?.forget(lookId),
     getMainWindow,
     userDataDir,
@@ -474,6 +478,7 @@ const registerMemberServices = ({
     galleryAt: (sceneId) => galleryTimes.get(sceneId),
     logger: log,
   });
+  chatTrust.trusted = studioChat.trusted;
   const plusPublishingIpc = registerPlusPublishingIpc({
     access: galleryAccess,
     userDataDir,

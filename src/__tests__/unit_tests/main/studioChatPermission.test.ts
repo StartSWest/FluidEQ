@@ -297,6 +297,81 @@ describe('the cards', () => {
     expect(await nextUp).toMatchObject({ detail: 'next' });
   });
 
+  // Ivan, 2026-11-23: "I trust this scene ... then it asks again for this
+  // scene is external". Trust only counted from the next reply: the card up
+  // kept its outside line, and its Always allow was thrown away.
+  describe('in a scene from outside FluidEQ', () => {
+    let outside = true;
+    let trusting: ReturnType<typeof createChatAsks>;
+    beforeEach(() => {
+      outside = true;
+      trusting = createChatAsks({
+        root,
+        show: (_id, ask) => {
+          if (ask) {
+            onCard?.(ask);
+          }
+        },
+        stillOutside: () => outside,
+      });
+    });
+    const up = () => {
+      const ask = trusting.standing('p');
+      if (!ask) {
+        throw new Error('no card is standing');
+      }
+      return ask;
+    };
+
+    it('allows nothing for always while it is still from outside', async () => {
+      const reply = new AbortController();
+      const card = nextCard();
+      const asked = trusting.tool(
+        'p',
+        { tool: 'Bash', detail: 'a', foreign: true },
+        reply.signal,
+      );
+      expect(await card).toMatchObject({ foreign: true });
+      trusting.answer(up().id, 'chat');
+      expect(await asked).toBe('yes');
+      // Nothing kept: the next one asks again, still from outside.
+      const again = nextCard();
+      trusting.tool(
+        'p',
+        { tool: 'Bash', detail: 'b', foreign: true },
+        reply.signal,
+      );
+      expect(await again).toMatchObject({ detail: 'b', foreign: true });
+    });
+
+    it('turns the card up into one of the member’s own the moment it is trusted', async () => {
+      const reply = new AbortController();
+      const card = nextCard();
+      const asked = trusting.tool(
+        'p',
+        { tool: 'Bash', detail: 'a', foreign: true },
+        reply.signal,
+      );
+      await card;
+      outside = false;
+      const ownCard = nextCard();
+      trusting.trusted('p');
+      const own = await ownCard;
+      expect(own).toMatchObject({ detail: 'a' });
+      expect(own).not.toHaveProperty('foreign');
+      // Its Always allow is kept now, as on any scene of the member's.
+      trusting.answer(up().id, 'chat');
+      expect(await asked).toBe('chat');
+      expect(
+        await trusting.tool(
+          'p',
+          { tool: 'Bash', detail: 'b', foreign: true },
+          reply.signal,
+        ),
+      ).toBe('yes');
+    });
+  });
+
   it('an ask stopped while waiting leaves the line, so the one behind it is next', async () => {
     const live = new AbortController();
     const gone = new AbortController();
