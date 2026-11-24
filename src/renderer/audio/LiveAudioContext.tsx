@@ -60,15 +60,28 @@ type LiveAudioValue = ReturnType<typeof useLiveOutputSpectrum>;
 const LiveAudioFrameContext = createContext<ILiveFrameStore | undefined>(
   undefined,
 );
-const LiveAudioControlContext = createContext<
-  | (LiveAudioValue['control'] & {
-      setSharingAudio(active: boolean): void;
-      readBackgroundFrame(): Promise<
-        Pick<ILiveFrame, 'points' | 'waveform' | 'stereo'> | undefined
-      >;
-    })
-  | undefined
->(undefined);
+
+/**
+ * Where a drawing's own channel readers hang off the music
+ * (`useAnalysisChannels`): the capture's source, or a stand-in's.
+ */
+export interface IAnalysisTap {
+  context: BaseAudioContext;
+  source: AudioNode;
+}
+
+type TLiveAudioControl = LiveAudioValue['control'] & {
+  setSharingAudio(active: boolean): void;
+  readBackgroundFrame(): Promise<
+    Pick<ILiveFrame, 'points' | 'waveform' | 'stereo'> | undefined
+  >;
+  /** A stand-in's tap (`LiveAudioStandIn`); the capture's own when absent. */
+  analysisTap?: IAnalysisTap;
+};
+
+const LiveAudioControlContext = createContext<TLiveAudioControl | undefined>(
+  undefined,
+);
 
 export const LiveAudioProvider = ({ children }: { children: ReactNode }) => {
   const { control, frame: localFrames } = useLiveOutputSpectrum();
@@ -204,6 +217,70 @@ export const useLiveAudioControl = () => {
     );
   }
   return value;
+};
+
+/**
+ * Whether there is a capture to draw at all: not in a picture of the app
+ * drawn without one (Help's figures, a page tested alone), where a drawing
+ * that would follow the music keeps its still instead.
+ */
+export const useIsLiveAudioProvided = (): boolean =>
+  useContext(LiveAudioControlContext) !== undefined;
+
+/** Where a drawing's channel readers tap the music it is drawing. */
+export const useAnalysisTap = (): IAnalysisTap | undefined => {
+  const { analysisTap, capture } = useLiveAudioControl();
+  return analysisTap ?? capture;
+};
+
+/**
+ * Music other than the capture's, for the drawings under it: the look
+ * picker's tiles, drawn against the demo song when nothing is playing
+ * (`lookTileSound.tsx`) and for their still pictures (`lookStills.ts`).
+ */
+export interface IAudioStandIn {
+  /** The frames as the capture publishes them, for what renders from them. */
+  frames: ILiveFrameStore;
+  /**
+   * The newest frame, read by a drawing at the moment it draws; undefined
+   * keeps the drawing on the frames as published.
+   */
+  readFrame: () => ILiveFrame | undefined;
+  /** Where its channel readers tap the music; the capture's when absent. */
+  tap?: IAnalysisTap;
+}
+
+/**
+ * The capture's two contexts with a stand-in's music in them, for one
+ * drawing. Everything else the capture's control carries - its claims, its
+ * status - is the capture's still, so a drawing under it that asks for the
+ * capture holds the real one open.
+ */
+export const LiveAudioStandIn = ({
+  standIn,
+  children,
+}: {
+  standIn: IAudioStandIn;
+  children: ReactNode;
+}) => {
+  const control = useLiveAudioControl();
+  const value = useMemo(
+    () => ({
+      ...control,
+      // The stand-in's music is always playing: its silence is its frames'.
+      isPaused: false,
+      readFrame: standIn.readFrame,
+      analysisTap: standIn.tap,
+    }),
+    [control, standIn],
+  );
+  return (
+    <LiveAudioControlContext.Provider value={value}>
+      <LiveAudioFrameContext.Provider value={standIn.frames}>
+        {children}
+      </LiveAudioFrameContext.Provider>
+    </LiveAudioControlContext.Provider>
+  );
 };
 
 /**

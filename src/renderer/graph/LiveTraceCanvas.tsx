@@ -66,6 +66,7 @@ import {
   useState,
 } from 'react';
 import { MIN_GAIN } from 'common/constants';
+import type { IResolvedLook } from 'common/customLooks';
 import useSmoothFrames from 'renderer/utils/useSmoothFrames';
 import { useGraphGridHidden, useGraphLook } from 'renderer/utils/graphStyle';
 import { analysisNeeds, legendWords } from 'common/graphAnalysis';
@@ -75,7 +76,7 @@ import {
   useLiveAudioControl,
 } from '../audio/LiveAudioContext';
 import { hasGraphAmbientMotion } from './graphMotion';
-import { IChromeBox } from './invaderCabinet';
+import useLiveTraceChrome from './liveTraceChrome';
 import { resolveLookWaveform, useLookPreviewPoints } from './lookPreview';
 import EngineLookLayer, {
   type TEngineLookPhase,
@@ -143,6 +144,29 @@ interface ILiveTraceCanvasProps {
    * or goes — for what the chart draws over the canvas to keep off it.
    */
   onLegendPlace?: (place: ILegendPlace | undefined) => void;
+  /**
+   * A look drawn as a picture of itself rather than the graph's look: the
+   * look picker's tile (`LookTileArt`). Drawn on this canvas alone, never
+   * handed to the scene engine - a worker and a program built for each
+   * tile hovered would cost more than a drawing a few hundred pixels wide,
+   * and every look is drawn here too - and never read by the graph's labels.
+   */
+  picture?: IResolvedLook;
+  /**
+   * Who says when a frame is drawn, instead of the display: the still
+   * painter, which draws each frame at the moment of the demo song it has
+   * played to (`LookStillPainter`). Handed a driver once the drawing can
+   * draw, and undefined when it goes.
+   */
+  onDriver?: (driver: ILiveTraceDriver | undefined) => void;
+}
+
+/** A drawing whose frames its caller draws (`onDriver`). */
+export interface ILiveTraceDriver {
+  /** Draws one frame, `deltaMs` after the last one. */
+  draw: (deltaMs: number) => void;
+  /** The canvas drawn on, for what keeps its picture. */
+  canvas: () => HTMLCanvasElement | null;
 }
 
 /** A look being left says nothing more about where the engine is. */
@@ -160,7 +184,12 @@ const LiveTraceCanvas = ({
   eqResponse,
   hasKey = true,
   onLegendPlace,
+  picture,
+  onDriver,
 }: ILiveTraceCanvasProps) => {
+  const isDriven = onDriver !== undefined;
+  const isDrivenRef = useRef(isDriven);
+  isDrivenRef.current = isDriven;
   // Through refs, so a new callback never rebuilds the frame loop.
   const onLegendPlaceRef = useRef(onLegendPlace);
   onLegendPlaceRef.current = onLegendPlace;
@@ -229,18 +258,7 @@ const LiveTraceCanvas = ({
   const dashTrailsRef = useRef(scenes.dashTrails);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  /**
-   * The app's own chrome lying over this canvas, in the canvas's pixels:
-   * the titlebar and the transport bar where they overlap it, the graph's
-   * controls strip, and in full screen the creature pinned in the top-left
-   * corner. A scene that prints along the canvas's edge — the arcade's
-   * score — moves clear of these rather than under them.
-   *
-   * Measured from the DOM rather than assumed, so a hidden bar counts as no
-   * bar, and re-measured whenever the canvas or the strip changes size —
-   * which is what entering and leaving full screen does to both.
-   */
-  const chromeRef = useRef<readonly IChromeBox[]>([]);
+  const chromeRef = useLiveTraceChrome(canvasRef, width, height);
   const visibleRef = useRef(true);
   const intersectionRef = useRef<IntersectionObserver | null>(null);
   const transitionRef = useRef(scenes.transition);
@@ -253,7 +271,8 @@ const LiveTraceCanvas = ({
   // Only the live trace has a look; every other curve on this chart is the
   // user's own tuning and has one right way to be drawn.
   const { t } = useTranslation();
-  const look = useGraphLook();
+  const graphLook = useGraphLook();
+  const look = picture ?? graphLook;
   /**
    * Left and right measured apart, and only while something is drawing them.
    *
@@ -290,11 +309,13 @@ const LiveTraceCanvas = ({
   const stops = useRainbowStops();
   const lookRef = useRef(look);
   lookRef.current = look;
+  const pictureRef = useRef(picture);
+  pictureRef.current = picture;
 
   // The look painted by the scene engine instead of on this canvas, where it
   // can be (`engineLooks/engineLooks.ts`); laid out here every frame all the
   // same, and handed over through `engineInputRef`.
-  const enginePack = engineLookPack(look.style);
+  const enginePack = picture ? undefined : engineLookPack(look.style);
   const isEngineUsable = useEngineLookUsable(look.style);
   const isEngineDrawn =
     enginePack !== undefined &&
@@ -409,8 +430,10 @@ const LiveTraceCanvas = ({
   // How hard the halo is being driven, carried between frames.
   const pumpRef = useRef(0);
   // The trace coming forward and going back — see the constant above. Opacity
-  // starts at nothing so the first frame fades in rather than appearing.
-  const shownOpacityRef = useRef(0);
+  // starts at nothing so the first frame fades in rather than appearing. A
+  // picture of a look takes over from its still in one frame, whole: faded
+  // in, the tile dipped to the bare plate between the two.
+  const shownOpacityRef = useRef(picture ? (curves[0]?.opacity ?? 1) : 0);
   // The width, unlike the opacity, starts where it belongs: opening the graph
   // already soloed should draw the heavier trace, not ease up to it from the
   // supporting weight for no reason anybody watching could name.
@@ -519,16 +542,20 @@ const LiveTraceCanvas = ({
         legendPlaceRef.current = frame.place;
         onLegendPlaceRef.current?.(frame.place);
       }
-      // The scale labels are read against what this frame drew.
-      noteGraphFrame();
+      // The scale labels are read against what this frame drew; a picture
+      // of a look is not the graph they stand on.
+      if (!pictureRef.current) {
+        noteGraphFrame();
+      }
       return moved;
     },
     // `channels` is the per-channel reader, whose identity never changes —
     // named here because the loop reads it and a dependency list that lies
     // about what a callback reads is worse than one that is slightly long.
-    // So is `fadeLeavingEngineLook`.
+    // So are `fadeLeavingEngineLook` and `chromeRef`.
     [
       channels,
+      chromeRef,
       curves,
       fadeLeavingEngineLook,
       height,
@@ -546,7 +573,7 @@ const LiveTraceCanvas = ({
     [drawFrame],
   );
   const kickFrames = useSmoothFrames(drawFrameThenHandOver, {
-    isEnabled: true,
+    isEnabled: !isDriven,
     target: canvasRef,
   });
 
@@ -598,7 +625,8 @@ const LiveTraceCanvas = ({
       canvasRef.current = canvas;
       contextRef.current = canvas ? canvas.getContext('2d') : null;
       computedRef.current = canvas ? window.getComputedStyle(canvas) : null;
-      if (canvas) {
+      // A driven drawing draws when its caller says, seen or not.
+      if (canvas && !isDrivenRef.current) {
         // A loss of the GPU empties this canvas, and the frame loop hides it
         // until Chromium restores it and then draws it again
         // (`useSmoothFrames`, `canvasLoss.ts`). Its `contextlost` must never
@@ -623,57 +651,6 @@ const LiveTraceCanvas = ({
     },
     [kickFrames],
   );
-
-  // Where the app's chrome lies over the canvas — see `chromeRef`. Only the
-  // pieces that actually cover it count: a strip scrolled away or a creature
-  // on a different display is no reason to push a readout down.
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || typeof ResizeObserver === 'undefined') {
-      return undefined;
-    }
-    const wrapper = canvas.closest('.graph-wrapper');
-    const strips = wrapper
-      ? [...wrapper.querySelectorAll('.live-output-controls')]
-      : [];
-    const measure = () => {
-      const box = canvas.getBoundingClientRect();
-      chromeRef.current = [
-        // The strip's pieces, never the strip: it spans the whole plot for
-        // the looks' gallery (`GraphGallery`), and only what is placed in it
-        // covers anything.
-        ...strips.flatMap((strip) => [...strip.children]),
-        ...document.querySelectorAll(
-          '.window-titlebar, .now-playing-bar, .fullscreen-chrome > *',
-        ),
-      ]
-        .map((piece) => piece.getBoundingClientRect())
-        .filter(
-          (rect) =>
-            rect.width > 0 &&
-            rect.height > 0 &&
-            rect.bottom > box.top &&
-            rect.top < box.bottom &&
-            rect.right > box.left &&
-            rect.left < box.right,
-        )
-        .map((rect) => ({
-          left: rect.left - box.left,
-          right: rect.right - box.left,
-          top: rect.top - box.top,
-          bottom: rect.bottom - box.top,
-        }));
-    };
-    const observer = new ResizeObserver(measure);
-    observer.observe(canvas);
-    strips.forEach((strip) => {
-      observer.observe(strip);
-      // The credit grows as its switches open.
-      [...strip.children].forEach((piece) => observer.observe(piece));
-    });
-    measure();
-    return () => observer.disconnect();
-  }, [width, height]);
 
   useEffect(() => {
     if (easedRef.current.length !== points.length) {
@@ -711,6 +688,18 @@ const LiveTraceCanvas = ({
     waveform,
     width,
   ]);
+
+  // After the effect above, so the first frame driven has its points eased.
+  useEffect(() => {
+    if (!onDriver) {
+      return undefined;
+    }
+    onDriver({
+      draw: (deltaMs) => drawFrameRef.current(deltaMs),
+      canvas: () => canvasRef.current,
+    });
+    return () => onDriver(undefined);
+  }, [onDriver]);
 
   // No early return on an empty frame any more. Leaving the document was what
   // made the drawing disappear the instant the music stopped — the pixels go

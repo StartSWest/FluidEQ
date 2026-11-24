@@ -145,10 +145,14 @@ it("measures the loop through the capture's own reader, sound included", async (
 
 it('reads as silence until the loop is playing', () => {
   const demo = createPublishDemoAudio(false, { audible: false });
+  // A whole frame, the graphs' points silent too (the look picker's tiles
+  // read those).
   expect(demo.readFrame()).toEqual({
     points: [],
+    graphPoints: [],
     waveform: [],
-    sound: undefined,
+    audioMs: 0,
+    channelPeaks: [],
   });
   // Something to say there is music, for the runner to wake on.
   expect(demo.points.length).toBeGreaterThan(0);

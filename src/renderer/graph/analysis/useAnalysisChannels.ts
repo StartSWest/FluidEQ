@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useMemo, useRef } from 'react';
 import type { IAnalysisNeeds } from 'common/graphAnalysis';
-import { useLiveAudioControl } from '../../audio/LiveAudioContext';
+import { useAnalysisTap } from '../../audio/LiveAudioContext';
 import {
   createLiveGraphBand,
   readGraphLevels,
@@ -81,7 +81,7 @@ interface IChannelReader {
 }
 
 /** A tap at unity: what a splitter output has to go through to be a source. */
-const tapOf = (context: AudioContext, gain: number): GainNode => {
+const tapOf = (context: BaseAudioContext, gain: number): GainNode => {
   const tap = context.createGain();
   tap.gain.value = gain;
   return tap;
@@ -92,7 +92,7 @@ const tapOf = (context: AudioContext, gain: number): GainNode => {
  * wanted rather than only the samples.
  */
 const listen = (
-  context: AudioContext,
+  context: BaseAudioContext,
   source: AudioNode,
   withBand: boolean,
 ): { analyser: AnalyserNode; band?: ILiveGraphBand } => {
@@ -113,7 +113,7 @@ const listen = (
 };
 
 const buildReader = (
-  context: AudioContext,
+  context: BaseAudioContext,
   source: AudioNode,
   needs: IAnalysisNeeds,
 ): IChannelReader | undefined => {
@@ -255,7 +255,7 @@ export interface IAnalysisChannels {
  * would leave the second figure blank until the next track change.
  */
 const useAnalysisChannels = (needs: IAnalysisNeeds): IAnalysisChannels => {
-  const { capture } = useLiveAudioControl();
+  const tap = useAnalysisTap();
   const readerRef = useRef<IChannelReader | undefined>(undefined);
   // On the three booleans rather than on the object: the caller builds a
   // fresh one every render, and rebuilding the audio graph sixty times a
@@ -267,16 +267,16 @@ const useAnalysisChannels = (needs: IAnalysisNeeds): IAnalysisChannels => {
   );
 
   useEffect(() => {
-    if (!capture || (!wanted.split && !wanted.scope && !wanted.midside)) {
+    if (!tap || (!wanted.split && !wanted.scope && !wanted.midside)) {
       return undefined;
     }
-    const reader = buildReader(capture.context, capture.source, wanted);
+    const reader = buildReader(tap.context, tap.source, wanted);
     readerRef.current = reader;
     return () => {
       readerRef.current = undefined;
       reader?.teardown();
     };
-  }, [wanted, capture]);
+  }, [wanted, tap]);
 
   const readRef = useRef<IAnalysisChannels>({
     read: () => readPair(readerRef.current?.split),

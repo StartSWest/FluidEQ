@@ -6,7 +6,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useState } from 'react';
 import { BRAND_MARK } from 'common/branding';
-import LookIcon from '../icons/LookIcon';
 import LibraryPlayingBars from '../library/LibraryPlayingBars';
 import { useTranslation } from '../utils/I18nContext';
 import GraphSceneRemove from './GraphSceneRemove';
@@ -15,6 +14,7 @@ import { originOf, type TFreshness } from './lookPickerFilter';
 import { FAMILY_KEYS, type IPlusRow, type IStyleRow } from './lookPickerRows';
 import { LockBadge, SceneThumbnail } from './lookPickerParts';
 import useTileClip from './lookTileClips';
+import LookTileArt from './LookTileArt';
 import SceneClip from '../plus/SceneClip';
 
 /**
@@ -199,7 +199,10 @@ interface IStyleTileProps {
   onChoose: (lookId: string) => void;
 }
 
-/** A standard style or one the member saved: its drawing on a plate. */
+/**
+ * A standard style or one the member saved: the look itself, live, on its
+ * plate (`LookTileArt`).
+ */
 export function LookPickerStyleTile({
   row,
   selected,
@@ -219,12 +222,7 @@ export function LookPickerStyleTile({
       onClick={() => onChoose(row.id)}
     >
       <span className="look-picker__art look-picker__art--style">
-        <LookIcon
-          className="look-picker__drawing"
-          style={row.look.style}
-          palette={row.look.palette}
-          colours={row.look.colours}
-        />
+        <LookTileArt look={row.look} />
         {selected && <PlayingChip />}
       </span>
       <span

@@ -42,7 +42,7 @@ import { readStereoBlock } from './stereoReading';
  */
 
 /** How much music the strip holds, and therefore how often it takes a step. */
-const SPAN_MS = 20_000;
+export const PHASE_SPAN_MS = 20_000;
 
 /** How many columns that span is cut into. */
 export const PHASE_STEPS = 240;
@@ -104,7 +104,7 @@ export const advancePhase = (
     state.correlation += (block.correlation - state.correlation) * toward;
     state.loudness += (block.width - state.loudness) * toward;
   }
-  const stepMs = SPAN_MS / PHASE_STEPS;
+  const stepMs = PHASE_SPAN_MS / PHASE_STEPS;
   state.historyAgeMs += deltaMs;
   let taken = 0;
   while (state.historyAgeMs >= stepMs && taken < 4) {

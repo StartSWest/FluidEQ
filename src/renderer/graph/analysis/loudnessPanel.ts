@@ -139,6 +139,14 @@ export interface IPanel {
   readoutWidth: number;
 }
 
+/**
+ * The smallest box that holds a legible instrument, in CSS pixels: a
+ * picture of the look smaller than this is drawn at this size and shrunk
+ * (`LookTileArt`).
+ */
+export const PANEL_MIN_WIDTH = 260;
+export const PANEL_MIN_DEPTH = 120;
+
 /** Nothing is drawn in a box too small to hold a legible instrument. */
 export const layoutPanel = (
   reading: Pick<IAnalysisReading, 'plot' | 'band'>,
@@ -146,7 +154,7 @@ export const layoutPanel = (
   const { plot, band } = reading;
   const width = plot.right - plot.left;
   const depth = band.bottom - band.top;
-  if (width < 260 || depth < 120) {
+  if (width < PANEL_MIN_WIDTH || depth < PANEL_MIN_DEPTH) {
     return undefined;
   }
   const pad = 18;

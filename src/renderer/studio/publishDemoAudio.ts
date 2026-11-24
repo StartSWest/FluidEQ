@@ -1,7 +1,9 @@
 import { MIN_GAIN } from 'common/constants';
-import type { ISceneAudio } from '../audio/SceneAudioContext';
 import { connectMeterAnalysers } from '../graph/liveCaptureGraph';
-import { connectLiveFrameReader } from '../graph/liveFrameReader';
+import {
+  connectLiveFrameReader,
+  type ILiveFrame,
+} from '../graph/liveFrameReader';
 import { FFT_SIZE, createFrequencyAxis } from '../graph/liveSpectrumFrames';
 import { createAxisCells } from '../utils/autoBalanceCapture';
 
@@ -106,8 +108,16 @@ export default function createPublishDemoAudio(
   // themselves are read through `readFrame`, every frame.
   const points = axis.map((x) => ({ x, y: MIN_GAIN }));
   const waveform = [0];
-  const silence = { points: [], waveform: [], sound: undefined };
-  const readFrame: ISceneAudio['readFrame'] = () =>
+  // A whole frame, so a drawing that reads the graphs' points from it (the
+  // look picker's tiles, `lookTileSound.tsx`) reads silence there too.
+  const silence: ILiveFrame = {
+    points: [],
+    graphPoints: [],
+    waveform: [],
+    audioMs: 0,
+    channelPeaks: [],
+  };
+  const readFrame = (): ILiveFrame =>
     stopped ||
     !source ||
     context.state !== 'running' ||
@@ -119,6 +129,8 @@ export default function createPublishDemoAudio(
     readFrame,
     points,
     waveform,
+    // Where a drawing's own channel readers hang off the loop (`IAnalysisTap`).
+    tap: { context, source: input },
     setPaused: (next: boolean) => {
       wantPaused = next;
       return settle();

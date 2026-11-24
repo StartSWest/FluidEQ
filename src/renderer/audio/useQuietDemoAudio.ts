@@ -8,7 +8,7 @@ import { useTransportSources } from './transportSource';
 import { LEVEL_FLOOR_DB } from '../graph/outputLevel';
 import createPublishDemoAudio from '../studio/publishDemoAudio';
 
-type TDemoAudio = ReturnType<typeof createPublishDemoAudio>;
+export type TDemoAudio = ReturnType<typeof createPublishDemoAudio>;
 
 /**
  * Music plainly playing: the output meter's held peak above this, in dBFS.
@@ -66,6 +66,18 @@ export default function useQuietDemoAudio(listening = true): {
   audio: ISceneAudio;
   /** True while the scene moves to the demo song, for the page's tag. */
   demo: boolean;
+  /**
+   * The demo itself while the scene moves to it: its whole frames and its
+   * tap, for a drawing that reads more than a scene does (the look picker's
+   * tiles, `lookTileSound.tsx`).
+   */
+  demoAudio: TDemoAudio | undefined;
+  /**
+   * Music plainly heard, by the two levels above: false while nothing is
+   * decided yet as well as while nothing plays, which is when a drawing
+   * that waits for sound keeps what it showed (the look picker's tiles).
+   */
+  music: boolean;
 } {
   const live = useSceneAudio();
   const { isActive, error } = useLiveAudioControl();
@@ -144,5 +156,10 @@ export default function useQuietDemoAudio(listening = true): {
         : live,
     [demo, playing, live],
   );
-  return { audio, demo };
+  return {
+    audio,
+    demo,
+    demoAudio: demo ? playing : undefined,
+    music: nowHeard,
+  };
 }

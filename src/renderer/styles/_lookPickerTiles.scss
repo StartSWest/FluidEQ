@@ -181,6 +181,59 @@ SPDX-License-Identifier: GPL-3.0-or-later
     height: 66%;
   }
 
+  // A standard look's picture (`LookTileArt`): its still edge to edge, and
+  // the look itself drawn live in the same box. The plate's own box, so
+  // nothing in it moves the tile; the flags and the Playing chip after it
+  // stay on top.
+  .look-tile-art {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+  }
+
+  // Gives way to the live drawing in the frame that draws it, in the
+  // component - a fade here would dip the tile to its bare plate between
+  // the two.
+  .look-tile-art__still {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: scale 220ms ease;
+
+    // Painted while the picker is open: into the empty plate, as a scene's
+    // clip arrives; its end is what lets the look go live.
+    &.is-arriving {
+      animation: look-tile-still-in $motion-fast $ease-out both;
+    }
+  }
+
+  @keyframes look-tile-still-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  // The live drawing's or the painter's box, sized in the component: the
+  // plate's, or a larger one shrunk onto it from the corner it stands in.
+  .look-tile-art__stage {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+  }
+
+  // The still being painted: laid out and styled as the tile's own, so its
+  // colours are the window's, and never seen - the song runs many times
+  // faster than it plays.
+  .look-tile-art__painter {
+    position: absolute;
+    inset: 0;
+    visibility: hidden;
+  }
+
   .look-picker__thumb {
     display: grid;
     width: 100%;
@@ -442,7 +495,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
     }
   }
 
+  // The box a live look or a scene's clip is laid over, as on a tile.
   .look-picker__row-art {
+    position: relative;
     display: grid;
     overflow: hidden;
     aspect-ratio: 16 / 9;
@@ -507,8 +562,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   @media (prefers-reduced-motion: reduce) {
     .look-picker__thumb img,
+    .look-tile-art__still,
     .look-picker__clip {
       transition: none;
+    }
+
+    // At once, but still an animation that ends: its end is the signal the
+    // tile waits on, and the app's own motion switch can overrule this query.
+    .look-tile-art__still.is-arriving {
+      animation-duration: 1ms;
     }
   }
 }

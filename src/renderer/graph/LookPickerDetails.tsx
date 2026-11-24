@@ -4,7 +4,8 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import LookIcon from '../icons/LookIcon';
+import { useState } from 'react';
+import SceneClip from '../plus/SceneClip';
 import { useTranslation } from '../utils/I18nContext';
 import GraphSceneRemove from './GraphSceneRemove';
 import GraphSceneReport from './GraphSceneReport';
@@ -17,6 +18,9 @@ import {
 } from './lookPickerRows';
 import { LockBadge, SceneThumbnail } from './lookPickerParts';
 import { OriginMark, useSceneCaption } from './LookPickerTiles';
+import { LookTileScope } from './LookStyleGrid';
+import LookTileArt from './LookTileArt';
+import useTileClip from './lookTileClips';
 
 interface ILookPickerDetailsProps {
   value: string;
@@ -73,43 +77,65 @@ export default function LookPickerDetails({
           onChoose={onChoose}
         />
       ))}
-      {styles.map((row) => (
-        <div key={row.id} className="look-picker__item" role="listitem">
-          <button
-            type="button"
-            className={`look-picker__pick look-picker__row${
-              row.id === value ? ' is-selected' : ''
-            }`}
-            aria-pressed={row.id === value}
-            tabIndex={row.id === stop ? 0 : -1}
-            title={row.name}
-            onClick={() => onChoose(row.id)}
-          >
-            <span className="look-picker__row-art look-picker__art--style">
-              <LookIcon
-                className="look-picker__drawing"
-                style={row.look.style}
-                palette={row.look.palette}
-                colours={row.look.colours}
-              />
-            </span>
-            <span className="look-picker__name">{row.name}</span>
-            <span className="look-picker__flags" />
-            <span className="look-picker__cell look-picker__cell--from">
-              <OriginMark row={row} />
-              <span className="look-picker__caption-text">
-                {row.yours ? t('graph.member.mine') : t('account.plus.eyebrow')}
-              </span>
-            </span>
-            <span className="look-picker__cell look-picker__cell--kind">
-              <span className="look-picker__caption-text">
-                {`${t('graph.picker.styles')} · ${t(FAMILY_KEYS[row.family])}`}
-              </span>
-            </span>
-            <span className="look-picker__cell" />
-          </button>
-        </div>
-      ))}
+      {/* Each standard look's small picture drawn live, as the grid's are
+          (`LookStyleGrid`): one loop and one sound for the whole list. */}
+      <LookTileScope>
+        {styles.map((row) => (
+          <StyleRow
+            key={row.id}
+            row={row}
+            selected={row.id === value}
+            tabbable={row.id === stop}
+            onChoose={onChoose}
+          />
+        ))}
+      </LookTileScope>
+    </div>
+  );
+}
+
+function StyleRow({
+  row,
+  selected,
+  tabbable,
+  onChoose,
+}: {
+  row: IStyleRow;
+  selected: boolean;
+  tabbable: boolean;
+  onChoose: (lookId: string) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="look-picker__item" role="listitem">
+      <button
+        type="button"
+        className={`look-picker__pick look-picker__row${
+          selected ? ' is-selected' : ''
+        }`}
+        aria-pressed={selected}
+        tabIndex={tabbable ? 0 : -1}
+        title={row.name}
+        onClick={() => onChoose(row.id)}
+      >
+        <span className="look-picker__row-art look-picker__art--style">
+          <LookTileArt look={row.look} />
+        </span>
+        <span className="look-picker__name">{row.name}</span>
+        <span className="look-picker__flags" />
+        <span className="look-picker__cell look-picker__cell--from">
+          <OriginMark row={row} />
+          <span className="look-picker__caption-text">
+            {row.yours ? t('graph.member.mine') : t('account.plus.eyebrow')}
+          </span>
+        </span>
+        <span className="look-picker__cell look-picker__cell--kind">
+          <span className="look-picker__caption-text">
+            {`${t('graph.picker.styles')} · ${t(FAMILY_KEYS[row.family])}`}
+          </span>
+        </span>
+        <span className="look-picker__cell" />
+      </button>
     </div>
   );
 }
@@ -131,8 +157,26 @@ function SceneRow({
   // The maker in its own column; the caption's version, or its note.
   const { text, version } = useSceneCaption(row, undefined);
   const note = useSceneCaption(row, fresh);
+  // The scene's published clip over its picture while the pointer or the
+  // focus is on the row, as on a grid tile (`lookTileClips.ts`): the whole
+  // item answers, its report and remove buttons included.
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const clip = useTileClip(row.thumbnail, hovered || focused);
   return (
-    <div className="look-picker__item" role="listitem">
+    <div
+      className="look-picker__item"
+      role="listitem"
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={(event) => {
+        const next = event.relatedTarget;
+        if (!(next instanceof Node && event.currentTarget.contains(next))) {
+          setFocused(false);
+        }
+      }}
+    >
       <button
         type="button"
         className={`look-picker__pick look-picker__row${
@@ -145,6 +189,7 @@ function SceneRow({
       >
         <span className="look-picker__row-art">
           <SceneThumbnail row={row} />
+          {clip && <SceneClip url={clip} className="look-picker__clip" />}
         </span>
         <span className="look-picker__name">
           <span className="look-picker__name-text">{row.name}</span>

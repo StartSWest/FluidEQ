@@ -16,6 +16,7 @@ import LookPickerMore from './LookPickerMore';
 import LookPickerRail from './LookPickerRail';
 import LookPickerSearch from './LookPickerSearch';
 import LookPickerSort from './LookPickerSort';
+import LookStyleGrid from './LookStyleGrid';
 import { LookPickerSceneTile, LookPickerStyleTile } from './LookPickerTiles';
 import {
   freshnessOf,
@@ -229,7 +230,7 @@ const LookPickerBody = ({
         </h4>
       )}
       {styles.length > 0 && (
-        <div className="look-picker__grid look-picker__grid--styles">
+        <LookStyleGrid>
           {styles.map((row) => (
             <LookPickerStyleTile
               key={row.id}
@@ -239,7 +240,7 @@ const LookPickerBody = ({
               onChoose={onChoose}
             />
           ))}
-        </div>
+        </LookStyleGrid>
       )}
     </>
   );
