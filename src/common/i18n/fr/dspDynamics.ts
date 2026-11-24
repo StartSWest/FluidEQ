@@ -5,9 +5,29 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 export default {
-  'dsp.dynamics.appliedGain': 'Gain appliqué',
-  'dsp.dynamics.graphHint':
-    'Musique avant et après Dynamics. La courbe monte lors du renforcement et descend lors de la compression.',
+  'dsp.dynamics.key.now': 'La bande maintenant',
+  'dsp.dynamics.key.lifted': 'Remonté',
+  'dsp.dynamics.key.held': 'Retenu',
+  'dsp.dynamics.untouched': 'Intact',
+  'dsp.dynamics.dragHint':
+    'Faites glisser un point : creux là où une bande commence, plein pour sa force.',
+  'dsp.dynamics.idleHint':
+    'Rien ne joue. Le point de chaque bande suit sa courbe dès que le son arrive.',
+  'dsp.dynamics.state.lifting': 'Remonte',
+  'dsp.dynamics.state.holding': 'Retient',
+  'dsp.dynamics.state.silent': 'Aucun son',
+  'dsp.dynamics.bands': 'Bandes',
+  'dsp.dynamics.axisIn': 'Entrée',
+  'dsp.dynamics.axisOut': 'Sortie',
+  'dsp.dynamics.table.starts': 'Début',
+  'dsp.dynamics.table.atMost': 'Au plus',
+  'dsp.dynamics.table.liftUnder': 'Remonter sous',
+  'dsp.dynamics.table.holdOver': 'Retenir au-dessus',
+  'dsp.dynamics.point.liftStart': 'Où la remontée commence',
+  'dsp.dynamics.point.liftTop': 'Jusqu’où va la remontée',
+  'dsp.dynamics.point.liftPull': 'Créer une remontée',
+  'dsp.dynamics.point.holdStart': 'Où la retenue commence',
+  'dsp.dynamics.point.holdEnd': 'Force de la retenue',
   'dsp.dynamics.engineLiveOld':
     'Mettez le moteur à jour pour voir Dynamics en direct. Le son est déjà traité.',
   'dsp.dynamics.title': 'Dynamique',
@@ -17,12 +37,15 @@ export default {
     'Dynamique demande le FluidEQ Engine le plus récent. Le reste du rack joue ; ce filtre démarre une fois le moteur mis à jour.',
   'dsp.dynamics.graphLabel': 'Ce que chaque bande fait de son niveau',
   'dsp.dynamics.band.low': 'Graves',
+  'dsp.dynamics.band.lowRange': 'sous 150 Hz',
   'dsp.dynamics.band.lowHint':
     'Sous 150 Hz : le grondement d’une explosion, une grosse caisse, un moteur.',
   'dsp.dynamics.band.mid': 'Médiums',
+  'dsp.dynamics.band.midRange': '150 Hz – 4 kHz',
   'dsp.dynamics.band.midHint':
     'De 150 Hz à 4 kHz : les voix, les pas et l’essentiel du son.',
   'dsp.dynamics.band.high': 'Aigus',
+  'dsp.dynamics.band.highRange': 'au-dessus de 4 kHz',
   'dsp.dynamics.band.highHint':
     'Au-dessus de 4 kHz : le détail, l’air, l’arête d’un pas.',
   'dsp.dynamics.lift': 'Remonter',

@@ -1,0 +1,241 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// One band's curve (`DspDynamicsCurve`): level in across, level out up.
+// Drawn straight onto the card like every plot on the stage — a hairline
+// frame and the grid, no ground of its own — in the band's colour
+// (`--dynamics-band`, `_dspDynamicsStage.scss`).
+.dsp-dynamics-curve {
+  display: block;
+  flex: none;
+  overflow: visible;
+  user-select: none;
+
+  text {
+    font-family: inherit;
+  }
+}
+
+.dsp-dynamics-curve__frame {
+  fill: none;
+  stroke: var(--rule-major);
+}
+
+.dsp-dynamics-curve__grid line {
+  stroke: var(--rule-minor);
+}
+
+// Unity: what an untouched band does.
+.dsp-dynamics-curve__unity {
+  stroke: var(--rule-major);
+  stroke-dasharray: 3 3;
+}
+
+.dsp-dynamics-curve__body {
+  fill: var(--dynamics-band);
+  fill-opacity: 0.07;
+}
+
+.dsp-dynamics-curve__lifted {
+  fill: var(--dynamics-band);
+  fill-opacity: 0.28;
+}
+
+.dsp-dynamics-hatch__ground {
+  fill: var(--dynamics-band);
+  fill-opacity: 0.1;
+}
+
+.dsp-dynamics-hatch__line {
+  stroke: var(--dynamics-band);
+  stroke-opacity: 0.75;
+  stroke-width: 1.6;
+}
+
+// What the settings ask for at a full mix, where the points sit, while the
+// mix lets some of the input through and the curve heard is flatter.
+.dsp-dynamics-curve__setting {
+  fill: none;
+  stroke: var(--dynamics-band);
+  stroke-dasharray: 4 3;
+  stroke-opacity: 0.6;
+  stroke-width: 1.2;
+}
+
+.dsp-dynamics-curve__line {
+  fill: none;
+  stroke: var(--dynamics-band);
+  stroke-linejoin: round;
+  stroke-width: 2.2;
+}
+
+// Where a lift or a hold starts, down to the axis and named there in the
+// band's colour.
+.dsp-dynamics-curve__guide {
+  line {
+    stroke: var(--dynamics-band);
+    stroke-dasharray: 2 3;
+    stroke-opacity: 0.55;
+  }
+
+  text {
+    fill: var(--dynamics-band);
+    font-size: 9.5px;
+    font-weight: $weight-bold;
+  }
+}
+
+.dsp-dynamics-curve__tick {
+  fill: $text-faint;
+  font-size: 9.5px;
+}
+
+.dsp-dynamics-curve__axis {
+  fill: $text-muted;
+  font-size: 9.5px;
+  font-weight: $weight-semibold;
+}
+
+// The gain meter beside the square: up a lift, down a hold, from the line
+// of nothing done; the marks keep the last moments' deepest and highest.
+.dsp-dynamics-meter__frame {
+  fill: none;
+  stroke: var(--rule-major);
+}
+
+.dsp-dynamics-meter__tick {
+  stroke: var(--rule-major);
+}
+
+.dsp-dynamics-meter__zero {
+  stroke: $text-faint;
+  stroke-opacity: 0.7;
+}
+
+.dsp-dynamics-meter__fill {
+  fill: var(--dynamics-band);
+}
+
+.dsp-dynamics-meter__peak {
+  stroke: var(--dynamics-band);
+  stroke-width: 1.6;
+}
+
+// The band as it plays.
+.dsp-dynamics-live__guide {
+  stroke: $text-faint;
+  stroke-opacity: 0.55;
+}
+
+.dsp-dynamics-live__trail {
+  fill: var(--dynamics-band);
+}
+
+.dsp-dynamics-live__ring {
+  fill: none;
+  stroke: $text-faint;
+  stroke-width: 1.2;
+}
+
+.dsp-dynamics-live__arrow {
+  fill: none;
+  stroke: var(--dynamics-band);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.dsp-dynamics-live__dot {
+  fill: $ink;
+  stroke: var(--dynamics-band);
+  stroke-width: 2.6;
+}
+
+// The points: hollow where a band starts, filled for how hard, dashed while
+// the half of the band they belong to does nothing. Each is a slider; the
+// halo shows the one in hand and the one the keys are on.
+.dsp-dynamics-point {
+  cursor: grab;
+  outline: none;
+  touch-action: none;
+
+  &.is-held {
+    cursor: grabbing;
+  }
+}
+
+.dsp-dynamics-point__reach {
+  fill: transparent;
+}
+
+.dsp-dynamics-point__halo {
+  fill: var(--dynamics-band);
+  fill-opacity: 0.16;
+  stroke: var(--dynamics-band);
+  stroke-opacity: 0.5;
+  visibility: hidden;
+
+  .dsp-dynamics-point.is-held > &,
+  .dsp-dynamics-point:focus-visible > & {
+    visibility: visible;
+  }
+}
+
+.dsp-dynamics-point__mark {
+  stroke-width: 2;
+
+  .is-start > & {
+    fill: $surface-panel;
+    stroke: var(--dynamics-band);
+  }
+
+  .is-end > & {
+    fill: var(--dynamics-band);
+    stroke: $surface-panel;
+  }
+
+  .is-pull > &,
+  .is-start.is-idle > & {
+    r: 4.5;
+    stroke-dasharray: 2 2;
+    stroke-opacity: 0.55;
+    stroke-width: 1.6;
+  }
+
+  .is-pull > & {
+    fill: $surface-panel;
+    stroke: var(--dynamics-band);
+  }
+
+  .dsp-dynamics-point.is-held > &,
+  .dsp-dynamics-point:focus-visible > & {
+    r: 6.5;
+  }
+}
+
+.dsp-dynamics-curves.is-off .dsp-dynamics-point {
+  cursor: default;
+  pointer-events: none;
+}
+
+// The values of the point in hand.
+.dsp-dynamics-tag {
+  pointer-events: none;
+
+  rect {
+    fill: $surface-panel;
+    stroke: var(--dynamics-band);
+  }
+
+  text {
+    fill: $text-primary;
+    font-size: 10px;
+    font-weight: $weight-bold;
+  }
+}

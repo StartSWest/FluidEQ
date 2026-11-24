@@ -5,9 +5,29 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 export default {
-  'dsp.dynamics.appliedGain': 'Ganancia aplicada',
-  'dsp.dynamics.graphHint':
-    'Música antes y después de Dynamics. La curva sube al realzar y baja al comprimir.',
+  'dsp.dynamics.key.now': 'La banda ahora',
+  'dsp.dynamics.key.lifted': 'Subido',
+  'dsp.dynamics.key.held': 'Contenido',
+  'dsp.dynamics.untouched': 'Sin tocar',
+  'dsp.dynamics.dragHint':
+    'Arrastra un punto: hueco donde empieza una banda, relleno cuánto actúa.',
+  'dsp.dynamics.idleHint':
+    'No suena nada. El punto de cada banda recorre su curva en cuanto llega el sonido.',
+  'dsp.dynamics.state.lifting': 'Subiendo',
+  'dsp.dynamics.state.holding': 'Conteniendo',
+  'dsp.dynamics.state.silent': 'Sin sonido',
+  'dsp.dynamics.bands': 'Bandas',
+  'dsp.dynamics.axisIn': 'Entrada',
+  'dsp.dynamics.axisOut': 'Salida',
+  'dsp.dynamics.table.starts': 'Empieza',
+  'dsp.dynamics.table.atMost': 'Como máximo',
+  'dsp.dynamics.table.liftUnder': 'Subir bajo',
+  'dsp.dynamics.table.holdOver': 'Contener sobre',
+  'dsp.dynamics.point.liftStart': 'Dónde empieza la subida',
+  'dsp.dynamics.point.liftTop': 'Hasta dónde llega la subida',
+  'dsp.dynamics.point.liftPull': 'Sacar una subida',
+  'dsp.dynamics.point.holdStart': 'Dónde empieza la contención',
+  'dsp.dynamics.point.holdEnd': 'Cuánto contiene',
   'dsp.dynamics.engineLiveOld':
     'Actualiza el motor para ver el movimiento de Dynamics. El sonido ya se está procesando.',
   'dsp.dynamics.title': 'Dinámica',
@@ -17,12 +37,15 @@ export default {
     'Dinámica necesita el FluidEQ Engine más reciente. El resto del rack está sonando; este filtro empieza cuando se actualice el motor.',
   'dsp.dynamics.graphLabel': 'Lo que hace cada banda con su nivel',
   'dsp.dynamics.band.low': 'Graves',
+  'dsp.dynamics.band.lowRange': 'bajo 150 Hz',
   'dsp.dynamics.band.lowHint':
     'Por debajo de 150 Hz: el retumbo de una explosión, un bombo, un motor.',
   'dsp.dynamics.band.mid': 'Medios',
+  'dsp.dynamics.band.midRange': '150 Hz – 4 kHz',
   'dsp.dynamics.band.midHint':
     'De 150 Hz a 4 kHz: voces, pasos y casi todo el sonido.',
   'dsp.dynamics.band.high': 'Agudos',
+  'dsp.dynamics.band.highRange': 'sobre 4 kHz',
   'dsp.dynamics.band.highHint':
     'Por encima de 4 kHz: detalle, aire, el filo de un paso.',
   'dsp.dynamics.lift': 'Subir',

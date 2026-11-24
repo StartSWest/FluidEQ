@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { KeyboardEvent, useLayoutEffect, useRef, useState } from 'react';
 import type { TDialView } from './dialGesture';
 import KnobDial from './KnobDial';
+import parseTypedNumber from './typedNumber';
 import { useTranslation } from '../utils/I18nContext';
 import '../styles/Knob.scss';
 
@@ -17,23 +18,6 @@ interface IKnobViewProps {
   unit: string;
   isDisabled: boolean;
 }
-
-/**
- * A typed number, with a comma read as the decimal point it is in half the
- * languages this app speaks, and a trailing `k` as thousands — the box opens
- * holding the reading, and a frequency reads "12.5k"; undefined for anything
- * that is not a number.
- */
-const parseTyped = (text: string) => {
-  const typed = text.trim().replace(',', '.');
-  const isThousands = /k$/i.test(typed);
-  const digits = isThousands ? typed.slice(0, -1).trim() : typed;
-  const number = Number(digits);
-  if (digits === '' || !Number.isFinite(number)) {
-    return undefined;
-  }
-  return isThousands ? number * 1_000 : number;
-};
 
 /** The box a reading is turned into: the text it opened with, and what is in
  * it now. */
@@ -112,7 +96,7 @@ const KnobView = ({ view, unit, isDisabled }: IKnobViewProps) => {
     if (typing.text.trim() === typing.from) {
       return;
     }
-    const typed = parseTyped(typing.text);
+    const typed = parseTypedNumber(typing.text);
     if (typed !== undefined) {
       typeValue(typed);
     }

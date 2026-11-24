@@ -5,9 +5,29 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 export default {
-  'dsp.dynamics.appliedGain': '適用ゲイン',
-  'dsp.dynamics.graphHint':
-    'Dynamics処理前後の音楽です。ゲイン曲線は持ち上げると上がり、抑えると下がります。',
+  'dsp.dynamics.key.now': '現在のバンド',
+  'dsp.dynamics.key.lifted': '持ち上げ',
+  'dsp.dynamics.key.held': '抑え',
+  'dsp.dynamics.untouched': 'そのまま',
+  'dsp.dynamics.dragHint':
+    '点をドラッグ：中抜きはバンドの始まり、塗りつぶしは強さです。',
+  'dsp.dynamics.idleHint':
+    '何も再生されていません。音が届くと、各バンドの点がカーブ上を動きます。',
+  'dsp.dynamics.state.lifting': '持ち上げ中',
+  'dsp.dynamics.state.holding': '抑え中',
+  'dsp.dynamics.state.silent': '無音',
+  'dsp.dynamics.bands': 'バンド',
+  'dsp.dynamics.axisIn': '入力',
+  'dsp.dynamics.axisOut': '出力',
+  'dsp.dynamics.table.starts': '開始',
+  'dsp.dynamics.table.atMost': '最大',
+  'dsp.dynamics.table.liftUnder': 'この下で持ち上げ',
+  'dsp.dynamics.table.holdOver': 'この上で抑え',
+  'dsp.dynamics.point.liftStart': '持ち上げの開始点',
+  'dsp.dynamics.point.liftTop': '持ち上げの量',
+  'dsp.dynamics.point.liftPull': '持ち上げを引き出す',
+  'dsp.dynamics.point.holdStart': '抑えの開始点',
+  'dsp.dynamics.point.holdEnd': '抑えの強さ',
   'dsp.dynamics.engineLiveOld':
     'Dynamicsの動きを表示するにはエンジンを更新してください。音声の処理はすでに動作しています。',
   'dsp.dynamics.title': 'ダイナミクス',
@@ -17,10 +37,13 @@ export default {
     'ダイナミクスには最新の FluidEQ Engine が必要です。ラックの他の部分は鳴っています。エンジンを更新するとこのフィルターが動き始めます。',
   'dsp.dynamics.graphLabel': '各帯域がレベルに何をするか',
   'dsp.dynamics.band.low': '低域',
+  'dsp.dynamics.band.lowRange': '150 Hz 未満',
   'dsp.dynamics.band.lowHint': '150 Hz 未満：爆発の轟き、キック、エンジン。',
   'dsp.dynamics.band.mid': '中域',
+  'dsp.dynamics.band.midRange': '150 Hz〜4 kHz',
   'dsp.dynamics.band.midHint': '150 Hz〜4 kHz：声、足音、音のほとんど。',
   'dsp.dynamics.band.high': '高域',
+  'dsp.dynamics.band.highRange': '4 kHz 超',
   'dsp.dynamics.band.highHint': '4 kHz 超：ディテール、空気感、足音の輪郭。',
   'dsp.dynamics.lift': '持ち上げ',
   'dsp.dynamics.hold': '抑え',

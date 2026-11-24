@@ -15,7 +15,7 @@ import { useKnownAudioEngineStatus } from '../utils/useAudioEngineStatus';
 import { ProcessorCard } from './DspControls';
 import DspDynamicsControls from './DspDynamicsControls';
 import DspDynamicsBar from './DspDynamicsBar';
-import DspDynamicsGraph from './DspDynamicsGraph';
+import useDynamicsLive from './useDynamicsLive';
 
 interface IDspDynamicsCardProps {
   dynamics: IDynamicsSettings;
@@ -24,10 +24,10 @@ interface IDspDynamicsCardProps {
 }
 
 /**
- * Dynamics' page: what each band does to its level, drawn from the engine's
- * own curve, then each band's lift and hold, then how fast. On an engine from
- * before the stage, the one thing the page cannot show: that it is not heard
- * yet, with the update beside it.
+ * Dynamics' page: each band's curve, from the engine's own formula, with the
+ * band riding it live and its points to drag, then how fast. On an engine
+ * from before the stage, the one thing the page cannot show: that it is not
+ * heard yet, with the update beside it.
  */
 const DspDynamicsCard = ({
   dynamics,
@@ -37,6 +37,7 @@ const DspDynamicsCard = ({
   const { t } = useTranslation();
   // What the window already holds, never a new ask on mount.
   const status = useKnownAudioEngineStatus();
+  const bus = useDynamicsLive(dynamics);
   const isHeard =
     status?.engine !== 'fluid' || engineRunsDynamics(status.fluid?.dllVersion);
   const needsLiveUpdate =
@@ -82,9 +83,8 @@ const DspDynamicsCard = ({
         </div>
       ) : null}
 
-      <DspDynamicsGraph dynamics={dynamics} />
-
       <DspDynamicsControls
+        bus={bus}
         dynamics={dynamics}
         onPatch={onPatch}
         onCommit={onCommit}

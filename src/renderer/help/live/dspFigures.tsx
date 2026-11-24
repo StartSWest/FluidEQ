@@ -7,6 +7,7 @@ import { DSP_PRESETS } from 'common/dsp/presets';
 import { ProcessorCard } from '../../dsp/DspControls';
 import DspDeEsserControls from '../../dsp/DspDeEsserControls';
 import DspDynamicsControls from '../../dsp/DspDynamicsControls';
+import { RESTING_DYNAMICS } from '../../dsp/useDynamicsLive';
 import DspSideTabs from '../../dsp/DspSideTabs';
 import type { TDspSection } from '../../dsp/sections';
 import VoicingIcon from '../../icons/VoicingIcon';
@@ -47,6 +48,7 @@ export function DynamicsDrawing() {
         onToggle={nothing}
       >
         <DspDynamicsControls
+          bus={RESTING_DYNAMICS}
           dynamics={DYNAMICS}
           onPatch={nothing}
           onCommit={nothing}

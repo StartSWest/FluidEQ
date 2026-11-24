@@ -6,204 +6,372 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 @use 'sass:list';
 @use 'color' as *;
-@use 'constant' as *;
 @use 'theme' as *;
-@use 'dspTokens' as *;
 
-// The Dynamics stage's page (`DspDynamicsCard`). `_dspDynamics.scss` is the
-// EQ's dynamic bands; this is the compressor.
+// The Dynamics stage's page (`DspDynamicsControls`): each band's curve with
+// its live dot and its values, then the timing (Direction A of the
+// compressor mockups, 2026-11-24). `_dspDynamics.scss` is the EQ's dynamic
+// bands; this is the compressor. The curves' own drawing is in
+// `_dspDynamicsCurve.scss`.
 //
-// One colour per band, the same on its curve, its key and its panel: the lows
-// in the lagoon's deepest blue, the middle in the rack's applied accent, the
-// highs in the voice's gold.
+// One colour per band, the same on its curve, its tab and its panel: the
+// lows in the lagoon's deepest blue, the middle in the rack's applied
+// accent, the highs in the voice's gold. On the white window the blue and
+// the gold are lights that vanish (the Highs' name stood at almost no
+// contrast), so both are taken down to a readable depth there by the
+// window's own ink ceiling (`readable-ink`); a dark window keeps the lights.
 $dynamics-low: list.nth($lagoon, 7);
 $dynamics-high: $neon-yellow;
 
-@mixin band-ink($property) {
-  &.is-band-0 {
-    #{$property}: $dynamics-low;
-  }
-
-  &.is-band-1 {
-    #{$property}: var(--dsp-applied);
-  }
-
-  &.is-band-2 {
-    #{$property}: $dynamics-high;
-  }
-}
-
-// One shared frequency plot, with readable band gains above it.
-.dsp-dynamics-graph {
+.dsp-dynamics-curves {
+  display: flex;
   flex: 1 1 100%;
+  flex-direction: column;
+  gap: 10px;
   width: 100%;
   min-width: 0;
-  margin: 0;
-  // On the card's floor like every plot (`dsp-box`), its axes on the stage's
-  // own edges.
-  padding: 12px 0 10px;
-  transition: opacity 160ms ease;
 
-  &.is-off {
-    opacity: 0.45;
+  .is-band-0 {
+    --dynamics-band: #{readable-ink($dynamics-low)};
   }
 
-  > canvas {
-    display: block;
-    width: 100%;
-    height: 260px;
+  .is-band-1 {
+    --dynamics-band: var(--dsp-applied);
   }
 
-  > figcaption {
-    padding: 4px 4px 0;
-    color: $text-faint;
-    font-size: $text-small;
-    line-height: 1.5;
+  .is-band-2 {
+    --dynamics-band: #{readable-ink($dynamics-high)};
   }
 }
 
-.dsp-dynamics-graph-head {
+// The key on the left, the one sentence on the right: what is drawn, and
+// how to work it — or, with nothing playing, why no dot is moving.
+.dsp-dynamics-head {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px 18px;
-  padding: 0 4px 12px;
+  gap: 6px 18px;
 }
 
 .dsp-dynamics-key {
   display: flex;
   flex-wrap: wrap;
   gap: 6px 16px;
+  margin: 0;
+  padding: 0;
   color: $text-faint;
   font-size: $text-small;
+  list-style: none;
 }
 
-.dsp-dynamics-key-item {
+.dsp-dynamics-key__item {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
 
   &::before {
     width: 16px;
-    height: 3px;
+    height: 9px;
     border-radius: 2px;
     content: '';
   }
 
-  &.is-input::before {
-    height: 0;
-    border-top: 1px dashed $text-faint;
+  &.is-now::before {
+    width: 9px;
+    border: 2px solid $text-faint;
+    border-radius: 50%;
+    background: $ink;
   }
 
-  &.is-output::before {
-    height: 8px;
-    background: rgba($dynamics-low, 0.3);
-    border-top: 1px solid $dynamics-low;
+  &.is-lifted::before {
+    background: color-mix(in srgb, $text-muted 45%, transparent);
   }
 
-  &.is-gain::before {
-    background: linear-gradient(
-      90deg,
-      $dynamics-low,
-      var(--dsp-applied),
-      $dynamics-high
+  &.is-held::before {
+    outline: 1px solid color-mix(in srgb, $text-faint 40%, transparent);
+    background: repeating-linear-gradient(
+      -45deg,
+      color-mix(in srgb, $text-muted 70%, transparent) 0 1.4px,
+      transparent 1.4px 3.5px
     );
   }
+
+  &.is-untouched::before {
+    height: 0;
+    border-top: 1.5px dashed $text-muted;
+    border-radius: 0;
+  }
 }
 
-.dsp-dynamics-readouts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 28px;
-}
-
-.dsp-dynamics-readout {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 9px;
-  // A reading is its name and its value on the floor, no tile.
-  padding: 5px 0;
-  @include dsp-box;
+// Both sentences in one cell, the one that does not apply hidden, so the
+// row keeps the taller one's height whether music plays or not.
+.dsp-dynamics-hints {
+  display: grid;
+  margin: 0;
+  color: $text-faint;
   font-size: $text-small;
-  @include band-ink(color);
+  line-height: 1.45;
 
-  > output {
-    display: inline-block;
-    width: 7ch;
-    color: $text-primary;
-    font-family: $font-mono;
-    text-align: right;
-    font-variant-numeric: tabular-nums;
+  > .dsp-dynamics-hint {
+    grid-area: 1 / 1;
+  }
+
+  &[data-heard='yes'] > .is-idle,
+  &[data-heard='no'] > .is-heard {
+    visibility: hidden;
   }
 }
 
-@container dsp-card (min-width: #{$bp-md}) {
-  .dsp-dynamics-graph > canvas {
-    height: 310px;
-  }
-}
-
-// One column on a narrow card, two by two from a medium one, the three bands
-// and the timing side by side on a wide one: four panels divide by each of
-// those, so none is ever left alone on a row.
+// Three across, equal, on a card wide enough to drag a point on each.
 .dsp-dynamics-bands {
   display: grid;
-  flex: 1 1 100%;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
+}
+
+// The narrow card: the tabs and the one large curve, one column held to
+// the curve's own size and centred, so the values stand under it.
+.dsp-dynamics-alone {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   width: 100%;
+  max-width: 500px;
+  margin-inline: auto;
+}
+
+.dsp-dynamics-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.dsp-dynamics-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
   min-width: 0;
-
-  > .dsp-band {
-    flex: none;
-    gap: 6px;
-  }
+  padding: 5px 4px 4px;
+  line-height: 1.25;
 }
 
-@container dsp-card (min-width: #{$bp-md}) {
-  .dsp-dynamics-bands {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@container dsp-card (min-width: #{$bp-xl}) {
-  .dsp-dynamics-bands {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-// The band's colour as a mark before its name, so a panel is found from its
-// curve and a curve from its panel.
-.dsp-dynamics-band .dsp-band-title {
+.dsp-dynamics-tab__name {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
+  max-width: 100%;
+  overflow: hidden;
+  font-weight: $weight-semibold;
+  text-overflow: ellipsis;
 
   &::before {
-    width: 8px;
-    height: 8px;
+    flex: none;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
+    background: var(--dynamics-band);
     content: '';
   }
 }
 
-.dsp-dynamics-band.is-band-0 .dsp-band-title::before {
-  background: $dynamics-low;
+// In the option's own ink, a step quieter than its name: the chosen face
+// sets that ink (light words on the lit face of the white window), so a
+// colour of its own here read dark on teal there.
+.dsp-dynamics-tab__figure {
+  color: inherit;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
 }
 
-.dsp-dynamics-band.is-band-1 .dsp-band-title::before {
-  background: var(--dsp-applied);
+// The band's dot keeps an edge in the option's ink, so a blue dot still
+// reads on the lit teal of the chosen tab.
+.dsp-dynamics-tab.is-selected .dsp-dynamics-tab__name::before {
+  outline: 1.5px solid currentColor;
 }
 
-.dsp-dynamics-band.is-band-2 .dsp-band-title::before {
-  background: $dynamics-high;
+.dsp-dynamics-band {
+  flex: none;
+  gap: 6px;
+  padding: 8px 10px 10px;
 }
 
-// "Lift" and "Hold", over their dials: the two halves of a band.
-.dsp-dynamics-side {
-  margin-top: 4px;
+.dsp-dynamics-band__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 30px;
+}
+
+.dsp-dynamics-band__name {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+
+  // The band's colour as a mark before its name, so a panel is found from
+  // its curve and a curve from its panel.
+  .dsp-band-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+
+    &::before {
+      flex: none;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--dynamics-band);
+      content: '';
+    }
+  }
+}
+
+.dsp-dynamics-band__range {
+  padding-left: 15px;
   color: $text-faint;
+  font-size: $text-micro;
+}
+
+// The curve's box: the width the curve is drawn at, measured, with the
+// drawing centred where the square has stopped growing.
+.dsp-dynamics-band__plot {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+}
+
+// The gain now, large, and under it the word for what the band is doing.
+// Every word sits in one cell and all but one are hidden, so the readout is
+// its longest word wide in every language and nothing beside it moves.
+.dsp-dynamics-readout {
+  display: inline-flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.dsp-dynamics-readout__value {
+  color: $text-primary;
+  font-size: 1rem;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  white-space: nowrap;
+
+  > span {
+    display: inline-block;
+    min-width: 4.4ch;
+    text-align: end;
+  }
+
+  > small {
+    margin-left: 2px;
+    color: $text-faint;
+    font-size: $text-micro;
+    font-weight: $weight-semibold;
+  }
+}
+
+.dsp-dynamics-readout__states {
+  display: grid;
+  justify-items: end;
+}
+
+.dsp-dynamics-readout__state {
+  grid-area: 1 / 1;
+  color: var(--dynamics-band);
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  text-transform: uppercase;
+  white-space: nowrap;
+  visibility: hidden;
+  @include tracking(0.04em);
+}
+
+@each $state in silent, unknown, off, untouched, lifting, holding {
+  .dsp-dynamics-readout[data-state='#{$state}']
+    .dsp-dynamics-readout__state[data-for='#{$state}'] {
+    visibility: visible;
+  }
+}
+
+// Nothing known, nothing done: the figure and the word in the quiet ink.
+.dsp-dynamics-readout:is(
+    [data-state='silent'],
+    [data-state='unknown'],
+    [data-state='off']
+  )
+  .dsp-dynamics-readout__value,
+.dsp-dynamics-readout:is(
+    [data-state='silent'],
+    [data-state='off'],
+    [data-state='untouched']
+  )
+  .dsp-dynamics-readout__state {
+  color: $text-faint;
+}
+
+// The five numbers, under the curve and no wider than it.
+.dsp-dynamics-values {
+  display: grid;
+  grid-template-columns: auto repeat(3, minmax(0, 1fr));
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  max-width: var(--dynamics-plot-width);
+  margin-inline: auto;
+  padding-top: 2px;
+}
+
+.dsp-dynamics-values__column {
+  color: $text-faint;
+  font-size: $text-micro;
+  text-align: center;
+}
+
+.dsp-dynamics-values__side {
+  padding-right: 4px;
+  color: $text-muted;
   font-size: $text-small;
   font-weight: $weight-semibold;
+}
+
+.dsp-dynamics-values__none {
+  color: $text-faint;
+  font-size: $text-body;
+  text-align: center;
+}
+
+// A reading that types (`knob-readout__value`), drawn with a field's quiet
+// edge so a row of them reads as five boxes to type into.
+.dsp-dynamics-cell {
+  width: 100%;
+  min-width: 0;
+  padding-inline: 2px;
+  color: $text-primary;
+  border-color: color-mix(
+    in srgb,
+    $secondary-light var(--field-edge-share),
+    transparent
+  );
+
+  &.is-idle:not(.is-typing) {
+    color: $text-faint;
+    border-style: dashed;
+  }
+}
+
+.dsp-dynamics-timing {
+  flex: none;
+}
+
+// Switched off: the drawings fade to the panel's switched-off strength,
+// the dials and the values disable themselves.
+.dsp-dynamics-curves.is-off :is(.dsp-dynamics-curve, .dsp-dynamics-tabs) {
+  opacity: $disabled-opacity;
 }

@@ -10,9 +10,29 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * past the size this project allows.
  */
 export default {
-  'dsp.dynamics.appliedGain': 'Applied gain',
-  'dsp.dynamics.graphHint':
-    'Music before and after Dynamics. The gain curve rises for lift and dips for hold.',
+  'dsp.dynamics.key.now': 'The band now',
+  'dsp.dynamics.key.lifted': 'Lifted',
+  'dsp.dynamics.key.held': 'Held down',
+  'dsp.dynamics.untouched': 'Untouched',
+  'dsp.dynamics.dragHint':
+    'Drag a point: hollow where a band starts, filled how hard.',
+  'dsp.dynamics.idleHint':
+    'Nothing is playing. Each band’s dot rides its curve once sound arrives.',
+  'dsp.dynamics.state.lifting': 'Lifting',
+  'dsp.dynamics.state.holding': 'Holding',
+  'dsp.dynamics.state.silent': 'No sound',
+  'dsp.dynamics.bands': 'Bands',
+  'dsp.dynamics.axisIn': 'In',
+  'dsp.dynamics.axisOut': 'Out',
+  'dsp.dynamics.table.starts': 'Starts',
+  'dsp.dynamics.table.atMost': 'At most',
+  'dsp.dynamics.table.liftUnder': 'Lift under',
+  'dsp.dynamics.table.holdOver': 'Hold over',
+  'dsp.dynamics.point.liftStart': 'Where the lift starts',
+  'dsp.dynamics.point.liftTop': 'How far the lift goes',
+  'dsp.dynamics.point.liftPull': 'Pull out a lift',
+  'dsp.dynamics.point.holdStart': 'Where the hold starts',
+  'dsp.dynamics.point.holdEnd': 'How hard the hold is',
   'dsp.dynamics.engineLiveOld':
     'Update the Engine to see live Dynamics movement. The sound is already being processed.',
   'dsp.dynamics.title': 'Dynamics',
@@ -22,12 +42,15 @@ export default {
     'Dynamics needs the newest FluidEQ Engine. The rest of the rack is playing; this filter starts once the engine is updated.',
   'dsp.dynamics.graphLabel': 'What each band does to its level',
   'dsp.dynamics.band.low': 'Lows',
+  'dsp.dynamics.band.lowRange': 'under 150 Hz',
   'dsp.dynamics.band.lowHint':
     'Under 150 Hz: the boom of a blast, a kick, an engine.',
   'dsp.dynamics.band.mid': 'Middle',
+  'dsp.dynamics.band.midRange': '150 Hz – 4 kHz',
   'dsp.dynamics.band.midHint':
     '150 Hz to 4 kHz: voices, steps and most of the sound.',
   'dsp.dynamics.band.high': 'Highs',
+  'dsp.dynamics.band.highRange': 'over 4 kHz',
   'dsp.dynamics.band.highHint': 'Over 4 kHz: detail, air, the edge of a step.',
   'dsp.dynamics.lift': 'Lift',
   'dsp.dynamics.hold': 'Hold',

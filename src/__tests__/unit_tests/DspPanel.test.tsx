@@ -221,13 +221,15 @@ describe('DspPanel', () => {
     expect(screen.queryByText(/invents them/i)).not.toBeInTheDocument();
   });
 
-  it('opens the Dynamics music graph and applies its Punch preset', () => {
-    const { container, onChange } = renderPanel();
+  it('opens the Dynamics curves and applies its Punch preset', () => {
+    const { onChange } = renderPanel();
     fireEvent.click(screen.getByRole('button', { name: /Dynamics/i }));
     const card = screen.getByRole('region', { name: /Dynamics/i });
     expect(
-      container.querySelector('.dsp-dynamics-graph canvas'),
-    ).toBeInTheDocument();
+      within(card).getAllByRole('group', {
+        name: /What each band does to its level/,
+      }),
+    ).toHaveLength(3);
     fireEvent.click(within(card).getByRole('button', { name: 'Preset' }));
     fireEvent.click(screen.getByRole('menuitemradio', { name: /^Punch/i }));
     expect(onChange).toHaveBeenLastCalledWith(
