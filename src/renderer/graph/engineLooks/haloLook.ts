@@ -69,7 +69,7 @@ vec4 haloCopy(vec2 p, int copy, vec4 picture) {
     picture = lookGlow(picture, core * lookFill(dist - radius));
   }
   // The ring line.
-  picture = lookOver(picture, vec4(vec3(1.0), 1.0) * uLook[7].z * lookStroke(abs(dist - radius), 1.5));
+  picture = lookOver(picture, lookMark(uLook[7].z * lookStroke(abs(dist - radius), 1.5)));
 
   float u = mod(atan(q.y, q.x) - PI * 0.5 - turn, 2.0 * PI) / PI * side;
   float count = side * 2.0;

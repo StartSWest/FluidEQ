@@ -187,7 +187,7 @@ vec4 loudnessCopy(vec4 picture, vec2 p, vec2 uv, int copy) {
   ${SCALE_MARKS.map((value) => `marks = max(marks, loudnessMark(q, q.x - (scaleLeft + ${f((value + 1) / 2)} * scaleWidth), scaleTop + scaleHeight + 1.0, scaleTop + scaleHeight + 4.0));`).join('\n  ')}
   picture = lookOver(picture, lookPaint(FAINT.rgb, FAINT.a * presence * marks));
   float needle = scaleLeft + (uLook[7].x + 1.0) * 0.5 * scaleWidth;
-  picture = lookOver(picture, lookPaint(vec3(1.0), presence * lookFill(lookBox(q, vec2(needle - 1.5, scaleTop - 2.0), vec2(needle + 1.5, scaleTop + scaleHeight + 2.0), 1.5))));
+  picture = lookOver(picture, lookPaint(uWindowInk, presence * lookFill(lookBox(q, vec2(needle - 1.5, scaleTop - 2.0), vec2(needle + 1.5, scaleTop + scaleHeight + 2.0), 1.5))));
 
   // The two level bars, each with its peak mark and the scale under it.
   float barLeft = t1.w;
@@ -204,7 +204,7 @@ vec4 loudnessCopy(vec4 picture, vec2 p, vec2 uv, int copy) {
     float mark = row == 0 ? uLook[8].z : uLook[8].w;
     if (mark > 0.004) {
       float at = barLeft + barWidth * clamp(mark, 0.0, 1.0);
-      picture = lookOver(picture, lookPaint(vec3(1.0), ${f(BAR_MARK_ALPHA)} * presence * lookFill(lookBox(q, vec2(at - 1.0, top), vec2(at + 1.0, top + barHeight), 0.0))));
+      picture = lookOver(picture, lookPaint(uWindowInk, ${f(BAR_MARK_ALPHA)} * presence * lookFill(lookBox(q, vec2(at - 1.0, top), vec2(at + 1.0, top + barHeight), 0.0))));
     }
     float ticks = loudnessMark(q, loudnessTicks(q.x, barLeft, barWidth), top + barHeight + 1.0, top + barHeight + 3.0);
     picture = lookOver(picture, lookPaint(FAINT.rgb, FAINT.a * ${f(BAR_TICK_ALPHA)} * presence * ticks));

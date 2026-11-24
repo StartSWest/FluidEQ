@@ -16,6 +16,7 @@ import {
   type ISceneDrawn,
   type ISceneFrame,
   type ISceneSpan,
+  sheenFill,
 } from './sceneFrame';
 import {
   createPeakHold,
@@ -354,7 +355,7 @@ export const drawLedBars = (
     paint(hot, figureInk(context, frame, span, 1, 0.2));
     paint(held, figureInk(context, frame, span, 1, 0.55));
     if (look.filled) {
-      context.fillStyle = 'rgba(255, 255, 255, 0.28)';
+      context.fillStyle = sheenFill(0.28);
       context.fill(shine);
     }
     context.globalAlpha = 1;

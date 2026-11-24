@@ -15,6 +15,7 @@ import {
   type ISceneDrawn,
   type ISceneFrame,
   type ISceneReading,
+  sparkFill,
 } from './sceneFrame';
 
 /**
@@ -289,7 +290,7 @@ const drawCopy = (
     context.stroke(edge);
   });
   context.globalAlpha = 1;
-  context.fillStyle = 'rgba(255, 255, 255, 0.85)';
+  context.fillStyle = sparkFill(frame.colours, 0.85);
   context.fill(sparks);
   context.restore();
 };

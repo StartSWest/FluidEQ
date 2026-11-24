@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { ISceneReading } from '../sceneViews/sceneFrame';
+import { type ISceneReading, sparkRgb } from '../sceneViews/sceneFrame';
 import {
   SAMPLES,
   SPARK_RADIUS,
@@ -98,14 +98,15 @@ vec4 sceneColour(vec2 uv) {
 }
 `;
 
-const SPARK: readonly [number, number, number] = [1, 1, 1];
-
 const step = (
   reading: ISceneReading,
   state: ISilkWavesState,
   input: IEngineLookInput,
 ): boolean => {
   const { music, look, bands } = reading;
+  // White on a dark window, the look's top colour deepened on a light one,
+  // as the page paints them (sparkFill).
+  const spark = sparkRgb(reading.colours);
   shapeSilk(reading, state);
   const across = SAMPLES + 1;
   const data = sizeLookData(input, across, 2 * STRAND_COUNT);
@@ -132,7 +133,7 @@ const step = (
     setLookVector(input, 12 + copy, middle, swing, 1, 0);
     for (let strand = 0; strand < STRAND_COUNT; strand += 1) {
       traceStrand(reading, band, state, strand, traced, (x, y) =>
-        pushSprite(input, x, y, SPARK_RADIUS, 0.85, SPARK),
+        pushSprite(input, x, y, SPARK_RADIUS, 0.85, spark),
       );
       const row = (copy * STRAND_COUNT + strand) * across * 4;
       for (let sample = 0; sample < across; sample += 1) {

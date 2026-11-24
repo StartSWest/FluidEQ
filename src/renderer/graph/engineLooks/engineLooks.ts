@@ -181,7 +181,14 @@ export const engineAnalysisStep = (
 // 4: the waterfall's front skin hangs to the stack's foot (2026-11-20).
 // 5: the bubbles' strike glow is no longer cut by its box, and a bubble
 // reaches from its column as far as it was pushed (2026-11-20).
-const LOOK_PACK_VERSION = 5;
+// 6: the last white marks follow the window's side — RTA, Notes and Energy's
+// caps, Average's crest, Loudness's needle and peaks, Phase's pip, Halo's
+// ring, Echo's horizon and rails and Slope's mote heads in the window's ink
+// on white (`lookMark`, `uWindowInk`); the glosses, lit faces and whitened
+// tips deepen there (`lookSheen`); the LED wall's, the falling blocks' and
+// Silk's sparks take the look's colour; Echo's and Pulse's haze of light is
+// left out by day (2026-11-24).
+const LOOK_PACK_VERSION = 6;
 
 const packs = new Map<GraphStyle, IScenePack>();
 

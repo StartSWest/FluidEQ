@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { readInk } from '../../utils/theme';
 import { isLightWindow } from '../../utils/windowSide';
 import { rampAt } from '../lookColours';
 import type { IAnalysisBand, IAnalysisPlot } from '../analysis/analysisFrame';
@@ -375,6 +376,30 @@ export const sparkFill = (
   );
   return `rgba(${red}, ${green}, ${blue}, ${clampUnit(alpha).toFixed(3)})`;
 };
+
+const white = (alpha: number): string =>
+  `rgba(255, 255, 255, ${clampUnit(alpha).toFixed(3)})`;
+
+/**
+ * A white highlight laid over a figure — a gloss, a lit face, a whitened tip
+ * — at `alpha`: white on a dark window, and on a light one the darkening a
+ * highlight takes there (`highlightChannel`) laid on as black, which is the
+ * same arithmetic over whatever colour is under it. Laid on as white, a tip
+ * on the white floor washed into the floor and the peaks read as missing
+ * (Ivan, 2026-11-24: "the peaks, they are white"). `lookSheen` on the GPU.
+ */
+export const sheenFill = (alpha: number): string =>
+  isLightWindow()
+    ? `rgba(0, 0, 0, ${(clampUnit(alpha) * LIGHT_WINDOW_DEEPEN).toFixed(3)})`
+    : white(alpha);
+
+/**
+ * A mark drawn on the window's own ground — a ring the rays stand on, a
+ * floor's hairline — at `alpha`: white on a dark window, the window's
+ * strongest ink on a light one (`readInk`). `lookMark` on the GPU.
+ */
+export const markFill = (alpha: number): string =>
+  isLightWindow() ? readInk(clampUnit(alpha)) : white(alpha);
 
 /**
  * How a light that glows is laid over the picture: added, as light is, on a

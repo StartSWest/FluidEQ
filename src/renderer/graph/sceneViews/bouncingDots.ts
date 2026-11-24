@@ -15,6 +15,7 @@ import {
   type ISceneReading,
   type ISceneSpan,
   type ISceneStand,
+  sheenFill,
 } from './sceneFrame';
 import {
   createPeakHold,
@@ -262,7 +263,7 @@ const drawCopy = (
     }
   });
   if (look.filled) {
-    context.fillStyle = 'rgba(255, 255, 255, 0.55)';
+    context.fillStyle = sheenFill(0.55);
     context.fill(shine);
   }
   context.restore();

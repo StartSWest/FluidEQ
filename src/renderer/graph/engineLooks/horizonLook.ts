@@ -69,7 +69,7 @@ vec4 horizonCopy(vec2 p, int copy, vec4 stand, vec4 picture) {
       if (lookFilled()) {
         float tipTop = up < 0.0 ? floorY - height : floorY + height - 1.5;
         float tip = lookFill(lookBox(p, vec2(left, tipTop), vec2(left + body, tipTop + min(1.5, height)), 0.0));
-        picture = lookOver(picture, vec4(vec3(1.0), 1.0) * 0.45 * opacity * tip);
+        picture = lookOver(picture, lookSheen(0.45 * opacity * tip));
       }
       float heldHeight = bar.y * reach;
       if (lookAccents() && heldHeight - height > 3.0) {

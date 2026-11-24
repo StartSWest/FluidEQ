@@ -19,6 +19,7 @@ import {
   type ISceneFrame,
   type ISceneMusic,
   type ISceneReading,
+  markFill,
 } from './sceneFrame';
 import {
   createPeakHold,
@@ -224,7 +225,7 @@ const drawCopy = (
   // The ring itself: a thin line the rays stand on.
   context.save();
   context.lineWidth = 1.5;
-  context.strokeStyle = `rgba(255, 255, 255, ${ringLineAlpha(music.pulse).toFixed(3)})`;
+  context.strokeStyle = markFill(ringLineAlpha(music.pulse));
   context.beginPath();
   context.arc(cx, cy, radius, 0, Math.PI * 2);
   context.stroke();

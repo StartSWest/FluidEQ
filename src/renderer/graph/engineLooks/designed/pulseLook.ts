@@ -77,7 +77,8 @@ vec4 pulsePaper(vec4 picture, vec2 p) {
   float from = uLook[8].y - reach;
   float glow = clamp((q.x - from) / max(1e-3, reach), 0.0, 1.0) * 0.1
     * step(from, q.x) * step(q.x, uLook[8].y) * down;
-  return lookOver(picture, lookPaint(vec3(1.0), dsOpacity() * lift * glow));
+  // Light on the paper: none on a light window, where the paper is white.
+  return lookOver(picture, lookMark(lookOnLight() ? 0.0 : dsOpacity() * lift * glow));
 }
 
 vec4 pulseCopy(vec4 picture, vec2 p, int copy) {

@@ -13,6 +13,7 @@ import {
   type ISceneDrawn,
   type ISceneFrame,
   type ISceneMusic,
+  sheenFill,
 } from './sceneFrame';
 import { mirroredInk } from './sceneInks';
 import {
@@ -152,9 +153,9 @@ const drawCopy = (
       0,
       middle + reach * 0.7,
     );
-    gloss.addColorStop(0, 'rgba(255, 255, 255, 0)');
-    gloss.addColorStop(0.5, 'rgba(255, 255, 255, 0.24)');
-    gloss.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    gloss.addColorStop(0, sheenFill(0));
+    gloss.addColorStop(0.5, sheenFill(0.24));
+    gloss.addColorStop(1, sheenFill(0));
     context.fillStyle = gloss;
     context.fill(all);
   }

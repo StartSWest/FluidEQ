@@ -21,6 +21,8 @@ import {
   type ISceneSpan,
   type ISceneStand,
   type TSceneInk,
+  sheenFill,
+  markFill,
 } from './sceneFrame';
 import {
   createPeakHold,
@@ -434,7 +436,7 @@ const drawCopy = (
     depthShade.addColorStop(1, 'rgba(255, 255, 255, 0.2)');
     context.fillStyle = depthShade;
     context.fill(all);
-    context.fillStyle = 'rgba(255, 255, 255, 0.22)';
+    context.fillStyle = sheenFill(0.22);
     context.fill(lit);
     context.fillStyle = 'rgba(0, 0, 0, 0.22)';
     context.fill(shade);
@@ -476,7 +478,7 @@ const drawCopy = (
   context.fill(floating);
 
   // The floor's edge: a hairline of polish.
-  context.fillStyle = 'rgba(255, 255, 255, 0.16)';
+  context.fillStyle = markFill(0.16);
   context.fillRect(plot.left, floor - 0.5, width, 1);
 };
 

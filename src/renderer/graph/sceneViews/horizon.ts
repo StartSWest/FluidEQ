@@ -15,6 +15,7 @@ import {
   type ISceneFrame,
   type ISceneSpan,
   type ISceneStand,
+  sheenFill,
 } from './sceneFrame';
 import {
   createPeakHold,
@@ -230,7 +231,7 @@ const drawCopy = (
   }
   if (look.filled) {
     body?.addPath(bars);
-    context.fillStyle = 'rgba(255, 255, 255, 0.45)';
+    context.fillStyle = sheenFill(0.45);
     context.fill(tops);
   }
   context.restore();

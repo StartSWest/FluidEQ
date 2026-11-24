@@ -67,8 +67,11 @@ vec4 barsRow(vec4 picture, vec2 p, int copy, int row, bool mate, float strength,
   } else {
     picture = lookOver(picture, lookPaint(anEdgeInk(p, band, mate, heat), presence * body));
   }
-  // The caps in white, because nothing else on the plot is.
-  return lookOver(picture, lookPaint(vec3(1.0), presence * uLook[8].y * cap));
+  // The caps in the window's strongest ink, as the 2D rows paint them
+  // (readInk): white on a dark window, where nothing else on the plot is,
+  // and near-black on a light one, where white caps vanished (Ivan,
+  // 2026-11-24: "I don't see the peaks").
+  return lookOver(picture, lookPaint(uWindowInk, presence * uLook[8].y * cap));
 }
 
 // A faint rule up the copy from each C, under the bars.
@@ -88,7 +91,7 @@ vec4 barsRules(vec4 picture, vec2 p, int copy) {
     float x = texelFetch(uLookData, ivec2(j, ${RULES_ROW}), 0).x;
     rule = max(rule, lookStroke(p.x - x, 1.0));
   }
-  return lookOver(picture, lookPaint(vec3(1.0), anOpacity(copy) * uLook[9].z * rule * inside));
+  return lookOver(picture, lookPaint(uWindowInk, anOpacity(copy) * uLook[9].z * rule * inside));
 }
 
 vec4 sceneColour(vec2 uv) {

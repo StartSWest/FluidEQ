@@ -16,6 +16,8 @@ import {
   type ISceneReading,
   type ISceneSpan,
   type TSceneInk,
+  sheenFill,
+  sparkFill,
 } from './sceneFrame';
 import {
   createPeakHold,
@@ -277,7 +279,7 @@ const drawCopy = (
     }
   });
   if (look.filled) {
-    context.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    context.fillStyle = sheenFill(0.3);
     context.fill(lit);
     context.fillStyle = 'rgba(0, 0, 0, 0.3)';
     context.fill(shade);
@@ -286,7 +288,7 @@ const drawCopy = (
   context.fillStyle = figureInk(context, frame, span, 1, 0.3);
   context.fill(crumbs);
   context.restore();
-  context.fillStyle = 'rgba(255, 255, 255, 0.5)';
+  context.fillStyle = sparkFill(colours, 0.5);
   context.fill(flashes);
   context.strokeStyle = figureInk(context, frame, span, 0.8, 0.5);
   context.lineWidth = 1;

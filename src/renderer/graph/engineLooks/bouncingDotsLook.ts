@@ -99,7 +99,7 @@ vec4 dotsCopy(vec2 p, vec4 stand, vec4 picture) {
     if (lookFilled()) {
       vec2 shineAt = vec2(e.x - e.z * 0.3, e.y - e.w * 0.32);
       float shine = lookFill(length(p - shineAt) - e.w * 0.28);
-      picture = lookOver(picture, vec4(vec3(1.0), 1.0) * 0.55 * opacity * shine);
+      picture = lookOver(picture, lookSheen(0.55 * opacity * shine));
     }
   }
   // The held marks.

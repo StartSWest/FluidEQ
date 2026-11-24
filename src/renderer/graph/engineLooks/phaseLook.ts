@@ -78,7 +78,7 @@ vec4 sceneColour(vec2 uv) {
     // Now, at the right-hand edge.
     float now = anPoint(anPoints() - 1, copy).y;
     float pip = lookFill(length(p - vec2(uLook[1].y - 1.0, now)) - ${f(PHASE_PIP_RADIUS)});
-    picture = lookOver(picture, lookPaint(vec3(1.0), presence * pip));
+    picture = lookOver(picture, lookPaint(uWindowInk, presence * pip));
   }
   return picture;
 }

@@ -102,7 +102,7 @@ vec4 averageChannel(vec4 picture, vec2 p, int copy, int row, int seg, bool mate,
   picture = lookOver(picture, lookPaint(anEdgeInk(p, band, mate, heat.y), presence * lookStroke(d.y, slowWidth)));
   picture = lookOver(picture, lookPaint(anRamp(mate, 1.0), presence * ${f(AVERAGE_FAST_ALPHA)} * lookStroke(d.x, ${f(AVERAGE_FAST_WIDTH)})));
   float dash = averageDash(p, row, seg, ${f(AVERAGE_CREST_WIDTH)} * 0.5 + lookPixel());
-  return lookOver(picture, lookPaint(vec3(1.0), presence * ${f(AVERAGE_CREST_ALPHA)} * lookStroke(dash, ${f(AVERAGE_CREST_WIDTH)})));
+  return lookOver(picture, lookPaint(uWindowInk, presence * ${f(AVERAGE_CREST_ALPHA)} * lookStroke(dash, ${f(AVERAGE_CREST_WIDTH)})));
 }
 
 vec4 sceneColour(vec2 uv) {

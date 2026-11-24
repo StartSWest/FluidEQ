@@ -112,7 +112,7 @@ vec4 echoCopy(vec4 picture, vec2 p, int copy) {
       rail = min(rail, dsToSegment(q, vec2(at, front), vec2(back, horizon)));
     }
     float light = 0.16 * lookAlong(q.y, horizon, front);
-    picture = lookOver(picture, lookPaint(vec3(1.0), dsOpacity() * (0.5 + bass * 0.5) * light * lookStroke(rail, 1.0)));
+    picture = lookOver(picture, lookMark(dsOpacity() * (0.5 + bass * 0.5) * light * lookStroke(rail, 1.0)));
   }
   // The bloom on the horizon, swelling with the bass.
   float bloomTop = horizon - bloom;
@@ -120,13 +120,15 @@ vec4 echoCopy(vec4 picture, vec2 p, int copy) {
   if (q.y >= bloomTop && q.y <= bloomBottom && q.x >= uLook[1].x && q.x <= uLook[1].y) {
     float u = (q.y - bloomTop) / max(1e-3, bloomBottom - bloomTop);
     float haze = u < 0.66 ? mix(0.0, 0.14, u / 0.66) : mix(0.14, 0.0, (u - 0.66) / 0.34);
-    picture = lookOver(picture, lookPaint(vec3(1.0), dsOpacity() * (0.55 + bass * 0.45) * haze));
+    // A haze of light: none on a light window, where it is daylight already
+    // and drawn in ink it read as a smudge across the plot.
+    picture = lookOver(picture, lookMark(lookOnLight() ? 0.0 : dsOpacity() * (0.55 + bass * 0.45) * haze));
   }
   // The horizon: a faint line, brightest in the middle.
   float middle = lookAlong(q.x, uLook[1].x, uLook[1].y);
   float lineLight = 0.35 * (1.0 - abs(middle * 2.0 - 1.0));
   float onLine = q.x >= uLook[1].x && q.x <= uLook[1].y ? lookStroke(q.y - horizon, 1.0) : 0.0;
-  picture = lookOver(picture, lookPaint(vec3(1.0), dsOpacity() * lineLight * onLine));
+  picture = lookOver(picture, lookMark(dsOpacity() * lineLight * onLine));
   // Back to front: each past row dimmer and thinner with depth, a beat's
   // row heavier and brighter all the way back.
   for (int r = 1; r < ${MAX_ROWS}; r++) {
@@ -145,7 +147,7 @@ vec4 echoCopy(vec4 picture, vec2 p, int copy) {
     }
     picture = lookOver(picture, lookPaint(dsPaint(q), dsOpacity() * row.x * (0.45 + row.y * 0.5) * lookStroke(stairs.x, reach)));
     if (row.y > 0.3) {
-      picture = lookOver(picture, lookPaint(vec3(1.0), dsOpacity() * row.x * row.y * 0.6 * lookStroke(stairs.x, 0.8)));
+      picture = lookOver(picture, lookSheen(dsOpacity() * row.x * row.y * 0.6 * lookStroke(stairs.x, 0.8)));
     }
   }
   // A stroked look's own line round the live wave, over the rest.

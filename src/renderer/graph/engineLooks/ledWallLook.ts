@@ -176,7 +176,7 @@ vec4 sceneColour(vec2 uv) {
       }
       vec2 top = vec2(x, board.foot + board.up * (lit - 1.0) * pitch);
       float spark = lookFill(length(p - top) - radius * 1.05);
-      picture = lookOver(picture, vec4(vec3(0.9), 0.9) * spark);
+      picture = lookOver(picture, lookOnLight() ? lookPaint(lookSpark(), 0.9 * spark) : vec4(vec3(0.9), 0.9) * spark);
     }
   }
   return picture;

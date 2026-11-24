@@ -184,6 +184,23 @@ vec4 lookOver(vec4 under, vec4 top) {
   return top + under * (1.0 - top.a);
 }
 
+// A white highlight laid over a figure (a gloss, a lit face, a whitened tip),
+// premultiplied, at alpha a: white on a dark window, and on a light one the
+// darkening a highlight takes there (lookLightInk), laid on as black, since
+// a white sheen on the white floor only washed the figure's top into it
+// (sceneFrame.ts, sheenFill).
+vec4 lookSheen(float a) {
+  float k = clamp(a, 0.0, 1.0);
+  return lookOnLight() ? vec4(0.0, 0.0, 0.0, k * ${LIGHT_WINDOW_DEEPEN.toFixed(3)}) : vec4(k);
+}
+
+// A mark drawn on the window's own ground (a ring, a hairline), at alpha a:
+// white on a dark window, the window's strongest ink on a light one
+// (sceneFrame.ts, markFill).
+vec4 lookMark(float a) {
+  return lookPaint(lookOnLight() ? uWindowInk : vec3(1.0), a);
+}
+
 // A light laid over the picture: added, as light is, on a dark window; laid
 // on as colour on a light one, where adding can only lighten toward the
 // white floor (sceneFrame.ts, glowComposite).

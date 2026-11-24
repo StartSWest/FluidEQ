@@ -117,7 +117,7 @@ vec4 ledBarsBoard(vec2 p, vec4 board, bool ghostOnly, vec4 picture) {
     float shineY = board.y < 0.0 ? y + 0.5 : y + cell - 1.5;
     float shine = lookFill(lookBox(p, vec2(left + 1.0, shineY),
       vec2(left + 1.0 + max(0.5, body - 2.0), shineY + max(0.6, cell * 0.14)), 0.0));
-    picture = lookOver(picture, vec4(vec3(1.0), 1.0) * 0.28 * opacity * shine);
+    picture = lookOver(picture, lookSheen(0.28 * opacity * shine));
   }
   return picture;
 }

@@ -22,6 +22,7 @@ import { cityInks, type createCitySkylinePaths } from './citySkyline';
 import { type NightSurfaces, paintMist, paintMoonHalo } from './terraceNight';
 import { type createTerraceValleyPaths, valleyInks } from './terraceValley';
 import { isLightWindow } from '../utils/windowSide';
+import { markFill } from './sceneViews/sceneFrame';
 import { type createSlopeFieldPaths } from './slopeField';
 import { type createCrystalSpikesPaths } from './crystalSpikes';
 import { type createBraidStagePaths } from './braidStage';
@@ -69,7 +70,8 @@ export const paintField = ({
     }
     context.lineCap = 'round';
     fieldPaths.flow.forEach((band, index) => {
-      context.strokeStyle = index === 0 ? '#fff' : canvasPaint;
+      // The heads white on a dark window, in the window's ink on a light one.
+      context.strokeStyle = index === 0 ? markFill(1) : canvasPaint;
       context.lineWidth = band.width;
       setAlpha(context, opacity * band.alpha);
       context.stroke(band.path);

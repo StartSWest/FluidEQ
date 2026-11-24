@@ -13,6 +13,7 @@ import {
   type ISceneDrawn,
   type ISceneFrame,
   type ISceneSpan,
+  sheenFill,
 } from './sceneFrame';
 import {
   createPeakHold,
@@ -245,8 +246,8 @@ const drawCopy = (
   if (look.filled) {
     // A little light down the front's left edge, where the view catches it.
     const sheen = context.createLinearGradient(plot.left, 0, plot.right, 0);
-    sheen.addColorStop(0, 'rgba(255, 255, 255, 0.06)');
-    sheen.addColorStop(1, 'rgba(255, 255, 255, 0.02)');
+    sheen.addColorStop(0, sheenFill(0.06));
+    sheen.addColorStop(1, sheenFill(0.02));
     context.fillStyle = sheen;
     context.fill(fronts);
   }

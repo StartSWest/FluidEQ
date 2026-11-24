@@ -72,7 +72,7 @@ vec4 paintBlock(vec2 p, vec2 at, float cell, vec3 ink, vec4 picture) {
     float lit = max(inRect(p, at, vec2(cell, bevel)), inRect(p, at + vec2(0.0, bevel), vec2(bevel, cell - bevel)));
     float shade = max(inRect(p, at + vec2(bevel, cell - bevel), vec2(cell - bevel, bevel)),
       inRect(p, at + vec2(cell - bevel, bevel), vec2(bevel, cell - bevel * 2.0)));
-    picture = lookOver(picture, vec4(vec3(1.0), 1.0) * 0.3 * opacity * lit);
+    picture = lookOver(picture, lookSheen(0.3 * opacity * lit));
     picture = lookOver(picture, vec4(0.0, 0.0, 0.0, 0.3 * opacity * shade));
   }
   return picture;
@@ -123,7 +123,7 @@ vec4 blocksCopy(vec2 p, vec4 stand, vec4 picture) {
   }
   if (head.w > 0.5 && stack > 0.0) {
     float y = blockTop(stack - 1.0, floorY, up, pitch, inset);
-    picture = lookOver(picture, vec4(vec3(1.0), 1.0) * 0.5 * inRect(p, vec2(x, y), vec2(cell)));
+    picture = lookOver(picture, lookPaint(lookSpark(), 0.5 * inRect(p, vec2(x, y), vec2(cell))));
   }
   if (head.z >= 0.0) {
     float y = blockTop(head.z, floorY, up, pitch, inset) + 0.5;

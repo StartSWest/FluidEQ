@@ -15,6 +15,7 @@ import {
   type ISceneDrawn,
   type ISceneFrame,
   type ISceneSpan,
+  sparkFill,
 } from './sceneFrame';
 import {
   createPeakHold,
@@ -481,7 +482,7 @@ export const drawLedWall = (
     );
   }
 
-  context.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  context.fillStyle = sparkFill(colours, 0.9);
   context.fill(sparks);
 
   state.frame %= 100000;

@@ -8,6 +8,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { useMemo } from 'react';
 import type { GraphPalette, ResolvedGraphPalette } from 'common/graphStyles';
+import { isOneColour, levelRamp } from './levelRamp';
 import { labToHex, parseCssColour, rgbToLab } from './oklab';
 import { getRainbowStops, useRainbowStops } from './rainbowPalette';
 import { readSurface, useLiveSurface, useRootHasClass } from './theme';
@@ -373,6 +374,52 @@ export const windowViewPalette = (
   isWindowRainbow()
     ? 'rainbow'
     : resolved;
+
+/** The colours a level-as-colour view paints in, and its second reading's. */
+export interface ILevelRamps {
+  colours: readonly string[];
+  mate: readonly string[] | undefined;
+}
+
+/**
+ * For a view whose whole picture is a level painted as a colour (the
+ * Spectrogram): a ramp built from its one colour and the
+ * window's ground (`levelRamp.ts`), when one colour is all it has — a look
+ * coloured with a single colour of its own, or the window's with no second
+ * colour on the Tint. Colourful mode cannot be switched off any more, and
+ * its stops with one colour are seven copies of it (`windowTintStops`), so
+ * Rainbow alone is not colours enough: the stops themselves are asked.
+ * Undefined when there is a real ramp to paint in already: two colours of
+ * the look's own, the Tint's second colour, a Plus scene's rainbow.
+ */
+export const windowLevelRamps = (
+  own: readonly string[],
+): ILevelRamps | undefined => {
+  const ground = asHex(
+    readSurface('--surface-base', FLOOR_FALLBACK),
+    FLOOR_FALLBACK,
+  );
+  if (own.length > 0) {
+    return isOneColour(own)
+      ? { colours: levelRamp(own[0], ground), mate: undefined }
+      : undefined;
+  }
+  if (getWindowTintSecondary() !== undefined) {
+    return undefined;
+  }
+  const rainbow = isWindowRainbow();
+  const stops = getRainbowStops();
+  if (rainbow && !isOneColour(stops)) {
+    return undefined;
+  }
+  // In Colourful mode the colour the window draws in is its stop, worn for
+  // this side of the Brightness (`paletteOnWhite`), not the raw accent.
+  const colour = rainbow && stops.length > 0 ? stops[0] : windowPrimary();
+  return {
+    colours: levelRamp(colour, ground),
+    mate: levelRamp(windowSecondary(), ground),
+  };
+};
 
 /** A look's own colours when it has any, otherwise the window's. */
 export const lookPaintColours = (

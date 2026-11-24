@@ -115,7 +115,7 @@ vec4 towersCopy(vec2 p, vec4 stand, vec4 pool, vec4 picture) {
       float stripeTop = min(head - up * inset, floorY);
       float stripeBottom = max(head - up * inset, floorY);
       float lit = lookFill(lookBox(p, vec2(left + width * 0.14, stripeTop), vec2(left + width * 0.3, stripeBottom), 0.0));
-      picture = lookOver(picture, vec4(vec3(1.0), 1.0) * 0.22 * opacity * lit);
+      picture = lookOver(picture, lookSheen(0.22 * opacity * lit));
       float dark = lookFill(lookBox(p, vec2(left + width * 0.72, stripeTop), vec2(left + width * 0.92, stripeBottom), 0.0));
       picture = lookOver(picture, vec4(0.0, 0.0, 0.0, 0.22 * opacity * dark));
     }
@@ -144,7 +144,7 @@ vec4 towersCopy(vec2 p, vec4 stand, vec4 pool, vec4 picture) {
   // The floor's edge: a hairline of polish.
   if (p.x >= uLook[1].x && p.x <= uLook[1].y) {
     float line = lookFill(abs(p.y - floorY) - 0.5);
-    picture = lookOver(picture, vec4(vec3(1.0), 1.0) * 0.16 * line);
+    picture = lookOver(picture, lookMark(0.16 * line));
   }
   return picture;
 }

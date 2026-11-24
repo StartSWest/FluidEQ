@@ -33,6 +33,7 @@ import {
 } from './liveTracePaint';
 import {
   lookPaintColours,
+  windowLevelRamps,
   windowMateColours,
   windowViewPalette,
 } from '../utils/windowInk';
@@ -65,6 +66,17 @@ import { type GraphLookTransition } from './graphLookTransition';
 // The live graph's looks that draw themselves and leave the frame: the
 // measuring views (spectrogram, waterfall, the stereo instruments) and the
 // drawn scenes, each handed the frame and the plot.
+
+/**
+ * The views whose whole picture is a level painted as a colour. The
+ * Waterfall is not one: its slices are coloured by how far away they stand,
+ * and on one colour its alpha already fades them into the distance — given
+ * the ramp, its front went grey on white and near-white on a dark window
+ * (scanned 2026-11-24).
+ */
+const LEVEL_AS_COLOUR: ReadonlySet<TAnalysisStyle> = new Set<TAnalysisStyle>([
+  'spectrogram',
+]);
 
 interface IDrawMeasuringFrameInput {
   chosen: TAnalysisStyle;
@@ -156,13 +168,26 @@ export const drawMeasuringFrame = ({
         ? readEuphoriaHue(computedRef.current)
         : 0,
   };
-  const viewPalette = windowViewPalette(
-    chosen,
-    lookRef.current.palette,
-    resolveGraphPalette(chosen, lookRef.current.palette),
-    lookRef.current.colours,
-  );
-  const viewColours = lookPaintColours(viewPalette, lookRef.current.colours);
+  // A raster of loudness with one colour to paint it in climbs a ramp made
+  // of that colour, whatever Colour by says: a single colour across the
+  // axis or flat is a rectangle with holes in it (`windowLevelRamps`).
+  const ramps = LEVEL_AS_COLOUR.has(chosen)
+    ? windowLevelRamps(lookRef.current.colours)
+    : undefined;
+  const viewPalette = ramps
+    ? 'level'
+    : windowViewPalette(
+        chosen,
+        lookRef.current.palette,
+        resolveGraphPalette(chosen, lookRef.current.palette),
+        lookRef.current.colours,
+      );
+  const viewColours =
+    ramps?.colours ?? lookPaintColours(viewPalette, lookRef.current.colours);
+  const mateColours =
+    lookRef.current.colours.length === 0
+      ? windowMateColours(viewPalette)
+      : undefined;
   /**
    * The edge is the READING on these views — the analyser's own curve,
    * the ridge of a waterfall slice — so it exists whether or not the
@@ -190,10 +215,7 @@ export const drawMeasuringFrame = ({
     tuning,
     tilt: getGraphAnalyserSlope(),
     colours: viewColours,
-    mateColours:
-      lookRef.current.colours.length === 0
-        ? windowMateColours(viewPalette)
-        : undefined,
+    mateColours: ramps ? ramps.mate : mateColours,
     palette: viewPalette,
     edge: {
       colour: edgePaint,

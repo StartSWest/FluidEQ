@@ -29,6 +29,7 @@ import {
 } from './pulseMonitor';
 import { readSurface } from '../utils/theme';
 import { isLightWindow } from '../utils/windowSide';
+import { markFill, sheenFill } from './sceneViews/sceneFrame';
 import {
   type createTerraceValleyPaths,
   terraceEdgeStroke,
@@ -441,8 +442,8 @@ export const paintEchoWaves = ({
       0,
       sceneBase,
     );
-    rails.addColorStop(0, 'rgba(255,255,255,0)');
-    rails.addColorStop(1, 'rgba(255,255,255,0.16)');
+    rails.addColorStop(0, markFill(0));
+    rails.addColorStop(1, markFill(0.16));
     context.strokeStyle = rails;
     context.lineWidth = 1;
     setAlpha(context, opacity * (0.5 + echoPaths.bass * 0.5));
@@ -455,9 +456,12 @@ export const paintEchoWaves = ({
       0,
       echoPaths.horizon + echoPaths.bloom * 0.5,
     );
-    bloom.addColorStop(0, 'rgba(255,255,255,0)');
-    bloom.addColorStop(0.66, 'rgba(255,255,255,0.14)');
-    bloom.addColorStop(1, 'rgba(255,255,255,0)');
+    // None on a light window, where it is daylight already and drawn in
+    // ink it read as a smudge across the plot.
+    const hazeAlpha = isLightWindow() ? 0 : 0.14;
+    bloom.addColorStop(0, markFill(0));
+    bloom.addColorStop(0.66, markFill(hazeAlpha));
+    bloom.addColorStop(1, markFill(0));
     context.fillStyle = bloom;
     setAlpha(context, opacity * (0.55 + echoPaths.bass * 0.45));
     context.fillRect(
@@ -469,9 +473,9 @@ export const paintEchoWaves = ({
     // The horizon the waves roll toward: a faint line, brightest
     // in the middle where they converge.
     const glow = context.createLinearGradient(plot.left, 0, plot.right, 0);
-    glow.addColorStop(0, 'rgba(255,255,255,0)');
-    glow.addColorStop(0.5, 'rgba(255,255,255,0.35)');
-    glow.addColorStop(1, 'rgba(255,255,255,0)');
+    glow.addColorStop(0, markFill(0));
+    glow.addColorStop(0.5, markFill(0.35));
+    glow.addColorStop(1, markFill(0));
     context.strokeStyle = glow;
     context.lineWidth = 1;
     setAlpha(context, opacity);
@@ -496,7 +500,7 @@ export const paintEchoWaves = ({
         setAlpha(target, opacity * remaining * (0.45 + wave.strength * 0.5));
         target.stroke(wave.line);
         if (wave.strength > 0.3) {
-          target.strokeStyle = '#fff';
+          target.strokeStyle = sheenFill(1);
           target.lineWidth = 0.8;
           setAlpha(target, opacity * remaining * wave.strength * 0.6);
           target.stroke(wave.line);

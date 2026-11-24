@@ -182,11 +182,12 @@ vec4 slopeCopy(vec4 picture, vec2 p, vec2 uv, int copy) {
     );
     picture = lookOver(picture, lookPaint(dsPaint(q), dsOpacity() * uLook[9].w * lookStroke(d, width)));
   }
-  // The motes: white heads, then trails in the look's colour.
+  // The motes: heads white on a dark window and in the window's ink on a
+  // light one, then trails in the look's colour.
   vec4 motes = texture(uLookLines, uv);
   float head = copy == 0 ? motes.g : motes.a;
   float trail = copy == 0 ? motes.r : motes.b;
-  picture = lookOver(picture, lookPaint(vec3(1.0), dsOpacity() * uLook[13].x * head));
+  picture = lookOver(picture, lookMark(dsOpacity() * uLook[13].x * head));
   picture = lookOver(picture, lookPaint(dsPaint(q), dsOpacity() * uLook[13].y * trail));
   // The halo round the arrows, and the arrows.
   float glowing = uLook[6].z > 0.0 ? (stroke + ${f(WIDEST_GLOW)} * uLook[6].w) * 0.5 + 4.0 : 0.0;

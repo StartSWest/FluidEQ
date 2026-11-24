@@ -141,7 +141,7 @@ vec4 bars3dCopy(vec2 p, vec4 stand, vec4 picture) {
       // A little light down the fronts, where the view catches them.
       float across = (p.x - uLook[1].x) / max(1.0, uLook[1].y - uLook[1].x);
       float sheen = mix(0.06, 0.02, clamp(across, 0.0, 1.0));
-      picture = lookOver(picture, vec4(vec3(1.0), 1.0) * sheen * opacity * lookFill(front));
+      picture = lookOver(picture, lookSheen(sheen * opacity * lookFill(front)));
     }
   }
   // The floating slabs, lit.
