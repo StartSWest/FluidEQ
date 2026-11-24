@@ -20,6 +20,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 $auto-eq-rule: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
 // The panel's inset, which its foot spans back out over to reach the edges.
 $auto-eq-pad: $spacing-s + $spacing-xs;
+// A step of light: the window's edge ink over the panel, so it lifts on a dark
+// window and settles on a white one. The parts are told apart by these and by
+// space, never by a box or a shadow (Ivan chose design A on 2026-11-24: "is
+// all together, no separation").
+$auto-eq-step: color-mix(in srgb, $edge-tint 8%, transparent);
 
 // The word after the button's name, quieter than the name: what decides the
 // sound now.
@@ -44,7 +49,7 @@ $auto-eq-pad: $spacing-s + $spacing-xs;
 
 .eq-auto-panel__content {
   display: grid;
-  gap: $spacing-s;
+  gap: $spacing-s + $spacing-xs;
   padding: $auto-eq-pad;
   color: $text-muted;
   font-size: $text-small;
@@ -83,15 +88,17 @@ $auto-eq-pad: $spacing-s + $spacing-xs;
   }
 }
 
-// The song that plays: a glyph where a cover would be, its name, and what
-// decides its sound in one line.
+// The song that plays, on a step of light of its own: a glyph where a cover
+// would be, its name, and what decides its sound as a chip in that sound's
+// colour.
 .eq-auto-now {
   display: grid;
-  grid-template-columns: 32px minmax(0, 1fr);
+  grid-template-columns: 40px minmax(0, 1fr);
   align-items: start;
   gap: $spacing-s + $spacing-xs;
-  padding-bottom: $spacing-s;
-  border-bottom: $auto-eq-rule;
+  padding: $spacing-s + $spacing-xs;
+  border-radius: $radius-m + 2px;
+  background: $auto-eq-step;
 
   &.is-empty {
     align-items: center;
@@ -100,16 +107,16 @@ $auto-eq-pad: $spacing-s + $spacing-xs;
 
 .eq-auto-now__tile {
   display: grid;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   place-items: center;
-  border-radius: $radius-s;
+  border-radius: $radius-m;
   color: $secondary-light;
   background: color-mix(in srgb, $secondary-default 16%, transparent);
 
   svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
   }
 }
 
@@ -135,12 +142,19 @@ $auto-eq-pad: $spacing-s + $spacing-xs;
   white-space: nowrap;
 }
 
+// Whose sound plays, as a chip tinted with that sound's colour.
 .eq-auto-now__plays {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
+  justify-self: start;
   gap: $spacing-xs $spacing-s;
-  margin-top: $spacing-xs;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: $spacing-s - 2px 0 $spacing-xxs;
+  padding: $spacing-xs - 1px $spacing-s + 2px $spacing-xs - 1px $spacing-s;
+  border-radius: 999px;
+  background: color-mix(in srgb, $secondary-default 14%, transparent);
 
   strong {
     color: $text-primary;
@@ -148,7 +162,23 @@ $auto-eq-pad: $spacing-s + $spacing-xs;
   }
 
   span:last-child {
-    color: $text-faint;
+    color: $secondary-light;
+  }
+
+  .is-song & {
+    background: color-mix(in srgb, $sound-own 14%, transparent);
+
+    span:last-child {
+      color: $sound-own;
+    }
+  }
+
+  .is-album & {
+    background: color-mix(in srgb, $sound-album 14%, transparent);
+
+    span:last-child {
+      color: $sound-album;
+    }
   }
 }
 
@@ -199,17 +229,13 @@ $auto-eq-pad: $spacing-s + $spacing-xs;
   margin-top: 2px;
 }
 
+// A part: its name and line beside its switch, then what it holds. Parted
+// from the next by space alone; the hairline that used to run under each one
+// made the panel one ruled block.
 .eq-auto-part {
   display: grid;
-  gap: $spacing-xs + 2px;
-  padding-bottom: $spacing-s;
-  border-bottom: $auto-eq-rule;
-
-  // The foot under it draws the rule (`.eq-auto-panel__foot`).
-  &:last-of-type {
-    padding-bottom: 0;
-    border-bottom: 0;
-  }
+  gap: $spacing-s + 2px;
+  margin-top: $spacing-xs + 2px;
 }
 
 .eq-auto-part__head {
@@ -247,6 +273,21 @@ $auto-eq-pad: $spacing-s + $spacing-xs;
   > span:first-child {
     flex: 1 1 160px;
     min-width: 0;
+  }
+}
+
+// Kept for the song: the line, after the song's own green tick.
+.eq-auto-part__saved {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs + 2px;
+  color: $text-muted;
+
+  svg {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    color: $sound-own;
   }
 }
 
@@ -377,8 +418,8 @@ $auto-eq-pad: $spacing-s + $spacing-xs;
 // Held on the panel's bottom edge while the rest scrolls under it: where the
 // panel is capped to the room above its button (1100 by 800 on the white
 // window's taller rows), Manage and Measure once fell below the fold and the
-// panel read as cut off. The part above it gives up its rule for the foot's,
-// which stays visible as the parts pass beneath.
+// panel read as cut off. Sunk into the menu's floor rather than ruled off, as
+// the parts above it are parted by space.
 .eq-auto-panel__foot {
   position: sticky;
   bottom: 0;
@@ -386,9 +427,8 @@ $auto-eq-pad: $spacing-s + $spacing-xs;
   align-items: center;
   flex-wrap: wrap;
   gap: $spacing-s;
-  margin: 0 (-$auto-eq-pad) (-$auto-eq-pad);
-  padding: $spacing-s $auto-eq-pad $auto-eq-pad;
-  border-top: $auto-eq-rule;
+  margin: $spacing-xs (-$auto-eq-pad) (-$auto-eq-pad);
+  padding: $spacing-s + $spacing-xs $auto-eq-pad;
   background: $surface-menu-floor;
   color: $text-faint;
 

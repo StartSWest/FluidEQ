@@ -49,16 +49,23 @@ SPDX-License-Identifier: GPL-3.0-or-later
   stroke-width: 1.6;
 }
 
-// What a song's saved sound holds: label beside value, a line each.
+// What a song's saved sound holds: four cells, a label over its value, each
+// on a step of light and two pixels from the next (Ivan chose design A on
+// 2026-11-24). The step is the panel's (`EqAutoPanel.scss`), at half its
+// lift, so the cells sit under the song's card rather than beside it.
 .eq-auto-holds {
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: $spacing-xs ($spacing-s + $spacing-xs);
-  align-items: center;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $spacing-xxs;
   margin: 0;
+  overflow: hidden;
+  border-radius: $radius-m;
 
   dt {
     color: $text-faint;
+    font-size: $text-micro;
+    text-transform: uppercase;
+    @include tracking(0.06em);
   }
 
   dd {
@@ -69,12 +76,30 @@ SPDX-License-Identifier: GPL-3.0-or-later
     min-width: 0;
     margin: 0;
     color: $text-primary;
+    font-weight: $weight-semibold;
   }
 
   small {
     color: $text-faint;
-    font-size: $text-micro;
+    font-size: $text-small;
+    font-weight: $weight-regular;
   }
+}
+
+.eq-auto-holds__cell {
+  display: grid;
+  align-content: start;
+  gap: $spacing-xs;
+  min-width: 0;
+  padding: $spacing-s + 1px $spacing-s + 3px;
+  background: color-mix(in srgb, $edge-tint 5%, transparent);
+}
+
+// What stays out of a song's sound, under its cells.
+.eq-auto-holds__note {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-micro;
 }
 
 // The Tone's three values, whose digits stand still as they change.
@@ -83,8 +108,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 .eq-auto-holds__curve {
-  width: 92px;
-  height: 22px;
+  width: 70px;
+  height: 20px;
 }
 
 // A part's line whose words take the row and whose two buttons stand under

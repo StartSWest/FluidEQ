@@ -77,30 +77,46 @@ const AutoEqSongHolds = ({
     sound.presetId !== '' &&
     resolveDspPresetCurve(sound.presetId) !== undefined;
 
+  // Four cells, a label over its value, each on a step of light (Ivan chose
+  // design A on 2026-11-24: "is all together, no separation"): a list of
+  // label beside value ran on into the part's words above and its line
+  // below, and read as one grey block.
   return (
-    <dl className="eq-auto-holds">
-      <dt>{t('autoEq.holds.preset')}</dt>
-      <dd>{presetValue ?? preset}</dd>
-      <dt>{t('autoEq.holds.eq')}</dt>
-      <dd>
-        <AutoEqMiniCurve
-          filters={sound.filters}
-          width={92}
-          height={22}
-          className="eq-auto-holds__curve"
-        />
-        {bandsLine(sound, t)}
-      </dd>
-      <dt>{t('eq.tone')}</dt>
-      <dd className="eq-auto-holds__tone">{toneLine(sound, t)}</dd>
-      <dt>{t('autoEq.holds.curves')}</dt>
-      <dd>
-        {hasCurve
-          ? t('autoEq.holds.curve', { preset })
-          : t('autoEq.holds.none')}
-        <small>{correctionNote ?? t('autoEq.holds.correction')}</small>
-      </dd>
-    </dl>
+    <>
+      <dl className="eq-auto-holds">
+        <div className="eq-auto-holds__cell">
+          <dt>{t('autoEq.holds.preset')}</dt>
+          <dd>{presetValue ?? preset}</dd>
+        </div>
+        <div className="eq-auto-holds__cell">
+          <dt>{t('autoEq.holds.eq')}</dt>
+          <dd>
+            <AutoEqMiniCurve
+              filters={sound.filters}
+              width={70}
+              height={20}
+              className="eq-auto-holds__curve"
+            />
+            <small>{bandsLine(sound, t)}</small>
+          </dd>
+        </div>
+        <div className="eq-auto-holds__cell">
+          <dt>{t('eq.tone')}</dt>
+          <dd className="eq-auto-holds__tone">{toneLine(sound, t)}</dd>
+        </div>
+        <div className="eq-auto-holds__cell">
+          <dt>{t('autoEq.holds.curves')}</dt>
+          <dd>
+            {hasCurve
+              ? t('autoEq.holds.curve', { preset })
+              : t('autoEq.holds.none')}
+          </dd>
+        </div>
+      </dl>
+      <p className="eq-auto-holds__note">
+        {correctionNote ?? t('autoEq.holds.correction')}
+      </p>
+    </>
   );
 };
 

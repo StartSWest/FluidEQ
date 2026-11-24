@@ -204,7 +204,16 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
               eqs.length > 0 && now.owner !== 'song' ? ' is-stacked' : ''
             }`}
           >
-            <span>{songLine}</span>
+            {now.owner === 'song' ? (
+              // Kept, said with the song's own green tick: the line used to
+              // be one more grey sentence among the part's words.
+              <span className="eq-auto-part__saved">
+                <MenuIcon name="check" />
+                {songLine}
+              </span>
+            ) : (
+              <span>{songLine}</span>
+            )}
             {now.owner === 'song' ? (
               <button
                 type="button"
