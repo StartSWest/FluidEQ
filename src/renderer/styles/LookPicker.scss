@@ -240,14 +240,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
   @include studio-rail-icon;
 }
 
-// A long place name wraps under itself rather than losing its end: "New and
-// updated" is "Neu und aktualisiert" and "Новые и обновлённые", and cut to
-// "Neu und aktualisi…" the one place that says what changed said nothing.
+// EVERY PLACE ON ONE LINE (Ivan, 2026-11-24: "those items need to be always
+// on a single line"). A long name wrapped under itself, so "New and updated"
+// beside a three-digit count stood two lines tall and every row under it
+// moved down. It is cut with an ellipsis instead, the whole name in the
+// row's tooltip (`title`).
 .look-picker__place-name {
   min-width: 0;
+  flex: 1 1 auto;
   line-height: 1.3;
-  white-space: normal;
-  overflow-wrap: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .look-picker__place-count {

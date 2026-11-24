@@ -45,6 +45,7 @@ import {
 import {
   getUsableMemberScene,
   getUsableMemberScenes,
+  listedLookOf,
   subscribeMemberScenes,
   withoutOfficialCopies,
   type IUsableMemberScene,
@@ -414,7 +415,15 @@ const stepLook = (direction: 1 | -1, allowed: (id: string) => boolean) => {
   if (count === 0) {
     return;
   }
-  const from = Math.max(0, ids.indexOf(selectedId));
+  // Found as the look the lists show for it: a publisher's own copy of one
+  // of FluidEQ's scenes is that scene's row (`listedLookOf`). Found nowhere,
+  // the walk used to start again from the first look.
+  const from = Math.max(
+    0,
+    ids.indexOf(
+      listedLookOf(selectedId, getUsableMemberScenes(), getUsableScenes()),
+    ),
+  );
   for (let step = 1; step <= count; step += 1) {
     // `+ count` before the remainder, so a backwards walk past the start
     // lands on the end rather than on a negative index.

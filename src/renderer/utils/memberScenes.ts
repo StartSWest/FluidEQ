@@ -77,6 +77,30 @@ export const withoutOfficialCopies = <
     return !(scene.own && packId !== undefined && officialPackIds.has(packId));
   });
 
+/**
+ * The look a selection stands for in the lists: FluidEQ's own scene when the
+ * selection is its publisher's own copy, which the lists leave out
+ * (`withoutOfficialCopies`), the selection itself otherwise. Without it a
+ * graph playing the copy was in no list: the picker marked nothing as playing
+ * and named nothing on its pill, and the cycle, finding the selection
+ * nowhere, started again from the first look (Ivan, 2026-11-24: "it's
+ * starting from the beginning ... sometimes it doesn't").
+ */
+export const listedLookOf = (
+  lookId: string,
+  members: readonly { own: boolean; lookId: string }[],
+  officials: readonly { id: string; lookId: string }[],
+): string => {
+  const packId = parseMemberLookId(lookId)?.packId;
+  if (
+    packId === undefined ||
+    !members.some((scene) => scene.lookId === lookId && scene.own)
+  ) {
+    return lookId;
+  }
+  return officials.find((scene) => scene.id === packId)?.lookId ?? lookId;
+};
+
 const EMPTY: IMemberScenesListing = { scenes: [], locked: [] };
 
 let listing: IMemberScenesListing = EMPTY;

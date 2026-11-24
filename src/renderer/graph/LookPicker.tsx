@@ -19,6 +19,7 @@ import {
   useSeenSceneVersions,
 } from '../utils/seenSceneVersions';
 import {
+  listedLookOf,
   useLockedMemberScenes,
   useUsableMemberScenes,
 } from '../utils/memberScenes';
@@ -30,11 +31,15 @@ import {
 import { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import LookPickerBody from './LookPickerBody';
 import LookPickerWindow from './LookPickerWindow';
-import type {
-  TPickerFrom,
-  TPickerPlace,
-  TPickerSort,
-  TPickerView,
+import {
+  freshnessOf,
+  keepFrom,
+  keepSceneIn,
+  keepStyleIn,
+  type TPickerFrom,
+  type TPickerPlace,
+  type TPickerSort,
+  type TPickerView,
 } from './lookPickerFilter';
 import {
   buildPlusRows,
@@ -219,7 +224,31 @@ const LookPicker = ({
   const toggle = () => {
     if (!isOpen) {
       setQuery('');
-      setOpenedAt(Date.now());
+      const now = Date.now();
+      setOpenedAt(now);
+      // THE WINDOW OPENS ON THE LOOK THAT IS PLAYING (Ivan, 2026-11-24: "when
+      // I open the window and I have a current visualizer displaying, I want
+      // the window to reflect that, and that one should be selected and in
+      // view"). It opened on the place left last time, so a scene playing
+      // while the window was last on Analysis was in no column to scroll to.
+      // The place and the maker tab left last time are kept when they hold
+      // it; otherwise the window opens on the look's own place, every maker.
+      if (current) {
+        const shows =
+          'look' in current
+            ? keepStyleIn(current, place)
+            : keepSceneIn(current, place, freshnessOf(current, now));
+        if (!shows) {
+          const own: TPickerPlace =
+            'look' in current ? current.family : 'all-scenes';
+          lastPlace = own;
+          setPlace(own);
+        }
+        if (!keepFrom(current, from)) {
+          lastFrom = 'all';
+          setFrom('all');
+        }
+      }
       // Opening the looks is when a newer version of one is worth having.
       // The list opens from what is held; whatever changed arrives through
       // the stores' own announcements, marked "New".
@@ -247,9 +276,13 @@ const LookPicker = ({
     setView(next);
   };
 
+  // The row the selection is shown as: a publisher's own copy of one of
+  // FluidEQ's scenes is that scene's row (`listedLookOf`), so the pill names
+  // it and the window marks it as playing.
+  const shown = listedLookOf(value, members, usable);
   const current: IStyleRow | IPlusRow | undefined =
-    styleRows.find((row) => row.id === value) ??
-    plusRows.find((row) => row.id === value);
+    styleRows.find((row) => row.id === shown) ??
+    plusRows.find((row) => row.id === shown);
 
   return (
     <div
@@ -323,7 +356,7 @@ const LookPicker = ({
         ariaLabel={t('graph.picker.label')}
       >
         <LookPickerBody
-          value={value}
+          value={shown}
           styleRows={styleRows}
           plusRows={plusRows}
           query={query}
