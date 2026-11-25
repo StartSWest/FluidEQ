@@ -1,6 +1,6 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import { type IHelpChapter, WINDOW } from './model';
+import type { IHelpChapter } from './model';
 
 /** Listening, singing and sharing, and where to turn when something is wrong. */
 const LISTEN_CHAPTERS = [
