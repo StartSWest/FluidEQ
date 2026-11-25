@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import { randomUUID } from 'crypto';
 import { ipcMain } from 'electron';
+import log from 'electron-log';
+import { writeFileOverReaders } from '../atomicWrite';
 import type { TVersionNotes } from '../../common/sceneVersionNote';
 import {
   isNoteKey,
@@ -47,23 +48,43 @@ const readRawNotes = (folder: string): unknown => {
 export const readStudioNotes = (folder: string): IStudioNotes | undefined =>
   parseStudioNotes(readRawNotes(folder));
 
-/** The notes written beside and renamed over, so no reader sees half. */
-const writeStudioNotes = (folder: string, notes: IStudioNotes): boolean => {
-  const temporary = path.join(folder, `.studio-notes-${randomUUID()}.tmp`);
+/** Whether the notes were written, and why not when they were not. */
+export type TNotesWrite = { ok: true } | { ok: false; reason: string };
+
+/**
+ * `notes` written as the folder's notes: beside and renamed over, so no
+ * reader sees half, or over the file in place while another program holds
+ * it (`writeFileOverReaders`). A project folder is often in OneDrive, whose
+ * sync and the virus scanner open every file in it, and a bare rename used
+ * to fail there with nothing said: the chat's publish line came back "could
+ * not be written" with no reason (Alpine, 2026-11-25).
+ */
+const writeNotesFile = (
+  folder: string,
+  notes: Record<string, unknown>,
+): TNotesWrite => {
   try {
-    fs.writeFileSync(
-      temporary,
-      JSON.stringify({ schema: 1, ...storedStudioNotes(notes) }, null, 2),
-      { encoding: 'utf8', flag: 'wx' },
+    writeFileOverReaders(
+      path.join(folder, FILE),
+      JSON.stringify(notes, null, 2),
     );
-    fs.renameSync(temporary, path.join(folder, FILE));
-    return true;
-  } catch {
-    return false;
-  } finally {
-    fs.rmSync(temporary, { force: true });
+    return { ok: true };
+  } catch (error) {
+    log.error(`Could not write the Studio notes in ${folder}`, error);
+    const code =
+      typeof error === 'object' && error !== null && 'code' in error
+        ? String((error as { code: unknown }).code)
+        : undefined;
+    return {
+      ok: false,
+      reason:
+        code ?? (error instanceof Error ? error.message : 'unknown error'),
+    };
   }
 };
+
+const writeStudioNotes = (folder: string, notes: IStudioNotes): boolean =>
+  writeNotesFile(folder, { schema: 1, ...storedStudioNotes(notes) }).ok;
 
 /**
  * Takes a brief an earlier FluidEQ kept in a project's notes back out
@@ -85,12 +106,12 @@ export const stripStoredBrief = (folder: string): boolean => {
  * The publish line set to `lines`, every other key of the file kept exactly
  * as it was - the member's description above all, whatever its length - and
  * a line an AI left under another name taken out, so the file holds one.
- * Written beside and renamed over. True when written.
+ * Written as `writeNotesFile` writes, which says why when it could not.
  */
 export const writeNoteLines = (
   folder: string,
   lines: TVersionNotes,
-): boolean => {
+): TNotesWrite => {
   const raw = readRawNotes(folder);
   const held =
     raw && typeof raw === 'object' && !Array.isArray(raw)
@@ -101,20 +122,7 @@ export const writeNoteLines = (
     .forEach((key) => {
       delete held[key];
     });
-  const temporary = path.join(folder, `.studio-notes-${randomUUID()}.tmp`);
-  try {
-    fs.writeFileSync(
-      temporary,
-      JSON.stringify({ ...held, whatsNew: lines }, null, 2),
-      { encoding: 'utf8', flag: 'wx' },
-    );
-    fs.renameSync(temporary, path.join(folder, FILE));
-    return true;
-  } catch {
-    return false;
-  } finally {
-    fs.rmSync(temporary, { force: true });
-  }
+  return writeNotesFile(folder, { ...held, whatsNew: lines });
 };
 
 /** The update note the folder's notes carry now, if any. */

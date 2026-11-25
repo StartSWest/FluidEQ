@@ -57,9 +57,13 @@ const faultLine = (
 const nameOf = (colours: ISceneWindowColours) =>
   `surface ${colours.surface}, accent ${colours.accent}, glow ${colours.glow}`;
 
-/** What is wrong with one set, as sentences; [] when nothing. */
-const setLines = (label: string, colours: ISceneWindowColours): string[] => {
-  const faults = windowColourFaults(colours);
+/** What is wrong with one set at its hour, as sentences; [] when nothing. */
+const setLines = (
+  label: string,
+  colours: ISceneWindowColours,
+  daylight: number,
+): string[] => {
+  const faults = windowColourFaults(colours, daylight);
   return faults.length === 0
     ? []
     : [
@@ -96,7 +100,7 @@ const windowColourLines = (
   }
   const problems = named.flatMap((stop) => {
     const colours = stops[stop];
-    return colours ? setLines(STOP_LABEL[stop], colours) : [];
+    return colours ? setLines(STOP_LABEL[stop], colours, Number(stop)) : [];
   });
   const crossing =
     named.length > 1 ? windowColourFaultsThroughDay(stops) : undefined;

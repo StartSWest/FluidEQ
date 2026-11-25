@@ -34,6 +34,7 @@ import {
   stopColoursAt,
   stopKeyOf,
 } from 'renderer/utils/sceneDayColours';
+import { DARK_END_SHADE } from 'renderer/utils/themeShade';
 import {
   windowColourFaults,
   windowColourFaultsThroughDay,
@@ -282,8 +283,8 @@ describe('the one set a scene resolves', () => {
 
 describe('the window colours check through the day', () => {
   it('passes two good sets that keep their accent and glow apart all day', () => {
-    expect(windowColourFaults(NIGHT)).toEqual([]);
-    expect(windowColourFaults(DAY)).toEqual([]);
+    expect(windowColourFaults(NIGHT, 0)).toEqual([]);
+    expect(windowColourFaults(DAY, 100)).toEqual([]);
     expect(
       windowColourFaultsThroughDay({ '0': NIGHT, '100': DAY }),
     ).toBeUndefined();
@@ -296,12 +297,55 @@ describe('the window colours check through the day', () => {
     const night = { surface: '#0e2a26', accent: '#40d0ff', glow: '#c070ff' };
     const day = { surface: '#0e2240', accent: '#c070ff', glow: '#40d0ff' };
     // The control: each end on its own is a good window.
-    expect(windowColourFaults(night)).toEqual([]);
-    expect(windowColourFaults(day)).toEqual([]);
+    expect(windowColourFaults(night, 0)).toEqual([]);
+    expect(windowColourFaults(day, 100)).toEqual([]);
     const fault = windowColourFaultsThroughDay({ '0': night, '100': day });
     expect(fault).toBeDefined();
     expect(fault?.daylight).toBeGreaterThan(0);
     expect(fault?.daylight).toBeLessThan(100);
     expect(fault?.faults).toContain('glow-like-accent');
+  });
+});
+
+// Past the dark travel the window's panes are white whatever a surface says,
+// so a surface is judged only where a dark window wears it. Judged at the
+// day's point, the check called Alpine's day slate blue a mid-tone FluidEQ
+// "moves", and its chat asked the member about a colour that paints nothing
+// there (2026-11-25).
+describe('the window colours check where a surface is worn', () => {
+  /** Alpine's day set as its pack names it: a slate blue at 0.41. */
+  const ALPINE_DAY = { surface: '#3d4a5d', accent: '#cb73ff', glow: '#cee3fb' };
+
+  it('judges no surface at the day’s point, where the window is white', () => {
+    expect(windowColourFaults(ALPINE_DAY, 100)).toEqual([]);
+    // CONTROL: the same set worn by a dark window is a mid-tone there, at
+    // night and at the last hour of the dark travel alike.
+    expect(windowColourFaults(ALPINE_DAY, 0)).toEqual(['surface-mid']);
+    expect(windowColourFaults(ALPINE_DAY, DARK_END_SHADE)).toEqual([
+      'surface-mid',
+    ]);
+  });
+
+  it('judges no accent against a surface the white window does not paint', () => {
+    // The surface's own hue a little brighter: one colour on a dark window.
+    const oneHue = { surface: '#2e3d63', accent: '#7d93cf', glow: '#c8f0ff' };
+    expect(windowColourFaults(oneHue, 100)).toEqual([]);
+    // CONTROL: on the dark window it is the surface's colour again.
+    expect(windowColourFaults(oneHue, 0)).toEqual(['accent-like-surface']);
+  });
+
+  it('finds a day surface too light where the dark window wears it most', () => {
+    // At 0.45 the day surface keeps the blend under 0.40 through Daylight 70
+    // and passes it at the last hour of the dark travel alone.
+    const day = { ...DAY, surface: '#49566f' };
+    expect(windowColourFaults(day, 100)).toEqual([]);
+    expect(windowColourFaultsThroughDay({ '0': NIGHT, '100': day })).toEqual({
+      daylight: DARK_END_SHADE,
+      faults: ['surface-mid'],
+    });
+    // CONTROL: a day surface a night's floor dark passes every hour.
+    expect(
+      windowColourFaultsThroughDay({ '0': NIGHT, '100': DAY }),
+    ).toBeUndefined();
   });
 });

@@ -11,6 +11,7 @@ import {
 import {
   readLooseNoteLines,
   STUDIO_NOTES_CONTRACT,
+  STUDIO_NOTES_FILE,
 } from '../../common/studioNotes';
 import type { TAgentProject } from '../studioAgent/agentProject';
 import type { IMcpTool, IMcpToolResult } from '../studioAgent/mcpProtocol';
@@ -63,8 +64,15 @@ const createWhatsNewTool = ({ project }: IWhatsNewToolDeps): IMcpTool => {
           : 'Give the line: whatsNew, an object with at least "en".',
       );
     }
-    if (!writeNoteLines(open.folder, lines)) {
-      return failure('The notes could not be written in the project folder.');
+    const written = writeNoteLines(open.folder, lines);
+    if (!written.ok) {
+      // The reason and the one way on (Alpine, 2026-11-25): told only that
+      // the notes "could not be written", the chat wrote the file by hand,
+      // which skips this reader and costs the member's description whole
+      // the moment a quote in a translation breaks the JSON.
+      return failure(
+        `The notes could not be written in the project folder (${written.reason}): another program may be holding ${STUDIO_NOTES_FILE}. Call write_whats_new once more. If it fails again, do not write ${STUDIO_NOTES_FILE} yourself - give the member the English line and say it could not be saved, so they can paste it into the Publish dialog.`,
+      );
     }
     const missing = VERSION_NOTE_LOCALES.filter((locale) => !lines[locale]);
     return {

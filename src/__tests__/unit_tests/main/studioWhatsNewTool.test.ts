@@ -104,6 +104,42 @@ it('refuses a line nothing in which can be kept, and writes nothing', async () =
   expect(fs.existsSync(notesFile())).toBe(false);
 });
 
+// Alpine's folder is in OneDrive, whose sync and the virus scanner hold its
+// files open, and a bare rename was refused there (2026-11-25): the chat was
+// told only "could not be written" and wrote the file by hand.
+it('writes the line while another program holds the notes open', async () => {
+  fs.writeFileSync(notesFile(), JSON.stringify({ description: 'A lake' }));
+  jest.spyOn(fs, 'renameSync').mockImplementation(() => {
+    throw Object.assign(new Error('EPERM: operation not permitted'), {
+      code: 'EPERM',
+    });
+  });
+  try {
+    const result = await toolHere().call({ whatsNew: EVERY });
+    expect(result.isError).toBeUndefined();
+  } finally {
+    jest.restoreAllMocks();
+  }
+  expect(readStudioNotes(folder)).toEqual({
+    description: 'A lake',
+    whatsNew: EVERY.en,
+    whatsNewLines: EVERY,
+  });
+  expect(fs.readdirSync(folder)).toEqual(['studio-notes.json']);
+});
+
+it('says why the notes could not be written, and not to write them by hand', async () => {
+  // Nothing can replace a folder standing where the notes go.
+  fs.mkdirSync(notesFile());
+  const result = await toolHere().call({ whatsNew: EVERY });
+  expect(result.isError).toBe(true);
+  expect(said(result)).toMatch(
+    /could not be written in the project folder \(E[A-Z]+\)/,
+  );
+  expect(said(result)).toMatch(/Call write_whats_new once more/);
+  expect(said(result)).toMatch(/do not write studio-notes\.json yourself/);
+});
+
 it('writes nothing for a project that is no longer the chat’s', async () => {
   const tool = createWhatsNewTool({
     project: () => ({ ok: false, reason: 'not-a-project' }),

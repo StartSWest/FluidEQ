@@ -112,8 +112,12 @@ an animation, you have written it again with `build_sheet` and
 
 ## 4. The update note - always last, never skipped
 
-Write what changed into `studio-notes.json`, beside the scene, as
-`"whatsNew"`.
+Write what changed with the `write_whats_new` tool when you have it (the
+Studio's chat does): it writes the line in every language and keeps the
+rest of the file. If it fails, call it once more; if it fails again, never
+write the file yourself - give the member the English line and say it
+could not be saved. Only an AI without the tool writes it into
+`studio-notes.json`, beside the scene, as `"whatsNew"`.
 
 - **One line**, at most 280 characters.
 - **As a listener would say it**: "the fish now swim left and their tails

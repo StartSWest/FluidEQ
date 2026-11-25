@@ -11,6 +11,7 @@ import type {
 import { hueDistance, parseCssColour, rgbToLab } from './oklab';
 import { coloursAtHour } from './sceneDayColours';
 import { clearsWarningHues } from './sceneTint';
+import { DARK_END_SHADE, isLightShade } from './themeShade';
 
 /**
  * WHETHER A SCENE'S WINDOW COLOURS WILL MAKE A GOOD WINDOW (Ivan, 2026-11-17:
@@ -85,9 +86,21 @@ export const lchOf = (hex: string): ILch | undefined => {
   };
 };
 
-/** What is wrong with `colours` as a window, in the order to fix it; [] when nothing. */
+/**
+ * What is wrong with `colours` as the window wears them at `daylight` (the
+ * Brightness, 0 to 100), in the order to fix it; [] when nothing.
+ *
+ * Past the dark travel (`isLightShade`) the window's panes are white
+ * whatever the surface says (`pickedWindow.ts`), so a surface is judged only
+ * where a dark window wears it. Judged at the day's point as well, the check
+ * told Alpine's chat that its day surface, a slate blue at 0.41, was a
+ * mid-tone FluidEQ "cannot wear as named and moves" (2026-11-25): at that
+ * point it paints nothing, and the hours before it, where it does show, are
+ * the blend's to judge (`windowColourFaultsThroughDay`).
+ */
 export const windowColourFaults = (
   colours: ISceneWindowColours,
+  daylight: number,
 ): TWindowColourFault[] => {
   const surface = lchOf(colours.surface);
   const accent = lchOf(colours.accent);
@@ -95,8 +108,10 @@ export const windowColourFaults = (
   if (!surface || !accent || !glow) {
     return [];
   }
+  const paintsSurface = !isLightShade(daylight);
   const faults: TWindowColourFault[] = [];
   if (
+    paintsSurface &&
     surface.lightness > DARK_SURFACE_MOST &&
     surface.lightness < LIGHT_SURFACE_LEAST
   ) {
@@ -112,6 +127,7 @@ export const windowColourFaults = (
   // light and held apart from the white panes (`filledFace`), so a bright one
   // of the ground's own hue still stands apart.
   if (
+    paintsSurface &&
     surface.lightness < LIGHT_SURFACE_LEAST &&
     surface.chroma >= HUE_CHROMA &&
     accent.chroma >= HUE_CHROMA &&
@@ -136,8 +152,14 @@ export const windowColourFaults = (
   return faults;
 };
 
-/** The hours the blend is checked at: every tenth of the way through the day. */
-const DAY_CHECK_STEPS = 10;
+/**
+ * The hours the blend is checked at: every tenth of the way through the day,
+ * and the last hour of the dark travel, where a day surface shows most.
+ */
+const DAY_CHECK_HOURS: readonly number[] = [
+  ...Array.from({ length: 11 }, (_, step) => step * 10),
+  DARK_END_SHADE,
+].sort((a, b) => a - b);
 
 export interface IDayColourFault {
   /** The first hour, 0 night to 100 day, where the blend makes a bad window. */
@@ -156,13 +178,11 @@ export interface IDayColourFault {
 export const windowColourFaultsThroughDay = (
   stops: ISceneWindowColourStops,
 ): IDayColourFault | undefined => {
-  for (let step = 0; step <= DAY_CHECK_STEPS; step += 1) {
-    const daylight = (step / DAY_CHECK_STEPS) * 100;
+  return DAY_CHECK_HOURS.map((daylight) => {
     const colours = coloursAtHour(stops, daylight);
-    const faults = colours ? windowColourFaults(colours) : [];
-    if (faults.length > 0) {
-      return { daylight, faults };
-    }
-  }
-  return undefined;
+    return {
+      daylight,
+      faults: colours ? windowColourFaults(colours, daylight) : [],
+    };
+  }).find(({ faults }) => faults.length > 0);
 };
