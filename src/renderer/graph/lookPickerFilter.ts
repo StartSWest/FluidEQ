@@ -83,6 +83,7 @@ export const freshnessOf = (
     : undefined;
 };
 
+/** Who made a look, as its tile's mark says it (`OriginMark`). */
 export const originOf = (row: IStyleRow | IPlusRow): TPickerFrom => {
   if ('look' in row) {
     return row.yours ? 'yours' : 'fluideq';
@@ -93,8 +94,43 @@ export const originOf = (row: IStyleRow | IPlusRow): TPickerFrom => {
   return row.maker === 'members' ? 'members' : 'fluideq';
 };
 
-export const keepFrom = (row: IStyleRow | IPlusRow, from: TPickerFrom) =>
-  from === 'all' || originOf(row) === from;
+/**
+ * Every From tab a scene is shown under besides All. FluidEQ's own scenes
+ * are also Yours to the account that publishes them (`ownsOfficialScenes`,
+ * the same word the gallery's hearts go by): Ivan, 2026-11-25, on the
+ * account he publishes them from, "all should be on both sides: all mine
+ * and all FluidEQ, same number". It counted only its two member scenes as
+ * its own. For every other account a scene has exactly one maker.
+ */
+export const fromsOfScene = (
+  row: IPlusRow,
+  ownsOfficialScenes: boolean,
+): TPickerFrom[] => {
+  const origin = originOf(row);
+  return origin === 'fluideq' && ownsOfficialScenes
+    ? ['fluideq', 'yours']
+    : [origin];
+};
+
+/**
+ * FROM IS WHERE A SCENE COMES FROM, AND NOTHING ELSE (Ivan, 2026-11-25, of
+ * "FluidEQ 71" over thirty-two of FluidEQ's scenes: "this is confusing,
+ * 71?? we don't have 71 FluidEQ Plus scenes"). The tabs counted the
+ * thirty-nine standard styles into FluidEQ and All, and the member's saved
+ * styles into Yours, so a tab's number was never the number of scenes it
+ * showed. Now a tab other than All shows that maker's scenes alone and no
+ * style - a style has no maker to choose between - and All holds back
+ * nothing. A family of styles is outside the question altogether: there
+ * From is not offered (`LookPickerBody`) and narrows nothing, so a tab left
+ * on Members never empties Analysis.
+ */
+export const keepFrom = (
+  row: IStyleRow | IPlusRow,
+  from: TPickerFrom,
+  ownsOfficialScenes = false,
+) =>
+  from === 'all' ||
+  (!('look' in row) && fromsOfScene(row, ownsOfficialScenes).includes(from));
 
 export const isStylePlace = (place: TPickerPlace): place is TGraphStyleFamily =>
   (GRAPH_STYLE_FAMILIES as readonly string[]).includes(place);
@@ -129,24 +165,30 @@ export const stylePlaces = (rows: readonly IStyleRow[]): TGraphStyleFamily[] =>
   );
 
 /**
- * Every maker that has something to show. FluidEQ always: the standard
- * styles are its. Members and Yours only once there is something of theirs,
- * as the old maker pills only showed when there was somebody to pick.
+ * Every maker that has a scene to show, as the old maker pills only showed
+ * when there was somebody to pick. None at all - no scene on this computer
+ * yet - and there is nothing to choose between: only All.
  */
 export const pickerFroms = (
-  styleRows: readonly IStyleRow[],
   plusRows: readonly IPlusRow[],
+  ownsOfficialScenes = false,
 ): TPickerFrom[] => {
   const has = (from: TPickerFrom) =>
-    styleRows.some((row) => originOf(row) === from) ||
-    plusRows.some((row) => originOf(row) === from);
-  return [
-    'all',
-    'fluideq',
-    ...(has('members') ? (['members'] as const) : []),
-    ...(has('yours') ? (['yours'] as const) : []),
-  ];
+    plusRows.some((row) =>
+      fromsOfScene(row, ownsOfficialScenes).includes(from),
+    );
+  const makers: TPickerFrom[] = ['fluideq', 'members', 'yours'];
+  return ['all', ...makers.filter(has)];
 };
+
+/**
+ * Whether the From tabs belong over a place: only where scenes can be, and
+ * only once there is a maker to choose. A family of styles holds none.
+ */
+export const offersFrom = (
+  place: TPickerPlace | undefined,
+  froms: readonly TPickerFrom[],
+) => froms.length > 1 && (place === undefined || placeHoldsScenes(place));
 
 /**
  * A scene the gallery has not described yet has no date and no count: it
@@ -215,6 +257,9 @@ export interface ISelectedLooks {
  * The looks a place holds from a maker, matching what is typed. A search
  * looks everywhere (`place` undefined): somebody typing a name does not want
  * it hidden by the place they happened to be standing in.
+ *
+ * What a From tab counts is exactly the scenes it then shows: the same
+ * call, with no other rule between the number and the grid.
  */
 export const selectLooks = (
   styleRows: readonly IStyleRow[],
@@ -223,10 +268,14 @@ export const selectLooks = (
   place: TPickerPlace | undefined,
   from: TPickerFrom,
   query: string,
+  ownsOfficialScenes = false,
 ): ISelectedLooks => {
   const typed = query.trim().length > 0;
+  // A family of styles is outside From's question (`keepFrom`).
+  const styleFrom = place !== undefined && isStylePlace(place) ? 'all' : from;
   const keep = (row: IStyleRow | IPlusRow) =>
-    keepFrom(row, from) && (!typed || matchesSearch(row.search, query));
+    keepFrom(row, 'look' in row ? styleFrom : from, ownsOfficialScenes) &&
+    (!typed || matchesSearch(row.search, query));
   return {
     styles: styleRows.filter(
       (row) =>

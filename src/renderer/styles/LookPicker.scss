@@ -329,6 +329,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
   flex-wrap: wrap;
   align-items: center;
   gap: 0 2px;
+
+  // Over a family of styles: its room kept, so the heading keeps its
+  // height from one place to the next (`LookPickerFrom`).
+  &.is-idle {
+    visibility: hidden;
+  }
 }
 
 .look-picker__froms-label {

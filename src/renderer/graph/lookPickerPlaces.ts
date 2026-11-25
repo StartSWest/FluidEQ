@@ -6,6 +6,7 @@ import {
   openGalleryCategory,
   openGalleryPage,
   openPlusPlace,
+  type IMakerRef,
 } from '../plus/plusNavigation';
 import { requestPlusTab } from '../plus/plusTabRequest';
 
@@ -29,6 +30,26 @@ const openLookPickerPlace = (
   } else {
     openPlusPlace('studio');
   }
+  onLeave();
+  requestPlusTab();
+  if (!isSignedIn) {
+    requestAccountPanel();
+  }
+};
+
+/**
+ * The gallery page of whoever made a scene, from its "by ..." in the picker
+ * (Ivan, 2026-11-25: "if I click the user it should take me to the gallery
+ * with that user filter, to see that user's scenes"): the maker page the
+ * gallery's own cards open, FluidEQ's included. Left the same way as the
+ * picker's other ways out.
+ */
+export const openLookPickerMaker = (
+  maker: IMakerRef,
+  onLeave: () => void,
+  isSignedIn: boolean,
+) => {
+  openGalleryPage({ kind: 'maker', maker });
   onLeave();
   requestPlusTab();
   if (!isSignedIn) {

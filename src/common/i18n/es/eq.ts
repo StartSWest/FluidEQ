@@ -403,6 +403,7 @@ const eq: Partial<Dictionary> = {
   'graph.picker.more.new': 'Nuevas: {count}',
   'graph.picker.all': 'Todos',
   'graph.picker.yours': 'Tuyos',
+  'graph.picker.seeMaker': 'Ver escenas de {name}',
   'graph.picker.emptyCategory': 'Todavía no tienes escenas en esta categoría.',
   'graph.picker.browseCategory': 'Ver esta categoría en la galería',
   'graph.picker.everything': 'Todo',

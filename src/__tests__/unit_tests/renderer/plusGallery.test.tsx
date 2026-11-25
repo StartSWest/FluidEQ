@@ -789,7 +789,8 @@ describe('the member’s own published scenes', () => {
       bridge.unpublishScene.mockResolvedValue({ ok: true });
       renderGallery();
       await userEvent.click(
-        await screen.findByRole('button', { name: 'plus.gallery.mine' }),
+        // Its name carries how many scenes it holds once that is known.
+        await screen.findByRole('button', { name: /^plus\.gallery\.mine/ }),
       );
       await userEvent.click(
         await screen.findByRole('button', { name: 'plus.mine.unpublish' }),

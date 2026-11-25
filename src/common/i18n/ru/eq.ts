@@ -398,6 +398,7 @@ const eq: Partial<Dictionary> = {
   'graph.picker.more.new': 'Новые: {count}',
   'graph.picker.all': 'Все',
   'graph.picker.yours': 'Ваши',
+  'graph.picker.seeMaker': 'Смотреть сцены автора {name}',
   'graph.picker.emptyCategory': 'У вас пока нет сцен в этой категории.',
   'graph.picker.browseCategory': 'Открыть эту категорию в галерее',
   'graph.picker.everything': 'Всё',

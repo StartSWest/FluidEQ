@@ -26,6 +26,12 @@ interface IGalleryToolbarProps {
   onFilters: (filters: IBrowseFilters) => void;
   /** Opens the member's own scenes. */
   onMine: () => void;
+  /**
+   * How many scenes that page holds (`useMyScenesCount`): `null` while it is
+   * asked, its room kept so the button does not grow when it arrives;
+   * absent, no count at all (signed out, or Help's drawing).
+   */
+  mineCount?: number | null;
   /** "Not mine yet" is offered only to somebody signed in. */
   signedIn?: boolean;
 }
@@ -41,6 +47,7 @@ export default function GalleryToolbar({
   filters,
   onFilters,
   onMine,
+  mineCount,
   signedIn = false,
 }: IGalleryToolbarProps) {
   const { t } = useTranslation();
@@ -152,6 +159,17 @@ export default function GalleryToolbar({
           >
             <Glyph name="upload" className="library-hero__glyph" />
             {t('plus.gallery.mine')}
+            {/* The space is for the button's name ("Your scenes 4"); a flex
+                row draws none. */}
+            {typeof mineCount === 'number' && ' '}
+            {mineCount !== undefined && (
+              <span
+                className="gallery-toolbar__count"
+                aria-hidden={mineCount === null || undefined}
+              >
+                {mineCount ?? ''}
+              </span>
+            )}
           </button>
         </span>
       </div>

@@ -360,6 +360,7 @@ const eq = {
   'graph.picker.plus': '장면',
   'graph.picker.all': '모두',
   'graph.picker.yours': '너의 것',
+  'graph.picker.seeMaker': '{name}의 장면 보기',
   'graph.picker.emptyCategory': '이 카테고리에는 아직 장면이 없습니다.',
   'graph.picker.browseCategory': '갤러리에서 이 카테고리 보기',
   'graph.picker.everything': '전체',

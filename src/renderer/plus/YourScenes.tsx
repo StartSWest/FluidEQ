@@ -11,6 +11,7 @@ import GalleryListNotice from './GalleryListNotice';
 import { markGalleryStale } from './galleryStore';
 import { categoriesLabel, ScenePicture } from './GalleryParts';
 import { loadMyScenes, publicationId, sentOnly, type TMine } from './myScenes';
+import { rememberMyScenes } from './myScenesCount';
 import { openPlusPlace } from './plusNavigation';
 import SubmittedSceneRow, { ReviewState } from './SubmittedSceneRow';
 import '../styles/Review.scss';
@@ -64,6 +65,13 @@ function YourScenesList({ me }: IYourScenesProps) {
       generation.current += 1;
     };
   }, [load]);
+
+  // The gallery's "Your scenes" button counts these same rows.
+  useEffect(() => {
+    if (me) {
+      rememberMyScenes(me, mine);
+    }
+  }, [me, mine]);
 
   // Said through the gallery's own line, which is shown under the gallery's
   // head: a scene taken down from far down this list answered at the top of

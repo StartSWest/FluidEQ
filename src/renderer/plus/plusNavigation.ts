@@ -1,9 +1,10 @@
 import { useSyncExternalStore } from 'react';
-import type {
-  IGalleryQuery,
-  IGalleryScene,
-  TGallerySort,
-  TPlusCategory,
+import {
+  FLUIDEQ_CREATOR_ID,
+  type IGalleryQuery,
+  type IGalleryScene,
+  type TGallerySort,
+  type TPlusCategory,
 } from 'common/plusGallery';
 import { isAddonPlace, type TAddonPlace } from '../addons';
 import { readStored, removeStored, writeStored } from '../utils/graphStorage';
@@ -46,6 +47,16 @@ export interface IMakerRef {
   name: string | null;
   handle: string | null;
 }
+
+/**
+ * FluidEQ's page in the gallery: every one of its scenes. Named as the
+ * gallery names FluidEQ on every official scene.
+ */
+export const FLUIDEQ_MAKER: IMakerRef = {
+  authorId: FLUIDEQ_CREATOR_ID,
+  name: 'FluidEQ',
+  handle: 'fluideq',
+};
 
 export type TGalleryPage =
   | { kind: 'browse' }

@@ -343,6 +343,7 @@ const eq = {
   'graph.picker.plus': '場景',
   'graph.picker.all': '全部',
   'graph.picker.yours': '你的',
+  'graph.picker.seeMaker': '查看 {name} 的場景',
   'graph.picker.emptyCategory': '您在這個分類中還沒有場景。',
   'graph.picker.browseCategory': '在畫廊中查看這個分類',
   'graph.picker.everything': '全部',

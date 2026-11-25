@@ -396,6 +396,7 @@ const eq: Partial<Dictionary> = {
   'graph.picker.more.new': '新着 {count}',
   'graph.picker.all': 'すべて',
   'graph.picker.yours': 'あなたの',
+  'graph.picker.seeMaker': '{name} のシーンを見る',
   'graph.picker.emptyCategory': 'このカテゴリのシーンはまだありません。',
   'graph.picker.browseCategory': 'ギャラリーでこのカテゴリを見る',
   'graph.picker.everything': 'すべて',

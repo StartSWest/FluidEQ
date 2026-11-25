@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
-import { FLUIDEQ_CREATOR_ID } from 'common/plusGallery';
 import { resolveSceneName } from 'common/scenePacks';
 import type { IStudioProject, IStudioState } from 'main/ipc/memberScenes';
 import Glyph, { type TCommunityGlyph } from '../community/Glyph';
 import Chevron from '../icons/Chevron';
 import MenuIcon from '../icons/MenuIcon';
-import { openGalleryPage, type IMakerRef } from '../plus/plusNavigation';
+import { FLUIDEQ_MAKER, openGalleryPage } from '../plus/plusNavigation';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { type IRichPickEntry } from '../widgets/RichPick';
 import StudioRenameProjectDialog from './StudioRenameProjectDialog';
@@ -84,16 +83,6 @@ const NEWS_ORDER: readonly TStudioChatWork[] = [
   'replied',
   'working',
 ];
-
-/**
- * FluidEQ's page in the gallery, where each of its scenes has "Open in
- * Studio". Named as the gallery names FluidEQ on every official scene.
- */
-const FLUIDEQ_MAKER: IMakerRef = {
-  authorId: FLUIDEQ_CREATOR_ID,
-  name: 'FluidEQ',
-  handle: 'fluideq',
-};
 
 interface IMenuRow {
   glyph: TCommunityGlyph;

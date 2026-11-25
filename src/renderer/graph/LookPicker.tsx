@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
+import { useAddonCapabilities } from '../addons';
 import Chevron from '../icons/Chevron';
 import LookIcon from '../icons/LookIcon';
 import SceneLookIcon from '../icons/SceneLookIcon';
@@ -33,6 +34,7 @@ import LookPickerBody from './LookPickerBody';
 import LookPickerWindow from './LookPickerWindow';
 import {
   freshnessOf,
+  isStylePlace,
   keepFrom,
   keepSceneIn,
   keepStyleIn,
@@ -116,6 +118,8 @@ const LookPicker = ({
   const locked = useLockedScenes();
   const members = useUsableMemberScenes();
   const lockedMembers = useLockedMemberScenes();
+  // FluidEQ's own scenes are this account's too when it publishes them.
+  const { ownsOfficialScenes } = useAddonCapabilities();
   // Read for its changes: a look played at a new version loses its mark.
   useSeenSceneVersions();
 
@@ -244,7 +248,7 @@ const LookPicker = ({
           lastPlace = own;
           setPlace(own);
         }
-        if (!keepFrom(current, from)) {
+        if (!keepFrom(current, from, ownsOfficialScenes)) {
           lastFrom = 'all';
           setFrom('all');
         }
@@ -257,11 +261,18 @@ const LookPicker = ({
     setIsOpen(!isOpen);
   };
 
-  // Pressing a place leaves the search: a place is a way of asking too.
+  // Pressing a place leaves the search: a place is a way of asking too. A
+  // family of styles leaves the From tab too: From is not offered there, so
+  // its counts in the rail are every maker's, and the tab must not come
+  // back to narrow the next place the rail just counted unnarrowed.
   const choosePlace = (next: TPickerPlace) => {
     lastPlace = next;
     setPlace(next);
     setQuery('');
+    if (isStylePlace(next)) {
+      lastFrom = 'all';
+      setFrom('all');
+    }
   };
   const chooseFrom = (next: TPickerFrom) => {
     lastFrom = next;
@@ -365,6 +376,7 @@ const LookPicker = ({
           sort={sort}
           view={view}
           openedAt={openedAt}
+          ownsOfficialScenes={ownsOfficialScenes}
           onQuery={setQuery}
           onPlace={choosePlace}
           onFrom={chooseFrom}

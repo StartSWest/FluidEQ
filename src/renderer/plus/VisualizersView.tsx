@@ -8,6 +8,7 @@ import { refreshGalleryOnShow } from './galleryStore';
 import GalleryToolbar from './GalleryToolbar';
 import GalleryView from './GalleryView';
 import MakerPage from './MakerPage';
+import { useMyScenesCount } from './myScenesCount';
 import PlusToastStack from './PlusToastStack';
 import {
   galleryPageKey,
@@ -75,6 +76,8 @@ export default function VisualizersView({
   const account = useAccount();
   const notice = useGalleryNotice();
   const me = account.identity?.id;
+  // Asked again each time the front page, where its button is, shows.
+  const mineCount = useMyScenesCount(page.kind === 'browse' ? me : undefined);
   const scrollRef = useRef<HTMLDivElement>(null);
   const pageKey = galleryPageKey(page);
 
@@ -135,6 +138,7 @@ export default function VisualizersView({
             filters={filters}
             onFilters={setBrowseFilters}
             onMine={() => openGalleryPage({ kind: 'mine' })}
+            mineCount={me === undefined ? undefined : (mineCount ?? null)}
             signedIn={me !== undefined}
           />
         ) : (

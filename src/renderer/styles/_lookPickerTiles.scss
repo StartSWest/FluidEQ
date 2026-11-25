@@ -353,6 +353,47 @@ SPDX-License-Identifier: GPL-3.0-or-later
     @include truncate;
   }
 
+  // A scene tile's caption stands under its pick, not in it (`SceneMaker`):
+  // the grid's 5px gap less the caption's own 2px, as when it was inside.
+  .look-picker__item > .look-picker__caption {
+    margin-top: 3px;
+  }
+
+  // Who made it, as the way to their gallery page: the caption's own quiet
+  // words until a pointer or the keyboard is on them, then the gallery
+  // card's "by ..." answer (`gallery-card__by`).
+  .look-picker__maker {
+    display: inline-flex;
+    min-width: 0;
+    flex: 0 1 auto;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    color: inherit;
+    border: 0;
+    border-radius: $radius-2xs;
+    background: none;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      color: $text-primary;
+
+      .look-picker__caption-text {
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+      outline: none;
+    }
+  }
+
   .look-picker__version {
     flex: 0 0 auto;
     color: $studio-t3;
@@ -436,6 +477,26 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   .look-picker__head-name {
     grid-column: span 2;
+  }
+
+  // A scene row's maker stands over the From column the row holds open
+  // (`LookPickerDetails`), placed by the grid rather than by measuring, so
+  // it is always that column whatever the widths. Only its button takes the
+  // pointer: the rest of the cell is still the row's to pick. Grid items
+  // paint in order, so it draws over the row's own face with no stacking of
+  // its own - a z-index lifted it over the list's sticky heading as well.
+  .look-picker__details .look-picker__item > .look-picker__row {
+    grid-row: 1;
+  }
+
+  .look-picker__cell--maker {
+    grid-row: 1;
+    grid-column: 4;
+    pointer-events: none;
+
+    .look-picker__maker {
+      pointer-events: auto;
+    }
   }
 
   .look-picker__row {

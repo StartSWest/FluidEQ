@@ -369,6 +369,7 @@ const eq: Partial<Dictionary> = {
   'graph.picker.more.new': '新场景 {count}',
   'graph.picker.all': '全部',
   'graph.picker.yours': '你的',
+  'graph.picker.seeMaker': '查看 {name} 的场景',
   'graph.picker.emptyCategory': '你在这个分类中还没有场景。',
   'graph.picker.browseCategory': '在图库中查看这个分类',
   'graph.picker.everything': '全部',

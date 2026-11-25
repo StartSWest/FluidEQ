@@ -10,7 +10,7 @@ import {
   type TGraphStyleFamily,
 } from 'common/graphStyleFamilies';
 import type { LocaleCode, TranslationKey } from 'common/i18n';
-import { isMemberLookId } from 'common/memberScenes';
+import { isMemberLookId, parseMemberLookId } from 'common/memberScenes';
 import officialSceneCategory from 'common/officialSceneCategories';
 import {
   FLUIDEQ_CREATOR_ID,
@@ -19,10 +19,13 @@ import {
   type TPlusCategory,
 } from 'common/plusGallery';
 import {
+  isLockedLookId,
   isPremiumLookId,
+  LOCKED_LOOK_PREFIX,
   premiumLookId,
   resolveSceneName,
 } from 'common/scenePacks';
+import { FLUIDEQ_MAKER, type IMakerRef } from '../plus/plusNavigation';
 import foldForSearch from '../utils/foldForSearch';
 import { searchMatcher } from '../../common/searchText';
 import {
@@ -69,6 +72,12 @@ export interface IPlusRow {
   maker: TPlusMaker;
   /** Another member's name, for a scene they made. */
   author?: string;
+  /**
+   * The gallery page of whoever made it, which its "by ..." opens: FluidEQ's
+   * for FluidEQ's own, the member's for another member's. None for the
+   * member's own, whose caption says "Yours" and names nobody to visit.
+   */
+  makerPage?: IMakerRef;
   categories: readonly TPlusCategory[];
   /** Shown, never chosen: choosing it asks for Plus instead. */
   locked: boolean;
@@ -228,6 +237,28 @@ export const buildPlusRows = ({
   });
   const author = (scene: { own: boolean; authorName?: string | null }) =>
     scene.own ? undefined : scene.authorName || t('graph.member.anonymous');
+  // Another member's page, named as the gallery names them when this
+  // session has seen the scene there. The author is in the look's own id,
+  // so a scene locked with the membership (`locked:` ahead of that id)
+  // still leads to its maker.
+  const makerPageOf = (
+    scene: { own: boolean; lookId: string; authorName?: string | null },
+    gallery: IGalleryScene | undefined,
+  ): { makerPage?: IMakerRef } => {
+    const lookId = isLockedLookId(scene.lookId)
+      ? scene.lookId.slice(LOCKED_LOOK_PREFIX.length)
+      : scene.lookId;
+    const authorId = parseMemberLookId(lookId)?.authorId;
+    return scene.own || authorId === undefined
+      ? {}
+      : {
+          makerPage: {
+            authorId,
+            name: gallery?.authorName ?? scene.authorName ?? null,
+            handle: gallery?.authorHandle ?? null,
+          },
+        };
+  };
 
   // A newer version than the one here, when a gallery list has seen it: the
   // member keeps theirs until they update it, by design.
@@ -268,6 +299,7 @@ export const buildPlusRows = ({
       name: resolveSceneName(scene, locale),
       swatch: scene.swatch,
       maker: 'fluideq',
+      makerPage: FLUIDEQ_MAKER,
       categories: galleryCategories(gallery) ?? [
         officialSceneCategory(scene.id),
       ],
@@ -288,6 +320,7 @@ export const buildPlusRows = ({
       name: resolveSceneName(scene, locale),
       swatch: scene.swatch,
       maker: 'fluideq',
+      makerPage: FLUIDEQ_MAKER,
       categories: galleryCategories(gallery) ?? [
         officialSceneCategory(scene.id),
       ],
@@ -320,6 +353,7 @@ export const buildPlusRows = ({
         swatch: scene.swatch,
         maker: scene.own ? 'mine' : 'members',
         author: author(scene),
+        ...makerPageOf(scene, gallery),
         categories: galleryCategories(gallery) ?? [],
         locked: false,
         version: scene.version,
@@ -338,6 +372,7 @@ export const buildPlusRows = ({
         swatch: scene.swatch,
         maker: scene.own ? 'mine' : 'members',
         author: author(scene),
+        ...makerPageOf(scene, undefined),
         categories: [],
         locked: true,
       }),

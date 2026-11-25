@@ -408,6 +408,7 @@ const eq = {
   'graph.picker.more.new': '{count} new',
   'graph.picker.all': 'All',
   'graph.picker.yours': 'Yours',
+  'graph.picker.seeMaker': 'See scenes by {name}',
   'graph.picker.emptyCategory': 'None of your scenes are in this category yet.',
   'graph.picker.browseCategory': 'See this category in the gallery',
   'graph.picker.everything': 'Everything',

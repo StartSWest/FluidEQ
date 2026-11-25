@@ -22,6 +22,7 @@ import { LookPickerSceneTile, LookPickerStyleTile } from './LookPickerTiles';
 import {
   freshnessOf,
   isStylePlace,
+  offersFrom,
   pickerFroms,
   placeHoldsScenes,
   selectLooks,
@@ -53,6 +54,11 @@ interface ILookPickerBodyProps {
   view: TPickerView;
   /** When the picker opened, for what counts as new; none marks nothing. */
   openedAt?: number;
+  /**
+   * The account publishes FluidEQ's own scenes, so they are Yours as well
+   * (`fromsOfScene`). Help's drawing passes none.
+   */
+  ownsOfficialScenes?: boolean;
   onQuery: (query: string) => void;
   onPlace: (place: TPickerPlace) => void;
   onFrom: (from: TPickerFrom) => void;
@@ -89,6 +95,7 @@ const LookPickerBody = ({
   sort,
   view,
   openedAt,
+  ownsOfficialScenes = false,
   onQuery,
   onPlace,
   onFrom,
@@ -109,8 +116,7 @@ const LookPickerBody = ({
     }
   });
   const families = stylePlaces(styleRows);
-  const froms = pickerFroms(styleRows, plusRows);
-  const activeFrom = froms.includes(from) ? from : 'all';
+  const froms = pickerFroms(plusRows, ownsOfficialScenes);
   const searching = query.trim().length > 0;
   // A family that has nothing left in it (the member deleted their last
   // saved style) is no longer in the rail; standing in it would be nowhere.
@@ -119,11 +125,24 @@ const LookPickerBody = ({
   if (!searching) {
     activePlace = known ? place : 'everything';
   }
+  // Where From is not offered it narrows nothing, the rail's counts
+  // included, so every number on screen is one the grid can show.
+  const fromOffered = offersFrom(activePlace, froms);
+  const activeFrom = fromOffered && froms.includes(from) ? from : 'all';
   const select = (
     at: TPickerPlace | undefined,
     by: TPickerFrom,
     typed: string,
-  ) => selectLooks(styleRows, plusRows, freshness, at, by, typed);
+  ) =>
+    selectLooks(
+      styleRows,
+      plusRows,
+      freshness,
+      at,
+      by,
+      typed,
+      ownsOfficialScenes,
+    );
   const picked = select(activePlace, activeFrom, query);
   const scenes = sortScenes(picked.scenes, sort, locale);
   const styles = sortStyles(picked.styles, sort, locale);
@@ -131,10 +150,9 @@ const LookPickerBody = ({
     const { styles: s, scenes: c } = select(at, activeFrom, '');
     return s.length + c.length;
   };
-  const countFrom = (by: TPickerFrom) => {
-    const { styles: s, scenes: c } = select(activePlace, by, query);
-    return s.length + c.length;
-  };
+  // Scenes alone: From is where a scene comes from (`keepFrom`).
+  const countFrom = (by: TPickerFrom) =>
+    select(activePlace, by, query).scenes.length;
 
   const nameOf = (at: TPickerPlace) => {
     if (at === 'everything') {
@@ -223,6 +241,7 @@ const LookPickerBody = ({
                 selected={row.id === value}
                 tabbable={row.id === stop}
                 onChoose={onChoose}
+                onLeave={onLeave}
               />
             ))}
           </SceneClipScope>
@@ -267,6 +286,7 @@ const LookPickerBody = ({
         freshness={freshness}
         stop={stop}
         onChoose={onChoose}
+        onLeave={onLeave}
       />
     );
   } else {
@@ -326,6 +346,7 @@ const LookPickerBody = ({
               from={activeFrom}
               countOf={countFrom}
               onFrom={onFrom}
+              idle={!fromOffered}
             />
           </header>
           <div

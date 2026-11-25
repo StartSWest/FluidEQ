@@ -263,6 +263,18 @@ it under the terms of the GNU General Public License version 3 or later.
   margin-inline-start: auto;
 }
 
+// How many scenes Your scenes holds, quiet as the look picker's rail counts
+// them (`look-picker__place-count`). Two figures' room from the first frame,
+// held while it is asked, so the button never grows when the number lands.
+.gallery-toolbar__count {
+  min-width: 2ch;
+  color: $studio-t3;
+  font-size: $studio-text-meta;
+  font-variant-numeric: tabular-nums;
+  // One figure in the two's room sits between them, not against the label.
+  text-align: center;
+}
+
 // How many reported scenes wait. Red, the one colour here that asks for
 // attention; zero shows nothing.
 .gallery-toolbar__badge {

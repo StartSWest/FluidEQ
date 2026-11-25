@@ -6,11 +6,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useState } from 'react';
 import { BRAND_MARK } from 'common/branding';
+import { useAccount } from '../account/accountStore';
 import LibraryPlayingBars from '../library/LibraryPlayingBars';
 import { useTranslation } from '../utils/I18nContext';
 import GraphSceneRemove from './GraphSceneRemove';
 import GraphSceneReport from './GraphSceneReport';
 import { originOf, type TFreshness } from './lookPickerFilter';
+import { openLookPickerMaker } from './lookPickerPlaces';
 import { FAMILY_KEYS, type IPlusRow, type IStyleRow } from './lookPickerRows';
 import { LockBadge, SceneThumbnail } from './lookPickerParts';
 import useTileClip from './lookTileClips';
@@ -87,6 +89,7 @@ export const useSceneCaption = (
           })
         : t('graph.version.captionBare', { version: String(row.version) }),
       version: undefined,
+      namesMaker: false,
     };
   }
   let text = t('account.plus.eyebrow');
@@ -104,8 +107,59 @@ export const useSceneCaption = (
   } else if (row.version !== undefined) {
     version = t('graph.version.short', { version: String(row.version) });
   }
-  return { text, version };
+  return { text, version, namesMaker: true };
 };
+
+/**
+ * Who made a scene, as its caption says it, and - where the row knows the
+ * maker's gallery page and the picker can be left - the way there: the mark
+ * and the words become one quiet button, as the gallery card's own "by ..."
+ * is (`gallery-card__by`). Beside the tile's pick, never inside it: a
+ * button in a button is no control at all, and a press on the maker must
+ * not play the scene.
+ */
+export function SceneMaker({
+  row,
+  text,
+  namesMaker,
+  onLeave,
+}: {
+  row: IPlusRow;
+  text: string;
+  /** The words name the maker, not the version's note. */
+  namesMaker: boolean;
+  onLeave?: () => void;
+}) {
+  const { t } = useTranslation();
+  const account = useAccount();
+  const maker = row.makerPage;
+  const words = <span className="look-picker__caption-text">{text}</span>;
+  if (!namesMaker || !maker || !onLeave) {
+    return (
+      <>
+        <OriginMark row={row} />
+        {words}
+      </>
+    );
+  }
+  const label = t('graph.picker.seeMaker', {
+    name: maker.name ?? maker.handle ?? row.author ?? text,
+  });
+  return (
+    <button
+      type="button"
+      className="look-picker__maker"
+      aria-label={label}
+      title={label}
+      onClick={() =>
+        openLookPickerMaker(maker, onLeave, account.status === 'signed-in')
+      }
+    >
+      <OriginMark row={row} />
+      {words}
+    </button>
+  );
+}
 
 interface ISceneTileProps {
   row: IPlusRow;
@@ -114,6 +168,8 @@ interface ISceneTileProps {
   /** The grid's one Tab stop: the chosen look, or the first. */
   tabbable: boolean;
   onChoose: (lookId: string) => void;
+  /** Leaves the picker, for the maker's page; none draws the maker plain. */
+  onLeave?: () => void;
 }
 
 export function LookPickerSceneTile({
@@ -122,6 +178,7 @@ export function LookPickerSceneTile({
   selected,
   tabbable,
   onChoose,
+  onLeave,
 }: ISceneTileProps) {
   const { t } = useTranslation();
   const caption = useSceneCaption(row, fresh);
@@ -173,20 +230,26 @@ export function LookPickerSceneTile({
           {selected && <PlayingChip />}
         </span>
         <span className="look-picker__name">{row.name}</span>
-        <span className="look-picker__caption">
-          <OriginMark row={row} />
-          <span className="look-picker__caption-text">{caption.text}</span>
-          {caption.version && (
-            <span
-              className={`look-picker__version${
-                row.latest !== undefined ? ' has-newer' : ''
-              }`}
-            >
-              {caption.version}
-            </span>
-          )}
-        </span>
       </button>
+      {/* Under the pick rather than in it, so its maker can be a way to
+          their gallery page (`SceneMaker`). */}
+      <span className="look-picker__caption">
+        <SceneMaker
+          row={row}
+          text={caption.text}
+          namesMaker={caption.namesMaker}
+          onLeave={onLeave}
+        />
+        {caption.version && (
+          <span
+            className={`look-picker__version${
+              row.latest !== undefined ? ' has-newer' : ''
+            }`}
+          >
+            {caption.version}
+          </span>
+        )}
+      </span>
       {/* Another member's scene: theirs to be reported, from where it is
           played. Never one's own, which has no author name here. */}
       {row.author && <GraphSceneReport lookId={row.id} name={row.name} />}

@@ -17,7 +17,7 @@ import {
   type IStyleRow,
 } from './lookPickerRows';
 import { LockBadge, SceneThumbnail } from './lookPickerParts';
-import { OriginMark, useSceneCaption } from './LookPickerTiles';
+import { OriginMark, SceneMaker, useSceneCaption } from './LookPickerTiles';
 import { LookTileScope } from './LookStyleGrid';
 import LookTileArt from './LookTileArt';
 import useTileClip, { SceneClipScope } from './lookTileClips';
@@ -30,6 +30,8 @@ interface ILookPickerDetailsProps {
   /** The list's one Tab stop. */
   stop: string | undefined;
   onChoose: (lookId: string) => void;
+  /** Leaves the picker, for a maker's page; none draws makers plain. */
+  onLeave?: () => void;
 }
 
 /**
@@ -51,6 +53,7 @@ export default function LookPickerDetails({
   freshness,
   stop,
   onChoose,
+  onLeave,
 }: ILookPickerDetailsProps) {
   const { t } = useTranslation();
   return (
@@ -77,6 +80,7 @@ export default function LookPickerDetails({
             selected={row.id === value}
             tabbable={row.id === stop}
             onChoose={onChoose}
+            onLeave={onLeave}
           />
         ))}
       </SceneClipScope>
@@ -149,12 +153,14 @@ function SceneRow({
   selected,
   tabbable,
   onChoose,
+  onLeave,
 }: {
   row: IPlusRow;
   fresh: TFreshness | undefined;
   selected: boolean;
   tabbable: boolean;
   onChoose: (lookId: string) => void;
+  onLeave?: () => void;
 }) {
   const { t } = useTranslation();
   // The maker in its own column; the caption's version, or its note.
@@ -211,10 +217,9 @@ function SceneRow({
           )}
           {row.locked && <LockBadge label={t('graph.scene.badge')} />}
         </span>
-        <span className="look-picker__cell look-picker__cell--from">
-          <OriginMark row={row} />
-          <span className="look-picker__caption-text">{text}</span>
-        </span>
+        {/* The maker's column, held open: who made it stands over it
+            beside the pick (below), so it can lead to their page. */}
+        <span className="look-picker__cell look-picker__cell--from" />
         <span className="look-picker__cell look-picker__cell--kind">
           <span className="look-picker__caption-text">
             {row.categories
@@ -230,6 +235,9 @@ function SceneRow({
           {version}
         </span>
       </button>
+      <span className="look-picker__cell look-picker__cell--from look-picker__cell--maker">
+        <SceneMaker row={row} text={text} namesMaker onLeave={onLeave} />
+      </span>
       {row.author && <GraphSceneReport lookId={row.id} name={row.name} />}
       <GraphSceneRemove lookId={row.id} name={row.name} />
     </div>
