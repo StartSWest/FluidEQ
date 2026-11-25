@@ -14,7 +14,7 @@ import {
   parseMemberNotices,
   type IMemberNotice,
 } from './memberNotices';
-import { memberLookId, parseMemberLookId } from './memberScenes';
+import { isAccountId, memberLookId, parseMemberLookId } from './memberScenes';
 import { FLUIDEQ_CREATOR_ID } from './plusGallery';
 import { PACK_ID } from './scenePackFields';
 import { isPremiumLookId, packIdOfLook, premiumLookId } from './scenePacks';
@@ -70,6 +70,13 @@ export interface ISceneStore {
   suspension?: IAccountSuspension;
   /** What the server has to tell this account, unseen yet (0105). */
   notices?: IMemberNotice[];
+  /**
+   * FluidEQ's helper accounts (premium 0121), lower-cased: their scenes are
+   * FluidEQ's own wherever the look picker files them, from this stored
+   * answer and before any gallery page is read. Absent from a server before
+   * 0121, and while there are none.
+   */
+  fluideqHelpers?: string[];
 }
 
 /** A scene kept for its owners after its maker unpublished it (0103). */
@@ -172,6 +179,12 @@ const isSceneIdList = (value: unknown): value is string[] =>
   Array.isArray(value) &&
   value.every((id: unknown) => typeof id === 'string' && PACK_ID.test(id));
 
+// Lower-cased, as the gallery's rows and the look ids carry an author.
+const isHelperList = (value: unknown): value is string[] =>
+  Array.isArray(value) &&
+  value.length > 0 &&
+  value.every((id: unknown) => isAccountId(id) && id === id.toLowerCase());
+
 const isUnpublishedScene = (value: unknown): value is IUnpublishedScene =>
   isRecord(value) &&
   typeof value.lookId === 'string' &&
@@ -249,6 +262,11 @@ export const parseSceneStore = (value: unknown): ISceneStore | undefined => {
     : undefined;
   const suspension = parseAccountSuspension(value.suspension);
   const notices = parseMemberNotices(value.notices);
+  // Read forgivingly, unlike everything above: it only says how scenes are
+  // filed, and a store refused for it would hide the balance and the scenes.
+  const helpers = isHelperList(value.fluideqHelpers)
+    ? value.fluideqHelpers
+    : undefined;
   if (
     suspension === false ||
     owned.length !== value.owned.length ||
@@ -273,6 +291,7 @@ export const parseSceneStore = (value: unknown): ISceneStore | undefined => {
     ...(unpublished && unpublished.length > 0 ? { unpublished } : {}),
     ...(suspension ? { suspension } : {}),
     ...(notices.length > 0 ? { notices } : {}),
+    ...(helpers ? { fluideqHelpers: helpers } : {}),
   };
 };
 
@@ -294,6 +313,7 @@ export const isSceneStore = (value: unknown): value is ISceneStore =>
       value.unpublished.every(isUnpublishedScene))) &&
   (value.suspension === undefined || isAccountSuspension(value.suspension)) &&
   (value.notices === undefined || isMemberNoticeList(value.notices)) &&
+  (value.fluideqHelpers === undefined || isHelperList(value.fluideqHelpers)) &&
   Array.isArray(value.packs) &&
   value.packs.every((row: unknown) => readPack(row) !== undefined);
 

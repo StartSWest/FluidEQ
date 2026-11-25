@@ -36,7 +36,11 @@ import {
   useGalleryScene,
   type TListQuery,
 } from './galleryStore';
-import { openGalleryPage, type IMakerRef } from './plusNavigation';
+import {
+  FLUIDEQ_MAKER,
+  openGalleryPage,
+  type IMakerRef,
+} from './plusNavigation';
 import ReportDialog from './ReportDialog';
 import SceneGet, { officialLine, SceneLockedVeil } from './SceneGet';
 import SceneInspectButton from './SceneInspectButton';
@@ -126,17 +130,24 @@ export default function ScenePage({
   // and the brightness limiter member's scenes then had drew ghosts through
   // Aurora's curtain here and nowhere else in the app.
   const madeBy = sceneMakerOf({ member: !scene.official, own });
-  const makerName = own
-    ? t('plus.card.byYou')
-    : t('plus.card.by', {
-        name:
-          scene.authorName ?? scene.authorHandle ?? t('plus.card.anonymous'),
-      });
-  const maker: IMakerRef = {
-    authorId: scene.authorId,
-    name: scene.authorName,
-    handle: scene.authorHandle,
-  };
+  // A helper account's scene is FluidEQ's (premium 0121): its name, mark,
+  // badge and page, to its own account too. Still run as the member scene it
+  // is underneath (`madeBy` above).
+  const byFluidEQ = scene.official === true || scene.fromFluidEQ === true;
+  const makerName =
+    own && !scene.fromFluidEQ
+      ? t('plus.card.byYou')
+      : t('plus.card.by', {
+          name:
+            scene.authorName ?? scene.authorHandle ?? t('plus.card.anonymous'),
+        });
+  const maker: IMakerRef = scene.fromFluidEQ
+    ? FLUIDEQ_MAKER
+    : {
+        authorId: scene.authorId,
+        name: scene.authorName,
+        handle: scene.authorHandle,
+      };
   const numbers = new Intl.NumberFormat(locale);
 
   useEffect(() => {
@@ -248,9 +259,10 @@ export default function ScenePage({
     }
   }, []);
 
+  // "More by" is the maker page's list, FluidEQ's for a helper's scene.
   const makerQuery = useMemo(
-    () => ({ sort: 'liked', authorId: scene.authorId }) as const,
-    [scene.authorId],
+    () => ({ sort: 'liked', authorId: maker.authorId }) as const,
+    [maker.authorId],
   );
   const moreBy = useGalleryList(makerQuery);
   // Opened from a card: step through that card's list. Opened any other
@@ -448,7 +460,7 @@ export default function ScenePage({
               className="gallery-scene__maker"
               onClick={() => openGalleryPage({ kind: 'maker', maker })}
             >
-              {scene.official ? (
+              {byFluidEQ ? (
                 <BrandMark className="gallery-scene__brand" />
               ) : (
                 <Avatar
@@ -458,7 +470,7 @@ export default function ScenePage({
               )}
               <span className="gallery-scene__maker-name">{makerName}</span>
             </button>
-            {scene.official && <OfficialBadge />}
+            {byFluidEQ && <OfficialBadge />}
           </div>
         </header>
 
@@ -542,10 +554,10 @@ export default function ScenePage({
         )}
         <footer className="gallery-scene__foot">
           <p className="gallery-fine">
-            {t(scene.official ? 'store.official.fine' : 'store.scene.fine')}
+            {t(byFluidEQ ? 'store.official.fine' : 'store.scene.fine')}
           </p>
           {/* Not on a page an add-on opened to deal with its reports. */}
-          {!own && !scene.official && !addonsHideSceneReport(context) && (
+          {!own && !byFluidEQ && !addonsHideSceneReport(context) && (
             <button
               type="button"
               className="gallery-scene__report"

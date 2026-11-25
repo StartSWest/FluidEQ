@@ -64,6 +64,10 @@ const AUTHOR_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const HEX_COLOUR = /^#[0-9a-f]{6}$/i;
 
+/** A Supabase account id, which is all an author or a helper account is. */
+export const isAccountId = (id: unknown): id is string =>
+  typeof id === 'string' && AUTHOR_ID.test(id);
+
 export const memberLookId = (authorId: string, packId: string): string =>
   `${MEMBER_LOOK_PREFIX}${authorId}:${packId}`;
 

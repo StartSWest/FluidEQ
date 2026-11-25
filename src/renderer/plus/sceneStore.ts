@@ -258,6 +258,15 @@ const snapshot = () => state;
 export const useSceneStore = (): ISceneStoreState =>
   useSyncExternalStore(subscribe, snapshot, snapshot);
 
+const NO_HELPERS: readonly string[] = [];
+// The list is the server's for everybody, so whichever account's answer is
+// held says it.
+const helpersNow = () => state.store?.fluideqHelpers ?? NO_HELPERS;
+
+/** FluidEQ's helper accounts (premium 0121), whose scenes are FluidEQ's own. */
+export const useFluidEqHelpers = (): readonly string[] =>
+  useSyncExternalStore(subscribe, helpersNow, helpersNow);
+
 /**
  * Plus asked of the entitlement store, which every caller here already
  * subscribes to through `useSyncExternalStore` below.

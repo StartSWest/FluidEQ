@@ -115,6 +115,14 @@ export interface IGalleryQuery {
 export interface IGalleryScene {
   /** The signed FluidEQ collection, delivered through the official pack store. */
   official?: boolean;
+  /**
+   * A scene from one of FluidEQ's helper accounts (premium 0121, Ivan
+   * 2026-11-25: "whatever comes from that account is also Original"): shown
+   * as FluidEQ's own, with its name, mark, badge and page. Never `official`
+   * as well: underneath it is a member scene, signed with the member key, run
+   * under the member rules and fetched by its author's id.
+   */
+  fromFluidEQ?: boolean;
   /** The id the look picker uses once it is added. */
   lookId: string;
   authorId: string;
@@ -385,6 +393,7 @@ export const parseGalleryRow = (value: unknown): IGalleryScene | undefined => {
   if (official !== (authorId === FLUIDEQ_CREATOR_ID)) {
     return undefined;
   }
+  const fromFluidEQ = !official && value.fluideq_helper === true;
   const names = readNames(value.names);
   const swatch = readSwatch(value.swatch);
   const version = readCount(value.version);
@@ -410,10 +419,15 @@ export const parseGalleryRow = (value: unknown): IGalleryScene | undefined => {
   return {
     lookId: official ? premiumLookId(sceneId) : lookId,
     ...(official ? { official: true } : {}),
+    ...(fromFluidEQ ? { fromFluidEQ: true } : {}),
     authorId,
     sceneId,
-    authorName: official ? 'FluidEQ' : readAuthorName(value.author_name),
-    authorHandle: official ? 'fluideq' : readAuthorHandle(value.author_handle),
+    authorName:
+      official || fromFluidEQ ? 'FluidEQ' : readAuthorName(value.author_name),
+    authorHandle:
+      official || fromFluidEQ
+        ? 'fluideq'
+        : readAuthorHandle(value.author_handle),
     version,
     category: value.category,
     ...readSecondCategory(value.category2, value.category),

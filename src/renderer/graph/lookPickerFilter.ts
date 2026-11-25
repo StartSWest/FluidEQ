@@ -100,13 +100,18 @@ export const originOf = (row: IStyleRow | IPlusRow): TPickerFrom => {
  * the same word the gallery's hearts go by): Ivan, 2026-11-25, on the
  * account he publishes them from, "all should be on both sides: all mine
  * and all FluidEQ, same number". It counted only its two member scenes as
- * its own. For every other account a scene has exactly one maker.
+ * its own. A helper account's scenes are FluidEQ's (premium 0121), so they
+ * are among those, and to the helper itself they are Yours and FluidEQ's
+ * both (`alsoFluidEQ`). For every other account a scene has one maker.
  */
 export const fromsOfScene = (
   row: IPlusRow,
   ownsOfficialScenes: boolean,
 ): TPickerFrom[] => {
   const origin = originOf(row);
+  if (origin === 'yours' && row.alsoFluidEQ === true) {
+    return ['fluideq', 'yours'];
+  }
   return origin === 'fluideq' && ownsOfficialScenes
     ? ['fluideq', 'yours']
     : [origin];

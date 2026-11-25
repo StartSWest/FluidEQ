@@ -168,7 +168,11 @@ export function SceneHeart({ scene, name, own, className }: ISceneHeartProps) {
   const owned = useOwnsLook(scene.lookId);
   const { ownsOfficialScenes } = useAddonCapabilities();
   const count = String(scene.likes);
-  const mine = own || (scene.official && ownsOfficialScenes);
+  // A helper account's scenes are FluidEQ's (premium 0121), so theirs too.
+  const mine =
+    own ||
+    ((scene.official === true || scene.fromFluidEQ === true) &&
+      ownsOfficialScenes);
   if (mine || !owned) {
     return (
       <LikeCount

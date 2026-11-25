@@ -73,6 +73,12 @@ export interface IPlusRow {
   /** Another member's name, for a scene they made. */
   author?: string;
   /**
+   * One of this account's own scenes that is FluidEQ's as well, because the
+   * account is one of FluidEQ's helper accounts (premium 0121): shown under
+   * Yours and under FluidEQ.
+   */
+  alsoFluidEQ?: boolean;
+  /**
    * The gallery page of whoever made it, which its "by ..." opens: FluidEQ's
    * for FluidEQ's own, the member's for another member's. None for the
    * member's own, whose caption says "Yours" and names nobody to visit.
@@ -209,11 +215,17 @@ interface IPlusSources {
   locale: LocaleCode;
   t: TTranslate;
   findInGallery: (lookId: string) => IGalleryScene | undefined;
+  /**
+   * FluidEQ's helper accounts (premium 0121), whose scenes are FluidEQ's own.
+   * None where nothing is known of them (Help's drawing).
+   */
+  fluidEqHelpers?: readonly string[];
 }
 
 /**
- * FluidEQ's own first, then the member's own, then other members'; within
- * each, what can be played before what is locked.
+ * FluidEQ's own first (its helper accounts' among them), then the member's
+ * own, then other members'; within each, what can be played before what is
+ * locked.
  */
 export const buildPlusRows = ({
   usable,
@@ -223,6 +235,7 @@ export const buildPlusRows = ({
   locale,
   t,
   findInGallery,
+  fluidEqHelpers = [],
 }: IPlusSources): IPlusRow[] => {
   const row = (base: Omit<IPlusRow, 'search'>): IPlusRow => ({
     ...base,
@@ -241,14 +254,15 @@ export const buildPlusRows = ({
   // session has seen the scene there. The author is in the look's own id,
   // so a scene locked with the membership (`locked:` ahead of that id)
   // still leads to its maker.
+  const authorIdOf = (lookId: string) =>
+    parseMemberLookId(
+      isLockedLookId(lookId) ? lookId.slice(LOCKED_LOOK_PREFIX.length) : lookId,
+    )?.authorId;
   const makerPageOf = (
     scene: { own: boolean; lookId: string; authorName?: string | null },
     gallery: IGalleryScene | undefined,
   ): { makerPage?: IMakerRef } => {
-    const lookId = isLockedLookId(scene.lookId)
-      ? scene.lookId.slice(LOCKED_LOOK_PREFIX.length)
-      : scene.lookId;
-    const authorId = parseMemberLookId(lookId)?.authorId;
+    const authorId = authorIdOf(scene.lookId);
     return scene.own || authorId === undefined
       ? {}
       : {
@@ -257,6 +271,29 @@ export const buildPlusRows = ({
             name: gallery?.authorName ?? scene.authorName ?? null,
             handle: gallery?.authorHandle ?? null,
           },
+        };
+  };
+
+  // Who made it. A helper account's scene is FluidEQ's (premium 0121): under
+  // FluidEQ's mark and page for everybody, and to the helper itself still
+  // its own as well, filed under both (`alsoFluidEQ`). Read from the store
+  // the account keeps on disk, never from the gallery, so a row is filed once
+  // and never moves when a gallery page comes in.
+  const helpers = new Set(fluidEqHelpers);
+  const makerOf = (
+    scene: { own: boolean; lookId: string; authorName?: string | null },
+    gallery: IGalleryScene | undefined,
+  ): Pick<IPlusRow, 'maker' | 'author' | 'makerPage' | 'alsoFluidEQ'> => {
+    const helper = helpers.has(authorIdOf(scene.lookId) ?? '');
+    if (scene.own) {
+      return { maker: 'mine', ...(helper ? { alsoFluidEQ: true } : {}) };
+    }
+    return helper
+      ? { maker: 'fluideq', makerPage: FLUIDEQ_MAKER }
+      : {
+          maker: 'members',
+          author: author(scene),
+          ...makerPageOf(scene, gallery),
         };
   };
 
@@ -351,9 +388,7 @@ export const buildPlusRows = ({
         id: scene.lookId,
         name: resolveSceneName(scene, locale),
         swatch: scene.swatch,
-        maker: scene.own ? 'mine' : 'members',
-        author: author(scene),
-        ...makerPageOf(scene, gallery),
+        ...makerOf(scene, gallery),
         categories: galleryCategories(gallery) ?? [],
         locked: false,
         version: scene.version,
@@ -370,9 +405,7 @@ export const buildPlusRows = ({
         id: scene.lookId,
         name: resolveSceneName(scene, locale),
         swatch: scene.swatch,
-        maker: scene.own ? 'mine' : 'members',
-        author: author(scene),
-        ...makerPageOf(scene, undefined),
+        ...makerOf(scene, undefined),
         categories: [],
         locked: true,
       }),
@@ -381,7 +414,9 @@ export const buildPlusRows = ({
     [...memberRows, ...memberLocked].filter((entry) => entry.maker === maker);
   return [
     ...official,
+    ...memberRows.filter((entry) => entry.maker === 'fluideq'),
     ...officialLocked,
+    ...memberLocked.filter((entry) => entry.maker === 'fluideq'),
     ...byMaker('mine'),
     ...byMaker('members'),
   ];

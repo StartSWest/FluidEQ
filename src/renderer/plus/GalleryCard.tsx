@@ -19,7 +19,7 @@ import { useKnownWithoutClip, useSceneClip } from './cardClip';
 import { useClipSlot } from './clipSlots';
 import SceneClip from './SceneClip';
 import GalleryMoveTag from './GalleryMoveTag';
-import type { IMakerRef } from './plusNavigation';
+import { FLUIDEQ_MAKER, type IMakerRef } from './plusNavigation';
 import SceneGet, { officialLine } from './SceneGet';
 import { galleryCameraOf } from './sceneMoveGestures';
 import { useMoveTip } from './SceneMoveTip';
@@ -66,6 +66,9 @@ export default function GalleryCard({
   const adding = useAddingScenes().has(scene.lookId);
   const name = resolveSceneName(scene, locale);
   const own = scene.authorId === me;
+  // A helper account's scene is FluidEQ's (premium 0121): named, badged and
+  // linked as FluidEQ's own, to its own account too.
+  const byFluidEQ = scene.official === true || scene.fromFluidEQ === true;
   const maker = scene.authorName ?? scene.authorHandle;
   const adds = new Intl.NumberFormat(locale, { notation: 'compact' }).format(
     scene.adds,
@@ -159,14 +162,18 @@ export default function GalleryCard({
               type="button"
               className="gallery-card__by"
               onClick={() =>
-                onMaker({
-                  authorId: scene.authorId,
-                  name: scene.authorName,
-                  handle: scene.authorHandle,
-                })
+                onMaker(
+                  scene.fromFluidEQ
+                    ? FLUIDEQ_MAKER
+                    : {
+                        authorId: scene.authorId,
+                        name: scene.authorName,
+                        handle: scene.authorHandle,
+                      },
+                )
               }
             >
-              {own
+              {own && !scene.fromFluidEQ
                 ? t('plus.card.byYou')
                 : t('plus.card.by', {
                     name: maker ?? t('plus.card.anonymous'),
@@ -180,7 +187,7 @@ export default function GalleryCard({
           {/* Beside the maker's name only. Where a card shows its category
               instead — the maker's own page, "More by" — the page around it
               already says whose these are. */}
-          {scene.official && onMaker && <OfficialBadge />}
+          {byFluidEQ && onMaker && <OfficialBadge />}
         </span>
         {/* Which version this is and when it came, on every card in the same
             place; a copy of it older than this one says which it is. */}
