@@ -432,8 +432,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Standing where it stands docked: under the header and in from the edge by
   // the shell's gutter, which on the open floor is nothing — the sound
   // panel's rule on the other side (`.right-content` in App.scss), mirrored.
-  // Shut, it travels past the gutter and its shadow.
-  .side-bar {
+  // Shut, it travels past the gutter and its shadow. Not Help's picture of
+  // the rail, which a narrow window would otherwise slide out of its figure.
+  .side-bar:where(:not(.help-live *)) {
     @include side-bar-drawer;
     top: calc(#{$title-bar-height} + var(--shell-gutter, 0px));
     left: var(--shell-gutter, 0px);

@@ -116,36 +116,38 @@ const START_CHAPTERS = [
         ],
       },
       {
-        image: '39-rail-left.png',
-        width: 140,
-        height: 1270,
+        // The rail drawn by its own widgets (`help/live/railFigures`), in a
+        // column of its own width and a short window's height.
+        live: 'rail-left',
+        width: 132,
+        height: 700,
         caption: 'help.window.railCaption',
+        still: '39-rail-left.png',
         controls: [
           {
-            box: [18, 22, 96, 123],
+            target: '.side-bar__power-button',
             name: 'sidebar.systemEq',
             text: 'help.window.systemEq',
           },
           {
-            box: [18, 166, 96, 123],
+            target: '.side-bar__preamp .knob-readout',
             name: 'sidebar.preamp',
             text: 'help.window.preamp',
           },
           {
-            box: [18, 297, 96, 43],
+            target: '.side-bar__preamp .switch',
             name: 'sidebar.autoPreamp',
             text: 'help.window.autoNormalize',
           },
           {
-            // The card's head and switch only: the meter below is its own
-            // control, and one box holding the other would stop either line
-            // from reaching its own without crossing.
-            box: [18, 361, 96, 43],
+            // The switch alone: the row's label runs the rail's width, and
+            // a line to it would cross the meter's.
+            target: '.side-bar > .side-bar__row .switch',
             name: 'sidebar.graphView',
             text: 'help.window.responseGraph',
           },
           {
-            box: [18, 425, 96, 827],
+            target: '.side-bar__well',
             name: 'help.window.meterName',
             text: 'help.window.meter',
           },

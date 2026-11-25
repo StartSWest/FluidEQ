@@ -27,6 +27,7 @@ import MakerDrawing from './makerFigures';
 import { MakerLyricsDrawing, MakerToolsDrawing } from './makerPanelFigures';
 import LightingDrawing from './lightingFigures';
 import LookPickerDrawing from './lookFigures';
+import RailDrawing from './railFigures';
 import MicPageDrawing from './micFigures';
 import OnlineMediaDrawing from './onlineFigure';
 import { SceneDrawing, VisualizersDrawing } from './plusFigures';
@@ -87,6 +88,7 @@ const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
   'player-queue': PlayerDrawing,
   'player-sound': PlayerDrawing,
   'player-top': PlayerDrawing,
+  'rail-left': RailDrawing,
   'share-page': ShareDrawing,
   'studio-bench': StudioDrawing,
   'visualizers-gallery': VisualizersDrawing,

@@ -54,13 +54,13 @@ const help = {
 
   'help.window.title': 'Around the window',
   'help.window.intro':
-    'The header takes you between FluidEQ’s pages and shows the sound as it plays. The left rail holds the switch for the whole EQ, the preamp and the level meter; the right rail follows your output and its profiles.',
+    'The header takes you between FluidEQ’s pages and shows the sound as it plays. The left rail holds FluidEQ’s power key, the preamp and the level meter; the sound panel on the right follows your output and its profiles.',
   'help.window.steps':
-    'Open a page from the header: Scenes, Share Audio, Gaming Lab, EQ, DSP, Library, Karaoke, Online Media.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the level meter to change how it is drawn. In the ≡ menu, give Tint a second colour to draw the bands, the title and the lit controls in a gradient between the two.\nTo switch processing from another app, open the ≡ menu → On/off key and choose your own key combination. No key is assigned at first; the confirmation above other windows says whether FluidEQ is on or off.\nIn Headphone corrections, Convolution library and Library, searches ignore case, accents, spaces and punctuation: typing kpop matches K-pop.',
+    'Open a page from the header: Scenes, Share Audio, Mic, Gaming Lab, EQ, DSP, Library, Karaoke, Online Media.\nPress the power key at the top of the left rail to turn FluidEQ on, and leave Auto normalize on, so no boost can clip.\nPress the level meter for its next style; Ctrl+press goes back one.\nIn the ≡ menu, slide Brightness anywhere from fully dark to fully white, and give Tint a second colour to draw the bands, the title and the lit controls in a gradient between the two.\nTo switch processing from another app, open the ≡ menu → On/off key and choose your own key combination. No key is assigned at first; the confirmation above other windows says whether FluidEQ is on or off.\nRight-click any text field for Cut, Copy, Paste and Select all. Searches ignore case, accents, spaces and punctuation: typing kpop matches K-pop.',
   'help.window.tip':
-    'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The menu button beside it, three lines, holds the engine card, importing EQ settings or an impulse response, restarting Windows audio, Processes, which shows what each part of FluidEQ is using, and Reset all settings; at its foot are Brightness, Tint (its two swatches are the window’s colour and a second one for a gradient), Tint app icon (off at first; it puts the taskbar icon, the tray icon and the icon in the tray’s menu in the window’s colours), the EQ sliders, animations, Start with Windows (FluidEQ then starts in the tray, shaping your sound with no window open) and the language. The switch after them turns the window into the Compact player.',
+    'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The ≡ menu beside it has two columns. On the left: the engine card, Fix audio problems, Restart Windows audio, the On/off key, importing EQ settings or an impulse response, Processes, which shows what each part of FluidEQ is using, Reset all settings, animations, Start with Windows (FluidEQ then starts in the tray, shaping your sound with no window open) and the language. On the right, the window’s looks: Brightness, Tint (its two swatches are the window’s colour and a second one for a gradient), Tint app icon (off at first; it puts the taskbar, tray and tray-menu icons in the window’s colours), the EQ sliders and Set as desktop background. Notices stack at the bottom right of the window. The switch after the menus turns the window into the Compact player.',
   'help.window.keywords':
-    'header, tabs, pages, menu, navigation, interface, layout, toolbar, sidebar, top bar, bottom bar, player bar, meter, tint, colour, color, second colour, gradient, theme, dark mode, light mode, dark theme, light theme, language, start with windows, autostart, startup, search, find names, accents, spaces, punctuation, case insensitive',
+    'header, tabs, pages, menu, navigation, interface, layout, toolbar, sidebar, top bar, bottom bar, player bar, meter, tint, colour, color, second colour, gradient, theme, dark mode, light mode, dark theme, light theme, language, start with windows, autostart, startup, search, find names, accents, spaces, punctuation, case insensitive, power, power key, on off, brightness, white window, right-click, context menu, cut, copy, paste, notices, mic',
   'help.window.headerLeftCaption': 'The header, up to the signal',
   'help.window.headerRightCaption': 'The header, after the signal',
   'help.window.railCaption': 'The left rail',
@@ -86,17 +86,17 @@ const help = {
   'help.window.help':
     'This guide, What’s new, Full release notes, Forum, the audio troubleshooter, Report a problem and About FluidEQ. Full release notes opens all the notes directly. About has links to its sections and, where the support link is available, a Buy Me a Coffee card with a QR code.',
   'help.window.actions':
-    'The engine, importing EQ settings, restarting Windows audio, Processes and Reset all settings; Brightness, Tint and its second colour, and Tint app icon, the EQ sliders, animations, Start with Windows and the language. On/off key… lets you choose a shortcut to turn all FluidEQ processing off and on while another app is in front. No key is assigned at first. A card above your other windows confirms each switch.',
+    'Two columns. Commands and behaviour: the engine, Fix audio problems, Restart Windows audio, the On/off key (a shortcut that turns all FluidEQ processing off and on while another app is in front; none at first, and a card above your other windows confirms each switch), importing EQ settings or an impulse response, Processes, Reset all settings, animations, Start with Windows and the language. Looks: Brightness, Tint and its second colour, Tint app icon, the EQ sliders and Set as desktop background.',
   'help.window.systemEq':
-    'Turns FluidEQ’s processing on or off for everything the PC plays.',
+    'FluidEQ’s power key: turns its processing on or off for everything the PC plays. The line under it names the engine; it turns red when the engine is not reaching the output you are listening to, and a press then asks about the engine.',
   'help.window.preamp':
-    'Lowers the level before the EQ so boosts have room. Auto normalize sets it for you.',
+    'Lowers the level before the EQ so boosts have room. While Auto normalize holds it, it reads AUTO; with it off, turn the dial or press its number to type a level. Ctrl+click returns it to 0 dB.',
   'help.window.autoNormalize':
     'Keeps the preamp just low enough that nothing you boost can clip.',
   'help.window.responseGraph': 'Shows or hides the response graph.',
   'help.window.meterName': 'Level meter',
   'help.window.meter':
-    'The output level, left and right, in real decibels. Press it to change its style.',
+    'The output level, left and right, in real decibels, with the louder channel’s peak above it. Press it for its next style; Ctrl+press goes back one.',
   'help.player.title': 'The Compact player',
   'help.player.intro':
     'One switch turns FluidEQ’s window into the Compact player, a single narrow column: a scene or style at the top with the song over it and the play controls under it, then Sound, your equaliser, then Up next and your playlists. Whatever is playing keeps playing, and the same switch brings the full app back on the page you left.',

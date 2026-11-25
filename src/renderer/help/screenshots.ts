@@ -13,7 +13,6 @@ import strip from '../../../docs/21-graph-strip.png';
 import stripPlus from '../../../docs/22-graph-strip-plus.png';
 import viewMenu from '../../../docs/23-graph-view-menu.png';
 import bandSelected from '../../../docs/36-eq-band-selected.png';
-import railLeft from '../../../docs/39-rail-left.png';
 import railRight from '../../../docs/40-rail-right.png';
 import type { THelpPicture } from '../../common/helpGuide';
 
@@ -40,7 +39,6 @@ const SHOTS: Record<THelpPicture, string> = {
   '22-graph-strip-plus.png': stripPlus,
   '23-graph-view-menu.png': viewMenu,
   '36-eq-band-selected.png': bandSelected,
-  '39-rail-left.png': railLeft,
   '40-rail-right.png': railRight,
 };
 
