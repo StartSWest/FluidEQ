@@ -73,7 +73,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { buildSongIdentity } from 'common/songIdentity';
+import { remoteSongIdentity } from 'common/songIdentity';
 import { REMOTE_NUDGE_LIMIT_MS } from '../../common/remoteAudio';
 import type { TRemoteTransportCommand } from '../../common/remoteAudio';
 import {
@@ -162,12 +162,13 @@ const useRemoteNowPlayingSource = (
       subtitle: playing.subtitle,
       origin: computer.name,
       delayMs,
-      identity: buildSongIdentity(
-        'remote',
-        computer.name,
-        playing.title,
-        playing.artist,
-      ),
+      // Auto EQ's now-playing while this sender is heard here: its song,
+      // and a Library song's album, as this computer's own sounds know them
+      // (`remoteSongIdentity`). Cleared with the source above, so a link
+      // that is paused, unlinked or dropped, a sender that stops sending and
+      // a bar over there that empties all hand Auto EQ back to this
+      // computer's own player at once.
+      identity: remoteSongIdentity(computer.name, playing),
       isPlaying: playing.isPlaying,
       positionMs: playing.positionMs,
       durationMs: playing.durationMs,

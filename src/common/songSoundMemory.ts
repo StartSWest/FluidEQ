@@ -48,6 +48,12 @@ export type TSoundScope = 'library' | 'other';
 export const soundScopeOf = (source: TSongSource): TSoundScope =>
   source === 'library' || source === 'karaoke' ? 'library' : 'other';
 
+/** Albums are the Library's alone: its songs take album sounds, and so does
+ * a linked computer's Library song (`remoteSongIdentity`). */
+export const takesAlbumSounds = (identity: ISongIdentity): boolean =>
+  soundScopeOf(identity.source) === 'library' ||
+  identity.fromLinkedLibrary === true;
+
 /**
  * Whether a song plays a saved sound at all. Never a film or a video (Auto
  * EQ: "films and videos never get a song or album sound"), and never another
@@ -56,7 +62,13 @@ export const soundScopeOf = (source: TSongSource): TSoundScope =>
  */
 export const canKeepSongSound = (identity: ISongIdentity): boolean =>
   !identity.isVideo &&
-  (soundScopeOf(identity.source) === 'library' || identity.alias !== undefined);
+  (takesAlbumSounds(identity) || identity.alias !== undefined);
+
+/** The album a song's album sound is looked up by, where it takes one. */
+export const albumKeyForSound = (
+  identity: ISongIdentity,
+): string | undefined =>
+  takesAlbumSounds(identity) ? identity.albumKey : undefined;
 
 /**
  * What a song or an album keeps: a sound of its own, or a link to a saved EQ

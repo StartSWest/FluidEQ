@@ -17,12 +17,55 @@ it under the terms of the GNU General Public License version 3 or later.
  * machine can honestly draw. No artwork: the cover is a file or a blob URL on
  * the sender, and the bar generates a tile from the title anyway.
  */
+import type { ILibraryTrack } from './library/types';
 import {
   isAudioGroupHello,
   isAudioGroupLink,
   type IAudioGroupHello,
   type IAudioGroupLink,
 } from './remoteAudioGroup';
+
+/**
+ * The song is a file in the sending computer's own Library, and these are
+ * its album tags — what the Library itself shows, never a path or a track id.
+ *
+ * Auto EQ keeps song sounds and album sounds for Library songs, an album by
+ * its album and album artist (`albumKey` in `library/grouping.ts`), and the
+ * listener plays the same song from its own Library with them (Ivan,
+ * 2026-11-25: "if it has a song sound and album sound, applies those presets
+ * too"). The tags travel rather than the sender's album key, so the listener
+ * groups them by its own rules — the ones its own albums were filed by.
+ *
+ * Absent for every other player, for a film, and for a file whose tags are
+ * not read yet, whose album is only its folder's name. A FluidEQ from before
+ * 2.6 ignores it (`isRemoteNowPlaying` reads only the fields it knows).
+ */
+export interface IRemoteLibrarySong {
+  album?: string;
+  albumArtist?: string;
+}
+
+/**
+ * What a Library track tells a linked computer about itself beyond its title
+ * and artist: nothing for a film, and no album for a file whose tags are not
+ * read yet — its album is then its folder's name, a piece of a path.
+ */
+export const remoteLibrarySongOf = (
+  track: Pick<ILibraryTrack, 'album' | 'albumArtist' | 'kind' | 'isPending'>,
+): IRemoteLibrarySong | undefined => {
+  if (track.kind === 'video') {
+    return undefined;
+  }
+  if (track.isPending === true) {
+    return {};
+  }
+  const album = track.album?.trim().slice(0, 256) || undefined;
+  const albumArtist = track.albumArtist?.trim().slice(0, 256) || undefined;
+  return {
+    ...(album ? { album } : {}),
+    ...(album && albumArtist ? { albumArtist } : {}),
+  };
+};
 
 export interface IRemoteNowPlaying {
   title: string;
@@ -31,6 +74,8 @@ export interface IRemoteNowPlaying {
   /** The artist alone, for identifying the song. Absent where the subtitle
    * is an app name rather than an artist. */
   artist?: string;
+  /** Present only for a song from the sender's Library; see the type. */
+  library?: IRemoteLibrarySong;
   isPlaying: boolean;
   positionMs: number;
   durationMs: number;
@@ -273,6 +318,16 @@ export const isLanRemoteAudioSignal = (
 const isMilliseconds = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value) && value >= 0;
 
+const isOptionalTag = (value: unknown): boolean =>
+  value === undefined || (typeof value === 'string' && value.length <= 256);
+
+export const isRemoteLibrarySong = (
+  value: unknown,
+): value is IRemoteLibrarySong =>
+  isRecord(value) &&
+  isOptionalTag(value.album) &&
+  isOptionalTag(value.albumArtist);
+
 /**
  * Bounded the way `peer-ready` bounds its name: a peer holds the key, but a
  * peer is not trusted to size the listener's memory or its bar.
@@ -288,6 +343,7 @@ export const isRemoteNowPlaying = (
     (typeof value.subtitle === 'string' && value.subtitle.length <= 256)) &&
   (value.artist === undefined ||
     (typeof value.artist === 'string' && value.artist.length <= 256)) &&
+  (value.library === undefined || isRemoteLibrarySong(value.library)) &&
   typeof value.isPlaying === 'boolean' &&
   isMilliseconds(value.positionMs) &&
   isMilliseconds(value.durationMs) &&

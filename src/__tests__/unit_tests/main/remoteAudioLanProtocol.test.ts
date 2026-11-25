@@ -36,10 +36,13 @@ import {
   PACKET_AUTH_CHALLENGE,
   PACKET_AUTH_READY,
   PACKET_AUDIO,
+  PACKET_SIGNAL,
+  openSignal,
   sealAuthAccepted,
   sealAuthChallenge,
   sealAuthReady,
   sealPacket,
+  sealSignal,
 } from '../../../main/remoteAudioLanProtocol';
 import { isRemoteAudioSignal } from '../../../common/remoteAudio';
 
@@ -102,6 +105,103 @@ describe('encrypted LAN audio protocol', () => {
         playing: { ...playing, canStop: 'yes' },
       }),
     ).toBe(false);
+  });
+
+  describe("a Library song's album tags (2.6)", () => {
+    const playing = {
+      title: 'Blue in Green',
+      subtitle: 'Miles Davis',
+      artist: 'Miles Davis',
+      isPlaying: true,
+      positionMs: 12_000,
+      durationMs: 180_000,
+      canNext: true,
+      canPrevious: true,
+      canStep: true,
+      canStop: false,
+    };
+    const tagged = {
+      ...playing,
+      library: { album: 'Kind of Blue', albumArtist: 'Miles Davis' },
+    };
+
+    /**
+     * What a FluidEQ 2.5.2 accepts as a now-playing description, copied
+     * from that release (`git show v2.5.2:src/common/remoteAudio.ts`) and
+     * frozen here: a computer still on 2.5 refuses a packet its validator
+     * refuses, and closes the link with it.
+     */
+    const acceptedBy252 = (value: Record<string, unknown>): boolean =>
+      typeof value.title === 'string' &&
+      value.title.trim().length > 0 &&
+      value.title.length <= 256 &&
+      (value.subtitle === undefined ||
+        (typeof value.subtitle === 'string' && value.subtitle.length <= 256)) &&
+      (value.artist === undefined ||
+        (typeof value.artist === 'string' && value.artist.length <= 256)) &&
+      typeof value.isPlaying === 'boolean' &&
+      typeof value.positionMs === 'number' &&
+      Number.isFinite(value.positionMs) &&
+      value.positionMs >= 0 &&
+      typeof value.durationMs === 'number' &&
+      Number.isFinite(value.durationMs) &&
+      value.durationMs >= 0 &&
+      typeof value.canNext === 'boolean' &&
+      typeof value.canPrevious === 'boolean' &&
+      typeof value.canStep === 'boolean' &&
+      typeof value.canStop === 'boolean';
+
+    it('travels sealed and opens whole on a 2.6 listener', () => {
+      const key = keyFromSecret('test-secret');
+      const message = {
+        peerId: 'peer',
+        signal: { kind: 'now-playing' as const, playing: tagged },
+      };
+      const opened = openPacket(sealSignal(message, key), key);
+      expect(opened.kind).toBe(PACKET_SIGNAL);
+      expect(openSignal(opened.clear)).toEqual(message);
+    });
+
+    it('is accepted by a listener still on 2.5.2, which reads past it', () => {
+      expect(acceptedBy252(tagged)).toBe(true);
+      // Control: the frozen copy does refuse what 2.5.2 refuses.
+      expect(acceptedBy252({ ...tagged, canStop: 'no' })).toBe(false);
+    });
+
+    it('is optional, so a 2.5 sender’s description still opens on 2.6', () => {
+      expect(isRemoteAudioSignal({ kind: 'now-playing', playing })).toBe(true);
+      expect(
+        isRemoteAudioSignal({
+          kind: 'now-playing',
+          playing: { ...playing, library: {} },
+        }),
+      ).toBe(true);
+    });
+
+    it('is bounded like every other field a peer sends', () => {
+      const refused = [
+        { ...playing, library: 'Kind of Blue' },
+        { ...playing, library: null },
+        { ...playing, library: ['Kind of Blue'] },
+        { ...playing, library: { album: 7 } },
+        { ...playing, library: { album: 'x'.repeat(257) } },
+        { ...playing, library: { albumArtist: 'x'.repeat(257) } },
+      ];
+      refused.forEach((value) => {
+        expect(
+          isRemoteAudioSignal({ kind: 'now-playing', playing: value }),
+        ).toBe(false);
+      });
+      expect(
+        isRemoteAudioSignal({
+          kind: 'now-playing',
+          playing: {
+            ...playing,
+            library: { album: 'x'.repeat(256), albumArtist: 'y'.repeat(256) },
+          },
+        }),
+      ).toBe(true);
+    });
   });
 
   it("accepts the listener's bar presses and bounds the step", () => {

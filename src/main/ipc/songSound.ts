@@ -10,6 +10,7 @@ import type { IOutputEditor } from '../../common/outputSettings';
 import { TSongSoundLanded, toSongSound } from '../../common/songSound';
 import {
   type ISongSoundMatch,
+  albumKeyForSound,
   canKeepSongSound,
   forgetSongSound,
   libraryTrackIdOf,
@@ -100,12 +101,24 @@ const registerSongSoundIpc = ({
       holder.write(nameSongSound(holder.read(), stored.key, trackId));
     }
     const settings = holder.read();
-    const entry = lookupSongSound(settings, stored, scope);
-    // Albums are the Library's alone.
+    // A linked computer's Library song plays as the same song from this
+    // Library would (`remoteSongIdentity`): a sound saved while it played
+    // here first, as for any remote song, then this Library's song sound,
+    // found by name — the Library's alias, as a file moved on disk is found.
+    const entry =
+      lookupSongSound(settings, stored, scope) ??
+      (identity.fromLinkedLibrary === true
+        ? lookupSongSound(
+            settings,
+            storedSoundIdentity({ ...identity, source: 'library' }),
+            'library',
+          )
+        : undefined);
+    // Albums are the Library's alone, a linked computer's Library song's
+    // included.
+    const albumKey = albumKeyForSound(identity);
     const album =
-      scope === 'library' && stored.albumKey !== undefined
-        ? lookupAlbumSound(settings, stored.albumKey)
-        : undefined;
+      albumKey === undefined ? undefined : lookupAlbumSound(settings, albumKey);
     // A saved EQ is answered with its sound as it is now, and named, so the
     // window plays what the EQ holds and says which one it is.
     const song = entry && resolveStoredSound(settings, entry.sound);

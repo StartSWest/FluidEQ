@@ -19,6 +19,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { useEffect } from 'react';
 import { libraryTrackIdentity } from 'common/songIdentity';
+import { remoteLibrarySongOf } from 'common/remoteAudio';
 import { libraryMediaUrl } from '../../../common/library/mediaUrl';
 import { ILibraryTrack } from '../../../common/library/types';
 import {
@@ -94,6 +95,7 @@ const usePublishedTransport = (options: {
       },
       seek,
       identity: libraryTrackIdentity(track),
+      librarySong: remoteLibrarySongOf(track),
     });
   }, [
     track,

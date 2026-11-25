@@ -15,6 +15,7 @@ import {
 import {
   buildSongIdentity,
   libraryTrackIdentity,
+  remoteSongIdentity,
   type ISongIdentity,
 } from '../../../common/songIdentity';
 import type { ISongSound } from '../../../common/songSound';
@@ -326,6 +327,93 @@ describe('SongSound IPC ownership and profile persistence', () => {
     // The same title and artist from Spotify: the Library's pick never plays
     // there, and albums are the Library's alone.
     expect(await lookup(onSpotify)).toEqual({ result: {} });
+  });
+
+  describe('a song arriving from a linked computer (Share Audio)', () => {
+    /** Blue in Green from the other computer's Library, as it arrives. */
+    const fromTheirLibrary = mustBe(
+      remoteSongIdentity('OFFICE-PC', {
+        title: 'Blue in Green',
+        artist: 'Miles',
+        library: { album: 'Kind of Blue', albumArtist: 'Miles' },
+      }),
+    );
+    /** The same song from a player over there that is not its Library. */
+    const fromTheirSpotify = mustBe(
+      remoteSongIdentity('OFFICE-PC', {
+        title: 'Blue in Green',
+        artist: 'Miles',
+      }),
+    );
+    const setKindOfBlue = (presetId: string) =>
+      fire(ChannelEnum.SET_ALBUM_SOUND, [
+        blueInGreen.albumKey,
+        'Kind of Blue',
+        'Miles',
+        { presetId },
+      ]);
+
+    it('plays the album sound kept here, preset and all', async () => {
+      await setKindOfBlue('vocal');
+      expect(await lookup(fromTheirLibrary)).toEqual({
+        result: { album: albumMatch },
+      });
+      // Control: the same song from a player over there that is not its
+      // Library takes no album's sound, as Spotify here takes none.
+      expect(await lookup(fromTheirSpotify)).toEqual({ result: {} });
+    });
+
+    it('plays this Library’s song sound for the same song, found by name', async () => {
+      await setKindOfBlue('vocal');
+      await fire(ChannelEnum.PICK_LIBRARY_SONG_SOUNDS, [
+        [blueInGreen],
+        { presetId: 'cinema' },
+      ]);
+      expect(await lookup(fromTheirLibrary)).toEqual({
+        result: { song: { presetId: 'cinema' }, album: albumMatch },
+      });
+      expect(await lookup(fromTheirSpotify)).toEqual({ result: {} });
+    });
+
+    it('plays a sound saved while it played here before this Library’s, and files no name or album for it', async () => {
+      await fire(ChannelEnum.PICK_LIBRARY_SONG_SOUNDS, [
+        [blueInGreen],
+        { presetId: 'cinema' },
+      ]);
+      const saved = await fire(ChannelEnum.SAVE_SONG_SOUND, [
+        fromTheirLibrary,
+        song,
+      ]);
+      expect(saved).toHaveBeenCalledWith(ChannelEnum.SAVE_SONG_SOUND, {
+        result: undefined,
+      });
+      expect(await lookup(fromTheirLibrary)).toEqual({ result: { song } });
+      await flushPendingWrites();
+      const text = fs.readFileSync(path.join(root, 'song-sound.json'), 'utf8');
+      expect(text).not.toMatch(/office|kind of blue/i);
+      // The Library's own pick is untouched by it.
+      expect(await lookup(blueInGreen)).toEqual({
+        result: { song: { presetId: 'cinema' } },
+      });
+    });
+
+    it('refuses a word that is not a yes or a no', async () => {
+      expect(
+        await lookup({
+          ...fromTheirLibrary,
+          fromLinkedLibrary: 'yes',
+        } as unknown as ISongIdentity),
+      ).toEqual({ errorCode: ErrorCode.INVALID_PARAMETER });
+    });
+
+    it('takes nothing from this Library for a song without the word', async () => {
+      await setKindOfBlue('vocal');
+      // A FluidEQ from before 2.6 sends no Library tags, and an identity
+      // that carries an album key without the word is not trusted with one.
+      expect(
+        await lookup({ ...fromTheirSpotify, albumKey: blueInGreen.albumKey }),
+      ).toEqual({ result: {} });
+    });
   });
 
   it('files a Library song with its track id, so the Library can label its row', async () => {

@@ -31,6 +31,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * module in main's bundle.
  */
 import type { ILibraryTrack } from './library/types';
+import type { IRemoteNowPlaying } from './remoteAudio';
 import { albumKey as libraryAlbumKey } from './library/grouping';
 
 export type TSongSource = 'library' | 'karaoke' | 'media' | 'system' | 'remote';
@@ -50,6 +51,13 @@ export interface ISongIdentity {
   albumKey?: string;
   /** A film or a video file, which never plays a song's sound (Auto EQ). */
   isVideo?: boolean;
+  /**
+   * A linked computer's song that is a file in ITS Library, arriving over
+   * Share Audio (`source` is `remote`). Auto EQ plays it as the same song
+   * from this computer's Library would play: a song sound found by name, and
+   * `albumKey` — built here from the album tags it sent — for the album's.
+   */
+  fromLinkedLibrary?: boolean;
 }
 
 /**
@@ -257,6 +265,53 @@ export const buildSongIdentity = (
     title: cleanTitle,
     artist: cleanArtist,
     source,
+  };
+};
+
+/**
+ * A linked computer's song as this computer's Auto EQ knows it.
+ *
+ * Every remote song has the key and alias `buildSongIdentity` gives it, so a
+ * sound saved while it played here is found as before. A song from the
+ * sender's Library also says so, and carries its album by THIS Library's
+ * album key — built from the tags, by the rule this computer's own albums
+ * were filed by — so a song sound or an album sound kept here applies as it
+ * would to the same song played from here. Never a video: the sender sends
+ * no Library tags for one.
+ */
+export const remoteSongIdentity = (
+  computerName: string,
+  playing: Pick<IRemoteNowPlaying, 'title' | 'artist' | 'library'>,
+): ISongIdentity | undefined => {
+  const identity = buildSongIdentity(
+    'remote',
+    computerName,
+    playing.title,
+    playing.artist,
+  );
+  const { library } = playing;
+  if (!identity || !library) {
+    return identity;
+  }
+  const album = library.album?.trim() || undefined;
+  const albumKey = album
+    ? libraryAlbumKey({
+        album,
+        albumArtist: library.albumArtist?.trim() || undefined,
+        artist: identity.artist,
+      })
+    : undefined;
+  return {
+    ...identity,
+    // The Library and its album in the exact key too. Auto EQ asks again
+    // only when the key moves, and a Library tells two songs apart by track
+    // id: one name and artist on two albums, or from the Library and then
+    // from another player over there, played one after the other, are two
+    // songs with two answers. A sound saved under the key without it is
+    // still found by the alias, where the song has one.
+    key: `${identity.key}|library:${albumKey ?? ''}`,
+    fromLinkedLibrary: true,
+    ...(albumKey === undefined ? {} : { albumKey }),
   };
 };
 

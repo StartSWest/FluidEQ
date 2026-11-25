@@ -60,6 +60,11 @@ export const describeForRemote = (
     title: source.title.slice(0, 256),
     subtitle: source.subtitle?.slice(0, 256) || undefined,
     artist: source.identity?.artist?.slice(0, 256),
+    // The Library's own song only, for the listener's Auto EQ to find it
+    // and its album in the listener's own Library (`remoteLibrarySongOf`).
+    ...(source.owner === 'library' && source.librarySong
+      ? { library: source.librarySong }
+      : {}),
     isPlaying: source.isPlaying,
     positionMs: wireMs(source.positionMs),
     durationMs: wireMs(source.durationMs),
@@ -164,6 +169,9 @@ const wireKey = (playing: IRemoteNowPlaying | undefined): string =>
         playing.title,
         playing.subtitle,
         playing.artist,
+        playing.library?.album,
+        playing.library?.albumArtist,
+        playing.library !== undefined,
         playing.isPlaying,
         playing.durationMs,
         Math.floor(playing.positionMs / 1000),

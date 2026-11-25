@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { type ReactNode, useState } from 'react';
+import { takesAlbumSounds } from 'common/songSoundMemory';
 import MenuIcon from '../../icons/MenuIcon';
 import Switch from '../../widgets/Switch';
 import { useTranslation } from '../../utils/I18nContext';
@@ -119,8 +120,8 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
   const songCount = (index?.songs.length ?? 0) + (index?.otherCount ?? 0);
   const albumCount = index?.albums.length ?? 0;
   const { identity } = now;
-  const isLibrary =
-    identity?.source === 'library' || identity?.source === 'karaoke';
+  // A linked computer's Library song takes this Library's album sounds too.
+  const isLibrary = identity !== undefined && takesAlbumSounds(identity);
   const album =
     identity?.albumKey === undefined
       ? undefined

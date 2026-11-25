@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useSyncExternalStore } from 'react';
 import type { ISongIdentity } from 'common/songIdentity';
+import type { IRemoteLibrarySong } from 'common/remoteAudio';
 import {
   isOwnMusic,
   noteShown,
@@ -129,6 +130,12 @@ export interface ITransportSource {
    * thing worth filing a correction under, and the recorder skips it.
    */
   identity?: ISongIdentity;
+  /**
+   * The Library alone: what a linked computer is told about the song beyond
+   * its title and artist, for its Auto EQ to find the song and its album in
+   * its own Library (`remoteLibrarySongOf`). Absent for every other player.
+   */
+  librarySong?: IRemoteLibrarySong;
   /**
    * Where the sound is coming from, for a source that is not this machine's.
    *

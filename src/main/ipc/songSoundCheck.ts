@@ -47,8 +47,16 @@ export const isIdentity = (value: unknown): value is ISongIdentity => {
   if (typeof value !== 'object' || value === null) {
     return false;
   }
-  const { key, alias, title, artist, source, albumKey, isVideo } =
-    value as Record<string, unknown>;
+  const {
+    key,
+    alias,
+    title,
+    artist,
+    source,
+    albumKey,
+    isVideo,
+    fromLinkedLibrary,
+  } = value as Record<string, unknown>;
   return (
     isText(key) &&
     key !== '' &&
@@ -57,6 +65,8 @@ export const isIdentity = (value: unknown): value is ISongIdentity => {
     isText(artist, true) &&
     isText(albumKey, true) &&
     (isVideo === undefined || typeof isVideo === 'boolean') &&
+    (fromLinkedLibrary === undefined ||
+      typeof fromLinkedLibrary === 'boolean') &&
     typeof source === 'string' &&
     SOURCES.includes(source)
   );
