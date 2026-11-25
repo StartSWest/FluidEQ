@@ -508,35 +508,38 @@ const help: Record<keyof typeof en, string> = {
 
   'help.graph.title': 'Das Diagramm und seine Bedienelemente',
   'help.graph.intro':
-    'Das Frequenzgangdiagramm zeichnet Ihre EQ-Kurven über den Live-Klang. Die Leiste darüber bestimmt, was und wie gezeichnet wird, und sie ändert sich mit der Darstellung: ein Standardstil oder eine Szene.',
+    'Der Frequenzgang-Graph zeichnet Ihre EQ-Kurven über den laufenden Klang. Seine Optionen ruhen außer Sicht und kommen unter dem Mauszeiger zurück: die Legende in einer Ecke, Ansicht und Vollbild in der anderen, und am unteren Rand die Galerie der Looks, der aktuelle in der Mitte mit seinen Schaltern, der vorige und der nächste an den Enden. Was die Galerie anbietet, hängt vom Look ab: ein Standardstil oder eine Szene.',
   'help.graph.steps':
-    'Klicken Sie auf den Namen der Darstellung, um einen Stil oder eine Szene zu wählen. Die Pfeile daneben, die Leertaste und Strg+Leertaste blättern durch sie.\nÖffnen Sie Ansicht für das, was das Diagramm zeichnet – jede Zeichnung hat ihren Schalter, die Kurven stehen in einer Reihe von Chips –, den Frequenzbereich, Höhe und Position der Welle und Wie es gezeichnet wird: die Bildrate (jedes Bild, das Ihr Bildschirm bietet, oder 60 oder 30, im Akkubetrieb bei 60 gehalten), die Auflösung und die Glättung. Standardstile behalten ihre eigenen Einstellungen, getrennt von den Szenen.\nEine Szene fügt Ansicht eigene Regler hinzu – was ihr Autor für Sie einstellbar gelassen hat –, und Eigene Welle der Szene setzt die Welle auf die Höhe und Position zurück, die dieser Autor gewählt hat.\nDoppelklicken Sie auf das Diagramm, um damit den Bildschirm zu füllen, und noch einmal, um zurückzukehren. Im Vollbild holt der obere Fensterrand die Kopfzeile und der untere die Wiedergabesteuerung; ein Klick blendet sie aus.\nTasten: Strg+F Vollbild, Esc zurück, Strg+G das Raster, Strg+W und Strg+S wechseln zwischen Nur Welle, Welle mit Kurven und Nur Kurven, Strg+I die Richtung der Welle, Strg+A alle Bänder. Auf dem Punkt eines Bands: ziehen zum Verschieben, Pfeiltasten zum schrittweisen Ändern, Rechtsklick für sein Menü; Strg+Mausrad ändert das Q eines ausgewählten Punkts.\nKlicken Sie in der Legende des Diagramms auf den Namen einer Kurve, um ihre Zeichnung aus- oder einzublenden. Der Klang bleibt gleich. Entfernen oder ändern Sie die Ebene unter Kurven, wenn Sie ändern möchten, was Sie hören.',
+    'Klicken Sie auf den Namen der Darstellung, um einen Stil oder eine Szene zu wählen. Die Pfeile daneben, die Leertaste und Strg+Leertaste blättern durch sie.\nÖffnen Sie Ansicht für das, was das Diagramm zeichnet – jede Zeichnung hat ihren Schalter, jede Kurve ihren eigenen –, den Frequenzbereich, Höhe und Position der Welle und Wie es gezeichnet wird: die Bildrate (jedes Bild, das Ihr Bildschirm bietet, oder 60 oder 30, im Akkubetrieb bei 60 gehalten), die Auflösung und die Glättung. Standardstile behalten ihre eigenen Einstellungen, getrennt von den Szenen.\nEine Szene fügt Ansicht eigene Regler hinzu – was ihr Autor für Sie einstellbar gelassen hat –, und Eigene Welle der Szene setzt die Welle auf die Höhe und Position zurück, die dieser Autor gewählt hat.\nDoppelklicken Sie auf das Diagramm, um damit den Bildschirm zu füllen, und noch einmal, um zurückzukehren. Im Vollbild holt der obere Fensterrand die Kopfzeile und der untere die Wiedergabesteuerung; ein Klick blendet sie aus.\nTasten: Strg+F Vollbild, Esc zurück, Strg+G das Raster, Strg+W und Strg+S wechseln zwischen Nur Welle, Welle mit Kurven und Nur Kurven, Strg+I die Richtung der Welle, Strg+A alle Bänder. Auf dem Punkt eines Bands: ziehen zum Verschieben, Pfeiltasten zum schrittweisen Ändern, Rechtsklick für sein Menü; Strg+Mausrad ändert das Q eines ausgewählten Punkts.\nKlicken Sie in der Legende des Diagramms auf den Namen einer Kurve, um ihre Zeichnung aus- oder einzublenden. Der Klang bleibt gleich. Entfernen oder ändern Sie die Ebene unter Kurven, wenn Sie ändern möchten, was Sie hören.',
   'help.graph.tip':
     'Alles hier ändert nur, was gezeichnet wird, nie Ihren Klang.',
   'help.graph.keywords':
-    'graph, spektrumanalysator, analyzer, frequenzanalyse, fullscreen, FPS, framerate, bildwiederholfrequenz, wellenform, gitternetz, ausblenden, einblenden, tastenkürzel, shortcuts, doppelklick, erweitert, beschriftungen, bandbeschriftungen, EQ-beschriftungen, labels, tastatur, pfeiltasten, grafik, grafikeinstellungen, auflösung, glättung, bildrate',
+    'graph, spektrumanalysator, analyzer, frequenzanalyse, fullscreen, FPS, framerate, bildwiederholfrequenz, wellenform, gitternetz, ausblenden, einblenden, tastenkürzel, shortcuts, doppelklick, erweitert, beschriftungen, bandbeschriftungen, EQ-beschriftungen, labels, tastatur, pfeiltasten, grafik, grafikeinstellungen, auflösung, glättung, bildrate, galerie, legende, frequenzbereich, analyzer-neigung, neigung',
   'help.graph.stripCaption': 'Mit einem Standardstil',
-  'help.graph.live': 'Blendet die Live-Welle ein oder aus.',
+  'help.graph.legend':
+    'Der Name jeder gezeichneten Kurve, und Live-Ausgabe für die Welle. Drücken Sie einen, um seine Zeichnung aus- oder einzublenden; der Klang bleibt gleich.',
   'help.graph.previous': 'Springt zur vorherigen Darstellung zurück.',
   'help.graph.picker': 'Öffnet alle Stile und Szenen.',
+  'help.graph.placeName': 'Platz in der Reihe',
+  'help.graph.place':
+    'Wo dieser Look unter denen steht, durch die die Pfeile gehen.',
   'help.graph.next': 'Springt zur nächsten Darstellung weiter.',
-  'help.graph.autoName': 'Auto',
   'help.graph.auto': 'Wechselt die Darstellung alle 10 Sekunden bis 2 Minuten.',
   'help.graph.colouring':
     'Färbt den Stil: Auto, Einheitlich, Frequenz, Pegel oder Hitze.',
   'help.graph.newLook': 'Gestaltet aus diesem Stil eine eigene Darstellung.',
-  'help.graph.bandsName': 'Hörbereiche',
-  'help.graph.bands': 'Schattiert die Bereiche, die Sie am meisten hören.',
-  'help.graph.bandsMenu':
-    'Dieselbe Schattierung; ausgegraut bei einer Szene, die sie nie zeichnet.',
   'help.graph.gridName': 'Raster',
   'help.graph.grid': 'Blendet Raster und Skalen ein oder aus.',
+  'help.graph.hintName': 'So bearbeiten Sie im Graphen',
+  'help.graph.hint':
+    'Zeigen Sie darauf für die Griffe: einen Punkt ziehen, Strg oder Umschalt zum Auswählen, Strg+Mausrad für Q, Strg+Ziehen bewegt eine Gruppe als Glocke.',
   'help.graph.viewName': 'Ansicht',
-  'help.graph.view': 'Größe, was gezeichnet wird, und die Welle.',
+  'help.graph.view':
+    'Was der Graph zeichnet und wie: jede Kurve, die Beschriftungen, die Legende, die Welle, das Raster, den Frequenzbereich und die Pegelanzeige.',
   'help.graph.plusCaption': 'Mit einer Szene',
-  'help.graph.tintName': 'Fensterfarben',
-  'help.graph.tint':
-    'Die eigenen Farben der App (Original), die Farben der Szene (Farben) oder ihre Farben mit ihren Elementen, die durch das Fenster fliegen (Ambiente).',
+  'help.graph.creditName': 'Die Szene und ihr Urheber',
+  'help.graph.credit':
+    'Welche Szene läuft und wer sie gemacht hat. Drücken Sie darauf, um einen anderen Stil oder eine andere Szene zu wählen.',
   'help.graph.likeName': '„Gefällt mir“',
   'help.graph.like':
     'Vergibt ein „Gefällt mir“ für die laufende Szene und bringt ihrem Autor Punkte. Bei einer eigenen Szene zeigt es, wie viele „Gefällt mir“ sie hat.',
@@ -544,21 +547,23 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.desktop': 'Legt diese Szene hinter Ihre Desktopsymbole.',
   'help.graph.viewCaption': 'Das Menü Ansicht',
   'help.graph.fullscreen': 'Das Diagramm füllt den Bildschirm.',
-  'help.graph.showingName': 'Anzeige',
-  'help.graph.showing':
-    'Schaltet durch, was das Diagramm zeigt, Bandbeschriftungen eingeschlossen.',
+  'help.graph.curves':
+    'Ein Schalter für jede Kurve, die der Graph zeichnet, in der Reihenfolge ihrer Anwendung. Strg+W wechselt zwischen nur Welle, Welle mit Kurven und nur Kurven; Strg+S geht zurück.',
   'help.graph.labels':
     'Frequenz, Q und Verstärkung jedes Bands über seinem Punkt.',
-  'help.graph.waveName': 'Die Welle',
-  'help.graph.wave': 'Die Live-Zeichnung des Spektrums.',
-  'help.graph.topWaveName': 'Obere Welle',
-  'help.graph.topWave': 'Die kleine Welle in der Kopfzeile.',
-  'help.graph.meterName': 'Pegelanzeige',
+  'help.graph.wave':
+    'Die Live-Welle dessen, was Sie hören, im gewählten Look gezeichnet.',
+  'help.graph.range':
+    'Wie viel vom Spektrum der Graph zeigt: anfangs 10 Hz–20 kHz, 20 Hz–20 kHz, 10 Hz–30 kHz oder 20 Hz–16 kHz, wo Aufnahmen Klang haben. Ohne Raster zeigt er 20 Hz–16 kHz.',
+  'help.graph.slope':
+    'Neigt den Analyzer um bis zu 6 dB pro Oktave, damit Musik, die zu den Höhen hin abfällt, flacher wirkt. Standardmäßig aus; nur bei Stilen, die den Analyzer zeichnen.',
   'help.graph.meter': 'Die Ausgangsanzeige in der linken Leiste.',
   'help.graph.drawing':
     'Bildrate, Auflösung und Glättung, getrennt für Standardstile und Szenen.',
-  'help.graph.waveHeight': 'Wie hoch die Welle gezeichnet wird.',
-  'help.graph.wavePosition': 'Vom unteren Rand bis zur Mitte.',
+  'help.graph.sampleScene': 'Aurora',
+  'help.graph.sampleScenePrevious': 'Bloom',
+  'help.graph.sampleSceneNext': 'Neon City',
+  'help.graph.sampleMaker': 'Lumen Works',
   'help.looks.title': 'Stile und Szenen',
   'help.looks.intro':
     'Standardstile sind kostenlose Zeichnungen des Live-Klangs, die Sie selbst einfärben und gestalten können: Linie und Fläche für eine klare Spur, LED-Blöcke und Spitzen für Wucht, Fachwerk, Skyline und Tanzende Flammen für ganze Szenen. Szenen sind lebendige Bilder, auf der Grafikkarte gezeichnet, wie Alpin, Aurora, Blüte und Neonstadt, in denen Bass, Beat und Höhen jeweils etwas anderes bewegen.',

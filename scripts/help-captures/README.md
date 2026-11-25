@@ -4,10 +4,9 @@ One script takes the guide's 2.1 pictures from the real window and measures
 the box of every numbered control in the same render, so a picture and its
 boxes are always written together:
 
-| Picture                    | Chapter | Shows                                        |
-| -------------------------- | ------- | -------------------------------------------- |
-| `23-graph-view-menu.png`   | graph   | The View menu, expanded view, standard style |
-| `14-share-audio-roles.png` | share   | Share Audio with one computer linked         |
+| Picture                    | Chapter | Shows                                |
+| -------------------------- | ------- | ------------------------------------ |
+| `14-share-audio-roles.png` | share   | Share Audio with one computer linked |
 
 The pictures go to `docs/`, the boxes to
 `src/common/helpChapters/captured.ts`, which the chapters read. Never move a

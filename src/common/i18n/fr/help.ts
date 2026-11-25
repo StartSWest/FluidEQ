@@ -505,34 +505,37 @@ const help: Record<keyof typeof en, string> = {
 
   'help.graph.title': 'Le graphique et ses commandes',
   'help.graph.intro':
-    'La courbe de réponse trace vos courbes d’EQ sur le son en direct. La barre au-dessus choisit ce qui est dessiné et comment, et elle change selon le style choisi : style standard ou scène.',
+    'Le graphique de réponse dessine vos courbes d’égalisation sur le son en direct. Ses options se reposent hors de vue et reviennent sous le pointeur : la légende dans un coin, Affichage et plein écran dans l’autre, et en bas la galerie des looks, celui du graphique au milieu avec ses interrupteurs, le précédent et le suivant aux extrémités. Ce que propose la galerie change avec le look : un style standard ou une scène.',
   'help.graph.steps':
-    'Cliquez sur le nom du rendu pour choisir un style ou une scène. Les flèches à côté, Espace et Ctrl+Espace les font défiler.\nOuvrez Affichage pour ce que dessine le graphique — chaque tracé a son interrupteur, les courbes tiennent sur une rangée de pastilles —, la plage de fréquences, la hauteur et la position de l’onde, et Comment c’est dessiné : la fréquence d’images (toutes celles de votre écran, ou 60 ou 30, maintenue à 60 sur batterie), la résolution et le lissage. Les styles standard gardent leurs propres choix, à part des scènes.\nUne scène ajoute ses propres réglages à Affichage — ce que son auteur vous a laissé régler — et Utiliser son onde d’origine remet l’onde à la hauteur et à la position choisies par cet auteur.\nDouble-cliquez sur le graphique pour qu’il remplisse l’écran, et à nouveau pour revenir. En plein écran, le bord supérieur de la fenêtre fait venir l’en-tête et le bord inférieur les commandes de lecture ; un clic les range.\nTouches : Ctrl+F plein écran, Échap retour, Ctrl+G la grille, Ctrl+W et Ctrl+S passent par Onde uniquement, Onde et courbes et Courbes uniquement, Ctrl+I le sens de l’onde, Ctrl+A toutes les bandes. Sur le point d’une bande, faites-le glisser pour le déplacer, utilisez les flèches pour l’ajuster et le clic droit pour son menu ; Ctrl+molette change le Q d’un point sélectionné.\nCliquez sur le nom d’une courbe dans la légende du graphique pour masquer ou afficher son tracé. Le son ne change pas. Retirez ou modifiez la couche sous Courbes quand vous voulez changer ce que vous entendez.',
+    'Cliquez sur le nom du rendu pour choisir un style ou une scène. Les flèches à côté, Espace et Ctrl+Espace les font défiler.\nOuvrez Affichage pour ce que dessine le graphique — chaque tracé a son interrupteur, chaque courbe le sien —, la plage de fréquences, la hauteur et la position de l’onde, et Comment c’est dessiné : la fréquence d’images (toutes celles de votre écran, ou 60 ou 30, maintenue à 60 sur batterie), la résolution et le lissage. Les styles standard gardent leurs propres choix, à part des scènes.\nUne scène ajoute ses propres réglages à Affichage — ce que son auteur vous a laissé régler — et Utiliser son onde d’origine remet l’onde à la hauteur et à la position choisies par cet auteur.\nDouble-cliquez sur le graphique pour qu’il remplisse l’écran, et à nouveau pour revenir. En plein écran, le bord supérieur de la fenêtre fait venir l’en-tête et le bord inférieur les commandes de lecture ; un clic les range.\nTouches : Ctrl+F plein écran, Échap retour, Ctrl+G la grille, Ctrl+W et Ctrl+S passent par Onde uniquement, Onde et courbes et Courbes uniquement, Ctrl+I le sens de l’onde, Ctrl+A toutes les bandes. Sur le point d’une bande, faites-le glisser pour le déplacer, utilisez les flèches pour l’ajuster et le clic droit pour son menu ; Ctrl+molette change le Q d’un point sélectionné.\nCliquez sur le nom d’une courbe dans la légende du graphique pour masquer ou afficher son tracé. Le son ne change pas. Retirez ou modifiez la couche sous Courbes quand vous voulez changer ce que vous entendez.',
   'help.graph.tip': 'Tout ceci ne change que le dessin, jamais votre son.',
   'help.graph.keywords':
-    "analyseur de spectre, forme d'onde, quadrillage, taux de rafraîchissement, fluidité, saccadé, réactivité, FPS, framerate, fullscreen, raccourcis, raccourcis clavier, double-clic, vue agrandie, agrandir, étiquettes, étiquettes de bandes, étiquettes de l’eq, libellés, clavier, touches fléchées, graphismes, réglages graphiques, résolution, lissage, cadence",
+    "analyseur de spectre, forme d'onde, quadrillage, taux de rafraîchissement, fluidité, saccadé, réactivité, FPS, framerate, fullscreen, raccourcis, raccourcis clavier, double-clic, vue agrandie, agrandir, étiquettes, étiquettes de bandes, étiquettes de l’eq, libellés, clavier, touches fléchées, graphismes, réglages graphiques, résolution, lissage, cadence, galerie, légende, plage de fréquences, pente de l’analyseur",
   'help.graph.stripCaption': 'Avec un style standard',
-  'help.graph.live': 'Affiche ou masque l’onde en direct.',
+  'help.graph.legend':
+    'Le nom de chaque courbe dessinée, et Sortie en direct pour l’onde. Appuyez sur un nom pour masquer ou afficher son tracé ; le son ne change pas.',
   'help.graph.previous': 'Revient au style précédent.',
   'help.graph.picker': 'Ouvre tous les styles et scènes.',
+  'help.graph.placeName': 'Place dans le défilement',
+  'help.graph.place':
+    'Où se trouve ce look parmi ceux que parcourent les flèches.',
   'help.graph.next': 'Passe au style suivant.',
-  'help.graph.autoName': 'Auto',
   'help.graph.auto': 'Change de style toutes les 10 secondes à 2 minutes.',
   'help.graph.colouring':
     'Colore le style : Auto, Uniforme, Fréquence, Niveau ou Chaleur.',
   'help.graph.newLook': 'Crée un style à vous à partir de celui-ci.',
-  'help.graph.bandsName': 'Bandes d’écoute',
-  'help.graph.bands': 'Ombre les bandes que vous entendez le plus.',
-  'help.graph.bandsMenu':
-    'Le même ombrage ; grisé sur une scène, qui ne le dessine jamais.',
   'help.graph.gridName': 'Grille',
   'help.graph.grid': 'Affiche ou masque la grille et les échelles.',
+  'help.graph.hintName': 'Modifier sur le graphique',
+  'help.graph.hint':
+    'Survolez-le pour les gestes : faire glisser un point, Ctrl ou Maj pour sélectionner, Ctrl+molette pour le Q, Ctrl+glisser déplace un groupe en cloche.',
   'help.graph.viewName': 'Affichage',
-  'help.graph.view': 'Taille, ce qui est dessiné, et l’onde.',
+  'help.graph.view':
+    'Ce que dessine le graphique et comment : chaque courbe, les étiquettes, la légende, l’onde, la grille, la plage de fréquences et l’indicateur.',
   'help.graph.plusCaption': 'Avec une scène',
-  'help.graph.tintName': 'Couleurs de la fenêtre',
-  'help.graph.tint':
-    'Les couleurs de l’application (Original), celles de la scène (Couleurs), ou ses couleurs avec ses éléments qui volent autour de la fenêtre (Ambiance).',
+  'help.graph.creditName': 'La scène et son auteur',
+  'help.graph.credit':
+    'Quelle scène joue et qui l’a faite. Appuyez dessus pour choisir un autre style ou une autre scène.',
   'help.graph.likeName': 'J’aime',
   'help.graph.like':
     'Aime la scène en cours, ce qui rapporte des points à son auteur. Sur une scène à vous, il montre combien de j’aime elle a.',
@@ -540,21 +543,23 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.desktop': 'Place cette scène derrière les icônes du Bureau.',
   'help.graph.viewCaption': 'Le menu Affichage',
   'help.graph.fullscreen': 'Le graphique remplit l’écran.',
-  'help.graph.showingName': 'Affichage',
-  'help.graph.showing':
-    'Fait défiler ce que montre le graphique, étiquettes des bandes comprises.',
+  'help.graph.curves':
+    'Un interrupteur par courbe que dessine le graphique, dans l’ordre où elles s’appliquent. Ctrl+W passe par Onde seule, Onde avec courbes et Courbes seules ; Ctrl+S revient en arrière.',
   'help.graph.labels':
     'La fréquence, le Q et le gain de chaque bande au-dessus de son point.',
-  'help.graph.waveName': 'L’onde',
-  'help.graph.wave': 'Le tracé du spectre en direct.',
-  'help.graph.topWaveName': 'Onde supérieure',
-  'help.graph.topWave': 'La petite onde dans la barre de titre.',
-  'help.graph.meterName': 'Indicateur de niveau',
+  'help.graph.wave':
+    'L’onde en direct de ce que vous entendez, dessinée dans le look choisi.',
+  'help.graph.range':
+    'La part du spectre que couvre le graphique : 10 Hz–20 kHz au départ, 20 Hz–20 kHz, 10 Hz–30 kHz, ou 20 Hz–16 kHz, là où les enregistrements ont du son. Sans grille, il couvre 20 Hz–16 kHz.',
+  'help.graph.slope':
+    'Incline l’analyseur jusqu’à 6 dB par octave, pour que la musique, qui baisse vers les aigus, paraisse plus plate. Désactivé par défaut ; seulement sur les styles qui dessinent l’analyseur.',
   'help.graph.meter': 'L’indicateur de sortie dans la colonne de gauche.',
   'help.graph.drawing':
     'Cadence, résolution et lissage, gardés à part pour les styles standard et les scènes.',
-  'help.graph.waveHeight': 'La hauteur à laquelle l’onde est dessinée.',
-  'help.graph.wavePosition': 'Du bord inférieur jusqu’au milieu.',
+  'help.graph.sampleScene': 'Aurore',
+  'help.graph.sampleScenePrevious': 'Bloom',
+  'help.graph.sampleSceneNext': 'Neon City',
+  'help.graph.sampleMaker': 'Lumen Works',
   'help.looks.title': 'Styles et scènes',
   'help.looks.intro':
     'Les styles standard sont des dessins gratuits du son en direct, que vous pouvez colorer et concevoir vous-même : Ligne et Aire pour un tracé net, Blocs LED et Pics pour du punch, Treillis, Horizon et Flammes dansantes pour des scènes entières. Les scènes sont des images vivantes dessinées par la carte graphique, comme Alpin, Aurore, Floraison et Ville néon, où les basses, le rythme et les aigus font chacun bouger quelque chose de différent.',

@@ -497,35 +497,38 @@ const help = {
 
   'help.graph.title': 'The graph and its controls',
   'help.graph.intro':
-    'The response graph draws your EQ curves over the live sound. The strip above it chooses what is drawn and how, and it changes with the look: a standard style or a scene.',
+    'The response graph draws your EQ curves over the live sound. Its options rest out of sight and come back under the pointer: the legend in one corner, View and full screen in the other, and along the foot the gallery of looks, the one on the graph in the middle with its switches, the ones before and after it at the ends. What the gallery offers changes with the look: a standard style or a scene.',
   'help.graph.steps':
-    'Click the look’s name to choose a style or scene. The arrows beside it, Space and Ctrl+Space step through them.\nOpen View for what the graph draws — every drawing has its switch, the curves sit in one row of chips — the frequency range, the wave’s height and position, and How it is drawn: the frame rate (every frame your display offers, or 60 or 30, held at 60 on battery), the resolution and smoothing. Standard styles keep their own choices, apart from scenes.\nA scene adds its own controls to View — whatever its author left for you to set — and Use its own wave puts the wave back to the height and position that author chose.\nDouble-click the plot to fill the screen with it, and double-click again to come back. In full screen the window’s top edge brings the header and its bottom edge the transport; a click puts them away.\nKeys: Ctrl+F full screen, Esc back, Ctrl+G the grid, Ctrl+W and Ctrl+S walk Wave only, Wave with curves and Curves only, Ctrl+I which way the wave faces, Ctrl+A every band. On a band’s point, drag to move it, use the arrow keys to step it, and right-click for its menu; Ctrl+scroll changes the Q of a selected point.\nPress a curve’s name in the graph legend to hide or show its drawing. This leaves the sound unchanged. Remove or change the layer under Curves when you want to change what you hear.',
+    'Click the look’s name to choose a style or scene. The arrows beside it, Space and Ctrl+Space step through them.\nOpen View for what the graph draws — every drawing has its switch, each curve its own — the frequency range, the wave’s height and position, and How it is drawn: the frame rate (every frame your display offers, or 60 or 30, held at 60 on battery), the resolution and smoothing. Standard styles keep their own choices, apart from scenes.\nA scene adds its own controls to View — whatever its author left for you to set — and Use its own wave puts the wave back to the height and position that author chose.\nDouble-click the plot to fill the screen with it, and double-click again to come back. In full screen the window’s top edge brings the header and its bottom edge the transport; a click puts them away.\nKeys: Ctrl+F full screen, Esc back, Ctrl+G the grid, Ctrl+W and Ctrl+S walk Wave only, Wave with curves and Curves only, Ctrl+I which way the wave faces, Ctrl+A every band. On a band’s point, drag to move it, use the arrow keys to step it, and right-click for its menu; Ctrl+scroll changes the Q of a selected point.\nPress a curve’s name in the graph legend to hide or show its drawing. This leaves the sound unchanged. Remove or change the layer under Curves when you want to change what you hear.',
   'help.graph.tip':
     'Everything here changes only the drawing, never your sound.',
   'help.graph.keywords':
-    'graph, spectrum, spectrum analyzer, analyzer, analyser, frequency response, curve, full screen, fullscreen, frame rate, fps, refresh rate, wave, waveform, grid, view, shortcuts, keyboard shortcuts, hotkeys, double-click, expanded, expand, labels, band labels, eq labels, keyboard, arrow keys, graphics, resolution, smoothing',
+    'graph, spectrum, spectrum analyzer, analyzer, analyser, frequency response, curve, full screen, fullscreen, frame rate, fps, refresh rate, wave, waveform, grid, view, shortcuts, keyboard shortcuts, hotkeys, double-click, expanded, expand, labels, band labels, eq labels, keyboard, arrow keys, graphics, resolution, smoothing, gallery, legend, frequency range, analyzer slope, tilt, place, edit hint',
   'help.graph.stripCaption': 'With a standard style',
-  'help.graph.live': 'Shows or hides the live wave.',
+  'help.graph.legend':
+    'The name of every curve drawn, and Live output for the wave. Press one to hide or show its drawing; the sound stays the same.',
   'help.graph.previous': 'Steps back to the previous look.',
   'help.graph.picker': 'Opens every style and scene.',
+  'help.graph.placeName': 'Place in the walk',
+  'help.graph.place':
+    'Where this look stands among the ones the arrows step through.',
   'help.graph.next': 'Steps forward to the next look.',
-  'help.graph.autoName': 'Auto',
   'help.graph.auto': 'Changes the look every 10 seconds to 2 minutes.',
   'help.graph.colouring':
     'Colours the style: Auto, Flat, Frequency, Level or Heat.',
   'help.graph.newLook': 'Designs a look of your own from this style.',
-  'help.graph.bandsName': 'Listening bands',
-  'help.graph.bands': 'Shades the bands you hear most.',
-  'help.graph.bandsMenu':
-    'The same shading; greyed over a scene, which never draws it.',
   'help.graph.gridName': 'Grid',
   'help.graph.grid': 'Shows or hides the grid and scales.',
+  'help.graph.hintName': 'How to edit on the graph',
+  'help.graph.hint':
+    'Point at it for the moves: drag a point, Ctrl or Shift to select, Ctrl+scroll for Q, Ctrl+drag to move a group as a bell.',
   'help.graph.viewName': 'View',
-  'help.graph.view': 'Size, what is drawn, and the wave.',
+  'help.graph.view':
+    'What the graph draws and how: every curve, the labels, the legend, the wave, the grid, the frequency range and the meter.',
   'help.graph.plusCaption': 'With a scene',
-  'help.graph.tintName': 'Window colours',
-  'help.graph.tint':
-    'The app’s own colours (Original), the scene’s colours (Colours), or its colours with its elements flying around the window (Ambient).',
+  'help.graph.creditName': 'The scene and its maker',
+  'help.graph.credit':
+    'Which scene is playing and who made it. Press it to choose another style or scene.',
   'help.graph.likeName': 'Like',
   'help.graph.like':
     'Likes the scene playing, which gives its maker points. On a scene of your own it shows how many likes it has.',
@@ -533,20 +536,22 @@ const help = {
   'help.graph.desktop': 'Puts this scene behind your desktop icons.',
   'help.graph.viewCaption': 'The View menu',
   'help.graph.fullscreen': 'The graph fills the screen.',
-  'help.graph.showingName': 'Showing',
-  'help.graph.showing':
-    'Steps through what the graph shows, band labels included.',
+  'help.graph.curves':
+    'A switch for each curve the graph draws, in the order they are applied. Ctrl+W walks Wave only, Wave with curves and Curves only; Ctrl+S walks back.',
   'help.graph.labels': 'Each band’s frequency, Q and gain over its point.',
-  'help.graph.waveName': 'The wave',
-  'help.graph.wave': 'The live spectrum drawing.',
-  'help.graph.topWaveName': 'Top wave',
-  'help.graph.topWave': 'The small wave in the title bar.',
-  'help.graph.meterName': 'Level meter',
+  'help.graph.wave':
+    'The live wave of what you hear, drawn in the look you chose.',
+  'help.graph.range':
+    'How much of the spectrum the graph spans: 10 Hz–20 kHz to start with, 20 Hz–20 kHz, 10 Hz–30 kHz, or 20 Hz–16 kHz where records have sound. With the grid off it spans 20 Hz–16 kHz.',
+  'help.graph.slope':
+    'Tilts the analyzer by up to 6 dB per octave, so music, which falls towards the treble, reads flatter. Off by default; only on styles that draw the analyzer.',
   'help.graph.meter': 'The output meter in the left rail.',
   'help.graph.drawing':
     'Frame rate, resolution and smoothing, kept apart for standard styles and scenes.',
-  'help.graph.waveHeight': 'How tall the wave is drawn.',
-  'help.graph.wavePosition': 'From the bottom edge up to the middle.',
+  'help.graph.sampleScene': 'Aurora',
+  'help.graph.sampleScenePrevious': 'Bloom',
+  'help.graph.sampleSceneNext': 'Neon City',
+  'help.graph.sampleMaker': 'Lumen Works',
 
   'help.looks.title': 'Styles and scenes',
   'help.looks.intro':

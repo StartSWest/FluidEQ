@@ -464,33 +464,34 @@ const help: Record<keyof typeof en, string> = {
 
   'help.graph.title': '图表及其控件',
   'help.graph.intro':
-    '频响图会在实时声音之上绘制你的 EQ 曲线。它上方的工具条决定画什么、怎么画，并随外观而变化：标准样式或场景。',
+    '响应图表在实时声音上绘制你的均衡曲线。它的选项平时隐藏，指针移上去就会回来：一角是图例，另一角是“视图”和全屏，底部是外观画廊——当前外观及其开关在中间，前一个和后一个在两端。画廊提供的内容随外观而变：标准样式或场景。',
   'help.graph.steps':
-    '点击外观名称来选择样式或场景。旁边的箭头、空格键和 Ctrl+空格键可依次切换。\n打开“视图”设置图表绘制的内容（每种绘制都有开关，曲线排成一行小标签）、频率范围、波形的高度和位置，以及如何绘制：帧率（显示器能提供的全部帧，或 60、30，电池供电时保持 60）、分辨率和平滑。标准样式与场景分开保存各自的设置。\n场景会在“视图”中加入自己的控件（作者留给你调整的部分），“使用它自带的波形”会把波形恢复到作者选择的高度和位置。\n双击图表让它铺满屏幕，再双击即可返回。全屏时，窗口上边缘唤出页眉，下边缘唤出播放控制；点击一下即可收起。\n按键：Ctrl+F 全屏，Esc 返回，Ctrl+G 网格，Ctrl+W 和 Ctrl+S 在“仅波形”“波形与曲线”“仅曲线”之间切换，Ctrl+I 波形朝向，Ctrl+A 全部频段。在频段的点上拖动可移动，方向键可微调，右键打开菜单；Ctrl+滚轮改变选中点的 Q。\n在图表图例中点击曲线名称可隐藏或显示它的绘制。声音不会改变。想改变听到的声音，请在“曲线”中移除或修改那一层。',
+    '点击外观名称来选择样式或场景。旁边的箭头、空格键和 Ctrl+空格键可依次切换。\n打开“视图”设置图表绘制的内容（每种绘制都有开关，每条曲线也各有一个）、频率范围、波形的高度和位置，以及如何绘制：帧率（显示器能提供的全部帧，或 60、30，电池供电时保持 60）、分辨率和平滑。标准样式与场景分开保存各自的设置。\n场景会在“视图”中加入自己的控件（作者留给你调整的部分），“使用它自带的波形”会把波形恢复到作者选择的高度和位置。\n双击图表让它铺满屏幕，再双击即可返回。全屏时，窗口上边缘唤出页眉，下边缘唤出播放控制；点击一下即可收起。\n按键：Ctrl+F 全屏，Esc 返回，Ctrl+G 网格，Ctrl+W 和 Ctrl+S 在“仅波形”“波形与曲线”“仅曲线”之间切换，Ctrl+I 波形朝向，Ctrl+A 全部频段。在频段的点上拖动可移动，方向键可微调，右键打开菜单；Ctrl+滚轮改变选中点的 Q。\n在图表图例中点击曲线名称可隐藏或显示它的绘制。声音不会改变。想改变听到的声音，请在“曲线”中移除或修改那一层。',
   'help.graph.tip': '这里的一切只改变画面，从不改变你的声音。',
   'help.graph.keywords':
-    '频谱分析仪, 频谱分析器, 频谱图, 实时频谱, 波形图, 曲线图, 帧数, FPS, 高刷, 快捷键, 键盘快捷键, 双击, 展开视图, 标签, 频段标签, EQ标签, 键盘, 方向键, 画面, 图形, 图形设置, 画质, 分辨率, 平滑',
+    '频谱分析仪, 频谱分析器, 频谱图, 实时频谱, 波形图, 曲线图, 帧数, FPS, 高刷, 快捷键, 键盘快捷键, 双击, 展开视图, 标签, 频段标签, EQ标签, 键盘, 方向键, 画面, 图形, 图形设置, 画质, 分辨率, 平滑, 画廊, 图例, 频率范围, 分析仪斜率',
   'help.graph.stripCaption': '使用标准样式时',
-  'help.graph.live': '显示或隐藏实时波形。',
+  'help.graph.legend':
+    '每条已绘制曲线的名称，以及代表波形的“实时输出”。点击一项即可隐藏或显示它的绘制；声音不变。',
   'help.graph.previous': '切换到上一个外观。',
   'help.graph.picker': '打开所有样式和场景。',
+  'help.graph.placeName': '在序列中的位置',
+  'help.graph.place': '这个外观在箭头依次切换的外观中所处的位置。',
   'help.graph.next': '切换到下一个外观。',
-  'help.graph.autoName': '自动',
   'help.graph.auto': '按 10 秒到 2 分钟的间隔自动更换外观。',
   'help.graph.colouring': '为样式着色：“自动”“纯色”“频率”“电平”或“热度”。',
   'help.graph.newLook': '基于此样式设计你自己的外观。',
-  'help.graph.bandsName': '听音频段',
-  'help.graph.bands': '用底色标出你最常听到的频段。',
-  'help.graph.bandsMenu':
-    '同样的底色标记；使用场景时此项变灰不可用，因为场景从不绘制底色。',
   'help.graph.gridName': '网格',
   'help.graph.grid': '显示或隐藏网格和刻度。',
+  'help.graph.hintName': '如何在图表上编辑',
+  'help.graph.hint':
+    '指针移上去可查看操作：拖动点，用 Ctrl 或 Shift 选择，Ctrl+滚动调 Q，Ctrl+拖动把一组点按钟形移动。',
   'help.graph.viewName': '视图',
-  'help.graph.view': '大小、绘制内容和波形。',
+  'help.graph.view':
+    '图表绘制什么、如何绘制：每条曲线、标签、图例、波形、网格、频率范围和电平表。',
   'help.graph.plusCaption': '使用场景时',
-  'help.graph.tintName': '窗口颜色',
-  'help.graph.tint':
-    '应用自己的颜色（原始）、场景的颜色（颜色），或场景的颜色加上在窗口周围飞舞的元素（氛围）。',
+  'help.graph.creditName': '场景及其作者',
+  'help.graph.credit': '正在播放的场景及其作者。点击可选择其他样式或场景。',
   'help.graph.likeName': '点赞',
   'help.graph.like':
     '为正在播放的场景点赞，作者会因此得分。在你自己的场景上，它显示获得了多少个赞。',
@@ -498,18 +499,20 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.desktop': '把这个场景放到桌面图标后面。',
   'help.graph.viewCaption': '“视图”菜单',
   'help.graph.fullscreen': '图表铺满整个屏幕。',
-  'help.graph.showingName': '当前显示',
-  'help.graph.showing': '依次切换图表显示的内容，包括频段标签。',
+  'help.graph.curves':
+    '图表绘制的每条曲线各有一个开关，按应用顺序排列。Ctrl+W 依次切换“仅波形”“波形和曲线”“仅曲线”；Ctrl+S 反向切换。',
   'help.graph.labels': '在每个频段的控制点上显示它的频率、Q 和增益。',
-  'help.graph.waveName': '波形',
-  'help.graph.wave': '实时绘制的频谱。',
-  'help.graph.topWaveName': '顶部波形',
-  'help.graph.topWave': '标题栏里的小波形。',
-  'help.graph.meterName': '电平表',
+  'help.graph.wave': '你所听到声音的实时波形，以你选择的外观绘制。',
+  'help.graph.range':
+    '图表涵盖的频谱范围：起初为 10 Hz–20 kHz，另有 20 Hz–20 kHz、10 Hz–30 kHz，或录音中有声音的 20 Hz–16 kHz。关闭网格时为 20 Hz–16 kHz。',
+  'help.graph.slope':
+    '把分析仪倾斜最多每倍频程 6 dB，让向高频衰减的音乐看起来更平。默认关闭；只用于绘制分析仪的样式。',
   'help.graph.meter': '左侧栏里的输出电平表。',
   'help.graph.drawing': '帧率、分辨率和平滑，标准样式与场景分开保存。',
-  'help.graph.waveHeight': '波形绘制的高度。',
-  'help.graph.wavePosition': '从底部边缘到中间。',
+  'help.graph.sampleScene': '极光',
+  'help.graph.sampleScenePrevious': '绽放',
+  'help.graph.sampleSceneNext': '霓虹城市',
+  'help.graph.sampleMaker': 'Lumen Works',
   'help.looks.title': '样式与场景',
   'help.looks.intro':
     '标准样式是免费的实时声音绘图，你可以自己配色和设计：“线条”和“面积”适合干净的轨迹，“LED 块”和“尖峰”更有冲击力，“桁架”“天际线”和“舞动的火焰”则呈现完整的画面。场景是由显卡绘制的鲜活画面，例如阿尔卑斯、极光、绽放和霓虹之城，其中低音、节拍和高音各自带动不同的部分。',

@@ -495,34 +495,36 @@ const help: Record<keyof typeof en, string> = {
 
   'help.graph.title': 'O gráfico e seus controles',
   'help.graph.intro':
-    'O gráfico de resposta desenha as curvas do seu EQ sobre o som ao vivo. A barra acima dele escolhe o que é desenhado e como, e muda conforme o visual: um estilo padrão ou uma cena.',
+    'O gráfico de resposta desenha suas curvas de EQ sobre o som ao vivo. As opções dele descansam fora de vista e voltam sob o ponteiro: a legenda num canto, Visualizar e tela cheia no outro, e no pé a galeria de visuais, o do gráfico no meio com seus botões, o anterior e o seguinte nas pontas. O que a galeria oferece muda com o visual: um estilo padrão ou uma cena.',
   'help.graph.steps':
-    'Clique no nome do visual para escolher um estilo ou uma cena. As setas ao lado, Espaço e Ctrl+Espaço passam por eles.\nAbra Visualização para o que o gráfico desenha — cada desenho tem seu botão, as curvas ficam numa fileira de chips —, a faixa de frequências, a altura e a posição da onda e Como é desenhado: a taxa de quadros (todos os que a sua tela oferece, ou 60 ou 30, fixa em 60 na bateria), a resolução e a suavização. Os estilos padrão guardam suas próprias escolhas, separadas das cenas.\nUma cena acrescenta seus próprios controles a Visualização — o que o autor deixou para você ajustar — e Usar a onda original devolve a onda à altura e à posição que esse autor escolheu.\nClique duas vezes no gráfico para ele encher a tela, e de novo para voltar. Em tela cheia, a borda de cima da janela traz o cabeçalho e a de baixo os controles de reprodução; um clique os guarda.\nTeclas: Ctrl+F tela cheia, Esc voltar, Ctrl+G a grade, Ctrl+W e Ctrl+S passam por Somente onda, Onda com curvas e Somente curvas, Ctrl+I o sentido da onda, Ctrl+A todas as bandas. No ponto de uma banda, arraste para movê-la, use as setas para ajustá-la e o clique direito para o menu; Ctrl+rolagem muda o Q de um ponto selecionado.\nClique no nome de uma curva na legenda do gráfico para ocultar ou mostrar o desenho dela. O som não muda. Remova ou mude a camada em Curvas quando quiser mudar o que você ouve.',
+    'Clique no nome do visual para escolher um estilo ou uma cena. As setas ao lado, Espaço e Ctrl+Espaço passam por eles.\nAbra Visualização para o que o gráfico desenha — cada desenho tem seu botão, cada curva também —, a faixa de frequências, a altura e a posição da onda e Como é desenhado: a taxa de quadros (todos os que a sua tela oferece, ou 60 ou 30, fixa em 60 na bateria), a resolução e a suavização. Os estilos padrão guardam suas próprias escolhas, separadas das cenas.\nUma cena acrescenta seus próprios controles a Visualização — o que o autor deixou para você ajustar — e Usar a onda original devolve a onda à altura e à posição que esse autor escolheu.\nClique duas vezes no gráfico para ele encher a tela, e de novo para voltar. Em tela cheia, a borda de cima da janela traz o cabeçalho e a de baixo os controles de reprodução; um clique os guarda.\nTeclas: Ctrl+F tela cheia, Esc voltar, Ctrl+G a grade, Ctrl+W e Ctrl+S passam por Somente onda, Onda com curvas e Somente curvas, Ctrl+I o sentido da onda, Ctrl+A todas as bandas. No ponto de uma banda, arraste para movê-la, use as setas para ajustá-la e o clique direito para o menu; Ctrl+rolagem muda o Q de um ponto selecionado.\nClique no nome de uma curva na legenda do gráfico para ocultar ou mostrar o desenho dela. O som não muda. Remova ou mude a camada em Curvas quando quiser mudar o que você ouve.',
   'help.graph.tip': 'Tudo aqui muda só o desenho, nunca o seu som.',
   'help.graph.keywords':
-    'analisador de espectro, forma de onda, waveform, FPS, frame rate, fullscreen, esconder, atalhos, atalhos de teclado, clique duplo, expandida, gráfico, espectro, analisador, resposta de frequência, curva, tela cheia, taxa de quadros, quadros, onda, grade, visualização, expandir, etiquetas, rótulos, etiquetas do EQ, rótulos das bandas, labels, teclado, setas, teclas de seta, gráficos, desempenho gráfico, resolução, suavização',
+    'analisador de espectro, forma de onda, waveform, FPS, frame rate, fullscreen, esconder, atalhos, atalhos de teclado, clique duplo, expandida, gráfico, espectro, analisador, resposta de frequência, curva, tela cheia, taxa de quadros, quadros, onda, grade, visualização, expandir, etiquetas, rótulos, etiquetas do EQ, rótulos das bandas, labels, teclado, setas, teclas de seta, gráficos, desempenho gráfico, resolução, suavização, galeria, legenda, faixa de frequência, inclinação do analisador',
   'help.graph.stripCaption': 'Com um estilo padrão',
-  'help.graph.live': 'Mostra ou oculta a onda ao vivo.',
+  'help.graph.legend':
+    'O nome de cada curva desenhada, e Saída ao vivo para a onda. Pressione um para esconder ou mostrar o desenho dele; o som continua o mesmo.',
   'help.graph.previous': 'Volta ao visual anterior.',
   'help.graph.picker': 'Abre todos os estilos e cenas.',
+  'help.graph.placeName': 'Posição na sequência',
+  'help.graph.place': 'Onde este visual fica entre os que as setas percorrem.',
   'help.graph.next': 'Avança para o próximo visual.',
-  'help.graph.autoName': 'Auto',
   'help.graph.auto': 'Troca o visual a intervalos de 10 segundos a 2 minutos.',
   'help.graph.colouring':
     'Colore o estilo: Auto, Uniforme, Frequência, Nível ou Calor.',
   'help.graph.newLook': 'Cria um visual seu a partir deste estilo.',
-  'help.graph.bandsName': 'Faixas de audição',
-  'help.graph.bands': 'Sombreia as faixas de frequência que você mais ouve.',
-  'help.graph.bandsMenu':
-    'O mesmo sombreamento; fica acinzentado com uma cena, que nunca o desenha.',
   'help.graph.gridName': 'Grade',
   'help.graph.grid': 'Mostra ou oculta a grade e as escalas.',
+  'help.graph.hintName': 'Como editar no gráfico',
+  'help.graph.hint':
+    'Passe o ponteiro sobre ele para ver os gestos: arraste um ponto, Ctrl ou Shift para selecionar, Ctrl+roda para o Q, Ctrl+arrastar move um grupo como um sino.',
   'help.graph.viewName': 'Visualização',
-  'help.graph.view': 'Tamanho, o que é desenhado e a onda.',
+  'help.graph.view':
+    'O que o gráfico desenha e como: cada curva, os rótulos, a legenda, a onda, a grade, a faixa de frequência e o medidor.',
   'help.graph.plusCaption': 'Com uma cena',
-  'help.graph.tintName': 'Cores da janela',
-  'help.graph.tint':
-    'As cores do próprio app (Original), as cores da cena (Cores), ou as cores dela com seus elementos voando pela janela (Ambiente).',
+  'help.graph.creditName': 'A cena e quem a fez',
+  'help.graph.credit':
+    'Qual cena está tocando e quem a fez. Pressione para escolher outro estilo ou outra cena.',
   'help.graph.likeName': 'Curtir',
   'help.graph.like':
     'Curte a cena que está tocando e dá pontos a quem a criou. Numa cena sua, mostra quantas curtidas ela tem.',
@@ -531,21 +533,23 @@ const help: Record<keyof typeof en, string> = {
     'Coloca esta cena atrás dos ícones da área de trabalho.',
   'help.graph.viewCaption': 'O menu Visualização',
   'help.graph.fullscreen': 'O gráfico ocupa a tela toda.',
-  'help.graph.showingName': 'Mostrando',
-  'help.graph.showing':
-    'Percorre o que o gráfico mostra, etiquetas das bandas incluídas.',
+  'help.graph.curves':
+    'Um botão para cada curva que o gráfico desenha, na ordem em que são aplicadas. Ctrl+W passa por Só a onda, Onda com curvas e Só curvas; Ctrl+S volta.',
   'help.graph.labels':
     'A frequência, o Q e o ganho de cada banda sobre o ponto dela.',
-  'help.graph.waveName': 'A onda',
-  'help.graph.wave': 'O desenho do espectro ao vivo.',
-  'help.graph.topWaveName': 'Onda superior',
-  'help.graph.topWave': 'A pequena onda na barra de título.',
-  'help.graph.meterName': 'Medidor de nível',
+  'help.graph.wave':
+    'A onda ao vivo do que você ouve, desenhada no visual que você escolheu.',
+  'help.graph.range':
+    'Quanto do espectro o gráfico abrange: 10 Hz–20 kHz de início, 20 Hz–20 kHz, 10 Hz–30 kHz, ou 20 Hz–16 kHz, onde as gravações têm som. Sem a grade, abrange 20 Hz–16 kHz.',
+  'help.graph.slope':
+    'Inclina o analisador em até 6 dB por oitava, para que a música, que cai rumo aos agudos, pareça mais plana. Desligado por padrão; só nos estilos que desenham o analisador.',
   'help.graph.meter': 'O medidor de saída no painel da esquerda.',
   'help.graph.drawing':
     'Taxa de quadros, resolução e suavização, guardadas separadamente para os estilos padrão e as cenas.',
-  'help.graph.waveHeight': 'A altura com que a onda é desenhada.',
-  'help.graph.wavePosition': 'Da borda inferior até o meio.',
+  'help.graph.sampleScene': 'Aurora',
+  'help.graph.sampleScenePrevious': 'Bloom',
+  'help.graph.sampleSceneNext': 'Neon City',
+  'help.graph.sampleMaker': 'Lumen Works',
   'help.looks.title': 'Estilos e cenas',
   'help.looks.intro':
     'Os estilos padrão são desenhos gratuitos do som ao vivo que você mesmo pode colorir e personalizar: Linha e Área para um traço limpo, Blocos LED e Picos para impacto, Treliça, Horizonte e Chamas dançantes para cenas inteiras. As cenas são imagens vivas desenhadas na placa de vídeo, como Alpino, Aurora, Floração e Cidade de neon, em que os graves, a batida e os agudos movem, cada um, algo diferente.',

@@ -4,9 +4,6 @@ import headphones from '../../../docs/04-eq-headphone-correction-and-import.png'
 import convolution from '../../../docs/05-eq-convolution-library.png';
 import config from '../../../docs/06-eq-equalizer-apo-config.png';
 import engine from '../../../docs/15-engine-dialog.png';
-import strip from '../../../docs/21-graph-strip.png';
-import stripPlus from '../../../docs/22-graph-strip-plus.png';
-import viewMenu from '../../../docs/23-graph-view-menu.png';
 import type { THelpPicture } from '../../common/helpGuide';
 
 /**
@@ -23,9 +20,6 @@ const SHOTS: Record<THelpPicture, string> = {
   '05-eq-convolution-library.png': convolution,
   '06-eq-equalizer-apo-config.png': config,
   '15-engine-dialog.png': engine,
-  '21-graph-strip.png': strip,
-  '22-graph-strip-plus.png': stripPlus,
-  '23-graph-view-menu.png': viewMenu,
 };
 
 /** A capture, as the guide shows it. */

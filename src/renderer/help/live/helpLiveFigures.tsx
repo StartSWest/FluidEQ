@@ -31,6 +31,11 @@ import {
 } from './karaokePanelFigures';
 import MakerDrawing from './makerFigures';
 import { MakerLyricsDrawing, MakerToolsDrawing } from './makerPanelFigures';
+import {
+  GraphSceneDrawing,
+  GraphStyleDrawing,
+  GraphViewMenuDrawing,
+} from './graphFigures';
 import LightingDrawing from './lightingFigures';
 import LookPickerDrawing from './lookFigures';
 import RailDrawing from './railFigures';
@@ -75,6 +80,9 @@ const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
   'gaming-lab': GamingLabDrawing,
   'gaming-parts': GamingPartsDrawing,
   'gaming-profiles': GamingProfilesDrawing,
+  'graph-scene': GraphSceneDrawing,
+  'graph-style': GraphStyleDrawing,
+  'graph-view-menu': GraphViewMenuDrawing,
   'header-left': WindowHeaderDrawing,
   'header-right': WindowHeaderDrawing,
   'karaoke-mic': KaraokeMicDrawing,
@@ -86,8 +94,8 @@ const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
   'library-page': LibraryPageDrawing,
   'library-queue': LibraryRecordDrawing,
   'library-record': LibraryRecordDrawing,
-  'library-tags': LibraryTagsDrawing,
   'library-tags-changes': LibraryTagsDrawing,
+  'library-tags': LibraryTagsDrawing,
   'lighting-page': LightingDrawing,
   'lighting-tuning': LightingDrawing,
   'look-picker': LookPickerDrawing,
