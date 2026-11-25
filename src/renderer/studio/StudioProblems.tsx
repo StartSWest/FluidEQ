@@ -6,6 +6,7 @@ import type {
 import { SCENE_DAYLIGHT_DECLARATION } from 'common/sceneDaylight';
 import type { IWorldReport, TWorldNote } from 'common/worldNotes';
 import { useTranslation } from '../utils/I18nContext';
+import { splitDriverError } from './driverErrorLine';
 import type { TStageTrouble } from './StudioStage';
 
 /**
@@ -27,6 +28,35 @@ export const firstErrorLine = (log: string) =>
     .split('\n')
     .map((line) => line.trim())
     .find((line) => /error/i.test(line)) ?? log.trim();
+
+/**
+ * The driver's first error line, its parts in their own spans where it has
+ * the translator's shape (`splitDriverError`), else the line as it came.
+ */
+const DriverErrorLog = ({ log }: { log: string }) => {
+  const line = firstErrorLine(log);
+  const parts = splitDriverError(line);
+  return (
+    <code className="studio-problems__log">
+      {parts ? (
+        <>
+          <span className="studio-problems__log-severity">
+            {parts.severity}
+          </span>
+          {parts.afterSeverity}
+          <span className="studio-problems__log-location">
+            {parts.location}
+          </span>
+          {parts.afterLocation}
+          <span className="studio-problems__log-name">{parts.name}</span>
+          <span className="studio-problems__log-message">{parts.message}</span>
+        </>
+      ) : (
+        line
+      )}
+    </code>
+  );
+};
 
 /**
  * A problem with the scene's picture is one the member fixes here, with a
@@ -118,11 +148,7 @@ const WorldTrouble = ({ report }: { report: IWorldReport }) => {
           ))}
         </ul>
       )}
-      {material && (
-        <code className="studio-problems__log">
-          {firstErrorLine(material.log)}
-        </code>
-      )}
+      {material && <DriverErrorLog log={material.log} />}
       <span className="studio-problems__hint">{t('studio.compile.hint')}</span>
     </>
   );
@@ -185,9 +211,7 @@ export default function StudioProblems({
           <span className="studio-problems__title">
             {t('studio.compile.heading')}
           </span>
-          <code className="studio-problems__log">
-            {firstErrorLine(trouble.log)}
-          </code>
+          <DriverErrorLog log={trouble.log} />
           <span className="studio-problems__hint">
             {t('studio.compile.hint')}
           </span>

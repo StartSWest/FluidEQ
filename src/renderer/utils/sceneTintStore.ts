@@ -25,9 +25,11 @@ import { setLightWindow } from './windowSide';
 import { migrateStopKey } from './sceneDayColours';
 import pickedWindow, { type TSurfaceWalk } from './pickedWindow';
 import {
+  CODE_INK_TOKENS,
   INK_TOKENS,
   LIGHT_INK,
   WINDOW_INK_ATTRIBUTE,
+  codeInkTokens,
   groundOf,
   inkTokens,
 } from './themeInk';
@@ -735,6 +737,8 @@ const PAINTED_TOKENS = [
   ...SCENE_TINT_TOKENS,
   ...WINDOW_LABELS,
   ...INK_TOKENS,
+  // Written on a light window alone, so a dark one takes them off.
+  ...CODE_INK_TOKENS,
 ] as const;
 
 /**
@@ -774,9 +778,11 @@ const withInks = (
   }
   const set =
     inkForSurface(pane) === 'dark' ? darkInkSet(undefined) : LIGHT_INK;
+  const ground = groundOf(floor, pane, set.toward);
   return {
     ...palette,
-    ...inkTokens(groundOf(floor, pane, set.toward), accentLight, set),
+    ...inkTokens(ground, accentLight, set),
+    ...codeInkTokens(floor, ground, accentLight, set),
   };
 };
 

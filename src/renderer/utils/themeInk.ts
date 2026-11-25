@@ -304,6 +304,134 @@ const textOn = (
 };
 
 /**
+ * THE INKS CODE IS READ IN ON THE WHITE WINDOW: a Forum post's code block and
+ * the Studio's problems log (Ivan's pick, 2026-11-25, from the code-on-white
+ * mockup). Both were tuned for a dark well - the app's palette lifted toward
+ * white on 28% black - and on the white window that well turned grey and the
+ * tokens stood on it at 1.0 to 2.6:1: a function name at 1.00, a keyword at
+ * 1.06, the driver's error line at 1.32.
+ *
+ * Each ink keeps the hue it has on the dark window, taken deep: pink
+ * keywords, green strings, cyan constants, violet functions, the error red.
+ * Someone who switches side still reads the same code, only darker. Each is
+ * moved toward black along its own hue only as far as it must go to reach
+ * `CODE_INK_CONTRAST` on its well (`textOn`, the text tiers' rule), at every
+ * Brightness of the light stretch.
+ *
+ * Written on a light window only. The dark window's stylesheet never reads
+ * these: it keeps exactly the colours it shipped with.
+ */
+export const CODE_INK_TOKENS = [
+  '--code-plain',
+  '--code-comment',
+  '--code-keyword',
+  '--code-string',
+  '--code-constant',
+  '--code-function',
+  '--code-entity',
+  '--code-log-severity',
+  '--code-log-location',
+  '--code-log-name',
+  '--code-log-message',
+] as const;
+
+export type TCodeInkToken = (typeof CODE_INK_TOKENS)[number];
+
+/**
+ * A tenth over AA's 4.5: the wells are modelled on the floor, the darkest
+ * ground either place stands on, and a post's own tint at its deepest, so the
+ * real wells only ever measure better; the tenth covers the rounding of each
+ * blend to whole bytes.
+ */
+export const CODE_INK_CONTRAST = 4.6;
+
+/**
+ * How the stylesheets build the wells, as shares of what they mix
+ * (`ForumPost.scss`, `ForumProse.scss`, `Studio.scss`). A post is the edge
+ * tint at 2.5%, a reply 2% and the accepted answer the accent at 7%: the
+ * edge tint at 7% stands for the deepest of them, since the white window's
+ * edge tint is a near-black and no accent it wears is much darker. The code
+ * well is the edge tint at 7.5% over that, a step down with no hue and no
+ * edge. The problems box is the red at 7% over its ground, and its log's
+ * well the same red at 15% over the box: a step deeper in the box's own hue.
+ */
+const POST_TINT_DEEPEST = 0.07;
+export const CODE_WELL_SHARE = 0.075;
+const PROBLEMS_BOX_RED = 0.07;
+export const PROBLEMS_LOG_RED = 0.15;
+
+/** `$red` (_color.scss), what the problems box and its log are tinted with. */
+const PROBLEMS_RED = '#ff647c';
+
+/**
+ * Where each token starts before it is moved: the dark window's hues as deep
+ * inks. The error red is the light window's own `--ink-removed` (App.scss).
+ */
+const CODE_HUES = {
+  keyword: '#a8146a',
+  string: '#22702a',
+  constant: '#00667e',
+  function: '#5a43c4',
+  severity: '#b42b2b',
+} as const;
+
+/** How much of the red the log's location takes over the faint tier. */
+const LOCATION_RED_LEAN = 0.2;
+
+const hexOfRgb = (rgb: TRgb) => labToHex(rgbToLab(rgb));
+
+/**
+ * The code inks for a window standing on `floor` with its inks solved on
+ * `ground`, or none on a dark window (`set` running toward white). A tag
+ * name (`.pl-ent`) is the accent's light, as on the dark window.
+ */
+export const codeInkTokens = (
+  floor: string,
+  ground: TRgb,
+  accentLight: string,
+  set: IInkSet,
+): Partial<Record<TCodeInkToken, string>> => {
+  if (set.toward !== 'black') {
+    return {};
+  }
+  const floorRgb = rgbOf(floor);
+  const base = lumOf(floorRgb) < lumOf(ground) ? floorRgb : ground;
+  const edge = rgbOf(set.edge);
+  const red = rgbOf(PROBLEMS_RED);
+  const codeWell = over(
+    edge,
+    CODE_WELL_SHARE,
+    over(edge, POST_TINT_DEEPEST, base),
+  );
+  const logWell = over(
+    red,
+    PROBLEMS_LOG_RED,
+    over(red, PROBLEMS_BOX_RED, base),
+  );
+  const on = (well: TRgb) => (seed: string) =>
+    textOn(seed, well, CODE_INK_CONTRAST, 'black');
+  const code = on(codeWell);
+  const log = on(logWell);
+  const { text } = set;
+  const leaningRed = hexOfRgb(
+    over(red, LOCATION_RED_LEAN, rgbOf(text['--text-faint'])),
+  );
+  return {
+    '--code-plain': code(text['--text-primary']),
+    '--code-comment': code(text['--text-faint']),
+    '--code-keyword': code(CODE_HUES.keyword),
+    '--code-string': code(CODE_HUES.string),
+    '--code-constant': code(CODE_HUES.constant),
+    '--code-function': code(CODE_HUES.function),
+    '--code-entity': code(accentLight),
+    '--code-log-severity': log(CODE_HUES.severity),
+    '--code-log-location': log(leaningRed),
+    '--code-log-name': log(text['--text-primary']),
+    '--code-log-message': log(text['--text-muted']),
+  };
+};
+
+/**
  * Every ink that is not an edge, solved on `ground` (`groundOf`), in the
  * window's ink `set`: light for every theme shade, dark on a light window.
  */

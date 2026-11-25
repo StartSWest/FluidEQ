@@ -139,6 +139,16 @@ it under the terms of the GNU General Public License version 3 or later.
     overflow-wrap: normal;
     @include slim-scrollbar;
 
+    // On the white window the 28% black turned grey and its edge made a box
+    // inside the post's box: a neutral step down instead, with no edge (its
+    // width kept, so nothing moves), the words in the code inks
+    // (`codeInkTokens`).
+    :root[data-window-ink='dark'] & {
+      color: var(--code-plain);
+      border-color: transparent;
+      background: color-mix(in srgb, $edge-tint 7.5%, transparent);
+    }
+
     code {
       padding: 0;
       background: none;
@@ -303,35 +313,61 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // GitHub's syntax colours, one class per token kind, drawn from the app's own
-// palette and lifted towards white so they read on the dark code well.
+// palette and lifted towards white so they read on the dark code well. On
+// the white window each is the same hue taken deep, solved on the well
+// (`codeInkTokens`); there the lifted colours measured 1.0 to 1.7:1.
 .forum-prose pre {
   .pl-c {
     color: $text-dim;
     font-style: italic;
+
+    :root[data-window-ink='dark'] & {
+      color: var(--code-comment);
+    }
   }
 
   .pl-k {
     color: color-mix(in srgb, $complementary 62%, $white);
+
+    :root[data-window-ink='dark'] & {
+      color: var(--code-keyword);
+    }
   }
 
   .pl-s,
   .pl-pds,
   .pl-sr {
     color: color-mix(in srgb, $analogous-2 62%, $white);
+
+    :root[data-window-ink='dark'] & {
+      color: var(--code-string);
+    }
   }
 
   .pl-c1,
   .pl-v,
   .pl-smi {
     color: color-mix(in srgb, $neon-cyan 62%, $white);
+
+    :root[data-window-ink='dark'] & {
+      color: var(--code-constant);
+    }
   }
 
   .pl-en,
   .pl-e {
     color: color-mix(in srgb, $triadic-1 55%, $white);
+
+    :root[data-window-ink='dark'] & {
+      color: var(--code-function);
+    }
   }
 
   .pl-ent {
     color: $secondary-light;
+
+    :root[data-window-ink='dark'] & {
+      color: var(--code-entity);
+    }
   }
 }

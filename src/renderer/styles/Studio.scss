@@ -788,6 +788,36 @@ $studio-stage-floor: 148px;
   font-family: $font-mono;
   font-size: $text-micro;
   white-space: pre;
+
+  // On the white window the lifted red stood at 1.3:1 on a grey well. The
+  // well is the box's own red a step deeper, and its inks are solved on it
+  // (`codeInkTokens`); a line that does not split is the error red alone.
+  :root[data-window-ink='dark'] & {
+    color: var(--code-log-severity);
+    background: color-mix(in srgb, $red 15%, transparent);
+  }
+}
+
+// The line's parts (`splitDriverError`), told apart on the white window only:
+// the dark window keeps the one colour it shipped with.
+:root[data-window-ink='dark'] {
+  .studio-problems__log-severity {
+    color: var(--code-log-severity);
+    font-weight: $weight-semibold;
+  }
+
+  .studio-problems__log-location {
+    color: var(--code-log-location);
+  }
+
+  .studio-problems__log-name {
+    color: var(--code-log-name);
+    font-weight: $weight-semibold;
+  }
+
+  .studio-problems__log-message {
+    color: var(--code-log-message);
+  }
 }
 
 .studio-problems__hint {

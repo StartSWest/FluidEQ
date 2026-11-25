@@ -15,12 +15,14 @@ import {
   type ILab,
 } from './oklab';
 import {
+  CODE_INK_TOKENS,
   EDGE_CONTRAST,
   INK_TOKENS,
   cardHexOf,
   edgeOn,
   groundOf,
   inkTokens,
+  type TCodeInkToken,
   type TInkToken,
 } from './themeInk';
 import { filledOn, labOf } from './windowFill';
@@ -527,13 +529,27 @@ export const themeShadeTokens = (shade: number): TThemeTable => {
   return table;
 };
 
-/** The inks at `shade` that are not surfaces or edges: text, disabled, fields. */
-export const themeInkTokens = (shade: number): Record<TInkToken, string> => {
+/**
+ * The inks at `shade` that are not surfaces or edges: text, disabled, fields,
+ * and on the light stretch the code inks (`codeInkTokens`).
+ */
+export const themeInkTokens = (
+  shade: number,
+): Record<TInkToken, string> & Partial<Record<TCodeInkToken, string>> => {
   const light = lightWindowOf(shade);
   if (light) {
-    return Object.fromEntries(
-      INK_TOKENS.map((token) => [token, light.tokens[token]]),
-    ) as Record<TInkToken, string>;
+    const { tokens } = light;
+    return {
+      ...(Object.fromEntries(
+        INK_TOKENS.map((token) => [token, tokens[token]]),
+      ) as Record<TInkToken, string>),
+      ...Object.fromEntries(
+        CODE_INK_TOKENS.flatMap((token) => {
+          const value = tokens[token];
+          return value === undefined ? [] : [[token, value]];
+        }),
+      ),
+    };
   }
   const table = themeShadeTokens(shade);
   return inkTokens(

@@ -102,6 +102,38 @@ it('quotes the whole log when no line of it says error', () => {
   expect(screen.getByText('link failed')).toBeInTheDocument();
 });
 
+it("draws the translator's line in its four parts, the line itself unchanged", () => {
+  // The white window inks each part apart (Studio.scss); the words must be
+  // the driver's, every space kept.
+  const line = "ERROR: 0:42: 'uTim' : undeclared identifier";
+  const { container } = render(
+    <StudioProblems
+      problems={undefined}
+      trouble={{ kind: 'compile', log: `WARNING: 0:3: unused\n${line}\n` }}
+    />,
+  );
+  const log = container.querySelector('.studio-problems__log');
+  expect(log).toHaveTextContent(line, { normalizeWhitespace: false });
+  const part = (name: string) =>
+    log?.querySelector(`.studio-problems__log-${name}`)?.textContent;
+  expect(part('severity')).toBe('ERROR:');
+  expect(part('location')).toBe('0:42:');
+  expect(part('name')).toBe("'uTim'");
+  expect(part('message')).toBe(' : undeclared identifier');
+});
+
+it('leaves a line of any other shape whole, with no parts', () => {
+  const { container } = render(
+    <StudioProblems
+      problems={undefined}
+      trouble={{ kind: 'compile', log: "0:42(5): error: `uTim' undeclared" }}
+    />,
+  );
+  const log = container.querySelector('.studio-problems__log');
+  expect(log).toHaveTextContent("0:42(5): error: `uTim' undeclared");
+  expect(log?.querySelector('span')).toBeNull();
+});
+
 it("quotes the first error of a 3D world that was not built, under the world's own heading", () => {
   // The stage plays the shader alone then, so the heading says the sky is
   // all that was drawn, not that the shader failed.
@@ -127,11 +159,11 @@ it("quotes the first error of a 3D world that was not built, under the world's o
   expect(
     within(box).getByText('studio.worldNote.material'),
   ).toBeInTheDocument();
-  expect(
-    within(box).getByText(
-      "ERROR: 0:14: 'worldSurface' : no matching overloaded function found",
-    ),
-  ).toBeInTheDocument();
+  // In its parts (`splitDriverError`), the words the driver's own.
+  expect(box.querySelector('.studio-problems__log')).toHaveTextContent(
+    "ERROR: 0:14: 'worldSurface' : no matching overloaded function found",
+    { normalizeWhitespace: false },
+  );
   expect(within(box).getByText('studio.compile.hint')).toBeInTheDocument();
   expect(screen.queryByText('studio.compile.heading')).toBeNull();
 });

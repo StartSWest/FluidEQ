@@ -16,12 +16,14 @@ import {
 } from './oklab';
 import {
   cardHexOf,
+  codeInkTokens,
   EDGE_TINT,
   edgeOn,
   groundOf,
   inkTokens,
   LIGHT_INK,
   type IInkSet,
+  type TCodeInkToken,
   type TInkToken,
 } from './themeInk';
 import {
@@ -240,7 +242,8 @@ export type TWindowToken =
 
 export interface IWindow {
   ink: TWindowInk;
-  tokens: Record<TWindowToken, string>;
+  /** The code inks only on a light window (`codeInkTokens`). */
+  tokens: Record<TWindowToken, string> & Partial<Record<TCodeInkToken, string>>;
 }
 
 /**
@@ -298,6 +301,7 @@ export const windowOn = (
       '--on-accent': accentFace.label,
       '--on-active': activeFace.label,
       ...inkTokens(ground, accentLight, set),
+      ...codeInkTokens(floor, ground, accentLight, set),
     },
   };
 };
