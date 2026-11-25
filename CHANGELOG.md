@@ -6,6 +6,222 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 
 ---
 
+## 2.6.0
+
+### FluidEQ
+
+#### Auto EQ
+
+- **Smart EQ is now Auto EQ.** One panel on the EQ page decides each song's
+  sound: a song with a saved sound plays it, an album set to a sound plays it
+  on every song, and anything else plays the sound you picked last. The
+  button on the EQ page shows what is playing and why.
+- **Save a sound for a song.** Change the sound while a song plays and press
+  **Save for this song**; it comes back every time that song plays, and
+  **Save changes** keeps a later tweak. It works for songs from Spotify,
+  YouTube and the browser too, and their names are never kept. **Manage**
+  lists every saved song and album, and Reset all settings keeps them. Songs
+  saved in an earlier version moved over with you.
+- **Album sounds.** Set a sound on an album's page in the Library and every
+  song on it plays that sound, except a song with its own.
+- **Smart correction measures each song once and holds it.** It listens to
+  the song from the source, its curve forms on the graph as it settles, and
+  once it has stopped moving the correction is kept for that song, on top of
+  any preset. **Measure again** listens afresh.
+- **Saved EQs.** **Save EQ** beside the bands keeps the EQ you made under a
+  name, to put on again later or give to songs and albums, which follow it
+  when you update it. The same menu renames and deletes them.
+
+#### Your microphone
+
+- **A new Mic tab shapes each microphone's own sound, in every app.** The
+  FluidEQ Engine works on the microphone itself, so every app that uses it
+  hears the result. Each microphone keeps its own settings.
+- **Nine stages, every one with presets of its own:** Low cut with a pop
+  guard, Noise cancelling, Gate, **Voice level**, which brings your voice to
+  one steady level (up when you are quiet or far from the mic, down when you
+  shout, never lifting the room between words), De-esser, EQ, Compressor,
+  Limiter and **Reverb**, from a vocal plate to a concert hall, stepping back
+  while you talk if you like.
+- **Profiles to start from:** Streaming, Podcast, Game chat, Singing,
+  Broadcast, Noisy room and Meetings; Laptop mic and Headset boom; singing
+  with a plate, a room or a hall; and voice effects: AM radio, Telephone,
+  Whisper and Megaphone.
+- **You see what each stage does as you speak:** your voice against the
+  gate, what the low cut and the cleaner take away, the level being held,
+  the shape of the reverb's tail. The tab shows the delay the engine
+  measures on your mic, and **Hear the final result** plays your processed
+  voice back to you (use headphones).
+- **Your mic's own effects can come off.** Many microphones carry their
+  maker's processing before FluidEQ hears them. The Mic tab lists it, takes
+  it off with one Windows permission, and puts it back exactly as it was.
+- The Mic tab needs the FluidEQ Engine; FluidEQ offers the engine update
+  when it starts.
+
+#### The equaliser and presets
+
+- **The EQ page in three tabs: Your EQ, Preset and Tone,** with each tab's
+  tools on its row and the bands right under the graph.
+- **Your own presets.** **New preset** makes one: a curve shaped on the
+  graph for the EQ and a rack for the DSP page, kept with your presets to
+  edit, rename or duplicate.
+- **The playing preset on the title bar.** The wave at the top names the
+  preset that is playing; press it to switch to another, None or a
+  favourite.
+- **A band's settings open over its slider.** Hold Shift on a band, or over
+  its point on the graph, to see and type its values; the arrows and Tab step
+  to the next band, and Ctrl and the mouse wheel over a band set its Q.
+- **More range on the graph, less in the way.** The View menu
+  chooses the frequency range (down to 10 Hz, or up to 30 kHz as studio
+  equalisers draw it) and the analyser's slope. Ctrl+W and Ctrl+S step
+  through Wave only, Wave with curves and Curves only. The shaded listening
+  bands over the plot and the Expanded view are gone.
+- **Headphone corrections** carries that name everywhere now, and opens on
+  My curves, with OPRA's library beside them.
+- **Every preset card draws its curve,** a preset is starred from its own
+  card, and its notes appear when the pointer rests on it.
+- **The Normalizer is yours, not the preset's.** No DSP preset turns it on or
+  off any more, and switching it keeps the preset's name instead of turning
+  it Custom.
+- **Dynamics draws each band's curve,** with the band's level riding it live
+  and points you drag to shape it.
+- **Softer "s" sounds on more presets.** The De-esser now runs gently in
+  Default, Reference, Music, Warm, Air, Punch, Expansive, Late night and the
+  Jazz, Smooth jazz, Electronic, EDM and Lo-fi chains, leaving cymbals alone.
+- **The low and high cuts are heard the moment their dial turns.**
+
+#### The Library
+
+- **A new Library.** A rail of shelves with the folder tree inside it, a
+  breadcrumb, albums opened as a page with their details, and a right pane
+  with Now Playing, Up Next, Details and Lyrics. A **Plays** column counts
+  what you actually listened to, an artist's name opens their page with
+  every record they are on, and the Library opens where you left it.
+- **Lyrics as the song plays.** The Lyrics tab shows a song's words from its
+  tags or a lyrics file beside it, timed lines lit word by word; press a line
+  to play from there. Lyrics can be looked up on LRCLIB, Genius or
+  Musixmatch in your browser, imported in every common timed format or
+  pasted, and kept with the song for good. **Open in Karaoke** takes them to
+  the Karaoke Maker.
+- **Edit tags in the Library.** One song beside the list, or a whole album,
+  folder or selection as a page; **Fix tags** proposes the missing tags from
+  what the songs already say, each change ticked before it is written. Files
+  can be renamed from their tags, with plays, playlists and lyrics following,
+  and **Undo** puts every file back exactly as it was.
+- **Cover Flow in 3D,** on a glossy floor, with covers that turn smoothly and
+  light from the album in front. Videos turn in it too.
+- **Videos and subtitles.** The Videos shelf is a list or a grid of frames
+  like the music's, full screen is the film alone, and a Subtitles tab
+  finds, imports and styles subtitles; a film reopens with the ones it was
+  watched with.
+- **Surprise me** sits on the playing bar and in the taskbar's preview
+  window while the Library plays, spins Cover Flow's own row to its pick,
+  and presses itself when the last song ends with nothing after it.
+- **Drop files on the Library to play them,** songs and films alike, and
+  **Show in Explorer** works for a whole album or folder.
+- **A crossfade or a seek no longer goes quiet** for a moment under the
+  FluidEQ Engine.
+
+#### Karaoke
+
+- **Karaoke scores your singing:** a verdict on every note, the lines as rows
+  of cells under the pitch strip, and a summary with the song's map at the
+  end.
+- **Better notes and chords.** Notes are named in the song's own key, chords
+  are heard far more accurately, and a song's own chord files and its backing
+  track are used when there are some. Lyrics a song already has are kept as
+  written; only the timing they lack is worked out.
+- **Karaoke plays through the Library's player,** so switching between the
+  two keeps the music going with no gap, and a separated song's voice has
+  its own fader over the backing.
+- **A new look.** A flat stage with its tools on it, a taller pitch strip
+  that fills with the colours of your voice as you sing, Pitch and Chords as
+  their own switches, and lyrics that glide onto the next line. The Maker's
+  note grid zooms and scrolls in pitch.
+
+#### The window
+
+- **A light window.** Brightness now runs from fully dark to fully white, and
+  every text, slider and meter turns dark on a light window.
+- **Two colours for the window.** The Tint has a second colour, violet to
+  start, and the bands, the title and the lit controls run from the first to
+  the second. Colourful mode is always on now, so its switch is gone. Both
+  swatches open FluidEQ's own colour picker.
+- **Flat and calm, everywhere.** No drop shadows, solid menus and dialogs,
+  one switch and one checkbox across the app, and the DSP page, Gaming
+  Lab, Share Audio and Online Media laid out like the Library, each with a
+  rail down its side.
+- **Notices in one place,** stacked at the bottom right on the player bar,
+  instead of scattered over the window.
+- **The title bar's wave has ten new styles and a Recorder,** a plain
+  waveform passing right to left with the loudness beside the peak.
+- **Full screen keeps the picture clear:** the header and the player bar step
+  away and come back at the window's edges, and a pin keeps the player bar
+  up.
+- **Every text field has a right-click menu** with a Paste that pastes, and
+  the actions menu is in two columns.
+- **Less work for your computer.** The window no longer redraws itself with
+  every block of audio, endless animations no longer repaint the whole window, the DSP tab
+  no longer keeps a silent Library in memory, and a crash of the graphics
+  process leaves the graph drawn instead of white.
+
+### Scenes
+
+#### Scenes and the window colours
+
+- **Tune the colours a scene lends the window.** A scene has one set of
+  window colours, the day's, darkened as night comes, and Window colours
+  lets you change them, with **Automatic** to find them again and **Reset**.
+- **Ambient keeps the panes flat:** the scene's colours and its flying
+  elements, with nothing lit behind the panels.
+- **The scene stays with the graph.** The Backdrop no longer puts a scene
+  behind every page of the window.
+- **On the Library, a scene plays behind the cover,** with the record sharp
+  in front of it.
+- **The standard looks read on a white window too,** and night scenes turn
+  to day there.
+- **Karaoke's scene plays in the lyric window,** with its own See through and
+  Blur, or no background at all.
+
+#### The look picker and the gallery
+
+- **The look picker is laid out like the Library,** with a rail of places and
+  the makers in tabs of their own. It opens on the look that is playing, and
+  every standard look moves in it, drawn live.
+- **Scene tiles play their clips** while they are in view, in the look picker
+  and the gallery alike; with animations off they stand still.
+- **Auto prepares the next scene while the current one plays** and crossfades
+  to it, with no loading ring between.
+- **A 3D scene says so** on its card and on its stage, with its keys in a
+  tip.
+- **The gallery is drawn like the Library,** with its search at the top and
+  its categories in one row. FluidEQ's own scenes are listed once, and a new
+  visit shows every scene again.
+
+#### Credits and downloads
+
+- **A new account starts with one free credit,** one scene to keep. Credits
+  already claimed stay as they are.
+- **Scenes download from a new server,** every file checked before it is
+  kept, with a daily allowance per account; when it is used up, FluidEQ says
+  so and when downloads start again. A scene you already have is never
+  downloaded again.
+
+#### Studio
+
+- **Publishing records the preview when you press Send,** on the silent demo
+  song, so the clip never waits on you.
+- **Write with AI** fills a scene's publishing note from its chat, and
+  Publish asks whether the AI should write a line that is missing. A line
+  you write is translated into every language even on a scene whose chat
+  was never opened.
+- **The Studio's window colours** have FluidEQ's colour picker, **Automatic**
+  and **Reset**, and publishing writes the automatic colours into the scene.
+- **The Studio always wears its own scene,** in full screen too, and is laid
+  out like the Library, with the chat in a flat column beside the work.
+
+---
+
 ## 2.5.2
 
 ### FluidEQ
