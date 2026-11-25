@@ -20,10 +20,19 @@ it under the terms of the GNU General Public License version 3 or later.
 // ease-out). The pane's height and the chat's width here are the member's,
 // each dragged and kept.
 //
-// Keyed on the Studio's own full-screen state (`is-full`, from its size)
-// rather than the browser's `:fullscreen`: the grid is the element that
-// fills the screen, and the size goes back to windowed the moment the
-// screen refuses or leaves (`useStageFullscreen.ts`), so the two agree.
+// Keyed on `is-full`, which the Studio sets from the browser's own word that
+// the grid fills the screen, in the frame the screen fills or empties
+// (`useFullscreenShown.ts`) — never from the size pressed for, which went
+// full a few frames early and windowed a few frames late, and drew each
+// layout over the other's screen for them (Ivan, 2026-11-25: "the side pane
+// opens and makes things glitch").
+//
+// Arriving is one step: the screen fills with the scene in its final box and
+// the panes in their places, then the panes fade in. The slides and the
+// stage easing after them run only once a pane has been moved in this full
+// screen (`is-sliding`, `useFullscreenPanes.ts`): from the first frame they
+// carried a pane put away last time off the screen, and the stage from no
+// chat to the chat's edge, as the screen filled. Leaving is one step too.
 $full-slide: transform $motion-slow $ease-out;
 // What the scene keeps beside the chat: the stage's plate and the Edit
 // button in one row (the plate measured 817px at 1920 in the harness, its
@@ -56,13 +65,16 @@ $full-chat-most-unset: 440px;
   .studio-bench__stage {
     position: absolute;
     inset: 0;
-    transition:
-      right $motion-slow $ease-out,
-      bottom $motion-slow $ease-out;
 
     > .pane-resizer {
       display: none;
     }
+  }
+
+  &.is-sliding .studio-bench__stage {
+    transition:
+      right $motion-slow $ease-out,
+      bottom $motion-slow $ease-out;
   }
 
   &.is-chat-out .studio-bench__stage {
@@ -102,6 +114,10 @@ $full-chat-most-unset: 440px;
     background: color-mix(in srgb, $surface-menu 88%, transparent);
     backdrop-filter: blur(18px);
     transform: translateY(102%);
+    @include animate(fade-in, $motion-fast);
+  }
+
+  &.is-sliding .studio-work {
     transition:
       $full-slide,
       right $motion-slow $ease-out;
@@ -135,7 +151,7 @@ $full-chat-most-unset: 440px;
     background: color-mix(in srgb, $surface-menu 92%, transparent);
     backdrop-filter: blur(18px);
     transform: translateX(102%);
-    transition: $full-slide;
+    @include animate(fade-in, $motion-fast);
 
     // Its divider, the window's own (Ivan, 2026-11-12: "el chat debe ser
     // resizable en fullscreen también"), setting the full screen's width:
@@ -154,6 +170,10 @@ $full-chat-most-unset: 440px;
     .studio-bench__stage {
       transition: none;
     }
+  }
+
+  &.is-sliding > .studio-bench__chat {
+    transition: $full-slide;
   }
 
   &.is-chat-out > .studio-bench__chat {
@@ -184,6 +204,7 @@ $full-chat-most-unset: 440px;
   place-items: center;
   cursor: ns-resize;
   touch-action: none;
+  @include animate(fade-in, $motion-fast);
 
   span {
     width: 64px;
@@ -208,7 +229,7 @@ $full-chat-most-unset: 440px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .studio-bench__grid.is-full {
+  .studio-bench__grid.is-full.is-sliding {
     .studio-work,
     > .studio-bench__chat,
     .studio-bench__stage {

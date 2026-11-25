@@ -87,6 +87,25 @@ describe('the panes in full screen', () => {
     expect(result.current).toMatchObject({ pane: false, chat: false });
   });
 
+  // Ivan, 2026-11-25: "the side pane opens and makes things glitch". The
+  // slides ran from the first frame, carrying a pane put away last time off
+  // the screen as it filled; now they run once a pane has been moved here.
+  it('slide only once a pane has been moved in this full screen', () => {
+    const { result, rerender } = renderHook(
+      ({ full }) => useFullscreenPanes(full),
+      { initialProps: { full: true } },
+    );
+    expect(result.current.slid).toBe(false);
+    press('j');
+    expect(result.current.slid).toBe(true);
+    // Out and in again: arriving is one step again.
+    rerender({ full: false });
+    rerender({ full: true });
+    expect(result.current.slid).toBe(false);
+    act(() => result.current.toggleChat());
+    expect(result.current.slid).toBe(true);
+  });
+
   it('are kept for the next full screen, the height held to its range', () => {
     const first = renderHook(() => useFullscreenPanes(true));
     act(() => first.result.current.toggleChat());

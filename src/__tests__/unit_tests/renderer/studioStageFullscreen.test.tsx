@@ -54,26 +54,28 @@ const exitFullscreen = jest.fn(() => {
   return Promise.resolve();
 });
 
+const stageElement = (size: 'graph' | 'full', onExitFullscreen: jest.Mock) => (
+  <StudioStage
+    identity="one"
+    pack={pack}
+    serial={1}
+    signal="live"
+    demo={false}
+    size={size}
+    preview="stage"
+    motion="music"
+    onToggleMotion={jest.fn()}
+    wave={{ height: 1, position: 0 }}
+    isGridShown={false}
+    readingRef={{ current: null }}
+    onTrouble={jest.fn()}
+    onDrawn={jest.fn()}
+    onExitFullscreen={onExitFullscreen}
+  />
+);
+
 const stage = (size: 'graph' | 'full', onExitFullscreen: jest.Mock) =>
-  render(
-    <StudioStage
-      identity="one"
-      pack={pack}
-      serial={1}
-      signal="live"
-      demo={false}
-      size={size}
-      preview="stage"
-      motion="music"
-      onToggleMotion={jest.fn()}
-      wave={{ height: 1, position: 0 }}
-      isGridShown={false}
-      readingRef={{ current: null }}
-      onTrouble={jest.fn()}
-      onDrawn={jest.fn()}
-      onExitFullscreen={onExitFullscreen}
-    />,
-  );
+  render(stageElement(size, onExitFullscreen));
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -179,4 +181,77 @@ it('fills the screen with the element it is handed, not the stage alone', () => 
   );
   expect(full).toBe(grid);
   grid.remove();
+});
+
+// Ivan, 2026-11-25: "the side pane opens and makes things glitch". The
+// stage was shaped for full screen at the press, a few frames before the
+// screen was full, and drew its way out on the window's plate meanwhile.
+it('is shaped for full screen once the screen is full, not at the press', async () => {
+  // The browser fills the screen a moment after it is asked, as it does.
+  let fill: (() => void) | undefined;
+  Object.defineProperty(Element.prototype, 'requestFullscreen', {
+    configurable: true,
+    value(this: Element) {
+      fill = () => {
+        full = this;
+        document.dispatchEvent(new Event('fullscreenchange'));
+      };
+      return Promise.resolve();
+    },
+  });
+  stage('full', jest.fn());
+  const frame = screen.getByTestId('studio-stage');
+  expect(frame).toHaveClass('studio-stage--graph');
+  expect(
+    screen.queryByRole('button', { name: 'studio.size.exit' }),
+  ).not.toBeInTheDocument();
+  await act(async () => fill?.());
+  expect(frame).toHaveClass('studio-stage--full');
+  expect(
+    screen.getByRole('button', { name: 'studio.size.exit' }),
+  ).toBeInTheDocument();
+});
+
+// Both at once, the element's exit landed first and the window's layout
+// stood over the whole screen until the window shrank under it.
+it('leaves the window’s full screen before the element’s', async () => {
+  let answer: (() => void) | undefined;
+  const setWindowFullScreen = jest.fn((next: boolean) =>
+    next
+      ? Promise.resolve(true)
+      : new Promise<boolean>((resolve) => {
+          answer = () => resolve(false);
+        }),
+  );
+  // Every other call the stage makes of main answers nothing.
+  const ipcRenderer = new Proxy(
+    { setWindowFullScreen } as Record<string, unknown>,
+    {
+      get: (calls, name: string) =>
+        calls[name] ?? (() => Promise.resolve(undefined)),
+    },
+  );
+  Object.defineProperty(window, 'electron', {
+    configurable: true,
+    value: { ipcRenderer },
+  });
+  try {
+    const onExit = jest.fn();
+    const { rerender } = stage('full', onExit);
+    await act(async () => Promise.resolve());
+    expect(setWindowFullScreen).toHaveBeenLastCalledWith(true);
+
+    rerender(stageElement('graph', onExit));
+    expect(setWindowFullScreen).toHaveBeenLastCalledWith(false);
+    await act(async () => Promise.resolve());
+    expect(exitFullscreen).not.toHaveBeenCalled();
+    expect(full).not.toBeNull();
+
+    // The window has its size back: now the element.
+    await act(async () => answer?.());
+    expect(exitFullscreen).toHaveBeenCalledTimes(1);
+    expect(full).toBeNull();
+  } finally {
+    Reflect.deleteProperty(window, 'electron');
+  }
 });

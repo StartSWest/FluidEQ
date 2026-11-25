@@ -1,4 +1,5 @@
 import { useEffect, useState, type RefObject } from 'react';
+import { flushSync } from 'react-dom';
 import type { IStagePlate } from './studioStageScreen';
 
 /**
@@ -24,13 +25,22 @@ export default function useStageBox(
     if (!frame) {
       return undefined;
     }
+    // Committed inside the observer, which runs after the frame's layout and
+    // before its paint: the canvas's box, sized from this, then changes in
+    // the same frame as the stage's, and the scene's own observer holds the
+    // picture over it at once (`sceneCanvasHold.ts`). Left to a render in a
+    // later task, every change of size painted a frame of the old canvas in
+    // the new stage — going into full screen, the window's small picture in
+    // the corner of a black screen.
     const observer = new ResizeObserver(() => {
       const { width, height } = frame.getBoundingClientRect();
-      setBox((previous) =>
-        Math.round(previous.width) === Math.round(width) &&
-        Math.round(previous.height) === Math.round(height)
-          ? previous
-          : { width, height },
+      flushSync(() =>
+        setBox((previous) =>
+          Math.round(previous.width) === Math.round(width) &&
+          Math.round(previous.height) === Math.round(height)
+            ? previous
+            : { width, height },
+        ),
       );
     });
     observer.observe(frame);

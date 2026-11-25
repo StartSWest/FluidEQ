@@ -66,3 +66,33 @@ describe('the stage in the Studio’s full screen', () => {
     expect(rule(`${GRID} > .studio-bench__chat`)).toContain('right: 0');
   });
 });
+
+// Ivan, 2026-11-25: "the side pane opens and makes things glitch". Arriving,
+// the slides ran from the first frame: a pane put away last time slid off the
+// screen as it filled, and the stage eased in from no chat to the chat's edge.
+describe('arriving in the Studio’s full screen', () => {
+  it('slides nothing until a pane has been moved there', () => {
+    expect(rule(`${GRID} .studio-bench__stage`)).not.toContain('transition');
+    expect(rule(`${GRID} .studio-work`)).not.toContain('transition');
+    expect(rule(`${GRID} > .studio-bench__chat`)).not.toContain('transition');
+  });
+
+  it('control: once one has, the panes slide and the stage follows them', () => {
+    expect(rule(`${GRID}.is-sliding .studio-bench__stage`)).toContain(
+      'transition: right',
+    );
+    expect(rule(`${GRID}.is-sliding .studio-work`)).toContain(
+      'transition: transform',
+    );
+    expect(rule(`${GRID}.is-sliding > .studio-bench__chat`)).toContain(
+      'transition: transform',
+    );
+  });
+
+  it('fades the panes in over the scene', () => {
+    expect(rule(`${GRID} .studio-work`)).toContain('animation: fade-in');
+    expect(rule(`${GRID} > .studio-bench__chat`)).toContain(
+      'animation: fade-in',
+    );
+  });
+});

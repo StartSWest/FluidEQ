@@ -73,6 +73,7 @@ import useStudioTint, { studioBuildKey } from './useStudioTint';
 import { useStudioGridShown } from './studioPaper';
 import useStudioSize from './useStudioSize';
 import useFullscreenPanes from './useFullscreenPanes';
+import useFullscreenShown from './useFullscreenShown';
 import useStageViewForAgent from './useStageViewForAgent';
 import { useStageMotion } from './stageMotion';
 import type { TStageHeard, TStageTrouble } from './StudioStage';
@@ -112,7 +113,15 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
     togglePreview,
     togglePlayerParts,
   } = useStudioSize();
-  const fullPanes = useFullscreenPanes(size === 'full');
+  // Full screen fills the screen with the grid, not the stage alone, so the
+  // work pane and the chat can stand over the scene (Ivan, 2026-11-11).
+  const gridRef = useRef<HTMLDivElement>(null);
+  // `size` is what the member pressed for and what the stage asks the screen
+  // for; everything laid out for full screen follows the screen itself, so it
+  // changes in the frame the screen does and never before or after it
+  // (`useFullscreenShown.ts`).
+  const isScreenFull = useFullscreenShown(gridRef);
+  const fullPanes = useFullscreenPanes(isScreenFull);
   useStageViewForAgent(preview);
   const { motion, toggleMotion } = useStageMotion();
   const isGridShown = useStudioGridShown();
@@ -148,9 +157,6 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
   // the sound panel folded while it is.
   const benchRef = useRef<HTMLDivElement>(null);
   const { isWide } = useStudioBenchLayout(benchRef);
-  // Full screen fills the screen with the grid, not the stage alone, so the
-  // work pane and the chat can stand over the scene (Ivan, 2026-11-11).
-  const gridRef = useRef<HTMLDivElement>(null);
   const sharing = useStudioSharing();
   const picture = useScenePictures(t('studio.picture.files'), view);
   const animations = useStudioAnimations(view);
@@ -344,7 +350,10 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
   if (project && !pack && !problems) {
     stage = (
       <div className="studio-stage__well">
-        <div className={`studio-stage studio-stage--${size}`} aria-busy="true">
+        <div
+          className={`studio-stage studio-stage--${isScreenFull ? 'full' : 'graph'}`}
+          aria-busy="true"
+        >
           <StudioStageLoading name={name} />
         </div>
       </div>
@@ -387,14 +396,14 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
         controls={
           <>
             <StudioStageControls
-              isFullscreen={size === 'full'}
+              isFullscreen={isScreenFull}
               onFullscreen={toggleFullscreen}
               preview={preview}
               onPreview={togglePreview}
               hasPlayerParts={hasPlayerParts}
               onPlayerParts={togglePlayerParts}
               panes={
-                size === 'full'
+                isScreenFull
                   ? {
                       pane: fullPanes.pane,
                       chat: fullPanes.chat,
@@ -573,9 +582,9 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
 
       <div
         ref={gridRef}
-        className={`studio-bench__grid studio-bench__grid--${size}${isWide ? '' : ' is-single'}${size === 'full' ? ` is-full${fullPanes.pane ? ' is-pane-out' : ''}${fullPanes.chat && isWide ? ' is-chat-out' : ''}` : ''}`}
+        className={`studio-bench__grid studio-bench__grid--${isScreenFull ? 'full' : 'graph'}${isWide ? '' : ' is-single'}${isScreenFull ? ` is-full${fullPanes.pane ? ' is-pane-out' : ''}${fullPanes.chat && isWide ? ' is-chat-out' : ''}${fullPanes.slid ? ' is-sliding' : ''}` : ''}`}
         style={
-          size === 'full'
+          isScreenFull
             ? ({
                 '--studio-full-pane': `${fullPanes.height * 100}%`,
               } as CSSProperties)
@@ -588,7 +597,7 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
         <div className="studio-bench__main">
           <StudioStageArea
             stage={stage}
-            resizable={project !== undefined && size === 'graph'}
+            resizable={project !== undefined && !isScreenFull}
           >
             <StudioProblems problems={problems} trouble={trouble} />
           </StudioStageArea>
@@ -605,7 +614,7 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
               animations: { badge: animations?.length || undefined },
             }}
             end={
-              size === 'full' ? (
+              isScreenFull ? (
                 // The pane folds from its own row, as the chat does from its
                 // head (Ivan, 2026-11-12: "un collapse al bottom pane too").
                 <button
@@ -622,7 +631,7 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
           />
         </div>
 
-        {size === 'full' && (
+        {isScreenFull && (
           <StudioFullscreenPanes
             gridRef={gridRef}
             pane={fullPanes.pane}
@@ -637,7 +646,7 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
             version={version}
             captureStage={stageCapture.capture}
             fullScreen={
-              size === 'full' ? { onHide: fullPanes.toggleChat } : undefined
+              isScreenFull ? { onHide: fullPanes.toggleChat } : undefined
             }
           />
         )}

@@ -66,17 +66,40 @@ const stage = (size: TStudioSize, onExitFullscreen: () => void) => (
 );
 
 let requestFullscreen: jest.Mock;
+/** What the browser reports as filling the screen. */
+let full: Element | null = null;
 
 beforeEach(() => {
-  requestFullscreen = jest.fn(() => Promise.resolve());
+  full = null;
+  Object.defineProperty(document, 'fullscreenElement', {
+    configurable: true,
+    get: () => full,
+  });
+  // The screen fills with what asked, as the browser does: the stage is
+  // drawn full screen, its way out with it, once the browser says so.
+  requestFullscreen = jest.fn(function fill(this: Element) {
+    full = this;
+    document.dispatchEvent(new Event('fullscreenchange'));
+    return Promise.resolve();
+  });
   Object.defineProperty(HTMLElement.prototype, 'requestFullscreen', {
     configurable: true,
     value: requestFullscreen,
+  });
+  Object.defineProperty(document, 'exitFullscreen', {
+    configurable: true,
+    value: () => {
+      full = null;
+      document.dispatchEvent(new Event('fullscreenchange'));
+      return Promise.resolve();
+    },
   });
 });
 
 afterEach(() => {
   Reflect.deleteProperty(HTMLElement.prototype, 'requestFullscreen');
+  Reflect.deleteProperty(document, 'fullscreenElement');
+  Reflect.deleteProperty(document, 'exitFullscreen');
 });
 
 it('does not go full screen on a double click on the stage', () => {
@@ -96,5 +119,6 @@ it('does not leave full screen on a double click on the stage', () => {
   expect(exit).not.toHaveBeenCalled();
   // The control: the stage's own exit button still leaves full screen.
   fireEvent.click(screen.getByRole('button', { name: 'studio.size.exit' }));
-  expect(exit).toHaveBeenCalledTimes(1);
+  expect(exit).toHaveBeenCalled();
+  expect(full).toBeNull();
 });

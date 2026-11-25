@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useRef, type RefObject } from 'react';
+import { useLayoutEffect, useRef, type RefObject } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import { PANE_LEAST, PANE_MOST } from './useFullscreenPanes';
 import '../styles/StudioFullscreen.scss';
@@ -42,8 +42,10 @@ export default function StudioFullscreenPanes({
 
   // The chat's width as it stands, for the pane, the grip and the stage's
   // controls to stop at its edge: the member's own width, read off the
-  // column whenever it changes rather than assumed.
-  useEffect(() => {
+  // column whenever it changes rather than assumed. Read before the first
+  // full-screen frame is painted, so that frame has the stage at the chat's
+  // edge already rather than across the whole screen.
+  useLayoutEffect(() => {
     const grid = gridRef.current;
     const column = grid?.querySelector<HTMLElement>(
       ':scope > .studio-bench__chat',

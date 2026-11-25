@@ -356,7 +356,7 @@ export default function StudioStage({
     // en edit"); the scene itself stays put until they do.
     LEAST_EDIT_ZOOM,
     // A closer look belongs to the view it was taken in, full screen apart.
-    `${preview}:${size}:${isFullscreen ? 'full' : 'window'}`,
+    `${preview}:${isFullscreen ? 'full' : 'window'}`,
     // Only Edit mode's canvas moves before it has been zoomed.
     isEditing && !isWindowed,
   );
@@ -456,7 +456,9 @@ export default function StudioStage({
     >
       <div
         ref={frameRef}
-        className={`studio-stage studio-stage--${size}${isWindowed ? ' studio-stage--windowed' : ''}${isEditing && !isWindowed ? ' is-editing' : ''}${zoom.zoomed && !isWindowed ? ' is-moved' : ''}`}
+        // Shaped for full screen once the screen is full, never at the press:
+        // the size is what was asked for (`useFullscreenShown.ts`).
+        className={`studio-stage studio-stage--${isFullscreen ? 'full' : 'graph'}${isWindowed ? ' studio-stage--windowed' : ''}${isEditing && !isWindowed ? ' is-editing' : ''}${zoom.zoomed && !isWindowed ? ' is-moved' : ''}`}
         data-testid="studio-stage"
         aria-busy={waiting}
       >
@@ -615,10 +617,11 @@ export default function StudioStage({
             <StudioStageZoom zoom={zoom} />
             {controls}
           </div>
-          {/* On screen whenever the screen is full, whichever of the two
-              believes it: a way out that depends on the app's own idea of the
-              size is a way out that can go missing. */}
-          {(size === 'full' || isFullscreen) && (
+          {/* On screen whenever the screen is full, as the browser says it:
+              a way out that depends on the app's own idea of the size is a
+              way out that can go missing, and one drawn at the press stood
+              on the window's plate until the screen filled. */}
+          {isFullscreen && (
             <button
               type="button"
               className="studio-stage__exit"

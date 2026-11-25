@@ -9,7 +9,9 @@ import observeShown from '../utils/observeShown';
 /**
  * Whether the Studio's bench is on screen, for what the bench lends the
  * window while it is (its scene's colours, Ambient and the app colours:
- * `useStudioTint`, `useStudioAppColours`), reported only when it changes.
+ * `useStudioTint`, `useStudioAppColours`; the sound panel folded and the
+ * chat's column, `useStudioBenchLayout`), reported only when it changes.
+ * `seen` is `observeShown`'s: a layout passes `{ visibilityProperty: true }`.
  *
  * The bench, OR SOMETHING INSIDE IT IN FULL SCREEN (Ivan, 2026-11-23: "the
  * full screen mode is not honoring ... ambient is kind of returning back to
@@ -23,6 +25,7 @@ import observeShown from '../utils/observeShown';
 export default function observeBenchShown(
   bench: Element,
   onChange: (shown: boolean) => void,
+  seen?: CheckVisibilityOptions,
 ): () => void {
   const fullInside = () => {
     const full = document.fullscreenElement;
@@ -63,10 +66,14 @@ export default function observeBenchShown(
   };
   document.addEventListener('fullscreenchange', enter);
   document.addEventListener('visibilitychange', enter);
-  const stop = observeShown(bench, (next) => {
-    benchShown = next;
-    report();
-  });
+  const stop = observeShown(
+    bench,
+    (next) => {
+      benchShown = next;
+      report();
+    },
+    seen,
+  );
   document.addEventListener('fullscreenchange', recheck);
   document.addEventListener('visibilitychange', recheck);
   report();

@@ -84,6 +84,17 @@ const keep = (panes: IFullscreenPanes) => {
 
 export default function useFullscreenPanes(full: boolean) {
   const [panes, setPanes] = useState(read);
+  // Whether a pane has come or gone since the screen filled: the panes slide
+  // and the stage follows them only from then on (`is-sliding`,
+  // `StudioFullscreen.scss`). Arriving, each is where it stands from the
+  // first frame — a pane put away last time slid off the screen as the
+  // screen filled, and the stage eased in from no chat to the chat's edge.
+  const [slid, setSlid] = useState(false);
+  const [wasFull, setWasFull] = useState(full);
+  if (full !== wasFull) {
+    setWasFull(full);
+    setSlid(false);
+  }
 
   /** The panes changed from what they are now, and kept so. */
   const update = useCallback(
@@ -95,14 +106,14 @@ export default function useFullscreenPanes(full: boolean) {
       }),
     [],
   );
-  const togglePane = useCallback(
-    () => update((now) => ({ pane: !now.pane })),
-    [update],
-  );
-  const toggleChat = useCallback(
-    () => update((now) => ({ chat: !now.chat })),
-    [update],
-  );
+  const togglePane = useCallback(() => {
+    setSlid(true);
+    update((now) => ({ pane: !now.pane }));
+  }, [update]);
+  const toggleChat = useCallback(() => {
+    setSlid(true);
+    update((now) => ({ chat: !now.chat }));
+  }, [update]);
 
   useEffect(() => {
     if (!full) {
@@ -130,6 +141,7 @@ export default function useFullscreenPanes(full: boolean) {
 
   return {
     ...panes,
+    slid,
     togglePane,
     toggleChat,
     setHeight: (share: number) =>

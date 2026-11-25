@@ -5,11 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useState, type RefObject } from 'react';
-import observeShown from '../utils/observeShown';
 import {
   holdSoundPaneForStudio,
   releaseSoundPaneFromStudio,
 } from '../utils/soundPane';
+import observeBenchShown from './observeBenchShown';
 
 /**
  * The bench width under which the chat leaves its pane for a tab: the stage
@@ -68,7 +68,14 @@ export default function useStudioBenchLayout(
     if (!element) {
       return undefined;
     }
-    const stop = observeShown(
+    // Through `observeBenchShown`, which counts the Studio's own full screen
+    // — the grid, inside the bench — as the bench on screen. Asked of the
+    // bench alone, full screen called it gone: the panel was given back
+    // behind the scene, unfolded beside a narrower bench that could move the
+    // chat out of its column under the full screen, and on the way back the
+    // window's first frames had the panel standing open and folding away
+    // (Ivan, 2026-11-25: "the side pane opens and makes things glitch").
+    const stop = observeBenchShown(
       element,
       (shown) => {
         if (shown) {
