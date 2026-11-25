@@ -30,8 +30,8 @@ import { createTileWatcher } from '../graph/lookTileWatcher';
  *   the watcher the picker's standard looks go by (`lookTileWatcher.ts`),
  *   and one scrolled out drops its video, which lets go of its decoder, and
  *   its bytes (`useSceneClip`, `SceneClip`);
- * - at most twelve play at once where the graphics chip decodes them and
- *   four where it does not (`CLIPS_DECODED_IN_HARDWARE`), the first in
+ * - every clip in view plays where the graphics chip decodes them, and at
+ *   most four where it does not (`CLIPS_DECODED_IN_SOFTWARE`), the first in
  *   reading order;
  * - nothing plays while the window is hidden: every clip is let go, not only
  *   paused, so a minimized FluidEQ holds no decoder at all;
@@ -61,12 +61,13 @@ import { createTileWatcher } from '../graph/lookTileWatcher';
  * bound follows the decoder:
  * - where the graphics chip decodes VP9 (`powerEfficient`, as on every chip
  *   since about 2016 and on Ivan's), the processor does little of that
- *   work, and twelve play - every whole tile of the picker at 1100x700;
+ *   work, and every tile in view plays. A bound of twelve stood here first;
+ *   on a full-screen Gallery it left half the cards in view still, and Ivan
+ *   sent it back (2026-11-25: "all in view needs to animate");
  * - where it does not, four: under one core in all, on the machines least
  *   able to spare one.
  * Until the answer is in (a few ms after the first list opens), the lower.
  */
-export const CLIPS_DECODED_IN_HARDWARE = 12;
 export const CLIPS_DECODED_IN_SOFTWARE = 4;
 
 /** The format of the clips the Studio publishes, as the decoder is asked. */
@@ -108,8 +109,9 @@ const askDecoder = (): Promise<boolean> => {
   return askingDecoder;
 };
 
+/** How many of the tiles in view may play: all of them, in hardware. */
 const clipBound = () =>
-  decodedInHardware ? CLIPS_DECODED_IN_HARDWARE : CLIPS_DECODED_IN_SOFTWARE;
+  decodedInHardware ? Number.POSITIVE_INFINITY : CLIPS_DECODED_IN_SOFTWARE;
 
 /** For tests: ask the decoder again. */
 export const forgetClipDecoder = () => {

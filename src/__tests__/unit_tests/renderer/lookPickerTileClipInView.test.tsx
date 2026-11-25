@@ -7,10 +7,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * A scene tile in the look picker plays its clip while it is in the
  * picker's scroller (Ivan, 2026-11-24: "about the plus viz showing the
- * videos on elements that are in the view I want that too"), within a bound
- * on how many play at once - four where the clips decode in software, twelve
- * where the graphics chip decodes them ("make sure they are very light") -
- * and never while the window is hidden. The tile under the pointer or the
+ * videos on elements that are in the view I want that too"): every one in
+ * view where the graphics chip decodes them (2026-11-25: "all in view needs
+ * to animate"), four at most where the clips decode in software ("make sure
+ * they are very light"), and never while the window is hidden. The tile under the pointer or the
  * keyboard plays whatever the bound. Each "nothing" case stands beside its
  * control, the same tile playing once the condition lifts.
  */
@@ -204,8 +204,9 @@ it('plays at most four where the clips decode in software, the first in reading 
   expect(playing()).toEqual(['s1', 's2', 's3', 's4']);
 });
 
-it('plays twelve where the graphics chip decodes them', async () => {
+it('plays every tile in view where the graphics chip decodes them', async () => {
   // The control for the bound above: the same picker, another decoder.
+  // Thirty, past the twelve that stood here first: none is left still.
   Object.defineProperty(navigator, 'mediaCapabilities', {
     configurable: true,
     value: {
@@ -217,10 +218,13 @@ it('plays twelve where the graphics chip decodes them', async () => {
         }),
     },
   });
-  picker(14);
+  picker(30);
   await decoderAnswers();
-  expect(playing()).toHaveLength(12);
-  expect(playing()).not.toContain('s12');
+  expect(playing()).toHaveLength(30);
+  // Still only those in view: one scrolled out lets its clip go.
+  scroll(29, false);
+  expect(playing()).toHaveLength(29);
+  expect(playing()).not.toContain('s29');
 });
 
 it('gives no slot to a scene that has no clip', async () => {
