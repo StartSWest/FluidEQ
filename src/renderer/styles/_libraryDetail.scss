@@ -617,12 +617,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   transition: $transition-control;
   @include button-line;
 
-  // Play, the suggested action, and a switch that is on (Shuffle while the
-  // player shuffles) wear the lit tier. Shuffle had a tint and an edge of
-  // its own for "on", a third face beside the two.
-  &.is-go,
-  &.is-on {
+  // Play, the suggested action, wears the lit tier (solid on a light
+  // window), and a switch that is on (Shuffle while the player shuffles)
+  // the on tier. Shuffle had a tint and an edge of its own for "on", a third
+  // face beside the two.
+  &.is-go {
     @include button-lit;
+  }
+
+  &.is-on {
+    @include button-on;
   }
 
   &.is-icon {

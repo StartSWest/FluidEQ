@@ -52,13 +52,19 @@ export default function CoinGlyph({ className }: { className?: string }) {
               stopColor: 'color-mix(in srgb, var(--accent-light) 60%, #fff)',
             }}
           />
-          <stop offset="1" style={{ stopColor: 'var(--accent)' }} />
+          <stop
+            offset="1"
+            style={{ stopColor: 'var(--coin-rim-low, var(--accent))' }}
+          />
         </linearGradient>
       </defs>
-      {/* The outline: the silhouette of face and edge, 1.3 units wider. */}
+      {/* The outline: the silhouette of face and edge, 1.3 units wider. On
+        a solid accent button it is the button's word colour and the rim's
+        foot is lifted off the fill (`--coin-ring`, `--coin-rim-low`, set by
+        `button-lit-on-light`): dark there, the coin sank into the fill. */}
       <g
         style={{
-          fill: 'color-mix(in srgb, var(--accent) 22%, #03070c)',
+          fill: 'var(--coin-ring, color-mix(in srgb, var(--accent) 22%, #03070c))',
         }}
       >
         <circle cx="10" cy={FACE_Y} r={FACE_R + 1.3} />

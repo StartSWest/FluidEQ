@@ -95,7 +95,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   font-size: 11.5px;
   font-weight: $weight-bold;
   white-space: nowrap;
-  text-shadow: var(--player-text-shadow);
 
   &.is-left {
     text-align: right;
@@ -148,8 +147,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// Play: the one filled key on the amp, in the accent with its glow round it
-// on a dark window; on a white one flat, its glyph in the accent's own label.
+// Play: the one filled key on the amp, flat, in the accent (Ivan,
+// 2026-11-25: no glow round it on a dark window either, as on white since
+// 2026-11-24). Under the pointer the face steps away from its glyph
+// (`--player-play-hover-fill`: lighter under the dark window's dark glyph,
+// deeper under a white window's white one).
 .player-dock__play {
   display: grid;
   flex: none;
@@ -160,30 +162,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
   border: 0;
   border-radius: 14px;
   background: linear-gradient(180deg, var(--accent-light), var(--accent));
-  box-shadow:
-    0 6px 22px player-glow(color-mix(in srgb, var(--accent) 40%, transparent)),
-    inset 0 0 0 1px player-glow(rgba($white, 0.35));
   color: var(--player-play-ink);
   cursor: pointer;
   transition:
     transform 140ms ease,
-    box-shadow 160ms ease;
+    background 160ms ease;
 
   .player-icon {
     width: 20px;
     height: 20px;
   }
 
-  // Under the pointer the glow grows; where there is none (a white window)
-  // the face steps instead (`--player-play-hover-fill`, `MiniPlayer.scss`).
   &:hover:not(:disabled) {
-    background: var(
-      --player-play-hover-fill,
-      linear-gradient(180deg, var(--accent-light), var(--accent))
-    );
-    box-shadow:
-      0 6px 28px player-glow(color-mix(in srgb, var(--accent) 60%, transparent)),
-      inset 0 0 0 1px player-glow(rgba($white, 0.45));
+    background: var(--player-play-hover-fill);
   }
 
   &:active:not(:disabled) {

@@ -88,9 +88,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       color 150ms ease;
     @include button-line;
 
-    // A switch that is on, and the one suggested action, wear the lit tier
-    // (`_buttonFaces.scss`).
-    &.is-active,
+    // A switch that is on wears the on tier, the one suggested action the
+    // lit one, solid on a light window (`_buttonFaces.scss`).
+    &.is-active {
+      @include button-on;
+    }
+
     &.is-primary {
       @include button-lit;
     }

@@ -382,7 +382,7 @@
   @include button-line;
 
   &.is-on {
-    @include button-lit;
+    @include button-on;
   }
 }
 

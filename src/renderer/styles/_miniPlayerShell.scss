@@ -52,25 +52,26 @@ SPDX-License-Identifier: GPL-3.0-or-later
   --player-ink: var(--accent);
   --player-ink-bright: var(--accent-light);
   --player-ink-dim: color-mix(in srgb, var(--accent) 45%, transparent);
-  // Words over the picture itself, with nothing behind them but a shadow: a
-  // tight one that edges every letter, and a wide one that darkens the
-  // picture round the line — a bright scene behind the singer's name read
-  // through the wide one alone.
-  --player-text-shadow:
-    0 1px 2px #{rgba($black, 0.6)}, 0 1px 12px #{rgba($black, 0.65)};
-  // What the picture fades into under the words, and how far up: black at
-  // a fifth to a quarter over a scene, the pane rising over a standard look
-  // to 60% at 38% of the panel's height and gone at 74%. A white window
-  // fades into its white further (`MiniPlayer.scss`).
+  // WORDS OVER THE PICTURE STAND ON A SHADE, NEVER ON A SHADOW (Ivan,
+  // 2026-11-24 on white, "that text with dropshadow, hate it", and 2026-11-25
+  // on dark). What the picture fades into under them, and how far up: the
+  // pane rising over a standard look to 88% at 38% of the panel's height and
+  // gone at 86%, and over a scene the scrim's ramp (`_miniPlayerHero.scss`).
+  // A white window fades into its own white (`MiniPlayer.scss`). Over a
+  // scene the words get a band of their own (`--player-words-shade`,
+  // `_miniPlayerHero.scss`), which a white window does without.
   --player-scrim: #{$black};
-  --player-shade-mid: 60%;
-  --player-shade-reach: 74%;
-  // How much of its glows and drops the amp keeps (`player-glow` in
-  // `_miniPlayerParts.scss`): all of them here, none on a white window
-  // (`MiniPlayer.scss`).
-  --player-glow-share: 100%;
-  // Play's glyph on its accent face: the floor, a step darker.
+  --player-words-shade: #{$black};
+  --player-shade-mid: 88%;
+  --player-shade-reach: 86%;
+  // Play's glyph on its accent face: the floor, a step darker; under the
+  // pointer the face steps lighter, away from it.
   --player-play-ink: color-mix(in srgb, var(--surface-base), #{$black} 40%);
+  --player-play-hover-fill: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--accent-light), #{$white} 22%),
+    color-mix(in oklab, var(--accent), #{$white} 22%)
+  );
   // A pill on the glass: the page's own pickers and buttons, Smart EQ's key,
   // the chips — a wash of light and the glass's own hairline round it.
   --player-key-wash: color-mix(in srgb, #{$edge-tint} 8%, transparent);
@@ -95,7 +96,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   --player-lamp: var(--accent);
   --player-lamp-off: color-mix(in srgb, #{$edge-tint} 20%, transparent);
   --player-lamp-warm: var(--active);
-  --player-glow: color-mix(in srgb, var(--accent) 55%, transparent);
   --player-lcd-ghost: color-mix(in srgb, var(--accent) 9%, transparent);
   --player-lcd-grid: color-mix(in srgb, #{$edge-tint} 9%, transparent);
   --player-lcd-zero: color-mix(in srgb, #{$edge-tint} 22%, transparent);

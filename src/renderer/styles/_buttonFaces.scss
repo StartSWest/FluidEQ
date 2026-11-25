@@ -29,8 +29,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // pointing at Intensity / Band Q / Phase / Treble: "so for buttons I'm more
 // inclined to this type of buttons"):
 //
-//   LIT   `button-lit`   the lit tint, the lit edge, the accent's light ink.
-//                        The suggested action, one per place.
+//   LIT   `button-lit`   the lit tint, the lit edge, the accent's light ink;
+//                        solid on a light window. The suggested action, one
+//                        per place.
+//   ON    `button-on`    the lit tint and edge on every window: a switch on,
+//                        the chosen one of a set. Never solid.
 //   LINE  `button-line`  the edge at rest and no fill: the ordinary button.
 //   PLAIN `button-plain` neither until pointed at: tool rows, icons, row
 //                        actions.
@@ -233,7 +236,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-@mixin button-lit($tone: $secondary-default, $ink: $secondary-light) {
+// A SWITCH THAT IS ON, or a choice that is the chosen one: the lit tint and
+// edge on every window. Never solid, because solid is the suggested action's
+// on a light window (`button-lit`), and a chosen segment, a vote given or a
+// queue held open is a state to read, not a press to make.
+@mixin button-on($tone: $secondary-default, $ink: $secondary-light) {
   @include button-face-lit($tone, $ink);
 
   &:hover:not([aria-disabled='true'], :disabled) {
@@ -245,34 +252,43 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   @include button-common-states;
+}
+
+// THE SUGGESTED ACTION: the face a switch wears when on, and solid on a
+// light window (`button-lit-on-light`).
+@mixin button-lit($tone: $secondary-default, $ink: $secondary-light) {
+  @include button-on($tone, $ink);
   @include button-lit-on-light($tone);
 }
 
-// THE SUGGESTED ACTION ON A LIGHT WINDOW: the tone itself with the floor's
-// colour for its word, as the chosen segment and the "on" badge already are
-// there (Ivan's pick B, "Consola", 2026-11-18). The lit tint was built for a
-// dark window: the accent at 22% over white is #c5dfe0, and its word on it
-// measured 3.8:1, so Save, Fix and Replace all read as switched off beside
-// the quiet outlines next to them (Ivan, 2026-11-18, the tag editor on
-// white). The accent carries its own label for exactly this (`$on-accent`,
-// `filledFace` in `windowFill.ts`: 4.5:1, the floor's colour on a deep
-// accent and the dark ink on a light one); red takes its deep ink
-// (`$ink-removed`: the white window's floor on it is 5.7:1), its light being
-// 2.9:1 there. Any other tone keeps its tint, having no ink solved for white.
+// THE SUGGESTED ACTION ON A LIGHT WINDOW: the tone itself, solid, with the
+// panes' white for its word (Ivan's pick B, "Consola", 2026-11-18, first in
+// the tag editor; every suggested action from 2026-11-25, Ivan: "yes" to the
+// before and after of the Scenes sign-up, Add curve and the first-run
+// notice). The lit tint was built for a dark window: the accent at 22% over
+// white is #c5dfe0, and its word on it measured 3.8:1, so Save, Fix, Add
+// curve and "Create your free account" read as switched off beside the
+// quiet outlines next to them. The accent carries its own label for exactly
+// this (`$on-accent`, `filledFace` in `windowFill.ts`: the panes' white on a
+// deep accent, the dark ink on a light one); red takes its deep ink
+// (`$ink-removed`) under the panes' white, which the floor's grey was on
+// the accent until 2026-11-24 ("also the gray text / icon on green
+// button"). Any other tone keeps its tint, having no ink solved for white.
 //
-// Only inside the tag editor for now (`$tag-editor`): whether every loud
-// button in the app goes solid on a white window is Ivan's call, still open
-// (2026-11-18), and this is the one place he asked for it to read.
+// A control that says it is a state - pressed, checked, selected, current,
+// or a menu trigger that is lit while open or on - keeps the tint: solid
+// there turned a chosen layout, a band switched on, Solo or Auto EQ's "on"
+// into the loudest thing on its row, a call to press what is already done.
+// Toggles written with classes use `button-on` instead.
 //
 // Inside `:where()`, so the rule weighs only what the button's own selector
 // weighs and sits after its faces: `.button.subtle` and every state the
 // tiers draw still win over it, as they win over the lit face itself.
-// The tag editor's own surfaces: its pages, panels, sheet and write card.
-$tag-editor: "[class*='library-tags']";
+$button-states: ':not([aria-pressed], [aria-checked], [aria-selected], [aria-current], [aria-expanded])';
 
 @mixin button-lit-on-light($tone) {
   $fill: null;
-  $label: $surface-base;
+  $label: $surface-panel;
   $far: $black;
   @if $tone == $secondary-default {
     $fill: $secondary-default;
@@ -283,24 +299,30 @@ $tag-editor: "[class*='library-tags']";
   }
 
   @if $fill {
-    :where(:root[data-window-ink='dark'] #{$tag-editor}) & {
+    :where(:root[data-window-ink='dark']) &:where(#{$button-states}) {
       color: $label;
       border-color: transparent;
       background: $fill;
+      // The credit's coin rings itself in the word's colour here
+      // (`CoinGlyph`): its dark outline and accent rim sank into the fill
+      // and it read as a dark dot (Ivan, 2026-11-25: "make sure that the
+      // coin is visible").
+      --coin-ring: #{$label};
+      --coin-rim-low: color-mix(in oklab, #{$label} 55%, #{$fill});
     }
 
     // A step away from the word under the pointer and further held: darker
     // under the floor's light colour, lighter under the dark ink a light
     // accent wears (`$on-accent-far`). Toward the word would take its
     // contrast down.
-    :where(:root[data-window-ink='dark'] #{$tag-editor})
-      &:hover:not([aria-disabled='true'], :disabled) {
+    :where(:root[data-window-ink='dark'])
+      &:where(#{$button-states}):hover:not([aria-disabled='true'], :disabled) {
       color: $label;
       background: color-mix(in oklab, #{$fill} 86%, #{$far});
     }
 
-    :where(:root[data-window-ink='dark'] #{$tag-editor})
-      &:active:not([aria-disabled='true'], :disabled) {
+    :where(:root[data-window-ink='dark'])
+      &:where(#{$button-states}):active:not([aria-disabled='true'], :disabled) {
       background: color-mix(in oklab, #{$fill} 74%, #{$far});
     }
   }

@@ -285,25 +285,14 @@ $player-fader-around: 58px;
       ),
       radial-gradient(circle at 50% 28%, rgba($white, 0.24), transparent 62%),
       var(--surface-field);
-    box-shadow:
-      0 0 0 2px var(--player-fader-colour),
-      0 4px 10px player-glow(rgba($black, 0.5)),
-      0 0 12px
-        player-glow(
-          color-mix(in srgb, var(--player-fader-colour) 45%, transparent)
-        );
+    box-shadow: 0 0 0 2px var(--player-fader-colour);
     pointer-events: none;
   }
 
   .player-band__input:hover + .player-band__cap {
     box-shadow:
       0 0 0 2px var(--player-fader-colour),
-      0 0 0 5px color-mix(in srgb, var(--player-fader-colour) 16%, transparent),
-      0 4px 10px player-glow(rgba($black, 0.5)),
-      0 0 16px
-        player-glow(
-          color-mix(in srgb, var(--player-fader-colour) 55%, transparent)
-        );
+      0 0 0 5px color-mix(in srgb, var(--player-fader-colour) 16%, transparent);
   }
 
   .player-band__input:focus-visible + .player-band__cap {
@@ -362,12 +351,7 @@ $player-fader-around: 58px;
           var(--surface-field) 50%,
           color-mix(in srgb, var(--surface-field), $black 28%)
         );
-      box-shadow:
-        0 5px 12px player-glow(rgba($black, 0.55)),
-        0 0 14px
-          player-glow(
-            color-mix(in srgb, var(--player-fader-colour) 28%, transparent)
-          );
+      box-shadow: none;
     }
 
     .player-band__input:hover + .player-band__cap {
@@ -376,21 +360,14 @@ $player-fader-around: 58px;
         var(--player-fader-colour) 60%,
         transparent
       );
-      box-shadow:
-        0 0 0 3px
-          color-mix(in srgb, var(--player-fader-colour) 14%, transparent),
-        0 5px 12px player-glow(rgba($black, 0.55)),
-        0 0 16px
-          player-glow(
-            color-mix(in srgb, var(--player-fader-colour) 40%, transparent)
-          );
+      box-shadow: 0 0 0 3px
+        color-mix(in srgb, var(--player-fader-colour) 14%, transparent);
     }
 
     .player-band__input:focus-visible + .player-band__cap {
       box-shadow:
         0 0 0 2px var(--player-floor),
-        0 0 0 4px var(--player-ink-bright),
-        0 5px 12px player-glow(rgba($black, 0.55));
+        0 0 0 4px var(--player-ink-bright);
     }
   }
 

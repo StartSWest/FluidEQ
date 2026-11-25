@@ -84,3 +84,18 @@ it('piles one, two and three coins as the packs grow, whatever their order', () 
     expect(coin.querySelectorAll('linearGradient')).toHaveLength(2);
   });
 });
+
+// Ivan, 2026-11-25, of the coin inside a solid "Create your free account":
+// "make sure that the coin is visible because it's not visible there". Its
+// dark outline and its accent rim sank into the accent fill, so a solid
+// button rings it in its own word colour (`--coin-ring`, `--coin-rim-low`,
+// set by `button-lit-on-light`); everywhere else it keeps its own paints.
+// (jsdom drops `stop-color` from a style, so the rim's foot is not read here;
+// the stylesheet's half is held in `loudButtonOnWhite.test.ts`.)
+it('takes its ring from the face it stands on, its own dark outline otherwise', () => {
+  const { container } = render(<Glyph name="credit" />);
+  const outline = container.querySelector('svg > g');
+  expect(outline?.getAttribute('style')).toMatch(
+    /fill:\s*var\(--coin-ring,\s*color-mix\(in srgb, var\(--accent\) 22%, #03070c\)\)/,
+  );
+});

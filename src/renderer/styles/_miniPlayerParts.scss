@@ -16,21 +16,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // ============================================================ the lights ===
 //
-// THE AMP'S GLOWS AND DROPS GO OUT ON A WHITE WINDOW. A lamp's halo, a lit
-// key's glow, the shadow under the art, the faders' caps and the glass panes
-// are light and depth on a dark floor; on white each one read as a grey or
-// teal smudge round the thing it stood under, and the play key as a heavy
-// slab (Ivan, 2026-11-24, the amp on white; his standing rule from
-// 2026-11-19: "no dropshadow always clean"). Each is mixed by
-// `--player-glow-share` (`_miniPlayerShell.scss`): all of it on a dark
-// window, where nothing moves, none of it on a light one (`MiniPlayer.scss`).
-@function player-glow($colour) {
-  @return color-mix(
-    in srgb,
-    #{$colour} var(--player-glow-share, 100%),
-    transparent
-  );
-}
+// THE AMP CASTS NO GLOW AND NO DROP, on any window. A lamp's halo, a lit
+// key's glow, the shadow under the art, the faders' caps, the title mark and
+// the glass panes went first on white, where each read as a grey or teal
+// smudge (Ivan, 2026-11-24), and then on dark too (2026-11-25, after a
+// before and after of the play key, the art, the caps and the title): his
+// standing rule since 2026-11-19 is "no dropshadow always clean". Rings,
+// inset edges and focus rings are edges, and stay.
 
 // ============================================================ the scrims ===
 //
@@ -69,21 +61,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 //
 // A pane of the Stage's glass (Ivan, 2026-09-27): the floor at the strength
 // Transparency leaves it, the picture behind it blurred and a little richer,
-// a lit lip along its top and a hairline all round, and its shadow on the
+// a lit lip along its top and a hairline all round, and no shadow on the
 // picture. `$fill` is how much floor: the dock's, or the sheet's deeper one.
-@mixin player-glass-pane($fill: var(--player-glass), $lift: true) {
+@mixin player-glass-pane($fill: var(--player-glass)) {
   background: $fill;
   backdrop-filter: blur(26px) saturate(150%);
-  @if $lift {
-    box-shadow:
-      inset 0 1px 0 var(--player-glass-lip),
-      inset 0 0 0 1px var(--player-glass-edge),
-      0 24px 60px player-glow(rgba($black, 0.35));
-  } @else {
-    box-shadow:
-      inset 0 1px 0 var(--player-glass-lip),
-      inset 0 0 0 1px var(--player-glass-edge);
-  }
+  box-shadow:
+    inset 0 1px 0 var(--player-glass-lip),
+    inset 0 0 0 1px var(--player-glass-edge);
 }
 
 // A step down into the glass: the tabs, the faces' switch, the curve.
@@ -272,9 +257,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     height: $tile;
     border-width: 1px;
     border-radius: 8px;
-    box-shadow:
-      inset 0 1px 0 color-mix(in srgb, #{$white} 8%, transparent),
-      0 3px 10px player-glow(color-mix(in srgb, var(--logo-4) 22%, transparent));
+    box-shadow: inset 0 1px 0 color-mix(in srgb, #{$white} 8%, transparent);
     transition: box-shadow 150ms ease;
 
     svg {
@@ -287,8 +270,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   &[aria-expanded='true'] .brand-mark.brand-mark--signal {
     box-shadow:
       inset 0 1px 0 color-mix(in srgb, #{$white} 12%, transparent),
-      0 0 0 1px color-mix(in srgb, var(--logo-3) 40%, transparent),
-      0 3px 14px player-glow(color-mix(in srgb, var(--logo-4) 42%, transparent));
+      0 0 0 1px color-mix(in srgb, var(--logo-3) 40%, transparent);
   }
 
   &:focus-visible {

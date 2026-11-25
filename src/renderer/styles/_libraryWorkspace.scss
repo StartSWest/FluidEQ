@@ -299,7 +299,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include button-line;
 
   &.is-active {
-    @include button-lit;
+    @include button-on;
   }
 
   .library-up-next__count {
@@ -413,7 +413,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Chosen: the lit edge and the accent's label on a step lighter face,
   // never a tint of the accent under it.
   &.is-active {
-    @include button-lit;
+    @include button-on;
   }
 }
 

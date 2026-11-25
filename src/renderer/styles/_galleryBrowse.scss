@@ -914,7 +914,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &.is-on {
-    @include button-lit($analogous-1, $ink);
+    @include button-on($analogous-1, $ink);
 
     svg {
       fill: $analogous-1;

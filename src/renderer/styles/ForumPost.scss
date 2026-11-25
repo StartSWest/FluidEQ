@@ -211,7 +211,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &.is-on {
-    @include button-lit;
+    @include button-on;
 
     svg {
       fill: currentColor;

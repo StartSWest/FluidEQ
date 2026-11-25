@@ -221,7 +221,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-eq-pick.is-active {
-  @include button-lit;
+  @include button-on;
 }
 
 .dsp-eq-pick.is-off {
