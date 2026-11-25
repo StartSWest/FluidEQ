@@ -310,12 +310,6 @@ const DSP_CHAPTERS = [
         still: 'help/mic-page.png',
         controls: [
           {
-            // The maker's own effects: the first row, over the rack's switch.
-            target: '.mic-rail > .dsp-rail-row:first-child',
-            name: 'mic.stage.own',
-            text: 'help.mic.own',
-          },
-          {
             target: '.mic-rail__master',
             name: 'mic.rail.master',
             text: 'help.mic.master',
@@ -324,6 +318,13 @@ const DSP_CHAPTERS = [
             target: '.mic-rail > .mic-rail__master ~ .dsp-rail-row',
             name: 'help.mic.stagesName',
             text: 'help.mic.stages',
+          },
+          {
+            // The maker's own effects: under the filters, behind a divider of
+            // their own since 2026-11-25.
+            target: '.mic-rail__own .dsp-rail-row',
+            name: 'mic.stage.own',
+            text: 'help.mic.own',
           },
           {
             target: '.mic-head__pick .rich-pick__trigger',

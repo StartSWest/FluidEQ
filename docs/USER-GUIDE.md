@@ -724,9 +724,9 @@ The Mic tab gives each microphone a voice rack of its own. The FluidEQ Engine ru
 
 ![Your microphone’s sound](help/mic-page.png)
 
-1. **Mic’s own effects** — What the mic’s maker puts on your voice before FluidEQ. Its switch asks Windows for permission each way.
-2. **Mic processing** — Turns the whole voice rack on or off for this mic.
-3. **The stages** — In the order your voice meets them, each with its switch, a meter that moves with your voice and the delay it adds. Press one to open it.
+1. **Mic processing** — Turns the whole voice rack on or off for this mic.
+2. **The stages** — In the order your voice meets them, each with its switch, a meter that moves with your voice and the delay it adds. Press one to open it.
+3. **Mic’s own effects** — What the mic’s maker puts on your voice before FluidEQ. Its switch asks Windows for permission each way.
 4. **Microphone** — The microphone you are shaping; each one keeps its own sound. The line under it says whether the engine is working on it now.
 5. **Your voice** — Faint is what the mic picks up, bright is what others hear, and grey showing is what the filters took.
 6. **Mic profile** — Ready-made voice sounds by use, by mic, for singing and as voice effects. A change marks the profile tuned; Reset brings it back.
