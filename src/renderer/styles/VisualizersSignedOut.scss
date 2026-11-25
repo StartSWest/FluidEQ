@@ -7,16 +7,17 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
-@use 'glass' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 
-// The Visualizers tab before signing in (`VisualizersSignedOut`), as Ivan
-// approved it on 2026-11-13: the gallery's own cards behind
-// (`assets/plus/gallery-ground.jpg`, remade each release by
-// `pnpm docs:gallery-ground`), darkened to a texture, and two panes of the
-// window's glass centred over it. The offer pane's rules are
-// `VisualizersSignedOutOffer.scss`.
+// The Scenes tab before signing in (`VisualizersSignedOut`): the gallery's
+// own cards behind (`assets/plus/gallery-ground.jpg`, remade each release by
+// `pnpm docs:gallery-ground`), darkened to a texture, and over it ONE flat
+// modal, the Library's (Ivan, 2026-11-25, mockup A: "a single modal like the
+// library screen", "with only the divider"). It was two panes of the
+// window's glass side by side, each its own raised card. The offer half's
+// rules are `VisualizersSignedOutOffer.scss`.
 
 // The page itself never scrolls: only `__scroll` does, and the gallery stays
 // still behind it.
@@ -32,20 +33,18 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $card-radius;
 }
 
-// A column, so the panes' auto margins centre them when there is room and
-// fall to nothing when there is not: they then start at the top and scroll,
-// where centring would cut off their top.
+// A column, so the modal's auto margins centre it when there is room and fall
+// to nothing when there is not: it then starts at the top and scrolls, where
+// centring would cut off its top.
 .signed-out__scroll {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+  padding: 28px;
   overflow: hidden auto;
   overscroll-behavior: contain;
-  // Sized by the tab, so the offer pane can be exactly as tall as what shows
-  // of it (`cqh` in the offer's sheet) while the story beside it scrolls.
-  container: signed-out-view / size;
   @include slim-scrollbar;
 }
 
@@ -63,9 +62,9 @@ it under the terms of the GNU General Public License version 3 or later.
   pointer-events: none;
 }
 
-// The gallery is texture, the panes are what is read (Ivan, 2026-11-13:
+// The gallery is texture, the modal is what is read (Ivan, 2026-11-13:
 // "more separated from the bg ... perhaps darken the bg more"): an even veil,
-// deeper still around the middle where the panes stand.
+// deeper still around the middle where the modal stands.
 .signed-out__veil {
   position: absolute;
   z-index: -1;
@@ -80,39 +79,36 @@ it under the terms of the GNU General Public License version 3 or later.
   pointer-events: none;
 }
 
-.signed-out__panes {
+// THE MODAL: the Library's one surface - the section card's edge, corner and
+// face (`section-card`), laid solid over the floor as every modal is
+// (`solid-panel-face`) - and inside it two halves on that one tone, parted by
+// the Library rail's hairline alone (`.signed-out__offer`'s edge). No shadow,
+// no glow, no card inside it.
+.signed-out__modal {
+  @include solid-panel-face;
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(280px, 1fr);
-  // The gap the Library's and the Scenes page's two panels keep (Ivan,
-  // 2026-11-15: "same gap ... so they match more what we have on the EQ page
-  // and the visualizer library"); it was 18px.
-  gap: $spacing-s;
-  align-items: stretch;
+  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+  // Never shrunk to the tab: as tall as its content, so the column scrolls
+  // to the offer when the window is short.
+  flex: none;
   width: 100%;
   max-width: 1120px;
   margin: auto;
-  padding: 28px;
-}
-
-// The window's glass made nearly opaque, so the panes stand off the gallery
-// in both themes. No drop shadow at all (Ivan, 2026-11-19: "no dropshadow
-// always clean"; on 11-15 it had already gone from a 90px cast to a close
-// one): the near-opaque floor is what lifts them off the gallery.
-.signed-out__glass {
-  @include window-glass;
-  background: color-mix(in srgb, $surface-panel 88%, transparent);
-  border: 1px solid color-mix(in srgb, $secondary-light 14%, transparent);
-  box-shadow: $glass-bevel;
 }
 
 // ---------------------------------------------------------------- the story
 
-.signed-out__main {
-  display: grid;
-  align-content: start;
-  gap: $spacing-m;
+// A column whose wall takes whatever height the offer beside it leaves, so
+// the two halves end together at every width (`.signed-out__wall`). Its own
+// width is what the wall's pictures are measured against (`cqi`).
+.signed-out__story {
+  --story-pad: 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   min-width: 0;
-  padding: 28px 30px;
+  padding: 32px var(--story-pad) 34px;
+  container: signed-out-story / inline-size;
 }
 
 .signed-out__eyebrow {
@@ -132,7 +128,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .signed-out__title {
-  margin: 0;
+  margin: -6px 0 0;
   color: $text-primary;
   font-size: 1.55rem;
   font-weight: $weight-bold;
@@ -149,28 +145,33 @@ it under the terms of the GNU General Public License version 3 or later.
   text-wrap: pretty;
 }
 
+// Every glyph on the page alone, in the accent, with nothing under it - the
+// Library's empty state draws its features the same way. They sat on tinted
+// squares.
+.signed-out__glyph {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  color: $secondary-default;
+}
+
 // What needs no account and what one is for, side by side, before anything
-// else (Ivan, 2026-11-13: "make all very clear").
-.signed-out__split {
+// else (Ivan, 2026-11-13: "make all very clear"): words, not tiles.
+.signed-out__sides {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 26px;
+  padding: 4px 0;
 }
 
 .signed-out__side {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 2px 10px;
+  gap: 3px 10px;
   align-content: start;
-  padding: 12px 14px;
   color: $text-muted;
   font-size: $text-small;
-  line-height: 1.45;
-  // A step of light, not a box: the free side has no edge, the account side
-  // keeps its tint and a faint accent edge as the one being offered.
-  background: color-mix(in srgb, $surface-base 45%, transparent);
-  border: 1px solid transparent;
-  border-radius: $radius-m;
+  line-height: 1.5;
 
   b {
     color: $text-primary;
@@ -178,32 +179,19 @@ it under the terms of the GNU General Public License version 3 or later.
     font-weight: $weight-semibold;
   }
 
-  > span:last-child {
+  > span {
     grid-column: 2;
   }
 
-  &.is-account {
-    background: color-mix(in srgb, $secondary-default 12%, transparent);
-    border-color: color-mix(in srgb, $secondary-light 24%, transparent);
-  }
-
-  .signed-out__mark {
+  // The free side's glyph a step quieter: the account is what is offered.
+  .signed-out__glyph {
     grid-row: span 2;
+    margin-top: 1px;
+    color: $studio-t3;
   }
-}
 
-.signed-out__mark {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  color: $text-accent;
-  background: color-mix(in srgb, $secondary-default 14%, transparent);
-  border-radius: $radius-s;
-
-  svg {
-    width: 15px;
-    height: 15px;
+  &.is-account .signed-out__glyph {
+    color: $secondary-default;
   }
 }
 
@@ -212,22 +200,38 @@ it under the terms of the GNU General Public License version 3 or later.
   display: none;
 }
 
+// Rows at least a 4:3 picture tall, measured from the story's width, so the
+// wall reserves its room before a picture has decoded; and growing into
+// whatever height the offer beside it leaves, so the story never ends above
+// the offer with a hole under it. At the modal's full width the two come out
+// level with the rows at their 4:3 floor; in a narrower window the offer's
+// words wrap taller and the pictures stand taller with them. Folded to one
+// column there is nothing beside it, and the rows stay at the floor.
 .signed-out__wall {
+  --wall-columns: 3;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  flex: 1 0 auto;
+  grid-template-columns: repeat(var(--wall-columns), minmax(0, 1fr));
+  // `cqi` is the story's content box: its padding is already left out.
+  grid-auto-rows: minmax(
+    calc(
+      (100cqi - (var(--wall-columns) - 1) * 8px) / var(--wall-columns) * 0.75
+    ),
+    1fr
+  );
   gap: 8px;
-  margin-top: 4px;
 }
 
 .signed-out__scene {
   position: relative;
-  aspect-ratio: 16 / 9;
   margin: 0;
   overflow: hidden;
   border-radius: $radius-m;
-  box-shadow: none;
+  background: $surface-base;
 
   img {
+    position: absolute;
+    inset: 0;
     display: block;
     width: 100%;
     height: 100%;
@@ -249,11 +253,12 @@ it under the terms of the GNU General Public License version 3 or later.
     background: linear-gradient(180deg, transparent, rgba($black, 0.62));
   }
 
-  // The lead scene, larger, its picture drifting the way the scene moves.
+  // The lead scene, larger, its picture drifting the way the scene moves -
+  // and standing still while nobody can see it (`is-still`, `useShown`).
+  // The app's Animations switch stops it with every other animation.
   &.is-lead {
     grid-row: span 2;
     grid-column: span 2;
-    aspect-ratio: auto;
 
     img {
       animation: signed-out-drift 14s ease-in-out infinite alternate;
@@ -263,6 +268,10 @@ it under the terms of the GNU General Public License version 3 or later.
       padding: 30px 14px 11px;
       font-size: $text-body;
     }
+  }
+
+  &.is-still img {
+    animation-play-state: paused;
   }
 }
 
@@ -282,9 +291,10 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// Where a scene plays: a glyph and a few words each, no chip.
 .signed-out__places {
   display: grid;
-  gap: 8px;
+  gap: 9px;
 }
 
 .signed-out__places-title {
@@ -293,81 +303,47 @@ it under the terms of the GNU General Public License version 3 or later.
   font-weight: $weight-semibold;
 }
 
-.signed-out__chips {
+.signed-out__place-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px 22px;
   margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.signed-out__chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  // The app's label chip (`label-chip`): it was a pill on a dark wash.
-  @include label-chip;
-
-  svg {
-    width: 13px;
-    height: 13px;
-    color: $text-accent;
-  }
-}
-
-.signed-out__points {
-  display: grid;
-  gap: 10px;
-  margin: 2px 0 0;
   padding: 0;
   list-style: none;
 
   li {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 10px;
-    align-items: start;
-  }
-
-  li > span:last-child {
-    display: grid;
-    gap: 1px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     color: $text-muted;
     font-size: $text-small;
-    line-height: 1.45;
-  }
-
-  b {
-    color: $text-primary;
-    font-size: $text-body;
-    font-weight: $weight-semibold;
   }
 }
 
-// Narrow: one column, the way in under the headline, the offer at the end.
+// Narrow: one column. The way in under the headline, the offer after the
+// scenes, the hairline across between them.
 @container signed-out (max-width: 760px) {
-  .signed-out__panes {
-    grid-template-columns: minmax(0, 1fr);
+  .signed-out__scroll {
     padding: 14px;
   }
 
-  .signed-out__main {
-    padding: 20px 18px;
+  .signed-out__modal {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  // Under the story, at its own height: nothing beside it to stand still by.
-  .signed-out__offer {
-    position: static;
-    min-height: 0;
+  .signed-out__story {
+    --story-pad: 20px;
+    padding-top: 22px;
+    padding-bottom: 24px;
   }
 
   .signed-out__title {
     font-size: 1.3rem;
   }
 
-  .signed-out__split {
+  .signed-out__sides {
     grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
   }
 
   .signed-out__quick {
@@ -378,16 +354,23 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 @container signed-out (max-width: 420px) {
-  .signed-out__panes {
+  .signed-out__scroll {
     padding: 10px;
   }
 
-  .signed-out__main,
-  .signed-out__offer {
-    padding: 18px 14px;
+  .signed-out__story {
+    --story-pad: 14px;
+    padding-top: 18px;
+    padding-bottom: 20px;
   }
 
   .signed-out__wall {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    --wall-columns: 2;
+  }
+
+  // Five pictures under the lead in two columns leave one alone: it takes
+  // the whole row rather than a hole beside it.
+  .signed-out__scene:last-child {
+    grid-column: span 2;
   }
 }

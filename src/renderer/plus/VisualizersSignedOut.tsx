@@ -4,6 +4,7 @@ import { requestAccountPanel } from '../account/accountPanel';
 import Glyph, { type TCommunityGlyph } from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { pluralCategory } from '../utils/pluralCategory';
+import useShown from '../utils/useShown';
 import ground from '../../../assets/plus/gallery-ground.jpg';
 import hyperdrive from '../../../assets/plus/hyperdrive.jpg';
 import lanternLake from '../../../assets/plus/lantern-lake.jpg';
@@ -117,11 +118,16 @@ function SignInLink({ onSignIn }: { onSignIn: () => void }) {
 }
 
 /**
- * The Visualizers tab before signing in, as Ivan approved it on 2026-11-13
- * (headline 1): the gallery itself behind the app's glass, what needs no
- * account beside what one is for, the scenes and what they do, and the offer
- * of the starter credits as the one loud way in. Narrow, the way in moves
- * under the headline and the offer follows at the end.
+ * The Scenes tab before signing in: the gallery behind, and over it one flat
+ * modal, the Library's card (Ivan, 2026-11-25, mockup A of three: "a single
+ * modal like the library screen", "with only the divider"). The scenes and
+ * what they do on the left; the offer of the starter credit as the one loud
+ * way in on the right, with what an account opens under it, so the two
+ * halves end together. Narrow, it folds to one column: the way in moves
+ * under the headline and the offer follows the scenes.
+ *
+ * The lead picture's drift and the coin's motion stand still while nobody
+ * can see them (`useShown`), and with the app's Animations switch.
  */
 export default function VisualizersSignedOut({
   onSignIn,
@@ -131,15 +137,17 @@ export default function VisualizersSignedOut({
   const { t, locale } = useTranslation();
   const plural = pluralCategory(STARTER_CREDITS, locale);
   const count = { count: String(STARTER_CREDITS) };
+  const [leadRef, leadShown] = useShown<HTMLElement>();
+  const [fanRef, fanShown] = useShown<HTMLDivElement>();
   return (
     <div className="signed-out">
       <img className="signed-out__ground" src={ground} alt="" />
       <span className="signed-out__veil" aria-hidden="true" />
-      {/* Only the panes scroll; the gallery stays put behind them. */}
+      {/* Only the modal scrolls; the gallery stays put behind it. */}
       <div className="signed-out__scroll">
-        <div className="signed-out__panes">
+        <div className="signed-out__modal">
           <section
-            className="signed-out__glass signed-out__main"
+            className="signed-out__story"
             aria-labelledby="signed-out-title"
           >
             <span className="signed-out__eyebrow">
@@ -151,18 +159,17 @@ export default function VisualizersSignedOut({
             </h2>
             <p className="signed-out__line">{t('plus.signedOut.line')}</p>
 
-            <div className="signed-out__split">
+            {/* What needs no account and what one is for: words and a glyph
+                each, no tile. The account's glyph is lit, as the side being
+                offered. */}
+            <div className="signed-out__sides">
               <div className="signed-out__side">
-                <span className="signed-out__mark" aria-hidden="true">
-                  <Glyph name="music" />
-                </span>
+                <Glyph name="music" className="signed-out__glyph" />
                 <b>{t('plus.signedOut.free.title')}</b>
                 <span>{t('plus.signedOut.free.body')}</span>
               </div>
               <div className="signed-out__side is-account">
-                <span className="signed-out__mark" aria-hidden="true">
-                  <Glyph name="person" />
-                </span>
+                <Glyph name="person" className="signed-out__glyph" />
                 <b>{t('plus.signedOut.account.title')}</b>
                 <span>{t('plus.signedOut.account.body')}</span>
               </div>
@@ -177,7 +184,10 @@ export default function VisualizersSignedOut({
               {WALL.map((scene, index) => (
                 <figure
                   key={scene.key}
-                  className={`signed-out__scene${index === 0 ? ' is-lead' : ''}`}
+                  ref={index === 0 ? leadRef : undefined}
+                  className={`signed-out__scene${
+                    index === 0 ? ` is-lead${leadShown ? '' : ' is-still'}` : ''
+                  }`}
                 >
                   <img src={scene.picture} alt="" />
                   <figcaption>{t(scene.key)}</figcaption>
@@ -189,39 +199,27 @@ export default function VisualizersSignedOut({
               <span className="signed-out__places-title">
                 {t('plus.signedOut.places')}
               </span>
-              <ul className="signed-out__chips">
+              <ul className="signed-out__place-list">
                 {PLACES.map((place) => (
-                  <li key={place.key} className="signed-out__chip">
-                    <Glyph name={place.glyph} />
+                  <li key={place.key}>
+                    <Glyph name={place.glyph} className="signed-out__glyph" />
                     {t(place.key)}
                   </li>
                 ))}
               </ul>
             </div>
-
-            <ul className="signed-out__points">
-              {POINTS.map((point) => (
-                <li key={point.title}>
-                  <span className="signed-out__mark" aria-hidden="true">
-                    <Glyph name={point.glyph} />
-                  </span>
-                  <span>
-                    <b>{t(point.title)}</b>
-                    <span>{t(point.body)}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
           </section>
 
           <aside
-            className="signed-out__glass signed-out__offer"
+            className="signed-out__offer"
             aria-labelledby="signed-out-offer"
           >
-            {/* The three scenes the credits are for, fanned like a hand of
-                cards behind the coin: the card's top used to be empty glass
-                over a coin floating in the middle of it. */}
-            <div className="signed-out__fan">
+            {/* The three scenes the credit is for, fanned like a hand of
+                cards behind the coin. */}
+            <div
+              ref={fanRef}
+              className={`signed-out__fan${fanShown ? '' : ' is-still'}`}
+            >
               {FAN.map((scene) => (
                 <img key={scene.key} src={scene.picture} alt="" />
               ))}
@@ -246,6 +244,21 @@ export default function VisualizersSignedOut({
               ))}
             </ol>
             <SignInLink onSignIn={onSignIn} />
+
+            {/* What an account opens, under the offer it is for: it fills
+                what was the offer pane's empty middle, and the two halves
+                end together. */}
+            <ul className="signed-out__points">
+              {POINTS.map((point) => (
+                <li key={point.title}>
+                  <Glyph name={point.glyph} className="signed-out__glyph" />
+                  <span>
+                    <b>{t(point.title)}</b>
+                    <span>{t(point.body)}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
           </aside>
         </div>
       </div>

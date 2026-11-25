@@ -9,41 +9,36 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'color' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 
-// The offer pane of the Visualizers tab before signing in
-// (`VisualizersSignedOut`): the credit coin, the one loud way in, the steps
-// and the quiet Sign in. Apart from the reading pane's sheet
-// (`VisualizersSignedOut.scss`) so neither passes the size rule; that sheet
-// comes after this one in `cascade.ts`, so its narrow layout wins.
+// The offer half of the Scenes tab's signed-out modal
+// (`VisualizersSignedOut`): the fan and the credit coin, the one loud way
+// in, the steps, the quiet Sign in, and what an account opens under them.
+// Apart from the story's sheet (`VisualizersSignedOut.scss`) so neither
+// passes the size rule; that sheet comes after this one in `cascade.ts`, so
+// its narrow layout wins.
 
-// As tall as the tab shows and no taller, standing still while the story
-// beside it scrolls: the fan and the offer from the top, the steps at the
-// foot (`margin-top: auto`). Stretched to the story's whole height and
-// centred, it left a band of empty glass above the coin and another under
-// the sign-in line, as tall as the story made them; ending at its content,
-// it left a hole under it.
+// The modal's face, which the fan's cards are ringed in so they part by
+// overlap alone: `solid-panel-face`'s section over the floor, as one colour.
+$signed-out-face: color-mix(in srgb, $surface-panel 85%, $surface-base);
+
+// The same tone as the story, parted from it by the Library rail's hairline
+// (`.studio-rail`'s edge) and by nothing else: no pane of its own, no glow.
+// What an account opens stands at the foot (`margin-top: auto`), so the half
+// ends where the story does.
 .signed-out__offer {
-  position: sticky;
-  top: 28px;
   display: flex;
   flex-direction: column;
-  align-self: start;
   align-items: center;
   gap: 12px;
   min-width: 0;
-  min-height: calc(100cqh - 56px);
-  padding: 24px 24px 22px;
+  padding: 26px 32px 34px;
   text-align: center;
-  background:
-    radial-gradient(
-      90% 60% at 50% 0%,
-      color-mix(in srgb, $secondary-default 22%, transparent),
-      transparent 70%
-    ),
-    color-mix(in srgb, $surface-panel 88%, transparent);
+  border-left: 1px solid $studio-hair;
 }
 
-// Three scene pictures fanned behind the coin, the middle one raised.
+// Three scene pictures fanned behind the coin, the middle one raised. Its
+// height is set, so nothing moves while the pictures decode.
 .signed-out__fan {
   position: relative;
   display: grid;
@@ -51,7 +46,7 @@ it under the terms of the GNU General Public License version 3 or later.
   max-width: 340px;
   height: 214px;
   place-items: center;
-  margin: auto 0 4px;
+  margin-bottom: 4px;
 
   img {
     position: absolute;
@@ -60,7 +55,8 @@ it under the terms of the GNU General Public License version 3 or later.
     width: 46%;
     aspect-ratio: 16 / 10;
     object-fit: cover;
-    border: 2px solid $surface-panel;
+    background: $surface-base;
+    border: 2px solid $signed-out-face;
     border-radius: $radius-m;
     transform-origin: 50% 120%;
   }
@@ -86,6 +82,18 @@ it under the terms of the GNU General Public License version 3 or later.
     z-index: 2;
     margin-top: 92px;
   }
+
+  // The coin stands still while nobody can see it (`useShown`); the app's
+  // Animations switch stops it with every other animation.
+  &.is-still {
+    .credit-coin__orbit,
+    .credit-coin__pulse,
+    .credit-coin__coin,
+    .credit-coin__spark,
+    .credit-coin__sheen::before {
+      animation-play-state: paused;
+    }
+  }
 }
 
 .signed-out__offer-title {
@@ -96,12 +104,9 @@ it under the terms of the GNU General Public License version 3 or later.
   text-wrap: balance;
 }
 
-// The fan, the title and this line share the room the pane has left, in its
-// middle (the fan's `margin-top: auto` and this `margin-bottom: auto`); the
-// button, the steps and Sign in keep together at the foot.
 .signed-out__offer-body {
-  max-width: 32ch;
-  margin: 0 0 auto;
+  max-width: 34ch;
+  margin: 0;
   color: $text-muted;
   font-size: $text-body;
   line-height: 1.5;
@@ -119,6 +124,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .signed-out__create--l {
+  margin-top: 8px;
   padding: 14px 18px;
 }
 
@@ -145,16 +151,15 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The three steps at the pane's foot, their numbers joined by a thread down
+// The three steps under the button, their numbers joined by a thread down
 // the side (the creator sign-up's steps draw the same), the first one lit:
-// it is the one the button above does. No rule over them: the space says
-// where the offer ends.
+// it is the one the button above does.
 .signed-out__steps {
   position: relative;
   display: grid;
   gap: 12px;
   width: 100%;
-  margin: 6px 0 0;
+  margin: 8px 0 0;
   padding: 0;
   text-align: start;
   list-style: none;
@@ -191,7 +196,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-accent;
   font-size: $text-small;
   font-weight: $weight-bold;
-  background: $surface-panel;
+  background: $signed-out-face;
   border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
   border-radius: 50%;
 
@@ -206,4 +211,68 @@ it under the terms of the GNU General Public License version 3 or later.
   margin: 2px 0 0;
   color: $text-faint;
   font-size: $text-small;
+}
+
+// What an account opens: a glyph and two lines each, at the half's foot.
+.signed-out__points {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  margin: auto 0 0;
+  padding: 30px 0 0;
+  text-align: start;
+  list-style: none;
+
+  li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+  }
+
+  .signed-out__glyph {
+    margin-top: 1px;
+  }
+
+  li > span {
+    display: grid;
+    gap: 2px;
+    color: $text-muted;
+    font-size: $text-small;
+    line-height: 1.5;
+  }
+
+  b {
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+  }
+}
+
+// Folded under the story: the hairline runs across instead of down.
+@container signed-out (max-width: 760px) {
+  .signed-out__offer {
+    padding: 22px 20px 26px;
+    border-top: 1px solid $studio-hair;
+    border-left: 0;
+  }
+
+  // The column is as wide as the story now: the button, the steps and the
+  // rows under them keep the half's own measure, centred, rather than a
+  // button the tab's width.
+  .signed-out__offer > *,
+  .signed-out__quick .signed-out__create {
+    max-width: 440px;
+  }
+
+  .signed-out__points {
+    margin-top: 6px;
+    padding-top: 18px;
+  }
+}
+
+@container signed-out (max-width: 420px) {
+  .signed-out__offer {
+    padding: 18px 14px 22px;
+  }
 }

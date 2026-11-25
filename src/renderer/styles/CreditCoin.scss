@@ -84,7 +84,10 @@ $coin-deep: color-mix(in srgb, $secondary-default 55%, $black);
   animation: credit-coin-float 6s ease-in-out infinite;
 }
 
-// The milled edge: ridges all round, darker toward the shadow side.
+// The milled edge: ridges all round, darker toward the shadow side. Nothing
+// cast under it (Ivan, 2026-11-19: "no dropshadow always clean"): a black
+// shadow and an accent halo stood under the coin on every page it is on; the
+// edge's own darkening is what tilts it.
 .credit-coin__edge {
   position: absolute;
   inset: 0;
@@ -92,10 +95,6 @@ $coin-deep: color-mix(in srgb, $secondary-default 55%, $black);
     linear-gradient(180deg, rgba($black, 0.1) 40%, rgba($black, 0.6)),
     repeating-linear-gradient(90deg, $secondary-light 0 2px, $coin-deep 2px 5px);
   border-radius: 50%;
-  box-shadow:
-    0 calc(var(--coin) * 0.12) calc(var(--coin) * 0.24) rgba($black, 0.55),
-    0 0 calc(var(--coin) * 0.3)
-      color-mix(in srgb, $secondary-default 30%, transparent);
   transform: translateY(calc(var(--coin) * 0.07));
 }
 
@@ -231,7 +230,8 @@ $coin-deep: color-mix(in srgb, $secondary-default 55%, $black);
 
 // What the coin counts: a solid badge that reads at a glance (Ivan,
 // 2026-11-13: "fix the 3, it doesn't look good"), outside the tilted coin so
-// it never turns with it, ringed off from the coin in the panel's colour.
+// it never turns with it, ringed off from the coin in the panel's colour -
+// the ring parts it, with no shadow under it.
 .credit-coin__badge {
   position: absolute;
   z-index: 4;
@@ -254,7 +254,6 @@ $coin-deep: color-mix(in srgb, $secondary-default 55%, $black);
   );
   border: calc(var(--coin) * 0.04) solid $surface-panel;
   border-radius: $radius-pill;
-  box-shadow: 0 4px 12px rgba($black, 0.4);
 
   // On the white window the accent's light is its deep ink, not a paler
   // accent, so the badge runs from white into the accent alone and wears the
