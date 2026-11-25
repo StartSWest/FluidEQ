@@ -2,7 +2,9 @@
 import {
   compactSearchText,
   foldSearchText,
+  searchMarks,
   searchMatcher,
+  searchTerms,
 } from '../../../common/searchText';
 import { normalizeForGrouping } from '../../../common/library/grouping';
 
@@ -46,6 +48,33 @@ it('ignores separators in matching while album/artist identities retain spaces',
   expect(normalizeForGrouping('Baladas Vol 1')).not.toBe(
     normalizeForGrouping('Bala Dasvol1'),
   );
+});
+
+/** The text a list would light for `query` in `text`. */
+const lit = (text: string, query: string) =>
+  searchMarks(text, searchTerms(query)).map(([start, end]) =>
+    text.slice(start, end),
+  );
+
+it.each([
+  ['Drum & bass', 'bass', ['bass']],
+  ['Drum & bass', 'BASS drum', ['Drum', 'bass']],
+  // Found across punctuation, the punctuation between is lit with it.
+  ['Synth-pop', 'synthpop', ['Synth-pop']],
+  ['Déjà Café', 'cafe', ['Café']],
+  ['Музыка Рок', 'рок', ['Рок']],
+])('lights in %s what %s found', (text, query, expected) => {
+  expect(lit(text, query)).toEqual(expected);
+});
+
+it('merges overlapping words and lights nothing it did not find', () => {
+  expect(lit('Pop Punk', 'jazz')).toEqual([]);
+  expect(lit('Pop Punk', 'po pop')).toEqual(['Pop']);
+  // A word that runs on over a space lights the space with it.
+  expect(lit('Pop Punk', 'popp')).toEqual(['Pop P']);
+  expect(lit('Pop Punk', '')).toEqual([]);
+  // The control: the same text lights where the word is there.
+  expect(lit('Pop Punk', 'punk')).toEqual(['Punk']);
 });
 
 it.each(['', '   ', ' — / '])(

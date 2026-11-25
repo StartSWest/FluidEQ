@@ -57,6 +57,11 @@ const useWaveMenu = () => {
       }
     };
     const onKey = (event: KeyboardEvent) => {
+      // A key the panel answered itself (`presetMenuKeys`): Escape that
+      // cleared a search, the arrows walking the rows from the field.
+      if (event.defaultPrevented) {
+        return;
+      }
       if (event.key === 'Escape') {
         if (isInside(document.activeElement)) {
           plateRef.current?.focus();

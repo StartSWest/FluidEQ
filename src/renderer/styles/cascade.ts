@@ -221,6 +221,8 @@ import './WaveformVisualizer.scss';
 // The playing preset's plate over the titlebar's wave, and its card: over
 // the meter's own rules and the pick's.
 import './WavePreset.scss';
+// Its panel's search, rows and stars, after the panel they live in.
+import './WavePresetSearch.scss';
 import './Convolution.scss';
 import './LabelledKnob.scss';
 import './DspRoom.scss';

@@ -18,8 +18,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // up on pointing. Flat: no shadows, steps of light.
 
 $panel-width: 372px;
-// About eight rows of favourites before the list scrolls inside.
-$list-height: 252px;
 
 // The layer over the meter's label row. Three columns, the plate in the
 // middle one: the outer two share what the plate leaves, so it stands at the
@@ -188,8 +186,9 @@ img.wave-preset__glyph {
 // *** The panel ***************************************************************
 //
 // The app's menu surface and arrival (`rich-pick__menu`), at the mockup's
-// width, growing out of its top centre. Only the favourites scroll: what
-// plays, None and the foot keep their places.
+// width, growing out of its top centre. Only the box under the search
+// scrolls (`WavePresetSearch.scss`): what plays and the foot keep their
+// places.
 
 .rich-pick__menu.wave-preset-menu {
   width: $panel-width;
@@ -276,162 +275,6 @@ img.wave-preset-head__glyph {
   width: 13px;
   height: 13px;
   color: $text-accent;
-}
-
-.wave-preset-menu__lead {
-  display: grid;
-  flex: none;
-  gap: 1px;
-  padding: 6px;
-}
-
-.wave-preset-menu__group {
-  flex: none;
-  padding: 6px 16px 4px;
-  color: $text-muted;
-  font-size: $text-micro;
-  font-weight: $weight-bold;
-  @include tracking(0.09em);
-  text-transform: uppercase;
-}
-
-// The menus' search row, boxed as the mockup drew it: a field in the panel
-// rather than a strip across it, since it narrows only the favourites under
-// it and not the panel.
-.wave-preset-menu__search {
-  @include menu-search;
-  flex: none;
-  margin: 2px 12px 6px;
-  padding: 0 10px;
-  border: 1px solid $menu-rule;
-  border-radius: $radius-xs;
-  background: color-mix(in srgb, $edge-tint 4%, transparent);
-}
-
-.wave-preset-menu__list {
-  @include slim-scrollbar;
-  display: grid;
-  min-height: 0;
-  max-height: $list-height;
-  flex: 0 1 auto;
-  align-content: start;
-  gap: 1px;
-  padding: 0 6px 6px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scroll-padding-block: 6px;
-
-  // Soft edges only where there is more to scroll to (`markFades`).
-  &[data-more-above] {
-    mask-image: linear-gradient(to bottom, transparent 0, #000 12px);
-  }
-
-  &[data-more-below] {
-    mask-image: linear-gradient(
-      to bottom,
-      #000 calc(100% - 16px),
-      transparent 100%
-    );
-  }
-
-  &[data-more-above][data-more-below] {
-    mask-image: linear-gradient(
-      to bottom,
-      transparent 0,
-      #000 12px,
-      #000 calc(100% - 16px),
-      transparent 100%
-    );
-  }
-}
-
-// One row: glyph, name, what it does at the end, and the check on the one
-// that plays. The name keeps its width; the line gives way first.
-.wave-preset-menu__row {
-  display: grid;
-  width: 100%;
-  min-height: 30px;
-  align-items: center;
-  gap: 10px;
-  grid-template-columns: 18px minmax(0, 1fr) auto 12px;
-  padding: 6px 10px;
-  color: $text-primary;
-  border: 0;
-  border-radius: $radius-xs;
-  background: transparent;
-  font: inherit;
-  font-size: $text-body;
-  text-align: left;
-  cursor: pointer;
-  transition: $transition-control;
-
-  &:hover:not(:disabled),
-  &:focus-visible {
-    background: $hover-accent;
-    outline: none;
-  }
-
-  &[aria-checked='true'] {
-    background: $selected-accent;
-
-    .wave-preset-menu__name,
-    .wave-preset-menu__glyph {
-      color: $text-accent;
-    }
-  }
-
-  &.is-loud {
-    .wave-preset-menu__name,
-    .wave-preset-menu__glyph {
-      color: $text-accent;
-    }
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: 0.55;
-  }
-}
-
-.wave-preset-menu__glyph {
-  width: 16px;
-  height: 16px;
-  color: $text-muted;
-
-  &.is-own {
-    color: var(--ink-preset);
-  }
-}
-
-// The listener's own keeps its violet when it is the one playing.
-.wave-preset-menu__row[aria-checked='true'] .wave-preset-menu__glyph.is-own {
-  color: var(--ink-preset);
-}
-
-.wave-preset-menu__name {
-  @include truncate;
-  font-weight: $weight-semibold;
-}
-
-.wave-preset-menu__hint {
-  @include truncate;
-  max-width: 150px;
-  color: $text-muted;
-  font-size: $text-small;
-}
-
-.wave-preset-menu__check {
-  width: 12px;
-  height: 12px;
-  color: $text-accent;
-}
-
-.wave-preset-menu__note {
-  margin: 0;
-  padding: 2px 16px 12px;
-  color: $text-muted;
-  font-size: $text-small;
-  line-height: 1.45;
 }
 
 // The foot: a hairline, then the way to the Preset tab in the accent, with

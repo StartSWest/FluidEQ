@@ -20,14 +20,18 @@ import {
   presetGlyph,
   usePlayingPreset,
 } from '../../components/useVoicingPick';
+import runsOnMac from '../../utils/platform';
+import presetMenuKeyDown from './presetMenuKeys';
+import usePresetBrowse from './usePresetBrowse';
 import useWaveMenu from './useWaveMenu';
-import WavePresetFavourites from './WavePresetFavourites';
+import WavePresetBrowse from './WavePresetBrowse';
 import WavePresetPanel from './WavePresetPanel';
 
 /**
  * The plate while the music's sound plays: the preset's glyph and name over
  * the wave with the mockup's chevron, and on a press the panel — what plays,
- * None, the favourites and the Preset tab (Ivan, 2026-11-20).
+ * None, the favourites and the Preset tab (Ivan, 2026-11-20), with a field
+ * that searches every preset and a star on every row (2026-11-25).
  *
  * The preset is read as the Preset tab reads it (`usePlayingPreset`), so a
  * pick, a song's or album's sound, Auto EQ or a preset made on the EQ page
@@ -35,8 +39,10 @@ import WavePresetPanel from './WavePresetPanel';
  */
 const WavePresetMusic = () => {
   const { t } = useTranslation();
-  const { active, activeId, isApo } = usePlayingPreset();
+  const playing = usePlayingPreset();
+  const { active, activeId, isApo } = playing;
   const menu = useWaveMenu();
+  const browse = usePresetBrowse(menu.isOpen, menu.close, playing);
   // The curve drawn as the Preset tab's cards draw it, with the EQ's own
   // model, Q and Treble design (`presetCardDrawing.ts`).
   const curveDesign = usePresetCurveDesign();
@@ -101,6 +107,7 @@ const WavePresetMusic = () => {
         isOpen={menu.isOpen}
         arrive={menu.arrive}
         close={menu.close}
+        onKeyDown={presetMenuKeyDown(browse, runsOnMac())}
         header={
           <>
             <div className="wave-preset-head">
@@ -133,7 +140,7 @@ const WavePresetMusic = () => {
           </>
         }
       >
-        <WavePresetFavourites isOpen={menu.isOpen} close={menu.close} />
+        <WavePresetBrowse browse={browse} />
       </WavePresetPanel>
     </div>
   );

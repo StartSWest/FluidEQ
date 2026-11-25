@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { ReactNode, RefCallback } from 'react';
+import type { KeyboardEventHandler, ReactNode, RefCallback } from 'react';
 import openEqPresetTab from '../../eq/openEqPresetTab';
 import MenuIcon from '../../icons/MenuIcon';
 import { useTranslation } from '../../utils/I18nContext';
@@ -20,6 +20,8 @@ interface IWavePresetPanelProps {
   header: ReactNode;
   /** What can be done from here: the favourites, or a game's ways out. */
   children: ReactNode;
+  /** The panel's own keys, answered from anywhere in it. */
+  onKeyDown?: KeyboardEventHandler<HTMLDivElement>;
 }
 
 /**
@@ -36,6 +38,7 @@ const WavePresetPanel = ({
   close,
   header,
   children,
+  onKeyDown,
 }: IWavePresetPanelProps) => {
   const { t } = useTranslation();
   return (
@@ -45,6 +48,7 @@ const WavePresetPanel = ({
       className="rich-pick__menu wave-preset-menu"
       ariaLabel={t('dsp.presets')}
     >
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- the keys the focused panel answers are its rows' (the menu around it carries the role) */}
       <div
         ref={arrive}
         className="wave-preset-menu__inner"
@@ -52,6 +56,7 @@ const WavePresetPanel = ({
         // pointer, so the arrows answer without a ring lighting anywhere.
         tabIndex={-1}
         onDoubleClick={(event) => event.stopPropagation()}
+        onKeyDown={onKeyDown}
       >
         <div className="wave-preset-menu__head">{header}</div>
         {children}

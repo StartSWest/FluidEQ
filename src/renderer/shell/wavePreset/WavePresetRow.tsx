@@ -12,11 +12,22 @@ interface IWavePresetRowProps {
   name: string;
   /** What it does, muted at the row's end; cut before it can push the name. */
   hint?: string;
+  /** The name as drawn, when it is more than its words (a search's mark). */
+  shownName?: ReactNode;
+  /** The hint as drawn, likewise. */
+  shownHint?: ReactNode;
   /** For a row that is a choice: whether it is the one playing. */
   checked?: boolean;
   disabled?: boolean;
   /** The suggested way out (a game's Back to the music sound): in the accent. */
   isLoud?: boolean;
+  /** The row the panel's keys are on, while the caret stays in the field. */
+  isActive?: boolean;
+  /** A favourite unstarred in this opening, dimmed where it stood. */
+  isGone?: boolean;
+  /** For the field's active descendant. */
+  id?: string;
+  onFocus?: () => void;
   onPress: () => void;
 }
 
@@ -30,23 +41,33 @@ const WavePresetRow = ({
   glyph,
   name,
   hint,
+  shownName,
+  shownHint,
   checked,
   disabled,
   isLoud,
+  isActive,
+  isGone,
+  id,
+  onFocus,
   onPress,
 }: IWavePresetRowProps) => (
   <button
+    id={id}
     type="button"
     role={checked === undefined ? 'menuitem' : 'menuitemradio'}
     aria-checked={checked}
-    className={`wave-preset-menu__row${isLoud ? ' is-loud' : ''}`}
+    className={`wave-preset-menu__row${isLoud ? ' is-loud' : ''}${
+      isActive ? ' is-active' : ''
+    }${isGone ? ' is-gone' : ''}`}
     disabled={disabled}
     title={hint ? `${name} · ${hint}` : name}
+    onFocus={onFocus}
     onClick={onPress}
   >
     {glyph}
-    <span className="wave-preset-menu__name">{name}</span>
-    <span className="wave-preset-menu__hint">{hint}</span>
+    <span className="wave-preset-menu__name">{shownName ?? name}</span>
+    <span className="wave-preset-menu__hint">{shownHint ?? hint}</span>
     {checked && <MenuIcon name="check" className="wave-preset-menu__check" />}
   </button>
 );

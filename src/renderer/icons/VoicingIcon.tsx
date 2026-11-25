@@ -290,6 +290,18 @@ const ALIASES: Record<string, string> = {
   'lossy-repair': 'air',
   lossyRestore: 'air',
   lossy: 'air',
+  // The rack's chains named for what they are rather than for a voicing:
+  // None, Default, Reference, Air, Expansive and the two listening
+  // situations.
+  // They wore the generic sliders in every preset list until each row there
+  // drew its glyph (the titlebar plate's search, 2026-11-25).
+  empty: 'none',
+  balanced: 'music',
+  reference: 'monitors',
+  clarity: 'air',
+  expansive: 'v-shape',
+  headphones: 'openBack',
+  speakers: 'smallSpeakers',
   // Repairs, all of them a notch.
   deEss: 'notch',
   sibilance: 'notch',
@@ -316,6 +328,41 @@ const gameCurveGlyph = (profileId: string): string | undefined => {
     : 'games';
 };
 
+const owns = (table: Record<string, string>, key: string): boolean =>
+  Object.prototype.hasOwnProperty.call(table, key);
+
+/**
+ * The path a profile or a preset is drawn with: its alias, a game curve's
+ * glyph, its own path, and only then the same id camel-cased.
+ *
+ * The rack's chain ids are kebab-case where the voicing and EQ ids the
+ * glyphs were drawn for are camel-case — `late-night` against `lateNight`,
+ * `drum-bass` against `drumBass`, `vinyl-restore` and `tape-restore`
+ * against the EQ's `vinylRestore` and `tapeRestore` — so a lookup of the
+ * id as written gave Late night, Drum & bass, Vinyl and Tape the generic
+ * sliders in every preset list. The id as written is still tried first:
+ * `v-shape` and the Room copies (`gaming-room`) are keys of their own.
+ */
+const pathOf = (profileId: string): string | undefined => {
+  if (owns(ALIASES, profileId)) {
+    return PATHS[ALIASES[profileId]];
+  }
+  const curve = gameCurveGlyph(profileId);
+  if (curve !== undefined) {
+    return PATHS[curve];
+  }
+  if (owns(PATHS, profileId)) {
+    return PATHS[profileId];
+  }
+  const camel = profileId.replace(/-([a-z0-9])/g, (_dash, next: string) =>
+    next.toUpperCase(),
+  );
+  if (owns(ALIASES, camel)) {
+    return PATHS[ALIASES[camel]];
+  }
+  return owns(PATHS, camel) ? PATHS[camel] : undefined;
+};
+
 interface IVoicingIconProps {
   /** Profile id, or omitted for the generic voicing glyph. */
   profileId?: string;
@@ -329,10 +376,7 @@ export default function VoicingIcon({
   // Falls back rather than rendering nothing. `PATHS[unknown]` is `undefined`
   // and a path with no `d` draws an empty glyph, so a profile added without one
   // would leave a hole in the list that looks like a failed load.
-  const key = profileId
-    ? (ALIASES[profileId] ?? gameCurveGlyph(profileId) ?? profileId)
-    : '';
-  const path = (key ? PATHS[key] : GENERIC) ?? GENERIC;
+  const path = (profileId ? pathOf(profileId) : undefined) ?? GENERIC;
 
   return (
     <svg

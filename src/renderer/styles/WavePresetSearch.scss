@@ -1,0 +1,487 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// *** The plate panel's search, rows and stars ********************************
+//
+// Under the head card (`WavePreset.scss`): a field that searches every
+// preset, and a box under it whose height is set the moment the panel opens
+// (Ivan, 2026-11-25, design A), so typing swaps what the box holds and never
+// moves the panel. The rows here are the game panel's too.
+
+// The box the results swap into: the favourites, a search's finds and the
+// strip at its foot, the mockup's 304px. It gives way only to a window too
+// short to hold the panel, where AnchoredMenu caps the panel's height.
+$browse-height: 304px;
+$status-height: 28px;
+// A row's end: its padding, the check, the gap before it.
+$row-end: 6px;
+$check-size: 12px;
+$row-gap: 10px;
+$star-size: 22px;
+
+.wave-preset-menu__lead {
+  display: grid;
+  flex: none;
+  gap: 1px;
+  padding: 6px;
+}
+
+// The field, boxed as the mockup drew it: a field in the panel rather than a
+// strip across it. Glass, words, how many were found, the clear cross.
+.wave-preset-menu__search {
+  @include menu-search;
+  flex: none;
+  grid-template-columns: 13px minmax(0, 1fr) auto auto;
+  margin: 10px 12px 4px;
+  padding: 0 6px 0 10px;
+  border: 1px solid $menu-rule;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $edge-tint 4%, transparent);
+  transition: border-color $motion-fast $ease-out;
+
+  &:focus-within {
+    border-color: color-mix(in srgb, $secondary-default 62%, transparent);
+  }
+}
+
+.wave-preset-menu__found {
+  color: $text-muted;
+  font-size: $text-small;
+  white-space: nowrap;
+}
+
+.wave-preset-menu__browse {
+  display: flex;
+  height: $browse-height;
+  min-height: 0;
+  flex: 0 1 auto;
+  flex-direction: column;
+}
+
+.wave-preset-menu__list {
+  @include slim-scrollbar;
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 1px;
+  padding: 0 6px 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding-block: 6px;
+
+  // None and what plays, at the top of the box rather than boxed apart.
+  .wave-preset-menu__lead {
+    padding: 0 0 2px;
+  }
+}
+
+.wave-preset-menu__section {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 1px;
+
+  // What the others do stands apart from every name found.
+  &.is-by-what {
+    margin-top: 4px;
+    border-top: 1px solid $menu-rule;
+
+    .wave-preset-menu__group {
+      padding-top: 10px;
+    }
+  }
+}
+
+.wave-preset-menu__group {
+  display: flex;
+  min-width: 0;
+  flex: none;
+  align-items: baseline;
+  gap: 6px;
+  padding: 8px 10px 4px;
+  color: $text-muted;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  @include tracking(0.09em);
+  text-transform: uppercase;
+}
+
+.wave-preset-menu__count {
+  color: $text-faint;
+  font-weight: $weight-semibold;
+  @include tracking(0.02em);
+}
+
+// The words typed, in the reader's own quotes (`quotes: auto` follows the
+// window's language) and in their own case.
+.wave-preset-menu__quote {
+  min-width: 0;
+  overflow: hidden;
+  color: $text-primary;
+  font-weight: $weight-bold;
+  @include tracking(0.02em);
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+  quotes: auto;
+}
+
+// One row: glyph, name, what it does at the end, and the check on the one
+// that plays. The name keeps its width; the line gives way first.
+.wave-preset-menu__row {
+  display: grid;
+  width: 100%;
+  min-height: 30px;
+  align-items: center;
+  gap: $row-gap;
+  grid-template-columns: 18px minmax(0, max-content) minmax(0, 1fr) $check-size;
+  padding: 6px 10px;
+  color: $text-primary;
+  border: 0;
+  border-radius: $radius-xs;
+  background: transparent;
+  font: inherit;
+  font-size: $text-body;
+  text-align: left;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover:not(:disabled),
+  &:focus-visible,
+  &.is-active {
+    background: $hover-accent;
+    outline: none;
+  }
+
+  &[aria-checked='true'] {
+    background: $selected-accent;
+
+    .wave-preset-menu__name,
+    .wave-preset-menu__glyph {
+      color: $text-accent;
+    }
+  }
+
+  &.is-loud {
+    .wave-preset-menu__name,
+    .wave-preset-menu__glyph {
+      color: $text-accent;
+    }
+  }
+
+  // Unstarred in this opening: where it stood, in the faint ink.
+  &.is-gone {
+    .wave-preset-menu__name,
+    .wave-preset-menu__glyph,
+    .wave-preset-menu__hint {
+      color: $text-faint;
+    }
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.55;
+  }
+}
+
+.wave-preset-menu__glyph {
+  width: 16px;
+  height: 16px;
+  color: $text-muted;
+
+  &.is-own {
+    color: var(--ink-preset);
+  }
+}
+
+// The listener's own keeps its violet when it is the one playing.
+.wave-preset-menu__row[aria-checked='true'] .wave-preset-menu__glyph.is-own {
+  color: var(--ink-preset);
+}
+
+.wave-preset-menu__name {
+  @include truncate;
+  font-weight: $weight-semibold;
+}
+
+.wave-preset-menu__hint {
+  @include truncate;
+  color: $text-muted;
+  font-size: $text-small;
+  text-align: right;
+}
+
+.wave-preset-menu__check {
+  width: $check-size;
+  height: $check-size;
+  color: $text-accent;
+}
+
+// What the search matched, lit where it was found.
+.wave-preset-menu__mark {
+  margin: 0 -1px;
+  padding: 0 1px;
+  color: $text-accent;
+  border-radius: 2px;
+  background: color-mix(in srgb, $secondary-default 26%, transparent);
+
+  :root[data-window-ink='dark'] & {
+    background: color-mix(in srgb, $secondary-default 20%, transparent);
+  }
+
+  // On the row that plays, already lit, the mark is a line under the words.
+  .wave-preset-menu__row[aria-checked='true'] & {
+    background: transparent;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+// A preset's row with its star, which stands between the line and the check.
+.wave-preset-menu__entry {
+  position: relative;
+  display: grid;
+
+  > .wave-preset-menu__row {
+    grid-template-columns:
+      18px minmax(0, max-content) minmax(0, 1fr) $star-size
+      $check-size;
+    padding-right: $row-end;
+  }
+
+  .wave-preset-menu__check {
+    grid-column: 5;
+  }
+}
+
+// Quiet until it is wanted, as the pickers' stars are (`.rich-pick__star`):
+// an outline with the pointer or the keys on its row, and a filled star in
+// the favourites' yellow that stays.
+.wave-preset-menu__star {
+  position: absolute;
+  top: 50%;
+  right: $row-end + $check-size + $row-gap;
+  display: grid;
+  width: $star-size;
+  height: $star-size;
+  place-items: center;
+  padding: 0;
+  color: $text-dim;
+  border: 0;
+  border-radius: $radius-xs;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0;
+  translate: 0 -50%;
+  transition:
+    $transition-control,
+    opacity 120ms ease;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .wave-preset-menu__entry:hover &,
+  .wave-preset-menu__entry:focus-within &,
+  .wave-preset-menu__entry.is-active &,
+  &.is-on {
+    opacity: 1;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $text-primary;
+    background: $hover-accent;
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &.is-on {
+    color: $ink-star;
+
+    svg {
+      fill: currentcolor;
+    }
+  }
+
+  &.is-popping svg {
+    @include animate(wave-preset-star-pop, 320ms, $ease-spring);
+  }
+
+  // No pointer to bring it up: every star shows.
+  @media (hover: none) {
+    opacity: 1;
+  }
+}
+
+@keyframes wave-preset-star-pop {
+  from {
+    scale: 0.6;
+  }
+
+  60% {
+    scale: 1.25;
+  }
+
+  to {
+    scale: 1;
+  }
+}
+
+// A key, as the strip and the tip name it.
+.wave-preset-menu__key {
+  display: inline-block;
+  margin: 0 1px;
+  padding: 0 5px;
+  color: $text-muted;
+  border: 1px solid color-mix(in srgb, $edge-tint 16%, transparent);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: $text-eyebrow;
+  line-height: 15px;
+  white-space: nowrap;
+}
+
+// A word on how to add more, filling the space under a few favourites. Kept
+// compact: under five favourites and None it stood 6px from the last row at
+// 1.6 and 10px of padding, and a third line in some language would have
+// scrolled the box.
+.wave-preset-menu__tip {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  margin: auto 8px 4px;
+  padding: 4px 10px 6px;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.5;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.wave-preset-menu__tip-star {
+  width: 16px;
+  height: 16px;
+  color: $ink-star;
+}
+
+.wave-preset-menu__end {
+  margin: 0;
+  padding: 10px 10px 4px;
+  color: $text-faint;
+  font-size: $text-small;
+  text-align: center;
+}
+
+.wave-preset-menu__empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 34px 22px 10px;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.5;
+  text-align: center;
+
+  strong {
+    max-width: 100%;
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+    overflow-wrap: anywhere;
+  }
+}
+
+.wave-preset-menu__try {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+// A word that finds something: a chip you press, so a line button.
+.wave-preset-menu__word {
+  @include button-line;
+  padding: 3px 9px;
+  border-radius: $radius-xs;
+  font: inherit;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}
+
+// The strip at the box's foot: the keys while searching, a star's Undo.
+.wave-preset-menu__status {
+  display: flex;
+  height: $status-height;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  overflow: hidden;
+  color: $text-muted;
+  border-top: 1px solid $menu-rule;
+  font-size: $text-eyebrow;
+  white-space: nowrap;
+}
+
+.wave-preset-menu__keys {
+  display: inline-flex;
+  min-width: 0;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 3px;
+}
+
+.wave-preset-menu__note-line {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  color: $text-primary;
+  font-size: $text-small;
+}
+
+.wave-preset-menu__note-words {
+  @include truncate;
+
+  b {
+    font-weight: $weight-semibold;
+  }
+}
+
+.wave-preset-menu__note-star {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  color: $text-muted;
+
+  &.is-on {
+    color: $ink-star;
+    fill: currentcolor;
+  }
+}
+
+.wave-preset-menu__undo {
+  @include button-plain-accent;
+  flex: none;
+  margin-left: auto;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font: inherit;
+  font-size: $text-small;
+  font-weight: $weight-bold;
+}
