@@ -94,7 +94,7 @@ The title bar has **Visualizers**, **Share Audio**, **Gaming Lab** and **EQ**
 on the left of the signal, with **DSP**, **Library**, **Karaoke** and
 **Online Media** on the right.
 
-![The FluidEQ EQ page on its Bands tab. The graph fills the top: what is playing drawn live as bars from 10 Hz to 20 kHz, and over it the flat EQ line with a point for every band and the other curves applied to this output. Along its top edge sit the Presets picker on Modern Country, Smart EQ on Detail, the EQ mode, the 15-band layout, Add band, Curves with a coloured dot for each curve applied, and Clear EQ, with Game mode and the processing delay beside the FluidEQ Engine's name above them. Under the graph, fifteen parametric bands as vertical sliders from 26 Hz to 16.3 kHz, and under those the Tone row: Low cut, Bass, Mid, Treble and High cut. Down the left are the engine switch, the preamp, Auto normalize, the Response graph switch and a stereo level meter; down the right, the Output panel with the device and its profiles, Second output and the Driver type panel. The live output signal sits between the title bar’s navigation groups.](docs/03-eq-parametric-bands-and-live-response.png)
+![The EQ page on its Bands tab: its four pages — Bands, Headphone corrections, Convolution and Config — along the top, with the FluidEQ Engine’s name, Game mode and the processing delay at the right. The graph fills the middle: what is playing drawn live as a spectrum from 20 Hz to 20 kHz with its level scale on the right, and over it the EQ’s curve with a point for every band. Under it, the row of tabs — Your EQ with its ten bands, Preset and Tone — beside the band count, Add, Clear, Save EQ, the curves shown, the view and Auto EQ, and under that the ten bands as vertical sliders from 31.5 Hz to 16 kHz, each with its gain beneath.](docs/help/plain/eq-page.png)
 
 **Follows your output.** Every setting below belongs to the device you tuned it
 on. Plug in your headphones and their tuning comes back; switch to speakers and
@@ -155,7 +155,7 @@ accents, spaces and punctuation: `kpop` finds **K-pop**. A genre preset's
 information explains its sound; press a song under **Listen for it in** to
 open its video on YouTube.
 
-![The EQ Presets tab. At the top, Headphone correction: a picker for the headphone model, searchable by brand or model, and one for the measurement and target under it, with Apply headset EQ, the correction's curve to the right, and a line saying the OPRA library is up to date at 6,229 models; the OPRA credit sits under them. Below, the guided Squiglink import in three numbered steps: the EQ text exported from Squiglink pasted into the left pane as a preamp and ten filter lines with their own frequency, gain and Q, with Choose a .txt file, Apply as EQ and Apply as curve under it, and on the right the curve those ten bands produce.](docs/04-eq-headphone-correction-and-import.png)
+![The Headphone corrections page on My curves: three saved curves — an HD 650 correction from OPRA, playing as the EQ, an IE 200 curve imported from Squiglink and a curve of your own — each with its response, the ears it plays in, and Apply as curve or Apply as EQ, under a search box, Recent or A–Z, and Import list, Export list, Import from Squiglink and Add curve. The OPRA library tab sits beside My curves, and a line at the top right says the library is up to date.](docs/help/plain/headphones-page.png)
 
 **Smart EQ.** Measures what is actually coming out of your output and flattens
 what it hears, rather than assuming a target. It subtracts the rest of the chain
@@ -196,7 +196,7 @@ also carries the AutoEq catalogue itself, searchable by model or by whoever
 measured it, so a verified impulse can be fetched and applied without leaving
 the app.
 
-![The Convolution tab: a searchable library of verified minimum-phase headphone impulse responses from the AutoEq catalogue, each row naming the model and, beneath it, who measured it, on what rig, and that the file is a 48 kHz WAV, with a Source link and a Download & apply button on the right. Above the list, a search box and a note that each download matches the rate Windows runs the output at and that the FluidEQ Engine converts any other rate itself; Import a WAV sits at the top right, and a line at the foot notes that no convolution is loaded and the EQ tab remains fully independent.](docs/05-eq-convolution-library.png)
+![The Convolution page: a searchable library of verified minimum-phase headphone impulse responses from the AutoEq catalogue. A search for HD 65 lists the Sennheiser HD 650 measured by oratory1990, applied to this output, another HD 650 measured by crinacle and the HD 660S2, each a 48 kHz WAV with a Source link and Download & apply. Above the list, the correction applied to this output with Clear and a note that each download matches the rate Windows runs the output at; Import a WAV sits at the top right.](docs/help/plain/convolution-page.png)
 
 **Send a chain to somebody.** A **Config** tab shows the config the engine has
 actually got on disk, per output, as the include tree it really is — what each
@@ -205,7 +205,7 @@ output also gets one file FluidEQ never rewrites, for the APO commands that have
 no interface here. From that tab a whole chain exports to a `.fluideq` file and
 imports back onto the output you are listening to.
 
-![The Config tab, headed "FluidEQ Engine config" and "what is on disk right now, not what FluidEQ intends", with a line confirming the FluidEQ Engine is applying this config and a Reload button. A card for every output runs across the top, the one in use marked "playing now" with its profile and filter count. Below them, the include tree for that output as it really is, with Export chain and Import chain beside it: the device file carrying the preamp and the engine's own directives, and under it a generated file for each layer that is on — here the driver type, the headphone correction and the preset — each with its switch, its filter count, an Edit link, a note that it is rewritten on the next change, and the actual Filter lines it holds.](docs/06-eq-equalizer-apo-config.png)
+![The Config page, headed “FluidEQ Engine config” and “what is on disk right now, not what FluidEQ intends”, with a line confirming the FluidEQ Engine is applying this config and a Reload button. A card for every output runs across the top, the headphones in use marked “playing now”. Below them, that output’s include tree with Export chain and Import chain: the device file with its preamp, and under it a generated file for each layer that is on — the EQ’s ten filters and the Tone’s two shelves — each with its filter count, an Edit link and the actual Filter lines it holds, then your own custom file, which is never overwritten.](docs/help/plain/config-page.png)
 
 **One transport, at the foot of every tab.** It follows whichever of FluidEQ's
 own players is going — the Library, Karaoke, Online Media — and when none of
@@ -257,7 +257,7 @@ enabled second output shows that device's saved profiles and applies a selection
 there without switching the main output. Mirroring runs only while FluidEQ is
 open. Switching the main output stops the old mirrors before the change.
 
-<p align="center"><img src="docs/40-rail-right.png" alt="The right side of the window. At the top, Output: the device the sound is following, marked Active, and its profiles, with New profile, Restore and Update. Under it, Second output: the One player at a time switch, then every other output on the machine with its own switch — an Odyssey G5 monitor, two Razer headsets, a Realtek output and another monitor — each naming the profile it uses, above the note that each output uses its own EQ profile and that mirroring runs only while FluidEQ is open. At the foot, Driver type on Bio-cellulose, with its curve and its strength." width="300"></p>
+<p align="center"><img src="docs/help/plain/sound-panel.png" alt="The right side of the window. At the top, Output: the headphones the sound is following, marked Active, and their profiles — Music, which is on, Films and Late night — with New profile, Restore and Update, and a note that edits save to the profile that is on. Under it, Second output: the One player at a time switch and the speakers playing beside the headphones with a sound of their own. At the foot, Driver type, here No compensation." width="300"></p>
 
 **Plays one headset from every computer on the desk.** The **Share Audio** tab
 lets your gaming PC, your work laptop and the media box all play into the one
@@ -266,7 +266,7 @@ through the EQ you already tuned on the computer the headset is plugged into.
 One computer creates a connection code, the others paste it, and nothing is
 installed and nothing leaves your network.
 
-![The Share Audio tab, headed "Share audio between your computers": a live strip of the shared sound with the network's rate, its state, the playback delay and the peak level; under it this computer's two roles side by side — Play audio on this computer, chosen, for the computer your headset is connected to, and Send audio from this computer, for each of the others — and below them the connection code, blurred, with Copy code. The equaliser's side column and the output panel stay either side of it.](docs/14-share-audio-roles.png)
+![The Share Audio tab, headed “Share audio between your computers”, for a group of four: Your mix down the left, with a slider for each computer you hear and the output it plays through; beside it the whole group — this computer sharing what it plays, one offline, and two that send and receive — each with the song it is playing drawn as it plays, its Receive and Send switches and the lag either way. The group stays on the private network, lossless and encrypted, with Add computer at the top right.](docs/help/plain/share-page.png)
 
 **12 interface languages.** English, 简体中文, 繁體中文, हिन्दी, Español, Français,
 Português, Русский, 日本語, 한국어, Deutsch, Italiano.
@@ -312,7 +312,7 @@ underneath it and a band is dragged. It is not a browser: it goes to those sites
 and nowhere else, and it saves a file only when a site offers one and you choose
 where it goes.
 
-![The Online Media tab: YouTube open inside the FluidEQ window on NASA's channel, with the site's own menu, search box and grid of videos exactly as they come, and the row of site chips — YouTube, YouTube Music, Bandcamp, Twitch, Suno — along the top beside FluidEQ's own search field and the button that signs you out of every site at once. The bar at the foot of the window names what is playing, with its play controls and volume.](docs/01-online-media-youtube-live-eq.png)
+![The Online Media tab on YouTube: the sites down the left — YouTube, YouTube Music, Bandcamp, Twitch and Suno — with your recent searches under them, and Match FluidEQ’s colours and Sign out of all sites at the foot; along the top, FluidEQ’s own back, forward, reload and search bar, and the site itself filling the rest, here playing a video.](docs/help/plain/online-page.png)
 
 You can sign in, and it remembers you next time. Its cookies live in a store of
 its own that no other part of FluidEQ reads, encrypted at rest by Windows the
@@ -337,7 +337,7 @@ it, titled from the filename and grouped by the folder it sits in; the scan then
 fills in the real tags, cover art and durations behind it, so a large library is
 usable while it is still being read rather than blank until it finishes.
 
-![The Library on its Artists shelf, as a grid: a tile for every artist, carrying a cover from their files where one had it and a tile drawn from the name where none did, with the artist and their album count beneath. Along the top sit the shelves — Albums, Artists, Genres, Songs, Folders, Videos, Playlists — the view and sort controls, a search box, and buttons to add a folder or rescan. Down the right, the Up Next queue lists what is coming, grouped under the album or folder each run of songs came from, with a Keep playing switch above it.](docs/08-library-artists-and-up-next.png)
+![The Library on its Albums shelf, as a grid of covers with each album’s artist, year and song count. Down the left, the shelves — Albums, Artists, Genres, Songs, Folders, Videos — and your playlists, with Add folder and Your folders at the foot; along the top, back and forward, the search box, Details, Grid and Cover Flow, the sort order and Up next. A line at the foot counts the songs, the hours and the albums and says the Library is up to date.](docs/help/plain/library-page.png)
 
 Cover art comes from the file's own tags, or a `cover.jpg` beside it, or a tile
 drawn from the album's name — nothing is fetched from the internet, and no album
@@ -347,7 +347,7 @@ its songs and dims them rather than losing them; and an album that does not
 account for every file in its folder lists the rest underneath it instead of
 hiding them.
 
-![The Library on its Albums shelf in Cover Flow: the covers swept into a curve with the selected one face on and reflected beneath it, and a strip of letters above to jump through them. Under that, the album itself opened — its artwork, title, artist and song count, Play and Add to up next, a box to filter within it, and its songs as a sortable table of title, artist, album and length. The Up Next queue stays down the right.](docs/09-library-album-and-play-queue.png)
+![An album opened in the Library: Neon Weather, with its artwork, title, artist, year, song count, length and format, Fix tags, Play, Shuffle, Add to up next, Show in Explorer and the album’s own sound, a box to filter its songs, and the songs as a table of title, artist, format, plays and time, the one playing marked.](docs/help/plain/library-record.png)
 
 Playback carries on while you look at any other tab, with a transport at the
 foot of the window. Songs that come with their own lyrics are left out of the
@@ -369,7 +369,7 @@ anywhere, and no music ships with it — the songs are your own, and the
 instrumental is either one you already have or one the Karaoke Maker splits out
 of the song itself.
 
-![The Karaoke tab mid-song on FluidEQ's own song, headed "a stage built around your music": the playlist down the left with the song marked, and the stage beside it with the song's title over the words. The current line is large and lit in the middle with the lines around it dimmed. In the top right corner sit the chord now and the next one, and a panel saying the file carries UltraStar syllables and pitch, with the lyric size under it. Along the foot runs the pitch lane: the song's notes as labelled blocks under their words, with a switch to turn the microphone on and see your own pitch over them.](docs/11-karaoke-player.png)
+![The Karaoke tab mid-song: the song’s name over Pitch, Chords and the stage’s backgrounds; the current line large and lit in the middle as it is sung, with the lines around it dimmed; the chord now and the ones coming; and along the foot the pitch lane — the song’s notes as labelled bars, your own voice traced over them and graded as you sing — with each line’s score and the running total.](docs/help/plain/karaoke-stage.png)
 
 **And make the file when the song does not have one.** The **Karaoke Maker**
 builds one out of a song and nothing else. It can split that song into two
@@ -389,7 +389,7 @@ or add to by hand. There is a counted-in preview, undo and redo throughout, and
 what comes out either goes straight to the player or saves as a project to
 return to.
 
-![The Karaoke Maker with a song open: its tools along the top beside the song's name and Use in player; under them the song's waveform, the words laid out in staggered rows, and a pitch grid from C1 to C7 where the melody sits as labelled note blocks. Below the grid, the song position with a scrubber over the whole track and Follow lyrics. At the foot, a live preview draws the stage exactly as the player will — the current line lit, the lines either side of it dimmed, and a strip of the notes underneath — above a running count of notes, words and how many are still pending, the artist field, and a box confirming there is permission to use and export this audio and these lyrics.](docs/12-karaoke-maker-pitch-and-lyrics.png)
+![The Karaoke Maker with a song open: its tools along the top beside the song’s name and Use in player; under them the song’s waveform, the words laid out in staggered rows over the pitch grid where the melody sits as labelled note blocks; the song position with a scrubber over the whole track and Follow lyrics; and a live preview that draws the stage as the player will, above a count of the notes and words adjusted and pending, the artist field, and a box confirming there is permission to use and export this audio and these lyrics.](docs/help/plain/maker-editor.png)
 
 **Shape the sound with a studio rack.** A **DSP** tab adds a rack of eleven
 stages — Normalizer, Denoise, De-esser, Exciter, Bass Forge, Equaliser, Bass
@@ -418,7 +418,7 @@ they are untouched by it. The DSP tab says so at the top of its own page.
 | Dimension, Maximizer   | A widener that works per band and can never change what a mono listener hears, and a maximizer that raises the level without letting peaks past the ceiling, showing how much it holds down.         |
 | Master                 | A destination rather than a number — Streaming, Podcast, Audiobook, Broadcast, Cinema, CD, Vinyl, Club, Reference — each setting the loudness target and ceiling delivery really uses.               |
 
-![The Denoise stage of the DSP tab, headed with what it is for: repairing the source before anything colours it — hiss, mains hum, clicks and a neural voice cleaner, measured from the track itself rather than guessed — and a line saying that sound from outside the Library gets a live, adaptive noise floor. A strip counts the click repairs of the last eight seconds, and under it a graph draws the output, the noise floor, the hiss reduction being applied, the hum and the click repairs each as their own line, with the noise floor it finds in a box beneath. Below those sit four panels of controls — hiss with its amount, reduction limit, sensitivity and smoothing; hum with Auto, 50 Hz or 60 Hz and its harmonics, depth and width, notching the mains frequency the scan actually found; clicks with a sensitivity and a longest repair, which leaves anything too long to be a click alone so percussion survives; and the voice cleaner, for Library playback only — each with its own switch, over readouts of what is being reduced, repaired and dropped. The stage's preset picker and Reset sit at the top left, Isolate and On at the top right.](docs/13-dsp-denoise-and-source-analysis.png)
+![The Denoise stage of the DSP tab: what it repairs — hiss, mains hum, clicks and a neural voice cleaner, measured from the track itself rather than guessed — over a graph of the output, the noise floor, the hiss reduction applied, the hum and the click repairs, each as its own line. Under it, the source analysis, Scanned or Adaptive with Rescan, and what it found: the noise floor, the hum at 50 Hz and the clicks a minute. Below those, four panels with their own switches — hiss with its amount, reduction limit, sensitivity and smoothing; hum with Auto, 50 Hz or 60 Hz and its harmonics, depth and width; clicks with a sensitivity and a longest repair; and the voice cleaner — over readouts of what is being reduced, repaired and dropped. The stage’s preset picker sits at the top left, Isolate and On at the top right.](docs/help/plain/dsp-denoise.png)
 
 Anything that adds level can hand it back: gain match takes the makeup off again
 so switching a stage on and off compares the sound rather than the volume, and
@@ -435,7 +435,7 @@ on: under the FluidEQ Engine the engine's rack takes it, and under Equalizer APO
 it plays unchanged, with every stage visibly disabled and the app saying why —
 there is no second implementation waiting to drift away from it.
 
-![The DSP tab on the Modern Country chain, with its About, Reset, Save, Export and Import beside the picker, and Game mode with the processing delay, Front pair and the rack's On switch at the top right. Down the left, the ten stages in their fixed order — Normalizer, Denoise, Exciter, Bass Forge, Equaliser, Bass Punch, Dimension, Room, Maximizer and Master — with a dot on those that are on, and Crossfade under the playback options. Dimension is open: a line saying only the sides are touched, so a mono listener hears exactly what they would with it off; a phase scope and the width it gives each frequency against unchanged; the Low, Mid and High width knobs and the Low split, High split and Spread knobs; and the mono guard along the foot.](docs/20-dsp.png)
+![The DSP tab on the Pop chain, with its arrows, About, Reset, Save, Export and Import beside the picker, and All channels and the rack’s On switch at the top right. Down the left, the stages in their fixed order, each with its own switch — Normalizer under Source level; Denoise, De-esser, Exciter, Bass Forge, Equaliser, Bass Punch, Dimension, Room, Dynamics, Maximizer and Master under Filters — and Crossfade under the playback options. The Maximizer is open: the reduction it applies over the last six seconds against its ceiling, and its Drive, Ceiling, Look-ahead and Release.](docs/help/plain/dsp-overview.png)
 
 **Sit in the Room.** The Room turns headphones into a listening room, every
 channel a speaker standing around you, heard through a measured head and the
@@ -448,7 +448,7 @@ its level, the walls, the space and the bass management. A listening test picks
 the head that puts sounds in front of you, by ear, in five pairs. All of it is
 free.
 
-![The Room stage of the DSP tab on Game World, with Reset and Save beside the picker and the stage's On switch, and a line saying it is folding a stereo stream onto the front stage. On the left, the room drawn from above: your head in the middle, the front left and front right speakers standing in front of it and the other five and the sub dimmed around the ring, 1.6 m away in a room 5 m wide. Beside it, the front left speaker's own pane with its angle, distance and level and its Mute and Solo; then Make it yours, with Space, Ambience and Distance; Room character, with Size, Walls, Tail length and Tail tone and a switch to keep the speakers' positions; Bass and centre, with the sub's crossover and the centre and sub levels; Stereo source, Front stage or Fill the room; and Your head, Small, Medium or Large, with Start the listening test.](docs/32-dsp-room.png)
+![The Room stage of the DSP tab on Game World, folding a 7.1 stream into a full room. On the left, the room drawn from above: your head in the middle and the seven speakers and the sub around it, 1.6 m away in a room 5 m wide. Beside it, a pane to pick a speaker and change its settings; Make it yours, with Space, Ambience and Distance; Room character, with Size, Walls, Tail length and Tail tone and a switch to keep the speakers’ positions; Bass and centre, to the sub or full range, with the crossover and the centre and sub levels; Stereo source, Front stage or Fill the room; and Your head, Small, Medium or Large, with Start the listening test.](docs/help/plain/dsp-room.png)
 
 **Local, and no account needed to use it.** No cloud processing, no telemetry,
 no analytics, no proprietary driver, no virtual audio device. Your audio never leaves the
@@ -501,9 +501,9 @@ terms, under Account in the app, say in plain words what your account sends to
 FluidEQ's server and what is kept — never your audio, what you play, your EQ or
 your devices.
 
-![A scene's page in the Visualizers gallery: Neon City, a skyline of neon towers in violet and cyan under a full moon, reflected in the water in front of it, playing on your music, with its category, its maker FluidEQ and its version beside it, and Play on the graph, Set as a desktop background and Open in Studio under them. Under it, more of FluidEQ's scenes: Bloom, a lotus of glowing petals; Neon City 3D; Chrome, a mirrored sphere on a ring of light; and Crystal, a cut gem splitting the light.](docs/26-plus-scene.png)
+![A scene’s page in the Scenes gallery: Neon City, a skyline of neon towers in violet and cyan under a full moon, reflected in the water in front of it, playing on your music, with its category, its maker FluidEQ, its version and its likes beside it, and Play on the graph, Set as desktop background and Open in Studio under them. Under it, more by FluidEQ: Bloom, a lotus of glowing petals; Chrome, a mirrored sphere on a ring of light; Aurora; and Alpine, violet peaks under a starry sky.](docs/help/plain/gallery-scene.png)
 
-![The Studio with Alpine on its stage: a lake under snowy peaks and green and violet aurora, a wooden jetty lit by lanterns and a boat on the water. Down the right, Preview audio to drive the scene with your music or a test signal, and What it hears now: the level, bass, mids, treble, voice, balance and width it hears, a spectrum, and the rhythm and the song's intensity, build and drop. Under the stage, the Make with AI, Code, Pictures, Tune and Performance tabs, here on Tune with the window colours, the wave on the graph, the scene's own sliders, how it answers the music and the elements it adds around the window.](docs/31-plus-studio.png)
+![The Studio with a project, Northern Lake, on its stage: green aurora over dark mountains and a lake. Above it, the project picker, the version that is in the gallery, and Play on the graph, Add to my looks and Publish. Under the stage, the Tune, Code, Performance and What it hears now tabs, here on What it hears now: your music or a test signal driving the preview, and the level, bass, mids, treble, voice, balance and width it hears, a spectrum and its rhythm. Down the right, Make with AI: the conversation that made the aurora swell with the bass, with the picture Claude looked at and the version it made.](docs/help/plain/studio-bench.png)
 
 ## The config is the source of truth
 
