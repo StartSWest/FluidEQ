@@ -1,6 +1,8 @@
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
+import useDocumentShown from '../utils/useDocumentShown';
 import StudioShipMore, { type IShipMoreItem } from './StudioShipMore';
+import type { TPublishCall } from './versionLine';
 
 interface IStudioShipCardProps {
   /** No scene that plays and passes, so nothing can be kept or sent yet. */
@@ -24,26 +26,30 @@ interface IStudioShipCardProps {
   /** Brings the scene's problems under the stage into view. */
   onShowProblems: () => void;
   /**
-   * The bench holds changes the gallery does not have yet
-   * (`versionLine.ts`): Publish is then the step the bar recommends.
+   * How loudly Publish asks to be pressed (`versionLine.ts`): loud while
+   * there is something to publish, with a light running round it while the
+   * bench has changes people do not have.
    */
-  publishSuggested: boolean;
+  publishCall: TPublishCall;
 }
 
 /**
  * What to do with the scene once it plays, at the end of the Studio's bar
  * (layout A, Ivan 2026-09-27): publish it to the gallery, keep it in the
- * member's looks, and behind More, send it as a file or play it on the
- * desktop. A maker's own scene plays in their looks and on the graph
- * whether or not it is published: they try it there until it is done, and
- * publish it to share it and earn (Ivan, 2026-10-21: "they will publish to
- * earn money when the scene is fully done and tested in the grahp"). So Add
- * wears the loud style, the step taken over and over while a scene is made,
- * and Publish the quiet one — until the scene has changed since the version
- * people have: the line beside the project says so, and Publish turns loud as
- * the step after it (Ivan, 2026-11-25: one control per action, so the line
- * carries no Publish link of its own). The bench shows `StudioShipInspect` for one of
- * FluidEQ's scenes opened to look inside.
+ * member's looks, play it on the graph, and behind More, send it as a file
+ * or play it on the desktop.
+ *
+ * Publish is the bar's main action and stands last, where the eye ends the
+ * bar (Ivan, 2026-11-25: "we have Add to my looks as the default, which I
+ * don't think should be the default. Should be Publish"). It wears the loud
+ * style while there is something to publish - changes the gallery does not
+ * have, or a scene never published - and a light runs round its edge while
+ * those changes wait (`button.is-beckoning`); everything else here is
+ * quiet. With nothing to publish no button is loud: emphasis follows a
+ * recommendation, and there is none. One control per action: the line
+ * beside the project names the state and carries no Publish of its own.
+ * The bench shows `StudioShipInspect` for one of FluidEQ's scenes opened
+ * to look inside.
  *
  * In the bar they are in reach wherever the page was left: at the foot of the
  * side column they were a card pinned over everything that scrolled there.
@@ -60,9 +66,13 @@ export default function StudioShipCard({
   settingDesktop,
   unfitReason,
   onShowProblems,
-  publishSuggested,
+  publishCall,
 }: IStudioShipCardProps) {
   const { t } = useTranslation();
+  // The light runs only where somebody can see it, and never on a button
+  // that cannot be pressed or is already publishing.
+  const shown = useDocumentShown();
+  const beckoning = publishCall === 'changes' && shown && !unfit && !publishing;
   const more: IShipMoreItem[] = [
     {
       key: 'export',
@@ -109,20 +119,8 @@ export default function StudioShipCard({
       aria-label={t('studio.ship.title')}
     >
       <StudioShipMore items={more} />
-      <button
-        type="button"
-        className={`button small${publishSuggested ? '' : ' subtle'}${
-          publishing ? ' is-running' : ''
-        }`}
-        aria-busy={publishing}
-        onClick={onPublish}
-        disabled={unfit}
-      >
-        <Glyph name="upload" />
-        {t('studio.action.publish')}
-      </button>
-      {/* Quiet beside Add: it adds too, and then leaves the Studio for the
-          graph, which is a step taken now and then, not at every save. */}
+      {/* Quiet: it adds too, and then leaves the Studio for the graph, a
+          step taken now and then, not at every save. */}
       <button
         type="button"
         className="button small subtle"
@@ -134,12 +132,24 @@ export default function StudioShipCard({
       </button>
       <button
         type="button"
-        className="button small studio-ship__add"
+        className="button small subtle studio-ship__add"
         onClick={onAdd}
         disabled={unfit}
       >
         <Glyph name="looks" />
         {t('studio.action.addToLooks')}
+      </button>
+      <button
+        type="button"
+        className={`button small studio-ship__publish${
+          publishCall !== 'changes' ? ' subtle' : ''
+        }${beckoning ? ' is-beckoning' : ''}${publishing ? ' is-running' : ''}`}
+        aria-busy={publishing}
+        onClick={onPublish}
+        disabled={unfit}
+      >
+        <Glyph name="upload" />
+        {t('studio.action.publish')}
       </button>
     </div>
   );

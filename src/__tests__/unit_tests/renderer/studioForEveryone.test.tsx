@@ -13,7 +13,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import '@testing-library/jest-dom';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IStudioProject } from '../../../main/ipc/memberScenes';
 import { requestAccountPanel } from '../../../renderer/account/accountPanel';
@@ -151,20 +151,41 @@ it('gives the whole editor to a signed-in account, with no Plus anywhere', async
   expect(screen.getByText('studio.new.title')).toBeInTheDocument();
 });
 
-it('wears no draft mark and makes Add to looks the loud way out, published or not', async () => {
-  // Never published: the store says the look is not owned.
+it('wears no draft mark, and makes Publish the loud way out of a scene never published', async () => {
+  // Never published: the store says the look is not owned, and the gallery
+  // has nothing of it.
+  Object.assign(window.electron.ipcRenderer, {
+    publishedStudioSettings: jest.fn(async () => ({ ok: true })),
+  });
   render(<StudioBench view={view()} onShowGraph={jest.fn()} />);
   await screen.findByRole('textbox', { name: 'studioChat.label' });
   expect(screen.getByTestId('studio-stage')).toHaveAttribute(
     'data-draft',
     'none',
   );
+  const publish = screen.getByRole('button', {
+    name: 'studio.action.publish',
+  });
+  await waitFor(() => expect(publish).not.toHaveClass('subtle'));
+  // Loud and still: there are no changes waiting, there is nothing at all.
+  expect(publish).not.toHaveClass('is-beckoning');
+  // Add was the default and is not (Ivan, 2026-11-25).
+  expect(
+    screen.getByRole('button', { name: 'studio.action.addToLooks' }),
+  ).toHaveClass('subtle');
+});
+
+it('leaves every action quiet while the gallery cannot be asked', async () => {
+  // The control for the test above: the same bench with no answer from the
+  // gallery claims nothing, so nothing is pushed.
+  render(<StudioBench view={view()} onShowGraph={jest.fn()} />);
+  await screen.findByRole('textbox', { name: 'studioChat.label' });
   expect(
     screen.getByRole('button', { name: 'studio.action.publish' }),
   ).toHaveClass('subtle');
   expect(
     screen.getByRole('button', { name: 'studio.action.addToLooks' }),
-  ).not.toHaveClass('subtle');
+  ).toHaveClass('subtle');
 });
 
 it('offers every way out under More with no lock, and no desktop where there can be none', async () => {

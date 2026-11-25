@@ -38,7 +38,6 @@ const props = {
   onTrouble: jest.fn(),
   onDrawn: jest.fn(),
   onExitFullscreen: jest.fn(),
-  onToggleFullscreen: jest.fn(),
   wave: { height: 1, position: 0 },
 };
 const current = () => runner.mock.calls[runner.mock.calls.length - 1][0];
@@ -65,7 +64,6 @@ it('shows loading for as long as the runner says a version is on its way', () =>
       onTrouble={props.onTrouble}
       onDrawn={props.onDrawn}
       onExitFullscreen={props.onExitFullscreen}
-      onToggleFullscreen={props.onToggleFullscreen}
       wave={props.wave}
       isGridShown={false}
     />,
@@ -118,7 +116,6 @@ it('starts loading again when the selected project changes', () => {
       onTrouble={props.onTrouble}
       onDrawn={props.onDrawn}
       onExitFullscreen={props.onExitFullscreen}
-      onToggleFullscreen={props.onToggleFullscreen}
       wave={props.wave}
       isGridShown={false}
     />,
@@ -139,7 +136,6 @@ it('starts loading again when the selected project changes', () => {
       onTrouble={props.onTrouble}
       onDrawn={props.onDrawn}
       onExitFullscreen={props.onExitFullscreen}
-      onToggleFullscreen={props.onToggleFullscreen}
       wave={props.wave}
       isGridShown={false}
       identity="two"
@@ -163,7 +159,6 @@ it('reports an actual compile error', () => {
       onTrouble={props.onTrouble}
       onDrawn={props.onDrawn}
       onExitFullscreen={props.onExitFullscreen}
-      onToggleFullscreen={props.onToggleFullscreen}
       wave={props.wave}
       isGridShown={false}
     />,

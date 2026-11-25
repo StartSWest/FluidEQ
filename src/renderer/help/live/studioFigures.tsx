@@ -242,7 +242,7 @@ const StudioDrawing = () => {
                 settingDesktop={false}
                 unfitReason={undefined}
                 onShowProblems={nothing}
-                publishSuggested={false}
+                publishCall={LINE === 'asking' ? 'quiet' : LINE.publish}
               />
             </div>
           </div>

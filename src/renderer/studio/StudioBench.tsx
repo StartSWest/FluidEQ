@@ -327,8 +327,8 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
         settingDesktop={keeping.settingDesktop}
         unfitReason={unfitWords}
         onShowProblems={showProblems}
-        publishSuggested={
-          typeof versionLine === 'object' && versionLine.publishSuggested
+        publishCall={
+          typeof versionLine === 'object' ? versionLine.publish : 'quiet'
         }
       />
     );
@@ -382,7 +382,6 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
         onHeard={onHeard}
         onDrawn={onDrawn}
         onExitFullscreen={exitFullscreen}
-        onToggleFullscreen={toggleFullscreen}
         fullscreenRef={gridRef}
         captureRef={stageCapture.live}
         controls={

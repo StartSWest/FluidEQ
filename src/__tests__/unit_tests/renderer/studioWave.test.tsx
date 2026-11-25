@@ -115,7 +115,6 @@ describe('the stage', () => {
       onTrouble={jest.fn()}
       onDrawn={jest.fn()}
       onExitFullscreen={jest.fn()}
-      onToggleFullscreen={jest.fn()}
     />
   );
   const lastBand = () =>

@@ -20,6 +20,7 @@ import StudioVersionLine from '../../../renderer/studio/StudioVersionLine';
 import {
   studioVersionLine,
   type TGalleryAnswer,
+  type TPublishCall,
 } from '../../../renderer/studio/versionLine';
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
@@ -60,7 +61,7 @@ const base: TInput = {
 };
 
 describe('the sentence for every state the bar can be in', () => {
-  // [what the member is in, the facts, key, vars, mark, See why, loud Publish]
+  // [what the member is in, the facts, key, vars, mark, See why, Publish's call]
   const TABLE: [
     string,
     Partial<TInput>,
@@ -68,7 +69,7 @@ describe('the sentence for every state the bar can be in', () => {
     Record<string, number>,
     string,
     boolean,
-    boolean,
+    TPublishCall,
   ][] = [
     [
       'never published',
@@ -77,7 +78,7 @@ describe('the sentence for every state the bar can be in', () => {
       {},
       'off',
       false,
-      false,
+      'ready',
     ],
     [
       'published, nothing changed since',
@@ -86,7 +87,7 @@ describe('the sentence for every state the bar can be in', () => {
       { version: 21 },
       'live',
       false,
-      false,
+      'quiet',
     ],
     [
       'changed since it was published',
@@ -95,7 +96,7 @@ describe('the sentence for every state the bar can be in', () => {
       { version: 21 },
       'changed',
       false,
-      true,
+      'changes',
     ],
     [
       'a newer version waiting for review',
@@ -104,7 +105,7 @@ describe('the sentence for every state the bar can be in', () => {
       { version: 22, live: 21 },
       'review',
       false,
-      false,
+      'quiet',
     ],
     [
       'the first version waiting for review',
@@ -118,7 +119,7 @@ describe('the sentence for every state the bar can be in', () => {
       { version: 1 },
       'review',
       false,
-      false,
+      'quiet',
     ],
     [
       'a newer version refused',
@@ -127,7 +128,7 @@ describe('the sentence for every state the bar can be in', () => {
       { version: 22, live: 21 },
       'refused',
       true,
-      false,
+      'quiet',
     ],
     [
       'the first version refused',
@@ -141,7 +142,7 @@ describe('the sentence for every state the bar can be in', () => {
       { version: 1 },
       'refused',
       true,
-      false,
+      'quiet',
     ],
     [
       'published from another computer',
@@ -150,7 +151,7 @@ describe('the sentence for every state the bar can be in', () => {
       { version: 21 },
       'live',
       false,
-      false,
+      'quiet',
     ],
     [
       'published later from another computer than this one did',
@@ -159,7 +160,7 @@ describe('the sentence for every state the bar can be in', () => {
       { version: 21 },
       'live',
       false,
-      false,
+      'quiet',
     ],
     [
       'a newer version sent from here that the review has not answered',
@@ -168,7 +169,7 @@ describe('the sentence for every state the bar can be in', () => {
       { version: 21 },
       'live',
       false,
-      false,
+      'quiet',
     ],
     [
       'signed out or offline',
@@ -177,7 +178,7 @@ describe('the sentence for every state the bar can be in', () => {
       {},
       'off',
       false,
-      false,
+      'quiet',
     ],
     [
       'a scene opened to look inside',
@@ -186,22 +187,19 @@ describe('the sentence for every state the bar can be in', () => {
       { version: 21 },
       'none',
       false,
-      false,
+      'quiet',
     ],
   ];
 
-  it.each(TABLE)(
-    '%s',
-    (_state, facts, key, vars, mark, seeWhy, publishSuggested) => {
-      expect(studioVersionLine({ ...base, ...facts })).toEqual({
-        key,
-        vars,
-        mark,
-        seeWhy,
-        publishSuggested,
-      });
-    },
-  );
+  it.each(TABLE)('%s', (_state, facts, key, vars, mark, seeWhy, publish) => {
+    expect(studioVersionLine({ ...base, ...facts })).toEqual({
+      key,
+      vars,
+      mark,
+      seeWhy,
+      publish,
+    });
+  });
 
   it('says nothing at all while the gallery is still being asked', () => {
     expect(studioVersionLine({ ...base, gallery: { state: 'asking' } })).toBe(

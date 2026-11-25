@@ -147,7 +147,6 @@ const stage = (pack: IScenePack, serial: number) => (
     onTrouble={onTrouble}
     onDrawn={onDrawn}
     onExitFullscreen={jest.fn()}
-    onToggleFullscreen={jest.fn()}
   />
 );
 

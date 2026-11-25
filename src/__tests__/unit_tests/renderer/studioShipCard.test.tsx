@@ -5,17 +5,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * What the Studio's bar offers for a scene that plays: keeping it, the loud
- * one, publishing it, and behind More sending it and putting it on the
- * desktop — each as loud as it is common, and none of it for a scene that
- * does not play yet.
+ * What the Studio's bar offers for a scene that plays: publishing it, the
+ * main action and the only loud one while there is something to publish,
+ * keeping it and playing it on the graph, and behind More sending it and
+ * putting it on the desktop — and none of it for a scene that does not play
+ * yet.
  */
 
 import '@testing-library/jest-dom';
-import { render, screen, within } from '@testing-library/react';
+import { act, cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import StudioShipCard from '../../../renderer/studio/StudioShipCard';
 import StudioShipInspect from '../../../renderer/studio/StudioShipInspect';
+import type { TPublishCall } from '../../../renderer/studio/versionLine';
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({ locale: 'en', t: (key: string) => key }),
@@ -36,7 +38,7 @@ const card = (
     settingDesktop: false,
     unfitReason: undefined as string | undefined,
     onShowProblems: jest.fn(),
-    publishSuggested: false,
+    publishCall: 'quiet' as TPublishCall,
     ...overrides,
   };
   render(
@@ -52,7 +54,7 @@ const card = (
       settingDesktop={props.settingDesktop}
       unfitReason={props.unfitReason}
       onShowProblems={props.onShowProblems}
-      publishSuggested={props.publishSuggested}
+      publishCall={props.publishCall}
     />,
   );
   return props;
@@ -60,20 +62,28 @@ const card = (
 
 const more = () => screen.getByRole('button', { name: 'studio.ship.more' });
 
-it('keeps the scene with the loud button, publishes with a quiet one, and sends it or puts it on the desktop from More', async () => {
-  const props = card();
+it('puts Publish last, where the eye ends the bar, with Add, Play and More quiet before it', async () => {
+  const props = card({ publishCall: 'ready' });
   const bar = screen.getByRole('group', { name: 'studio.ship.title' });
+  const buttons = within(bar).getAllByRole('button');
+  const publish = within(bar).getByRole('button', {
+    name: 'studio.action.publish',
+  });
+  expect(buttons[buttons.length - 1]).toBe(publish);
+  expect(publish).toHaveClass('button', 'small');
+  expect(publish).not.toHaveClass('subtle');
   const add = within(bar).getByRole('button', {
     name: 'studio.action.addToLooks',
   });
-  expect(add).toHaveClass('button', 'small');
-  expect(add).not.toHaveClass('subtle');
-  expect(
-    within(bar).getByRole('button', { name: 'studio.action.publish' }),
-  ).toHaveClass('subtle');
-  expect(more()).toHaveClass('subtle');
+  const play = within(bar).getByRole('button', {
+    name: 'studio.action.playOnGraph',
+  });
+  // Ivan, 2026-11-25: Add was the default and should not be.
+  [add, play, more()].forEach((quiet) =>
+    expect(quiet).toHaveClass('button', 'small', 'subtle'),
+  );
   expect(more()).toHaveAttribute('aria-expanded', 'false');
-  // Sending and the desktop wait behind More: the bar has one loud action.
+  // Sending and the desktop wait behind More.
   expect(
     screen.queryByRole('menuitem', { name: 'studio.action.export' }),
   ).toBeNull();
@@ -88,41 +98,68 @@ it('keeps the scene with the loud button, publishes with a quiet one, and sends 
   // Choosing one closes the menu.
   expect(screen.queryByRole('menu', { name: 'studio.ship.more' })).toBeNull();
   await userEvent.click(add);
+  await userEvent.click(play);
+  await userEvent.click(publish);
   expect(props.onAdd).toHaveBeenCalledTimes(1);
+  expect(props.onPlay).toHaveBeenCalledTimes(1);
+  expect(props.onPublish).toHaveBeenCalledTimes(1);
   expect(props.onSetDesktop).toHaveBeenCalledTimes(1);
 });
 
-it('makes Publish the loud one while the bench has changes people do not have', () => {
-  card({ publishSuggested: true });
-  const publish = screen.getByRole('button', { name: 'studio.action.publish' });
-  expect(publish).toHaveClass('button', 'small');
-  expect(publish).not.toHaveClass('subtle');
-  // Still one control per action: the bar has one Publish, and Add keeps
-  // its own style beside it.
-  expect(
-    screen.getAllByRole('button', { name: 'studio.action.publish' }),
-  ).toHaveLength(1);
-  expect(
-    screen.getByRole('button', { name: 'studio.action.addToLooks' }),
-  ).not.toHaveClass('subtle');
-});
+describe('how loudly Publish asks', () => {
+  const publish = () =>
+    screen.getByRole('button', { name: 'studio.action.publish' });
+  const loud = () =>
+    screen
+      .getAllByRole('button')
+      .filter((button) => !button.classList.contains('subtle'));
 
-it('plays the scene on the graph with a quiet button beside the loud Add', async () => {
-  const props = card();
-  const bar = screen.getByRole('group', { name: 'studio.ship.title' });
-  const play = within(bar).getByRole('button', {
-    name: 'studio.action.playOnGraph',
+  it('is loud with a light running round it while the bench has changes', () => {
+    card({ publishCall: 'changes' });
+    expect(publish()).not.toHaveClass('subtle');
+    expect(publish()).toHaveClass('is-beckoning');
+    // One loud action in the bar, and one Publish.
+    expect(loud()).toEqual([publish()]);
+    expect(
+      screen.getAllByRole('button', { name: 'studio.action.publish' }),
+    ).toHaveLength(1);
   });
-  expect(play).toHaveClass('button', 'small', 'subtle');
-  // Next to Add, before it: the loud one stays the last in the bar.
-  const add = within(bar).getByRole('button', {
-    name: 'studio.action.addToLooks',
+
+  it('is loud and still for a scene never published', () => {
+    card({ publishCall: 'ready' });
+    expect(publish()).not.toHaveClass('subtle');
+    expect(publish()).not.toHaveClass('is-beckoning');
   });
-  expect(play.nextElementSibling).toBe(add);
-  await userEvent.click(play);
-  expect(props.onPlay).toHaveBeenCalledTimes(1);
-  // The control: the press is Play's alone.
-  expect(props.onAdd).not.toHaveBeenCalled();
+
+  it('is quiet with nothing to publish, and then nothing in the bar is loud', () => {
+    card({ publishCall: 'quiet' });
+    expect(publish()).toHaveClass('subtle');
+    expect(publish()).not.toHaveClass('is-beckoning');
+    expect(loud()).toEqual([]);
+  });
+
+  it('stops the light while publishing, while the scene cannot be sent, and while the window cannot be seen', () => {
+    card({ publishCall: 'changes', publishing: true });
+    expect(publish()).not.toHaveClass('is-beckoning');
+    cleanup();
+    card({ publishCall: 'changes', unfit: true });
+    expect(publish()).not.toHaveClass('is-beckoning');
+    cleanup();
+
+    const hidden = jest.spyOn(document, 'hidden', 'get').mockReturnValue(true);
+    try {
+      card({ publishCall: 'changes' });
+      expect(publish()).not.toHaveClass('is-beckoning');
+      // Shown again: the light comes back with the window.
+      hidden.mockReturnValue(false);
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+      expect(publish()).toHaveClass('is-beckoning');
+    } finally {
+      hidden.mockRestore();
+    }
+  });
 });
 
 it('offers no desktop on a computer that cannot put a visualizer there', async () => {

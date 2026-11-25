@@ -147,8 +147,6 @@ interface IStudioStageProps {
   onHeard?: TStageHeard;
   onDrawn: TStageDrawn;
   onExitFullscreen: () => void;
-  /** Double-clicking the stage: full screen, or back from it. */
-  onToggleFullscreen: () => void;
   /**
    * The stage's own controls (`StudioStageControls`), on the plate in its top
    * right corner beside the reading.
@@ -204,7 +202,6 @@ export default function StudioStage({
   onHeard,
   onDrawn,
   onExitFullscreen,
-  onToggleFullscreen,
   controls,
   labels,
   fullscreenRef,
@@ -462,14 +459,6 @@ export default function StudioStage({
         className={`studio-stage studio-stage--${size}${isWindowed ? ' studio-stage--windowed' : ''}${isEditing && !isWindowed ? ' is-editing' : ''}${zoom.zoomed && !isWindowed ? ' is-moved' : ''}`}
         data-testid="studio-stage"
         aria-busy={waiting}
-        // The graph's gesture for the same thing, and the same full screen as
-        // the stage's own button. Not on the exit button, whose
-        // first click has already brought the stage back.
-        onDoubleClick={({ target }) => {
-          if (!(target instanceof Element && target.closest('button'))) {
-            onToggleFullscreen();
-          }
-        }}
       >
         <div
           ref={screenRef}

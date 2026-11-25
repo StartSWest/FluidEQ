@@ -19,6 +19,16 @@ export type TGalleryAnswer =
   | { state: 'none' }
   | { state: 'live'; version: number };
 
+/**
+ * What the bar's Publish says about the bench (Ivan, 2026-11-25: "Should be
+ * Publish ... so Publish is the main stage"): `changes`, the bench has
+ * changes people do not have, and Publish is loud with a light running round
+ * it; `ready`, nothing of it is in the gallery yet, and Publish is loud and
+ * still; `quiet` otherwise - what people have is what is here, or the review
+ * has the newest version, or its answer has to be read first.
+ */
+export type TPublishCall = 'quiet' | 'ready' | 'changes';
+
 /** The mark in front of the sentence: never the colour alone. */
 export type TVersionLineMark =
   'live' | 'changed' | 'off' | 'review' | 'refused' | 'none';
@@ -29,11 +39,8 @@ export interface IVersionLine {
   mark: TVersionLineMark;
   /** The review refused the newest version: its reason is one press away. */
   seeWhy: boolean;
-  /**
-   * The bench holds changes the gallery does not have yet, so publishing is
-   * the step the line recommends and Publish wears the loud style.
-   */
-  publishSuggested: boolean;
+  /** How loudly the bar's Publish asks to be pressed (`TPublishCall`). */
+  publish: TPublishCall;
 }
 
 interface IVersionLineInput {
@@ -52,13 +59,13 @@ const line = (
   key: TranslationKey,
   vars: Record<string, number>,
   mark: TVersionLineMark,
-  extra: Partial<Pick<IVersionLine, 'seeWhy' | 'publishSuggested'>> = {},
+  extra: Partial<Pick<IVersionLine, 'seeWhy' | 'publish'>> = {},
 ): IVersionLine => ({
   key,
   vars,
   mark,
   seeWhy: extra.seeWhy ?? false,
-  publishSuggested: extra.publishSuggested ?? false,
+  publish: extra.publish ?? 'quiet',
 });
 
 /**
@@ -117,13 +124,13 @@ export const studioVersionLine = ({
         );
   }
   if (live === undefined) {
-    return line('studio.line.unpublished', {}, 'off');
+    return line('studio.line.unpublished', {}, 'off', { publish: 'ready' });
   }
   if (record?.version === live) {
     return record.unchanged
       ? line('studio.line.same', { version: live }, 'live')
       : line('studio.line.changed', { version: live }, 'changed', {
-          publishSuggested: true,
+          publish: 'ready',
         });
   }
   // No record here of the version people have: it went out from another

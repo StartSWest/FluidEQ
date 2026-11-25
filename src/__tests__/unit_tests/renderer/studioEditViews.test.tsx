@@ -92,7 +92,6 @@ const stage = (preview: TStagePreview, isGridShown = false) => (
     onTrouble={jest.fn()}
     onDrawn={jest.fn()}
     onExitFullscreen={jest.fn()}
-    onToggleFullscreen={jest.fn()}
   />
 );
 

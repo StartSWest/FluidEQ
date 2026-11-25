@@ -72,7 +72,6 @@ const stage = (size: 'graph' | 'full', onExitFullscreen: jest.Mock) =>
       onTrouble={jest.fn()}
       onDrawn={jest.fn()}
       onExitFullscreen={onExitFullscreen}
-      onToggleFullscreen={jest.fn()}
     />,
   );
 
@@ -123,7 +122,6 @@ it('offers the way out while the screen is full, whatever the size says', () => 
       onTrouble={jest.fn()}
       onDrawn={jest.fn()}
       onExitFullscreen={onExit}
-      onToggleFullscreen={jest.fn()}
     />,
   );
   // Asked to leave, and — until the browser says it has — still offering the
@@ -176,7 +174,6 @@ it('fills the screen with the element it is handed, not the stage alone', () => 
       onTrouble={jest.fn()}
       onDrawn={jest.fn()}
       onExitFullscreen={jest.fn()}
-      onToggleFullscreen={jest.fn()}
       fullscreenRef={{ current: grid }}
     />,
   );

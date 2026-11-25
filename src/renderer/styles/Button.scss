@@ -144,6 +144,76 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// BECKONING: a button that is waiting for its press, with a light running
+// round its edge in the accent (Ivan, 2026-11-25, the Studio's Publish while
+// the scene has changes nobody has yet: "an animated border in the primary
+// color, so it's more obvious that it's ready"). For the one action a page
+// is waiting on, never for decoration.
+//
+// The ring is the button's own edge, drawn over it on `::after` (`::before`
+// is the busy ring's): a conic sweep whose angle turns, masked to the edge's
+// band, so the button keeps its size, its face and its hover. No glow and no
+// shadow: the light is the edge itself. The angle is a registered property,
+// so only that small band repaints; nothing is laid out again.
+//
+// Still under Animations off and reduced motion: the whole edge stands in the
+// accent instead, so the button is as marked as before without anything
+// moving. Held while the window is switching out of sight
+// (`data-window-hidden`); the component takes the class off while the
+// window cannot be seen at all (`useDocumentShown`).
+@property --beckon-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0turn;
+}
+
+@keyframes button-beckon {
+  to {
+    --beckon-angle: 1turn;
+  }
+}
+
+.button.is-beckoning {
+  position: relative;
+
+  &::after {
+    position: absolute;
+    // Over the button's own 1px edge, and half a pixel into it.
+    inset: -1px;
+    padding: 1.5px;
+    border-radius: inherit;
+    background: conic-gradient(
+      from var(--beckon-angle),
+      transparent 0turn,
+      transparent 0.5turn,
+      color-mix(in srgb, $secondary-default 55%, transparent) 0.78turn,
+      $secondary-default 0.92turn,
+      $secondary-light 0.97turn,
+      transparent 1turn
+    );
+    content: '';
+    pointer-events: none;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+    animation: button-beckon 3.2s linear infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      background: $secondary-default;
+      animation: none;
+    }
+
+    :root[data-motion='reduced'] & {
+      background: $secondary-default;
+      animation: none;
+    }
+
+    :root[data-window-hidden] & {
+      animation-play-state: paused;
+    }
+  }
+}
+
 // Moved here from `DeviceProfiles.scss`, which is where this class first
 // appeared. It stayed byte-identical in the move: only its address changed.
 //

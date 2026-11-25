@@ -116,7 +116,6 @@ const stage = (isGridShown: boolean) => (
     onTrouble={jest.fn()}
     onDrawn={jest.fn()}
     onExitFullscreen={jest.fn()}
-    onToggleFullscreen={jest.fn()}
   />
 );
 

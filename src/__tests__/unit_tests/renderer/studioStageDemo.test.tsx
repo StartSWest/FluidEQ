@@ -99,7 +99,6 @@ const stage = (signal: TStudioSignal) => (
     onTrouble={jest.fn()}
     onDrawn={jest.fn()}
     onExitFullscreen={jest.fn()}
-    onToggleFullscreen={jest.fn()}
   />
 );
 

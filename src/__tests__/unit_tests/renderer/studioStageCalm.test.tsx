@@ -132,7 +132,6 @@ const stage = ({
     onTrouble={jest.fn()}
     onDrawn={jest.fn()}
     onExitFullscreen={jest.fn()}
-    onToggleFullscreen={jest.fn()}
   />
 );
 
@@ -293,7 +292,6 @@ describe('the plate’s first button', () => {
         onTrouble={jest.fn()}
         onDrawn={jest.fn()}
         onExitFullscreen={jest.fn()}
-        onToggleFullscreen={jest.fn()}
       />,
     );
     measured();

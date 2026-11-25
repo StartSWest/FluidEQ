@@ -124,7 +124,6 @@ const stage = (
     onTrouble={jest.fn()}
     onDrawn={jest.fn()}
     onExitFullscreen={jest.fn()}
-    onToggleFullscreen={jest.fn()}
     labels={<span data-testid="labels" />}
   />
 );

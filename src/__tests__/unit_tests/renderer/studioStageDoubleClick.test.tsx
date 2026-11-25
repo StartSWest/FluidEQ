@@ -7,10 +7,10 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 /**
- * Double-clicking the Studio stage: the graph's gesture for full screen, and
- * back. Not on a button inside the stage, whose own click has already acted —
- * the exit button's first click brings the stage back, and a toggle on its
- * second would send it straight back to full screen.
+ * Double-clicking the Studio stage leaves its size alone (Ivan, 2026-11-25:
+ * "in Studio double click should not go into full screen, only the icon
+ * button does"). The stage is where a member drags, picks and edits; full
+ * screen is the stage's own button alone.
  */
 
 import '@testing-library/jest-dom';
@@ -45,7 +45,7 @@ jest.mock('../../../renderer/graph/useSceneRunner', () => ({
 
 const pack = { names: { en: 'Alpine' }, params: [] } as unknown as IScenePack;
 
-const stage = (size: TStudioSize, onToggleFullscreen: () => void) => (
+const stage = (size: TStudioSize, onExitFullscreen: () => void) => (
   <StudioStage
     identity="one"
     pack={pack}
@@ -61,34 +61,40 @@ const stage = (size: TStudioSize, onToggleFullscreen: () => void) => (
     readingRef={{ current: null }}
     onTrouble={jest.fn()}
     onDrawn={jest.fn()}
-    onExitFullscreen={jest.fn()}
-    onToggleFullscreen={onToggleFullscreen}
+    onExitFullscreen={onExitFullscreen}
   />
 );
+
+let requestFullscreen: jest.Mock;
+
+beforeEach(() => {
+  requestFullscreen = jest.fn(() => Promise.resolve());
+  Object.defineProperty(HTMLElement.prototype, 'requestFullscreen', {
+    configurable: true,
+    value: requestFullscreen,
+  });
+});
 
 afterEach(() => {
   Reflect.deleteProperty(HTMLElement.prototype, 'requestFullscreen');
 });
 
-it('toggles full screen on a double click on the stage', () => {
-  const toggle = jest.fn();
-  render(stage('graph', toggle));
+it('does not go full screen on a double click on the stage', () => {
+  const exit = jest.fn();
+  render(stage('graph', exit));
   fireEvent.doubleClick(screen.getByTestId('studio-stage'));
-  expect(toggle).toHaveBeenCalledTimes(1);
+  expect(requestFullscreen).not.toHaveBeenCalled();
+  expect(exit).not.toHaveBeenCalled();
 });
 
-it('leaves a double click on a button inside the stage to the button', () => {
-  Object.defineProperty(HTMLElement.prototype, 'requestFullscreen', {
-    configurable: true,
-    value: jest.fn(() => Promise.resolve()),
-  });
-  const toggle = jest.fn();
-  render(stage('full', toggle));
-  fireEvent.doubleClick(
-    screen.getByRole('button', { name: 'studio.size.exit' }),
-  );
-  expect(toggle).not.toHaveBeenCalled();
-  // The control: the same gesture on the stage around the button toggles.
+it('does not leave full screen on a double click on the stage', () => {
+  const exit = jest.fn();
+  render(stage('full', exit));
+  const before = requestFullscreen.mock.calls.length;
   fireEvent.doubleClick(screen.getByTestId('studio-stage'));
-  expect(toggle).toHaveBeenCalledTimes(1);
+  expect(requestFullscreen).toHaveBeenCalledTimes(before);
+  expect(exit).not.toHaveBeenCalled();
+  // The control: the stage's own exit button still leaves full screen.
+  fireEvent.click(screen.getByRole('button', { name: 'studio.size.exit' }));
+  expect(exit).toHaveBeenCalledTimes(1);
 });
