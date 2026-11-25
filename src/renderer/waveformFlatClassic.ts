@@ -11,8 +11,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import {
   type TPainter,
+  EDGE_CLEARANCE,
   LED_CELL,
   across,
+  bandAround,
+  clampSigned,
   countFor,
   ledRows,
   mirroredEdges,
@@ -44,20 +47,20 @@ const CLASSIC_PAINTERS: Record<
   TPainter
 > = {
   line(context, input) {
-    const { upper, lower } = mirroredEdges(input);
+    const { upper, lower, band } = mirroredEdges(input, 1.5);
     context.beginPath();
-    traceCurve(context, upper);
+    traceCurve(context, upper, band);
     stroke(context, input, 1.5);
     context.beginPath();
-    traceCurve(context, lower);
+    traceCurve(context, lower, band);
     stroke(context, input, 1.5);
   },
 
   filled(context, input) {
-    const { upper, lower } = mirroredEdges(input);
+    const { upper, lower, band } = mirroredEdges(input, 1.25);
     context.beginPath();
-    traceCurve(context, upper);
-    traceCurve(context, [...lower].reverse(), true);
+    traceCurve(context, upper, band);
+    traceCurve(context, [...lower].reverse(), band, true);
     context.closePath();
     tint(context, input, 0.18);
     stroke(context, input, 1.25);
@@ -66,10 +69,10 @@ const CLASSIC_PAINTERS: Record<
   // One solid body, no seam down the middle (Ivan, 2026-11-17: "REMOVE center
   // line on ribbon").
   ribbon(context, input) {
-    const { upper, lower } = mirroredEdges(input, 0.9);
+    const { upper, lower, band } = mirroredEdges(input, 0, 0.9);
     context.beginPath();
-    traceCurve(context, upper);
-    traceCurve(context, [...lower].reverse(), true);
+    traceCurve(context, upper, band);
+    traceCurve(context, [...lower].reverse(), band, true);
     context.closePath();
     tint(context, input, 0.8);
   },
@@ -84,7 +87,7 @@ const CLASSIC_PAINTERS: Record<
     row.forEach(({ x, width }, index) => {
       const height = Math.max(
         2 / ratio,
-        snap(values[index] * box.height, ratio),
+        snap(values[index] * (box.height - EDGE_CLEARANCE), ratio),
       );
       context.roundRect(x, floor - height, width, height, [
         Math.min(1.5, width / 2),
@@ -104,7 +107,10 @@ const CLASSIC_PAINTERS: Record<
     context.fillStyle = input.ink;
     context.beginPath();
     row.forEach(({ x, width }, index) => {
-      const height = Math.max(width, snap(values[index] * box.height, ratio));
+      const height = Math.max(
+        width,
+        snap(values[index] * (box.height - EDGE_CLEARANCE * 2), ratio),
+      );
       context.roundRect(
         x,
         snap(centre - height / 2, ratio),
@@ -207,16 +213,16 @@ const CLASSIC_PAINTERS: Record<
 
   outline(context, input) {
     const { box } = input;
-    const points = silhouette(input, soften(input.bands, 1));
+    const { points, band } = silhouette(input, soften(input.bands, 1));
     const floor = box.y + box.height;
     context.beginPath();
-    traceCurve(context, points);
+    traceCurve(context, points, band);
     context.lineTo(box.x + box.width, floor);
     context.lineTo(box.x, floor);
     context.closePath();
     tint(context, input, 0.14);
     context.beginPath();
-    traceCurve(context, points);
+    traceCurve(context, points, band);
     stroke(context, input, 1.5);
   },
 
@@ -267,20 +273,21 @@ const CLASSIC_PAINTERS: Record<
       context.fillRect(x, floor - height, width, height);
     });
     context.globalAlpha = 1;
-    // The wave arches, tallest in the middle and tapered at the ends.
+    // The wave arches, tallest in the middle and tapered at the ends. Two
+    // pixels under the top at full: the 1.75px line's outer half then stays
+    // `EDGE_CLEARANCE` inside, and `traceCurve` no longer bows past it.
     const centre = box.y + box.height / 2;
+    const reach = box.height / 2 - 2;
     const last = Math.max(1, input.wave.length - 1);
     const points = across(
       box,
       input.wave,
       (value, index) =>
         centre -
-        value *
-          (box.height / 2 - 2) *
-          Math.sin((Math.PI * index) / last) ** 0.7,
+        clampSigned(value) * reach * Math.sin((Math.PI * index) / last) ** 0.7,
     );
     context.beginPath();
-    traceCurve(context, points);
+    traceCurve(context, points, bandAround(centre, reach));
     stroke(context, input, 1.75);
   },
 };

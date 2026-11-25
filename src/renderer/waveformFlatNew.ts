@@ -10,9 +10,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import {
   type TPainter,
+  EDGE_CLEARANCE,
   HOT,
   WARM,
   across,
+  bandAround,
+  clamp01,
   LED_CELL,
   countFor,
   ledRows,
@@ -24,6 +27,7 @@ import {
   soften,
   stroke,
   tint,
+  reachWithin,
   traceCurve,
 } from './waveformFlatKit';
 import { FLAT_HISTORY_LENGTH } from './waveformFlatState';
@@ -163,7 +167,15 @@ const NEW_PAINTERS: Record<
     context.fillStyle = input.ink;
     context.beginPath();
     values.forEach((value, index) => {
-      const radius = 1.5 + value * Math.min(step * 0.46, box.height / 2 - 1);
+      // Never past the top or the bottom: a loud bead stops `EDGE_CLEARANCE`
+      // short of each edge rather than being cut flat by the stage.
+      const radius =
+        1.5 +
+        value *
+          Math.min(
+            step * 0.46,
+            Math.max(0, box.height / 2 - 1.5 - EDGE_CLEARANCE),
+          );
       const cx = box.x + step * (index + 0.5);
       context.moveTo(cx + radius, centre);
       context.arc(cx, centre, radius, 0, Math.PI * 2);
@@ -183,12 +195,14 @@ const NEW_PAINTERS: Record<
       if (!frame) {
         return;
       }
+      const past = silhouette(input, soften(frame, 1));
       context.beginPath();
-      traceCurve(context, silhouette(input, soften(frame, 1)));
+      traceCurve(context, past.points, past.band);
       stroke(context, input, 1, alpha);
     });
+    const now = silhouette(input, soften(input.bands, 1));
     context.beginPath();
-    traceCurve(context, silhouette(input, soften(input.bands, 1)));
+    traceCurve(context, now.points, now.band);
     stroke(context, input, 1.5);
   },
 
@@ -286,11 +300,15 @@ const NEW_PAINTERS: Record<
       context.fill();
       context.fillStyle = input.light;
       const peakX = snap(box.x + state.levelPeaks[side] * box.width, ratio);
+      // A pixel proud of the bar at each end, but never out of the box, where
+      // a short meter would cut the tick flat.
+      const tickTop = Math.max(box.y, y - 1);
+      const tickBottom = Math.min(box.y + box.height, y + bar + 1);
       context.fillRect(
         Math.max(box.x, Math.min(peakX - 1, box.x + box.width - 2)),
-        y - 1,
+        tickTop,
         2,
-        bar + 2,
+        tickBottom - tickTop,
       );
     }
   },
@@ -333,7 +351,8 @@ const NEW_PAINTERS: Record<
   contour(context, input) {
     const { box } = input;
     const centre = box.y + box.height / 2;
-    const reach = (box.height / 2) * 0.92;
+    // Held so the outer ring's 1.4px line keeps clear of both edges.
+    const reach = reachWithin(box.height / 2, 1.4, 0.92);
     const values = soften(input.bands, 2);
     const rings: [number, number, number][] = [
       [1, 1.4, 1],
@@ -341,16 +360,20 @@ const NEW_PAINTERS: Record<
       [0.3, 1, 0.35],
     ];
     rings.forEach(([scale, width, alpha]) => {
+      const ring = scale * reach;
+      const band = bandAround(centre, ring);
       context.beginPath();
       traceCurve(
         context,
-        across(box, values, (value) => centre - value * scale * reach),
+        across(box, values, (value) => centre - clamp01(value) * ring),
+        band,
       );
       stroke(context, input, width, alpha);
       context.beginPath();
       traceCurve(
         context,
-        across(box, values, (value) => centre + value * scale * reach),
+        across(box, values, (value) => centre + clamp01(value) * ring),
+        band,
       );
       stroke(context, input, width, alpha);
     });

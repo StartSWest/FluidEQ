@@ -33,6 +33,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * display rather than in steps of a column.
  */
 import { CLIP_RAIL_AMPLITUDE } from './graph/liveSpectrumFrames';
+import { EDGE_CLEARANCE } from './waveformFlatKit';
 
 /** How fast the music passes, in CSS pixels a second. */
 export const SCROLL_CSS_PX_PER_SECOND = 45;
@@ -200,8 +201,11 @@ export const createWaveRecorder = (): IWaveRecorder => {
       const columns = Math.ceil(box.width) + 2;
       grow(columns);
       const centre = box.y + box.height / 2;
-      // A pixel short of each edge, so a full-scale outline stays inside.
-      const reach = box.height / 2 - 1;
+      // `EDGE_CLEARANCE` short of each edge, so a full-scale outline stays
+      // inside rather than meeting the stage's clip, as every style does. The
+      // curve through the columns' midpoints stays inside its control points,
+      // so it never bows past them.
+      const reach = Math.max(0, box.height / 2 - EDGE_CLEARANCE);
       const right = box.x + box.width;
       // The part of the newest column already heard moves the whole shape,
       // so it slides on every frame instead of a column at a time.

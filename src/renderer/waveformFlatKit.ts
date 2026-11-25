@@ -72,6 +72,8 @@ export const WARM = '#ffb35c';
 export const HOT = '#ff6b6b';
 
 export const clamp01 = (value: number) => Math.max(0, Math.min(1, value));
+/** A signed wave value held to the pane's two edges. */
+export const clampSigned = (value: number) => Math.max(-1, Math.min(1, value));
 
 /** Whole device pixels, in CSS units. */
 export const snap = (value: number, ratio: number) =>
@@ -188,10 +190,50 @@ export const countFor = (
   most: number,
 ) => Math.max(least, Math.min(most, Math.round(box.width / pitch)));
 
-/** A smooth curve through points (Catmull-Rom as cubic Béziers). */
+/**
+ * The clear space every drawn edge keeps from the top and the bottom of the
+ * box, in CSS pixels, outside its own stroke (Ivan, 2026-11-25: "make sure
+ * the waves never touch the top and pass"). The stage clips at the box, so
+ * anything drawn past it is cut off flat.
+ */
+export const EDGE_CLEARANCE = 1;
+
+/**
+ * How far from the centre a line `lineWidth` thick may reach in a box `half`
+ * its height either side: `scale` of the way, but never so far that the
+ * stroke's outer half comes within `EDGE_CLEARANCE` of the edge. At the
+ * title bar's 36px the scale is the smaller of the two and nothing moves; in
+ * a short or tiny box this is what holds the line inside.
+ */
+export const reachWithin = (half: number, lineWidth: number, scale = 1) =>
+  Math.max(0, Math.min(half * scale, half - lineWidth / 2 - EDGE_CLEARANCE));
+
+/** Where a curve may go: the y of the top and the bottom of its band. */
+export interface ICurveBand {
+  top: number;
+  bottom: number;
+}
+
+/**
+ * A smooth curve through points (Catmull-Rom as cubic Béziers) that never
+ * leaves `band`, the range its points are mapped into.
+ *
+ * WHY THE WAVE WAS CUT FLAT ON LOUD MUSIC. Catmull-Rom's control points lean
+ * a sixth of the neighbours' difference past each point, so two neighbouring
+ * points both at the top of the band — a dense loud passage, once the gate
+ * has scaled the block's peak to the pane's edge — bowed the curve up to an
+ * eighth of the whole band above them, past the top of the stage, which
+ * clipped it flat (and the silhouettes' undershoot below the floor the same
+ * way). Each point's lean is now held so neither of its control points stands
+ * outside the band, so neither does the curve (a Bézier stays inside its
+ * control points); a point keeps one tangent on both sides, and wherever the
+ * curve stayed inside the band anyway — every quiet passage — it is exactly
+ * the curve it was.
+ */
 export const traceCurve = (
   context: CanvasRenderingContext2D,
   points: readonly [number, number][],
+  band: ICurveBand,
   isContinuing = false,
 ) => {
   if (points.length === 0) {
@@ -202,21 +244,38 @@ export const traceCurve = (
   } else {
     context.moveTo(points[0][0], points[0][1]);
   }
-  for (let index = 0; index < points.length - 1; index += 1) {
-    const [x0, y0] = points[Math.max(0, index - 1)];
+  const last = points.length - 1;
+  // The vertical lean of a point's two control points, one each way.
+  const lean = (index: number) => {
+    const y = points[index][1];
+    const rise =
+      (points[Math.min(last, index + 1)][1] -
+        points[Math.max(0, index - 1)][1]) /
+      6;
+    const room = Math.max(0, Math.min(y - band.top, band.bottom - y));
+    return Math.max(-room, Math.min(room, rise));
+  };
+  for (let index = 0; index < last; index += 1) {
+    const [x0] = points[Math.max(0, index - 1)];
     const [x1, y1] = points[index];
     const [x2, y2] = points[index + 1];
-    const [x3, y3] = points[Math.min(points.length - 1, index + 2)];
+    const [x3] = points[Math.min(last, index + 2)];
     context.bezierCurveTo(
       x1 + (x2 - x0) / 6,
-      y1 + (y2 - y0) / 6,
+      y1 + lean(index),
       x2 - (x3 - x1) / 6,
-      y2 - (y3 - y1) / 6,
+      y2 - lean(index + 1),
       x2,
       y2,
     );
   }
 };
+
+/** The band either side of `centre`, `reach` each way. */
+export const bandAround = (centre: number, reach: number): ICurveBand => ({
+  top: centre - reach,
+  bottom: centre + reach,
+});
 
 /** Values spread evenly across the box, as points at `toY` of each value. */
 export const across = (
@@ -272,22 +331,44 @@ export const tint = (
   context.globalAlpha = 1;
 };
 
-/** The mirrored waveform's two edges, `scale` of the way to the pane's edge. */
-export const mirroredEdges = (input: IFlatMeterInput, scale = 0.92) => {
+/**
+ * The mirrored waveform's two edges, `scale` of the way to the pane's edge,
+ * and held inside it with a stroke `lineWidth` thick (`reachWithin`).
+ */
+export const mirroredEdges = (
+  input: IFlatMeterInput,
+  lineWidth: number,
+  scale = 0.92,
+) => {
   const { box } = input;
   const centre = box.y + box.height / 2;
-  const reach = (box.height / 2) * scale;
-  const upper = across(box, input.wave, (value) => centre - value * reach);
-  const lower = across(box, input.wave, (value) => centre + value * reach);
-  return { upper, lower, centre };
+  const reach = reachWithin(box.height / 2, lineWidth, scale);
+  const upper = across(
+    box,
+    input.wave,
+    (value) => centre - clampSigned(value) * reach,
+  );
+  const lower = across(
+    box,
+    input.wave,
+    (value) => centre + clampSigned(value) * reach,
+  );
+  return { upper, lower, centre, band: bandAround(centre, reach) };
 };
 
-/** The bands' silhouette from the floor. */
+/**
+ * The bands' silhouette from the floor: a pixel over it at rest, two under
+ * the top at full, which holds the 1.5px line `EDGE_CLEARANCE` inside.
+ */
 export const silhouette = (
   input: IFlatMeterInput,
   values: readonly number[],
 ) => {
   const { box } = input;
-  const floor = box.y + box.height;
-  return across(box, values, (value) => floor - 1 - value * (box.height - 3));
+  const rest = box.y + box.height - 1;
+  const rise = box.height - 3;
+  return {
+    points: across(box, values, (value) => rest - clamp01(value) * rise),
+    band: { top: rest - rise, bottom: rest },
+  };
 };
