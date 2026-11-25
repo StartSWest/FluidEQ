@@ -6,6 +6,7 @@ import { NEUTRAL_RESPONSE } from 'common/sceneResponse';
 import { SPECTRUM_TEXELS, WAVEFORM_TEXELS } from 'common/sceneUniformContract';
 import type { IStudioChat } from 'common/studioChat';
 import type { IStudioState } from 'main/ipc/memberScenes';
+import PlaceHead from '../../community/PlaceHead';
 import Glyph from '../../community/Glyph';
 import type { ISceneFrame } from '../../graph/sceneGl';
 import StudioChatEffortDots from '../../studio/chat/StudioChatEffortDots';
@@ -197,17 +198,12 @@ const StudioDrawing = () => {
 
   return (
     <PlusTab shown="studio" height={834}>
-      <header className="community__head">
-        <span className="community__head-mark" aria-hidden="true">
-          <Glyph name="studio" />
-        </span>
-        <span className="community__head-text">
-          <span className="community__head-name">{t('studio.title')}</span>
-          <span className="community__head-description">
-            {t('studio.description')}
-          </span>
-        </span>
-      </header>
+      {/* The page's head as StudioPanel draws it: since 2.6 its name is
+          read out and never drawn (`PlaceHead`). */}
+      <PlaceHead
+        title={t('studio.title')}
+        description={t('studio.description')}
+      />
       <div className="studio">
         <div className="studio-bench">
           <div className="studio-bench__top">
