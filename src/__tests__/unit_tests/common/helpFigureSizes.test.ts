@@ -6,7 +6,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import fs from 'fs';
 import path from 'path';
-import { HELP_CHAPTERS, isLiveFigure } from '../../../common/helpGuide';
+import CAPTURED from '../../../common/helpChapters/captured';
+import {
+  HELP_CHAPTERS,
+  isLiveFigure,
+  type IHelpPictureFigure,
+} from '../../../common/helpGuide';
 
 /**
  * Every help figure's declared size against the screenshot actually on disk.
@@ -34,11 +39,17 @@ const pngSize = (file: string): { width: number; height: number } => {
   return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
 };
 
-// The captures the guide draws its circles on. A live figure draws its own
-// panel and measures it (`HelpLiveFigure`); its still is only shown plain.
-const figures = HELP_CHAPTERS.flatMap((chapter) =>
-  chapter.figures.flatMap((figure) => (isLiveFigure(figure) ? [] : [figure])),
-);
+// The captures the guide draws its circles on, and the one the captures
+// script still takes with its boxes (`captured.ts`): since 2.6 every figure
+// in the guide is live, but a capture can come back, and the script's own
+// declaration is held to its file the same way. A live figure draws its own
+// panel and measures it (`HelpLiveFigure`); its still is a picture of that.
+const figures: readonly IHelpPictureFigure[] = [
+  ...HELP_CHAPTERS.flatMap((chapter) =>
+    chapter.figures.flatMap((figure) => (isLiveFigure(figure) ? [] : [figure])),
+  ),
+  ...Object.values(CAPTURED),
+];
 const stills = HELP_CHAPTERS.flatMap((chapter) =>
   chapter.figures.flatMap((figure) =>
     isLiveFigure(figure) ? [figure.still] : [],
@@ -67,11 +78,12 @@ describe('help figures', () => {
   });
 
   // The control above passes just as well if the reader answers one constant
-  // for every file, which is the way a size check quietly stops checking.
+  // for every file, which is the way a size check quietly stops checking: the
+  // same reader, over the live figures' pictures, which are many sizes.
   it('reads a size out of the file rather than answering a constant', () => {
     const sizes = new Set(
-      figures.map((figure) => {
-        const { width, height } = pngSize(path.join(DOCS, figure.image));
+      stills.map((still) => {
+        const { width, height } = pngSize(path.join(DOCS, still));
         return `${width}x${height}`;
       }),
     );
@@ -93,8 +105,8 @@ describe('help figures', () => {
     expect(outside).toEqual([]);
   });
 
-  // The exported guide shows a live figure's still until pictures are drawn
-  // from the live figures by script, and fails without the file.
+  // The exported guide shows a picture of every live figure, taken from the
+  // figure by `pnpm docs:stills`, and fails without the file.
   it('keeps the still every live figure names in docs', () => {
     expect(stills.length).toBeGreaterThan(0);
     expect(
