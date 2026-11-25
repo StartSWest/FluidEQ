@@ -21,9 +21,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { FrameReader } from '../../../main/dspHost/transport';
 import {
+  ANALYSIS_DYNAMICS_HEADER_BYTES,
   ANALYSIS_EQ_DETAIL_BINS,
   ANALYSIS_EQ_DETAIL_WINDOW,
   ANALYSIS_FOOTSTEPS_HEADER_BYTES,
+  ANALYSIS_VOICE_HEADER_BYTES,
+  ANALYSIS_VOICE_TAG,
 } from '../../../common/dsp/analysisWire';
 import {
   ANALYSIS_BASS_FORGE_BANDS,
@@ -65,6 +68,20 @@ interface IAnalysisTail {
   normalizerAppliedGainDb: number;
 }
 
+/**
+ * A mic's readings at 872 to 903 (`feq_wire_voice_report`): the gate as it
+ * heard and acted, Voice level's gain and the level it heard, and the
+ * arrival tap's long window, whose bins follow the EQ tap's.
+ */
+interface IAnalysisVoice {
+  active: number;
+  gateLevelDb: number;
+  gateGainDb: number;
+  levelGainDb: number;
+  levelHeardDb: number;
+  detail?: { window: number; count: number; values: (bin: number) => number };
+}
+
 /** An analysis frame exactly as the host lays one out. */
 const buildAnalysis = (options: {
   stages: readonly (typeof ANALYSIS_STAGES)[number][];
@@ -80,6 +97,7 @@ const buildAnalysis = (options: {
    * `wire.h` puts them, and `values` after everything else.
    */
   detail?: { window: number; count: number; values?: (bin: number) => number };
+  voice?: IAnalysisVoice;
 }): Buffer => {
   const stageMask = options.stages.reduce(
     // The wire field IS a bit mask; the arithmetic spelling is less readable.
@@ -89,11 +107,13 @@ const buildAnalysis = (options: {
   );
   const pairs = options.withScope ? ANALYSIS_SCOPE_PAIRS : 0;
   const detailCount = options.detail?.values ? options.detail.count : 0;
+  const voiceDetailCount = options.voice?.detail?.count ?? 0;
   const bytes =
     ANALYSIS_HEADER_BYTES +
     options.stages.length * ANALYSIS_BINS * 4 +
     pairs * 2 * 4 +
-    detailCount * 4;
+    detailCount * 4 +
+    voiceDetailCount * 4;
   const frame = Buffer.alloc(bytes);
   frame.writeUInt32LE(MAGIC_ANALYSIS, 0);
   frame.writeUInt32LE(options.sequence ?? 1, 4);
@@ -104,6 +124,24 @@ const buildAnalysis = (options: {
   frame.writeDoubleLE(options.correlation ?? 0.5, 24);
   frame.writeFloatLE(options.peaks?.[0] ?? 0.25, 32);
   frame.writeFloatLE(options.peaks?.[1] ?? 0.75, 36);
+
+  /**
+   * VOI1 at 872, which both writers put there in every frame, an output's
+   * rack included (inactive, no long window): a full-size header without it
+   * is not this build's and is refused with the stream. The rest of the
+   * block stays zero unless a mic's readings are asked for.
+   */
+  frame.writeUInt32LE(ANALYSIS_VOICE_TAG, 872);
+  const { voice } = options;
+  if (voice) {
+    frame.writeUInt32LE(voice.active, 876);
+    frame.writeFloatLE(voice.gateLevelDb, 880);
+    frame.writeFloatLE(voice.gateGainDb, 884);
+    frame.writeUInt32LE(voice.detail?.window ?? 0, 888);
+    frame.writeUInt32LE(voiceDetailCount, 892);
+    frame.writeFloatLE(voice.levelGainDb, 896);
+    frame.writeFloatLE(voice.levelHeardDb, 900);
+  }
 
   /**
    * The tail, written at the offsets `wire.h` puts it at.
@@ -174,6 +212,11 @@ const buildAnalysis = (options: {
       frame.writeFloatLE(detail.values?.(bin) ?? 0, at);
       at += 4;
     }
+  }
+  // The arrival tap's long window, after the EQ tap's.
+  for (let bin = 0; bin < voiceDetailCount; bin += 1) {
+    frame.writeFloatLE(voice?.detail?.values(bin) ?? 0, at);
+    at += 4;
   }
   return frame;
 };
@@ -603,7 +646,30 @@ it('decodes the actual native meter-to-host/APO encoder fixture', () => {
     positionProtected: true,
     sourceBypassed: false,
   };
-  expect(decodeAnalysis(bytes, ANALYSIS_HEADER_BYTES)?.room).toEqual(room);
+  const full = decodeAnalysis(bytes, ANALYSIS_HEADER_BYTES);
+  expect(full?.room).toEqual(room);
+  // An output's rack, as the encoder writes it: the mic's readings tagged,
+  // inactive at the floor, with no long window.
+  expect(full?.voice).toEqual({
+    active: false,
+    gateLevelDb: -120,
+    gateGainDb: 0,
+    levelGainDb: 0,
+    levelHeardDb: -120,
+  });
+  // The 896 bytes 1.32 writes, and the 872 before a mic's readings.
+  expect(
+    decodeAnalysis(
+      bytes.subarray(0, ANALYSIS_VOICE_HEADER_BYTES),
+      ANALYSIS_VOICE_HEADER_BYTES,
+    )?.room,
+  ).toEqual(room);
+  expect(
+    decodeAnalysis(
+      bytes.subarray(0, ANALYSIS_DYNAMICS_HEADER_BYTES),
+      ANALYSIS_DYNAMICS_HEADER_BYTES,
+    )?.room,
+  ).toEqual(room);
   expect(decodeAnalysis(bytes.subarray(0, 840), 840)?.room).toEqual(room);
   expect(
     decodeAnalysis(
@@ -745,6 +811,154 @@ describe("the EQ tap's long window", () => {
         length: 0,
       });
       expect(decodeAnalysis(frame)).toBeUndefined();
+    });
+  });
+});
+
+/**
+ * A mic's readings (engine 1.32, Voice level's from 1.33), after everything
+ * Dynamics ends with. Every value distinct, so a field read four bytes out
+ * cannot pass as its neighbour.
+ */
+describe("a mic's Voice readings", () => {
+  const voice: IAnalysisVoice = {
+    active: 1,
+    gateLevelDb: -38.5,
+    gateGainDb: -7.25,
+    levelGainDb: 4.5,
+    levelHeardDb: -21.75,
+  };
+  const heard = {
+    active: true,
+    gateLevelDb: -38.5,
+    gateGainDb: -7.25,
+    levelGainDb: 4.5,
+    levelHeardDb: -21.75,
+  };
+
+  it('reads the gate and Voice level back, each from its own offset', () => {
+    const decoded = decodeAnalysis(
+      buildAnalysis({
+        stages: ['voiceIn', 'cleanerIn'],
+        withScope: false,
+        voice,
+      }),
+    );
+    expect(decoded?.voice).toEqual(heard);
+    expect(Object.keys(decoded?.spectra ?? {}).sort()).toEqual([
+      'cleanerIn',
+      'voiceIn',
+    ]);
+  });
+
+  it('reads an engine before Voice level without its two readings, and one before a mic without any', () => {
+    const frame = buildAnalysis({ stages: ['eq'], withScope: false, voice });
+    // 1.32 wrote the same header up to 896 and nothing after it.
+    const before = Buffer.concat([
+      frame.subarray(0, ANALYSIS_VOICE_HEADER_BYTES),
+      frame.subarray(ANALYSIS_HEADER_BYTES),
+    ]);
+    const read = decodeAnalysis(before, ANALYSIS_VOICE_HEADER_BYTES);
+    expect(read?.voice).toEqual({
+      active: true,
+      gateLevelDb: -38.5,
+      gateGainDb: -7.25,
+    });
+    expect(read?.voice).not.toHaveProperty('levelGainDb');
+    expect(read?.voice).not.toHaveProperty('levelHeardDb');
+    // 1.31 ended with Dynamics: no tag to look for, and no readings.
+    const older = Buffer.concat([
+      frame.subarray(0, ANALYSIS_DYNAMICS_HEADER_BYTES),
+      frame.subarray(ANALYSIS_HEADER_BYTES),
+    ]);
+    const oldest = decodeAnalysis(older, ANALYSIS_DYNAMICS_HEADER_BYTES);
+    expect(oldest?.spectra.eq).toBeDefined();
+    expect(oldest).not.toHaveProperty('voice');
+  });
+
+  it("reads the arrival tap's long window after the EQ tap's, and counts both in the frame", () => {
+    const eqValues = (bin: number) => -30 - bin / 100;
+    const voiceValues = (bin: number) => -70 + bin / 1000;
+    const frame = buildAnalysis({
+      stages: ['voiceIn'],
+      withScope: false,
+      detail: {
+        window: ANALYSIS_EQ_DETAIL_WINDOW,
+        count: ANALYSIS_EQ_DETAIL_BINS,
+        values: eqValues,
+      },
+      voice: {
+        ...voice,
+        detail: {
+          window: ANALYSIS_EQ_DETAIL_WINDOW,
+          count: ANALYSIS_EQ_DETAIL_BINS,
+          values: voiceValues,
+        },
+      },
+    });
+    expect(analysisFrameLength(frame)).toBe(
+      ANALYSIS_HEADER_BYTES + ANALYSIS_BINS * 4 + ANALYSIS_EQ_DETAIL_BINS * 8,
+    );
+    const decoded = decodeAnalysis(frame);
+    const last = ANALYSIS_EQ_DETAIL_BINS - 1;
+    expect(decoded?.eqLive?.detail?.[last]).toBeCloseTo(eqValues(last), 5);
+    expect(decoded?.voice?.detail).toHaveLength(ANALYSIS_EQ_DETAIL_BINS);
+    expect(decoded?.voice?.detail?.[0]).toBeCloseTo(voiceValues(0), 5);
+    expect(decoded?.voice?.detail?.[last]).toBeCloseTo(voiceValues(last), 5);
+    const { reader, analyses, desynchronised, telemetryCount } =
+      collectingReader();
+    reader.push(Buffer.concat([frame, telemetryFrame()]));
+    expect(analyses).toHaveLength(1);
+    expect(telemetryCount()).toBe(1);
+    expect(desynchronised).toEqual([]);
+  });
+
+  it('refuses a full-size header without the tag, and the stream with it', () => {
+    const frame = buildAnalysis({ stages: ['eq'], withScope: false, voice });
+    // The control: tagged, it reads.
+    expect(decodeAnalysis(frame)?.voice).toEqual(heard);
+    frame.writeUInt32LE(0, 872);
+    expect(analysisFrameLength(frame)).toBe(0);
+    expect(decodeAnalysis(frame)).toBeUndefined();
+    const { reader, analyses, desynchronised } = collectingReader();
+    reader.push(frame);
+    expect(analyses).toHaveLength(0);
+    expect(desynchronised).toEqual([MAGIC_ANALYSIS]);
+  });
+
+  it('refuses a long-window size or count the arrival tap never has', () => {
+    [
+      { window: 8192, count: 0 },
+      { window: ANALYSIS_EQ_DETAIL_WINDOW, count: 1000 },
+      { window: 0, count: ANALYSIS_EQ_DETAIL_BINS },
+    ].forEach(({ window, count }) => {
+      const frame = buildAnalysis({
+        stages: ['voiceIn'],
+        withScope: false,
+        voice: { ...voice, detail: { window, count, values: () => -50 } },
+      });
+      expect({ window, count, length: analysisFrameLength(frame) }).toEqual({
+        window,
+        count,
+        length: 0,
+      });
+      expect(decodeAnalysis(frame)).toBeUndefined();
+    });
+  });
+
+  it('drops readings that are not a state or a number, and keeps the frame', () => {
+    [
+      { ...voice, active: 2 },
+      { ...voice, gateLevelDb: NaN },
+      { ...voice, gateGainDb: Infinity },
+      { ...voice, levelGainDb: NaN },
+      { ...voice, levelHeardDb: -Infinity },
+    ].forEach((bad) => {
+      const decoded = decodeAnalysis(
+        buildAnalysis({ stages: ['eq'], withScope: false, voice: bad }),
+      );
+      expect(decoded?.spectra.eq).toBeDefined();
+      expect(decoded?.voice).toBeUndefined();
     });
   });
 });

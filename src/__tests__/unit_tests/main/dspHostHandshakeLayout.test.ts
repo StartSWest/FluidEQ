@@ -28,6 +28,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * refuses a host that disagrees before it reads a single frame.
  */
 import { FrameReader } from '../../../main/dspHost/transport';
+import { ANALYSIS_VOICE_TAG } from '../../../common/dsp/analysisWire';
 import {
   ANALYSIS_BINS,
   ANALYSIS_HEADER_BYTES,
@@ -75,7 +76,7 @@ const handshakeFrame = (analysisFrameBytes: number): Buffer => {
 };
 
 describe('a host whose analysis frame is the previous size', () => {
-  it('desynchronises the stream, and reports the magic from the log', () => {
+  it('desynchronises the stream at its first header', () => {
     const seen: number[] = [];
     const reader = new FrameReader({
       onHandshake: () => undefined,
@@ -84,11 +85,15 @@ describe('a host whose analysis frame is the previous size', () => {
       onDesynchronised: (magic) => seen.push(magic),
     });
 
-    // Two frames, because the first is consumed as one oversized frame and the
-    // reader only lands on a wrong boundary once it reaches into the second.
+    // In the field the reader took the first frame as one oversized frame and
+    // only landed on a wrong boundary inside the second, on four zero bytes
+    // of silent spectrum: `magic: 0` in the log. Since a mic's readings, the
+    // current header carries the VOI1 tag at 872, which in a stale frame is
+    // spectrum, so the very first header is refused under its own magic and
+    // nothing of the stream is read as audio at all.
     reader.push(Buffer.concat([previousLayoutFrame(), previousLayoutFrame()]));
 
-    expect(seen).toEqual([0]);
+    expect(seen).toEqual([MAGIC_ANALYSIS]);
   });
 
   /**
@@ -111,6 +116,8 @@ describe('a host whose analysis frame is the previous size', () => {
     frame.writeUInt32LE(ANALYSIS_BINS, 12);
     frame.writeUInt32LE(0, 16);
     frame.writeUInt32LE(0, 20);
+    // VOI1, which the current host writes into every frame.
+    frame.writeUInt32LE(ANALYSIS_VOICE_TAG, 872);
     reader.push(Buffer.concat([frame, frame]));
 
     expect(seen).toEqual([]);

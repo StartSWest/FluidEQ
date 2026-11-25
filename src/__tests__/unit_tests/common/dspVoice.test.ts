@@ -11,10 +11,12 @@ import { DSP_DEFAULTS } from '../../../common/dsp/chainDefaults';
 import type { IDspSettings } from '../../../common/dsp/chainSettings';
 import {
   appendPresetTone,
+  CHAIN_TONE_TAG,
   encodeChainSettings,
   hasPresetTone,
   hasVoice,
   isChainWirePayload,
+  voiceWithoutLevel,
   withoutVoice,
 } from '../../../common/dsp/chainWire';
 import {
@@ -28,6 +30,9 @@ import {
   VOICE_DEFAULTS,
 } from '../../../common/dsp/voiceStage';
 import {
+  CHAIN_VOICE_FIELDS,
+  CHAIN_VOICE_LEVEL_TRAILER,
+  CHAIN_VOICE_SCHEMA,
   CHAIN_VOICE_TAG,
   CHAIN_VOICE_TRAILER,
   voiceTrailer,
@@ -75,6 +80,9 @@ describe('a stored Voice read back', () => {
       gateHoldMs: 99999,
       gateAttackMs: 0,
       gateReleaseMs: 1,
+      levelEnabled: true,
+      levelTargetDb: 3,
+      levelMaxLiftDb: -6,
     });
     expect(read).toEqual({
       enabled: true,
@@ -87,6 +95,33 @@ describe('a stored Voice read back', () => {
       gateHoldMs: 1000,
       gateAttackMs: 0.1,
       gateReleaseMs: 5,
+      levelEnabled: true,
+      levelTargetDb: -10,
+      levelMaxLiftDb: 0,
+    });
+  });
+
+  it('reads a Voice stored before Voice level with Voice level off, at its defaults', () => {
+    const older = clampVoiceSettings({
+      enabled: true,
+      lowCutHz: 95,
+      proximityDb: 3.5,
+      deplosive: 0.6,
+      gateEnabled: false,
+      gateThresholdDb: -47,
+      gateRangeDb: 22,
+      gateHoldMs: 180,
+      gateAttackMs: 1.5,
+      gateReleaseMs: 140,
+    });
+    expect({
+      levelEnabled: older.levelEnabled,
+      levelTargetDb: older.levelTargetDb,
+      levelMaxLiftDb: older.levelMaxLiftDb,
+    }).toEqual({
+      levelEnabled: false,
+      levelTargetDb: VOICE_DEFAULTS.levelTargetDb,
+      levelMaxLiftDb: VOICE_DEFAULTS.levelMaxLiftDb,
     });
   });
 
@@ -121,9 +156,35 @@ describe('the Voice trailer on the rack line', () => {
     expect(hasVoice(line)).toBe(true);
     expect(hasPresetTone(line)).toBe(true);
     const at = line.indexOf(CHAIN_VOICE_TAG);
-    expect(line.slice(at, at + CHAIN_VOICE_TRAILER)).toEqual(
+    // Schema 2 (engine 1.33): the gate, then Voice level's three.
+    expect(line.slice(at, at + CHAIN_VOICE_LEVEL_TRAILER)).toEqual(
       voiceTrailer(VOICE),
     );
+    expect(line[at + CHAIN_VOICE_LEVEL_TRAILER]).toBe(CHAIN_TONE_TAG);
+  });
+
+  it('is written as schema 1, without Voice level, for an engine from 1.31 to 1.32', () => {
+    const line = appendPresetTone(
+      encodeChainSettings(rack({ gameMode: true, voice: VOICE })),
+      tone,
+    );
+    const older = voiceWithoutLevel(line);
+    expect(isChainWirePayload(older)).toBe(true);
+    expect(hasVoice(older)).toBe(true);
+    expect(hasPresetTone(older)).toBe(true);
+    const at = older.indexOf(CHAIN_VOICE_TAG);
+    expect(older.slice(at, at + CHAIN_VOICE_TRAILER)).toEqual([
+      CHAIN_VOICE_TAG,
+      CHAIN_VOICE_SCHEMA,
+      CHAIN_VOICE_FIELDS,
+      ...voiceTrailer(VOICE).slice(3, CHAIN_VOICE_TRAILER),
+    ]);
+    expect(older).toHaveLength(
+      line.length - (CHAIN_VOICE_LEVEL_TRAILER - CHAIN_VOICE_TRAILER),
+    );
+    expect(lineForEngine(line, engineReadsOf('1.31.0.0'))).toEqual(older);
+    expect(lineForEngine(line, engineReadsOf('1.32.0.0'))).toEqual(older);
+    expect(lineForEngine(line, engineReadsOf('1.33.0.0'))).toEqual(line);
   });
 
   it('is refused at the boundary when a value is out of range', () => {
@@ -149,7 +210,8 @@ describe('the Voice trailer on the rack line', () => {
       appendPresetTone(encodeChainSettings(rack({})), tone),
     );
     expect(lineForEngine(line, engineReadsOf('1.30.0.0'))).toEqual(stripped);
-    expect(lineForEngine(line, engineReadsOf('1.31.0.0'))).toEqual(line);
+    // From 1.31 the stage stays; Voice level waits for 1.33 (case above).
+    expect(hasVoice(lineForEngine(line, engineReadsOf('1.31.0.0')))).toBe(true);
     expect(lineForEngine(line, ENGINE_READS_ALL)).toEqual(line);
   });
 });

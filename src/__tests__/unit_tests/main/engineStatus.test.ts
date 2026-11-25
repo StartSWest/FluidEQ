@@ -230,6 +230,91 @@ describe('parsing the status document', () => {
     });
   });
 
+  /**
+   * The Mic tab's own-effects card shows the helper's reading and nothing
+   * guessed: what Windows runs on the mic (`effects_run`), whether the
+   * switch took its own effects off, and what it took, each by its
+   * registered name — in the shape `setup/main.cpp` writes them.
+   */
+  it("reads a microphone's own effects as the helper names them", () => {
+    const status = parseFluidEngineStatus(
+      JSON.stringify({
+        installed: true,
+        endpoints: [],
+        microphones: [
+          {
+            guid: '{MIC}',
+            name: 'Headset Microphone',
+            attached: true,
+            backupExists: true,
+            runs: [{ clsid: '{OURS}', name: 'FluidEQ Engine' }],
+            ownEffectsOff: true,
+            ownEffectsTaken: [
+              { clsid: '{RAZER}', name: 'Razer Voice' },
+              // A class that registered no name is still listed, unnamed.
+              { clsid: '{BARE}' },
+              // Not of the documented shape: dropped, the rest kept.
+              { name: 'no clsid' },
+              'junk',
+            ],
+          },
+        ],
+      }),
+    );
+    expect(status.microphones).toEqual([
+      {
+        guid: '{MIC}',
+        name: 'Headset Microphone',
+        attached: true,
+        backupExists: true,
+        runs: [{ clsid: '{OURS}', name: 'FluidEQ Engine' }],
+        ownEffectsOff: true,
+        ownEffectsTaken: [
+          { clsid: '{RAZER}', name: 'Razer Voice' },
+          { clsid: '{BARE}', name: '' },
+        ],
+      },
+    ]);
+  });
+
+  it('says nothing of own effects the helper did not report', () => {
+    const status = parseFluidEngineStatus(
+      JSON.stringify({
+        installed: true,
+        endpoints: [],
+        microphones: [
+          // A helper before the switch: no runs, nothing taken.
+          { guid: '{OLD}', name: 'Laptop Mic', attached: false },
+          // Off said as anything but true is not off.
+          {
+            guid: '{ON}',
+            name: 'USB Mic',
+            attached: true,
+            runs: [],
+            ownEffectsOff: 'true',
+            ownEffectsTaken: [],
+          },
+        ],
+      }),
+    );
+    expect(status.microphones).toEqual([
+      {
+        guid: '{OLD}',
+        name: 'Laptop Mic',
+        attached: false,
+        backupExists: false,
+      },
+      {
+        guid: '{ON}',
+        name: 'USB Mic',
+        attached: true,
+        backupExists: false,
+        runs: [],
+        ownEffectsTaken: [],
+      },
+    ]);
+  });
+
   it('defaults an endpoint missing backupExists to false rather than dropping it', () => {
     const status = parseFluidEngineStatus(
       JSON.stringify({

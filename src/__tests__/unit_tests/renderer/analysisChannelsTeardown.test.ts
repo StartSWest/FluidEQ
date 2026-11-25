@@ -27,8 +27,10 @@ const fakeNode = (): IFakeNode => ({
 
 let mockCapture: { context: unknown; source: IFakeNode } | undefined;
 
+// The readers tap the music through `useAnalysisTap`: the capture's, unless
+// a stand-in brings other music (the look picker's tiles). Here, the capture.
 jest.mock('renderer/audio/LiveAudioContext', () => ({
-  useLiveAudioControl: () => ({ capture: mockCapture }),
+  useAnalysisTap: () => mockCapture,
 }));
 
 let splitters: IFakeNode[];

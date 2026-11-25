@@ -15,6 +15,7 @@ import {
   ANALYSIS_EQ_DETAIL_WINDOW,
   ANALYSIS_EQ_DETAIL_BINS,
   ANALYSIS_DYNAMICS_TAG,
+  ANALYSIS_VOICE_TAG,
 } from '../../../common/dsp/analysisWire';
 import { MAGIC_ANALYSIS } from '../../../main/dspHost/wire';
 
@@ -150,6 +151,12 @@ const fullAnalysisPacket = () => {
   payload.writeUInt32LE(ANALYSIS_DYNAMICS_TAG, 840);
   payload.writeUInt32LE(1, 844);
   [6, -4, 2].forEach((db, band) => payload.writeFloatLE(db, 860 + band * 4));
+  // A mic's readings with the arrival tap's long window, the largest frame
+  // an engine writes (1.32 on): its bins follow the EQ tap's.
+  payload.writeUInt32LE(ANALYSIS_VOICE_TAG, 872);
+  payload.writeUInt32LE(1, 876);
+  payload.writeUInt32LE(ANALYSIS_EQ_DETAIL_WINDOW, 888);
+  payload.writeUInt32LE(ANALYSIS_EQ_DETAIL_BINS, 892);
   ANALYSIS_STAGES.forEach((_name, stage) => {
     payload.writeFloatLE(
       -40 + stage,
@@ -186,6 +193,7 @@ it.each([0, 32768])(
     expect(result?.frame.spectra.dynamicsIn?.[100]).toBe(-36);
     expect(result?.frame.spectra.dynamicsOut?.[100]).toBe(-35);
     expect(result?.frame.eqLive?.detail).toHaveLength(ANALYSIS_EQ_DETAIL_BINS);
+    expect(result?.frame.voice?.detail).toHaveLength(ANALYSIS_EQ_DETAIL_BINS);
     expect(result?.frame.bandAmounts).toHaveLength(ANALYSIS_MAX_BANDS);
   },
 );

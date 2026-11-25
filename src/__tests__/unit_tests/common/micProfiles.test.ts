@@ -14,6 +14,7 @@ import {
 import { MAXIMIZER_MIN_LOOK_AHEAD_MS } from '../../../common/dsp/chainStageSettings';
 import {
   isMicProfileId,
+  MIC_PROFILE_BY_ID,
   MIC_PROFILE_IDS,
   micProfileGroup,
   micProfileSettings,
@@ -56,10 +57,16 @@ describe('the mic profiles', () => {
     const sing = micProfileSettings('sing');
     expect(sing.denoise.voice.enabled).toBe(false);
     expect(sing.voice?.gateEnabled).toBe(false);
-    // Control: streaming has both.
-    const stream = micProfileSettings('stream');
-    expect(stream.denoise.voice.enabled).toBe(true);
-    expect(stream.voice?.gateEnabled).toBe(true);
+    // Control: Noisy room has both, the one profile that carries a gate.
+    const noisy = micProfileSettings('noisy');
+    expect(noisy.denoise.voice.enabled).toBe(true);
+    expect(noisy.voice?.gateEnabled).toBe(true);
+  });
+
+  it('carries a gate in Noisy room alone, so no other profile cuts into a word', () => {
+    expect(
+      MIC_PROFILE_IDS.filter((id) => micProfileSettings(id).voice?.gateEnabled),
+    ).toEqual(['noisy']);
   });
 
   it('groups them by use and by mic, and knows its own ids', () => {
@@ -70,16 +77,18 @@ describe('the mic profiles', () => {
   });
 
   it('presses the voice down and never lifts what is quiet, the room with it', () => {
-    MIC_PROFILE_IDS.map(micProfileSettings)
-      .filter((rack) => rack.dynamics.enabled)
-      .forEach((rack) => {
-        expect(rack.dynamics.presetId).toBe('');
+    MIC_PROFILE_IDS.map((id) => ({ id, rack: micProfileSettings(id) }))
+      .filter(({ rack }) => rack.dynamics.enabled)
+      .forEach(({ id, rack }) => {
+        // The compressor shows the Mic preset the profile is on by name.
+        expect(rack.dynamics.presetId).toBe(MIC_PROFILE_BY_ID[id].dynamics);
         rack.dynamics.bands.forEach((band) => {
           expect(band.upRatio).toBe(1);
           expect(band.upMaxDb).toBe(0);
         });
       });
-    // Control: the preset they start from does lift.
+    // Control: a music preset a profile could name does lift, so the check
+    // above can see a lift where there is one.
     expect(
       dynamicsPresetSettings('speech', true).bands.some(
         (band) => band.upMaxDb > 0,

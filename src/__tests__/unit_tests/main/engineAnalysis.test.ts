@@ -17,8 +17,11 @@ import {
   ANALYSIS_EQ_DETAIL_WINDOW,
   ANALYSIS_FOOTSTEPS_HEADER_BYTES,
   ANALYSIS_GAME_HEADER_BYTES,
+  ANALYSIS_DYNAMICS_HEADER_BYTES,
   ANALYSIS_DYNAMICS_TAG,
   ANALYSIS_LEGACY_HEADER_BYTES,
+  ANALYSIS_VOICE_HEADER_BYTES,
+  ANALYSIS_VOICE_TAG,
 } from '../../../common/dsp/analysisWire';
 
 const packet = (
@@ -29,6 +32,11 @@ const packet = (
   frame.writeUInt32LE(MAGIC_ANALYSIS, 0);
   frame.writeUInt32LE(1, 8);
   frame.writeUInt32LE(ANALYSIS_BINS, 12);
+  // Every engine from a mic's readings on (1.32) tags them at 872 in every
+  // frame, an output's included; a header that long without it is refused.
+  if (header >= ANALYSIS_VOICE_HEADER_BYTES) {
+    frame.writeUInt32LE(ANALYSIS_VOICE_TAG, 872);
+  }
   for (let bin = 0; bin < ANALYSIS_BINS; bin += 1) {
     frame.writeFloatLE(-42, header + bin * 4);
   }
@@ -249,18 +257,26 @@ describe('an engine with Footsteps and one without', () => {
     // look right.
     const headers = [
       ANALYSIS_HEADER_BYTES,
+      ANALYSIS_VOICE_HEADER_BYTES,
+      ANALYSIS_DYNAMICS_HEADER_BYTES,
       ANALYSIS_GAME_HEADER_BYTES,
       ANALYSIS_FOOTSTEPS_HEADER_BYTES,
       ANALYSIS_DEESSER_HEADER_BYTES,
       ANALYSIS_LEGACY_HEADER_BYTES,
     ];
     const extensions = [0, 8, 16, 20];
+    // What the engines that write each header send after the spectrum. The
+    // two a mic's readings brought (1.32, 1.33) are 8 bytes apart, which an
+    // 8-byte tail after one against a 16-byte one after the other would make
+    // up; every engine with either writes the 20-byte tail, and nothing else.
+    const written = (header: number) =>
+      header >= ANALYSIS_VOICE_HEADER_BYTES ? [20] : extensions;
     expect(new Set(headers).size).toBe(headers.length);
     headers.forEach((one) =>
       headers
         .filter((other) => other !== one)
         .forEach((other) =>
-          extensions.forEach((mine) =>
+          written(one).forEach((mine) =>
             extensions.forEach((theirs) =>
               expect(one + mine).not.toBe(other + theirs),
             ),
@@ -307,5 +323,54 @@ describe('an engine that sends the EQ tap live', () => {
     frame.writeUInt32LE(0, 88);
     expect(decodeEngineAnalysis(frame)?.eqLive?.detail).toBeUndefined();
     expect(decodeEngineAnalysis(frame)?.normalizer.inputLufs).toBe(-32);
+  });
+});
+
+/**
+ * A mic's readings, from the engine installed apart from the app: 1.33 with
+ * Voice level's two, 1.32 with the gate's alone, and 1.31 with none, each
+ * with the 20-byte tail those engines write.
+ */
+describe('an engine with a mic’s readings and one without', () => {
+  const tail = [-6, -32, -18, 3, -21];
+  const withVoice = (header: number) => {
+    const frame = packet(tail, header);
+    frame.writeUInt32LE(1, 876);
+    frame.writeFloatLE(-41.5, 880);
+    frame.writeFloatLE(-9.25, 884);
+    if (header >= ANALYSIS_HEADER_BYTES) {
+      frame.writeFloatLE(5.5, 896);
+      frame.writeFloatLE(-19.75, 900);
+    }
+    return frame;
+  };
+
+  it('reads the gate and Voice level where 1.33 writes them', () => {
+    const read = decodeEngineAnalysis(withVoice(ANALYSIS_HEADER_BYTES));
+    expect(read?.voice).toEqual({
+      active: true,
+      gateLevelDb: -41.5,
+      gateGainDb: -9.25,
+      levelGainDb: 5.5,
+      levelHeardDb: -19.75,
+    });
+    expect(read?.normalizer.outputLufs).toBe(-21);
+  });
+
+  it('reads the gate alone from 1.32, and nothing of a mic from 1.31', () => {
+    const before = decodeEngineAnalysis(withVoice(ANALYSIS_VOICE_HEADER_BYTES));
+    expect(before?.voice).toEqual({
+      active: true,
+      gateLevelDb: -41.5,
+      gateGainDb: -9.25,
+    });
+    expect(before?.voice).not.toHaveProperty('levelGainDb');
+    expect(before?.normalizer.outputLufs).toBe(-21);
+    const older = decodeEngineAnalysis(
+      packet(tail, ANALYSIS_DYNAMICS_HEADER_BYTES),
+    );
+    expect(older).toBeDefined();
+    expect(older).not.toHaveProperty('voice');
+    expect(older?.normalizer.outputLufs).toBe(-21);
   });
 });

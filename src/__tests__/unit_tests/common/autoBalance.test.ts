@@ -379,9 +379,15 @@ describe('autoBalance', () => {
       // tilt it imposed, and capping that narrows the gap between them. The
       // property still stands — the corrected slope asks less of a good master
       // — it is just no longer asking dramatically less.
-      expect(worstUnder(REFERENCE_SLOPE_DB_PER_DECADE)).toBeLessThan(
-        worstUnder(-8) - 0.5,
+      // The neighbour tie (13899902b) softens a correction one band wide, and
+      // the largest move here is exactly that, the 64 Hz cut, under either
+      // slope: 2.6 to 2.4 dB under the corrected one, 3.4 to 2.9 under the old.
+      // The gap is half a decibel to the tenth the gains are rounded to, so it
+      // is counted in tenths rather than compared as two rounded floats.
+      const gapInTenths = Math.round(
+        (worstUnder(-8) - worstUnder(REFERENCE_SLOPE_DB_PER_DECADE)) * 10,
       );
+      expect(gapInTenths).toBeGreaterThanOrEqual(5);
     });
 
     /**

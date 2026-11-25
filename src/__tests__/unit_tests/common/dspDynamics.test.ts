@@ -266,7 +266,7 @@ describe('the lines the engine is tested with', () => {
 });
 
 describe('Dynamics profiles', () => {
-  it('offers nine everyday profiles and keeps the five gaming profiles', () => {
+  it('offers nine everyday profiles, keeps the five gaming profiles, and four for a mic', () => {
     expect(DYNAMICS_PRESETS.map((preset) => preset.id)).toEqual([
       'gentle',
       'transparent',
@@ -282,7 +282,41 @@ describe('Dynamics profiles', () => {
       'gameNight',
       'gameLongSession',
       'gameCompetitiveLight',
+      'micGentle',
+      'micBroadcast',
+      'micCallouts',
+      'micSinging',
     ]);
+  });
+
+  /**
+   * The Mic group's own, offered on the Mic tab alone. A lift under a
+   * threshold lifts the room between words with the voice (up to +9 dB in
+   * `mic_profiles_test.cpp`), so they press down and never lift.
+   */
+  it('presses a mic down and never lifts what is quiet', () => {
+    const mic = DYNAMICS_PRESETS.filter((preset) => preset.group === 'mic');
+    expect(mic.map((preset) => preset.id)).toEqual([
+      'micGentle',
+      'micBroadcast',
+      'micCallouts',
+      'micSinging',
+    ]);
+    mic.forEach((preset) =>
+      preset.settings.bands.forEach((band) => {
+        expect({ id: preset.id, upMaxDb: band.upMaxDb }).toEqual({
+          id: preset.id,
+          upMaxDb: 0,
+        });
+        expect(band.downRatio).toBeGreaterThan(1);
+      }),
+    );
+    // Control: the speech profile a mic would otherwise borrow does lift.
+    expect(
+      DYNAMICS_PRESETS.find(
+        (preset) => preset.id === 'speech',
+      )?.settings.bands.some((band) => band.upMaxDb > 0),
+    ).toBe(true);
   });
 
   it('every one survives the stage’s clamp unchanged, and never decides whether it runs', () => {

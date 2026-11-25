@@ -550,10 +550,16 @@ int main(int argc, char** argv) {
   FeqCompanderReport dynamics{};
   feq_meters_read_dynamics(meters, &dynamics);
   feq_wire_dynamics_report(wire, dynamics);
-  // 872 since Dynamics followed the Game filter's window (`wire.h`); the
-  // app also reads the 840-, 816-, 784- and 560-byte legacy headers.
+  // Both writers tag a mic's readings in every frame, an output's rack
+  // inactive with no long window, as the Library host does.
+  FeqVoiceReport voice{};
+  feq_meters_read_voice(meters, &voice);
+  feq_wire_voice_report(wire, voice, 0u);
+  // 904 since Voice level followed a mic's gate (`wire.h`); the app also
+  // reads the 896-, 872-, 840-, 816-, 784- and 560-byte legacy headers.
   check(wire.reserved_tail == report.flags && wire.bass_reserved_tail == -3 &&
-            sizeof(wire) == 872,
+            wire.voice_tag == 0x31494f56u && wire.voice_active == 0 &&
+            wire.voice_detail_bins == 0 && sizeof(wire) == 904,
         "actual meter and shared host/APO encoder preserve tagged fields and "
         "framing");
   if (argc > 1) {
