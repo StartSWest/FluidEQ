@@ -210,6 +210,14 @@ export default {
   'mic.own.unknown':
     'このマイク独自のエフェクトを見るには FluidEQ Engine を更新してください。',
   'mic.own.unnamed': '名前のないエフェクト',
+  'mic.own.kind.stream': '各アプリの録音にかかります',
+  'mic.own.kind.mode': '通話など、特定の種類の録音にかかります',
+  'mic.own.kind.endpoint': 'このマイクが録音するすべてにかかります',
+  'mic.own.windows': 'Windows の一部',
+  'mic.own.makerUnknown': 'メーカーの記録なし',
+  'mic.own.fileVersion': '{file}、バージョン {version}',
+  'mic.own.source':
+    '名前、メーカー、ファイルは Windows に登録されているとおりです。',
   'mic.own.stateOn': 'オン',
   'mic.own.stateOff': 'オフ',
   'mic.own.prompt': 'Windows が許可を求めます。',

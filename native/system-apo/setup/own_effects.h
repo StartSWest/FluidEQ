@@ -28,6 +28,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <string_view>
 #include <vector>
 
+#include "apo_names.h"
 #include "fx_list.h"
 
 namespace fluideq_engine::setup {
@@ -56,6 +57,19 @@ FxPlan plan_restore_own(const FxValues& current, const FxValues& saved,
  * vendor's single value under a list is not listed — it no longer runs.
  */
 std::vector<std::wstring> effects_run(const FxValues& values);
+
+/** One effect Windows runs, and where it runs it. */
+struct RunningEffect {
+  std::wstring clsid;
+  EffectKind kind;
+};
+
+/**
+ * `effects_run` with each effect's kind: SFX and the pre-8.1 LFX run on each
+ * app's stream, MFX on one processing mode, EFX and the pre-8.1 GFX on
+ * everything the endpoint carries. The card says which, in plain words.
+ */
+std::vector<RunningEffect> effects_running(const FxValues& values);
 
 }  // namespace fluideq_engine::setup
 

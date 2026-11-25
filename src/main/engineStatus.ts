@@ -37,7 +37,6 @@ import {
   IEndpointEffect,
   IFluidEngineEndpoint,
   IFluidEngineMicrophone,
-  IMicEffect,
   IFluidEngineStatus,
   TAudioEngine,
   TEngineSlotName,
@@ -45,6 +44,7 @@ import {
 import { isEqualizerAPOInstalled, noteFluidEngineRegistered } from './registry';
 import { getEngineSetupPath } from './engineSetup';
 import { planEngineUpdate } from './engineUpdate';
+import parseMicEffects from './micEffects';
 
 /**
  * Windows 10 build 17134 (version 1803, "April 2018 Update") is the first to
@@ -266,20 +266,6 @@ const parseStatusMicrophones = (value: unknown): IFluidEngineMicrophone[] => {
     };
   });
 };
-
-/** The helper's `runs` and `ownEffectsTaken`, or nothing from an older one. */
-const parseMicEffects = (value: unknown): IMicEffect[] | undefined =>
-  Array.isArray(value)
-    ? value.flatMap((entry: unknown): IMicEffect[] => {
-        if (typeof entry !== 'object' || entry === null) {
-          return [];
-        }
-        const { clsid, name } = entry as Record<string, unknown>;
-        return typeof clsid === 'string'
-          ? [{ clsid, name: typeof name === 'string' ? name : '' }]
-          : [];
-      })
-    : undefined;
 
 interface IRawStatus {
   installed?: unknown;

@@ -211,6 +211,15 @@ export default {
   'mic.own.unknown':
     'इस माइक के अपने इफ़ेक्ट देखने के लिए FluidEQ Engine अपडेट करें।',
   'mic.own.unnamed': 'बिना नाम का इफ़ेक्ट',
+  'mic.own.kind.stream': 'हर ऐप की रिकॉर्डिंग पर काम करता है',
+  'mic.own.kind.mode': 'एक तरह की रिकॉर्डिंग पर काम करता है, जैसे कॉल',
+  'mic.own.kind.endpoint':
+    'यह माइक जो कुछ भी रिकॉर्ड करता है, उस सब पर काम करता है',
+  'mic.own.windows': 'Windows का हिस्सा',
+  'mic.own.makerUnknown': 'निर्माता दर्ज नहीं',
+  'mic.own.fileVersion': '{file}, संस्करण {version}',
+  'mic.own.source':
+    'नाम, निर्माता और फ़ाइलें वैसे ही, जैसे Windows में दर्ज हैं।',
   'mic.own.stateOn': 'चालू',
   'mic.own.stateOff': 'हटाया गया',
   'mic.own.prompt': 'Windows अनुमति माँगेगा।',

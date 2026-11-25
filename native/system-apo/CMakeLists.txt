@@ -329,7 +329,7 @@ add_library(fluideq-engine-setup-core STATIC
   setup/fx_list.cpp setup/fx_modes.cpp setup/json.cpp setup/multi_sz.cpp
   setup/attach_outcome.cpp setup/com_paths.cpp setup/service_restart.cpp
   setup/retry.cpp setup/slot_report.cpp setup/capture_slots.cpp
-  setup/own_effects.cpp)
+  setup/own_effects.cpp setup/apo_names.cpp)
 target_link_libraries(fluideq-engine-setup-core PRIVATE feq_strict)
 
 # A microphone's own effects taken off and put back (`own_effects.h`): the
@@ -339,6 +339,13 @@ add_executable(fluideq-engine-own-effects-test tests/own_effects_test.cpp)
 target_link_libraries(fluideq-engine-own-effects-test
   PRIVATE fluideq-engine-setup-core feq_strict)
 add_test(NAME engine-own-effects COMMAND fluideq-engine-own-effects-test)
+
+# What an effect is called and who made it, from everything Windows keeps
+# about its class id (`apo_names.h`), on the registrations of real machines.
+add_executable(fluideq-engine-apo-names-test tests/apo_names_test.cpp)
+target_link_libraries(fluideq-engine-apo-names-test
+  PRIVATE fluideq-engine-setup-core feq_strict)
+add_test(NAME engine-apo-names COMMAND fluideq-engine-apo-names-test)
 
 # Where the engine may go on a microphone: GFX is never created on one, and a
 # legacy-only mic reads its effect from LFX.
@@ -435,7 +442,7 @@ add_executable(fluideq-engine-setup
   setup/com_registration.cpp setup/endpoints.cpp
   setup/elevate.cpp setup/services.cpp setup/acl.cpp setup/backup.cpp
   setup/slot_memory.cpp setup/digest.cpp setup/own_effects_commands.cpp
-  setup/fs.cpp setup/console.cpp
+  setup/fs.cpp setup/console.cpp setup/apo_lookup.cpp
   # The version resource is what the consent prompt shows the user before
   # they decide whether to let this program change their machine.
   setup/setup.rc)
@@ -446,7 +453,8 @@ target_link_libraries(fluideq-engine-setup PRIVATE
   fluideq-engine-setup-core feq_strict
   # advapi32: the registry, the service control manager and the security
   # descriptor. shell32: the known folders and the elevated relaunch. ole32:
-  # the device enumerator. version: the installed DLL's version resource.
+  # the device enumerator. version: the installed DLL's version resource, and
+  # every effect's the status names.
   # bcrypt: the digest every DLL is checked against before it is installed.
   advapi32 shell32 ole32 version bcrypt)
 

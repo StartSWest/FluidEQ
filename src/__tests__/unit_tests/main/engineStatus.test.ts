@@ -251,6 +251,28 @@ describe('parsing the status document', () => {
             ownEffectsOff: true,
             ownEffectsTaken: [
               { clsid: '{RAZER}', name: 'Razer Voice' },
+              // Everything a helper from 2026-11-25 reads of a class.
+              {
+                clsid: '{ELEVOC}',
+                name: 'Elevoc Audio UAPO MFX',
+                maker: 'Elevoc Technology Co.,Ltd',
+                description: 'Elevoc Audio Effects Component',
+                file: 'ElevocUAPO.dll',
+                version: '1.0.1.984',
+                windows: false,
+                kind: 'mode',
+              },
+              // Blank text is absent; a kind it does not know is dropped.
+              {
+                clsid: '{PROXY}',
+                name: 'Microsoft Audio Proxy Discover Effects APO',
+                maker: 'Microsoft Corporation',
+                description: '',
+                file: 'MsApoFxProxy.dll',
+                version: '  ',
+                windows: true,
+                kind: 'everywhere',
+              },
               // A class that registered no name is still listed, unnamed.
               { clsid: '{BARE}' },
               // Not of the documented shape: dropped, the rest kept.
@@ -271,6 +293,22 @@ describe('parsing the status document', () => {
         ownEffectsOff: true,
         ownEffectsTaken: [
           { clsid: '{RAZER}', name: 'Razer Voice' },
+          {
+            clsid: '{ELEVOC}',
+            name: 'Elevoc Audio UAPO MFX',
+            maker: 'Elevoc Technology Co.,Ltd',
+            description: 'Elevoc Audio Effects Component',
+            file: 'ElevocUAPO.dll',
+            version: '1.0.1.984',
+            kind: 'mode',
+          },
+          {
+            clsid: '{PROXY}',
+            name: 'Microsoft Audio Proxy Discover Effects APO',
+            maker: 'Microsoft Corporation',
+            file: 'MsApoFxProxy.dll',
+            windows: true,
+          },
           { clsid: '{BARE}', name: '' },
         ],
       },

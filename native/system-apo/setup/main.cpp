@@ -42,7 +42,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // WIN32_LEAN_AND_MEAN leaves COM out of `windows.h`, and the device
 // enumerator this program reaches through needs an initialised apartment.
 #include <objbase.h>
-#include <winver.h>
 
 #include <algorithm>
 #include <cstdio>
@@ -51,6 +50,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <vector>
 
 #include "acl.h"
+#include "apo_lookup.h"
+#include "apo_names.h"
 #include "backup.h"
 #include "com_registration.h"
 #include "commands.h"
@@ -111,7 +112,11 @@ using fluideq_engine::setup::EndpointResult;
 using fluideq_engine::setup::describe_slots;
 using fluideq_engine::setup::held_slots;
 using fluideq_engine::setup::load_backup;
-using fluideq_engine::setup::effects_run;
+using fluideq_engine::setup::RunningEffect;
+using fluideq_engine::setup::apo_info;
+using fluideq_engine::setup::dll_version;
+using fluideq_engine::setup::effect_json;
+using fluideq_engine::setup::effects_running;
 using fluideq_engine::setup::equal_ci;
 using fluideq_engine::setup::load_mic_own_off;
 using fluideq_engine::setup::mode_missing;
@@ -203,30 +208,6 @@ bool parse(int argc, wchar_t** argv, Options& options) {
   return !takes_guids || !options.guids.empty();
 }
 
-/** `1.0.0.0` from a DLL's version resource, or empty. */
-std::wstring dll_version(const std::wstring& path) {
-  DWORD ignored = 0;
-  const DWORD size = GetFileVersionInfoSizeW(path.c_str(), &ignored);
-  if (size == 0) {
-    return std::wstring();
-  }
-  std::vector<BYTE> block(size, 0);
-  if (GetFileVersionInfoW(path.c_str(), 0, size, block.data()) == 0) {
-    return std::wstring();
-  }
-  VS_FIXEDFILEINFO* fixed = nullptr;
-  UINT length = 0;
-  if (VerQueryValueW(block.data(), L"\\", reinterpret_cast<LPVOID*>(&fixed),
-                     &length) == 0 ||
-      fixed == nullptr || length < sizeof(VS_FIXEDFILEINFO)) {
-    return std::wstring();
-  }
-  return std::to_wstring(HIWORD(fixed->dwFileVersionMS)) + L"." +
-         std::to_wstring(LOWORD(fixed->dwFileVersionMS)) + L"." +
-         std::to_wstring(HIWORD(fixed->dwFileVersionLS)) + L"." +
-         std::to_wstring(LOWORD(fixed->dwFileVersionLS));
-}
-
 /**
  * The answer to "is any of this installed, and where".
  *
@@ -282,35 +263,11 @@ bool engine_has_run() {
 }
 
 /**
- * The name a class id was registered under, or empty.
- *
- * `HKCR\CLSID\{…}` carries a default value that is the effect's own name as
- * its installer wrote it — "THX Spatial Audio APO", "Equalizer APO", ours —
- * and it is the only human-readable thing about a class id on the machine.
- * Read for the report only; nothing here is written.
+ * The name Windows has for a class id, or empty (`apo_names.h`): read for
+ * the report only; nothing here is written.
  */
 std::wstring registered_class_name(const std::wstring& clsid) {
-  HKEY raw = nullptr;
-  const std::wstring path = L"CLSID\\" + clsid;
-  if (RegOpenKeyExW(HKEY_CLASSES_ROOT, path.c_str(), 0,
-                    KEY_READ | KEY_WOW64_64KEY, &raw) != ERROR_SUCCESS) {
-    return std::wstring();
-  }
-  std::wstring name;
-  DWORD type = 0;
-  DWORD size = 0;
-  if (RegQueryValueExW(raw, nullptr, nullptr, &type, nullptr, &size) ==
-          ERROR_SUCCESS &&
-      type == REG_SZ && size >= sizeof(wchar_t)) {
-    std::vector<wchar_t> buffer(size / sizeof(wchar_t) + 1, L'\0');
-    if (RegQueryValueExW(raw, nullptr, nullptr, &type,
-                         reinterpret_cast<BYTE*>(buffer.data()),
-                         &size) == ERROR_SUCCESS) {
-      name.assign(buffer.data());
-    }
-  }
-  RegCloseKey(raw);
-  return name;
+  return apo_info(clsid).name;
 }
 
 /**
@@ -385,31 +342,33 @@ std::wstring endpoint_json(const Endpoint& endpoint) {
   // What Windows actually runs here (`effects_run`): the list above also
   // names a vendor's single value that a list now shadows, which no longer
   // runs. And whether a microphone's own effects were taken off, with what
-  // the switch took, read from its record — the card lists those.
-  const auto named = [](const std::vector<std::wstring>& clsids) {
+  // the switch took, read from its record — the card lists those, each
+  // with its name, maker, file and where it runs (`effect_json`).
+  const auto named = [](const std::vector<RunningEffect>& effects) {
     std::wstring list = L"[";
-    for (size_t at = 0; at < clsids.size(); ++at) {
+    for (size_t at = 0; at < effects.size(); ++at) {
       if (at != 0) {
         list += L',';
       }
-      list += L"{\"clsid\":\"" + json_escape(clsids[at]) + L"\",\"name\":\"" +
-              json_escape(registered_class_name(clsids[at])) + L"\"}";
+      list += effect_json(effects[at].clsid, effects[at].kind,
+                          apo_info(effects[at].clsid));
     }
     return list + L"]";
   };
-  const std::vector<std::wstring> runs = effects_run(values);
+  const std::vector<RunningEffect> runs = effects_running(values);
   out += L",\"runs\":" + named(runs);
   const std::optional<FxValues> own_off = load_mic_own_off(endpoint.guid);
   out += L",\"ownEffectsOff\":";
   out += own_off.has_value() ? L"true" : L"false";
-  std::vector<std::wstring> taken;
+  std::vector<RunningEffect> taken;
   if (own_off.has_value()) {
-    for (const std::wstring& clsid : effects_run(*own_off)) {
+    for (const RunningEffect& effect : effects_running(*own_off)) {
       const bool still = std::any_of(
-          runs.begin(), runs.end(),
-          [&clsid](const std::wstring& each) { return equal_ci(each, clsid); });
+          runs.begin(), runs.end(), [&effect](const RunningEffect& each) {
+            return equal_ci(each.clsid, effect.clsid);
+          });
       if (!still) {
-        taken.push_back(clsid);
+        taken.push_back(effect);
       }
     }
   }

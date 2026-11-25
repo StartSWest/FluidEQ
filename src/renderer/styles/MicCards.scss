@@ -210,12 +210,13 @@ $mic-taken: #e86a34;
 
 // *** The mic's own effects ***********************************************
 
-// Each effect a row: its name, its class id faint beside it, its state at
-// the end. Off, the names are struck through in the quiet ink: taken off,
-// kept on record.
+// Each effect a block of what Windows has on record for it: its name, a
+// Windows mark when Microsoft made it and its state at the end of that line;
+// under it its maker and where it runs, what else Windows calls it, and its
+// file and class id faint. Parted by the studio's hairline, no boxes. Off,
+// the names are struck through in the quiet ink: taken off, kept on record.
 .mic-own__list {
   display: grid;
-  gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -224,31 +225,68 @@ $mic-taken: #e86a34;
 .mic-own__effect {
   display: grid;
   align-items: baseline;
-  gap: 4px 12px;
-  grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto;
+  gap: 3px 10px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  padding: 9px 0;
+
+  & + & {
+    border-top: 1px solid $studio-hair;
+  }
+
+  &:first-child {
+    padding-top: 2px;
+  }
 }
 
 .mic-own__name {
+  grid-column: 1;
+  min-width: 0;
   color: $text-primary;
   font-weight: $weight-semibold;
+  overflow-wrap: anywhere;
 }
 
-.mic-own__id {
-  overflow: hidden;
+.mic-own__windows {
+  grid-column: 2;
   color: $text-faint;
-  font-family: $font-mono;
-  font-size: $studio-text-label;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: $text-eyebrow;
+  @include tracking(0.08em);
+  text-transform: uppercase;
 }
 
 .mic-own__state {
+  grid-column: 3;
   color: var(--active);
   font-size: $studio-text-label;
 
   .mic-own__list.is-off & {
     color: $text-muted;
   }
+}
+
+// The lines under the name run the block's width, and wrap rather than cut:
+// a class id cut to an ellipsis no longer says which class it is.
+:is(.mic-own__facts, .mic-own__description, .mic-own__file, .mic-own__id) {
+  grid-column: 1 / -1;
+  min-width: 0;
+  font-size: $studio-text-label;
+  overflow-wrap: anywhere;
+}
+
+.mic-own__facts {
+  color: $text-muted;
+}
+
+:is(.mic-own__description, .mic-own__file, .mic-own__id) {
+  color: $text-faint;
+}
+
+.mic-own__id {
+  font-family: $font-mono;
+}
+
+.mic-own__source {
+  margin-top: 2px;
 }
 
 .mic-own__list.is-off .mic-own__name {

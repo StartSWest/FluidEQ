@@ -135,6 +135,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
+// The mic maker's own effects, under the rack's stages and parted from them
+// by the hairline the master row stands on: Windows' processing, not the
+// rack's, so nothing in the rack's list reads as governing it.
+.mic-rail__own {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid $studio-hair;
+}
+
 .mic-rail__note {
   margin: 12px 12px 0;
   color: $text-muted;

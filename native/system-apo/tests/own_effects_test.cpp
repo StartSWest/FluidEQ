@@ -23,7 +23,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fx_list_test_support.h"
 
 using namespace feq_fx_list_test;
+using fluideq_engine::setup::EffectKind;
+using fluideq_engine::setup::RunningEffect;
 using fluideq_engine::setup::effects_run;
+using fluideq_engine::setup::effects_running;
 using fluideq_engine::setup::equal_ci;
 using fluideq_engine::setup::plan_restore_own;
 using fluideq_engine::setup::plan_suspend_others;
@@ -156,6 +159,35 @@ void a_shadowed_single_does_not_run() {
   CHECK(effects_run(legacy) == list({kOurs}));
 }
 
+/** Each effect's kind follows the slot Windows reads it from. */
+void each_effect_says_where_it_runs() {
+  std::printf("stream, mode and endpoint effects, the old pair too\n");
+  FxValues array;
+  array.composite[kMfx] = list({kRealtekMode});
+  array.single[kSfx] = kVendorSfx;
+  array.composite[kEfx] = list({kRealtekEfx, kOurs});
+  const std::vector<RunningEffect> run = effects_running(array);
+  CHECK(run.size() == 4);
+  CHECK(run.size() == 4 && run[0].clsid == kVendorSfx &&
+        run[0].kind == EffectKind::Stream);
+  CHECK(run.size() == 4 && run[1].clsid == kRealtekMode &&
+        run[1].kind == EffectKind::Mode);
+  CHECK(run.size() == 4 && run[2].clsid == kRealtekEfx &&
+        run[2].kind == EffectKind::Endpoint);
+  CHECK(run.size() == 4 && run[3].kind == EffectKind::Endpoint);
+  // The pre-8.1 pair: LFX ran per stream, GFX on the whole endpoint.
+  FxValues legacy;
+  legacy.legacy[kLfx] = kLegacyLfx;
+  legacy.legacy[kGfx] = kThx;
+  const std::vector<RunningEffect> old = effects_running(legacy);
+  CHECK(old.size() == 2 && old[0].kind == EffectKind::Stream &&
+        old[1].kind == EffectKind::Endpoint && old[1].clsid == kThx);
+  // The same effects as `effects_run`, in the same order.
+  std::vector<std::wstring> ids;
+  for (const RunningEffect& effect : run) ids.push_back(effect.clsid);
+  CHECK(ids == effects_run(array));
+}
+
 }  // namespace
 
 int main() {
@@ -166,6 +198,7 @@ int main() {
   ours_is_matched_whatever_its_case();
   a_moved_engine_is_kept_where_it_went();
   a_shadowed_single_does_not_run();
+  each_effect_says_where_it_runs();
   if (g_failures == 0) {
     std::printf("\nall checks passed\n");
     return 0;

@@ -200,10 +200,33 @@ export interface IFluidEngineStatus {
 
 /** A microphone as the setup helper reports it: an endpoint with a name. */
 /** One effect a microphone runs, by its class id and registered name. */
+/**
+ * Where Windows runs a mic's effect, by the slot it reads it from: on each
+ * app's recording (SFX, or the old LFX), on one processing mode such as
+ * calls (MFX), or on everything the mic records (EFX, or the old GFX).
+ */
+export type TMicEffectKind = 'stream' | 'mode' | 'endpoint';
+
+/**
+ * One effect as the setup helper names it from everything Windows keeps
+ * about its class id (`setup/apo_names.h`). Everything past `name` is absent
+ * from a helper before 2026-11-25, which named the class from `HKCR\CLSID`
+ * alone and called every Windows 11 effects component unnamed.
+ */
 export interface IMicEffect {
   clsid: string;
-  /** Empty where the effect registered no name. */
+  /** Empty only where Windows has no name for it anywhere. */
   name: string;
+  /** Who made it: the driver's provider, the DLL's company or copyright. */
+  maker?: string;
+  /** What else Windows calls it, when that says something the name does not. */
+  description?: string;
+  /** The DLL's file name, and its version. */
+  file?: string;
+  version?: string;
+  /** Microsoft made it: part of Windows. */
+  windows?: boolean;
+  kind?: TMicEffectKind;
 }
 
 export interface IFluidEngineMicrophone extends IFluidEngineEndpoint {

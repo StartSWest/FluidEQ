@@ -217,6 +217,14 @@ export default {
   'mic.own.unknown':
     'Обновите FluidEQ Engine, чтобы увидеть собственные эффекты этого микрофона.',
   'mic.own.unnamed': 'Эффект без названия',
+  'mic.own.kind.stream': 'Работает на записи каждого приложения',
+  'mic.own.kind.mode': 'Работает на одном виде записи, например на звонках',
+  'mic.own.kind.endpoint': 'Работает на всём, что записывает этот микрофон',
+  'mic.own.windows': 'Часть Windows',
+  'mic.own.makerUnknown': 'Производитель не указан',
+  'mic.own.fileVersion': '{file}, версия {version}',
+  'mic.own.source':
+    'Названия, производители и файлы — так, как их записал Windows.',
   'mic.own.stateOn': 'Вкл.',
   'mic.own.stateOff': 'Выкл.',
   'mic.own.prompt': 'Windows запросит разрешение.',

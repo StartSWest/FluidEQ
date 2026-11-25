@@ -27,8 +27,8 @@ import { gateOpenness } from './micGate';
 import type { IMicLevel } from './useMicLevels';
 
 export type TMicStage =
-  // The mic maker's own effects: Windows' registration, ahead of the rack,
-  // and on its own row above the rack's switch (`MicOwnEffectsCard`).
+  // The mic maker's own effects: Windows' registration, ahead of the rack in
+  // the audio, on its own row under the rack's stages (`MicOwnEffectsCard`).
   | 'own'
   | 'lowCut'
   | 'denoise'
@@ -354,35 +354,6 @@ const MicStageRail = ({
     // No heading over the stages: the header names the mic just above, and
     // its Windows name repeated here was cut to an ellipsis at every width.
     <nav className="dsp-rail mic-rail" aria-label={heading}>
-      {/* The maker's own effects run ahead of everything below and are not
-          the rack's, so the rack's switch does not govern them: a row of
-          their own, first, as the voice meets them. */}
-      <DspRailRow
-        name={t('mic.stage.own')}
-        isActive={active === 'own'}
-        isOff={!ownEffects.on}
-        power={{
-          id: 'mic-rail-own',
-          isOn: ownEffects.on,
-          isDisabled: !ownEffects.available,
-          onToggle: onOwnToggle,
-        }}
-      >
-        <button
-          type="button"
-          className={`dsp-rail-tab${active === 'own' ? ' is-active' : ''}${
-            ownEffects.on ? ' is-on' : ''
-          }`}
-          aria-current={active === 'own' ? 'true' : undefined}
-          title={t('mic.stage.own')}
-          onClick={() => onSelect('own')}
-        >
-          <StageIcon stage="own" />
-          <span className="dsp-rail-name studio-rail__word">
-            {t('mic.stage.own')}
-          </span>
-        </button>
-      </DspRailRow>
       <div className="mic-rail__master">
         <span className="mic-rail__master-name studio-rail__word">
           {t('mic.rail.master')}
@@ -449,6 +420,40 @@ const MicStageRail = ({
           </DspRailRow>
         );
       })}
+      {/* The maker's own effects are Windows' registration, not the rack's,
+          so the rack's switch does not govern them: under every stage, past
+          a divider, on a row of their own (Ivan, 2026-11-25: "I don't like
+          it on top of my processing. Put it at the bottom of all the
+          filters with a divider"). Always there, available or not, so
+          nothing moves when the engine's reading arrives. */}
+      <div className="mic-rail__own">
+        <DspRailRow
+          name={t('mic.stage.own')}
+          isActive={active === 'own'}
+          isOff={!ownEffects.on}
+          power={{
+            id: 'mic-rail-own',
+            isOn: ownEffects.on,
+            isDisabled: !ownEffects.available,
+            onToggle: onOwnToggle,
+          }}
+        >
+          <button
+            type="button"
+            className={`dsp-rail-tab${active === 'own' ? ' is-active' : ''}${
+              ownEffects.on ? ' is-on' : ''
+            }`}
+            aria-current={active === 'own' ? 'true' : undefined}
+            title={t('mic.stage.own')}
+            onClick={() => onSelect('own')}
+          >
+            <StageIcon stage="own" />
+            <span className="dsp-rail-name studio-rail__word">
+              {t('mic.stage.own')}
+            </span>
+          </button>
+        </DspRailRow>
+      </div>
       <p className="mic-rail__note studio-rail__word">{t('mic.rail.note')}</p>
     </nav>
   );

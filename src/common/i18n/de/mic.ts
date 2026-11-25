@@ -222,6 +222,14 @@ export default {
   'mic.own.unknown':
     'Aktualisieren Sie die FluidEQ Engine, um die eigenen Effekte dieses Mikrofons zu sehen.',
   'mic.own.unnamed': 'Unbenannter Effekt',
+  'mic.own.kind.stream': 'Wirkt auf die Aufnahme jeder App',
+  'mic.own.kind.mode': 'Wirkt auf eine Aufnahmeart, etwa Anrufe',
+  'mic.own.kind.endpoint': 'Wirkt auf alles, was dieses Mikrofon aufnimmt',
+  'mic.own.windows': 'Teil von Windows',
+  'mic.own.makerUnknown': 'Hersteller nicht verzeichnet',
+  'mic.own.fileVersion': '{file}, Version {version}',
+  'mic.own.source':
+    'Namen, Hersteller und Dateien so, wie Windows sie verzeichnet hat.',
   'mic.own.stateOn': 'Ein',
   'mic.own.stateOff': 'Aus',
   'mic.own.prompt': 'Windows fragt nach der Berechtigung.',

@@ -212,6 +212,13 @@ export default {
   'mic.own.unknown':
     '이 마이크의 자체 효과를 보려면 FluidEQ Engine을 업데이트하세요.',
   'mic.own.unnamed': '이름 없는 효과',
+  'mic.own.kind.stream': '앱마다 녹음에 적용됩니다',
+  'mic.own.kind.mode': '통화 같은 특정 녹음 방식에 적용됩니다',
+  'mic.own.kind.endpoint': '이 마이크가 녹음하는 모든 소리에 적용됩니다',
+  'mic.own.windows': 'Windows 기본 제공',
+  'mic.own.makerUnknown': '제조사 기록 없음',
+  'mic.own.fileVersion': '{file}, 버전 {version}',
+  'mic.own.source': '이름, 제조사, 파일은 Windows에 등록된 그대로입니다.',
   'mic.own.stateOn': '켜짐',
   'mic.own.stateOff': '꺼짐',
   'mic.own.prompt': 'Windows가 권한을 묻습니다.',

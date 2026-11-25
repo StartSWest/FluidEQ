@@ -93,25 +93,37 @@ FxPlan plan_restore_own(const FxValues& current, const FxValues& saved,
   return plan_restore_apo(current, saved, keep);
 }
 
-std::vector<std::wstring> effects_run(const FxValues& values) {
-  std::vector<std::wstring> run;
+std::vector<RunningEffect> effects_running(const FxValues& values) {
+  constexpr EffectKind kSlotKinds[kSlotCount] = {
+      EffectKind::Stream, EffectKind::Mode, EffectKind::Endpoint};
+  constexpr EffectKind kLegacyKinds[kLegacyCount] = {EffectKind::Stream,
+                                                     EffectKind::Endpoint};
+  std::vector<RunningEffect> run;
   for (int at = 0; at < kSlotCount; ++at) {
     if (values.composite[at].has_value()) {
       for (const std::wstring& entry : *values.composite[at]) {
         if (!entry.empty()) {
-          run.push_back(entry);
+          run.push_back({entry, kSlotKinds[at]});
         }
       }
     } else if (holds(values.single[at])) {
-      run.push_back(*values.single[at]);
+      run.push_back({*values.single[at], kSlotKinds[at]});
     }
   }
   if (!modern(values)) {
     for (int at = 0; at < kLegacyCount; ++at) {
       if (holds(values.legacy[at])) {
-        run.push_back(*values.legacy[at]);
+        run.push_back({*values.legacy[at], kLegacyKinds[at]});
       }
     }
+  }
+  return run;
+}
+
+std::vector<std::wstring> effects_run(const FxValues& values) {
+  std::vector<std::wstring> run;
+  for (const RunningEffect& effect : effects_running(values)) {
+    run.push_back(effect.clsid);
   }
   return run;
 }
