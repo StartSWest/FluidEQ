@@ -76,6 +76,10 @@ it('puts the controls back where the published version left them', async () => {
   askPublished.mockResolvedValue(published({ params: { glow: 0.2 } }));
   const { result } = tuner();
   await waitFor(() => expect(result.current.tuning.publishedVersion).toBe(5));
+  expect(result.current.baseline.gallery).toEqual({
+    state: 'live',
+    version: 5,
+  });
 
   // The scene on disk stands at 0.9 and the published one at 0.2, so there is
   // something to go back to before anything is touched.
@@ -91,7 +95,9 @@ it('puts the controls back where the published version left them', async () => {
 it('goes back to the scene as it was opened when nothing is published', async () => {
   askPublished.mockResolvedValue({ ok: true });
   const { result } = tuner();
-  await waitFor(() => expect(askPublished).toHaveBeenCalled());
+  await waitFor(() =>
+    expect(result.current.baseline.gallery).toEqual({ state: 'none' }),
+  );
   expect(result.current.tuning.publishedVersion).toBeUndefined();
 
   // Nothing has moved, so there is nothing to reset to.
@@ -126,7 +132,11 @@ it('resets the response to the published one, and to neutral without it', async 
 it('falls back to the scene when the server cannot be asked', async () => {
   askPublished.mockResolvedValue({ ok: false });
   const { result } = tuner();
-  await waitFor(() => expect(askPublished).toHaveBeenCalled());
+  // Offline is "could not ask", never "nothing published" (the bar said a
+  // published scene was unpublished while offline).
+  await waitFor(() =>
+    expect(result.current.baseline.gallery).toEqual({ state: 'unknown' }),
+  );
   // Offline is not "never published": it says nothing, and Reset keeps the
   // meaning it has when there is nothing to go back to.
   expect(result.current.tuning.publishedVersion).toBeUndefined();
@@ -140,8 +150,55 @@ it('survives a bridge that throws, and asks nothing with no project open', async
   const { result } = tuner();
   await waitFor(() => expect(askPublished).toHaveBeenCalled());
   expect(result.current.baseline.settings).toBeUndefined();
+  await waitFor(() =>
+    expect(result.current.baseline.gallery).toEqual({ state: 'unknown' }),
+  );
 
   askPublished.mockClear();
   renderHook(() => useStudioBaseline(undefined, 0));
   expect(askPublished).not.toHaveBeenCalled();
+});
+
+it('reads as being asked until the answer lands, and a new publication keeps the old answer meanwhile', async () => {
+  let answer: (value: unknown) => void = () => {};
+  askPublished.mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        answer = resolve;
+      }),
+  );
+  const { result, rerender } = renderHook(
+    ({ publications }) => useStudioBaseline(PROJECT, publications),
+    { initialProps: { publications: 0 } },
+  );
+  expect(result.current.gallery).toEqual({ state: 'asking' });
+  await act(async () => answer(published({})));
+  expect(result.current.gallery).toEqual({ state: 'live', version: 5 });
+
+  // Published again: still version 5 on screen until the gallery answers,
+  // rather than a blank line in between.
+  rerender({ publications: 1 });
+  expect(result.current.gallery).toEqual({ state: 'live', version: 5 });
+  await act(async () =>
+    answer({
+      ok: true,
+      published: { version: 6, settings: { params: {}, ambient: {} } },
+    }),
+  );
+  expect(result.current.gallery).toEqual({ state: 'live', version: 6 });
+});
+
+it('asks again for another project, and never shows the last project’s answer for it', async () => {
+  askPublished.mockResolvedValueOnce(published({}));
+  askPublished.mockImplementationOnce(() => new Promise(() => {}));
+  const { result, rerender } = renderHook(
+    ({ project }) => useStudioBaseline(project, 0),
+    { initialProps: { project: PROJECT } },
+  );
+  await waitFor(() =>
+    expect(result.current.gallery).toEqual({ state: 'live', version: 5 }),
+  );
+  rerender({ project: '22222222-2222-4222-8222-222222222222' });
+  expect(result.current.gallery).toEqual({ state: 'asking' });
+  expect(result.current.settings).toBeUndefined();
 });

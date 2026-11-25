@@ -1,0 +1,127 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// Where the open scene stands, in one sentence beside the project
+// (`StudioVersionLine.tsx`), then the step after it, the copy in the looks
+// and the stage's news, wrapping as one.
+//
+// The basis is the sentence's own measure, not its content: the line sits
+// beside the project picker only where a whole English sentence fits there,
+// and takes a row of its own otherwise. Sized by its content, the line moved
+// between the two places as its words arrived, which is the shift the bar
+// must never make while the gallery is asked.
+.studio-line {
+  display: flex;
+  flex: 1 1 420px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px $spacing-s;
+  min-width: 0;
+}
+
+.studio-line__say {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  // One line held from the first frame, while the gallery is asked.
+  min-height: 1.4em;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.4;
+}
+
+// The stage's news on the sentence's own line height: before the first
+// build it stands alone where the sentence lands next, and a pixel's
+// difference between the two moved everything under the bar.
+.studio-line .studio-bench__status {
+  line-height: 1.4;
+}
+
+.studio-line__words {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+// The mark stands on the first line's middle when the sentence wraps, in the
+// icons' 13px column, so every sentence starts at the same place whatever
+// mark it wears.
+.studio-line__dot,
+.studio-line__ring {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin: calc((1.4em - 7px) / 2) 3px 0;
+  border-radius: 50%;
+}
+
+.studio-line__dot {
+  &.is-live {
+    background: $active;
+  }
+
+  &.is-changed {
+    background: $amber;
+  }
+}
+
+// Nothing in the gallery to light: an empty ring rather than a grey dot,
+// which would read as a lamp switched off.
+.studio-line__ring {
+  border: 1.5px solid $text-dim;
+}
+
+.studio-line__icon {
+  flex: none;
+  width: 13px;
+  height: 13px;
+  margin-top: calc((1.4em - 13px) / 2);
+  color: $text-muted;
+
+  &.is-refused {
+    color: $ink-caution;
+  }
+}
+
+// The step after a refusal, in the app's plain link, sized to the sentence:
+// no taller than its line, or the bar grew by its padding the moment the
+// gallery's answer named a refusal.
+.link-button.studio-line__why {
+  flex: none;
+  // The plain face's transparent edge stays for its hover; the margin takes
+  // its two pixels back out of the line.
+  margin-block: -1px;
+  padding: 0 6px;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  line-height: 1.4;
+}
+
+// The member's own copy, quieter than the sentence: a fact beside it, never
+// a second status.
+.studio-line__looks {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 5px;
+  color: $text-faint;
+  font-size: $text-small;
+  white-space: nowrap;
+  cursor: default;
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .studio-line__check {
+    color: $active-ink;
+  }
+}

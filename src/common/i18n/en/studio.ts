@@ -434,25 +434,39 @@ const studio = {
   'studio.hears.drop':
     'a drop landing; the number counts them, so each can look different',
 
-  'studio.status.live': 'Updated from your last save',
-  'studio.status.problem': 'The last working version is still playing',
-  'studio.status.waiting': 'Waiting for a version that plays',
+  'studio.status.problem':
+    'Your latest save doesn’t play. The stage keeps the last one that worked.',
+  'studio.status.waiting': 'Nothing plays yet. Waiting for a save that works.',
+  'studio.line.unpublished':
+    'Only on this computer. It isn’t in the gallery yet.',
+  'studio.line.same':
+    'Version {version} is in the gallery, exactly as you see it.',
+  'studio.line.changed':
+    'You’ve changed it since version {version} went to the gallery.',
+  'studio.line.elsewhere':
+    'Version {version} is in the gallery. It was published from another computer.',
+  'studio.line.inGallery': 'Version {version} is in the gallery.',
+  'studio.line.review':
+    'Version {version} is waiting for review. The gallery keeps version {live} until then.',
+  'studio.line.firstReview':
+    'Version {version} is waiting for review. It goes into the gallery once it’s approved.',
+  'studio.line.rejected':
+    'Version {version} wasn’t approved. The gallery still has version {live}.',
+  'studio.line.firstRejected':
+    'Version {version} wasn’t approved, so it isn’t in the gallery.',
+  'studio.line.unknown': 'The gallery can’t be checked right now.',
+  'studio.line.inspect': 'Version {version} of this scene.',
+  'studio.line.seeWhy': 'See why',
+  'studio.line.inLooks': 'In my looks',
+  'studio.line.looksOlder': 'My looks have an older copy',
 
-  // The version on the bench, beside the status word. The number is what a
-  // publication is called and what an installed copy compares itself
-  // against, so the author needs it where they are working.
+  // The line beside the project (`versionLine.ts`): what people have
+  // in the gallery and what is on the bench, in one sentence. The stage's own
+  // lines above it are said only when the stage has news.
   'studio.version.group': 'Versions',
-  'studio.version.looks': 'Looks v{version}',
   'studio.version.looksCurrent': 'Your looks have exactly this scene.',
   'studio.version.looksBehind':
     'Your looks have an earlier save of version {version}. Add to my looks brings them up to date.',
-  'studio.version.label': 'v{version}',
-  'studio.version.unpublished':
-    'Version {version} of this scene. It has not been published.',
-  'studio.version.live':
-    'Version {version} of this scene, and the one people have.',
-  'studio.version.changed':
-    'Version {version} is the one people have. You have changed the scene since; publishing shares it as version {next}.',
   'studio.empty': 'Nothing to show yet',
   'studio.stage.label': '{name}, playing live',
   'studio.stage.ultraBand': 'Ultra-wide graph',

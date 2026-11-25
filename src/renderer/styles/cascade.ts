@@ -120,7 +120,7 @@ import './VisualizersSignedOut.scss';
 import './WallpaperMonitors.scss';
 import './WallpaperControls.scss';
 import './Studio.scss';
-import './StudioVersion.scss';
+import './StudioVersionLine.scss';
 import './StudioControls.scss';
 import './SceneChoice.scss';
 import './Lighting.scss';

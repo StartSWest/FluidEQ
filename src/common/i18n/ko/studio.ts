@@ -412,21 +412,35 @@ const studio = {
   'studio.hears.build': '무언가를 향해 나아가는 노래',
   'studio.hears.drop':
     '낙하 착륙; 숫자는 숫자를 계산하므로 각각 다르게 보일 수 있습니다.',
-  'studio.status.live': '마지막 저장에서 업데이트됨',
-  'studio.status.problem': '마지막 작업 버전이 아직 재생 중입니다.',
-  'studio.status.waiting': '재생되는 버전을 기다리는 중',
+  'studio.status.problem':
+    '최근 저장본이 재생되지 않습니다. 무대에서는 마지막으로 작동한 저장본을 유지합니다.',
+  'studio.status.waiting':
+    '아직 재생되는 것이 없습니다. 작동하는 저장본을 기다리는 중입니다.',
+  'studio.line.unpublished': '이 컴퓨터에만 있습니다. 아직 갤러리에 없습니다.',
+  'studio.line.same':
+    '버전 {version}이(가) 갤러리에 있으며, 지금 보이는 그대로입니다.',
+  'studio.line.changed':
+    '버전 {version}이(가) 갤러리에 올라간 뒤로 장면을 바꿨습니다.',
+  'studio.line.elsewhere':
+    '버전 {version}이(가) 갤러리에 있습니다. 다른 컴퓨터에서 게시되었습니다.',
+  'studio.line.inGallery': '버전 {version}이(가) 갤러리에 있습니다.',
+  'studio.line.review':
+    '버전 {version}이(가) 검토를 기다리고 있습니다. 그때까지 갤러리에는 버전 {live}이(가) 남습니다.',
+  'studio.line.firstReview':
+    '버전 {version}이(가) 검토를 기다리고 있습니다. 승인되면 갤러리에 올라갑니다.',
+  'studio.line.rejected':
+    '버전 {version}이(가) 승인되지 않았습니다. 갤러리에는 아직 버전 {live}이(가) 있습니다.',
+  'studio.line.firstRejected':
+    '버전 {version}이(가) 승인되지 않아 갤러리에 없습니다.',
+  'studio.line.unknown': '지금은 갤러리를 확인할 수 없습니다.',
+  'studio.line.inspect': '이 장면의 버전 {version}.',
+  'studio.line.seeWhy': '이유 보기',
+  'studio.line.inLooks': '내 외모에 있음',
+  'studio.line.looksOlder': '내 외모에 이전 사본이 있습니다',
   'studio.version.group': '버전',
-  'studio.version.looks': 'v{version}처럼 보입니다.',
   'studio.version.looksCurrent': '당신의 외모에는 바로 이 장면이 있습니다.',
   'studio.version.looksBehind':
     '귀하의 외모에는 {version} 버전의 이전 저장 버전이 있습니다. 내 외모에 추가하면 최신 정보를 얻을 수 있습니다.',
-  'studio.version.label': 'v{version}',
-  'studio.version.unpublished':
-    '이 장면의 버전 {version}. 출판되지 않았습니다.',
-  'studio.version.live':
-    '이 장면의 버전 {version}이며, 사람들이 가진 버전입니다.',
-  'studio.version.changed':
-    '사람들이 가진 버전은 {version}입니다. 그 뒤로 장면을 바꿨습니다. 게시하면 버전 {next}(으)로 공유됩니다.',
   'studio.empty': '아직 표시할 항목이 없습니다.',
   'studio.stage.label': '{name}, 라이브로 재생 중',
   'studio.stage.ultraBand': '울트라와이드 그래프',

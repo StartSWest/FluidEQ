@@ -5,8 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The smaller parts the Studio's bench is built from: the version tag in its
- * bar, the empty stage where the first project starts, the stage's area with
+ * The smaller parts the Studio's bench is built from: the empty stage where the first project starts, the stage's area with
  * the divider under it, and the tabs the work on the scene is in under it.
  */
 
@@ -15,7 +14,6 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import StudioStageArea from '../../../renderer/studio/StudioStageArea';
 import StudioStageStart from '../../../renderer/studio/StudioStageStart';
-import StudioVersion from '../../../renderer/studio/StudioVersion';
 import StudioWorkTabs from '../../../renderer/studio/StudioWorkTabs';
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
@@ -25,50 +23,6 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
       vars ? `${key} ${JSON.stringify(vars)}` : key,
   }),
 }));
-
-// Ivan, 2026-11-09: the status line shows "The scene's version, for example
-// v23" - the one people have, which moves only when it is published.
-describe('the version tag', () => {
-  const tag = (version: number) =>
-    screen.getByText(`studio.version.label {"version":${version}}`);
-
-  it("shows an unpublished scene's own number, and says nobody has it yet", () => {
-    render(<StudioVersion version={3} published={undefined} />);
-    const meaning = 'studio.version.unpublished {"version":3,"next":4}';
-    expect(tag(3)).toHaveAttribute('title', meaning);
-    expect(tag(3)).toHaveAttribute('aria-label', meaning);
-    expect(tag(3)).not.toHaveClass('studio-bench__version--changed');
-  });
-
-  it('shows the version people have, whatever the project file says', () => {
-    // A project a maker's AI ran ahead to 23 while the gallery has 10.
-    render(<StudioVersion version={23} published={10} changed={false} />);
-    expect(tag(10)).toHaveAttribute(
-      'title',
-      'studio.version.live {"version":10,"next":11}',
-    );
-    expect(screen.queryByText(/"version":23/)).toBeNull();
-    expect(tag(10)).not.toHaveClass('studio-bench__version--changed');
-  });
-
-  it('marks a scene changed since its published version, naming the next', () => {
-    render(<StudioVersion version={10} published={10} changed />);
-    expect(tag(10)).toHaveAttribute(
-      'title',
-      'studio.version.changed {"version":10,"next":11}',
-    );
-    expect(tag(10)).toHaveClass(
-      'studio-bench__version',
-      'studio-bench__version--changed',
-    );
-  });
-
-  it('claims no change it cannot know about', () => {
-    render(<StudioVersion version={10} published={10} />);
-    expect(tag(10)).not.toHaveClass('studio-bench__version--changed');
-    expect(tag(10).getAttribute('title')).toMatch(/^studio\.version\.live/);
-  });
-});
 
 describe('the empty stage', () => {
   it('starts a new project in the loud style and opens a folder in the quiet one', async () => {

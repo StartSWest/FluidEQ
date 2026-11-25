@@ -42,7 +42,6 @@ const review = {
   'review.next': 'Correggila e pubblicala di nuovo.',
   'review.mark.rejected': 'Non approvata per la galleria',
   'review.mark.rejectedOn': 'Non approvata il {date}',
-  'review.mark.show': 'Non approvata: vedi perché',
   'review.mark.pending': 'In attesa di revisione',
 } as const;
 

@@ -23,6 +23,11 @@ interface IStudioShipCardProps {
   unfitReason: string | undefined;
   /** Brings the scene's problems under the stage into view. */
   onShowProblems: () => void;
+  /**
+   * The bench holds changes the gallery does not have yet
+   * (`versionLine.ts`): Publish is then the step the bar recommends.
+   */
+  publishSuggested: boolean;
 }
 
 /**
@@ -34,7 +39,10 @@ interface IStudioShipCardProps {
  * publish it to share it and earn (Ivan, 2026-10-21: "they will publish to
  * earn money when the scene is fully done and tested in the grahp"). So Add
  * wears the loud style, the step taken over and over while a scene is made,
- * and Publish the quiet one; the bench shows `StudioShipInspect` for one of
+ * and Publish the quiet one — until the scene has changed since the version
+ * people have: the line beside the project says so, and Publish turns loud as
+ * the step after it (Ivan, 2026-11-25: one control per action, so the line
+ * carries no Publish link of its own). The bench shows `StudioShipInspect` for one of
  * FluidEQ's scenes opened to look inside.
  *
  * In the bar they are in reach wherever the page was left: at the foot of the
@@ -52,6 +60,7 @@ export default function StudioShipCard({
   settingDesktop,
   unfitReason,
   onShowProblems,
+  publishSuggested,
 }: IStudioShipCardProps) {
   const { t } = useTranslation();
   const more: IShipMoreItem[] = [
@@ -102,7 +111,9 @@ export default function StudioShipCard({
       <StudioShipMore items={more} />
       <button
         type="button"
-        className={`button small subtle${publishing ? ' is-running' : ''}`}
+        className={`button small${publishSuggested ? '' : ' subtle'}${
+          publishing ? ' is-running' : ''
+        }`}
         aria-busy={publishing}
         onClick={onPublish}
         disabled={unfit}

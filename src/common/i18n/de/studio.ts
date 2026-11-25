@@ -442,22 +442,37 @@ const studio = {
   'studio.hears.drop':
     'ein Drop, der einsetzt; die Zahl zählt sie, damit jeder anders aussehen kann',
 
-  'studio.status.live': 'Aktualisiert nach Ihrem letzten Speichern',
-  'studio.status.problem': 'Die letzte funktionierende Version läuft weiter',
-  'studio.status.waiting': 'Wartet auf eine Version, die spielt',
+  'studio.status.problem':
+    'Ihr letzter Stand spielt nicht. Die Bühne behält den letzten, der funktioniert hat.',
+  'studio.status.waiting':
+    'Noch spielt nichts. Es wird auf einen Stand gewartet, der funktioniert.',
+  'studio.line.unpublished':
+    'Nur auf diesem Computer. Noch nicht in der Galerie.',
+  'studio.line.same':
+    'Version {version} ist in der Galerie, genau so, wie Sie sie sehen.',
+  'studio.line.changed':
+    'Sie haben die Szene geändert, seit Version {version} in die Galerie kam.',
+  'studio.line.elsewhere':
+    'Version {version} ist in der Galerie. Sie wurde von einem anderen Computer veröffentlicht.',
+  'studio.line.inGallery': 'Version {version} ist in der Galerie.',
+  'studio.line.review':
+    'Version {version} wartet auf die Prüfung. Bis dahin bleibt Version {live} in der Galerie.',
+  'studio.line.firstReview':
+    'Version {version} wartet auf die Prüfung. Sobald sie freigegeben ist, kommt sie in die Galerie.',
+  'studio.line.rejected':
+    'Version {version} wurde nicht freigegeben. In der Galerie bleibt Version {live}.',
+  'studio.line.firstRejected':
+    'Version {version} wurde nicht freigegeben und ist daher nicht in der Galerie.',
+  'studio.line.unknown': 'Die Galerie kann gerade nicht abgefragt werden.',
+  'studio.line.inspect': 'Version {version} dieser Szene.',
+  'studio.line.seeWhy': 'Grund ansehen',
+  'studio.line.inLooks': 'In meinen Darstellungen',
+  'studio.line.looksOlder': 'Meine Darstellungen haben einen älteren Stand',
 
   'studio.version.group': 'Versionen',
-  'studio.version.looks': 'Darstellungen v{version}',
   'studio.version.looksCurrent': 'Ihre Darstellungen haben genau diese Szene.',
   'studio.version.looksBehind':
     'Ihre Darstellungen haben einen früheren Stand von Version {version}. „Zu meinen Darstellungen“ bringt sie auf den neuesten Stand.',
-  'studio.version.label': 'v{version}',
-  'studio.version.unpublished':
-    'Version {version} dieser Szene. Sie ist noch nicht veröffentlicht.',
-  'studio.version.live':
-    'Version {version} dieser Szene, und die, die andere haben.',
-  'studio.version.changed':
-    'Andere haben Version {version}. Sie haben die Szene seitdem geändert; veröffentlicht erscheint sie als Version {next}.',
   'studio.empty': 'Noch nichts zu zeigen',
   'studio.stage.label': '{name}, live',
   'studio.stage.ultraBand': 'Ultrabreiter Graph',

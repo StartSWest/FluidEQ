@@ -428,21 +428,36 @@ const studio = {
   'studio.hears.drop':
     'um drop chegando; o número os conta, para que cada um pareça diferente',
 
-  'studio.status.live': 'Atualizado com seu último salvamento',
-  'studio.status.problem': 'A última versão que funciona continua tocando',
-  'studio.status.waiting': 'Aguardando uma versão que toque',
+  'studio.status.problem':
+    'Seu último salvamento não toca. O palco mantém o último que funcionou.',
+  'studio.status.waiting':
+    'Nada toca ainda. Aguardando um salvamento que funcione.',
+  'studio.line.unpublished': 'Só neste computador. Ainda não está na galeria.',
+  'studio.line.same':
+    'A versão {version} está na galeria, exatamente como você a vê.',
+  'studio.line.changed':
+    'Você a mudou desde que a versão {version} foi para a galeria.',
+  'studio.line.elsewhere':
+    'A versão {version} está na galeria. Ela foi publicada de outro computador.',
+  'studio.line.inGallery': 'A versão {version} está na galeria.',
+  'studio.line.review':
+    'A versão {version} está aguardando análise. Até lá, a galeria mantém a versão {live}.',
+  'studio.line.firstReview':
+    'A versão {version} está aguardando análise. Ela entra na galeria assim que for aprovada.',
+  'studio.line.rejected':
+    'A versão {version} não foi aprovada. A galeria ainda tem a versão {live}.',
+  'studio.line.firstRejected':
+    'A versão {version} não foi aprovada, então não está na galeria.',
+  'studio.line.unknown': 'Não é possível consultar a galeria agora.',
+  'studio.line.inspect': 'Versão {version} desta cena.',
+  'studio.line.seeWhy': 'Veja por quê',
+  'studio.line.inLooks': 'Nos meus visuais',
+  'studio.line.looksOlder': 'Meus visuais têm uma cópia anterior',
 
   'studio.version.group': 'Versões',
-  'studio.version.looks': 'Meus visuais v{version}',
   'studio.version.looksCurrent': 'Seus visuais têm exatamente esta cena.',
   'studio.version.looksBehind':
     'Seus visuais têm um salvamento anterior da versão {version}. “Adicionar aos meus visuais” os atualiza.',
-  'studio.version.label': 'v{version}',
-  'studio.version.unpublished':
-    'Versão {version} desta cena. Ainda não foi publicada.',
-  'studio.version.live': 'Versão {version} desta cena, e a que as pessoas têm.',
-  'studio.version.changed':
-    'As pessoas têm a versão {version}. Você mudou a cena desde então; ao publicar, ela sai como versão {next}.',
   'studio.empty': 'Nada para mostrar ainda',
   'studio.stage.label': '{name}, tocando ao vivo',
   'studio.stage.ultraBand': 'Gráfico ultrawide',

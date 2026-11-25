@@ -36,6 +36,7 @@ const card = (
     settingDesktop: false,
     unfitReason: undefined as string | undefined,
     onShowProblems: jest.fn(),
+    publishSuggested: false,
     ...overrides,
   };
   render(
@@ -51,6 +52,7 @@ const card = (
       settingDesktop={props.settingDesktop}
       unfitReason={props.unfitReason}
       onShowProblems={props.onShowProblems}
+      publishSuggested={props.publishSuggested}
     />,
   );
   return props;
@@ -88,6 +90,21 @@ it('keeps the scene with the loud button, publishes with a quiet one, and sends 
   await userEvent.click(add);
   expect(props.onAdd).toHaveBeenCalledTimes(1);
   expect(props.onSetDesktop).toHaveBeenCalledTimes(1);
+});
+
+it('makes Publish the loud one while the bench has changes people do not have', () => {
+  card({ publishSuggested: true });
+  const publish = screen.getByRole('button', { name: 'studio.action.publish' });
+  expect(publish).toHaveClass('button', 'small');
+  expect(publish).not.toHaveClass('subtle');
+  // Still one control per action: the bar has one Publish, and Add keeps
+  // its own style beside it.
+  expect(
+    screen.getAllByRole('button', { name: 'studio.action.publish' }),
+  ).toHaveLength(1);
+  expect(
+    screen.getByRole('button', { name: 'studio.action.addToLooks' }),
+  ).not.toHaveClass('subtle');
 });
 
 it('plays the scene on the graph with a quiet button beside the loud Add', async () => {

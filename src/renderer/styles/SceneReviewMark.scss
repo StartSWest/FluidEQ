@@ -7,10 +7,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'color' as *;
 @use 'theme' as *;
 
-// The review's word on a maker's scene, beside its name (`SceneReviewMark`).
-// Small enough to sit in the Studio's bar and inside a picker row without
-// moving anything around it; the warning wears the app's warning colour
-// (`$amber`, as the report dialog's warnings do), the wait the quiet text.
+// The review's word on a maker's scene, in a row of the Studio's project
+// picker (`SceneReviewBadge`), and the reason behind a refusal, opened from
+// the Studio's "See why" (`SceneReviewWhy`). Small enough to sit inside a
+// picker row without moving anything around it; the warning wears the app's
+// warning colour (`$amber`, as the report dialog's warnings do), the wait the
+// quiet text.
 .scene-review-mark {
   display: inline-grid;
   flex: 0 0 auto;
@@ -31,20 +33,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 .scene-review-mark--rejected {
   color: $ink-caution;
-  cursor: pointer;
-
-  &.scene-review-mark--still {
-    cursor: inherit;
-  }
-
-  &:not(.scene-review-mark--still):hover,
-  &[aria-expanded='true'] {
-    background: color-mix(in srgb, $amber 16%, transparent);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
 }
 
 // The reason in full: a long one wraps and the panel scrolls inside the room

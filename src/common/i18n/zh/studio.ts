@@ -382,20 +382,30 @@ const studio = {
   'studio.hears.build': '歌曲正在为某个时刻铺垫',
   'studio.hears.drop': 'Drop 到来；数字为它们计数，让每一次都能不同',
 
-  'studio.status.live': '已按你最近一次保存更新',
-  'studio.status.problem': '上一个可用版本仍在播放',
-  'studio.status.waiting': '正在等待一个能播放的版本',
+  'studio.status.problem':
+    '你最近一次保存无法播放。舞台上保留的是最后一个能用的版本。',
+  'studio.status.waiting': '还没有可播放的内容。正在等待一次能用的保存。',
+  'studio.line.unpublished': '只在这台电脑上，还没有进入图库。',
+  'studio.line.same': '第 {version} 版已在图库中，和你现在看到的完全一样。',
+  'studio.line.changed': '第 {version} 版进入图库后，你又改过它。',
+  'studio.line.elsewhere':
+    '第 {version} 版已在图库中。它是从另一台电脑发布的。',
+  'studio.line.inGallery': '第 {version} 版已在图库中。',
+  'studio.line.review':
+    '第 {version} 版正在等待审核。在此之前，图库中仍是第 {live} 版。',
+  'studio.line.firstReview': '第 {version} 版正在等待审核，批准后会进入图库。',
+  'studio.line.rejected': '第 {version} 版未获批准。图库中仍是第 {live} 版。',
+  'studio.line.firstRejected': '第 {version} 版未获批准，所以不在图库中。',
+  'studio.line.unknown': '现在无法查看图库。',
+  'studio.line.inspect': '此场景的第 {version} 版。',
+  'studio.line.seeWhy': '查看原因',
+  'studio.line.inLooks': '已在我的外观中',
+  'studio.line.looksOlder': '我的外观中是较早的副本',
 
   'studio.version.group': '版本',
-  'studio.version.looks': '我的外观 v{version}',
   'studio.version.looksCurrent': '你的外观中正是这个场景。',
   'studio.version.looksBehind':
     '你的外观中是版本 {version} 较早的保存。“添加到我的外观”可将其更新。',
-  'studio.version.label': 'v{version}',
-  'studio.version.unpublished': '这个场景的第 {version} 版，尚未发布。',
-  'studio.version.live': '这个场景的第 {version} 版，也是大家拿到的那一版。',
-  'studio.version.changed':
-    '大家拿到的是第 {version} 版。你之后改过这个场景，发布后会作为第 {next} 版分享。',
   'studio.empty': '暂时没有可显示的内容',
   'studio.stage.label': '{name}，实时播放中',
   'studio.stage.ultraBand': '超宽屏图表',

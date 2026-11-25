@@ -41,7 +41,6 @@ const review = {
   'review.next': '수정한 뒤 다시 게시하세요.',
   'review.mark.rejected': '갤러리 승인 안 됨',
   'review.mark.rejectedOn': '{date}에 승인되지 않음',
-  'review.mark.show': '승인 안 됨: 이유 보기',
   'review.mark.pending': '검토 대기 중',
 } satisfies Partial<Dictionary>;
 

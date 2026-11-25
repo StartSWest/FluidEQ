@@ -428,23 +428,38 @@ const studio = {
   'studio.hears.drop':
     'ドロップが来たこと。数字は回数で、毎回ちがう見せ方ができる',
 
-  'studio.status.live': '最後の保存で更新されました',
-  'studio.status.problem': '最後に動いたバージョンを再生中です',
-  'studio.status.waiting': '再生できるバージョンを待っています',
+  'studio.status.problem':
+    '最新の保存は再生できません。ステージでは最後に動いた保存を再生しています。',
+  'studio.status.waiting':
+    'まだ何も再生されていません。動く保存を待っています。',
+  'studio.line.unpublished':
+    'このコンピューターにだけあります。まだギャラリーにはありません。',
+  'studio.line.same':
+    'バージョン {version} がギャラリーにあり、いま見ているものと同じです。',
+  'studio.line.changed':
+    'バージョン {version} をギャラリーに出したあと、変更しています。',
+  'studio.line.elsewhere':
+    'バージョン {version} がギャラリーにあります。別のコンピューターから公開されました。',
+  'studio.line.inGallery': 'バージョン {version} がギャラリーにあります。',
+  'studio.line.review':
+    'バージョン {version} は審査待ちです。それまでギャラリーにはバージョン {live} が残ります。',
+  'studio.line.firstReview':
+    'バージョン {version} は審査待ちです。承認されるとギャラリーに入ります。',
+  'studio.line.rejected':
+    'バージョン {version} は承認されませんでした。ギャラリーにはバージョン {live} が残っています。',
+  'studio.line.firstRejected':
+    'バージョン {version} は承認されなかったため、ギャラリーにはありません。',
+  'studio.line.unknown': 'いまはギャラリーを確認できません。',
+  'studio.line.inspect': 'このシーンのバージョン {version}。',
+  'studio.line.seeWhy': '理由を見る',
+  'studio.line.inLooks': 'マイ表示に追加済み',
+  'studio.line.looksOlder': 'マイ表示には古いコピーがあります',
 
   'studio.version.group': 'バージョン',
-  'studio.version.looks': 'マイ表示 v{version}',
   'studio.version.looksCurrent':
     'マイ表示にはこのシーンがそのまま入っています。',
   'studio.version.looksBehind':
     'マイ表示にはバージョン {version} の以前の保存が入っています。「マイ表示に追加」で最新にできます。',
-  'studio.version.label': 'v{version}',
-  'studio.version.unpublished':
-    'このシーンのバージョン {version} です。まだ公開されていません。',
-  'studio.version.live':
-    'このシーンのバージョン {version} で、みんなが持っているものです。',
-  'studio.version.changed':
-    'みんなが持っているのはバージョン {version} です。その後シーンを変更しました。公開するとバージョン {next} として共有されます。',
   'studio.empty': 'まだ表示するものがありません',
   'studio.stage.label': '{name}、ライブ再生中',
   'studio.stage.ultraBand': 'ウルトラワイドのグラフ',

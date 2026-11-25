@@ -435,22 +435,37 @@ const studio = {
   'studio.hears.drop':
     'un drop qui tombe ; le nombre les compte, pour que chacun soit différent',
 
-  'studio.status.live': 'Mis à jour depuis votre dernier enregistrement',
-  'studio.status.problem': 'La dernière version qui fonctionne joue toujours',
-  'studio.status.waiting': 'En attente d’une version qui joue',
+  'studio.status.problem':
+    'Votre dernier enregistrement ne joue pas. La scène garde le dernier qui fonctionnait.',
+  'studio.status.waiting':
+    'Rien ne joue encore. En attente d’un enregistrement qui fonctionne.',
+  'studio.line.unpublished':
+    'Seulement sur cet ordinateur. Elle n’est pas encore dans la galerie.',
+  'studio.line.same':
+    'La version {version} est dans la galerie, exactement comme vous la voyez.',
+  'studio.line.changed':
+    'Vous l’avez modifiée depuis que la version {version} est dans la galerie.',
+  'studio.line.elsewhere':
+    'La version {version} est dans la galerie. Elle a été publiée depuis un autre ordinateur.',
+  'studio.line.inGallery': 'La version {version} est dans la galerie.',
+  'studio.line.review':
+    'La version {version} attend d’être vérifiée. D’ici là, la galerie garde la version {live}.',
+  'studio.line.firstReview':
+    'La version {version} attend d’être vérifiée. Elle entrera dans la galerie une fois approuvée.',
+  'studio.line.rejected':
+    'La version {version} n’a pas été approuvée. La galerie garde la version {live}.',
+  'studio.line.firstRejected':
+    'La version {version} n’a pas été approuvée, elle n’est donc pas dans la galerie.',
+  'studio.line.unknown': 'Impossible de consulter la galerie pour le moment.',
+  'studio.line.inspect': 'Version {version} de cette scène.',
+  'studio.line.seeWhy': 'Voir pourquoi',
+  'studio.line.inLooks': 'Dans mes styles',
+  'studio.line.looksOlder': 'Mes styles ont une copie plus ancienne',
 
   'studio.version.group': 'Versions',
-  'studio.version.looks': 'Mes styles v{version}',
   'studio.version.looksCurrent': 'Vos styles ont exactement cette scène.',
   'studio.version.looksBehind':
     'Vos styles ont un enregistrement antérieur de la version {version}. « Ajouter à mes styles » les met à jour.',
-  'studio.version.label': 'v{version}',
-  'studio.version.unpublished':
-    'Version {version} de cette scène. Elle n’est pas encore publiée.',
-  'studio.version.live':
-    'Version {version} de cette scène, et celle que les autres ont.',
-  'studio.version.changed':
-    'Les autres ont la version {version}. Vous avez modifié la scène depuis ; publiée, elle sortira en version {next}.',
   'studio.empty': 'Rien à montrer pour l’instant',
   'studio.stage.label': '{name}, en direct',
   'studio.stage.ultraBand': 'Graphique ultra-large',

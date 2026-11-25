@@ -434,22 +434,37 @@ const studio = {
   'studio.hears.drop':
     'un drop que llega; el número los cuenta, para que cada uno se vea distinto',
 
-  'studio.status.live': 'Actualizado con tu último guardado',
-  'studio.status.problem': 'La última versión que funciona sigue sonando',
-  'studio.status.waiting': 'Esperando una versión que se reproduzca',
+  'studio.status.problem':
+    'Tu último guardado no se reproduce. El escenario mantiene el último que funcionó.',
+  'studio.status.waiting':
+    'Aún no se reproduce nada. Esperando un guardado que funcione.',
+  'studio.line.unpublished':
+    'Solo en este ordenador. Todavía no está en la galería.',
+  'studio.line.same':
+    'La versión {version} está en la galería, tal como la ves.',
+  'studio.line.changed':
+    'La has cambiado desde que la versión {version} llegó a la galería.',
+  'studio.line.elsewhere':
+    'La versión {version} está en la galería. Se publicó desde otro ordenador.',
+  'studio.line.inGallery': 'La versión {version} está en la galería.',
+  'studio.line.review':
+    'La versión {version} espera revisión. Hasta entonces, la galería mantiene la versión {live}.',
+  'studio.line.firstReview':
+    'La versión {version} espera revisión. Entrará en la galería cuando se apruebe.',
+  'studio.line.rejected':
+    'La versión {version} no se aprobó. La galería sigue teniendo la versión {live}.',
+  'studio.line.firstRejected':
+    'La versión {version} no se aprobó, así que no está en la galería.',
+  'studio.line.unknown': 'Ahora mismo no se puede consultar la galería.',
+  'studio.line.inspect': 'Versión {version} de esta escena.',
+  'studio.line.seeWhy': 'Ver por qué',
+  'studio.line.inLooks': 'En mis estilos',
+  'studio.line.looksOlder': 'Mis estilos tienen una copia anterior',
 
   'studio.version.group': 'Versiones',
-  'studio.version.looks': 'Mis estilos v{version}',
   'studio.version.looksCurrent': 'Tus estilos tienen exactamente esta escena.',
   'studio.version.looksBehind':
     'Tus estilos tienen un guardado anterior de la versión {version}. «Añadir a mis estilos» los pone al día.',
-  'studio.version.label': 'v{version}',
-  'studio.version.unpublished':
-    'Versión {version} de esta escena. Todavía no se ha publicado.',
-  'studio.version.live':
-    'Versión {version} de esta escena, y la que tiene la gente.',
-  'studio.version.changed':
-    'La gente tiene la versión {version}. Has cambiado la escena desde entonces; al publicarla, se compartirá como versión {next}.',
   'studio.empty': 'Aún no hay nada que mostrar',
   'studio.stage.label': '{name}, en vivo',
   'studio.stage.ultraBand': 'Gráfica ultrapanorámica',

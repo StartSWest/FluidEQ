@@ -29,7 +29,7 @@ import StudioProblems, {
 } from './StudioProblems';
 import { prefersReducedMotion } from '../utils/bandReveal';
 import StudioProjects from './StudioProjects';
-import SceneReviewMark from '../plus/SceneReviewMark';
+import { useSceneReview } from '../plus/sceneReviewStore';
 import StudioPublishDialog from './StudioPublishDialog';
 import StudioShareDialog from './StudioShareDialog';
 import StudioShipCard from './StudioShipCard';
@@ -53,7 +53,8 @@ import { studioBenchCost, studioBenchStatus } from './studioBenchStatus';
 import { useStarterLabelsShown } from './studioStarterGuide';
 import useStudioStarter from './useStudioStarter';
 import StudioTune from './StudioTune';
-import StudioVersion from './StudioVersion';
+import StudioVersionLine from './StudioVersionLine';
+import { studioVersionLine } from './versionLine';
 import StudioWork, { type TStudioWorkTab } from './StudioWork';
 import useStudioBenchLayout from './useStudioBenchLayout';
 import useStudioAmbientTuning from './useStudioAmbientTuning';
@@ -274,6 +275,19 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
   });
   const version = pack?.version;
   const cost = studioBenchCost(trouble, playing, scale);
+  const { standings } = useSceneReview();
+  const standing =
+    project?.sceneId !== undefined ? standings?.[project.sceneId] : undefined;
+  const versionLine =
+    project && version !== undefined
+      ? studioVersionLine({
+          version,
+          gallery: baseline.gallery,
+          record: project.published,
+          standing,
+          inspecting: Boolean(project.official || project.member),
+        })
+      : undefined;
 
   const newProject = () => setNaming(true);
   const closeNaming = useCallback(() => setNaming(false), []);
@@ -313,6 +327,9 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
         settingDesktop={keeping.settingDesktop}
         unfitReason={unfitWords}
         onShowProblems={showProblems}
+        publishSuggested={
+          typeof versionLine === 'object' && versionLine.publishSuggested
+        }
       />
     );
   }
@@ -527,38 +544,18 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
           onLinkFolder={linkFolder}
           onOpenFile={sharing.openFile}
         />
-        {/* Beside the scene it belongs to and ahead of the status sentence:
-            the number is a property of the scene, and after a sentence it
-            read as a trailing afterthought. */}
-        {project && version !== undefined && (
-          <StudioVersion
-            version={version}
-            published={tuner.publishedVersion}
-            // Known only for the version this folder published itself: one
-            // published from another computer has no record here to compare.
-            changed={
-              project.published &&
-              project.published.version === tuner.publishedVersion
-                ? !project.published.unchanged
-                : undefined
-            }
-            look={state.look}
-          />
-        )}
-        {/* What the review said of it, beside its name and number, until it
-            is sent again (`SceneReviewMark`). Here and not in the ship row,
+        {/* Where the scene stands, beside the scene it belongs to: the
+            gallery and the bench in one sentence, the review's word, the copy
+            in the looks, and the stage's news. Here and not in the ship row,
             which is one row by design and full in German at the narrowest
             window. */}
-        {project && !project.official && !project.member && (
-          <SceneReviewMark sceneId={project.sceneId} />
-        )}
         {project && (
-          <span
-            className={`studio-bench__status is-${status.split('.').pop()}`}
-          >
-            <span className="studio-bench__lamp" aria-hidden="true" />
-            {t(status)}
-          </span>
+          <StudioVersionLine
+            line={versionLine}
+            standing={standing}
+            look={state.look}
+            stage={status}
+          />
         )}
         {/* Drawn in the window's stack of notices (`NoticeDock`), so what an
             action says is in view wherever the page was left when it was

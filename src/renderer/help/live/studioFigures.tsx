@@ -20,7 +20,8 @@ import type { TStageHeard } from '../../studio/StudioStage';
 import StudioStageArea from '../../studio/StudioStageArea';
 import StudioStageControls from '../../studio/StudioStageControls';
 import StudioStageReading from '../../studio/StudioStageReading';
-import StudioVersion from '../../studio/StudioVersion';
+import StudioVersionLine from '../../studio/StudioVersionLine';
+import { studioVersionLine } from '../../studio/versionLine';
 import StudioWorkTabs from '../../studio/StudioWorkTabs';
 import { useTranslation } from '../../utils/I18nContext';
 import aurora from '../../../../assets/tour/scene-aurora.jpg';
@@ -67,6 +68,15 @@ const STATE: IStudioState = {
   activeId: 'help-northern-lake',
   look: { version: VERSION, current: true },
 };
+
+// Published, and the bench exactly what people have: the calm line.
+const LINE = studioVersionLine({
+  version: VERSION,
+  gallery: { state: 'live', version: VERSION },
+  record: { sceneId: 'northern-lake', version: VERSION, unchanged: true },
+  standing: undefined,
+  inspecting: false,
+});
 
 const CHAT: IStudioChat = {
   projectId: 'help-northern-lake',
@@ -213,15 +223,12 @@ const StudioDrawing = () => {
               onLinkFolder={nothing}
               onOpenFile={nothing}
             />
-            <StudioVersion
-              version={VERSION}
-              published={VERSION - 1}
+            <StudioVersionLine
+              line={LINE}
+              standing={undefined}
               look={STATE.look}
+              stage={undefined}
             />
-            <span className="studio-bench__status is-live">
-              <span className="studio-bench__lamp" aria-hidden="true" />
-              {t('studio.status.live')}
-            </span>
             <div className="studio-bench__ship">
               <StudioShipCard
                 unfit={false}
@@ -235,6 +242,7 @@ const StudioDrawing = () => {
                 settingDesktop={false}
                 unfitReason={undefined}
                 onShowProblems={nothing}
+                publishSuggested={false}
               />
             </div>
           </div>

@@ -36,7 +36,6 @@ const review = {
   'review.next': '修改後重新發布。',
   'review.mark.rejected': '未獲准進入藝廊',
   'review.mark.rejectedOn': '{date} 未獲核准',
-  'review.mark.show': '未獲核准：查看原因',
   'review.mark.pending': '等待審核',
 } satisfies Partial<Dictionary>;
 

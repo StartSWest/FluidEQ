@@ -50,7 +50,6 @@ const review = {
   'review.next': 'Fix it and publish it again.',
   'review.mark.rejected': 'Not approved for the gallery',
   'review.mark.rejectedOn': 'Not approved on {date}',
-  'review.mark.show': 'Not approved: see why',
   'review.mark.pending': 'Waiting for review',
 } as const;
 

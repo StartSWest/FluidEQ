@@ -38,7 +38,6 @@ const review = {
   'review.next': '修改后重新发布。',
   'review.mark.rejected': '未获准进入画廊',
   'review.mark.rejectedOn': '{date} 未获批准',
-  'review.mark.show': '未获批准：查看原因',
   'review.mark.pending': '等待审核',
 } as const;
 

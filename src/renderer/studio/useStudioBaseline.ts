@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useState } from 'react';
 import type { ISceneSettings } from 'common/sceneSettings';
+import type { TGalleryAnswer } from './versionLine';
 
 /**
  * What the Studio's Reset goes back to.
@@ -30,7 +31,19 @@ export interface IStudioBaseline {
   version?: number;
 }
 
-const NOTHING: IStudioBaseline = {};
+/**
+ * The baseline, and what the gallery answered for the bar's version line:
+ * an empty baseline means three different things — still asking, could not
+ * ask, nothing published — and only the last may ever be said as "not in the
+ * gallery". Saying it for the second told a member offline that a published
+ * scene was unpublished.
+ */
+export interface IStudioBaselineAnswer extends IStudioBaseline {
+  gallery: TGalleryAnswer;
+}
+
+const ASKING: IStudioBaselineAnswer = { gallery: { state: 'asking' } };
+const UNKNOWN: IStudioBaselineAnswer = { gallery: { state: 'unknown' } };
 
 export default function useStudioBaseline(
   /** The open project: another starts from nothing again. */
@@ -40,13 +53,19 @@ export default function useStudioBaseline(
    * Reset goes back to without the project being reopened.
    */
   publications: number,
-): IStudioBaseline {
-  const [baseline, setBaseline] = useState<IStudioBaseline>(NOTHING);
+): IStudioBaselineAnswer {
+  // Kept with the project it answers for: another project reads as being
+  // asked from its first render, while a new publication of the same one
+  // keeps the old answer until the new one lands, so the line never blinks.
+  const [answer, setAnswer] = useState<{
+    project: string | undefined;
+    baseline: IStudioBaselineAnswer;
+  }>({ project: undefined, baseline: ASKING });
 
   useEffect(() => {
-    setBaseline(NOTHING);
     const ask = window.electron?.ipcRenderer?.publishedStudioSettings;
     if (!project || !ask) {
+      setAnswer({ project, baseline: UNKNOWN });
       return undefined;
     }
     // Only the answer to the project that is still open may land: the request
@@ -56,19 +75,34 @@ export default function useStudioBaseline(
     let mine = true;
     ask()
       .then((outcome) => {
-        if (mine && outcome.ok && outcome.published) {
-          setBaseline({
-            settings: outcome.published.settings,
-            version: outcome.published.version,
+        if (!mine) {
+          return undefined;
+        }
+        if (!outcome.ok) {
+          setAnswer({ project, baseline: UNKNOWN });
+        } else if (outcome.published) {
+          setAnswer({
+            project,
+            baseline: {
+              settings: outcome.published.settings,
+              version: outcome.published.version,
+              gallery: { state: 'live', version: outcome.published.version },
+            },
           });
+        } else {
+          setAnswer({ project, baseline: { gallery: { state: 'none' } } });
         }
         return undefined;
       })
-      .catch(() => undefined);
+      .catch(() => {
+        if (mine) {
+          setAnswer({ project, baseline: UNKNOWN });
+        }
+      });
     return () => {
       mine = false;
     };
   }, [project, publications]);
 
-  return baseline;
+  return answer.project === project ? answer.baseline : ASKING;
 }

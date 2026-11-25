@@ -425,21 +425,37 @@ const studio = {
   'studio.hears.drop':
     'наступает дроп; число считает их, чтобы каждый выглядел по-своему',
 
-  'studio.status.live': 'Обновлено после последнего сохранения',
-  'studio.status.problem': 'Последняя рабочая версия продолжает играть',
-  'studio.status.waiting': 'Ждём версию, которая заиграет',
+  'studio.status.problem':
+    'Последнее сохранение не играет. На сцене остаётся последнее рабочее.',
+  'studio.status.waiting':
+    'Пока ничего не играет. Ждём сохранение, которое заработает.',
+  'studio.line.unpublished':
+    'Только на этом компьютере. В галерее её пока нет.',
+  'studio.line.same':
+    'Версия {version} в галерее — ровно такая, как вы её видите.',
+  'studio.line.changed':
+    'Вы изменили сцену с тех пор, как версия {version} попала в галерею.',
+  'studio.line.elsewhere':
+    'Версия {version} в галерее. Она опубликована с другого компьютера.',
+  'studio.line.inGallery': 'Версия {version} в галерее.',
+  'studio.line.review':
+    'Версия {version} ждёт проверки. До тех пор в галерее остаётся версия {live}.',
+  'studio.line.firstReview':
+    'Версия {version} ждёт проверки. Она попадёт в галерею, когда её одобрят.',
+  'studio.line.rejected':
+    'Версия {version} не одобрена. В галерее по-прежнему версия {live}.',
+  'studio.line.firstRejected':
+    'Версия {version} не одобрена, поэтому её нет в галерее.',
+  'studio.line.unknown': 'Сейчас не получается проверить галерею.',
+  'studio.line.inspect': 'Версия {version} этой сцены.',
+  'studio.line.seeWhy': 'Узнать почему',
+  'studio.line.inLooks': 'В моих оформлениях',
+  'studio.line.looksOlder': 'В моих оформлениях более ранняя копия',
 
   'studio.version.group': 'Версии',
-  'studio.version.looks': 'Мои оформления v{version}',
   'studio.version.looksCurrent': 'В ваших оформлениях именно эта сцена.',
   'studio.version.looksBehind':
     'В ваших оформлениях более раннее сохранение версии {version}. «Добавить в мои оформления» обновит их.',
-  'studio.version.label': 'v{version}',
-  'studio.version.unpublished':
-    'Версия {version} этой сцены. Она ещё не опубликована.',
-  'studio.version.live': 'Версия {version} этой сцены — та, что есть у людей.',
-  'studio.version.changed':
-    'У людей версия {version}. С тех пор вы изменили сцену; после публикации она выйдет как версия {next}.',
   'studio.empty': 'Пока нечего показать',
   'studio.stage.label': '{name}, вживую',
   'studio.stage.ultraBand': 'Сверхширокий график',

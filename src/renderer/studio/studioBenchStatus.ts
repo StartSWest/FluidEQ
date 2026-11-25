@@ -8,7 +8,12 @@ import type { TranslationKey } from 'common/i18n';
 import type { TStageTrouble } from './StudioStage';
 import troubleHoldsBack from './stageTrouble';
 
-/** The sentence beside the scene's name in the bench's bar. */
+/**
+ * What the stage has to say in the bench's bar, when it has news: the AI at
+ * work, the newest save not playing, nothing that plays yet. A stage simply
+ * playing the last save says nothing (Ivan, 2026-11-25): "Updated from your
+ * last save" beside a lit dot read as something new having arrived.
+ */
 export const studioBenchStatus = ({
   chatBusy,
   hasPack,
@@ -19,7 +24,7 @@ export const studioBenchStatus = ({
   hasPack: boolean;
   hasProblems: boolean;
   trouble?: TStageTrouble;
-}): TranslationKey => {
+}): TranslationKey | undefined => {
   if (chatBusy) {
     return 'studioChat.status.working';
   }
@@ -31,7 +36,7 @@ export const studioBenchStatus = ({
   ) {
     return 'studio.status.problem';
   }
-  return hasPack ? 'studio.status.live' : 'studio.status.waiting';
+  return hasPack ? undefined : 'studio.status.waiting';
 };
 
 /** What the scene costs, said on the stage and the drawing tab. */

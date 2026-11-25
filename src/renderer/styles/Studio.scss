@@ -251,10 +251,6 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: 50%;
   background: $text-dim;
 
-  .studio-bench__status.is-live & {
-    background: $active;
-  }
-
   .studio-bench__status.is-problem & {
     background: $red;
   }

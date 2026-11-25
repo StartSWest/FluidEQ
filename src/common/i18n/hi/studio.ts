@@ -423,21 +423,35 @@ const studio = {
   'studio.hears.drop':
     'ड्रॉप आया; संख्या उन्हें गिनती है, ताकि हर एक अलग दिख सके',
 
-  'studio.status.live': 'आपके पिछले सेव से अपडेट हुआ',
-  'studio.status.problem': 'पिछला चलता हुआ संस्करण अब भी बज रहा है',
-  'studio.status.waiting': 'ऐसे संस्करण का इंतज़ार जो चल सके',
+  'studio.status.problem':
+    'आपका पिछला सेव नहीं चलता। स्टेज पर आख़िरी चलने वाला सेव ही रहता है।',
+  'studio.status.waiting': 'अभी कुछ नहीं चल रहा। ऐसे सेव का इंतज़ार है जो चले।',
+  'studio.line.unpublished': 'सिर्फ़ इस कंप्यूटर पर। यह अभी गैलरी में नहीं है।',
+  'studio.line.same':
+    'संस्करण {version} गैलरी में है, ठीक वैसा ही जैसा आप देख रहे हैं।',
+  'studio.line.changed':
+    'संस्करण {version} के गैलरी में जाने के बाद आपने इसे बदला है।',
+  'studio.line.elsewhere':
+    'संस्करण {version} गैलरी में है। इसे किसी दूसरे कंप्यूटर से प्रकाशित किया गया था।',
+  'studio.line.inGallery': 'संस्करण {version} गैलरी में है।',
+  'studio.line.review':
+    'संस्करण {version} समीक्षा की प्रतीक्षा में है। तब तक गैलरी में संस्करण {live} रहेगा।',
+  'studio.line.firstReview':
+    'संस्करण {version} समीक्षा की प्रतीक्षा में है। स्वीकृत होते ही यह गैलरी में आ जाएगा।',
+  'studio.line.rejected':
+    'संस्करण {version} स्वीकृत नहीं हुआ। गैलरी में अब भी संस्करण {live} है।',
+  'studio.line.firstRejected':
+    'संस्करण {version} स्वीकृत नहीं हुआ, इसलिए यह गैलरी में नहीं है।',
+  'studio.line.unknown': 'अभी गैलरी की जाँच नहीं हो सकती।',
+  'studio.line.inspect': 'इस सीन का संस्करण {version}।',
+  'studio.line.seeWhy': 'कारण देखें',
+  'studio.line.inLooks': 'मेरे रूपों में',
+  'studio.line.looksOlder': 'मेरे रूपों में पुरानी कॉपी है',
 
   'studio.version.group': 'संस्करण',
-  'studio.version.looks': 'मेरे रूप v{version}',
   'studio.version.looksCurrent': 'आपके रूपों में ठीक यही दृश्य है।',
   'studio.version.looksBehind':
     'आपके रूपों में संस्करण {version} का पहले का सहेजा हुआ रूप है। "मेरे रूपों में जोड़ें" उसे अद्यतन करता है।',
-  'studio.version.label': 'v{version}',
-  'studio.version.unpublished':
-    'इस सीन का संस्करण {version}। यह अभी प्रकाशित नहीं हुआ है।',
-  'studio.version.live': 'इस सीन का संस्करण {version}, और यही लोगों के पास है।',
-  'studio.version.changed':
-    'लोगों के पास संस्करण {version} है। उसके बाद आपने सीन बदला है; प्रकाशित करने पर यह संस्करण {next} के रूप में साझा होगा।',
   'studio.empty': 'अभी दिखाने को कुछ नहीं',
   'studio.stage.label': '{name}, लाइव चल रहा है',
   'studio.stage.ultraBand': 'अल्ट्रा-वाइड ग्राफ़',

@@ -433,24 +433,38 @@ const studio = {
   'studio.hears.drop':
     'un drop che arriva; il numero li conta, così ognuno può essere diverso',
 
-  'studio.status.live': 'Aggiornato dal tuo ultimo salvataggio',
   'studio.status.problem':
-    'L’ultima versione funzionante è ancora in riproduzione',
-  'studio.status.waiting': 'In attesa di una versione che si riproduca',
+    'Il tuo ultimo salvataggio non si riproduce. La scena tiene l’ultimo che funzionava.',
+  'studio.status.waiting':
+    'Non si riproduce ancora niente. In attesa di un salvataggio che funzioni.',
+  'studio.line.unpublished':
+    'Solo su questo computer. Non è ancora nella galleria.',
+  'studio.line.same':
+    'La versione {version} è nella galleria, proprio come la vedi.',
+  'studio.line.changed':
+    'L’hai cambiata da quando la versione {version} è andata nella galleria.',
+  'studio.line.elsewhere':
+    'La versione {version} è nella galleria. È stata pubblicata da un altro computer.',
+  'studio.line.inGallery': 'La versione {version} è nella galleria.',
+  'studio.line.review':
+    'La versione {version} è in attesa di revisione. Fino ad allora la galleria tiene la versione {live}.',
+  'studio.line.firstReview':
+    'La versione {version} è in attesa di revisione. Entrerà nella galleria quando sarà approvata.',
+  'studio.line.rejected':
+    'La versione {version} non è stata approvata. La galleria ha ancora la versione {live}.',
+  'studio.line.firstRejected':
+    'La versione {version} non è stata approvata, quindi non è nella galleria.',
+  'studio.line.unknown': 'Al momento non è possibile controllare la galleria.',
+  'studio.line.inspect': 'Versione {version} di questa scena.',
+  'studio.line.seeWhy': 'Vedi perché',
+  'studio.line.inLooks': 'Nei miei aspetti',
+  'studio.line.looksOlder': 'I miei aspetti hanno una copia precedente',
 
   'studio.version.group': 'Versioni',
-  'studio.version.looks': 'I miei aspetti v{version}',
   'studio.version.looksCurrent':
     'I tuoi aspetti hanno esattamente questa scena.',
   'studio.version.looksBehind':
     'I tuoi aspetti hanno un salvataggio precedente della versione {version}. «Aggiungi ai miei aspetti» li aggiorna.',
-  'studio.version.label': 'v{version}',
-  'studio.version.unpublished':
-    'Versione {version} di questa scena. Non è ancora pubblicata.',
-  'studio.version.live':
-    'Versione {version} di questa scena, e quella che hanno gli altri.',
-  'studio.version.changed':
-    'Gli altri hanno la versione {version}. Hai cambiato la scena da allora; pubblicandola, uscirà come versione {next}.',
   'studio.empty': 'Ancora niente da mostrare',
   'studio.stage.label': '{name}, dal vivo',
   'studio.stage.ultraBand': 'Grafico ultra-wide',

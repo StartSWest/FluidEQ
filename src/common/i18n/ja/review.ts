@@ -42,7 +42,6 @@ const review = {
   'review.next': '修正して、もう一度公開してください。',
   'review.mark.rejected': 'ギャラリーへの掲載は承認されませんでした',
   'review.mark.rejectedOn': '{date} に承認されませんでした',
-  'review.mark.show': '承認されませんでした：理由を見る',
   'review.mark.pending': '審査待ち',
 } as const;
 

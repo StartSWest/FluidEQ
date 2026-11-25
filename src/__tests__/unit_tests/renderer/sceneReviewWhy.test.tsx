@@ -5,11 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The warning a refused scene keeps beside its name in the Studio until it is
- * sent again (Ivan, 2026-11-11: "like with a warning icon, they hover and see
- * the reason"): the admin's reason in full, the date and what to do next, on
- * a hover, on keyboard focus and on a press; a quiet clock while it waits;
- * nothing for a scene the review has nothing to say about.
+ * The reason a refused scene keeps in the Studio until it is sent again
+ * (Ivan, 2026-11-11: "they hover and see the reason"), behind the "See why"
+ * after the line that says the version was not approved: the admin's reason
+ * in full, the date and what to do next, on a hover, on keyboard focus and
+ * on a press. And the same refusal inside a picker row.
  */
 
 import '@testing-library/jest-dom';
@@ -17,7 +17,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { TSceneStandings } from '../../../common/sceneReviewStanding';
 import SceneReviewBadge from '../../../renderer/plus/SceneReviewBadge';
-import SceneReviewMark from '../../../renderer/plus/SceneReviewMark';
+import SceneReviewWhy from '../../../renderer/plus/SceneReviewWhy';
 
 let mockStandings: TSceneStandings | undefined;
 let mockLocale = 'en';
@@ -49,6 +49,14 @@ beforeEach(() => {
   };
 });
 
+const refusalOf = (sceneId: string) => {
+  const standing = mockStandings?.[sceneId];
+  if (standing?.kind !== 'rejected') {
+    throw new Error(`no refusal for ${sceneId}`);
+  }
+  return standing;
+};
+
 const panelText = () => screen.getByRole('dialog').textContent ?? '';
 
 describe('a refused scene', () => {
@@ -65,17 +73,17 @@ describe('a refused scene', () => {
         decidedAt: '2026-11-11T09:00:00Z',
       },
     };
-    render(<SceneReviewMark sceneId="lake" />);
+    render(<SceneReviewWhy refusal={refusalOf('lake')} />);
     fireEvent.pointerEnter(
-      screen.getByRole('button', { name: 'review.mark.show' }),
+      screen.getByRole('button', { name: 'studio.line.seeWhy' }),
     );
     expect(panelText()).toContain(german);
     expect(panelText()).not.toContain(NOTE);
   });
 
   it('opens the reason in full, the date and the next step on a hover', () => {
-    render(<SceneReviewMark sceneId="lake" />);
-    const mark = screen.getByRole('button', { name: 'review.mark.show' });
+    render(<SceneReviewWhy refusal={refusalOf('lake')} />);
+    const mark = screen.getByRole('button', { name: 'studio.line.seeWhy' });
     expect(screen.queryByRole('dialog')).toBeNull();
     fireEvent.pointerEnter(mark);
     expect(panelText()).toContain('review.reason.flashing');
@@ -87,8 +95,8 @@ describe('a refused scene', () => {
   });
 
   it('opens on keyboard focus, and a press keeps it open to be read', async () => {
-    render(<SceneReviewMark sceneId="lake" />);
-    const mark = screen.getByRole('button', { name: 'review.mark.show' });
+    render(<SceneReviewWhy refusal={refusalOf('lake')} />);
+    const mark = screen.getByRole('button', { name: 'studio.line.seeWhy' });
     act(() => mark.focus());
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     act(() => mark.blur());
@@ -100,19 +108,6 @@ describe('a refused scene', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(mark).toHaveAttribute('aria-expanded', 'true');
   });
-});
-
-it('shows a quiet clock while a scene waits, and nothing without a word', () => {
-  const { rerender } = render(<SceneReviewMark sceneId="ember" />);
-  expect(
-    screen.getByRole('img', { name: 'review.mark.pending' }),
-  ).toBeInTheDocument();
-  expect(screen.queryByRole('button')).toBeNull();
-  // The control: a scene the review has nothing to say about wears nothing.
-  rerender(<SceneReviewMark sceneId="dune" />);
-  expect(screen.queryByRole('img')).toBeNull();
-  rerender(<SceneReviewMark sceneId={undefined} />);
-  expect(screen.queryByRole('img')).toBeNull();
 });
 
 it('says the whole refusal as its name where it sits inside a picker row', () => {
