@@ -31,7 +31,7 @@ const FAMILIES: Partial<Record<HelpChapterId, readonly ITermFamily[]>> = {
   ],
   dsp: [
     { keys: /^dsp\.[a-zA-Z]+\.title$/ },
-    { keys: CHAINS, control: 'dsp.presets' },
+    { keys: CHAINS, control: 'dsp.wholeChain' },
     { keys: /^dsp\.masterPreset\.[a-zA-Z0-9]+$/, control: 'dsp.master.title' },
   ],
   library: [
@@ -47,6 +47,7 @@ const FAMILIES: Partial<Record<HelpChapterId, readonly ITermFamily[]>> = {
   deesser: [{ keys: /^dsp\.deEsser(Preset)?\./ }],
   normalizer: [{ keys: /^dsp\.normalizer\./ }],
   crossfade: [{ keys: /^dsp\.crossfade\./ }],
+  mic: [{ keys: /^mic\.(profile|stage)\.[a-zA-Z]+$/ }],
   gamefilter: [{ keys: /^dsp\.footsteps\./ }],
   songs: [{ keys: /^(songSound|songEq)\./ }],
   mycurves: [{ keys: /^myCurves\./ }],

@@ -371,13 +371,13 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.intro':
     'Il rack DSP è una catena di stadi da studio. Con il motore FluidEQ elabora tutto ciò che il PC riproduce; con Equalizer APO elabora le tracce audio della Libreria. Resta spento mentre FluidEQ è spento.',
   'help.dsp.steps':
-    'Apri DSP e scegli una catena completa nei preset. Le informazioni di genere spiegano curva e trattamento; gli esempi musicali aprono YouTube. I preset musicali generali e di genere sono stati ritarati per un suono più definito e potente e un’esperienza d’ascolto più uniforme; gli 83 generi hanno nuove misure di livello su due brani di riferimento indicati per nome.\nSeleziona e attiva uno stadio. Il suo selettore e Salva conservano solo le impostazioni di quello stadio.\nConfronta lo stadio bypassato a volume simile. L’isolamento, se presente, fa ascoltare il suo contributo; Ctrl+clic riporta un controllo al valore iniziale.\nSalva la catena intera per conservare la combinazione; Esporta e Importa la trasferiscono. Una catena può sostituire più stadi insieme.\nDinamica e De-esser hanno capitoli propri. Il filtro Gioco e i preset di gioco sono in Gaming Lab.\nCon il suono di un gioco caricato, il DSP musicale riposa per non sostituirlo. Regola in Gaming Lab ciò che stai ascoltando.',
+    'Apri DSP e scegli una catena in Catena intera, in alto: imposta tutti gli stadi insieme. Info apre le note di una catena di genere, con esempi da ascoltare su YouTube.\nPremi uno stadio nella barra per aprirlo e accendilo con il suo interruttore. Il suo selettore di preset imposta solo quello stadio, e Salva accanto tiene solo quello stadio.\nIl Normalizer sta fuori dalle catene: scegliere una catena non lo cambia mai.\nConfronta con lo stadio spento a un volume simile. Isola, dove uno stadio lo ha, suona solo ciò che quello stadio cambia. Ctrl+clic su una manopola la riporta al suo valore.\nSalva tiene tutto il rack come una catena tua; Esporta e Importa lo portano su un altro computer, e Ripristina riporta la catena com’era.\nTutti i canali applica il rack a ogni canale di un’uscita surround; l’interruttore accanto accende o spegne tutto il rack.\nDynamics, De-esser, Denoise, la Stanza e Crossfade hanno capitoli propri. Il filtro di gioco è nel Gaming Lab; mentre suona il suono proprio di un gioco, questa pagina riposa così niente qui lo sovrascrive.',
   'help.dsp.tip':
     'Un suono più forte spesso sembra migliore solo perché è più forte, quindi confronta a parità di livello. Ctrl+click su una manopola la riporta al valore predefinito.',
   'help.dsp.keywords':
     'effetti, FX, limiter, limitatore, loudness, normalizzazione volume, normalizzare, livellamento, volume costante, enhancer, allargamento stereo, stereo widener, sub bass, subarmoniche, transienti, mastering, crossfade, gapless, aumentare volume, alzare volume, amplificatore di volume, de-esser, sibilanti, sibilanza, s tagliente, voce, podcast, profili, salva profilo, passi, sentire i passi, footsteps, gaming, audio di gioco, ricariche, equalizzazione del volume, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses, headset',
   'help.dsp.normalizer':
-    'I preset musicali attivano Sonorità prima degli effetti; Nessuno la lascia disattivata. Allinea i passaggi forti preservando quelli deboli. True Peak riduce soltanto i picchi.',
+    'Uniforma il livello della sorgente prima di ogni effetto: Loudness, True Peak o spento. Scegliere una catena non lo cambia mai.',
   'help.dsp.denoise':
     'Ripara fruscio, ronzio e click. Il pulitore vocale neurale funziona sui brani della Libreria.',
   'help.dsp.exciter': 'Aggiunge armoniche per corpo e aria.',
@@ -395,13 +395,22 @@ const help: Record<keyof typeof en, string> = {
     'Livello finale, obiettivo di sonorità e protezione dei picchi.',
   'help.dsp.crossfade': 'Fonde un brano della Libreria con il successivo.',
   'help.dsp.presets':
-    'Catene complete del rack per generi, dispositivi e riparazioni.',
+    'Catene pronte per musica, generi, dispositivi e riparazioni. Sceglierne una imposta tutti gli stadi insieme.',
+  'help.dsp.chainActionsName': 'Azioni della catena',
+  'help.dsp.chainActions':
+    'Ripristina riporta la catena; Salva tiene il rack come una catena tua; Esporta e Importa lo portano su un altro computer.',
+  'help.dsp.switchesName': 'Interruttori del rack',
+  'help.dsp.switches':
+    'Tutti i canali applica il rack a ogni canale di un’uscita surround, o solo alla coppia frontale; Acceso accende tutto il rack.',
+  'help.dsp.stagePresetName': 'Preset dello stadio',
+  'help.dsp.stagePreset':
+    'I preset propri dello stadio aperto, con le sue frecce, Ripristina e Salva, che riguardano solo questo stadio.',
 
   'help.room.title': 'La Stanza: surround in cuffia',
   'help.room.intro':
     'La Stanza trasforma le cuffie in una sala d’ascolto. Ogni canale del suono diventa un diffusore intorno alla tua testa, reso attraverso una testa misurata e le riflessioni di una stanza che modelli tu stesso, così un film sta davanti a te e un gioco ti circonda. Richiede il motore FluidEQ e le cuffie; sui diffusori non serve a nulla.',
   'help.room.steps':
-    'Apri DSP, scegli Stanza nella barra e accendila. Lo stereo diventa due diffusori davanti a te; un film 5.1 cinque e il sub; un gioco 7.1 l’intero anello. Il chip accanto all’interruttore dice quale.\nScegli una stanza in alto — studio, salotto, cinema, sala da concerto e altre — oppure gira Dimensione, Pareti e Distanza da solo e trascina un diffusore lungo l’anello. I diffusori che il flusso in riproduzione non raggiunge sono disegnati addormentati.\nPremi Avvia la prova d’ascolto e rispondi a cinque brevi coppie d’ascolto: la stanza prende la testa che mette i suoni davanti a te. Piccola, Media e Grande si scelgono anche a mano.\nSalva una stanza che ti piace con un nome; una stanza salvata torna con una pressione e non cambia mai la tua testa.',
+    'Apri DSP, scegli Stanza nella barra e accendila. Lo stereo diventa due diffusori davanti a te; un film 5.1 cinque e il sub; un gioco 7.1 l’anello intero. La riga sotto i preset dice quale.\nScegli una stanza in Preset della stanza — prima quelle in evidenza, poi le classiche e le tue — oppure gira tu Spazio, Ambiente e Distanza e trascina un diffusore lungo l’anello. I diffusori che il flusso in riproduzione non raggiunge sono disegnati addormentati.\nPremi un diffusore: il riquadro accanto al disegno diventa suo, con angolo, distanza, livello e Muto o Solo.\nIn La tua testa, premi Avvia la prova d’ascolto e rispondi a cinque brevi coppie: la stanza prende la testa che mette i suoni davanti a te. Piccola, Media e Grande si scelgono anche a mano.\nSalva con un nome una stanza che ti piace; una stanza salvata torna con un clic e non cambia mai la tua testa.',
   'help.room.tip':
     "Giochi e film inviano i loro canali surround solo a un'uscita che Windows crede abbia altrettanti altoparlanti: quando il driver lo accetta, il pannello di uscita offre un tocco per passare a 7.1.",
   'help.room.keywords':
@@ -413,13 +422,14 @@ const help: Record<keyof typeof en, string> = {
   'help.room.speaker':
     'Tocca un altoparlante nella stanza e questo riquadro diventa il suo: il suo angolo come numero, la sua distanza, il suo livello, e Muto o Solo per ascoltarlo da solo.',
   'help.room.speakerName': "L'altoparlante scelto",
-  'help.room.dialsName': 'Spazio, Ambiente, Distanza',
   'help.room.dials':
     'Quanto senti delle pareti, la coda morbida che le segue e quanto sono lontani gli altoparlanti. Dimensione, Pareti e la lunghezza e il tono della coda sono in Carattere della stanza, qui sotto.',
-  'help.room.fit':
-    'Cinque coppie d’ascolto che scelgono la testa per le tue orecchie.',
   'help.room.head':
-    'La testa misurata attraverso cui la stanza viene resa: piccola, media o grande.',
+    'La testa misurata con cui la stanza suona — piccola, media o grande — e la prova d’ascolto che la sceglie per le tue orecchie.',
+  'help.room.bass':
+    'Manda i bassi dei diffusori al sub o li tiene a gamma intera, al crossover che scegli, e regola i livelli del centrale e del sub.',
+  'help.room.stereo':
+    'Solo per una sorgente stereo: tenerla come palco frontale, o riempire la stanza intorno a te quanto scegli.',
   'help.room.saved':
     'Dai un nome alla stanza così com’è; torna con una pressione.',
   'help.room.liveName': 'Cosa sta facendo la stanza',
@@ -435,6 +445,26 @@ const help: Record<keyof typeof en, string> = {
     'Ascolta se i dettagli si ammorbidiscono o se compaiono suoni acquosi o effetti di pompaggio. Non serve a pulire il microfono. Se non senti differenze, verifica che rack e stadio siano entrambi attivi.',
   'help.denoise.keywords':
     'rimuovere rumore, rimozione rumore, eliminare rumore, togliere rumore, pulire audio, pulizia audio, denoise, noise reduction, soffio, brusio, interferenze, crepitio, vinile, restauro, vecchie registrazioni',
+  'help.denoise.preset':
+    'Punti di partenza per una pulizia delicata o intensa, fruscio, ronzio, click, vinile, nastro o un podcast. Salva tiene i tuoi.',
+  'help.denoise.isolate':
+    'Suona solo ciò che Denoise toglie, per controllare che non porti via niente che vuoi tenere.',
+  'help.denoise.graphName': 'Immagine del rumore',
+  'help.denoise.graph':
+    'Il suono contro il suo rumore di fondo, con la riduzione del fruscio, il ronzio e i click riparati disegnati mentre accadono.',
+  'help.denoise.analysis':
+    'Su un brano della Libreria: il rumore di fondo, il ronzio e i click al minuto, misurati dal file stesso. Rianalizza misura di nuovo.',
+  'help.denoise.hiss':
+    'Abbassa il fruscio costante sotto la musica. Il limite di riduzione ne lascia un po’, così quello che resta non gorgoglia.',
+  'help.denoise.hum':
+    'Toglie il ronzio di rete e le sue armoniche. Auto prende 50 o 60 Hz da ciò che l’analisi ha trovato.',
+  'help.denoise.clicks':
+    'Trova e ricuce click e crepitii brevi; ciò che è più lungo resta, così la batteria sopravvive.',
+  'help.denoise.voice':
+    'Il pulitore neurale della voce, per la riproduzione dalla Libreria. Il suo modello si scarica la prima volta che lo usi.',
+  'help.denoise.liveName': 'Cosa sta facendo',
+  'help.denoise.live':
+    'Quanto sta riducendo ora, i click riparati e ogni momento in cui il pulitore della voce è rimasto indietro.',
 
   'help.graph.title': 'Il grafico e i suoi controlli',
   'help.graph.intro':
@@ -744,6 +774,31 @@ const help: Record<keyof typeof en, string> = {
     'community, comunità, suggerimenti, proposte, feedback, chiedere aiuto, supporto, contattare, sviluppatore, FAQ',
   'help.games.profiles':
     'Apri Profili di gioco per cercare per profilo, gioco, curva o catena. I filtri restano su una riga e ogni tipo di gioco ha il suo colore. Anche i tuoi profili salvati mostrano curva, livelli del filtro Gioco e catena. Usa per un gioco crea una nuova copia.',
+  'help.mic.title': 'Il suono del tuo microfono',
+  'help.mic.intro':
+    'La scheda Microfono dà a ogni microfono un rack per la voce tutto suo. Il FluidEQ Engine lo esegue sul microfono stesso, così Discord, OBS, un gioco o una chiamata sentono la tua voce come l’hai modellata. Serve il FluidEQ Engine.',
+  'help.mic.steps':
+    'Apri Microfono nell’intestazione e scegli il tuo microfono in alto. Se FluidEQ non è ancora su di esso, premi Configura su questo microfono; Windows chiede il permesso una volta.\nScegli un Profilo microfono per uso — Streaming, Podcast, Chat di gioco, Riunioni —, per microfono, per cantare o un effetto voce. Imposta ogni stadio per una voce; uno stadio che cambi segna il profilo come regolato, e Ripristina lo riporta.\nPremi uno stadio nella barra per aprirlo. Ognuno ha il suo interruttore, un indicatore che si muove con la tua voce e il ritardo che aggiunge; uno stadio spento sparisce del tutto dal suono.\nParla e guarda il disegno: tenue è ciò che il microfono capta, brillante ciò che sentono gli altri, e il grigio che si vede è ciò che i filtri hanno tolto. Ascolta il risultato finale te lo fa sentire; usa le cuffie, altrimenti fischia.\nEffetti propri del microfono mostra ciò che il produttore del microfono mette sulla tua voce prima di FluidEQ. Spegnerli evita di pulire la voce due volte; Windows chiede il permesso e, riaccesi, tornano esattamente com’erano.',
+  'help.mic.tip':
+    'Uno stadio spento lascia intatta la voce e non aggiunge ritardo: se Ritardo è alto, spegni ciò che non ti serve. Con Equalizer APO la scheda Microfono non ha dove funzionare.',
+  'help.mic.keywords':
+    'microfono, mic, voce, streaming, obs, discord, podcast, chiamate, riunioni, cancellazione del rumore, soppressione del rumore, noise gate, gate, de-esser, compressore, limitatore, riverbero, effetti voce, cantare, microfono usb, microfono cuffie, effetti propri',
+  'help.mic.own':
+    'Ciò che il produttore del microfono mette sulla tua voce prima di FluidEQ. Il suo interruttore chiede il permesso a Windows in entrambi i sensi.',
+  'help.mic.master':
+    'Accende o spegne tutto il rack della voce di questo microfono.',
+  'help.mic.stagesName': 'Gli stadi',
+  'help.mic.stages':
+    'Nell’ordine in cui la tua voce li attraversa, ognuno con il suo interruttore, un indicatore che si muove con la voce e il ritardo che aggiunge. Premine uno per aprirlo.',
+  'help.mic.pick':
+    'Il microfono che stai modellando; ognuno tiene il suo suono. La riga sotto dice se il motore ci sta lavorando ora.',
+  'help.mic.pictureName': 'La tua voce',
+  'help.mic.picture':
+    'Tenue è ciò che il microfono capta, brillante ciò che sentono gli altri, e il grigio che si vede è ciò che i filtri hanno tolto.',
+  'help.mic.profile':
+    'Suoni di voce pronti per uso, per microfono, per cantare e come effetti voce. Una modifica segna il profilo come regolato; Ripristina lo riporta.',
+  'help.mic.delay':
+    'Quanto tutto il rack ritarda la tua voce, come lo misura il motore.',
 };
 
 export default help;

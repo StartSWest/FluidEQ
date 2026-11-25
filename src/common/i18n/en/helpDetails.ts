@@ -22,7 +22,7 @@ const helpDetails = {
     'de-esser, deesser, de essing, sibilance, sharp voice, harsh voice, spectral, centre only, center only, cymbals, isolate',
   'help.normalizer.title': 'Normalizer and live level control',
   'help.normalizer.intro':
-    'The Normalizer changes the source level before the creative stages. Library files can be measured in full; other system audio is learned while it plays.',
+    'The Normalizer changes the source level before the creative stages. Library files can be measured in full; other system audio is learned while it plays. It stands apart from the chains: picking one never changes it.',
   'help.normalizer.steps':
     'Open DSP → Normalizer and choose Off, True Peak or Loudness. For external audio, the same card is called Live level control, with Peak protection and Live leveling modes.\nFor True Peak, set Peak ceiling. This mode lowers a source when its peaks exceed that limit; it does not boost quieter sources.\nFor Loudness, set Loudness target and Peak ceiling. The target applies to the loudest three-second passages; clips shorter than three seconds use integrated loudness.\nFor Library playback, let Source analysis finish. Read Foreground loudness, Integrated loudness and Applied gain: the first describes the strongest passages, while the second measures the whole track.\nFor Live, play the source while Learning source is shown and watch for Holding gain. A louder passage may lower the gain; quiet passages keep their relative level.\nCheck Applied gain and any limiting reason before raising the target. Peak headroom and the boost limit can prevent reaching it. Compare at a similar listening volume; one foreground target does not make every track’s whole-song loudness identical.',
   'help.normalizer.tip':

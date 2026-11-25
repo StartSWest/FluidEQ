@@ -375,13 +375,13 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.intro':
     'Das DSP-Rack ist eine Kette aus Studiostufen. Unter der FluidEQ-Engine verarbeitet es alles, was der PC abspielt; unter Equalizer APO die Audiotitel der Bibliothek. Solange FluidEQ ausgeschaltet ist, ist es aus.',
   'help.dsp.steps':
-    'Öffnen Sie DSP und wählen Sie unter Presets eine ganze Kette. Die Genreinformationen erklären Kurve und Bearbeitung; Hörbeispiele öffnen YouTube. Neu abgestimmte Standard-Musik- und Genre-Vorgaben sorgen für einen fokussierteren, kraftvolleren Klang und ein gleichmäßigeres Hörerlebnis; für die 83 Genres gibt es neue Pegelmessungen anhand zweier namentlich genannter Referenzstücke.\nWählen und aktivieren Sie eine Stufe. Ihr Vorgabenselektor und Speichern halten nur deren Einstellungen fest.\nVergleichen Sie mit umgangener Stufe bei ähnlichem Pegel. Isolation zeigt ihren Beitrag; Strg+Klick setzt einen Drehregler zurück.\nSpeichern Sie die ganze Kette, um die Kombination zu behalten. Exportieren und Importieren übertragen sie; eine Kettenvorgabe kann mehrere Stufen ersetzen.\nDynamik und De-Esser haben eigene Kapitel. Spiel und Spielvorgaben gehören ins Gaming Lab.\nSolange ein Spiel seinen Klang geladen hat, ruht die Musik-DSP-Seite, damit sie ihn nicht überschreibt. Bearbeiten Sie den hörbaren Klang im Gaming Lab.',
+    'Öffnen Sie DSP und wählen Sie oben unter Ganze Kette eine Kette: Sie stellt alle Stufen auf einmal ein. Info öffnet die Notizen einer Genrekette mit Hörbeispielen auf YouTube.\nKlicken Sie eine Stufe in der Leiste an, um sie zu öffnen, und schalten Sie sie mit ihrem eigenen Schalter ein. Ihre Preset-Auswahl stellt nur diese Stufe ein, und Speichern daneben behält nur diese Stufe.\nDer Normalizer steht außerhalb der Ketten: Eine Kette zu wählen, ändert ihn nie.\nVergleichen Sie bei ähnlicher Lautstärke mit ausgeschalteter Stufe. Isolieren spielt, wo eine Stufe es hat, nur das, was diese Stufe ändert. Strg-Klick auf einen Regler setzt ihn zurück.\nSpeichern behält das ganze Rack als eigene Kette; Exportieren und Importieren bringen es auf einen anderen Computer, und Zurücksetzen stellt die Kette wieder her.\nAlle Kanäle lässt das Rack auf jedem Kanal eines Surround-Ausgangs laufen; der Schalter daneben schaltet das ganze Rack ein oder aus.\nDynamics, De-Esser, Denoise, der Raum und Crossfade haben eigene Kapitel. Der Spielfilter ist im Gaming Lab; solange der eigene Sound eines Spiels läuft, ruht diese Seite, damit nichts hier ihn überschreibt.',
   'help.dsp.tip':
     'Lauter klingt oft nur deshalb besser, weil es lauter ist; vergleichen Sie also bei angeglichenem Pegel. Strg+Klick auf einen Drehregler setzt ihn auf seinen Standardwert zurück.',
   'help.dsp.keywords':
     'audioeffekte, effektkette, voreinstellungen, limiter, peak-limiter, begrenzer, loudness, normalisieren, lautstärke angleichen, lautstärkeausgleich, lautstärkeschwankungen, enhancer, stereobreite, stereoverbreiterung, subbass, tiefbass, transienten, mastering, clipping, crossfade, überblenden, gapless, lückenlos, De-Esser, Zischlaute, scharfes S, Sibilanten, Stimme, Sprache, Podcast, Profile, Profil speichern, schritte, schritte hören, footsteps, gaming, spielsound, nachladen, lautstärkeausgleich, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses, headset',
   'help.dsp.normalizer':
-    'Musik-Presets aktivieren Lautheit vor den Effekten; Keines lässt sie aus. Laute Passagen werden angeglichen, leise bleiben relativ erhalten. True Peak senkt nur Spitzen.',
+    'Gleicht den Pegel der Quelle vor allen Effekten an: Lautheit, True Peak oder aus. Eine Kette zu wählen, ändert ihn nie.',
   'help.dsp.denoise':
     'Repariert Rauschen, Brummen und Knackser. Der neuronale Stimmreiniger arbeitet an Titeln der Bibliothek.',
   'help.dsp.exciter': 'Fügt Obertöne für Fülle und Luft hinzu.',
@@ -400,13 +400,22 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.crossfade':
     'Blendet einen Titel der Bibliothek in den nächsten über.',
   'help.dsp.presets':
-    'Ketten für das ganze Rack, für Genres, Geräte und Reparaturen.',
+    'Fertige Ketten für Musik, Genres, Geräte und Reparaturen. Eine zu wählen, stellt alle Stufen auf einmal ein.',
+  'help.dsp.chainActionsName': 'Ketten-Aktionen',
+  'help.dsp.chainActions':
+    'Zurücksetzen stellt die Kette wieder her; Speichern behält das Rack als eigene Kette; Exportieren und Importieren bringen es auf einen anderen Computer.',
+  'help.dsp.switchesName': 'Rack-Schalter',
+  'help.dsp.switches':
+    'Alle Kanäle lässt das Rack auf jedem Kanal eines Surround-Ausgangs laufen oder nur auf dem vorderen Paar; Ein schaltet das ganze Rack.',
+  'help.dsp.stagePresetName': 'Stufen-Preset',
+  'help.dsp.stagePreset':
+    'Die eigenen Presets der geöffneten Stufe, mit ihren Pfeilen, Zurücksetzen und Speichern, die nur diese Stufe betreffen.',
 
   'help.room.title': 'Der Raum: Surround auf Kopfhörern',
   'help.room.intro':
     'Der Raum macht aus Kopfhörern einen Hörraum. Jeder Kanal des Klangs wird zu einem Lautsprecher um Ihren Kopf, gerendert durch einen vermessenen Kopf und die Reflexionen eines Raums, den Sie selbst formen — so sitzt ein Film vor Ihnen und ein Spiel umgibt Sie. Er braucht die FluidEQ-Engine und Kopfhörer; auf Lautsprechern bringt er nichts.',
   'help.room.steps':
-    'Öffnen Sie DSP, wählen Sie Raum in der Leiste und schalten Sie ihn ein. Stereo wird zu zwei Lautsprechern vor Ihnen; ein 5.1-Film zu fünf plus Sub; ein 7.1-Spiel zum ganzen Ring. Der Chip neben dem Schalter sagt, was gerade gilt.\nWählen Sie oben einen Raum — Studio, Wohnzimmer, Kino, Konzertsaal und mehr — oder drehen Sie Größe, Wände und Abstand selbst und ziehen Sie einen Lautsprecher um den Ring. Lautsprecher, die der laufende Stream nicht erreicht, werden schlafend gezeichnet.\nDrücken Sie Hörtest starten und beantworten Sie fünf kurze Hörpaare: der Raum nimmt den Kopf, der die Klänge vor Sie setzt. Klein, Mittel und Groß lassen sich auch von Hand wählen.\nSpeichern Sie einen Raum, der Ihnen gefällt, unter einem Namen; ein gespeicherter Raum kommt mit einem Druck zurück und ändert nie Ihren Kopf.',
+    'Öffnen Sie DSP, wählen Sie Raum in der Leiste und schalten Sie ihn ein. Stereo wird zu zwei Lautsprechern vor Ihnen, ein 5.1-Film zu fünf und dem Sub, ein 7.1-Spiel zum ganzen Ring. Die Zeile unter den Presets sagt, welches.\nWählen Sie unter Raum-Preset einen Raum – zuerst die empfohlenen, dann die klassischen und Ihre eigenen – oder drehen Sie selbst an Raum, Ambiente und Abstand und ziehen Sie einen Lautsprecher um den Ring. Lautsprecher, die der laufende Stream nicht erreicht, werden schlafend gezeichnet.\nKlicken Sie einen Lautsprecher an: Das Feld neben dem Bild gehört dann ihm, mit Winkel, Abstand, Pegel sowie Stumm oder Solo.\nKlicken Sie unter Ihr Kopf auf Hörtest starten und beantworten Sie fünf kurze Hörpaare: Der Raum nimmt den Kopf, der Klänge vor Ihnen erscheinen lässt. Klein, Mittel und Groß lassen sich auch von Hand wählen.\nSpeichern Sie einen Raum, der Ihnen gefällt, unter einem Namen; ein gespeicherter Raum kommt mit einem Klick zurück und ändert Ihren Kopf nie.',
   'help.room.tip':
     'Spiele und Filme schicken ihre Surround-Kanäle nur an einen Ausgang, der laut Windows so viele Lautsprecher hat: wenn der Treiber es annimmt, bietet das Ausgabefeld einen Druck auf 7.1 an.',
   'help.room.keywords':
@@ -418,12 +427,14 @@ const help: Record<keyof typeof en, string> = {
   'help.room.speaker':
     'Tippen Sie einen Lautsprecher im Raum an, und dieses Feld gehört ihm: sein Winkel als Zahl, sein eigener Abstand, sein Pegel, und Stumm oder Solo, um ihn allein zu hören.',
   'help.room.speakerName': 'Der gewählte Lautsprecher',
-  'help.room.dialsName': 'Raumanteil, Nachklang, Abstand',
   'help.room.dials':
     'Wie viel Sie von den Wänden hören, der weiche Ausklang danach, und wie weit die Lautsprecher stehen. Größe, Wände sowie Nachklang-Länge und Nachklang-Ton stehen darunter unter Raumcharakter.',
-  'help.room.fit': 'Fünf Hörpaare, die den Kopf für Ihre Ohren wählen.',
   'help.room.head':
-    'Der vermessene Kopf, durch den der Raum gerendert wird: klein, mittel oder groß.',
+    'Der gemessene Kopf, durch den der Raum rendert – klein, mittel oder groß –, und der Hörtest, der ihn für Ihre Ohren wählt.',
+  'help.room.bass':
+    'Schickt den Bass der Lautsprecher zum Sub oder lässt ihn im vollen Bereich, bei einer Trennfrequenz Ihrer Wahl, und stellt die Pegel von Center und Sub ein.',
+  'help.room.stereo':
+    'Nur für eine Stereoquelle: als Bühne vorn lassen oder den Raum um Sie herum so stark füllen, wie Sie wählen.',
   'help.room.saved':
     'Geben Sie dem Raum, wie er ist, einen Namen; er kommt mit einem Druck zurück.',
   'help.room.liveName': 'Was der Raum gerade tut',
@@ -439,6 +450,26 @@ const help: Record<keyof typeof en, string> = {
     'Achten Sie auf abgeschwächte Details und wässrige oder pumpende Klänge. Das ist keine Mikrofonbereinigung. Hören Sie keinen Unterschied, prüfen Sie, ob Rack und Stufe beide eingeschaltet sind.',
   'help.denoise.keywords':
     'rauschunterdrückung, entrauschen, rauschen entfernen, rauschen reduzieren, denoiser, nebengeräusche, hintergrundrauschen, zischen, summen, knistern, knacken, klickgeräusche, restaurierung, vinyl',
+  'help.denoise.preset':
+    'Ausgangspunkte für eine sanfte oder starke Bereinigung, Rauschen, Brummen, Knackser, Vinyl, Tape oder einen Podcast. Speichern behält Ihre eigenen.',
+  'help.denoise.isolate':
+    'Spielt nur, was Denoise entfernt, damit Sie prüfen können, dass nichts Gewolltes verschwindet.',
+  'help.denoise.graphName': 'Rauschbild',
+  'help.denoise.graph':
+    'Der Klang vor seinem Rauschteppich, mit Rauschminderung, Brummen und Knackser-Reparaturen, gezeichnet, während sie geschehen.',
+  'help.denoise.analysis':
+    'Bei einem Bibliothekstitel: Rauschteppich, Brummen und Knackser pro Minute, aus der Datei selbst gemessen. Neu messen misst erneut.',
+  'help.denoise.hiss':
+    'Senkt das gleichmäßige Rauschen unter der Musik. Die Reduktionsgrenze lässt ein wenig davon stehen, damit der Rest nicht blubbert.',
+  'help.denoise.hum':
+    'Filtert Netzbrummen und seine Obertöne heraus. Auto nimmt 50 oder 60 Hz aus dem, was die Messung fand.',
+  'help.denoise.clicks':
+    'Findet und überbrückt kurze Knackser und Knistern; alles Längere bleibt, damit Schlagzeug erhalten bleibt.',
+  'help.denoise.voice':
+    'Der neuronale Stimmreiniger, für die Wiedergabe aus der Bibliothek. Sein Modell wird bei der ersten Nutzung heruntergeladen.',
+  'help.denoise.liveName': 'Was es gerade tut',
+  'help.denoise.live':
+    'Wie stark es gerade reduziert, die reparierten Knackser und jeder Moment, in dem der Stimmreiniger zurückfiel.',
 
   'help.graph.title': 'Das Diagramm und seine Bedienelemente',
   'help.graph.intro':
@@ -754,6 +785,31 @@ const help: Record<keyof typeof en, string> = {
     'community, diskussionen, feedback, rückmeldung, funktionswunsch, feature-request, verbesserungsvorschlag, vorschlagen, frage stellen, kontakt, entwickler kontaktieren, support',
   'help.games.profiles':
     'Öffnen Sie Gaming-Profile und suchen Sie nach Profil, Spiel, Kurve oder Kette. Die Filter bleiben in einer Zeile und jede Spielart hat ihre eigene Farbe. Auch gespeicherte Profile zeigen ihre Kurve, die Pegel des Spiel-Filters und ihre Kette. Für ein Spiel verwenden erstellt eine neue Kopie.',
+  'help.mic.title': 'Der Klang Ihres Mikrofons',
+  'help.mic.intro':
+    'Der Mikrofon-Tab gibt jedem Mikrofon ein eigenes Stimm-Rack. Die FluidEQ Engine führt es auf dem Mikrofon selbst aus, sodass Discord, OBS, ein Spiel oder ein Anruf Ihre Stimme so hört, wie Sie sie geformt haben. Dafür ist die FluidEQ Engine nötig.',
+  'help.mic.steps':
+    'Öffnen Sie Mikrofon in der Kopfzeile und wählen Sie oben Ihr Mikrofon. Läuft FluidEQ darauf noch nicht, klicken Sie auf Auf diesem Mikrofon einrichten; Windows fragt einmal nach der Erlaubnis.\nWählen Sie ein Mikrofonprofil nach Einsatz – Streaming, Podcast, Spiel-Chat, Meetings –, nach Mikrofon, für Gesang oder einen Stimmeffekt. Es stellt jede Stufe für eine Stimme ein; eine geänderte Stufe markiert das Profil als angepasst, und Zurücksetzen holt es zurück.\nKlicken Sie eine Stufe in der Leiste an, um sie zu öffnen. Jede hat ihren eigenen Schalter, eine Anzeige, die sich mit Ihrer Stimme bewegt, und die Verzögerung, die sie hinzufügt; eine ausgeschaltete Stufe ist ganz aus dem Klang verschwunden.\nSprechen Sie und beobachten Sie das Bild: blass ist, was das Mikrofon aufnimmt, hell, was andere hören, und sichtbares Grau, was die Filter entfernt haben. Endergebnis anhören spielt es Ihnen vor; tragen Sie Kopfhörer, sonst pfeift es.\nEigene Effekte des Mikrofons zeigt, was der Hersteller des Mikrofons vor FluidEQ auf Ihre Stimme legt. Sie auszuschalten verhindert, dass die Stimme doppelt bereinigt wird; Windows fragt nach der Erlaubnis, und wieder eingeschaltet kommen sie genau so zurück, wie sie waren.',
+  'help.mic.tip':
+    'Eine ausgeschaltete Stufe lässt die Stimme unberührt und fügt keine Verzögerung hinzu; zeigt Verzögerung einen hohen Wert, schalten Sie aus, was Sie nicht brauchen. Unter Equalizer APO hat der Mikrofon-Tab nichts, worauf er laufen kann.',
+  'help.mic.keywords':
+    'Mikrofon, Mic, Stimme, Streaming, OBS, Discord, Podcast, Anrufe, Meetings, Geräuschunterdrückung, Rauschunterdrückung, Noise Gate, Gate, De-Esser, Kompressor, Limiter, Hall, Stimmeffekte, Gesang, USB-Mikrofon, Headset-Mikrofon, eigene Effekte',
+  'help.mic.own':
+    'Was der Hersteller des Mikrofons vor FluidEQ auf Ihre Stimme legt. Sein Schalter fragt Windows in beide Richtungen nach der Erlaubnis.',
+  'help.mic.master':
+    'Schaltet das ganze Stimm-Rack für dieses Mikrofon ein oder aus.',
+  'help.mic.stagesName': 'Die Stufen',
+  'help.mic.stages':
+    'In der Reihenfolge, in der Ihre Stimme sie durchläuft, jede mit ihrem Schalter, einer Anzeige, die sich mit Ihrer Stimme bewegt, und der Verzögerung, die sie hinzufügt. Klicken Sie eine an, um sie zu öffnen.',
+  'help.mic.pick':
+    'Das Mikrofon, das Sie gerade formen; jedes behält seinen eigenen Klang. Die Zeile darunter sagt, ob die Engine gerade darauf arbeitet.',
+  'help.mic.pictureName': 'Ihre Stimme',
+  'help.mic.picture':
+    'Blass ist, was das Mikrofon aufnimmt, hell, was andere hören, und sichtbares Grau, was die Filter entfernt haben.',
+  'help.mic.profile':
+    'Fertige Stimmklänge nach Einsatz, nach Mikrofon, für Gesang und als Stimmeffekte. Eine Änderung markiert das Profil als angepasst; Zurücksetzen holt es zurück.',
+  'help.mic.delay':
+    'Wie stark das ganze Rack Ihre Stimme verzögert, so wie die Engine es misst.',
 };
 
 export default help;

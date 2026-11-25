@@ -80,9 +80,24 @@ const DSP_CHAPTERS = [
             text: 'help.dsp.crossfade',
           },
           {
-            target: '.dsp-presets',
-            name: 'dsp.presets',
+            target: '.dsp-studio__bar .dsp-eq-preset-first',
+            name: 'dsp.wholeChain',
             text: 'help.dsp.presets',
+          },
+          {
+            target: '.dsp-studio__bar .dsp-chain-transfer',
+            name: 'help.dsp.chainActionsName',
+            text: 'help.dsp.chainActions',
+          },
+          {
+            target: '.dsp-studio__bar .dsp-header-switches',
+            name: 'help.dsp.switchesName',
+            text: 'help.dsp.switches',
+          },
+          {
+            target: '.dsp-stage .dsp-card-header .dsp-eq-preset-first',
+            name: 'help.dsp.stagePresetName',
+            text: 'help.dsp.stagePreset',
           },
         ],
       },
@@ -92,12 +107,59 @@ const DSP_CHAPTERS = [
   {
     id: 'denoise',
     group: 'sound',
-    // Not WINDOW: this one is a crop of the page, not the whole window.
     figures: [
       {
-        image: '13-dsp-denoise-and-source-analysis.png',
-        width: 1838,
-        height: 731,
+        live: 'dsp-denoise',
+        width: 1180,
+        height: 600,
+        still: '13-dsp-denoise-and-source-analysis.png',
+        controls: [
+          {
+            target: '.dsp-card-header .dsp-eq-preset-first',
+            name: 'dsp.presets',
+            text: 'help.denoise.preset',
+          },
+          {
+            target: '.dsp-monitor-isolate',
+            name: 'dsp.denoise.isolate',
+            text: 'help.denoise.isolate',
+          },
+          {
+            target: '.dsp-denoise-graph',
+            name: 'help.denoise.graphName',
+            text: 'help.denoise.graph',
+          },
+          {
+            target: '.dsp-normalizer-stats:not(.dsp-denoise-live)',
+            name: 'dsp.denoise.analysis',
+            text: 'help.denoise.analysis',
+          },
+          {
+            target: '.dsp-denoise-module.is-hiss',
+            name: 'dsp.denoise.hiss',
+            text: 'help.denoise.hiss',
+          },
+          {
+            target: '.dsp-denoise-module.is-hum',
+            name: 'dsp.denoise.hum',
+            text: 'help.denoise.hum',
+          },
+          {
+            target: '.dsp-denoise-module.is-clicks',
+            name: 'dsp.denoise.click',
+            text: 'help.denoise.clicks',
+          },
+          {
+            target: '.dsp-denoise-module.is-voice',
+            name: 'dsp.denoise.voice',
+            text: 'help.denoise.voice',
+          },
+          {
+            target: '.dsp-denoise-live',
+            name: 'help.denoise.liveName',
+            text: 'help.denoise.live',
+          },
+        ],
       },
     ],
   },
@@ -181,55 +243,111 @@ const DSP_CHAPTERS = [
     group: 'sound',
     figures: [
       {
-        image: '32-dsp-room.png',
-        width: 1838,
-        height: 705,
+        live: 'dsp-room',
+        width: 1280,
+        height: 860,
+        still: '32-dsp-room.png',
         controls: [
           {
-            box: [32, 102, 502, 502],
-            name: 'dsp.room.graphLabel',
-            text: 'help.room.picture',
-          },
-          {
-            box: [553, 93, 414, 260],
-            name: 'help.room.speakerName',
-            text: 'help.room.speaker',
-          },
-          {
-            box: [977, 93, 414, 260],
-            name: 'help.room.dialsName',
-            text: 'help.room.dials',
-          },
-          {
-            box: [23, 69, 112, 14],
-            name: 'help.room.liveName',
-            text: 'help.room.live',
-          },
-          {
-            box: [67, 24, 210, 32],
+            target: '.dsp-room-bar .dsp-eq-preset-first',
             name: 'dsp.room.presets',
             text: 'help.room.picker',
           },
           {
-            box: [1537, 478, 142, 32],
-            name: 'dsp.room.fitView.start',
-            text: 'help.room.fit',
-          },
-          {
-            box: [1401, 363, 414, 316],
-            name: 'dsp.room.groupHead',
-            text: 'help.room.head',
-          },
-          {
-            box: [444, 24, 65, 32],
+            target: '.dsp-room-bar .dsp-eq-transfer',
             name: 'dsp.eqSave.save',
             text: 'help.room.saved',
+          },
+          {
+            target: '.dsp-room-source',
+            name: 'help.room.liveName',
+            text: 'help.room.live',
+          },
+          {
+            target: '.dsp-room-picture',
+            name: 'dsp.room.graphLabel',
+            text: 'help.room.picture',
+          },
+          {
+            target: '.dsp-room-pane',
+            name: 'help.room.speakerName',
+            text: 'help.room.speaker',
+          },
+          {
+            target: '.dsp-room-quick',
+            name: 'dsp.room.quick.title',
+            text: 'help.room.dials',
+          },
+          {
+            target: '.dsp-room-tune > .dsp-band:nth-child(2)',
+            name: 'dsp.room.tune.bassCentre',
+            text: 'help.room.bass',
+          },
+          {
+            target: '.dsp-room-tune > .dsp-band:nth-child(3)',
+            name: 'dsp.room.tune.stereo',
+            text: 'help.room.stereo',
+          },
+          {
+            target: '.dsp-room-fit .dsp-band',
+            name: 'dsp.room.fitView.head',
+            text: 'help.room.head',
           },
         ],
       },
     ],
   },
   { id: 'crossfade', group: 'sound', figures: [] },
+  {
+    // The Mic tab, drawn by its own parts (`help/live/micFigures`).
+    id: 'mic',
+    group: 'sound',
+    figures: [
+      {
+        live: 'mic-page',
+        width: 1280,
+        height: 760,
+        still: '47-mic.png',
+        controls: [
+          {
+            target: '.mic-rail__own',
+            name: 'mic.stage.own',
+            text: 'help.mic.own',
+          },
+          {
+            target: '.mic-rail__master',
+            name: 'mic.rail.master',
+            text: 'help.mic.master',
+          },
+          {
+            target: '.mic-rail > .mic-rail__row:not(.mic-rail__own)',
+            name: 'help.mic.stagesName',
+            text: 'help.mic.stages',
+          },
+          {
+            target: '.mic-head__pick .rich-pick__trigger',
+            name: 'mic.label',
+            text: 'help.mic.pick',
+          },
+          {
+            target: '.mic-picture',
+            name: 'help.mic.pictureName',
+            text: 'help.mic.picture',
+          },
+          {
+            target: '.mic-head__profile .rich-pick__trigger',
+            name: 'mic.profile.label',
+            text: 'help.mic.profile',
+          },
+          {
+            target: '.mic-head__delay',
+            name: 'mic.delay.label',
+            text: 'help.mic.delay',
+          },
+        ],
+      },
+    ],
+  },
 ] as const satisfies readonly IHelpChapter[];
 
 export default DSP_CHAPTERS;

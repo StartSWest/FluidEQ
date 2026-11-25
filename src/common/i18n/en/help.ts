@@ -364,13 +364,13 @@ const help = {
   'help.dsp.intro':
     'The DSP rack is a chain of studio stages. Under the FluidEQ Engine it processes everything the PC plays; under Equalizer APO it processes Library audio tracks. It is off while FluidEQ is switched off.',
   'help.dsp.steps':
-    'Open DSP and choose a whole-rack chain under Presets. A genre preset’s information explains its curve and processing; its listening examples open on YouTube. Newly tuned standard music and genre presets give a more focused, powerful sound and a more consistent listening experience; the 83 genres have fresh level measurements from two named reference songs.\nSelect a stage in the rail and switch it on. Each stage has its own preset picker; Save there keeps just that stage’s settings.\nCompare with the stage bypassed at a similar volume. Isolate, where offered, lets you hear its contribution. Ctrl-click a dial to restore its default.\nSave the complete rack when you want to keep the combination, and use Export and Import to carry it elsewhere. A whole-rack preset can replace several stage settings together.\nDynamics and De-esser have their own chapters below. The Game filter and gaming presets belong to Gaming Lab, not the music preset list.\nWhile a game’s own sound is loaded, the music DSP page rests so it cannot overwrite that game. Open Gaming Lab to tune the sound that is actually playing.',
+    'Open DSP and pick a chain under Whole chain, at the top: it sets every stage at once. About opens a genre chain’s notes, with listening examples on YouTube.\nPress a stage in the rail to open it, and switch it on with its own switch. Its preset picker sets that stage alone, and Save beside it keeps just that stage.\nThe Normalizer stands apart from the chains: picking a chain never changes it.\nCompare with a stage off at a similar volume. Isolate, where a stage has it, plays only what that stage changes. Ctrl-click a dial to put it back.\nSave keeps the whole rack as a chain of your own; Export and Import carry it to another computer, and Reset puts the chain back as it was.\nAll channels runs the rack on every channel of a surround output; the switch beside it turns the whole rack on or off.\nDynamics, De-esser, Denoise, the Room and Crossfade have chapters of their own. The Game filter is on the Gaming Lab; while a game’s own sound is on, this page rests so nothing here can overwrite it.',
   'help.dsp.tip':
     'Louder often sounds better simply because it is louder, so compare at matched levels. Ctrl-click a dial to return it to its default.',
   'help.dsp.keywords':
     'effects, fx, audio effects, rack, chain, plugins, limiter, loudness, normalizer, leveler, volume leveling, exciter, harmonics, enhancer, stereo widener, widen, stereo width, bass enhancer, sub bass, subharmonic, punch, transient, mastering, clipping, peak limiter, crossfade, gapless, de-esser, deesser, sibilance, harsh s, sharp s, ess, voice, speech, podcast, profiles, save profile, footsteps, footstep, hear footsteps, steps, gaming, game audio, reloads, loudness equalization, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses',
   'help.dsp.normalizer':
-    'Music presets enable Loudness before the effects; None leaves it off. It matches louder passages while preserving quieter ones. True Peak only lowers peaks.',
+    'Evens out the source’s level before every effect: Loudness, True Peak or off. Picking a chain never changes it.',
   'help.dsp.denoise':
     'Repairs hiss, hum and clicks. The neural voice cleaner works on Library tracks.',
   'help.dsp.exciter': 'Adds harmonics for body and air.',
@@ -387,13 +387,23 @@ const help = {
     'Raises the level without letting peaks pass the ceiling.',
   'help.dsp.master': 'Final level, loudness target and peak safety.',
   'help.dsp.crossfade': 'Blends one Library track into the next.',
-  'help.dsp.presets': 'Whole-rack chains for genres, devices and repairs.',
+  'help.dsp.presets':
+    'Ready-made chains for music, genres, devices and repairs. Picking one sets every stage at once.',
+  'help.dsp.chainActionsName': 'Chain actions',
+  'help.dsp.chainActions':
+    'Reset puts the chain back; Save keeps the rack as a chain of your own; Export and Import carry it to another computer.',
+  'help.dsp.switchesName': 'Rack switches',
+  'help.dsp.switches':
+    'All channels runs the rack on every channel of a surround output, or on the front pair alone; On switches the whole rack.',
+  'help.dsp.stagePresetName': 'Stage preset',
+  'help.dsp.stagePreset':
+    'The open stage’s own presets, with its arrows, Reset and Save, which keep this stage alone.',
 
   'help.room.title': 'The Room: surround on headphones',
   'help.room.intro':
     'The Room turns headphones into a listening room. Every channel of the sound becomes a speaker standing around your head, rendered through a measured head and the reflections of a room you shape yourself, so a film sits in front of you and a game surrounds you. It needs the FluidEQ Engine and headphones; on speakers it does nothing useful.',
   'help.room.steps':
-    'Open DSP, choose Room in the rail and switch it on. Stereo becomes two speakers in front of you; a 5.1 film five and the sub; a 7.1 game the whole ring. The chip beside the switch says which.\nPick a room at the top — studio, living room, cinema, concert hall and more — or turn Size, Walls and Distance yourself and drag a speaker around the ring. Speakers the playing stream cannot reach are drawn asleep.\nPress Start the listening test and answer five short listening pairs: the room takes the head that puts sounds in front of you. Small, Medium and Large can be chosen by hand too.\nSave a room you like under a name; a saved room comes back with a press and never changes your head.',
+    'Open DSP, choose Room in the rail and switch it on. Stereo becomes two speakers in front of you; a 5.1 film five and the sub; a 7.1 game the whole ring. The line under the presets says which.\nPick a room under Room preset — the featured rooms first, then the classic ones and your own — or turn Space, Ambience and Distance yourself and drag a speaker around the ring. Speakers the playing stream cannot reach are drawn asleep.\nPress a speaker: the pane beside the picture becomes its own, with its angle, its distance, its level, and Mute or Solo.\nUnder Your head, press Start the listening test and answer five short listening pairs: the room takes the head that puts sounds in front of you. Small, Medium and Large can be chosen by hand too.\nSave a room you like under a name; a saved room comes back with a press and never changes your head.',
   'help.room.tip':
     'Games and films only send their surround channels to an output Windows believes has that many speakers: when the driver takes it, the output panel offers one press to 7.1.',
   'help.room.keywords':
@@ -405,12 +415,14 @@ const help = {
   'help.room.speaker':
     'Press a speaker in the room and this pane becomes its own: its angle as a number, its own distance, its level, and Mute or Solo to hear it alone.',
   'help.room.speakerName': 'The chosen speaker',
-  'help.room.dialsName': 'Space, Ambience, Distance',
   'help.room.dials':
     "How much of the walls you hear, the soft tail after them, and how far the speakers stand. Size, Walls and the tail's own length and tone are in Room character below.",
-  'help.room.fit': 'Five listening pairs that pick the head for your ears.',
   'help.room.head':
-    'The measured head the room renders through: small, medium or large.',
+    'The measured head the room renders through — small, medium or large — and the listening test that picks it for your ears.',
+  'help.room.bass':
+    'Sends the speakers’ bass to the sub or keeps it full range, at a crossover you choose, and sets the centre and the sub’s levels.',
+  'help.room.stereo':
+    'For a stereo source only: keep it a front stage, or fill the room around you by the amount you choose.',
   'help.room.saved': 'Name the room as it stands; it comes back with a press.',
   'help.room.liveName': 'What the room is doing',
   'help.room.live':
@@ -425,6 +437,26 @@ const help = {
     'Listen for softened detail and watery or pumping textures. This is not a microphone cleanup. If you hear no change, confirm the rack and the stage are both on.',
   'help.denoise.keywords':
     'noise, noise reduction, noise removal, remove noise, hiss, hum, buzz, clicks, crackle, static, clean up, cleanup, restoration, repair, background noise, vinyl',
+  'help.denoise.preset':
+    'Starting points for a gentle or a strong clean-up, hiss, hum, clicks, vinyl, tape or a podcast. Save keeps your own.',
+  'help.denoise.isolate':
+    'Plays only what Denoise takes away, so you can check it takes nothing you want to keep.',
+  'help.denoise.graphName': 'Noise picture',
+  'help.denoise.graph':
+    'The sound against its noise floor, with the hiss reduction, the hum and the click repairs drawn as they happen.',
+  'help.denoise.analysis':
+    'On a Library track: the noise floor, the hum and the clicks a minute, measured from the file itself. Rescan measures again.',
+  'help.denoise.hiss':
+    'Lowers the steady hiss under the music. Reduction limit leaves a little of it, so what remains does not warble.',
+  'help.denoise.hum':
+    'Notches out mains hum and its harmonics. Auto takes 50 or 60 Hz from what the scan found.',
+  'help.denoise.clicks':
+    'Finds and bridges short clicks and crackle; anything longer is left alone, so drums survive.',
+  'help.denoise.voice':
+    'The neural voice cleaner, for Library playback. Its model downloads the first time you use it.',
+  'help.denoise.liveName': 'What it is doing',
+  'help.denoise.live':
+    'How much it is reducing right now, the clicks repaired, and any moment the voice cleaner fell behind.',
 
   'help.graph.title': 'The graph and its controls',
   'help.graph.intro':
@@ -728,6 +760,30 @@ const help = {
     'community, questions, support, discussions, github, feedback, feature request, ideas, suggestions, ask, help, contact, announcements',
   'help.games.profiles':
     'Open Gaming profiles to search by profile, game, curve or chain. The filters stay on one line and each kind of game has its own colour. Your saved profiles show their curve, Game filter levels and chain too. Use for a game starts a new copy.',
+  'help.mic.title': 'Your microphone’s sound',
+  'help.mic.intro':
+    'The Mic tab gives each microphone a voice rack of its own. The FluidEQ Engine runs it on the microphone itself, so Discord, OBS, a game or a call hears your voice as you shaped it. It needs the FluidEQ Engine.',
+  'help.mic.steps':
+    'Open Mic in the header and choose your microphone at the top. If FluidEQ is not on it yet, press Set up on this mic; Windows asks for permission once.\nPick a Mic profile by use — Streaming, Podcast, Game chat, Meetings — by mic, for singing, or a voice effect. It sets every stage for a voice; a stage you change marks the profile tuned, and Reset brings it back.\nPress a stage in the rail to open it. Each has its own switch, a meter that moves with your voice and the delay it adds; a stage switched off is gone from the sound completely.\nSpeak and watch the picture: faint is what the mic picks up, bright is what others hear, and grey showing is what the filters took. Hear the final result plays it back to you; wear headphones, or it howls.\nMic’s own effects shows what the mic’s maker puts on your voice before FluidEQ. Switching them off stops the voice being cleaned twice; Windows asks for permission, and switched on again they come back exactly as they were.',
+  'help.mic.tip':
+    'A stage switched off leaves the voice untouched and adds no delay, so if Delay reads high, switch off what you do not need. Under Equalizer APO the Mic tab has nothing to run on.',
+  'help.mic.keywords':
+    'microphone, mic, voice, streaming, obs, discord, podcast, calls, meetings, noise cancelling, noise suppression, noise gate, gate, de-esser, compressor, limiter, reverb, voice effects, singing, usb mic, headset mic, own effects',
+  'help.mic.own':
+    'What the mic’s maker puts on your voice before FluidEQ. Its switch asks Windows for permission each way.',
+  'help.mic.master': 'Turns the whole voice rack on or off for this mic.',
+  'help.mic.stagesName': 'The stages',
+  'help.mic.stages':
+    'In the order your voice meets them, each with its switch, a meter that moves with your voice and the delay it adds. Press one to open it.',
+  'help.mic.pick':
+    'The microphone you are shaping; each one keeps its own sound. The line under it says whether the engine is working on it now.',
+  'help.mic.pictureName': 'Your voice',
+  'help.mic.picture':
+    'Faint is what the mic picks up, bright is what others hear, and grey showing is what the filters took.',
+  'help.mic.profile':
+    'Ready-made voice sounds by use, by mic, for singing and as voice effects. A change marks the profile tuned; Reset brings it back.',
+  'help.mic.delay':
+    'How much the whole rack delays your voice, as the engine measures it.',
 };
 
 export default help;

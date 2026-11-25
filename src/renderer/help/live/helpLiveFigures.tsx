@@ -8,15 +8,15 @@ import {
   PlayerMenuDrawing,
 } from './playerFigures';
 import DesktopDialogDrawing from './desktopFigures';
-import DspOverviewDrawing, {
-  DynamicsDrawing,
-  DeEsserDrawing,
-} from './dspFigures';
+import { DynamicsDrawing, DeEsserDrawing } from './dspFigures';
+import DspOverviewDrawing from './dspOverviewFigure';
+import { DenoiseDrawing, RoomDrawing } from './dspStageFigures';
 import ForumDrawing from './forumFigures';
 import GamingLabDrawing, { GamingPartsDrawing } from './gamingFigures';
 import GamingProfilesDrawing from './gamingProfilesFigure';
 import LightingDrawing from './lightingFigures';
 import LookPickerDrawing from './lookFigures';
+import MicPageDrawing from './micFigures';
 import { SceneDrawing, VisualizersDrawing } from './plusFigures';
 import ShareDrawing from './shareFigures';
 import StudioDrawing from './studioFigures';
@@ -41,6 +41,8 @@ const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
   'dsp-overview': DspOverviewDrawing,
   'dsp-dynamics': DynamicsDrawing,
   'dsp-deesser': DeEsserDrawing,
+  'dsp-denoise': DenoiseDrawing,
+  'dsp-room': RoomDrawing,
   'forum-page': ForumDrawing,
   'gallery-scene': SceneDrawing,
   'gaming-lab': GamingLabDrawing,
@@ -51,6 +53,7 @@ const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
   'lighting-page': LightingDrawing,
   'lighting-tuning': LightingDrawing,
   'look-picker': LookPickerDrawing,
+  'mic-page': MicPageDrawing,
   'player-top': PlayerDrawing,
   'player-sound': PlayerDrawing,
   'player-queue': PlayerDrawing,

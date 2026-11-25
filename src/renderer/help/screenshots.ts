@@ -9,13 +9,11 @@ import library from '../../../docs/08-library-artists-and-up-next.png';
 import queue from '../../../docs/09-library-album-and-play-queue.png';
 import karaoke from '../../../docs/11-karaoke-player.png';
 import maker from '../../../docs/12-karaoke-maker-pitch-and-lyrics.png';
-import denoise from '../../../docs/13-dsp-denoise-and-source-analysis.png';
 import engine from '../../../docs/15-engine-dialog.png';
 import bands from '../../../docs/16-eq-bands.png';
 import bandMenu from '../../../docs/17-band-menu.png';
 import eqMode from '../../../docs/18-eq-mode.png';
 import bandDesigns from '../../../docs/19-band-designs.png';
-import room from '../../../docs/32-dsp-room.png';
 import strip from '../../../docs/21-graph-strip.png';
 import stripPlus from '../../../docs/22-graph-strip-plus.png';
 import viewMenu from '../../../docs/23-graph-view-menu.png';
@@ -46,13 +44,11 @@ const SHOTS: Record<THelpPicture, string> = {
   '09-library-album-and-play-queue.png': queue,
   '11-karaoke-player.png': karaoke,
   '12-karaoke-maker-pitch-and-lyrics.png': maker,
-  '13-dsp-denoise-and-source-analysis.png': denoise,
   '15-engine-dialog.png': engine,
   '16-eq-bands.png': bands,
   '17-band-menu.png': bandMenu,
   '18-eq-mode.png': eqMode,
   '19-band-designs.png': bandDesigns,
-  '32-dsp-room.png': room,
   '21-graph-strip.png': strip,
   '22-graph-strip-plus.png': stripPlus,
   '23-graph-view-menu.png': viewMenu,

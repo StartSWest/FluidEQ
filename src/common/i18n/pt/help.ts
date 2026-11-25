@@ -366,13 +366,13 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.intro':
     'O rack DSP é uma cadeia de estágios de estúdio. Com o Motor FluidEQ, ele processa tudo o que o PC toca; com o Equalizer APO, processa as faixas de áudio da Biblioteca. Ele fica desligado enquanto o FluidEQ está desligado.',
   'help.dsp.steps':
-    'Abra DSP e escolha uma cadeia completa em Presets. As informações do gênero explicam a curva e o processamento; os exemplos musicais abrem no YouTube. Os presets de música geral e de gênero foram reajustados para um som mais definido e potente e uma experiência de audição mais consistente; os 83 gêneros têm novas medições de nível com duas músicas de referência identificadas.\nEscolha e ative uma etapa. O seletor e o botão Salvar dela guardam apenas suas configurações.\nCompare com a etapa ignorada em volume parecido. O isolamento permite ouvir sua contribuição; Ctrl+clique restaura o padrão de um controle.\nSalve a cadeia inteira para conservar a combinação; Exportar e Importar permitem transferi-la. Escolher uma cadeia pode substituir várias etapas.\nDinâmica e De-esser têm capítulos próprios. O filtro Jogo e os presets de jogos ficam no Gaming Lab.\nEnquanto o som de um jogo está carregado, o DSP musical descansa para não sobrescrevê-lo. Ajuste no Gaming Lab o som que está tocando.',
+    'Abra o DSP e escolha uma cadeia em Cadeia inteira, no topo: ela ajusta todas as etapas de uma vez. Sobre abre as notas de uma cadeia de gênero, com exemplos para ouvir no YouTube.\nClique em uma etapa no trilho para abri-la e ligue-a com o próprio botão. O seletor de presets dela ajusta só essa etapa, e Salvar ao lado guarda só essa etapa.\nO Normalizer fica à parte das cadeias: escolher uma cadeia nunca o muda.\nCompare com a etapa desligada em um volume parecido. Isolar, onde a etapa tem, toca só o que essa etapa muda. Ctrl+clique em um botão giratório o devolve ao padrão.\nSalvar guarda todo o rack como uma cadeia sua; Exportar e Importar o levam para outro computador, e Redefinir devolve a cadeia ao que era.\nTodos os canais aplica o rack a cada canal de uma saída surround; o botão ao lado liga ou desliga o rack inteiro.\nDynamics, De-esser, Denoise, a Sala e Crossfade têm capítulos próprios. O filtro de jogo fica no Gaming Lab; enquanto o som próprio de um jogo está ligado, esta página descansa para que nada aqui o sobrescreva.',
   'help.dsp.tip':
     'Mais alto costuma soar melhor só por ser mais alto, então compare em níveis equivalentes. Ctrl+clique em um controle giratório para voltar ao valor padrão.',
   'help.dsp.keywords':
     'efeitos, FX, plugins, limiter, limitador, loudness, LUFS, normalização de volume, nivelamento, exciter, abertura estéreo, subgrave, subharmônico, transientes, masterização, crossfade, gapless, de-esser, sibilância, s agudo, chiado, voz, podcast, perfis, salvar perfil, passos, ouvir passos, footsteps, jogos, som de jogo, recargas, equalização de volume, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses, headset',
   'help.dsp.normalizer':
-    'Os presets musicais ativam Sonoridade antes dos efeitos; Nenhum a deixa desligada. Iguala trechos fortes preservando os suaves. Pico verdadeiro apenas reduz os picos.',
+    'Iguala o nível da fonte antes de qualquer efeito: Loudness, True Peak ou desligado. Escolher uma cadeia nunca o muda.',
   'help.dsp.denoise':
     'Corrige chiado, zumbido e estalos. O limpador de voz neural funciona nas faixas da Biblioteca.',
   'help.dsp.exciter': 'Adiciona harmônicos para dar corpo e ar.',
@@ -389,13 +389,22 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.master': 'Nível final, alvo de sonoridade e proteção de picos.',
   'help.dsp.crossfade': 'Funde uma faixa da Biblioteca na seguinte.',
   'help.dsp.presets':
-    'Cadeias do rack inteiro para gêneros, dispositivos e reparos.',
+    'Cadeias prontas para música, gêneros, dispositivos e reparos. Escolher uma ajusta todas as etapas de uma vez.',
+  'help.dsp.chainActionsName': 'Ações da cadeia',
+  'help.dsp.chainActions':
+    'Redefinir devolve a cadeia; Salvar guarda o rack como uma cadeia sua; Exportar e Importar o levam para outro computador.',
+  'help.dsp.switchesName': 'Botões do rack',
+  'help.dsp.switches':
+    'Todos os canais aplica o rack a cada canal de uma saída surround, ou só ao par frontal; Ligado liga o rack inteiro.',
+  'help.dsp.stagePresetName': 'Preset da etapa',
+  'help.dsp.stagePreset':
+    'Os presets próprios da etapa aberta, com suas setas, Redefinir e Salvar, que valem só para esta etapa.',
 
   'help.room.title': 'A Sala: surround nos fones de ouvido',
   'help.room.intro':
     'A Sala transforma os fones de ouvido em uma sala de escuta. Cada canal do som passa a ser um alto-falante ao redor da sua cabeça, renderizado através de uma cabeça medida e das reflexões de uma sala que você mesmo molda, e um filme fica à sua frente e um jogo envolve você. Precisa do Motor FluidEQ e de fones de ouvido; em alto-falantes não serve para nada.',
   'help.room.steps':
-    'Abra DSP, escolha Sala na barra e ligue-a. O estéreo vira dois alto-falantes à sua frente; um filme 5.1, cinco e o sub; um jogo 7.1, o anel inteiro. O chip ao lado do interruptor diz qual.\nEscolha uma sala no topo — estúdio, sala de estar, cinema, sala de concertos e mais — ou gire Tamanho, Paredes e Distância você mesmo e arraste um alto-falante pelo anel. Os alto-falantes que o fluxo em reprodução não alcança são desenhados adormecidos.\nPressione Começar o teste de escuta e responda a cinco pares curtos de escuta: a sala fica com a cabeça que põe os sons à sua frente. Pequena, Média e Grande também podem ser escolhidas à mão.\nSalve uma sala de que você goste com um nome; uma sala salva volta com um toque e nunca muda a sua cabeça.',
+    'Abra o DSP, escolha Sala no trilho e ligue-a. O estéreo vira duas caixas à sua frente; um filme 5.1, cinco e o subwoofer; um jogo 7.1, o anel inteiro. A linha abaixo dos presets diz qual.\nEscolha uma sala em Preset de sala — primeiro as em destaque, depois as clássicas e as suas — ou gire você mesmo Espaço, Ambiência e Distância e arraste uma caixa pelo anel. As caixas que o som tocando não alcança aparecem adormecidas.\nClique em uma caixa: o painel ao lado do desenho passa a ser dela, com ângulo, distância, nível e Mudo ou Solo.\nEm Sua cabeça, clique em Começar o teste de escuta e responda cinco pares curtos: a sala pega a cabeça que coloca os sons na sua frente. Pequena, Média e Grande também podem ser escolhidas à mão.\nSalve com um nome uma sala de que você gosta; uma sala salva volta com um clique e nunca muda a sua cabeça.',
   'help.room.tip':
     'Jogos e filmes só enviam os canais surround para uma saída que o Windows acredita ter esse número de alto-falantes: quando o driver aceita, o painel de saída oferece um toque para 7.1.',
   'help.room.keywords':
@@ -407,13 +416,14 @@ const help: Record<keyof typeof en, string> = {
   'help.room.speaker':
     'Toque em um alto-falante da sala e este painel passa a ser dele: o ângulo em graus, a própria distância, o nível, e Silenciar ou Solo para ouvi-lo sozinho.',
   'help.room.speakerName': 'O alto-falante escolhido',
-  'help.room.dialsName': 'Espaço, Ambiente, Distância',
   'help.room.dials':
     'Quanto você ouve das paredes, a cauda suave que vem depois e a que distância estão os alto-falantes. Tamanho, Paredes e a duração e o tom da cauda estão em Caráter da sala, abaixo.',
-  'help.room.fit':
-    'Cinco pares de escuta que escolhem a cabeça para os seus ouvidos.',
   'help.room.head':
-    'A cabeça medida através da qual a sala é renderizada: pequena, média ou grande.',
+    'A cabeça medida pela qual a sala soa — pequena, média ou grande — e o teste de escuta que a escolhe para os seus ouvidos.',
+  'help.room.bass':
+    'Manda os graves das caixas para o subwoofer ou os mantém em faixa completa, no crossover que você escolher, e ajusta os níveis do centro e do sub.',
+  'help.room.stereo':
+    'Só para uma fonte estéreo: mantê-la como palco frontal, ou preencher a sala ao seu redor na quantidade que você escolher.',
   'help.room.saved': 'Dá um nome à sala tal como está; volta com um toque.',
   'help.room.liveName': 'O que a sala está fazendo',
   'help.room.live':
@@ -428,6 +438,26 @@ const help: Record<keyof typeof en, string> = {
     'Preste atenção a detalhes suavizados e a texturas aguadas ou com bombeamento. Isto não é uma limpeza de microfone. Se não ouvir nenhuma mudança, confirme que o rack e o estágio estão ligados.',
   'help.denoise.keywords':
     'barulho, remover ruído, tirar ruído, ruído de fundo, estática, vinil, restauração, limpar áudio, denoise, noise',
+  'help.denoise.preset':
+    'Pontos de partida para uma limpeza suave ou forte, chiado, zumbido, cliques, vinil, fita ou um podcast. Salvar guarda os seus.',
+  'help.denoise.isolate':
+    'Toca só o que o Denoise remove, para você conferir que ele não tira nada que você quer manter.',
+  'help.denoise.graphName': 'Imagem do ruído',
+  'help.denoise.graph':
+    'O som contra o seu piso de ruído, com a redução de chiado, o zumbido e os cliques reparados desenhados enquanto acontecem.',
+  'help.denoise.analysis':
+    'Em uma faixa da Biblioteca: o piso de ruído, o zumbido e os cliques por minuto, medidos do próprio arquivo. Analisar novamente mede outra vez.',
+  'help.denoise.hiss':
+    'Abaixa o chiado constante sob a música. O limite de redução deixa um pouco, para o resto não borbulhar.',
+  'help.denoise.hum':
+    'Remove o zumbido da rede e seus harmônicos. Auto usa 50 ou 60 Hz conforme a análise encontrou.',
+  'help.denoise.clicks':
+    'Encontra e emenda cliques e estalos curtos; o que for mais longo fica, para a bateria sobreviver.',
+  'help.denoise.voice':
+    'O limpador neural de voz, para a reprodução da Biblioteca. O modelo é baixado na primeira vez que você usa.',
+  'help.denoise.liveName': 'O que está fazendo',
+  'help.denoise.live':
+    'Quanto está reduzindo agora, os cliques reparados e qualquer momento em que o limpador de voz ficou para trás.',
 
   'help.graph.title': 'O gráfico e seus controles',
   'help.graph.intro':
@@ -739,6 +769,30 @@ const help: Record<keyof typeof en, string> = {
     'comunidade, dúvidas, suporte, sugestão, sugestões, feedback, pedido de recurso, contato, desenvolvedor, discussões, enquete',
   'help.games.profiles':
     'Abra Perfis de jogos para buscar por perfil, jogo, curva ou cadeia. Os filtros ficam em uma linha e cada tipo de jogo tem sua cor. Seus perfis salvos também mostram a curva, os níveis do filtro Jogo e a cadeia. Usar em um jogo cria uma nova cópia.',
+  'help.mic.title': 'O som do seu microfone',
+  'help.mic.intro':
+    'A aba Microfone dá a cada microfone um rack de voz próprio. O FluidEQ Engine o executa no próprio microfone, então Discord, OBS, um jogo ou uma chamada ouvem sua voz como você a moldou. É preciso o FluidEQ Engine.',
+  'help.mic.steps':
+    'Abra Microfone no cabeçalho e escolha o seu microfone no topo. Se o FluidEQ ainda não estiver nele, clique em Configurar neste microfone; o Windows pede permissão uma vez.\nEscolha um Perfil do microfone por uso — Streaming, Podcast, Chat de jogo, Reuniões —, por microfone, para cantar ou um efeito de voz. Ele ajusta cada etapa para uma voz; uma etapa que você muda marca o perfil como ajustado, e Redefinir o traz de volta.\nClique em uma etapa no trilho para abri-la. Cada uma tem seu botão, um medidor que se move com a sua voz e o atraso que adiciona; uma etapa desligada some do som por completo.\nFale e veja o desenho: o fraco é o que o microfone capta, o brilhante é o que os outros ouvem, e o cinza que aparece é o que os filtros tiraram. Ouvir o resultado final toca para você; use fones, senão microfonia.\nEfeitos próprios do microfone mostra o que o fabricante do microfone coloca na sua voz antes do FluidEQ. Desligá-los evita limpar a voz duas vezes; o Windows pede permissão e, ao religar, eles voltam exatamente como eram.',
+  'help.mic.tip':
+    'Uma etapa desligada deixa a voz intacta e não adiciona atraso; se Atraso estiver alto, desligue o que você não precisa. No Equalizer APO a aba Microfone não tem onde rodar.',
+  'help.mic.keywords':
+    'microfone, mic, voz, streaming, obs, discord, podcast, chamadas, reuniões, cancelamento de ruído, supressão de ruído, noise gate, gate, de-esser, compressor, limitador, reverb, efeitos de voz, cantar, microfone usb, microfone do headset, efeitos próprios',
+  'help.mic.own':
+    'O que o fabricante do microfone coloca na sua voz antes do FluidEQ. O botão pede permissão ao Windows nos dois sentidos.',
+  'help.mic.master': 'Liga ou desliga todo o rack de voz deste microfone.',
+  'help.mic.stagesName': 'As etapas',
+  'help.mic.stages':
+    'Na ordem em que a sua voz passa por elas, cada uma com seu botão, um medidor que se move com a voz e o atraso que adiciona. Clique em uma para abri-la.',
+  'help.mic.pick':
+    'O microfone que você está moldando; cada um guarda o próprio som. A linha abaixo diz se o motor está trabalhando nele agora.',
+  'help.mic.pictureName': 'Sua voz',
+  'help.mic.picture':
+    'O fraco é o que o microfone capta, o brilhante é o que os outros ouvem, e o cinza que aparece é o que os filtros tiraram.',
+  'help.mic.profile':
+    'Sons de voz prontos por uso, por microfone, para cantar e como efeitos de voz. Uma mudança marca o perfil como ajustado; Redefinir o traz de volta.',
+  'help.mic.delay':
+    'Quanto o rack inteiro atrasa a sua voz, como o motor mede.',
 };
 
 export default help;
