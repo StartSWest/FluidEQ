@@ -78,6 +78,13 @@ const UNITS: ReadonlySet<string> = new Set([
   'oct',
 ]);
 
+/**
+ * Names the catalogues keep in English on purpose: Korean and Traditional
+ * Chinese call the panel "Auto EQ" (`autoEq.title`), so What's New's
+ * "EQ · AUTO EQ" kicker is the app's own name there, not untranslated prose.
+ */
+const KEPT_NAMES: ReadonlySet<string> = new Set(['EQ', 'AUTO', 'Auto', 'DSP']);
+
 /** An English source handed back unchanged, as a whole translation. */
 const isCopiedProse = (source: string, translated: string): boolean => {
   if (
@@ -92,9 +99,17 @@ const isCopiedProse = (source: string, translated: string): boolean => {
   }
   const words = (
     source.replace(/\{\w+\}/g, '').match(/\b[A-Za-z]+\b/g) ?? []
-  ).filter((word) => !UNITS.has(word));
+  ).filter((word) => !UNITS.has(word) && !KEPT_NAMES.has(word));
   return words.length >= 3;
 };
+
+it('lets a kicker of kept names stand, and still catches a sentence round them', () => {
+  expect(isCopiedProse('EQ · AUTO EQ', 'EQ · AUTO EQ')).toBe(false);
+  // The control: the same names inside English prose are copied prose.
+  expect(
+    isCopiedProse('Open Auto EQ on the EQ page', 'Open Auto EQ on the EQ page'),
+  ).toBe(true);
+});
 
 it('lets a keyboard chord stand as it is, and still catches a sentence round one', () => {
   expect(isCopiedProse('Ctrl+Shift+I', 'Ctrl+Shift+I')).toBe(false);
