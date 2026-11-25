@@ -268,6 +268,9 @@ const studioChat = {
   'studioChat.accounts.higgsfieldSignIn': 'Higgsfield로 로그인',
   'studioChat.accounts.higgsfieldAbout': 'Higgsfield란?',
   'studioChat.accounts.checkAgain': '다시 확인',
+  'studioChat.accounts.higgsfieldChecking':
+    'Claude Code에서 Higgsfield를 찾는 중…',
+  'studioChat.accounts.checking': '확인 중…',
 } satisfies Partial<Dictionary>;
 
 export default studioChat;

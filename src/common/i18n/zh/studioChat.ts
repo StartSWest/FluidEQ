@@ -253,6 +253,9 @@ const studioChat = {
   'studioChat.accounts.higgsfieldSignIn': '用 Higgsfield 登录',
   'studioChat.accounts.higgsfieldAbout': '什么是 Higgsfield？',
   'studioChat.accounts.checkAgain': '再次检查',
+  'studioChat.accounts.higgsfieldChecking':
+    '正在你的 Claude Code 中查找 Higgsfield…',
+  'studioChat.accounts.checking': '正在检查…',
 } as const;
 
 export default studioChat;

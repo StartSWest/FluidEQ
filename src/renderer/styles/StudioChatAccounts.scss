@@ -94,6 +94,67 @@ it under the terms of the GNU General Public License version 3 or later.
   margin-top: 6px;
 }
 
+// "Checking…" at the service line's end while the card's answer is asked
+// again (`HiggsfieldAccount`): in the line's own height, so the card under it
+// never moves, and in sentence case, as words rather than a label.
+.studio-chat-accounts__checking {
+  margin-left: auto;
+  color: $text-dim;
+  font-weight: $weight-regular;
+  text-transform: none;
+  @include tracking(0);
+}
+
+// The shape of a card's words before its first answer: the note's two lines
+// and a button, where they will stand, sweeping like the chat's pictures in
+// the making (`StudioChatReply.scss`).
+.studio-chat-accounts__shape {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-size: $text-small;
+}
+
+.studio-chat-accounts__shape-line,
+.studio-chat-accounts__shape-button {
+  display: block;
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, $edge-tint 7%, transparent) 30%,
+    color-mix(in srgb, $edge-tint 14%, transparent) 50%,
+    color-mix(in srgb, $edge-tint 7%, transparent) 70%
+  );
+  background-size: 200% 100%;
+  animation: studio-chat-sweep 1.4s linear infinite;
+}
+
+// Each bar centred in a line of the note's own height (1.45 at its size).
+.studio-chat-accounts__shape-line {
+  width: 100%;
+  height: 0.7em;
+  margin: 0.375em 0;
+  border-radius: $radius-pill;
+
+  &.is-short {
+    width: 62%;
+  }
+}
+
+// A small button's height (`Button.scss`), with the actions' margin above.
+.studio-chat-accounts__shape-button {
+  width: 9em;
+  height: $control-height-sm;
+  margin-top: 6px;
+  border-radius: $radius-xs;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-chat-accounts__shape-line,
+  .studio-chat-accounts__shape-button {
+    animation: none;
+  }
+}
+
 .studio-chat-accounts__fine {
   margin: 2px 2px 0;
   color: $text-dim;

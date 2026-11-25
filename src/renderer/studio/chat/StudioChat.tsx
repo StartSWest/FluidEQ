@@ -47,6 +47,7 @@ import {
   unqueueStudioChat,
   useStudioChat,
 } from './studioChatStore';
+import { checkStudioMakers } from './studioMakersStore';
 import '../../styles/StudioChat.scss';
 
 interface IStudioChatProps {
@@ -147,6 +148,9 @@ export default function StudioChat({
 
   useEffect(() => {
     checkStudioChat().catch(() => undefined);
+    // Higgsfield checked as the Studio opens, not first when Accounts does:
+    // `claude mcp` takes seconds, and the card opens on the answer.
+    checkStudioMakers().catch(() => undefined);
     // Back in the window after installing or signing in elsewhere: asked
     // again, so the pane does not go on saying it is missing.
     const onFocus = () => {

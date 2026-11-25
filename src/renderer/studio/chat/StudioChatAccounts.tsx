@@ -17,6 +17,7 @@ import {
 import {
   checkStudioMakers,
   connectHiggsfield,
+  knowStudioMakers,
   useStudioMakers,
 } from './studioMakersStore';
 import '../../styles/StudioChatAccounts.scss';
@@ -36,31 +37,49 @@ export const planName = (plan: string) =>
 function AccountCard({
   service,
   lamp,
+  checking,
   email,
   detail,
   note,
-  usage,
+  below,
   children,
 }: {
   service: string;
   lamp: 'ready' | 'off';
+  /**
+   * Said at the service's end while what the card shows is being checked
+   * again: the lamp breathes, and nothing else on the card moves.
+   */
+  checking?: string | undefined;
   email?: string | undefined;
   detail?: string | undefined;
   note?: string | undefined;
-  /** What the account's plan has left, under who it is. */
-  usage?: ReactNode;
+  /** Under the account's words: the plan's usage, or the shape of words to come. */
+  below?: ReactNode;
   children?: ReactNode;
 }) {
   return (
-    <section className="studio-chat-accounts__card" aria-label={service}>
+    <section
+      className="studio-chat-accounts__card"
+      aria-label={service}
+      aria-busy={checking ? true : undefined}
+    >
       <p className="studio-chat-accounts__service">
-        <span className={`studio-chat__lamp is-${lamp}`} aria-hidden="true" />
+        <span
+          className={`studio-chat__lamp is-${lamp}${checking ? ' is-checking' : ''}`}
+          aria-hidden="true"
+        />
         {service}
+        {checking && (
+          <span className="studio-chat-accounts__checking" role="status">
+            {checking}
+          </span>
+        )}
       </p>
       {email && <p className="studio-chat-accounts__email">{email}</p>}
       {detail && <p className="studio-chat-accounts__detail">{detail}</p>}
       {note && <p className="studio-chat-accounts__note">{note}</p>}
-      {usage}
+      {below}
       {children && (
         <div className="studio-chat-accounts__actions">{children}</div>
       )}
@@ -77,28 +96,57 @@ const HIGGSFIELD_URL = 'https://higgsfield.ai';
  * Higgsfield for image gen, videos and everything Higgsfield can do").
  *
  * Asked again when this opens and whenever the window comes back, so a
- * sign-in finished in the browser shows without anything to press. Nothing
- * is drawn before the first answer. It is set up on the member's press
- * only: FluidEQ adds it to their Claude Code and opens Claude Code's own
- * sign-in to it, and never sees the sign-in. Which account it is cannot be
- * read from here, so none is named. One the member connected themselves as a
- * claude.ai connector counts the same.
+ * sign-in finished in the browser shows without anything to press. The card
+ * is there from the first frame: the last answer, kept across runs, while
+ * it is checked again ("it showed after a while", Ivan, 2026-11-25), or the
+ * shape of a card with "Looking for Higgsfield…" on a computer never
+ * checked. It is set up on the member's press only: FluidEQ adds it to
+ * their Claude Code and opens Claude Code's own sign-in to it, and never
+ * sees the sign-in. Which account it is cannot be read from here, so none is
+ * named. One the member connected themselves as a claude.ai connector counts
+ * the same.
+ *
+ * `canAsk` is false while Claude Code itself is still being looked for:
+ * the card holds its place, and nothing is asked of a Claude Code that may
+ * turn out not to be there.
  */
-function HiggsfieldAccount() {
+function HiggsfieldAccount({ canAsk }: { canAsk: boolean }) {
   const { t } = useTranslation();
-  const { higgsfield, connecting } = useStudioMakers();
+  const { higgsfield, checking, connecting } = useStudioMakers();
 
   useEffect(() => {
+    if (!canAsk) {
+      // What main kept is no question to Claude Code: shown meanwhile.
+      knowStudioMakers().catch(() => undefined);
+      return undefined;
+    }
     const check = () => {
       checkStudioMakers().catch(() => undefined);
     };
     check();
     window.addEventListener('focus', check);
     return () => window.removeEventListener('focus', check);
-  }, []);
+  }, [canAsk]);
 
+  const service = t('studioChat.accounts.higgsfield');
   if (!higgsfield) {
-    return null;
+    // Never answered: the card's own lines, as shapes, so the answer takes
+    // their place rather than pushing everything under it down.
+    return (
+      <AccountCard
+        service={service}
+        lamp="off"
+        checking={t('studioChat.accounts.checking')}
+        detail={t('studioChat.accounts.higgsfieldChecking')}
+        below={
+          <div className="studio-chat-accounts__shape" aria-hidden="true">
+            <span className="studio-chat-accounts__shape-line" />
+            <span className="studio-chat-accounts__shape-line is-short" />
+            <span className="studio-chat-accounts__shape-button" />
+          </div>
+        }
+      />
+    );
   }
 
   const connect = (another: boolean) => {
@@ -126,7 +174,8 @@ function HiggsfieldAccount() {
     actions = (
       <button
         type="button"
-        className="button small subtle"
+        className={`button small subtle${checking ? ' is-running' : ''}`}
+        disabled={checking}
         onClick={() => {
           checkStudioMakers().catch(() => undefined);
         }}
@@ -174,8 +223,12 @@ function HiggsfieldAccount() {
 
   return (
     <AccountCard
-      service={t('studioChat.accounts.higgsfield')}
+      service={service}
       lamp={state === 'ready' ? 'ready' : 'off'}
+      // The set-up's own words say what is happening while it runs.
+      checking={
+        checking && !connecting ? t('studioChat.accounts.checking') : undefined
+      }
       detail={
         state === 'ready' ? t('studioChat.accounts.higgsfieldReady') : undefined
       }
@@ -277,13 +330,13 @@ export default function StudioChatAccounts({
         }
         detail={claudeDetail}
         note={claudeNote}
-        usage={claudeReady ? <StudioChatLimits /> : undefined}
+        below={claudeReady ? <StudioChatLimits /> : undefined}
       >
         {claudeAction}
       </AccountCard>
       {/* Higgsfield lives in the member's Claude Code: none without it. */}
-      {(claudeReady || availability.state === 'signed-out') && (
-        <HiggsfieldAccount />
+      {availability.state !== 'missing' && (
+        <HiggsfieldAccount canAsk={availability.state !== 'checking'} />
       )}
       <p className="studio-chat-accounts__fine">
         {t('studioChat.accounts.fine')}

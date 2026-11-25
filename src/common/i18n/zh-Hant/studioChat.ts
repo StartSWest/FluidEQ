@@ -258,6 +258,9 @@ const studioChat = {
   'studioChat.accounts.higgsfieldSignIn': '使用 Higgsfield 登入',
   'studioChat.accounts.higgsfieldAbout': '什麼是 Higgsfield？',
   'studioChat.accounts.checkAgain': '再次檢查',
+  'studioChat.accounts.higgsfieldChecking':
+    '正在您的 Claude Code 中尋找 Higgsfield…',
+  'studioChat.accounts.checking': '檢查中…',
 } satisfies Partial<Dictionary>;
 
 export default studioChat;

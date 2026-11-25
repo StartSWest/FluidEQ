@@ -19,8 +19,10 @@ import path from 'path';
 import { createChatAsks } from '../../../main/studioChat/chatAsks';
 import { stepOf } from '../../../main/studioChat/chatStream';
 import {
+  readHiggsfieldGet,
   readHiggsfieldServer,
   readServersSeen,
+  withServersSeen,
 } from '../../../main/studioChat/studioMakers';
 
 /** What `claude mcp list` prints, as Claude Code 2.1 printed it. */
@@ -203,6 +205,95 @@ describe('the member’s own server as the chat reports it', () => {
     expect(readHiggsfieldServer(own, seenAs('connected'))?.account).toEqual({
       state: 'ready',
     });
+  });
+});
+
+/**
+ * What `claude mcp get higgsfield` printed on Ivan's machine on 2026-11-25,
+ * Claude Code 2.1.321, as it is when his own server is signed in.
+ */
+const gotten = (status: string, url = 'https://mcp.higgsfield.ai/mcp') =>
+  [
+    'higgsfield:',
+    '  Scope: User config (available in all your projects)',
+    `  Status: ${status}`,
+    '  Type: http',
+    `  URL: ${url}`,
+    '',
+    'To remove this server, run: claude mcp remove higgsfield -s user',
+    '',
+  ].join('\r\n');
+
+describe('one server, as `claude mcp get` prints it', () => {
+  it('reads the same states the list does', () => {
+    expect(readHiggsfieldGet(gotten('✔ Connected'), 'higgsfield')).toEqual({
+      name: 'higgsfield',
+      account: { state: 'ready' },
+    });
+    expect(
+      readHiggsfieldGet(gotten('! Needs authentication'), 'higgsfield'),
+    ).toEqual({ name: 'higgsfield', account: { state: 'signed-out' } });
+    expect(
+      readHiggsfieldGet(gotten('✘ Failed to connect'), 'higgsfield'),
+    ).toEqual({ name: 'higgsfield', account: { state: 'unreachable' } });
+  });
+
+  it('is nothing for a name no server has any more', () => {
+    expect(
+      readHiggsfieldGet(
+        'No MCP server named "higgsfield". Configured servers: claude.ai Linear, plugin:playwright:playwright\n',
+        'higgsfield',
+      ),
+    ).toBeUndefined();
+    expect(readHiggsfieldGet('', 'higgsfield')).toBeUndefined();
+  });
+
+  it('is nothing where the name now points somewhere else', () => {
+    expect(
+      readHiggsfieldGet(
+        gotten('✔ Connected', 'https://example.com/mcp.higgsfield.ai/mcp'),
+        'higgsfield',
+      ),
+    ).toBeUndefined();
+    // Nor is it a description of a server by another name.
+    expect(
+      readHiggsfieldGet(gotten('✔ Connected'), 'my higgs'),
+    ).toBeUndefined();
+  });
+});
+
+describe('the list with what a chat reported beside it', () => {
+  const listedOwn = [
+    { name: 'higgsfield', account: { state: 'signed-out' as const } },
+  ];
+
+  it('adds a Higgsfield the chat has and the list does not', () => {
+    expect(
+      withServersSeen(
+        [],
+        new Map([
+          ['claude.ai Linear', 'needs-auth'],
+          ['higgsfield', 'connected'],
+          ['claude.ai Higgsfield', 'needs-auth'],
+        ]),
+      ),
+    ).toEqual([
+      { name: 'higgsfield', account: { state: 'ready' } },
+      { name: 'claude.ai Higgsfield', account: { state: 'signed-out' } },
+    ]);
+  });
+
+  it('leaves a listed one to the list, and one still connecting out', () => {
+    expect(
+      withServersSeen(
+        listedOwn,
+        new Map([
+          ['higgsfield', 'connected'],
+          ['other higgsfield', 'pending'],
+        ]),
+      ),
+    ).toEqual(listedOwn);
+    expect(withServersSeen(listedOwn, undefined)).toEqual(listedOwn);
   });
 });
 

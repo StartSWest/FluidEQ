@@ -16,6 +16,7 @@ import { EventEmitter } from 'events';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import type { WebContents } from 'electron';
 import type { TAgentProject } from '../../../main/studioAgent/agentProject';
 import type { IStudioLook } from '../../../main/studioAgent/studioTools';
 import { createChatPictures } from '../../../main/studioChat/chatPictures';
@@ -24,6 +25,7 @@ import {
   addHiggsfield,
   higgsfieldAccount,
   higgsfieldServer,
+  higgsfieldServerNamed,
   signInToHiggsfield,
   signOutOfHiggsfield,
 } from '../../../main/studioChat/higgsfieldMcp';
@@ -48,6 +50,8 @@ jest.mock('electron', () => ({
 const mockStarted: { executable: string; args: string[] }[] = [];
 /** What the next `claude mcp list` prints. */
 let mockListed = '';
+/** What the next `claude mcp get` prints. */
+let mockGotten = '';
 
 const mockChild = (printed: string) => {
   const child = new EventEmitter() as EventEmitter & { stdout: EventEmitter };
@@ -71,6 +75,9 @@ jest.mock('../../../main/studioChat/claudeCode', () => ({
   ...jest.requireActual('../../../main/studioChat/claudeCode'),
   startClaudeCode: (executable: string, args: string[]) => {
     mockStarted.push({ executable, args });
+    if (args[1] === 'get') {
+      return mockChild(mockGotten);
+    }
     return mockChild(args[1] === 'list' ? mockListed : '');
   },
 }));
@@ -78,6 +85,7 @@ jest.mock('../../../main/studioChat/claudeCode', () => ({
 // The commands are asked through these in the channel tests further down,
 // and run for real (against the stand-in processes above) before them.
 const mockServers = jest.fn<Promise<IHiggsfieldServer[]>, []>();
+const mockNamed = jest.fn<Promise<IHiggsfieldServer | undefined>, [string]>();
 const mockRan: string[] = [];
 let mockCommands = false;
 jest.mock('../../../main/studioChat/higgsfieldMcp', () => {
@@ -86,6 +94,10 @@ jest.mock('../../../main/studioChat/higgsfieldMcp', () => {
     ...real,
     higgsfieldServers: (...args: unknown[]) =>
       mockCommands ? mockServers() : real.higgsfieldServers(...args),
+    higgsfieldServerNamed: (name: string, ...rest: unknown[]) =>
+      mockCommands
+        ? mockNamed(name)
+        : real.higgsfieldServerNamed(name, ...rest),
     addHiggsfield: async (...args: unknown[]) => {
       if (!mockCommands) {
         return real.addHiggsfield(...args);
@@ -127,8 +139,10 @@ beforeEach(() => {
   mockStarted.length = 0;
   mockRan.length = 0;
   mockListed = '';
+  mockGotten = '';
   mockCommands = false;
   mockServers.mockReset();
+  mockNamed.mockReset();
   mockHandlers.clear();
 });
 
@@ -145,10 +159,25 @@ describe("what FluidEQ runs in the member's Claude Code", () => {
     ]);
   });
 
+  // `mcp list` waits on every server's health check; this on one.
+  it('asks Claude Code for one server by its name, and reads it', async () => {
+    mockGotten =
+      'higgsfield:\n  Scope: User config (available in all your projects)\n  Status: ✔ Connected\n  Type: http\n  URL: https://mcp.higgsfield.ai/mcp\n';
+    await expect(
+      higgsfieldServerNamed('higgsfield', computer(true)),
+    ).resolves.toEqual({ name: 'higgsfield', account: { state: 'ready' } });
+    expect(mockStarted).toEqual([
+      { executable: CLAUDE, args: ['mcp', 'get', 'higgsfield'] },
+    ]);
+  });
+
   it('calls it missing, and starts nothing, on a computer without Claude Code', async () => {
     await expect(higgsfieldAccount(computer(false))).resolves.toEqual({
       state: 'missing',
     });
+    await expect(
+      higgsfieldServerNamed('higgsfield', computer(false)),
+    ).resolves.toBeUndefined();
     await addHiggsfield(computer(false));
     await signInToHiggsfield('higgsfield', computer(false));
     await signOutOfHiggsfield('higgsfield', computer(false));
@@ -222,6 +251,9 @@ describe("what FluidEQ runs in the member's Claude Code", () => {
     async (name) => {
       await signInToHiggsfield(name, computer(true));
       await signOutOfHiggsfield(name, computer(true));
+      await expect(
+        higgsfieldServerNamed(name, computer(true)),
+      ).resolves.toBeUndefined();
       expect(mockStarted).toEqual([]);
     },
   );
@@ -236,6 +268,8 @@ describe("the window's presses", () => {
   let root: string;
   let fromWindow: boolean;
   let pictures: ReturnType<typeof createChatPictures>;
+  /** What main told the window, channel and message. */
+  let sent: [string, unknown][];
 
   const press = (channel: string, ...args: unknown[]) => {
     const handler = mockHandlers.get(channel);
@@ -252,10 +286,16 @@ describe("the window's presses", () => {
   beforeEach(() => {
     mockCommands = true;
     fromWindow = true;
+    sent = [];
     root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-higgsfield-'));
+    const page = {
+      send: (channel: string, message: unknown) => {
+        sent.push([channel, message]);
+      },
+    } as unknown as WebContents;
     pictures = createChatPictures({
       root,
-      pageOf: () => undefined,
+      pageOf: () => page,
       fromWindow: () => fromWindow,
       projectAt: noProject,
       signalOf: () => new AbortController().signal,
@@ -293,6 +333,46 @@ describe("the window's presses", () => {
     await expect(press('studio-chat-makers')).resolves.toEqual({
       state: 'ready',
     });
+  });
+
+  // Ivan, 2026-11-25: "I see accounts don't show up ... it showed after a
+  // while". The card opens on the last answer while the check runs.
+  it('are handed the last answer at once, kept across runs, with nothing run', async () => {
+    expect(press('studio-chat-makers-known')).toBeUndefined();
+    mockServers.mockResolvedValue([server('ready')]);
+    await press('studio-chat-makers');
+    await pictures.dispose();
+    // The next run of the app.
+    pictures = createChatPictures({
+      root,
+      pageOf: () => undefined,
+      fromWindow: () => fromWindow,
+      projectAt: noProject,
+      signalOf: () => new AbortController().signal,
+      door,
+      version: '0',
+    });
+    mockServers.mockClear();
+    expect(press('studio-chat-makers-known')).toEqual({ state: 'ready' });
+    expect(mockServers).not.toHaveBeenCalled();
+    expect(mockNamed).not.toHaveBeenCalled();
+  });
+
+  it('check a known server of the member’s own by its name alone', async () => {
+    mockServers.mockResolvedValue([server('signed-out')]);
+    await press('studio-chat-makers');
+    mockServers.mockClear();
+    mockNamed.mockResolvedValue(server('ready'));
+    await expect(press('studio-chat-makers')).resolves.toEqual({
+      state: 'ready',
+    });
+    expect(mockNamed).toHaveBeenCalledWith('higgsfield');
+    expect(mockServers).not.toHaveBeenCalled();
+  });
+
+  it('tell the window the moment a chat’s turn reports Higgsfield', () => {
+    pictures.noteServers(new Map([['higgsfield', 'connected']]));
+    expect(sent).toEqual([['studio-chat-makers-changed', { state: 'ready' }]]);
   });
 
   it('hear nothing of a choice of maker any more', () => {
@@ -378,6 +458,7 @@ describe("the window's presses", () => {
     fromWindow = false;
     mockServers.mockResolvedValue([]);
     expect(await press('studio-chat-makers')).toBeUndefined();
+    expect(press('studio-chat-makers-known')).toBeUndefined();
     expect(
       await press('studio-chat-higgsfield-connect', false),
     ).toBeUndefined();

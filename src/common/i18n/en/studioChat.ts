@@ -269,6 +269,9 @@ const studioChat = {
   'studioChat.accounts.higgsfieldSignIn': 'Sign in with Higgsfield',
   'studioChat.accounts.higgsfieldAbout': 'What is Higgsfield?',
   'studioChat.accounts.checkAgain': 'Check again',
+  'studioChat.accounts.higgsfieldChecking':
+    'Looking for Higgsfield in your Claude Code…',
+  'studioChat.accounts.checking': 'Checking…',
 } as const;
 
 export default studioChat;

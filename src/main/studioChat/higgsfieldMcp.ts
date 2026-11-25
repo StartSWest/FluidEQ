@@ -16,6 +16,7 @@ import {
   chooseHiggsfield,
   HIGGSFIELD_MCP_URL,
   HIGGSFIELD_SERVER,
+  readHiggsfieldGet,
   readHiggsfieldServers,
   type IHiggsfieldServer,
 } from './studioMakers';
@@ -76,6 +77,33 @@ export const higgsfieldServers = async (
         windowsHide: true,
       }),
     ),
+  );
+};
+
+/**
+ * The one server called `name`, as `claude mcp get` has it: undefined when
+ * there is none by that name, it is not Higgsfield, or it cannot be asked.
+ * `mcp list` health-checks every server the member has and answers once the
+ * slowest has (a stdio server started through npx, a connector waiting on
+ * its sign-in); this checks the one that matters, and is what keeps a known
+ * Higgsfield's card from waiting on somebody else's server.
+ */
+export const higgsfieldServerNamed = async (
+  name: string,
+  where: IClaudeCodeEnv = systemEnv(),
+): Promise<IHiggsfieldServer | undefined> => {
+  const executable = findClaudeCode(where);
+  if (!executable || !SAFE_NAME.test(name)) {
+    return undefined;
+  }
+  return readHiggsfieldGet(
+    await outputOf(
+      startClaudeCode(executable, ['mcp', 'get', name], {
+        stdio: ['ignore', 'pipe', 'ignore'],
+        windowsHide: true,
+      }),
+    ),
+    name,
   );
 };
 

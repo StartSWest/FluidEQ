@@ -33,6 +33,28 @@ export interface IHiggsfieldServer {
  */
 export const isConnector = (name: string) => name.startsWith('claude.ai ');
 
+/** Whether an address is Higgsfield's hosted server. */
+const isHiggsfieldAddress = (address: string): boolean => {
+  try {
+    return new URL(address).host === new URL(HIGGSFIELD_MCP_URL).host;
+  } catch {
+    // A command, not an address: not a hosted server.
+    return false;
+  }
+};
+
+/**
+ * The state in Claude Code's own words for a server, as `mcp list` and
+ * `mcp get` both print it: a status that says neither is a server Claude
+ * Code could not reach.
+ */
+const stateOfStatus = (status: string): THiggsfieldAccount['state'] => {
+  if (/\bConnected\b/.test(status)) {
+    return 'ready';
+  }
+  return /Needs authentication/i.test(status) ? 'signed-out' : 'unreachable';
+};
+
 /**
  * Higgsfield in what `claude mcp list` prints, one server a line:
  *
@@ -52,24 +74,47 @@ export const readHiggsfieldServers = (listed: string): IHiggsfieldServer[] =>
       return [];
     }
     const [, name, address, status] = split;
-    let host: string;
-    try {
-      ({ host } = new URL(address));
-    } catch {
-      // A command, not an address: not a hosted server.
-      return [];
-    }
-    if (host !== new URL(HIGGSFIELD_MCP_URL).host) {
-      return [];
-    }
-    let state: THiggsfieldAccount['state'] = 'unreachable';
-    if (/\bConnected\b/.test(status)) {
-      state = 'ready';
-    } else if (/Needs authentication/i.test(status)) {
-      state = 'signed-out';
-    }
-    return [{ name, account: { state } }];
+    return isHiggsfieldAddress(address)
+      ? [{ name, account: { state: stateOfStatus(status) } }]
+      : [];
   });
+
+/**
+ * The one server `claude mcp get <name>` describes, when it is Higgsfield:
+ *
+ *     higgsfield:
+ *       Scope: User config (available in all your projects)
+ *       Status: ✔ Connected
+ *       Type: http
+ *       URL: https://mcp.higgsfield.ai/mcp
+ *
+ * (Claude Code 2.1.321, 2026-11-25.) Undefined when no server has that
+ * name any more ("No MCP server named …"), when the name now points
+ * somewhere other than Higgsfield, or when the print is not that shape:
+ * all three are for the whole list to settle.
+ */
+export const readHiggsfieldGet = (
+  printed: string,
+  name: string,
+): IHiggsfieldServer | undefined => {
+  const lines = printed.split(/\r?\n/).map((line) => line.trim());
+  const field = (key: string) =>
+    lines
+      .find((line) => line.startsWith(`${key}:`))
+      ?.slice(key.length + 1)
+      .trim();
+  const url = field('URL');
+  const status = field('Status');
+  if (
+    !lines.includes(`${name}:`) ||
+    url === undefined ||
+    status === undefined ||
+    !isHiggsfieldAddress(url)
+  ) {
+    return undefined;
+  }
+  return { name, account: { state: stateOfStatus(status) } };
+};
 
 /**
  * A server's status as a chat's own Claude Code reported it at the start of
@@ -122,6 +167,39 @@ export const chooseHiggsfield = (
     servers.find(({ name }) => !isConnector(name)) ??
     servers[0]
   );
+};
+
+/**
+ * The servers last listed, with any Higgsfield a chat reported that the
+ * list does not have: a chat's report is the one word on what it has, it
+ * comes at the start of every turn with no Claude Code started for it, and
+ * a list read before the member added Higgsfield - or none read yet - must
+ * not hide it. The report carries names alone, so these are known by the
+ * name: `higgsfield` as FluidEQ adds it, `claude.ai Higgsfield` as a
+ * connector, as the chat's tool names are read (`chatStream.ts`). One still
+ * connecting says nothing yet and is left out.
+ */
+export const withServersSeen = (
+  listed: readonly IHiggsfieldServer[],
+  seen: TServersSeen | undefined,
+): IHiggsfieldServer[] => {
+  const reported = [...(seen ?? [])].flatMap(
+    ([name, status]): IHiggsfieldServer[] => {
+      if (!/higgsfield/i.test(name) || listed.some((s) => s.name === name)) {
+        return [];
+      }
+      if (status === 'connected') {
+        return [{ name, account: { state: 'ready' } }];
+      }
+      if (status === 'needs-auth') {
+        return [{ name, account: { state: 'signed-out' } }];
+      }
+      return status === 'failed' || status === 'disabled'
+        ? [{ name, account: { state: 'unreachable' } }]
+        : [];
+    },
+  );
+  return [...listed, ...reported];
 };
 
 /** Higgsfield in what `claude mcp list` prints, as the card shows it. */

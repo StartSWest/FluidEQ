@@ -60,6 +60,7 @@ import { subscribeGraphShowRequests } from './plus/graphShowRequest';
 import usePlusTabOpensApp from './player/usePlusTabOpensApp';
 import useStudioAgent from './studio/useStudioAgent';
 import { watchStudioChat } from './studio/chat/studioChatStore';
+import { watchStudioMakers } from './studio/chat/studioMakersStore';
 import DynamicLightingLoop from './lighting/DynamicLightingLoop';
 import HeardSongNames from './graph/HeardSongNames';
 import WallpaperAudio from './wallpaper/WallpaperAudio';
@@ -456,6 +457,8 @@ const AppContent = () => {
   // Every scene's chat heard from the start too: a reply ending, a card
   // waiting or an artwork to pack on a scene the member has not opened yet.
   useEffect(watchStudioChat, []);
+  // And Higgsfield as each chat's turn reports it, so Accounts is never behind.
+  useEffect(watchStudioMakers, []);
   useEffect(() => {
     // A scene has to be compiled on the machine that plays it, so it is
     // compiled the moment it arrives rather than the first time somebody

@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import path from 'path';
 import { ipcMain, type IpcMainInvokeEvent, type WebContents } from 'electron';
 import {
   isStudioChatAnswer,
@@ -31,15 +32,13 @@ import type { THiggsfieldAccount } from '../../common/studioMakers';
 import { createChatAsks } from './chatAsks';
 import {
   addHiggsfield,
+  higgsfieldServerNamed,
   higgsfieldServers,
   signInToHiggsfield,
   signOutOfHiggsfield,
 } from './higgsfieldMcp';
-import {
-  chooseHiggsfield,
-  isConnector,
-  type TServersSeen,
-} from './studioMakers';
+import { createHiggsfieldWatch } from './higgsfieldWatch';
+import { isConnector, type TServersSeen } from './studioMakers';
 import { createChatServer } from './chatServer';
 import lookAnimationTool from './lookAnimationTool';
 import { createPictureTools } from './pictureTools';
@@ -137,6 +136,7 @@ const CHANNELS = [
   'studio-chat-packed',
   'studio-chat-video-frames',
   'studio-chat-makers',
+  'studio-chat-makers-known',
   'studio-chat-higgsfield-connect',
 ];
 
@@ -227,26 +227,28 @@ export const createChatPictures = ({
   });
 
   /**
-   * The servers the latest chat's Claude Code reported at the start of its
-   * latest turn, which is what a chat really has (`chooseHiggsfield`).
+   * Higgsfield as the chat can use it (`higgsfieldWatch.ts`): the last
+   * answer at once, checked again on every ask, and the window told whenever
+   * a chat's own report changes it.
    */
-  let seen: TServersSeen | undefined;
+  const higgsfield = createHiggsfieldWatch({
+    file: path.join(root, 'higgsfield.json'),
+    list: () => higgsfieldServers(),
+    named: (name) => higgsfieldServerNamed(name),
+    changed: (account: THiggsfieldAccount) =>
+      pageOf()?.send('studio-chat-makers-changed', account),
+    ...(logger ? { logger } : {}),
+  });
   /**
    * Counted up whenever the member's servers were changed here: a Claude
    * Code reads its servers once, at its start, so a chat started before
    * starts again at its next message (`chatSessions.ts`).
    */
   let serversChanged = 0;
-
-  /**
-   * Higgsfield as the chat can use it now (`studioMakers.ts`), asked fresh
-   * every time: a sign-in made a moment ago in the browser has to count at
-   * once.
-   */
-  const higgsfieldNow = async (): Promise<THiggsfieldAccount> =>
-    chooseHiggsfield(await higgsfieldServers(), seen)?.account ?? {
-      state: 'missing',
-    };
+  const changedServers = () => {
+    serversChanged += 1;
+    higgsfield.forgetSeen();
+  };
 
   const packs = createWindowAsks<IStudioChatPackAsk, TStudioChatPackAnswer>({
     channel: 'studio-chat-pack',
@@ -340,8 +342,14 @@ export const createChatPictures = ({
     },
   );
 
+  // Checked again (`claude mcp get` or `list`), answered once it is.
   ipcMain.handle('studio-chat-makers', (event) =>
-    fromWindow(event) ? higgsfieldNow() : undefined,
+    fromWindow(event) ? higgsfield.refresh() : undefined,
+  );
+  // The last answer, kept across runs, with nothing started: the card
+  // opens on it while the check above runs.
+  ipcMain.handle('studio-chat-makers-known', (event) =>
+    fromWindow(event) ? higgsfield.known() : undefined,
   );
 
   /**
@@ -359,26 +367,28 @@ export const createChatPictures = ({
       if (!fromWindow(event)) {
         return undefined;
       }
-      let listed = await higgsfieldServers();
-      let server = chooseHiggsfield(listed, seen);
+      let listed = await higgsfield.listNow();
+      let server = higgsfield.choose(listed);
       if (!server || server.account.state === 'connector') {
         if (!listed.some(({ name }) => !isConnector(name))) {
           await addHiggsfield();
-          serversChanged += 1;
-          listed = await higgsfieldServers();
+          changedServers();
+          listed = await higgsfield.listNow();
         }
         // The member's own server now outranks the connector beside it.
-        server = chooseHiggsfield(listed, seen);
+        server = higgsfield.choose(listed);
       } else if (another === true && server.account.state === 'ready') {
         await signOutOfHiggsfield(server.name);
-        serversChanged += 1;
-        server = chooseHiggsfield(await higgsfieldServers(), seen);
+        changedServers();
+        server = higgsfield.choose(await higgsfield.listNow());
       }
       if (server?.account.state === 'signed-out') {
         await signInToHiggsfield(server.name);
-        serversChanged += 1;
+        changedServers();
       }
-      return higgsfieldNow();
+      // A sign-in made a moment ago in the browser counts at once.
+      await higgsfield.listNow();
+      return higgsfield.known() ?? { state: 'missing' };
     },
   );
 
@@ -403,9 +413,7 @@ export const createChatPictures = ({
   return {
     asks,
     /** A chat's Claude Code reported its servers at the start of a turn. */
-    noteServers: (servers: TServersSeen) => {
-      seen = servers;
-    },
+    noteServers: (servers: TServersSeen) => higgsfield.noteServers(servers),
     /** How many times the member's servers were changed here (`serversChanged`). */
     serversChanged: () => serversChanged,
     /** Where the project's Claude Code reaches its tools. */

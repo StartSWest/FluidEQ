@@ -136,9 +136,21 @@ const studioChatBridge = {
   /** The member's answer to a card the chat put up. */
   studioChatAnswer: (id: string, answer: TStudioChatAnswer): Promise<void> =>
     ipcRenderer.invoke('studio-chat-answer', id, answer),
-  /** Higgsfield, as the member's own Claude Code has it. */
+  /** Higgsfield, as the member's own Claude Code has it, checked again. */
   studioChatMakers: (): Promise<THiggsfieldAccount | undefined> =>
     ipcRenderer.invoke('studio-chat-makers'),
+  /** Higgsfield as last heard of, kept across runs; nothing is checked. */
+  studioChatMakersKnown: (): Promise<THiggsfieldAccount | undefined> =>
+    ipcRenderer.invoke('studio-chat-makers-known'),
+  /** Higgsfield changed: a chat's own report, or a check that ended. */
+  onStudioChatMakers: (listener: (account: THiggsfieldAccount) => void) => {
+    const wrapped = (_event: IpcRendererEvent, account: THiggsfieldAccount) =>
+      listener(account);
+    ipcRenderer.on('studio-chat-makers-changed', wrapped);
+    return () => {
+      ipcRenderer.removeListener('studio-chat-makers-changed', wrapped);
+    };
+  },
   /**
    * Adds Higgsfield to the member's Claude Code, and its sign-in; with
    * `another`, signs the present account out first. Settles when all of it

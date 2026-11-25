@@ -23,7 +23,10 @@ import {
 import type { THiggsfieldAccount } from '../../../common/studioMakers';
 import StudioChatAccounts from '../../../renderer/studio/chat/StudioChatAccounts';
 import { resetStudioChatStore } from '../../../renderer/studio/chat/studioChatStore';
-import { resetStudioMakersStore } from '../../../renderer/studio/chat/studioMakersStore';
+import {
+  resetStudioMakersStore,
+  watchStudioMakers,
+} from '../../../renderer/studio/chat/studioMakersStore';
 import studioChatBridge from '../../utils/studioChatBridge';
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
@@ -44,6 +47,17 @@ const studioChatMakers = jest.fn(async () => now);
 const studioChatHiggsfieldConnect = jest.fn(
   async (): Promise<THiggsfieldAccount | undefined> => now,
 );
+/** What main kept from its last check, handed over before it checks again. */
+let kept: THiggsfieldAccount | undefined;
+const studioChatMakersKnown = jest.fn(async () => kept);
+/** What main tells the window unasked: a chat's turn reported its servers. */
+let tellWindow: (account: THiggsfieldAccount) => void = () => undefined;
+const onStudioChatMakers = jest.fn(
+  (listener: (account: THiggsfieldAccount) => void) => {
+    tellWindow = listener;
+    return () => undefined;
+  },
+);
 const studioChatLimits = jest.fn(async () => undefined);
 let studioChatAvailability: jest.Mock;
 
@@ -52,6 +66,7 @@ beforeEach(() => {
   resetStudioMakersStore();
   jest.clearAllMocks();
   now = makers('missing');
+  kept = undefined;
   studioChatAvailability = jest.fn(async () => ({ state: 'ready' as const }));
   Object.defineProperty(window, 'electron', {
     configurable: true,
@@ -61,6 +76,8 @@ beforeEach(() => {
         studioChatAvailability,
         studioChatLimits,
         studioChatMakers,
+        studioChatMakersKnown,
+        onStudioChatMakers,
         studioChatHiggsfieldConnect,
       },
     },
@@ -75,8 +92,12 @@ const accounts = () =>
     />,
   );
 
-const higgsfield = () =>
-  screen.findByLabelText('studioChat.accounts.higgsfield');
+/** The Higgsfield card, once its check has answered. */
+const higgsfield = async () => {
+  const card = await screen.findByLabelText('studioChat.accounts.higgsfield');
+  await waitFor(() => expect(card).not.toHaveAttribute('aria-busy'));
+  return card;
+};
 /** A press, and everything main's answer to it changes on the page. */
 const pressAndSettle = (button: HTMLElement) =>
   act(async () => {
@@ -235,5 +256,83 @@ describe('Higgsfield in Accounts', () => {
       screen.queryByLabelText('studioChat.accounts.higgsfield'),
     ).toBeNull();
     expect(studioChatMakers).not.toHaveBeenCalled();
+  });
+});
+
+/** A check main has not answered yet, and the hand that answers it. */
+const checkHeld = () => {
+  let answer: (value: THiggsfieldAccount) => void = () => undefined;
+  studioChatMakers.mockImplementationOnce(
+    () =>
+      new Promise<THiggsfieldAccount>((resolve) => {
+        answer = resolve;
+      }),
+  );
+  return (value: THiggsfieldAccount) =>
+    act(async () => {
+      answer(value);
+    });
+};
+
+// Ivan, 2026-11-25: "I see accounts don't show up ... it showed after a
+// while". `claude mcp list` takes seconds, and nothing was drawn until it
+// answered.
+describe('Higgsfield before its check answers', () => {
+  it('opens on the last answer at once, saying it is being checked again', async () => {
+    kept = makers('ready');
+    const answer = checkHeld();
+    accounts();
+    const card = await screen.findByLabelText('studioChat.accounts.higgsfield');
+    await waitFor(() =>
+      expect(card).toHaveTextContent('studioChat.accounts.higgsfieldReady'),
+    );
+    expect(card).toHaveTextContent('studioChat.accounts.checking');
+    expect(card).toHaveAttribute('aria-busy', 'true');
+    // The check's answer takes its place, and the card says nothing more.
+    await answer(makers('signed-out'));
+    expect(card).toHaveTextContent('studioChat.accounts.higgsfieldOut');
+    expect(card).not.toHaveTextContent('studioChat.accounts.checking');
+    expect(card).not.toHaveAttribute('aria-busy');
+  });
+
+  it('holds its place as the shape of a card on a computer never checked', async () => {
+    const answer = checkHeld();
+    accounts();
+    const card = await screen.findByLabelText('studioChat.accounts.higgsfield');
+    await waitFor(() => expect(studioChatMakers).toHaveBeenCalled());
+    expect(card).toHaveTextContent('studioChat.accounts.higgsfieldChecking');
+    expect(card.querySelector('.studio-chat-accounts__shape')).not.toBeNull();
+    // Nothing to press before there is an answer.
+    expect(buttonsOf(card)).toEqual([]);
+    await answer(makers('missing'));
+    expect(card).toHaveTextContent('studioChat.accounts.higgsfieldMissing');
+    expect(card.querySelector('.studio-chat-accounts__shape')).toBeNull();
+  });
+
+  it('is there while Claude Code itself is still looked for, asking it nothing yet', async () => {
+    kept = makers('ready');
+    studioChatAvailability.mockImplementation(
+      // A Claude Code that has not answered yet.
+      () => new Promise<never>(() => {}),
+    );
+    accounts();
+    const card = await screen.findByLabelText('studioChat.accounts.higgsfield');
+    await waitFor(() =>
+      expect(card).toHaveTextContent('studioChat.accounts.higgsfieldReady'),
+    );
+    expect(studioChatMakers).not.toHaveBeenCalled();
+  });
+
+  it('changes the moment a chat’s turn reports Higgsfield, with nothing asked', async () => {
+    watchStudioMakers();
+    now = makers('signed-out');
+    accounts();
+    const card = await higgsfield();
+    const asked = studioChatMakers.mock.calls.length;
+    await act(async () => {
+      tellWindow(makers('ready'));
+    });
+    expect(card).toHaveTextContent('studioChat.accounts.higgsfieldReady');
+    expect(studioChatMakers).toHaveBeenCalledTimes(asked);
   });
 });
