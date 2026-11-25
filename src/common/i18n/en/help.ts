@@ -771,6 +771,20 @@ const help = {
     'Everything posted is public on GitHub under your GitHub name. On Q&A, mark the answer that worked so the next person finds it. Each board’s yellow count shows topics with activity you have not seen; Issues counts open issues. Half-written topics and replies are kept when you leave. Press a post’s picture to enlarge it inside FluidEQ.',
   'help.forum.keywords':
     'community, questions, support, discussions, github, feedback, feature request, ideas, suggestions, ask, help, contact, announcements',
+  'help.forum.boardsName': 'Boards',
+  'help.forum.boards':
+    'Every board with its count. New for you gathers what came in since you last looked, and Issues lists the problems reported on GitHub.',
+  'help.forum.textSize':
+    'Makes the Forum’s text, and this guide’s, larger or smaller.',
+  'help.forum.meName': 'Your GitHub account',
+  'help.forum.me':
+    'Who you post as. Sign out leaves the Forum readable and stops posting.',
+  'help.forum.newTopic':
+    'New topic starts a discussion; Mark all as read clears the counts, and the arrow fetches what is new.',
+  'help.forum.search': 'Searches the topics and replies of every board.',
+  'help.forum.topicsName': 'Topics',
+  'help.forum.topics':
+    'Latest activity first, each with its board, its state, its replies and its votes. Open one to read it and reply.',
   'help.games.profiles':
     'Open Gaming profiles to search by profile, game, curve or chain. The filters stay on one line and each kind of game has its own colour. Your saved profiles show their curve, Game filter levels and chain too. Use for a game starts a new copy.',
   'help.mic.title': 'Your microphone’s sound',

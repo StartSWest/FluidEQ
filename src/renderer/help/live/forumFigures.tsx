@@ -112,7 +112,7 @@ const TOPICS: readonly (Omit<IForumTopicSummary, 'updatedAt' | 'createdAt'> & {
     number: 128,
     title: 'What’s new: one player, live Help and Share Audio groups',
     excerpt:
-      'The Compact player is one amp for every visualizer, and Share Audio links any number of computers.',
+      'The Compact player is one amp for every scene, and Share Audio links any number of computers.',
     url: '',
     board: 'announcements',
     answered: false,
@@ -140,7 +140,7 @@ const TOPICS: readonly (Omit<IForumTopicSummary, 'updatedAt' | 'createdAt'> & {
   {
     id: 't-6',
     number: 117,
-    title: 'Which visualizers run best on integrated graphics?',
+    title: 'Which scenes run best on integrated graphics?',
     excerpt:
       'A laptop with Intel graphics: the 2D ones are smooth, some worlds stutter.',
     url: '',

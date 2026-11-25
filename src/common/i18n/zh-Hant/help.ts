@@ -689,6 +689,18 @@ const help = {
     '釋出的所有內容均以您的 GitHub 名稱在 GitHub 上公開。在問答中，標記有效的答案，以便下一個人找到它。 各看板的黃色數字表示有您尚未看過的動態的主題數；「問題」計算仍未關閉的問題。離開後，未寫完的主題和回覆仍會保留。按一下貼文中的圖片，即可在 FluidEQ 內放大。',
   'help.forum.keywords':
     '社群、問題、支援、討論、github、回饋、功能請求、想法、建議、詢問、幫助、聯絡方式、公告',
+  'help.forum.boardsName': '版塊',
+  'help.forum.boards':
+    '每個版塊及其數量。「為您帶來新體驗」彙整您上次查看後的新帖，Issues 列出在 GitHub 上回報的問題。',
+  'help.forum.textSize': '放大或縮小論壇和本指南的文字。',
+  'help.forum.meName': '您的 GitHub 帳號',
+  'help.forum.me': '您發文使用的身分。登出後仍可閱讀論壇，但不能發文。',
+  'help.forum.newTopic':
+    '「新主題」發起討論；「全部標為已讀」清除計數，箭頭取得新內容。',
+  'help.forum.search': '搜尋所有版塊的主題和回覆。',
+  'help.forum.topicsName': '主題',
+  'help.forum.topics':
+    '最新動態在前，每個都顯示版塊、狀態、回覆和投票。打開即可閱讀和回覆。',
   'help.games.profiles':
     '開啟「遊戲設定檔」可依設定檔、遊戲、曲線或效果鏈搜尋。篩選器維持在同一行，每種遊戲都有自己的顏色。您儲存的設定檔也會顯示曲線、遊戲濾波器的電平和效果鏈。「用於遊戲」會建立新副本。',
   'help.mic.title': '您的麥克風聲音',

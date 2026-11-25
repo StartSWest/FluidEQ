@@ -791,6 +791,20 @@ const help: Record<keyof typeof en, string> = {
     'Tout ce qui est publié est public sur GitHub, sous votre nom GitHub. Dans Q&A, marquez la réponse qui a marché pour que la personne suivante la trouve. Le nombre jaune de chaque rubrique indique les sujets dont vous n’avez pas vu l’activité ; Problèmes compte les problèmes ouverts. Vos sujets et réponses inachevés sont conservés quand vous partez. Appuyez sur l’image d’un message pour l’agrandir dans FluidEQ.',
   'help.forum.keywords':
     'communauté, entraide, suggestions, demande de fonctionnalité, contacter, feedback, support, FAQ',
+  'help.forum.boardsName': 'Forums',
+  'help.forum.boards':
+    'Chaque forum avec son compte. Nouveau pour vous rassemble ce qui est arrivé depuis votre dernière visite, et Issues liste les problèmes signalés sur GitHub.',
+  'help.forum.textSize': 'Agrandit ou réduit le texte du Forum et de ce guide.',
+  'help.forum.meName': 'Votre compte GitHub',
+  'help.forum.me':
+    'Sous quel nom vous publiez. Se déconnecter laisse le Forum lisible et arrête la publication.',
+  'help.forum.newTopic':
+    'Nouveau sujet ouvre une discussion ; Tout marquer comme lu vide les compteurs, et la flèche récupère les nouveautés.',
+  'help.forum.search':
+    'Cherche dans les sujets et réponses de tous les forums.',
+  'help.forum.topicsName': 'Sujets',
+  'help.forum.topics':
+    'L’activité la plus récente d’abord, chacun avec son forum, son état, ses réponses et ses votes. Ouvrez-en un pour le lire et répondre.',
   'help.games.profiles':
     'Ouvrez Profils de jeu pour rechercher un profil, un jeu, une courbe ou une chaîne. Les filtres restent sur une seule ligne et chaque genre de jeu a sa couleur. Vos profils enregistrés affichent aussi leur courbe, les niveaux du filtre Jeu et leur chaîne. Utiliser pour un jeu crée une nouvelle copie.',
   'help.mic.title': 'Le son de votre micro',

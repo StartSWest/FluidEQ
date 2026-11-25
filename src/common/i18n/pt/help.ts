@@ -781,6 +781,19 @@ const help: Record<keyof typeof en, string> = {
     'Tudo o que é publicado fica público no GitHub, com seu nome do GitHub. Em Q&A, marque a resposta que funcionou para que a próxima pessoa a encontre. O número amarelo de cada seção indica tópicos com atividade que você ainda não viu; Problemas conta os que estão abertos. Tópicos e respostas pela metade ficam salvos quando você sai. Pressione a imagem de uma publicação para ampliá-la dentro do FluidEQ.',
   'help.forum.keywords':
     'comunidade, dúvidas, suporte, sugestão, sugestões, feedback, pedido de recurso, contato, desenvolvedor, discussões, enquete',
+  'help.forum.boardsName': 'Quadros',
+  'help.forum.boards':
+    'Cada quadro com sua contagem. Novo para você reúne o que chegou desde sua última visita, e Issues lista os problemas relatados no GitHub.',
+  'help.forum.textSize': 'Aumenta ou diminui o texto do Fórum e deste guia.',
+  'help.forum.meName': 'Sua conta do GitHub',
+  'help.forum.me':
+    'Com quem você publica. Sair deixa o Fórum legível e para de publicar.',
+  'help.forum.newTopic':
+    'Novo tópico inicia uma discussão; Marcar tudo como lido zera as contagens, e a seta busca o que há de novo.',
+  'help.forum.search': 'Procura nos tópicos e respostas de todos os quadros.',
+  'help.forum.topicsName': 'Tópicos',
+  'help.forum.topics':
+    'A atividade mais recente primeiro, cada um com seu quadro, seu estado, suas respostas e seus votos. Abra um para ler e responder.',
   'help.games.profiles':
     'Abra Perfis de jogos para buscar por perfil, jogo, curva ou cadeia. Os filtros ficam em uma linha e cada tipo de jogo tem sua cor. Seus perfis salvos também mostram a curva, os níveis do filtro Jogo e a cadeia. Usar em um jogo cria uma nova cópia.',
   'help.mic.title': 'O som do seu microfone',

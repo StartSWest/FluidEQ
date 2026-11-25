@@ -246,6 +246,38 @@ const LISTEN_CHAPTERS = [
         width: 1120,
         height: 640,
         still: '30-forum.png',
+        controls: [
+          {
+            target: '.community__channels',
+            name: 'help.forum.boardsName',
+            text: 'help.forum.boards',
+          },
+          {
+            target: '.forum__rail .reading-size',
+            name: 'reading.textSize.label',
+            text: 'help.forum.textSize',
+          },
+          {
+            target: '.forum__me',
+            name: 'help.forum.meName',
+            text: 'help.forum.me',
+          },
+          {
+            target: '.forum__head-actions',
+            name: 'forum.newTopic',
+            text: 'help.forum.newTopic',
+          },
+          {
+            target: '.forum__search',
+            name: 'forum.search.placeholder',
+            text: 'help.forum.search',
+          },
+          {
+            target: '.forum__stage',
+            name: 'help.forum.topicsName',
+            text: 'help.forum.topics',
+          },
+        ],
       },
     ],
   },

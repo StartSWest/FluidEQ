@@ -786,6 +786,21 @@ const help: Record<keyof typeof en, string> = {
     'Tutto ciò che pubblichi è pubblico su GitHub con il tuo nome GitHub. In Q&A, segna la risposta che ha funzionato, così chi arriva dopo la trova. Il numero giallo di ogni sezione indica le discussioni con attività che non hai visto; Problemi conta quelli aperti. Le discussioni e le risposte lasciate a metà restano salvate quando esci. Premi l’immagine di un post per ingrandirla dentro FluidEQ.',
   'help.forum.keywords':
     'community, comunità, suggerimenti, proposte, feedback, chiedere aiuto, supporto, contattare, sviluppatore, FAQ',
+  'help.forum.boardsName': 'Bacheche',
+  'help.forum.boards':
+    'Ogni bacheca con il suo conteggio. Novità per te raccoglie ciò che è arrivato dall’ultima visita, e Issues elenca i problemi segnalati su GitHub.',
+  'help.forum.textSize':
+    'Ingrandisce o rimpicciolisce il testo del Forum e di questa guida.',
+  'help.forum.meName': 'Il tuo account GitHub',
+  'help.forum.me':
+    'Con chi pubblichi. Esci lascia il Forum leggibile e smette di pubblicare.',
+  'help.forum.newTopic':
+    'Nuovo argomento avvia una discussione; Segna tutto come letto azzera i conteggi, e la freccia scarica le novità.',
+  'help.forum.search':
+    'Cerca negli argomenti e nelle risposte di tutte le bacheche.',
+  'help.forum.topicsName': 'Argomenti',
+  'help.forum.topics':
+    'Prima l’attività più recente, ognuno con la sua bacheca, il suo stato, le risposte e i voti. Aprine uno per leggerlo e rispondere.',
   'help.games.profiles':
     'Apri Profili di gioco per cercare per profilo, gioco, curva o catena. I filtri restano su una riga e ogni tipo di gioco ha il suo colore. Anche i tuoi profili salvati mostrano curva, livelli del filtro Gioco e catena. Usa per un gioco crea una nuova copia.',
   'help.mic.title': 'Il suono del tuo microfono',

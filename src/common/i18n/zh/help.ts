@@ -723,6 +723,18 @@ const help: Record<keyof typeof en, string> = {
     '发布的所有内容都会以你的 GitHub 名字在 GitHub 上公开。在 Q&A 中，请把有用的回答标记出来，方便后来的人找到。 各板块的黄色数字表示有你尚未看过的动态的话题数；“问题”统计仍未关闭的问题。离开后，没写完的话题和回复仍会保留。点击帖子中的图片，即可在 FluidEQ 内放大。',
   'help.forum.keywords':
     '社区, 交流, 讨论, 反馈, 功能建议, 求助, 联系开发者, 留言, 帖子, 意见, 问答',
+  'help.forum.boardsName': '版块',
+  'help.forum.boards':
+    '每个版块及其数量。“你的新消息”汇总你上次查看后的新帖，Issues 列出在 GitHub 上报告的问题。',
+  'help.forum.textSize': '放大或缩小论坛和本指南的文字。',
+  'help.forum.meName': '你的 GitHub 账号',
+  'help.forum.me': '你发帖使用的身份。退出后仍可阅读论坛，但不能发帖。',
+  'help.forum.newTopic':
+    '“新主题”发起讨论；“全部标为已读”清空计数，箭头获取新内容。',
+  'help.forum.search': '搜索所有版块的主题和回复。',
+  'help.forum.topicsName': '主题',
+  'help.forum.topics':
+    '最新动态在前，每个都显示版块、状态、回复和投票。打开即可阅读和回复。',
   'help.games.profiles':
     '打开“游戏配置”可按配置、游戏、曲线或效果链搜索。筛选器始终排列在一行，每种游戏都有自己的颜色。你保存的配置也会显示曲线、游戏滤波器的电平和效果链。“用于游戏”会创建新副本。',
   'help.mic.title': '你的麦克风声音',

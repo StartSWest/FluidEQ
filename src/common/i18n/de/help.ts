@@ -797,6 +797,20 @@ const help: Record<keyof typeof en, string> = {
     'Alles, was Sie schreiben, ist auf GitHub unter Ihrem GitHub-Namen öffentlich. Markieren Sie in Q&A die Antwort, die geholfen hat, damit die nächste Person sie findet. Die gelbe Zahl eines Bereichs zeigt Themen mit Aktivität, die Sie noch nicht gesehen haben; Probleme zählt offene Probleme. Angefangene Themen und Antworten bleiben beim Verlassen erhalten. Drücken Sie auf ein Beitragsbild, um es in FluidEQ zu vergrößern.',
   'help.forum.keywords':
     'community, diskussionen, feedback, rückmeldung, funktionswunsch, feature-request, verbesserungsvorschlag, vorschlagen, frage stellen, kontakt, entwickler kontaktieren, support',
+  'help.forum.boardsName': 'Foren',
+  'help.forum.boards':
+    'Jedes Forum mit seiner Anzahl. Neu für Sie sammelt, was seit Ihrem letzten Besuch dazukam, und Issues listet die auf GitHub gemeldeten Probleme.',
+  'help.forum.textSize':
+    'Macht den Text des Forums und dieses Handbuchs größer oder kleiner.',
+  'help.forum.meName': 'Ihr GitHub-Konto',
+  'help.forum.me':
+    'Als wer Sie schreiben. Abmelden lässt das Forum lesbar und beendet das Schreiben.',
+  'help.forum.newTopic':
+    'Neues Thema beginnt eine Diskussion; Alles als gelesen markieren leert die Zähler, und der Pfeil holt Neues.',
+  'help.forum.search': 'Durchsucht die Themen und Antworten aller Foren.',
+  'help.forum.topicsName': 'Themen',
+  'help.forum.topics':
+    'Neueste Aktivität zuerst, jedes mit Forum, Status, Antworten und Stimmen. Öffnen Sie eines, um es zu lesen und zu antworten.',
   'help.games.profiles':
     'Öffnen Sie Gaming-Profile und suchen Sie nach Profil, Spiel, Kurve oder Kette. Die Filter bleiben in einer Zeile und jede Spielart hat ihre eigene Farbe. Auch gespeicherte Profile zeigen ihre Kurve, die Pegel des Spiel-Filters und ihre Kette. Für ein Spiel verwenden erstellt eine neue Kopie.',
   'help.mic.title': 'Der Klang Ihres Mikrofons',
