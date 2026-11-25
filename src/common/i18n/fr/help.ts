@@ -35,13 +35,30 @@ const help: Record<keyof typeof en, string> = {
 
   'help.start.title': 'Vos cinq premières minutes',
   'help.start.intro':
-    'Commencez avec un morceau familier à un volume confortable. La colonne de gauche active FluidEQ et contient le préampli ; le centre est votre espace de travail ; la colonne de droite suit votre sortie et ses profils. La barre en bas de la fenêtre contrôle tout ce qui est en lecture. La visite ci-dessous ne se charge qu’après Lecture. Pour la page de jeu, consultez le Labo gaming.',
+    'Commencez avec un morceau familier à un volume confortable. La colonne de gauche contient le bouton marche/arrêt de FluidEQ et le préampli ; au centre se trouve votre espace de travail, le graphique au-dessus de vos bandes ; le panneau du son, à droite, suit votre sortie et ses profils. La barre en bas de la fenêtre commande ce qui joue. La visite ci-dessous n’est diffusée que lorsque vous appuyez sur Lecture. Pour la page des jeux, voyez Labo gaming.',
   'help.start.steps':
-    'Installez FluidEQ et gardez le moteur FluidEQ sélectionné quand l’installation demande comment traiter votre son. Windows demande une autorisation une seule fois, sans redémarrage.\nChoisissez votre appareil d’écoute sous Périphérique de sortie. Activez l’Égaliseur système et laissez la Normalisation auto activée.\nLancez un morceau, ouvrez Égaliseur → Bandes, faites une petite modification et comparez en désactivant puis en réactivant l’Égaliseur système.',
+    'Installez FluidEQ et gardez le Moteur FluidEQ sélectionné quand l’installation demande comment traiter votre son. Windows demande l’autorisation une fois, sans redémarrage.\nChoisissez votre appareil d’écoute dans la carte Sortie du panneau du son. Appuyez sur le bouton marche/arrêt en haut de la colonne de gauche et laissez la Normalisation auto activée.\nLancez un morceau, ouvrez Égaliseur → Bandes, déplacez un peu le curseur d’une bande et comparez, bouton marche/arrêt éteint puis allumé.',
   'help.start.tip':
     'L’EQ système nécessite Windows et un moteur audio : le moteur FluidEQ ou Equalizer APO. Sous macOS et Linux, l’application affiche des sorties de démonstration : un graphique animé n’y prouve donc aucun traitement.',
   'help.start.keywords':
-    "premiers pas, prise en main, démarrage rapide, bien démarrer, mise en route, premier lancement, débutant, débuter, tutoriel, mode d'emploi, comment utiliser, comment ça marche, installer, setup",
+    "premiers pas, prise en main, démarrage rapide, bien démarrer, mise en route, premier lancement, débutant, débuter, tutoriel, mode d'emploi, comment utiliser, comment ça marche, installer, setup, bouton marche, graphique, onglets, bandes",
+  'help.start.pagesName': 'Les pages de l’égaliseur',
+  'help.start.pages':
+    'Bandes, Corrections de casque, Convolution et Config : ce qui façonne le son, une page chacun.',
+  'help.start.engineName': 'Le moteur',
+  'help.start.engine':
+    'Quel moteur joue votre égaliseur : le Moteur FluidEQ ou Equalizer APO. Un point rouge signifie qu’il n’atteint pas la sortie que vous écoutez.',
+  'help.start.delay':
+    'Le retard avec lequel le moteur joue le son sur cette sortie. Appuyez dessus pour voir ce qu’ajoute chaque étage.',
+  'help.start.graphName': 'Le graphique',
+  'help.start.graph':
+    'La courbe de votre égaliseur et un point sur chaque bande, avec ce que vous entendez qui bouge derrière. Faites glisser un point pour façonner le son ; le reste est dans le chapitre du graphique.',
+  'help.start.tabsName': 'Votre égaliseur, Préréglage, Tonalité',
+  'help.start.tabs':
+    'Trois onglets sous le graphique : vos propres bandes, un préréglage tout prêt en dessous, et les coupes et boutons de la Tonalité. Les outils de chaque onglet sont au bout de la rangée.',
+  'help.start.bandsName': 'Vos bandes',
+  'help.start.bands':
+    'Un curseur par bande, sa fréquence en haut et son gain en bas. Le chapitre de l’égaliseur montre chaque partie.',
   'help.video.play': 'Lire la vidéo : {title}',
   'help.video.loading': 'Chargement depuis fluideq.com…',
   'help.video.failed':
@@ -198,61 +215,77 @@ const help: Record<keyof typeof en, string> = {
 
   'help.eq.title': 'Façonnez votre son avec l’Égaliseur',
   'help.eq.intro':
-    'Fréquence détermine où agit une bande ; Gain, son amplification ou atténuation ; Q, sa largeur : un Q élevé est plus étroit. Sans bande sélectionnée, les boutons de Tonalité — Graves, Médiums et Aigus, avec Coupe-bas et Coupe-haut de part et d’autre — façonnent le son comme une courbe à part et laissent vos bandes telles quelles. Commencez par de petites corrections larges et comparez souvent.',
+    'Votre égaliseur, ce sont les bandes que vous façonnez vous-même. La fréquence choisit où agit une bande, le gain règle l’amplification ou l’atténuation, et Q sa largeur : plus Q est élevé, plus elle est étroite. Sous le graphique, trois onglets se partagent la page : Votre égaliseur, Préréglage et Tonalité, chacun une couche à part. Commencez par de petits changements larges et comparez souvent.',
   'help.eq.steps':
-    'Ouvrez Égaliseur → Bandes. Sans bande sélectionnée, tournez Graves, Médiums ou Aigus pour changer rapidement la tonalité, et Coupe-bas ou Coupe-haut pour rogner les extrêmes. Ils tracent leur propre ligne Tonalité sur le graphique.\nCliquez sur la fréquence d’une bande, ou sur son point dans le graphique, pour la sélectionner. Tournez ses boutons Fréquence, Gain et Facteur Q, choisissez un Filtre, ou désactivez-la avec Active. La courbe suit un curseur pendant que vous le déplacez.\nTout fonctionne aussi au clavier : Tab mène à un curseur, un bouton ou un point du graphique, et les touches fléchées le font avancer pas à pas ; Page précédente et Page suivante font de plus grands pas.\nPour voir la fréquence, le Q et le gain de chaque bande sur le graphique, ouvrez Affichage au-dessus et appuyez sur Afficher étiquettes de l’EQ, ou appuyez sur Ctrl+W jusqu’à ce qu’il montre Tout. Une étiquette se place au-dessus ou au-dessous de son point, jamais à côté, et revient à sa place dès qu’il y a de la place.\nFaites un clic droit sur une bande pour la réinitialiser, la désactiver ou ajouter une bande à côté. Appuyez sur Vider l’égaliseur pour mettre chaque gain, ainsi que Graves, Médiums et Aigus, à 0 dB tout en gardant vos bandes. Une confirmation est d’abord demandée.\nLe même menu propose Supprimer la bande, qui demande une seconde pression avant de supprimer. Gauche + droite fait d’une bande une bande pour chaque oreille, sur la même fréquence, pour que vous déplaciez chacune seule : la courbe de l’oreille gauche est pleine, celle de la droite en pointillés. Les deux oreilles les réunit en leur milieu, tout comme Réinitialiser la bande et Vider l’égaliseur.\nSélectionnez plusieurs bandes pour les déplacer ensemble, ou Ctrl+A sur le graphique pour toutes les sélectionner. Leur éditeur reste en place lorsque vous passez de l’une à l’autre.',
+    'Ouvrez Égaliseur → Bandes. Votre égaliseur contient vos bandes ; Préréglage place un son tout prêt dessous, et Nouveau préréglage en crée un à vous ; Tonalité réunit Coupe-bas, Coupe-haut, Graves, Médiums et Aigus, dessinés en une ligne à part.\nFaites glisser le curseur d’une bande, ou son point sur le graphique, pour amplifier ou atténuer ; la courbe suit le mouvement. Cliquez sur la fréquence d’une bande, ou sur son point, pour la sélectionner. Ctrl+molette sur une bande change son Q.\nMaintenez Maj avec une bande sélectionnée pour faire apparaître sa fenêtre à côté : son filtre, les boutons Fréquence, Gain et Q, Active et la corbeille. Maj+Tab et Maj+← → passent à la bande précédente ou suivante ; Échap ou × la referme.\nTout fonctionne aussi au clavier : Tab mène à un curseur, un bouton ou un point du graphique, et les flèches le déplacent ; Page préc. et Page suiv. font de plus grands pas.\nUn clic droit sur une bande la réinitialise, la désactive, la supprime (après un second appui), ajoute une bande à côté ou choisit Gauche + droite : une bande par oreille à la même fréquence, la courbe de l’oreille gauche en trait plein et celle de la droite en pointillé. Les deux oreilles les réunit.\nSélectionnez plusieurs bandes avec Ctrl ou Maj, ou tracez un cadre autour, pour les déplacer ensemble ; Ctrl+A sur le graphique les sélectionne toutes.\nEnregistrer l’EQ garde ce qui joue comme un EQ enregistré que vous pouvez remettre, mettre à jour ou gérer. Vider remet chaque gain à 0 dB et garde vos bandes ; il demande d’abord.\nUn préréglage à vous (Préréglage → Nouveau préréglage) part d’un préréglage ou d’une courbe plate ; vous la façonnez sur le graphique, et son rack sur la page DSP. Le menu de sa vignette l’exporte dans un fichier, et Importer, dans l’onglet Préréglage, en relit un.',
   'help.eq.tip':
-    'Courbes montre ce qui façonne cette sortie en plus de vos bandes, chacune avec sa propre intensité et son ×. Mode jeu réduit la latence qu’ajoute FluidEQ, pour les jeux et les appels ; les préréglages Jeux l’activent. Tant que l’égaliseur est désactivé, ses bandes sont estompées et ne peuvent pas être modifiées par mégarde ; les boutons de Tonalité fonctionnent toujours.',
+    'Courbes liste ce qui façonne cette sortie en plus de vos bandes, chacun avec son intensité et son ×. Le mode jeu, à côté du nom du moteur au-dessus du graphique, réduit le délai qu’ajoute FluidEQ, pour les jeux et les appels ; les préréglages gaming l’activent. Tant que l’égaliseur est coupé depuis sa puce, ses bandes sont estompées et ne peuvent pas être changées par mégarde ; l’onglet Tonalité fonctionne toujours.',
   'help.eq.keywords':
-    'égalisation automatique, EQ intelligent, EQ paramétrique, basses, booster les basses, renforcer les basses, creuser, plateau, bande passante, correcteur, brillance, régler le son, ajuster le son, à plat, remise à zéro, faible latence, equalizer, equaliseur, bass boost, notch, flat, reset, presets, étiquettes, étiquettes de bandes, étiquettes de l’eq, libellés, valeurs, clavier, touches fléchées, flèches, accessibilité, lecteur d’écran, oreille gauche, oreille droite, chaque oreille, par oreille, gauche et droite, égaliseur stéréo, supprimer la bande, retirer une bande',
-  'help.eq.bandsCaption': 'La page Bandes, sans sélection',
-  'help.eq.bandCaption': 'Une bande sélectionnée',
+    'égalisation automatique, EQ intelligent, EQ paramétrique, basses, booster les basses, renforcer les basses, creuser, plateau, bande passante, correcteur, brillance, régler le son, ajuster le son, à plat, remise à zéro, faible latence, equalizer, equaliseur, bass boost, notch, flat, reset, presets, étiquettes, étiquettes de bandes, étiquettes de l’eq, libellés, valeurs, clavier, touches fléchées, flèches, accessibilité, lecteur d’écran, oreille gauche, oreille droite, chaque oreille, par oreille, gauche et droite, égaliseur stéréo, supprimer la bande, retirer une bande, fenêtre, maj, enregistrer l’eq, eq enregistrés, votre égaliseur, onglet préréglage, tonalité, nouveau préréglage, exporter, importer',
+  'help.eq.rowCaption': 'Les onglets sous le graphique, sur Votre égaliseur',
+  'help.eq.tabBands': 'Vos propres bandes, et leur nombre.',
+  'help.eq.tabPreset':
+    'Le préréglage sous vos bandes, et les préréglages au choix : par genre, par usage et les vôtres.',
+  'help.eq.tabTone':
+    'Coupe-bas, Coupe-haut, Graves, Médiums et Aigus : une tonalité rapide qui laisse vos bandes telles quelles. Il indique Désactivée tant qu’aucun n’est utilisé.',
+  'help.eq.bandsCaption': 'Vos bandes',
+  'help.eq.bandCaption': 'La fenêtre d’une bande, tant que Maj est maintenue',
   'help.eq.gameMode':
     'Réduit la latence qu’ajoute FluidEQ, pour les jeux et les appels. Les préréglages Jeux l’activent.',
   'help.eq.layers':
-    'Les autres couches qui façonnent cette sortie — une correction du casque, la Correction intelligente, une convolution — chacune avec son intensité, son interrupteur et son ×.',
+    'Ce qui façonne encore cette sortie — un préréglage, une correction de casque, la correction intelligente, une convolution —, chacun avec son intensité, son interrupteur et son ×.',
   'help.eq.bandName': 'Une bande',
   'help.eq.band':
-    'Faites glisser son point pour amplifier ou atténuer, ou avancez-le pas à pas avec les touches fléchées. Cliquez sur sa fréquence pour la sélectionner.',
-  'help.eq.labelName': 'Étiquette de bande',
-  'help.eq.label':
-    'Sa fréquence, son Q et son gain, au-dessus ou au-dessous de son point. Affichage → Afficher étiquettes de l’EQ, ou Ctrl+W.',
-  'help.eq.bass': 'Relève ou abaisse les graves de toute la courbe.',
-  'help.eq.mid': 'Relève ou abaisse les médiums, là où se placent les voix.',
-  'help.eq.treble': 'Relève ou abaisse les aigus, l’air et le détail.',
-  'help.eq.selected':
-    'La bande en cours de modification. Cliquez en maintenant Ctrl ou Maj pour en sélectionner plusieurs.',
+    'Faites glisser son curseur pour amplifier ou atténuer, ou déplacez-le avec les flèches. Ctrl+molette dessus change son Q.',
+  'help.eq.caption':
+    'Cliquez dessus pour sélectionner la bande. Ctrl+clic ou double-clic la remet sur la fréquence de la disposition.',
+  'help.eq.gainCaption': 'Le gain de la bande, en dB.',
+  'help.eq.scaleName': 'Échelle en dB',
+  'help.eq.scale':
+    'De +20 à −20 dB à côté des curseurs, 0 dB marqué, comme une console l’imprime à côté de ses faders.',
+  'help.eq.stepName': 'Bande précédente et suivante',
+  'help.eq.step':
+    '‹ et › déplacent la fenêtre vers la bande du dessous ou du dessus, comme Maj+Tab et Tab à l’intérieur.',
+  'help.eq.close':
+    'Referme la fenêtre et garde la bande sélectionnée. Relâcher Maj fait de même.',
   'help.eq.filter':
-    'Sa forme : Cloche, Shelf grave, Shelf aigu, Coupe-bande, Passe-bas, Passe-haut ou Passe-bande.',
+    'Sa forme : une cloche, un plateau, une encoche ou un filtre passe.',
   'help.eq.voicing':
     'Une chaîne toute prête pour le son, comme Musique ou un genre. Aucun ne laisse que vos bandes.',
   'help.eq.smart':
     'Égalisation auto : le son enregistré de chaque chanson, le son de son album depuis la Bibliothèque, et la Correction intelligente par-dessus — Détail, Équilibre ou Cible.',
   'help.eq.clear':
-    'Met chaque gain à 0 dB et garde vos bandes. Demande d’abord confirmation.',
+    'Remet chaque gain, et la Tonalité, à 0 dB et garde vos bandes. Demande d’abord.',
+  'help.eq.saveEq':
+    'Garde ce qui joue comme un EQ enregistré, met à jour celui qui est en place, en remet un autre ou les ouvre tous pour les gérer.',
   'help.eq.mode':
-    'Fait apparaître la carte Mode EQ : l’intensité de votre EQ et de vos courbes, le Q des bandes, la phase et les aigus.',
+    'La force avec laquelle votre égaliseur et les courbes s’appliquent, le Q des bandes, la phase, les aigus et le lissage ; il indique Normal tant que rien n’est changé. Avec la carte Mode EQ épinglée, il l’amène à l’écran.',
   'help.eq.add':
     'Ajoute une bande à côté de celle sélectionnée, au Q des bandes déjà présentes.',
   'help.eq.layouts':
-    'Les nombres de bandes, chacun démarrant toutes les bandes au même Q, et les dispositions de bandes que vous avez enregistrées.',
-  'help.eq.frequency': 'Où agit la bande sélectionnée, de 1 Hz à 20 kHz.',
+    'Combien de bandes : des nombres de bandes qui démarrent toutes au même Q, les dispositions que vous avez enregistrées et la réinitialisation de la disposition.',
+  'help.eq.frequency': 'Où agit la bande, de 1 Hz à 20 kHz.',
   'help.eq.gain':
-    'De combien elle amplifie ou atténue. Ctrl+clic la ramène à 0 dB.',
-  'help.eq.q': 'Sa largeur : plus le Q est élevé, plus la bande est étroite.',
+    'De combien elle amplifie ou atténue. Ctrl+clic la remet à 0 dB.',
+  'help.eq.q':
+    'Sa largeur : plus haut, plus étroit. Ctrl+clic le remet au Q de la disposition.',
   'help.eq.delete':
-    'Appuyez deux fois pour supprimer la bande ; Garder annule la suppression.',
+    'Un appui l’arme, un second supprime la bande ; le × à côté annule.',
+  'help.eq.menuDelete':
+    'Passe au rouge et demande un second appui avant de supprimer la bande.',
+  'help.eq.ears':
+    'Une bande par oreille à la même fréquence, à régler séparément ; Les deux oreilles les réunit.',
   'help.eq.menuCaption': 'Le menu contextuel d’une bande',
   'help.eq.reset': 'Remet le gain à 0 dB et le Q à 2.',
-  'help.eq.disable': 'Retire la bande du son et conserve ses réglages.',
+  'help.eq.disable': 'Retire la bande du son et garde ses réglages.',
   'help.eq.addLeft': 'Ajoute une bande à mi-chemin de sa voisine plus grave.',
   'help.eq.addRight': 'Ajoute une bande à mi-chemin de sa voisine plus aiguë.',
 
   'help.eqmode.title': 'Mode EQ et dispositions de bandes',
   'help.eqmode.intro':
-    'Mode EQ change la façon dont votre son est façonné, sans rien modifier. Ses réglages forment la première carte du panneau latéral de la page Égaliseur, à côté des courbes qu’ils changent, en deux onglets : Votre EQ regroupe vos bandes, la Tonalité, les préréglages, le Type de transducteur et la Correction intelligente ; Corrections regroupe les corrections du casque et les courbes importées ou personnalisées. Les dispositions de bandes conservent les fréquences et le Q d’un agencement qui vous plaît, prêtes pour n’importe quelle sortie.',
+    'Le mode EQ change la façon dont votre son est façonné, sans rien modifier. C’est un bouton parmi les outils de Votre égaliseur sous le graphique, et épinglé, c’est la première carte du panneau du son, à côté des courbes qu’il change. Il a deux onglets : Votre égaliseur couvre vos bandes, la Tonalité, les préréglages, le type de transducteur et la correction intelligente ; Corrections couvre les corrections de casque et les courbes importées ou personnelles. Les dispositions de bandes gardent les fréquences et le Q d’une disposition qui vous plaît, prêtes pour n’importe quelle sortie.',
   'help.eqmode.steps':
-    'Appuyez sur Mode EQ au-dessus du graphique. La carte apparaît, et le panneau latéral s’ouvre s’il était fermé.\nChoisissez l’onglet Votre EQ ou Corrections, puis essayez un choix d’Intensité ou de Q des bandes pendant que la musique joue. Avec le moteur FluidEQ, choisissez la phase Minimale ou Linéaire, et Précis ou Classique pour les aigus, pour chaque onglet.\nDans Corrections, Lissage des courbes peut adoucir les courbes échantillonnées à 1/12 ou 1/3 d’octave ; il reste sur Désactivé tant que vous ne choisissez rien. Réinitialiser ramène tout à Normal, et le lissage à Désactivé.\nVous préférez un menu ? Appuyez sur l’épingle de la carte : Mode EQ s’ouvre alors en menu par-dessus le graphique, et l’épingle de ce menu ramène la carte.\nCliquez sur le bouton des dispositions, à côté d’Ajouter une bande. Choisissez 6, 10, 15, 20 ou 31 bandes, ou appuyez sur Enregistrer… pour nommer la disposition actuelle.',
+    'Appuyez sur Mode EQ parmi les outils de Votre égaliseur sous le graphique. Épinglée, la carte apparaît dans le panneau du son ; sinon il s’ouvre en menu au-dessus du graphique.\nChoisissez l’onglet Votre égaliseur ou Corrections, puis essayez une Intensité ou un Q de bande pendant la musique. Avec le Moteur FluidEQ, choisissez des aigus précis ou classiques pour chaque onglet, et une phase minimale ou linéaire là où un onglet la propose.\nSur Corrections, le lissage des courbes peut adoucir les courbes échantillonnées au 1/12 ou au 1/3 d’octave ; il est désactivé tant que vous ne choisissez pas. Réinitialiser remet tout en Normal et le lissage sur désactivé.\nVous préférez un menu ? Appuyez sur l’épingle de la carte : le mode EQ s’ouvre alors en menu au-dessus du graphique, et l’épingle de ce menu fait revenir la carte.\nOuvrez le bouton du nombre de bandes parmi les outils de Votre égaliseur. Choisissez 6, 10, 15, 20 ou 31 bandes, ou appuyez sur Enregistrer la disposition… pour nommer la disposition actuelle.',
   'help.eqmode.tip':
     'Une nouvelle disposition démarre toutes les bandes au même Q, et une bande ajoutée prend le Q des autres. Une disposition ne stocke que les fréquences et le Q : en charger une remet chaque bande à 0 dB. La phase linéaire ajoute du retard et peut résonner avant les attaques franches. Choisir une disposition intégrée la fait repartir de zéro : ses propres fréquences et Q, chaque bande à 0 dB et sur les deux oreilles.',
   'help.eqmode.keywords':
@@ -266,18 +299,19 @@ const help: Record<keyof typeof en, string> = {
     'Normal, Studio ×1.5 ou ×2. Chaque onglet garde le sien.',
   'help.eqmode.q':
     'Constant garde chaque Q ; Proportionnel et Asymétrique resserrent les bandes à mesure qu’elles se renforcent. Dans Votre EQ, il ne façonne que vos propres bandes, jamais un préréglage ni une correction.',
-  'help.eqmode.smoothing':
-    'Adoucit les courbes de correction échantillonnées à 1/12 ou 1/3 d’octave. Désactivé tant que vous ne choisissez rien.',
-  'help.eqmode.phase':
-    'Minimale ou Linéaire, pour chaque onglet. Avec le moteur FluidEQ uniquement.',
   'help.eqmode.treble':
     'Précis sonne comme tracé, Classique comme dans Equalizer APO. Avec le moteur FluidEQ uniquement.',
   'help.eqmode.reset':
     'Tout revient à Normal, et Lissage des courbes à Désactivé.',
   'help.eqmode.designsCaption': 'Dispositions de bandes',
   'help.eqmode.builtIn': 'Dispositions standard de 6, 10, 15, 20 ou 31 bandes.',
+  'help.eqmode.resetBands':
+    'Remet chaque bande sur la fréquence et le Q de sa disposition ; les gains ne bougent pas.',
+  'help.eqmode.saved':
+    'Une disposition enregistrée : appuyez dessus pour charger ses fréquences et son Q, chaque bande à 0 dB. La corbeille à côté la supprime, après confirmation.',
+  'help.eqmode.sampleDesign': 'Moniteurs de studio',
   'help.eqmode.save':
-    'Donne un nom aux fréquences et au Q actuels pour en faire une disposition, listée sous Mes dispositions.',
+    'Nomme les fréquences et le Q actuels comme une disposition, rangée sous Mes dispositions.',
 
   'help.games.title': 'Labo gaming',
   'help.games.intro':
@@ -340,23 +374,24 @@ const help: Record<keyof typeof en, string> = {
   'help.profiles.keywords':
     'enceintes, haut-parleurs, sortie audio, périphérique par défaut, plusieurs sorties, sorties multiples, miroir, simultanément, décalage, désynchronisation, délai, sauvegarder mes réglages, par appareil, Bluetooth, DAC, buffer, deuxième sortie, profil, par sortie, chaque sortie, son propre, batterie, niveau de batterie, modifier le son, modifier la sortie principale',
   'help.profiles.list':
-    'Les sons que vous avez enregistrés. ACT marque celui qu’utilise cette sortie ; appuyez sur un autre pour changer.',
+    'Les sons que vous avez enregistrés. Le badge marque celui qu’utilise cette sortie ; appuyez sur un autre pour changer. Le crayon d’un profil le renomme et sa corbeille le supprime, après confirmation.',
   'help.profiles.update':
     'Enregistre vos modifications dans le profil en cours. Restaurer, juste à côté, ramène le profil tel que vous l’avez enregistré la dernière fois.',
   'help.profiles.new':
     'Crée un nouveau profil à partir de l’égalisation actuelle.',
-  'help.profiles.eqMode':
-    'Les réglages de Mode EQ, en tête de la page Égaliseur. Repliez la carte pour qu’elle ne gêne pas.',
-  'help.profiles.editSound':
-    'Modifie le son de cette sortie dans la page Égaliseur sans changer de sortie principale.',
   'help.profiles.output':
     'La sortie sur laquelle vous écoutez, avec sa batterie pour un casque Bluetooth. DÉSACT. signifie que votre EQ ne l’atteint pas ; ACTIF, que Windows joue le son à travers elle.',
   'help.profiles.onePlayer':
     'Lancer quelque chose dans FluidEQ met en pause ce qui joue ailleurs sur le PC, et inversement.',
   'help.profiles.outputs':
-    'Vos autres sorties. Activez-en une pour y jouer aussi, avec son propre son, son niveau et son retard en millisecondes.',
+    'Vos autres sorties. Activez-en une pour y jouer aussi, avec son propre son, son niveau et son retard en millisecondes. Modifier le son change son son dans la page Égaliseur sans changer de sortie principale.',
   'help.profiles.driver':
     'Un point de départ doux, selon ce avec quoi vous écoutez — casque, écouteurs, taille ou matériau du transducteur. Laissez-le sur Sans compensation si le son vous convient déjà.',
+  'help.profiles.sampleHeadset': 'Casque (audio USB)',
+  'help.profiles.sampleSpeakers': 'Haut-parleurs (Realtek Audio)',
+  'help.profiles.sampleMusic': 'Musique',
+  'help.profiles.sampleMovies': 'Films',
+  'help.profiles.sampleNight': 'Tard le soir',
 
   'help.config.title': 'Inspectez et sauvegardez une chaîne',
   'help.config.intro':

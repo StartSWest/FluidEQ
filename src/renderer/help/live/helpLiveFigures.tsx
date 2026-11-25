@@ -7,7 +7,13 @@ import {
   PlayerFoldDrawing,
   PlayerMenuDrawing,
 } from './playerFigures';
+import BandDesignsDrawing from './bandDesignsFigure';
 import DesktopDialogDrawing from './desktopFigures';
+import {
+  BandMenuDrawing,
+  EqBandPopoverDrawing,
+  EqPageDrawing,
+} from './eqPageFigures';
 import { DynamicsDrawing, DeEsserDrawing } from './dspFigures';
 import DspOverviewDrawing from './dspOverviewFigure';
 import { DenoiseDrawing, RoomDrawing } from './dspStageFigures';
@@ -32,6 +38,7 @@ import MicPageDrawing from './micFigures';
 import OnlineMediaDrawing from './onlineFigure';
 import { SceneDrawing, VisualizersDrawing } from './plusFigures';
 import ShareDrawing from './shareFigures';
+import SoundPanelDrawing from './soundPanelFigures';
 import StudioDrawing from './studioFigures';
 import WindowHeaderDrawing from './windowFigures';
 
@@ -56,6 +63,13 @@ const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
   'dsp-dynamics': DynamicsDrawing,
   'dsp-overview': DspOverviewDrawing,
   'dsp-room': RoomDrawing,
+  'eq-band-menu': BandMenuDrawing,
+  'eq-band-popover': EqBandPopoverDrawing,
+  'eq-bands': EqPageDrawing,
+  'eq-page': EqPageDrawing,
+  'eq-tab-row': EqPageDrawing,
+  'eqmode-card': SoundPanelDrawing,
+  'eqmode-designs': BandDesignsDrawing,
   'forum-page': ForumDrawing,
   'gallery-scene': SceneDrawing,
   'gaming-lab': GamingLabDrawing,
@@ -90,6 +104,7 @@ const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
   'player-top': PlayerDrawing,
   'rail-left': RailDrawing,
   'share-page': ShareDrawing,
+  'sound-panel': SoundPanelDrawing,
   'studio-bench': StudioDrawing,
   'visualizers-gallery': VisualizersDrawing,
   'visualizers-rail': VisualizersDrawing,

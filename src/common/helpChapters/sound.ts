@@ -1,6 +1,5 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import CAPTURED from './captured';
 import { type IHelpChapter, WINDOW } from './model';
 
 /** Shaping the sound on the EQ page: bands, EQ mode, games, corrections, outputs and the config. */
@@ -8,37 +7,193 @@ const SOUND_CHAPTERS = [
   {
     id: 'eq',
     group: 'sound',
-    // The Bands page twice: as it opens, with nothing selected, the band
-    // labels on and the Tone row under the bands, and with one band
-    // selected, cut from the tabs for Game mode beside the engine's name.
-    // Both are taken, and their boxes measured, by
-    // `scripts/help-captures` (`captured.ts`); the band menu is not.
+    // Your EQ drawn by the page's own parts (`help/live/eqPageFigures`) from
+    // a made-up EQ, framed in two: the tab row with its tools, and the bands.
+    // Then the band popover on the fifth band's slider, as Shift holds it,
+    // and a band's right-click menu.
     figures: [
-      CAPTURED['16-eq-bands.png'],
-      CAPTURED['36-eq-band-selected.png'],
       {
-        image: '17-band-menu.png',
-        width: 236,
-        height: 311,
-        caption: 'help.eq.menuCaption',
+        live: 'eq-tab-row',
+        width: 1180,
+        height: 40,
+        frame: '.eq-layer-tabs',
+        margin: 6,
+        caption: 'help.eq.rowCaption',
+        still: '16-eq-bands.png',
         controls: [
           {
-            box: [26, 140, 188, 34],
+            target: '.eq-layer-tabs__tab:nth-of-type(1)',
+            name: 'eq.tabs.bands',
+            text: 'help.eq.tabBands',
+          },
+          {
+            target: '.eq-layer-tabs__tab:nth-of-type(2)',
+            name: 'eq.tabs.preset',
+            text: 'help.eq.tabPreset',
+          },
+          {
+            target: '.eq-layer-tabs__tab:nth-of-type(3)',
+            name: 'eq.tone',
+            text: 'help.eq.tabTone',
+          },
+          {
+            target: '.quick-layouts',
+            name: 'eq.quickLayouts',
+            text: 'help.eq.layouts',
+          },
+          {
+            target: '.eq-toolbar__add',
+            name: 'eq.addBandAria',
+            text: 'help.eq.add',
+          },
+          {
+            target: '.clear-eq-trigger',
+            name: 'eq.clear',
+            text: 'help.eq.clear',
+          },
+          {
+            target: '.eq-save-trigger',
+            name: 'eq.tools.saveEq',
+            text: 'help.eq.saveEq',
+          },
+          {
+            target: '.active-layers__picker',
+            name: 'graph.curves',
+            text: 'help.eq.layers',
+          },
+          {
+            target: '.eq-mode-trigger',
+            name: 'eq.mode',
+            text: 'help.eq.mode',
+          },
+          {
+            target: '.eq-auto',
+            name: 'autoEq.title',
+            text: 'help.eq.smart',
+          },
+        ],
+      },
+      {
+        live: 'eq-bands',
+        width: 1180,
+        height: 330,
+        frame: '.workspace-tab-panel__scroll',
+        caption: 'help.eq.bandsCaption',
+        still: '16-eq-bands.png',
+        controls: [
+          {
+            // The fourth band's whole column: its caption, slider and gain.
+            target: '.bandWrapper:nth-child(4) .range',
+            name: 'help.eq.bandName',
+            text: 'help.eq.band',
+          },
+          {
+            target: '.bandWrapper:nth-child(7) .band-frequency-caption',
+            name: 'eq.frequency',
+            text: 'help.eq.caption',
+          },
+          {
+            target: '.bandWrapper:nth-child(9) .band-gain-caption',
+            name: 'eq.gain',
+            text: 'help.eq.gainCaption',
+          },
+          {
+            target: '.eq-scale__mark.is-zero',
+            name: 'help.eq.scaleName',
+            text: 'help.eq.scale',
+          },
+        ],
+      },
+      {
+        live: 'eq-band-popover',
+        width: 1180,
+        height: 380,
+        frame:
+          '.eq-flat-editor--popover, .bandWrapper:nth-child(4), .bandWrapper:nth-child(7)',
+        margin: 10,
+        caption: 'help.eq.bandCaption',
+        still: '36-eq-band-selected.png',
+        controls: [
+          {
+            target: '.eq-band-popover__step:first-child',
+            name: 'help.eq.stepName',
+            text: 'help.eq.step',
+            keys: 'Shift+Tab',
+          },
+          {
+            target: '.eq-band-popover__filter',
+            name: 'eq.filter',
+            text: 'help.eq.filter',
+          },
+          {
+            target: '.eq-band-popover__close',
+            name: 'eq.popover.close',
+            text: 'help.eq.close',
+            keys: 'Esc',
+          },
+          {
+            target: '.eq-flat-editor__control--frequency .knob',
+            name: 'eq.frequency',
+            text: 'help.eq.frequency',
+          },
+          {
+            target: '.eq-flat-editor__control--gain .knob',
+            name: 'eq.gain',
+            text: 'help.eq.gain',
+          },
+          {
+            target: '.eq-flat-editor__control--quality .knob',
+            name: 'eq.quality',
+            text: 'help.eq.q',
+          },
+          {
+            target: '.eq-flat-editor__control--active .switch',
+            name: 'eq.active',
+            text: 'help.eq.disable',
+          },
+          {
+            target: '.eq-flat-editor__delete',
+            name: 'eq.delete',
+            text: 'help.eq.delete',
+          },
+        ],
+      },
+      {
+        live: 'eq-band-menu',
+        width: 240,
+        height: 330,
+        frame: '.band-menu',
+        margin: 8,
+        caption: 'help.eq.menuCaption',
+        still: '17-band-menu.png',
+        controls: [
+          {
+            target: '.band-menu > button:nth-of-type(1)',
             name: 'eq.menu.reset',
             text: 'help.eq.reset',
           },
           {
-            box: [26, 175, 188, 34],
+            target: '.band-menu > button:nth-of-type(2)',
             name: 'eq.menu.disable',
             text: 'help.eq.disable',
           },
           {
-            box: [26, 220, 188, 34],
+            target: '.band-menu > button:nth-of-type(3)',
+            name: 'eq.delete',
+            text: 'help.eq.menuDelete',
+          },
+          {
+            target: '.band-menu > button:nth-of-type(5)',
+            name: 'eq.channels.split',
+            text: 'help.eq.ears',
+          },
+          {
+            target: '.band-menu > button:nth-of-type(6)',
             name: 'eq.menu.addLeft',
             text: 'help.eq.addLeft',
           },
           {
-            box: [26, 255, 188, 34],
+            target: '.band-menu > button:nth-of-type(7)',
             name: 'eq.menu.addRight',
             text: 'help.eq.addRight',
           },
@@ -50,21 +205,78 @@ const SOUND_CHAPTERS = [
     id: 'eqmode',
     group: 'sound',
     figures: [
-      // The EQ mode card, taken by `scripts/help-captures` (`captured.ts`).
-      CAPTURED['18-eq-mode.png'],
+      // The EQ mode card as it stands pinned at the top of the sound panel,
+      // drawn by its own rows from made-up choices
+      // (help/live/soundPanelFigures), and the band layouts menu, open.
       {
-        image: '19-band-designs.png',
-        width: 358,
-        height: 286,
-        caption: 'help.eqmode.designsCaption',
+        live: 'eqmode-card',
+        width: 330,
+        height: 470,
+        frame: '.eq-mode-card',
+        caption: 'help.eqmode.modeCaption',
+        still: '18-eq-mode.png',
         controls: [
           {
-            box: [29, 91, 300, 70],
+            target: '.eq-mode-card__unpin',
+            name: 'eq.mode.unpin',
+            text: 'help.eqmode.pin',
+          },
+          {
+            target: '.eq-mode-card__groups',
+            name: 'help.eqmode.tabsName',
+            text: 'help.eqmode.tabs',
+          },
+          {
+            target:
+              '.eq-mode-card__rows:first-child .eq-mode-choices__row--strength .segmented',
+            name: 'eq.mode.strength',
+            text: 'help.eqmode.strength',
+          },
+          {
+            target:
+              '.eq-mode-card__rows:first-child .eq-mode-choices__row--q .segmented',
+            name: 'eq.mode.q',
+            text: 'help.eqmode.q',
+          },
+          {
+            target:
+              '.eq-mode-card__rows:first-child .eq-mode-choices__row--treble .segmented',
+            name: 'eq.mode.treble',
+            text: 'help.eqmode.treble',
+          },
+          {
+            target: '.eq-mode-choices__reset',
+            name: 'eq.mode.reset',
+            text: 'help.eqmode.reset',
+          },
+        ],
+      },
+      {
+        live: 'eqmode-designs',
+        width: 336,
+        height: 330,
+        frame: '.band-designs__menu',
+        margin: 8,
+        caption: 'help.eqmode.designsCaption',
+        still: '19-band-designs.png',
+        controls: [
+          {
+            target: '.band-designs__grid',
             name: 'eq.layouts.builtIn',
             text: 'help.eqmode.builtIn',
           },
           {
-            box: [219, 225, 111, 32],
+            target: '.band-designs__content > .button',
+            name: 'eq.layouts.resetBands',
+            text: 'help.eqmode.resetBands',
+          },
+          {
+            target: '.band-designs__row',
+            name: 'eq.layouts.saved',
+            text: 'help.eqmode.saved',
+          },
+          {
+            target: '.band-designs__actions .button',
             name: 'eq.layouts.saveNew',
             text: 'help.eqmode.save',
           },
@@ -176,14 +388,58 @@ const SOUND_CHAPTERS = [
     figures: [{ image: '05-eq-convolution-library.png', ...WINDOW }],
   },
   {
-    // The right rail down to its last section, taken by
-    // `scripts/help-captures` (`captured.ts`): the site link under it is not
-    // a control. Restore has no number of its own: it stands between New
-    // profile and Update, where no line can reach it without crossing one of
-    // them, so Update's text says what the button beside it does.
+    // The sound panel drawn by its own sections (help/live/soundPanelFigures),
+    // from the Output card down: made-up outputs and profiles, a second
+    // output on. The EQ mode card above it has its own chapter.
     id: 'profiles',
     group: 'sound',
-    figures: [CAPTURED['40-rail-right.png']],
+    figures: [
+      {
+        live: 'sound-panel',
+        width: 330,
+        height: 520,
+        frame:
+          '.device-profiles, .extra-outputs, .extra-outputs + .sidebar-section',
+        still: '40-rail-right.png',
+        controls: [
+          {
+            target: '.device-profiles__row',
+            name: 'output.device',
+            text: 'help.profiles.output',
+          },
+          {
+            target: '.profile-list .preset-list-item.selected .preset-name',
+            name: 'profiles.title',
+            text: 'help.profiles.list',
+          },
+          {
+            target: '.profile-actions__new',
+            name: 'profiles.new',
+            text: 'help.profiles.new',
+          },
+          {
+            target: '.profile-actions__save',
+            name: 'profiles.update',
+            text: 'help.profiles.update',
+          },
+          {
+            target: '.extra-outputs__rule .switch',
+            name: 'extraOutput.singlePlayer',
+            text: 'help.profiles.onePlayer',
+          },
+          {
+            target: '.extra-outputs__on',
+            name: 'extraOutput.title',
+            text: 'help.profiles.outputs',
+          },
+          {
+            target: '.extra-outputs + .sidebar-section .dropdown',
+            name: 'driver.title',
+            text: 'help.profiles.driver',
+          },
+        ],
+      },
+    ],
   },
   { id: 'songs', group: 'sound', figures: [] },
   {

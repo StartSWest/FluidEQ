@@ -39,13 +39,30 @@ const help = {
 
   'help.start.title': 'Your first five minutes',
   'help.start.intro':
-    'Start with a familiar song at a comfortable volume. The left rail switches FluidEQ on and holds the preamp; the centre is your workspace; the right rail follows your output and its profiles. The bar at the foot of the window controls whatever is playing. The tour below streams only when you press Play. For the gaming page, see Gaming Lab.',
+    'Start with a familiar song at a comfortable volume. The left rail holds FluidEQ’s power key and the preamp; the centre is your workspace, with the graph over your bands; the sound panel on the right follows your output and its profiles. The bar at the foot of the window controls whatever is playing. The tour below streams only when you press Play. For the gaming page, see Gaming Lab.',
   'help.start.steps':
-    'Install FluidEQ and keep the FluidEQ Engine selected when setup asks how to process your sound. Windows asks for permission once, with no restart.\nChoose your listening device under Output device. Turn on System EQ and leave Auto normalize on.\nPlay a song, open EQ → Bands, make a small change, and compare with System EQ off and on.',
+    'Install FluidEQ and keep the FluidEQ Engine selected when setup asks how to process your sound. Windows asks for permission once, with no restart.\nChoose your listening device in the sound panel’s Output card. Press the power key at the top of the left rail and leave Auto normalize on.\nPlay a song, open EQ → Bands, drag one band’s slider a little, and compare with the power key off and on.',
   'help.start.tip':
     'System-wide EQ needs Windows and an audio engine: the FluidEQ Engine or Equalizer APO. On macOS and Linux the app shows demonstration outputs, so a moving graph there is not proof that anything is processed.',
   'help.start.keywords':
-    'install, installer, setup, set up, getting started, first steps, quick start, beginner, basics, tutorial, how to use, begin',
+    'install, installer, setup, set up, getting started, first steps, quick start, beginner, basics, tutorial, how to use, begin, power key, graph, tabs, bands page',
+  'help.start.pagesName': 'The EQ’s pages',
+  'help.start.pages':
+    'Bands, Headphone corrections, Convolution and Config: what shapes the sound, one page each.',
+  'help.start.engineName': 'The engine',
+  'help.start.engine':
+    'Which engine plays your EQ: the FluidEQ Engine or Equalizer APO. A red dot means it is not reaching the output you are listening to.',
+  'help.start.delay':
+    'How late the engine plays the sound on this output. Press it to see which stage adds what.',
+  'help.start.graphName': 'The graph',
+  'help.start.graph':
+    'Your EQ’s curve and a point on every band, with what you hear moving behind it. Drag a point to shape the sound; the graph chapter has the rest.',
+  'help.start.tabsName': 'Your EQ, Preset, Tone',
+  'help.start.tabs':
+    'Three tabs under the graph: your own bands, a ready-made preset under them, and the Tone’s cuts and dials. Each tab’s tools stand at the row’s end.',
+  'help.start.bandsName': 'Your bands',
+  'help.start.bands':
+    'One slider per band, its frequency on top and its gain below. The EQ chapter shows each part.',
   'help.video.play': 'Play the video: {title}',
   'help.video.loading': 'Loading from fluideq.com…',
   'help.video.failed':
@@ -196,46 +213,64 @@ const help = {
 
   'help.eq.title': 'Shape your sound with EQ',
   'help.eq.intro':
-    'Frequency chooses where a band acts, Gain sets the boost or cut, and Q sets its width: higher Q is narrower. With no band selected, the Tone dials — Bass, Mid and Treble, with Low cut and High cut on either side — shape the sound as a curve of their own and leave your bands as they are. Begin with small, broad changes and compare often.',
+    'Your EQ is the bands you shape yourself. Frequency chooses where a band acts, Gain sets the boost or cut, and Q sets its width: higher Q is narrower. Under the graph three tabs share the page: Your EQ, Preset and Tone, each a layer of its own. Begin with small, broad changes and compare often.',
   'help.eq.steps':
-    'Open EQ → Bands. With nothing selected, turn Bass, Mid or Treble for a quick change of tone, and Low cut or High cut to trim the extremes. They draw their own Tone line on the graph.\nClick a band’s frequency, or its point on the graph, to select it. Turn its Frequency, Gain and Quality (Q) dials, pick a Filter, or switch it off with Active. The curve follows a slider as you move it.\nEverything works from the keyboard too: Tab to a fader, a dial or a point on the graph, and the arrow keys step it; Page Up and Page Down take bigger steps.\nTo see each band’s frequency, Q and gain on the graph, open View above it and press Show EQ labels, or press Ctrl+W until it shows Everything. A label sits above or below its point, never beside it, and goes back to its place once there is room.\nRight-click a band to reset it, switch it off, or add a band beside it. Press Clear EQ to set every gain, and Bass, Mid and Treble, to 0 dB while keeping your bands. It asks first.\nThe same menu has Delete band, which asks for a second press before it deletes. Left + right turns a band into one band for each ear, at the same frequency, so you can move each by itself: the left ear’s curve is drawn solid and the right’s dashed. Both ears joins the two again in their middle, and so do Reset band and Clear EQ.\nSelect several bands to move them together, or use Ctrl+A on the graph to select every band. The selected bands share the editor; switching from one band to another updates that editor in place.',
+    'Open EQ → Bands. Your EQ holds your bands; Preset puts a ready-made sound under them, and New preset makes one of your own; Tone has Low cut, High cut, Bass, Mid and Treble, drawn as a line of their own.\nDrag a band’s slider, or its point on the graph, to boost or cut; the curve follows as you move. Click a band’s frequency, or its point, to select it. Ctrl+scroll over a band changes its Q.\nHold Shift with a band selected to bring up its popover beside it: its filter, the Frequency, Gain and Q dials, Active and the bin. Shift+Tab and Shift+← → step to the band before or after; Esc or × puts it away.\nEverything works from the keyboard too: Tab to a slider, a dial or a point on the graph, and the arrow keys step it; Page Up and Page Down take bigger steps.\nRight-click a band to reset it, switch it off, delete it (it asks for a second press), add a band beside it, or choose Left + right: one band for each ear at the same frequency, the left ear’s curve drawn solid and the right’s dashed. Both ears joins the two again.\nSelect several bands with Ctrl or Shift, or drag a box round them, to move them together; Ctrl+A on the graph selects every band.\nSave EQ keeps what plays as a saved EQ you can put on again, update or manage. Clear sets every gain to 0 dB and keeps your bands; it asks first.\nA preset of your own (Preset → New preset) starts its curve from a preset or flat; you shape it on the graph and its rack on the DSP page. Its tile’s menu exports it to a file, and Import on the Preset tab reads one back.',
   'help.eq.tip':
-    'Curves lists what shapes this output besides your bands, each with its own strength and ×. Game mode cuts the delay FluidEQ adds, for games and calls; Gaming presets turn it on. While the EQ is switched off its bands are dimmed and cannot be changed by accident; the Tone dials still work.',
+    'Curves lists what shapes this output besides your bands, each with its own strength and ×. Game mode, beside the engine’s name over the graph, cuts the delay FluidEQ adds, for games and calls; Gaming presets turn it on. While the EQ is switched off from its chip, its bands are dimmed and cannot be changed by accident; the Tone tab still works.',
   'help.eq.keywords':
-    'equalizer, equaliser, parametric, parametric eq, graphic eq, bass boost, treble boost, low end, lows, mids, highs, tone, tone controls, peaking, shelving, low pass, high pass, band pass, bandwidth, hz, db, boost, cut, adjust sound, latency, labels, band labels, eq labels, readout, keyboard, arrow keys, accessibility, screen reader, left ear, right ear, each ear, per ear, left and right, stereo eq, delete band, remove band',
-  'help.eq.bandsCaption': 'The Bands page, nothing selected',
-  'help.eq.bandCaption': 'A band selected',
+    'equalizer, equaliser, parametric, parametric eq, graphic eq, bass boost, treble boost, low end, lows, mids, highs, tone, tone controls, peaking, shelving, low pass, high pass, band pass, bandwidth, hz, db, boost, cut, adjust sound, latency, labels, band labels, eq labels, readout, keyboard, arrow keys, accessibility, screen reader, left ear, right ear, each ear, per ear, left and right, stereo eq, delete band, remove band, popover, shift, band popover, save eq, saved eqs, your eq, preset tab, tone tab, new preset, own preset, export preset, import preset',
+  'help.eq.rowCaption': 'The tabs under the graph, on Your EQ',
+  'help.eq.tabBands': 'Your own bands, and how many there are.',
+  'help.eq.tabPreset':
+    'The preset under your bands, and the presets to pick from: by genre, by use, and your own.',
+  'help.eq.tabTone':
+    'Low cut, High cut, Bass, Mid and Treble: quick tone that leaves your bands as they are. It says Off while none is in use.',
+  'help.eq.bandsCaption': 'Your bands',
+  'help.eq.bandCaption': 'A band’s popover, while Shift is held',
   'help.eq.gameMode':
     'Cuts the delay FluidEQ adds, for games and calls. Gaming presets turn it on.',
   'help.eq.layers':
-    'What else shapes this output — a headphone correction, Smart correction, a convolution — each with its strength, its switch and ×.',
+    'What else shapes this output — a preset, a headphone correction, Smart correction, a convolution — each with its strength, its switch and ×.',
   'help.eq.bandName': 'A band',
   'help.eq.band':
-    'Drag its point to boost or cut, or step it with the arrow keys. Click its frequency to select it.',
-  'help.eq.labelName': 'Band label',
-  'help.eq.label':
-    'Its frequency, Q and gain, above or below its point. View → Show EQ labels, or Ctrl+W.',
-  'help.eq.bass': 'Raises or lowers the low end of the whole curve.',
-  'help.eq.mid': 'Raises or lowers the middle, where voices sit.',
-  'help.eq.treble': 'Raises or lowers the top, the air and the detail.',
-  'help.eq.selected':
-    'The band being edited. Ctrl-click or Shift-click to select several.',
+    'Drag its slider to boost or cut, or step it with the arrow keys. Ctrl+scroll over it changes its Q.',
+  'help.eq.caption':
+    'Click it to select the band. Ctrl+click or double-click puts it back on the layout’s frequency.',
+  'help.eq.gainCaption': 'The band’s gain, in dB.',
+  'help.eq.scaleName': 'dB scale',
+  'help.eq.scale':
+    'From +20 to −20 dB beside the sliders, with 0 dB marked, as a console prints it beside its faders.',
+  'help.eq.stepName': 'Band before and after',
+  'help.eq.step':
+    '‹ and › move the popover to the band below or above, as Shift+Tab and Tab do inside it.',
+  'help.eq.close':
+    'Puts the popover away and keeps the band selected. Letting go of Shift does the same.',
   'help.eq.filter': 'Its shape: a peak, a shelf, a notch or a pass filter.',
   'help.eq.voicing':
     'A ready-made chain for the sound, such as Music or a genre. None leaves only your own bands.',
   'help.eq.smart':
     'Auto EQ: each song’s saved sound, its album’s sound from the Library, and Smart correction on top — Detail, Balance or Target.',
-  'help.eq.clear': 'Sets every gain to 0 dB and keeps your bands. Asks first.',
+  'help.eq.clear':
+    'Sets every gain, and the Tone, to 0 dB and keeps your bands. Asks first.',
+  'help.eq.saveEq':
+    'Keeps what plays as a saved EQ, updates the one that is on, puts another on, or opens them all to manage.',
   'help.eq.mode':
-    'Brings the EQ mode card into view: how strongly your EQ and curves apply, band Q, phase and treble.',
+    'How strongly your EQ and the curves apply, band Q, phase, treble and smoothing; it says Normal until you change something. With the EQ mode card pinned, it brings the card into view.',
   'help.eq.add':
     'Adds a band beside the selected one, at the Q of the bands already there.',
   'help.eq.layouts':
-    'Band counts, each starting every band at one Q, and the band designs you saved.',
-  'help.eq.frequency': 'Where the selected band acts, from 1 Hz to 20 kHz.',
-  'help.eq.gain': 'How much it boosts or cuts. Ctrl-click returns it to 0 dB.',
-  'help.eq.q': 'How wide it is: higher is narrower.',
-  'help.eq.delete': 'Press twice to delete the band; Keep changes your mind.',
+    'How many bands: band counts that start every band at one Q, the band designs you saved, and Reset layout.',
+  'help.eq.frequency': 'Where the band acts, from 1 Hz to 20 kHz.',
+  'help.eq.gain': 'How much it boosts or cuts. Ctrl+click returns it to 0 dB.',
+  'help.eq.q':
+    'How wide it is: higher is narrower. Ctrl+click returns it to the layout’s Q.',
+  'help.eq.delete':
+    'Press once to arm it, again to delete the band; the × beside it changes your mind.',
+  'help.eq.menuDelete':
+    'Turns red and asks for a second press before it deletes the band.',
+  'help.eq.ears':
+    'One band for each ear at the same frequency, to move apart; Both ears joins them again.',
   'help.eq.menuCaption': "A band's right-click menu",
   'help.eq.reset': 'Gain back to 0 dB and Q back to 2.',
   'help.eq.disable': 'Takes the band out of the sound and keeps its settings.',
@@ -244,9 +279,9 @@ const help = {
 
   'help.eqmode.title': 'EQ mode and band designs',
   'help.eqmode.intro':
-    'EQ mode changes how your sound is shaped, without editing anything. Its settings are the first card of the side panel on the EQ page, beside the curves they change, in two tabs: Your EQ covers your bands, the Tone, presets, Driver type and Smart correction; Corrections covers headphone corrections and imported or custom curves. Band designs keep the frequencies and Q of a layout you like, ready for any output.',
+    'EQ mode changes how your sound is shaped, without editing anything. It is a button in Your EQ’s tools under the graph, and pinned it is the first card of the sound panel, beside the curves it changes. It has two tabs: Your EQ covers your bands, the Tone, presets, Driver type and Smart correction; Corrections covers headphone corrections and imported or custom curves. Band designs keep the frequencies and Q of a layout you like, ready for any output.',
   'help.eqmode.steps':
-    'Press EQ mode above the graph. The card comes into view, and the side panel opens if it was closed.\nPick the Your EQ or Corrections tab, then try a Strength or Band Q choice while music plays. Under the FluidEQ Engine, choose Minimum or Linear phase, and Precise or Classic treble, for each tab.\nOn Corrections, Curve smoothing can soften sampled curves at 1/12 or 1/3 octave; it is Off until you choose. Reset puts everything back to Normal, and smoothing back to Off.\nWould you rather have a menu? Press the pin on the card: EQ mode then opens as a menu over the graph, and the pin in that menu brings the card back.\nOpen the layouts button beside Add band. Pick 6, 10, 15, 20 or 31 bands, or press Save design… to name the current layout.',
+    'Press EQ mode in Your EQ’s tools under the graph. Pinned, the card comes into view in the sound panel; otherwise it opens as a menu over the graph.\nPick the Your EQ or Corrections tab, then try a Strength or Band Q choice while music plays. Under the FluidEQ Engine choose Precise or Classic treble for each tab, and Minimum or Linear phase where a tab offers it.\nOn Corrections, Curve smoothing can soften sampled curves at 1/12 or 1/3 octave; it is Off until you choose. Reset puts everything back to Normal, and smoothing back to Off.\nWould you rather have a menu? Press the pin on the card: EQ mode then opens as a menu over the graph, and the pin in that menu brings the card back.\nOpen the band count button in Your EQ’s tools. Pick 6, 10, 15, 20 or 31 bands, or press Save design… to name the current layout.',
   'help.eqmode.tip':
     'A new layout starts every band at one Q, and a band you add takes the Q of the others. A design stores only frequencies and Q: loading one starts every band at 0 dB. Linear phase adds delay and can ring before sharp hits. Picking a built-in layout starts it fresh: its own frequencies and Q, every band at 0 dB and on both ears.',
   'help.eqmode.keywords':
@@ -259,16 +294,17 @@ const help = {
   'help.eqmode.strength': 'Normal, Studio ×1.5 or ×2. Each tab keeps its own.',
   'help.eqmode.q':
     'Constant keeps each Q; Proportional and Asymmetric narrow bands as they grow. On Your EQ it shapes your own bands alone, never a preset or a correction.',
-  'help.eqmode.smoothing':
-    'Softens sampled correction curves at 1/12 or 1/3 octave. Off until you choose.',
-  'help.eqmode.phase':
-    'Minimum or Linear, for each tab. With the FluidEQ Engine only.',
   'help.eqmode.treble':
     'Precise plays treble as drawn; Classic as Equalizer APO does. With the FluidEQ Engine only.',
   'help.eqmode.reset':
     'Everything back to Normal, and Curve smoothing back to Off.',
   'help.eqmode.designsCaption': 'Band designs',
   'help.eqmode.builtIn': 'Standard layouts of 6, 10, 15, 20 or 31 bands.',
+  'help.eqmode.resetBands':
+    'Puts every band back at its layout’s frequency and Q; gains stay as they are.',
+  'help.eqmode.saved':
+    'A design you saved: press it to load its frequencies and Q, every band at 0 dB. The bin beside it deletes it, after asking.',
+  'help.eqmode.sampleDesign': 'Studio monitors',
   'help.eqmode.save':
     'Names the current frequencies and Q as a design, listed under My designs.',
 
@@ -333,22 +369,23 @@ const help = {
   'help.profiles.keywords':
     'output, output device, device, speakers, switch device, device switching, auto switch, profile, save settings, named profile, second output, mirror, multiple outputs, two outputs, bluetooth, sync, delay, latency, per device, per output, every output, own sound, battery, edit sound, edit main',
   'help.profiles.list':
-    'Sounds you saved. ON marks the one this output uses; press another to switch.',
+    'Sounds you saved. ON marks the one this output uses; press another to switch. A profile’s pencil renames it and its bin deletes it, after asking.',
   'help.profiles.update':
     'Saves your changes into the profile you are on. Restore, beside it, brings the profile back as you last saved it.',
   'help.profiles.new': 'Starts a new profile from the EQ you have now.',
-  'help.profiles.eqMode':
-    'EQ mode’s settings, first on the EQ page. Fold the card to keep it out of the way.',
-  'help.profiles.editSound':
-    'Edits that output’s sound on the EQ page without switching the main output.',
   'help.profiles.output':
     'The output you are listening on, with its battery for Bluetooth headphones. OFF means your EQ does not reach it; ACTIVE, that Windows is playing through it.',
   'help.profiles.onePlayer':
     'Starting something in FluidEQ pauses what plays elsewhere on the PC, and the other way round.',
   'help.profiles.outputs':
-    'Your other outputs. Switch one on to play there too, with its own sound, level and delay in milliseconds.',
+    'Your other outputs. Switch one on to play there too, with its own sound, level and delay in milliseconds. Edit sound changes its sound on the EQ page without switching the main output.',
   'help.profiles.driver':
     'A gentle starting point for what you listen on — headphones, earphones, a driver size or material. Leave it at No compensation if the sound is already right.',
+  'help.profiles.sampleHeadset': 'Headphones (USB Audio)',
+  'help.profiles.sampleSpeakers': 'Speakers (Realtek Audio)',
+  'help.profiles.sampleMusic': 'Music',
+  'help.profiles.sampleMovies': 'Films',
+  'help.profiles.sampleNight': 'Late night',
 
   'help.config.title': 'Inspect & back up a chain',
   'help.config.intro':

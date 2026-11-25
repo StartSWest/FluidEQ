@@ -1,19 +1,12 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import eq from '../../../docs/03-eq-parametric-bands-and-live-response.png';
 import headphones from '../../../docs/04-eq-headphone-correction-and-import.png';
 import convolution from '../../../docs/05-eq-convolution-library.png';
 import config from '../../../docs/06-eq-equalizer-apo-config.png';
 import engine from '../../../docs/15-engine-dialog.png';
-import bands from '../../../docs/16-eq-bands.png';
-import bandMenu from '../../../docs/17-band-menu.png';
-import eqMode from '../../../docs/18-eq-mode.png';
-import bandDesigns from '../../../docs/19-band-designs.png';
 import strip from '../../../docs/21-graph-strip.png';
 import stripPlus from '../../../docs/22-graph-strip-plus.png';
 import viewMenu from '../../../docs/23-graph-view-menu.png';
-import bandSelected from '../../../docs/36-eq-band-selected.png';
-import railRight from '../../../docs/40-rail-right.png';
 import type { THelpPicture } from '../../common/helpGuide';
 
 /**
@@ -26,20 +19,13 @@ import type { THelpPicture } from '../../common/helpGuide';
  * components (`HelpLiveFigure`), and only the exported guide shows the still.
  */
 const SHOTS: Record<THelpPicture, string> = {
-  '03-eq-parametric-bands-and-live-response.png': eq,
   '04-eq-headphone-correction-and-import.png': headphones,
   '05-eq-convolution-library.png': convolution,
   '06-eq-equalizer-apo-config.png': config,
   '15-engine-dialog.png': engine,
-  '16-eq-bands.png': bands,
-  '17-band-menu.png': bandMenu,
-  '18-eq-mode.png': eqMode,
-  '19-band-designs.png': bandDesigns,
   '21-graph-strip.png': strip,
   '22-graph-strip-plus.png': stripPlus,
   '23-graph-view-menu.png': viewMenu,
-  '36-eq-band-selected.png': bandSelected,
-  '40-rail-right.png': railRight,
 };
 
 /** A capture, as the guide shows it. */

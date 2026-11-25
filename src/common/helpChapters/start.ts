@@ -1,14 +1,60 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import { type IHelpChapter, WINDOW } from './model';
+import { type IHelpChapter } from './model';
 
 /** Getting started: the first session, the window, what a PC needs and the engine. */
 const START_CHAPTERS = [
   {
     id: 'start',
     group: 'start',
+    // The EQ page as it opens, drawn by its own parts
+    // (`help/live/eqPageFigures`) from a made-up EQ: the section pills, the
+    // graph, the tab row and the bands. Each part's own controls are
+    // numbered in the EQ and graph chapters.
     figures: [
-      { image: '03-eq-parametric-bands-and-live-response.png', ...WINDOW },
+      {
+        live: 'eq-page',
+        width: 1180,
+        height: 800,
+        still: '03-eq-parametric-bands-and-live-response.png',
+        controls: [
+          {
+            target: '.workspace-tab-group',
+            name: 'help.start.pagesName',
+            text: 'help.start.pages',
+          },
+          {
+            target: '.eq-engine-line',
+            name: 'help.start.engineName',
+            text: 'help.start.engine',
+          },
+          {
+            target: '.game-mode-switch',
+            name: 'dsp.latency.gameMode',
+            text: 'help.eq.gameMode',
+          },
+          {
+            target: '.latency-readout',
+            name: 'dsp.latency.label',
+            text: 'help.start.delay',
+          },
+          {
+            target: '.graph-plot',
+            name: 'help.start.graphName',
+            text: 'help.start.graph',
+          },
+          {
+            target: '.eq-layer-tabs__list',
+            name: 'help.start.tabsName',
+            text: 'help.start.tabs',
+          },
+          {
+            target: '.bands-rail',
+            name: 'help.start.bandsName',
+            text: 'help.start.bands',
+          },
+        ],
+      },
     ],
   },
   {

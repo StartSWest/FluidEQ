@@ -35,13 +35,30 @@ const help: Record<keyof typeof en, string> = {
 
   'help.start.title': 'Tus primeros cinco minutos',
   'help.start.intro':
-    'Empieza con una canción conocida a un volumen cómodo. El panel izquierdo tiene el interruptor de FluidEQ y la preamplificación; el centro es tu espacio de trabajo; el panel derecho sigue a tu salida y sus perfiles. La barra de la parte inferior de la ventana controla lo que esté sonando. El recorrido de abajo solo se descarga al pulsar Reproducir. Para la página de juegos, consulta Laboratorio gaming.',
+    'Empieza con una canción conocida a un volumen cómodo. El panel izquierdo tiene el botón de encendido de FluidEQ y la preamplificación; el centro es tu espacio de trabajo, con el gráfico sobre tus bandas; el panel de sonido de la derecha sigue a tu salida y sus perfiles. La barra al pie de la ventana controla lo que esté sonando. El recorrido de abajo solo se transmite cuando pulsas Reproducir. Para la página de juegos, consulta Laboratorio gaming.',
   'help.start.steps':
-    'Instala FluidEQ y deja seleccionado el Motor FluidEQ cuando el instalador pregunte cómo procesar tu sonido. Windows pide permiso una sola vez, sin reiniciar.\nElige tu dispositivo de escucha en Dispositivo de salida. Activa EQ del sistema y deja Normalizar automáticamente activado.\nReproduce una canción, abre EQ → Bandas, cambia algo ligeramente y compara activando y desactivando EQ del sistema.',
+    'Instala FluidEQ y deja seleccionado el Motor FluidEQ cuando el instalador pregunte cómo procesar tu sonido. Windows pide permiso una vez, sin reiniciar.\nElige tu dispositivo de escucha en la tarjeta Salida del panel de sonido. Pulsa el botón de encendido arriba del panel izquierdo y deja Normalizar automáticamente activado.\nPon una canción, abre EQ → Bandas, mueve un poco el deslizador de una banda y compara con el botón de encendido apagado y encendido.',
   'help.start.tip':
     'El EQ para todo el sistema necesita Windows y un motor de audio: el Motor FluidEQ o Equalizer APO. En macOS y Linux la app muestra salidas de demostración, así que ahí una gráfica en movimiento no demuestra que se esté procesando nada.',
   'help.start.keywords':
-    'instalación, primeros pasos, empezar, comenzar, inicio rápido, guía rápida, tutorial, cómo usar, principiante, novato, básico, introducción, configurar, configuración inicial, manual',
+    'instalación, primeros pasos, empezar, comenzar, inicio rápido, guía rápida, tutorial, cómo usar, principiante, novato, básico, introducción, configurar, configuración inicial, manual, botón de encendido, gráfico, pestañas, bandas',
+  'help.start.pagesName': 'Las páginas del EQ',
+  'help.start.pages':
+    'Bandas, Correcciones de auriculares, Convolución y Config: lo que da forma al sonido, una página cada cosa.',
+  'help.start.engineName': 'El motor',
+  'help.start.engine':
+    'Qué motor reproduce tu EQ: el Motor FluidEQ o Equalizer APO. Un punto rojo significa que no llega a la salida que estás escuchando.',
+  'help.start.delay':
+    'Con cuánto retraso reproduce el motor el sonido en esta salida. Púlsalo para ver qué añade cada etapa.',
+  'help.start.graphName': 'El gráfico',
+  'help.start.graph':
+    'La curva de tu EQ y un punto en cada banda, con lo que oyes moviéndose detrás. Arrastra un punto para dar forma al sonido; el resto está en el capítulo del gráfico.',
+  'help.start.tabsName': 'Tu EQ, Preset, Tono',
+  'help.start.tabs':
+    'Tres pestañas bajo el gráfico: tus propias bandas, un preset listo debajo de ellas, y los cortes y diales de Tono. Las herramientas de cada pestaña están al final de la fila.',
+  'help.start.bandsName': 'Tus bandas',
+  'help.start.bands':
+    'Un deslizador por banda, con su frecuencia arriba y su ganancia abajo. El capítulo del EQ muestra cada parte.',
   'help.video.play': 'Reproducir el vídeo: {title}',
   'help.video.loading': 'Cargando desde fluideq.com…',
   'help.video.failed':
@@ -199,49 +216,66 @@ const help: Record<keyof typeof en, string> = {
 
   'help.eq.title': 'Moldea el sonido con EQ',
   'help.eq.intro':
-    'Frecuencia elige dónde actúa una banda; Ganancia, cuánto sube o baja; Q, su anchura: una Q mayor es más estrecha. Sin ninguna banda seleccionada, los mandos de Tono —Graves, Medios y Agudos, con Corte graves y Corte agudos a los lados— dan forma al sonido como una curva propia y dejan tus bandas como están. Empieza con cambios pequeños y amplios, y compara a menudo.',
+    'Tu EQ son las bandas que moldeas tú. La frecuencia elige dónde actúa una banda, la ganancia fija el realce o el corte, y Q su anchura: cuanto más alto, más estrecha. Bajo el gráfico, tres pestañas comparten la página: Tu EQ, Preset y Tono, cada una una capa propia. Empieza con cambios pequeños y amplios, y compara a menudo.',
   'help.eq.steps':
-    'Abre EQ → Bandas. Sin nada seleccionado, gira Graves, Medios o Agudos para cambiar el tono rápidamente, y Corte graves o Corte agudos para recortar los extremos. En la gráfica dibujan su propia línea de Tono.\nHaz clic en la frecuencia de una banda, o en su punto de la gráfica, para seleccionarla. Gira sus mandos de Frecuencia, Ganancia y Factor Q, elige un Filtro o desactívala con Activa. La curva sigue al deslizador mientras lo mueves.\nTodo funciona también con el teclado: llega con Tab a un deslizador, un mando o un punto de la gráfica, y las flechas lo mueven paso a paso; Re Pág y Av Pág dan pasos más grandes.\nPara ver la frecuencia, la Q y la ganancia de cada banda en la gráfica, abre Vista encima de ella y pulsa Mostrar etiquetas del EQ, o pulsa Ctrl+W hasta que muestre Todo. Cada etiqueta va encima o debajo de su punto, nunca al lado, y vuelve a su sitio en cuanto hay espacio.\nHaz clic derecho en una banda para restablecerla, desactivarla o añadir otra a su lado. Pulsa Vaciar EQ para poner todas las ganancias, y también Graves, Medios y Agudos, a 0 dB sin perder tus bandas. Antes pide confirmación.\nEl mismo menú tiene Eliminar banda, que pide una segunda pulsación antes de borrar. Izquierdo + derecho convierte una banda en una para cada oído, en la misma frecuencia, para que muevas cada una por su cuenta: la curva del oído izquierdo se dibuja continua y la del derecho, discontinua. Ambos oídos las vuelve a unir en su punto medio, igual que Restablecer banda y Vaciar EQ.\nSelecciona varias bandas para moverlas juntas o usa Ctrl+A en el gráfico para seleccionarlas todas. Comparten el editor; al cambiar de banda sus valores se actualizan en el mismo lugar.',
+    'Abre EQ → Bandas. Tu EQ tiene tus bandas; Preset pone un sonido listo debajo de ellas, y Nuevo preset crea uno tuyo; Tono tiene Corte graves, Corte agudos, Graves, Medios y Agudos, dibujados como una línea propia.\nArrastra el deslizador de una banda, o su punto en el gráfico, para realzar o cortar; la curva te sigue mientras mueves. Haz clic en la frecuencia de una banda, o en su punto, para seleccionarla. Ctrl+rueda sobre una banda cambia su Q.\nMantén Mayús con una banda seleccionada y aparece su ventana emergente al lado: su filtro, los diales de Frecuencia, Ganancia y Q, Activa y la papelera. Mayús+Tab y Mayús+← → pasan a la banda anterior o siguiente; Esc o × la cierran.\nTodo funciona también con el teclado: ve con Tab a un deslizador, un dial o un punto del gráfico, y las flechas lo mueven; Re Pág y Av Pág dan pasos más grandes.\nHaz clic derecho en una banda para restablecerla, desactivarla, eliminarla (pide una segunda pulsación), añadir una banda al lado o elegir Izquierdo + derecho: una banda para cada oído en la misma frecuencia, con la curva del oído izquierdo continua y la del derecho discontinua. Ambos oídos las vuelve a unir.\nSelecciona varias bandas con Ctrl o Mayús, o arrastra un recuadro alrededor, para moverlas juntas; Ctrl+A en el gráfico selecciona todas.\nGuardar EQ guarda lo que suena como un EQ guardado que puedes volver a poner, actualizar o gestionar. Vaciar pone cada ganancia a 0 dB y conserva tus bandas; pregunta antes.\nUn preset tuyo (Preset → Nuevo preset) empieza su curva desde un preset o plana; la moldeas en el gráfico y su rack en la página DSP. El menú de su tarjeta lo exporta a un archivo, e Importar en la pestaña Preset lo vuelve a leer.',
   'help.eq.tip':
-    'Curvas muestra lo que moldea esta salida además de tus bandas, cada capa con su propia intensidad y ×. Modo juego reduce el retardo que añade FluidEQ, para juegos y llamadas; los presets de Juegos lo activan. Mientras el EQ está desactivado, sus bandas se ven atenuadas y no se pueden cambiar por accidente; los mandos de Tono siguen funcionando.',
+    'Curvas enumera lo que da forma a esta salida además de tus bandas, cada cosa con su intensidad y su ×. Modo juego, junto al nombre del motor sobre el gráfico, reduce el retardo que añade FluidEQ, para juegos y llamadas; los presets de gaming lo activan. Mientras el EQ está apagado desde su chip, sus bandas se atenúan y no se pueden cambiar por accidente; la pestaña Tono sigue funcionando.',
   'help.eq.keywords':
-    'ecualizador, ecualización, ecualizar, paramétrico, potenciar graves, bass boost, bajos, pasa altos, pasa bajos, peaking, realzar, atenuar, controles de tono, claridad de voz, voces claras, mejorar el sonido, mejorar el audio, ajustar el sonido, preajustes, agregar banda, resetear, poner a cero, plano, latencia, etiquetas, etiquetas de bandas, etiquetas del eq, valores, teclado, flechas, teclas de flecha, accesibilidad, lector de pantalla, oído izquierdo, oído derecho, cada oído, por oído, izquierdo y derecho, eq estéreo, eliminar banda, borrar banda',
-  'help.eq.bandsCaption': 'La página Bandas, sin nada seleccionado',
-  'help.eq.bandCaption': 'Una banda seleccionada',
+    'ecualizador, ecualización, ecualizar, paramétrico, potenciar graves, bass boost, bajos, pasa altos, pasa bajos, peaking, realzar, atenuar, controles de tono, claridad de voz, voces claras, mejorar el sonido, mejorar el audio, ajustar el sonido, preajustes, agregar banda, resetear, poner a cero, plano, latencia, etiquetas, etiquetas de bandas, etiquetas del eq, valores, teclado, flechas, teclas de flecha, accesibilidad, lector de pantalla, oído izquierdo, oído derecho, cada oído, por oído, izquierdo y derecho, eq estéreo, eliminar banda, borrar banda, ventana emergente, mayús, guardar eq, eq guardados, tu eq, pestaña preset, tono, nuevo preset, preset propio, exportar, importar',
+  'help.eq.rowCaption': 'Las pestañas bajo el gráfico, en Tu EQ',
+  'help.eq.tabBands': 'Tus propias bandas, y cuántas hay.',
+  'help.eq.tabPreset':
+    'El preset bajo tus bandas, y los presets para elegir: por género, por uso y los tuyos.',
+  'help.eq.tabTone':
+    'Corte graves, Corte agudos, Graves, Medios y Agudos: tono rápido que deja tus bandas como están. Dice Apagado mientras no se usa ninguno.',
+  'help.eq.bandsCaption': 'Tus bandas',
+  'help.eq.bandCaption':
+    'La ventana emergente de una banda, mientras mantienes Mayús',
   'help.eq.gameMode':
     'Reduce el retardo que añade FluidEQ, para juegos y llamadas. Los presets de Juegos lo activan.',
   'help.eq.layers':
-    'Qué más moldea esta salida (una corrección de auriculares, Corrección inteligente, una convolución), cada capa con su intensidad, su interruptor y ×.',
+    'Qué más da forma a esta salida — un preset, una corrección de auriculares, la corrección inteligente, una convolución —, cada cosa con su intensidad, su interruptor y su ×.',
   'help.eq.bandName': 'Una banda',
   'help.eq.band':
-    'Arrastra su punto para subirla o bajarla, o muévela paso a paso con las flechas. Haz clic en su frecuencia para seleccionarla.',
-  'help.eq.labelName': 'Etiqueta de banda',
-  'help.eq.label':
-    'Su frecuencia, Q y ganancia, encima o debajo de su punto. Vista → Mostrar etiquetas del EQ, o Ctrl+W.',
-  'help.eq.bass': 'Sube o baja la parte grave de toda la curva.',
-  'help.eq.mid': 'Sube o baja la zona media, donde están las voces.',
-  'help.eq.treble': 'Sube o baja la parte alta, el aire y el detalle.',
-  'help.eq.selected':
-    'La banda que estás editando. Haz Ctrl+clic o Mayús+clic para seleccionar varias.',
+    'Arrastra su deslizador para realzar o cortar, o muévelo con las flechas. Ctrl+rueda encima cambia su Q.',
+  'help.eq.caption':
+    'Haz clic para seleccionar la banda. Ctrl+clic o doble clic la devuelve a la frecuencia del diseño.',
+  'help.eq.gainCaption': 'La ganancia de la banda, en dB.',
+  'help.eq.scaleName': 'Escala en dB',
+  'help.eq.scale':
+    'De +20 a −20 dB junto a los deslizadores, con 0 dB marcado, como una mesa la imprime junto a sus faders.',
+  'help.eq.stepName': 'Banda anterior y siguiente',
+  'help.eq.step':
+    '‹ y › llevan la ventana a la banda de abajo o de arriba, como Mayús+Tab y Tab dentro de ella.',
+  'help.eq.close':
+    'Cierra la ventana y deja la banda seleccionada. Soltar Mayús hace lo mismo.',
   'help.eq.filter':
-    'Su forma: una campana, un shelf, un notch o un filtro de paso.',
+    'Su forma: un pico, un estante, una muesca o un filtro de paso.',
   'help.eq.voicing':
     'Una cadena ya hecha para el sonido, como Música o un género. Ninguno deja solo tus bandas.',
   'help.eq.smart':
     'EQ automático: el sonido guardado de cada canción, el sonido de su álbum desde la Biblioteca y, por encima, la Corrección inteligente: Detalle, Equilibrio u Objetivo.',
   'help.eq.clear':
-    'Pone todas las ganancias a 0 dB y conserva tus bandas. Pide confirmación antes.',
+    'Pone cada ganancia, y el Tono, a 0 dB y conserva tus bandas. Pregunta antes.',
+  'help.eq.saveEq':
+    'Guarda lo que suena como un EQ guardado, actualiza el que está puesto, pone otro o los abre todos para gestionarlos.',
   'help.eq.mode':
-    'Muestra la tarjeta Modo EQ: con qué intensidad se aplican tu EQ y tus curvas, la Q de las bandas, la fase y los agudos.',
+    'Con cuánta fuerza se aplican tu EQ y las curvas, la Q de las bandas, la fase, los agudos y el suavizado; dice Normal hasta que cambias algo. Con la tarjeta Modo EQ fijada, la trae a la vista.',
   'help.eq.add':
     'Añade una banda junto a la seleccionada, con la Q de las bandas que ya hay.',
   'help.eq.layouts':
-    'Cuántas bandas usar, cada opción con todas las bandas en una misma Q, y los diseños de bandas que has guardado.',
-  'help.eq.frequency': 'Dónde actúa la banda seleccionada, de 1 Hz a 20 kHz.',
-  'help.eq.gain': 'Cuánto sube o baja. Ctrl+clic la devuelve a 0 dB.',
-  'help.eq.q': 'Lo ancha que es: cuanto mayor, más estrecha.',
+    'Cuántas bandas: números de bandas que empiezan todas con una misma Q, los diseños de bandas que guardaste y restablecer el diseño.',
+  'help.eq.frequency': 'Dónde actúa la banda, de 1 Hz a 20 kHz.',
+  'help.eq.gain': 'Cuánto realza o corta. Ctrl+clic la devuelve a 0 dB.',
+  'help.eq.q':
+    'Lo ancha que es: más alta, más estrecha. Ctrl+clic la devuelve a la Q del diseño.',
   'help.eq.delete':
-    'Pulsa dos veces para eliminar la banda; si cambias de idea, pulsa Conservar.',
+    'Púlsala una vez para armarla y otra para eliminar la banda; la × de al lado te deja arrepentirte.',
+  'help.eq.menuDelete':
+    'Se pone en rojo y pide una segunda pulsación antes de eliminar la banda.',
+  'help.eq.ears':
+    'Una banda para cada oído en la misma frecuencia, para moverlas por separado; Ambos oídos las vuelve a unir.',
   'help.eq.menuCaption': 'El menú de clic derecho de una banda',
   'help.eq.reset': 'Vuelve a poner la ganancia a 0 dB y la Q a 2.',
   'help.eq.disable': 'Saca la banda del sonido y conserva sus ajustes.',
@@ -250,9 +284,9 @@ const help: Record<keyof typeof en, string> = {
 
   'help.eqmode.title': 'Modo EQ y diseños de bandas',
   'help.eqmode.intro':
-    'Modo EQ cambia cómo se da forma a tu sonido, sin editar nada. Sus ajustes son la primera tarjeta del panel lateral de la página EQ, junto a las curvas que cambian, en dos pestañas: Tu EQ abarca tus bandas, el Tono, los presets, el Tipo de transductor y la Corrección inteligente; Correcciones abarca las correcciones de auriculares y las curvas importadas o personalizadas. Los diseños de bandas guardan las frecuencias y la Q de una distribución que te guste, listos para cualquier salida.',
+    'El modo EQ cambia cómo se da forma a tu sonido, sin editar nada. Es un botón entre las herramientas de Tu EQ bajo el gráfico, y fijado es la primera tarjeta del panel de sonido, junto a las curvas que cambia. Tiene dos pestañas: Tu EQ abarca tus bandas, el Tono, los presets, el tipo de controlador y la corrección inteligente; Correcciones abarca las correcciones de auriculares y las curvas importadas o propias. Los diseños de bandas guardan las frecuencias y la Q de una disposición que te guste, lista para cualquier salida.',
   'help.eqmode.steps':
-    'Pulsa Modo EQ encima de la gráfica. La tarjeta aparece a la vista, y el panel lateral se abre si estaba cerrado.\nElige la pestaña Tu EQ o Correcciones y prueba una opción de Intensidad o Q de bandas mientras suena música. Con el Motor FluidEQ, elige la fase Mínima o Lineal, y Preciso o Clásico en Agudos, para cada pestaña.\nEn Correcciones, Suavizado de curvas puede suavizar las curvas muestreadas a 1/12 o 1/3 de octava; está en Desactivado hasta que elijas. Restablecer lo deja todo en Normal, y el suavizado en Desactivado.\n¿Prefieres un menú? Pulsa la chincheta de la tarjeta: Modo EQ se abre entonces como menú sobre la gráfica, y la chincheta de ese menú devuelve la tarjeta.\nPulsa el botón de diseños, junto a Añadir banda. Elige 6, 10, 15, 20 o 31 bandas, o pulsa Guardar diseño… para ponerle nombre a la distribución actual.',
+    'Pulsa Modo EQ entre las herramientas de Tu EQ bajo el gráfico. Si está fijado, la tarjeta aparece en el panel de sonido; si no, se abre como un menú sobre el gráfico.\nElige la pestaña Tu EQ o Correcciones y prueba una Intensidad o una Q de banda mientras suena música. Con el Motor FluidEQ, elige agudos precisos o clásicos para cada pestaña, y fase mínima o lineal donde una pestaña la ofrezca.\nEn Correcciones, el suavizado de curva puede suavizar curvas muestreadas a 1/12 o 1/3 de octava; está desactivado hasta que elijas. Restablecer lo devuelve todo a Normal, y el suavizado a desactivado.\n¿Prefieres un menú? Pulsa la chincheta de la tarjeta: el modo EQ se abre entonces como un menú sobre el gráfico, y la chincheta de ese menú devuelve la tarjeta.\nAbre el botón del número de bandas entre las herramientas de Tu EQ. Elige 6, 10, 15, 20 o 31 bandas, o pulsa Guardar diseño… para dar nombre a la disposición actual.',
   'help.eqmode.tip':
     'Un diseño nuevo empieza todas las bandas con una misma Q, y una banda que añades toma la Q de las demás. Un diseño guarda solo frecuencias y Q: al cargarlo, todas las bandas empiezan en 0 dB. La fase lineal añade retardo y puede resonar antes de los golpes secos. Al elegir una distribución integrada empieza de cero: sus propias frecuencias y Q, cada banda a 0 dB y en ambos oídos.',
   'help.eqmode.keywords':
@@ -266,18 +300,19 @@ const help: Record<keyof typeof en, string> = {
     'Normal, Estudio ×1.5 o ×2. Cada pestaña guarda la suya.',
   'help.eqmode.q':
     'Constante mantiene cada Q; Proporcional y Asimétrica estrechan las bandas a medida que crecen. En Tu EQ solo da forma a tus propias bandas, nunca a un preset ni a una corrección.',
-  'help.eqmode.smoothing':
-    'Suaviza las curvas de corrección muestreadas a 1/12 o 1/3 de octava. Desactivado hasta que elijas.',
-  'help.eqmode.phase':
-    'Mínima o Lineal, para cada pestaña. Solo con el Motor FluidEQ.',
   'help.eqmode.treble':
     'Preciso suena como está dibujado; Clásico, como en Equalizer APO. Solo con el Motor FluidEQ.',
   'help.eqmode.reset':
     'Todo vuelve a Normal, y Suavizado de curvas a Desactivado.',
   'help.eqmode.designsCaption': 'Diseños de bandas',
   'help.eqmode.builtIn': 'Diseños estándar de 6, 10, 15, 20 o 31 bandas.',
+  'help.eqmode.resetBands':
+    'Devuelve cada banda a la frecuencia y la Q de su disposición; las ganancias no cambian.',
+  'help.eqmode.saved':
+    'Un diseño que guardaste: púlsalo para cargar sus frecuencias y su Q, con cada banda a 0 dB. La papelera de al lado lo elimina tras preguntar.',
+  'help.eqmode.sampleDesign': 'Monitores de estudio',
   'help.eqmode.save':
-    'Guarda las frecuencias y la Q actuales como un diseño con nombre, que aparece en Mis diseños.',
+    'Da nombre a las frecuencias y la Q actuales como un diseño, que aparece en Mis diseños.',
 
   'help.games.title': 'Laboratorio gaming',
   'help.games.intro':
@@ -339,22 +374,23 @@ const help: Record<keyof typeof en, string> = {
   'help.profiles.keywords':
     'altavoces, bocinas, parlantes, audífonos, cascos, salida de audio, dispositivo de audio, Bluetooth, retraso, desfase, delay, eco, desincronizado, sincronizar audio, varias salidas, múltiples salidas, simultáneo, guardar configuración, salida, perfil, segunda salida, por dispositivo, por salida, cada salida, sonido propio, batería, editar sonido, editar principal',
   'help.profiles.list':
-    'Los sonidos que has guardado. ACT marca el que usa esta salida; pulsa otro para cambiar.',
+    'Sonidos que guardaste. ACTIVO marca el que usa esta salida; pulsa otro para cambiar. El lápiz de un perfil lo renombra y su papelera lo elimina, tras preguntar.',
   'help.profiles.update':
     'Guarda tus cambios en el perfil en el que estás. Restaurar, a su lado, devuelve el perfil a como lo guardaste por última vez.',
   'help.profiles.new': 'Crea un perfil nuevo a partir del EQ que tienes ahora.',
-  'help.profiles.eqMode':
-    'Los ajustes de Modo EQ, lo primero en la página EQ. Pliega la tarjeta para que no estorbe.',
-  'help.profiles.editSound':
-    'Edita el sonido de esa salida en la página EQ sin cambiar la salida principal.',
   'help.profiles.output':
     'La salida por la que estás escuchando, con su batería si son auriculares Bluetooth. DESACT. significa que tu EQ no llega a ella; ACTIVO, que Windows está reproduciendo por ella.',
   'help.profiles.onePlayer':
     'Iniciar algo en FluidEQ pausa lo que suena en otra parte del PC, y al revés.',
   'help.profiles.outputs':
-    'Tus otras salidas. Activa una para que suene también allí, con su propio sonido, nivel y retardo en milisegundos.',
+    'Tus otras salidas. Activa una para que suene también allí, con su propio sonido, nivel y retardo en milisegundos. Editar sonido cambia su sonido en la página EQ sin cambiar la salida principal.',
   'help.profiles.driver':
     'Un punto de partida suave según con qué escuchas: auriculares de diadema o in-ear, un tamaño o un material de transductor. Déjalo en Sin compensación si el sonido ya está bien.',
+  'help.profiles.sampleHeadset': 'Auriculares (audio USB)',
+  'help.profiles.sampleSpeakers': 'Altavoces (Realtek Audio)',
+  'help.profiles.sampleMusic': 'Música',
+  'help.profiles.sampleMovies': 'Películas',
+  'help.profiles.sampleNight': 'De madrugada',
 
   'help.config.title': 'Inspecciona y respalda una cadena',
   'help.config.intro':

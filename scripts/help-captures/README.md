@@ -4,14 +4,10 @@ One script takes the guide's 2.1 pictures from the real window and measures
 the box of every numbered control in the same render, so a picture and its
 boxes are always written together:
 
-| Picture                    | Chapter  | Shows                                        |
-| -------------------------- | -------- | -------------------------------------------- |
-| `16-eq-bands.png`          | eq       | The Bands page, band labels on               |
-| `36-eq-band-selected.png`  | eq       | One band selected                            |
-| `18-eq-mode.png`           | eqmode   | The EQ mode card, on its Corrections tab     |
-| `40-rail-right.png`        | profiles | The side panel, a second output on           |
-| `23-graph-view-menu.png`   | graph    | The View menu, expanded view, standard style |
-| `14-share-audio-roles.png` | share    | Share Audio with one computer linked         |
+| Picture                    | Chapter | Shows                                        |
+| -------------------------- | ------- | -------------------------------------------- |
+| `23-graph-view-menu.png`   | graph   | The View menu, expanded view, standard style |
+| `14-share-audio-roles.png` | share   | Share Audio with one computer linked         |
 
 The pictures go to `docs/`, the boxes to
 `src/common/helpChapters/captured.ts`, which the chapters read. Never move a
