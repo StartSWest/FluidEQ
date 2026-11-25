@@ -83,6 +83,8 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 - **The Normalizer is yours, not the preset's.** No DSP preset turns it on or
   off any more, and switching it keeps the preset's name instead of turning
   it Custom.
+- **The DSP page's stages lie flat,** with the whole chain's bar across the
+  top of every filter, so the chain's preset is always at hand.
 - **Dynamics draws each band's curve,** with the band's level riding it live
   and points you drag to shape it.
 - **Softer "s" sounds on more presets.** The De-esser now runs gently in
