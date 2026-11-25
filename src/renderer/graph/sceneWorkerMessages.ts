@@ -13,6 +13,12 @@ import type { TSceneProbeRect } from './sceneInk';
 export interface ISceneShownFrames {
   frames: number;
   atMs: number;
+  /**
+   * The box turn the newest of them was sent for (the draw's `turn`): what
+   * says the picture on the canvas fits the box it stands in
+   * (`sceneCanvasHold.ts`).
+   */
+  turn: number;
 }
 
 export interface ISceneDrawSize {
@@ -40,6 +46,11 @@ export type TSceneWorkerRequest =
   | { kind: 'retire' }
   | {
       kind: 'draw';
+      /**
+       * Which of the canvas box's turns this frame is for, handed back in
+       * `shown` once a frame drawn from it is on the canvas.
+       */
+      turn: number;
       /**
        * What the scene hears. Its `timeSeconds` and `deltaMs` are the page's
        * own bookkeeping; the worker keeps the clock the scene is drawn on,

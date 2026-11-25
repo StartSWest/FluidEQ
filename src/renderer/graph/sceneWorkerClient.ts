@@ -5,6 +5,7 @@ import type { ISceneFrame } from './sceneGl';
 import type { ISceneCostReading } from './sceneHealth';
 import type { TSceneProbeRect } from './sceneInk';
 import { sceneProgramKey, takeLinkTurn } from './sceneLinkTurns';
+import { createSceneCanvasHold, type ISceneBox } from './sceneCanvasHold';
 import { reportError } from '../utils/logger';
 import type {
   ISceneDrawSize,
@@ -14,16 +15,6 @@ import type {
   TSceneWorkerReply,
   TSceneWorkerRequest,
 } from './sceneWorkerMessages';
-
-/**
- * How long a scene takes to come back once everything has stopped moving.
- *
- * A quarter of a second. It was tried at a full second, Ivan's own number,
- * and that was wrong: the ramp is not the whole wait, so on top of the box
- * settling it left the strip at less than full strength for a second and a
- * half.
- */
-const SETTLE_FADE_MS = 250;
 
 /** What the worker says of a frame it was sent (`TSceneWorkerReply`). */
 export interface ISceneDrawn {
@@ -251,54 +242,7 @@ export const createSceneWorkerClient = (
   canvas.style.display = 'block';
   canvas.style.width = '100%';
   canvas.style.height = '100%';
-  canvas.style.transition = `opacity ${SETTLE_FADE_MS}ms ease-out`;
   host.appendChild(canvas);
-
-  /**
-   * One rule: while the box is moving the scene keeps its last picture,
-   * never stretched and never taken away, and the first frame drawn since
-   * the box stopped takes its place.
-   *
-   * The canvas is pulled to its host's size by CSS while the pixels behind it
-   * belong to the worker, so every box change leaves the old picture over the
-   * new box until the worker catches up. Stretched to it, going into full
-   * screen, that was 88ms of a strip 214 rows tall pulled over a box of 1316 —
-   * unmistakable on anything with straight lines in it (Ivan, 2026-09-26:
-   * "the scene itself kind of compresses"). It was then taken off the screen
-   * for those moments instead, and the scene blinked out on every change of
-   * mode (Ivan, 2026-09-27: "can we avoid hiding the graph for a milise when
-   * resizing on changing modes?"). So it is scaled to cover the box at its
-   * own proportions (`object-fit: cover`): the same picture, a little larger,
-   * until the new one is drawn — nothing squashed, nothing gone.
-   *
-   * Switched in a ResizeObserver, which runs after the frame callbacks and
-   * before the paint: it lands in the same frame the box changed in, and a
-   * stretched frame is never painted. Noticing it from the draw loop would let
-   * one frame through.
-   *
-   * The picture fills its box again only once the box has STOPPED. A box does
-   * not change once — the graph's plot arrived at its height in three steps —
-   * and a frame that happened to arrive between belongs to a size the panel
-   * has already left. Every box change takes a turn, a draw records the turn it
-   * went out on, and only a frame of the current turn settles it.
-   *
-   * The first picture is the one exception: before anything is drawn there is
-   * nothing to keep, and the scene fades in on its first frame — unless it
-   * arrives at once. A graph look does: the page has been drawing it and
-   * hands it over on the engine's first frame of it, and faded in, the look
-   * sank to nothing at the handover and climbed back over this quarter
-   * second (Ivan, 2026-09-28: "still doing the flashing when switching
-   * viz").
-   *
-   * No timer anywhere: it changes on a box changing and settles on a frame
-   * arriving, and the frame loop is kicked on every resize.
-   */
-  let settled = true;
-  let boxTurn = 0;
-  let drawnForTurn = 0;
-  let hasShown = false;
-  // Held from outside (`holdPicture`): no frame settles the scene.
-  let pinned = false;
   let canvasHost = host;
   let shownFully: () => void = () => undefined;
   const fullyShown = new Promise<void>((resolve) => {
@@ -325,34 +269,18 @@ export const createSceneWorkerClient = (
       .then(shownFully)
       .catch(shownFully);
   };
-  const hold = () => {
-    boxTurn += 1;
-    if (settled) {
-      settled = false;
-      if (hasShown) {
-        canvas.style.objectFit = 'cover';
-      } else {
-        canvas.style.transition = 'none';
-        canvas.style.opacity = '0';
-      }
+  // What the canvas shows while its box moves (`sceneCanvasHold.ts`).
+  const holding = createSceneCanvasHold(canvas, arrival, settleWhenFaded);
+  const boxOf = (entries: ResizeObserverEntry[]): ISceneBox | undefined => {
+    if (entries.length === 0) {
+      return undefined;
     }
+    const { width, height } = entries[entries.length - 1].contentRect;
+    return { width, height };
   };
-  const release = () => {
-    if (settled || pinned || drawnForTurn !== boxTurn) {
-      return;
-    }
-    settled = true;
-    canvas.style.objectFit = '';
-    if (!hasShown) {
-      hasShown = true;
-      canvas.style.transition =
-        arrival === 'fade' ? `opacity ${SETTLE_FADE_MS}ms ease-out` : 'none';
-      canvas.style.opacity = '1';
-      settleWhenFaded();
-    }
-  };
-  const watchBox = new ResizeObserver(hold);
-  watchBox.observe(host);
+  const watchBox = new ResizeObserver((entries) =>
+    holding.boxChanged(boxOf(entries)),
+  );
   watchBox.observe(host);
   let id = 0;
   let disposed = false;
@@ -481,10 +409,10 @@ export const createSceneWorkerClient = (
       loads.get(data.id)?.(data.result);
       loads.delete(data.id);
     } else if (data.kind === 'drawn') {
-      // The worker has submitted this frame, so the canvas now carries the
-      // size it was drawn for: the one moment it is worth asking whether the
-      // picture fits its box again.
-      release();
+      // The answer says which box the newest frame ON the canvas was drawn
+      // for, which is not this frame's: the worker draws it on its own next
+      // animation frame (`sceneCanvasHold.ts`).
+      holding.onCanvas(data.shown?.turn);
       const notify = shown;
       shown = undefined;
       notify?.({
@@ -545,20 +473,20 @@ export const createSceneWorkerClient = (
           .catch((error) => fail(String(error)));
       });
     },
-    // One message in flight: the worker answers as soon as it has submitted
-    // the frame (it never waits for the GPU; the worker's own clock bounds
-    // what the GPU may hold), so the next frame reads the latest controls
-    // and nothing queues behind a busy worker.
+    // One message in flight: the worker answers as soon as it has the frame
+    // (it draws it on its own clock and never waits for the GPU; that clock
+    // bounds what the GPU may hold), so the next frame reads the latest
+    // controls and nothing queues behind a busy worker.
     canDraw: () =>
       !disposed && !lost && loads.size === 0 && shown === undefined,
     draw: (frame, drawn, output, finish, clip, paceMs, notify) => {
       shown = notify;
-      // Which box this frame is for, so the answer can be checked against the
-      // box that is there when it arrives.
-      drawnForTurn = boxTurn;
       try {
         send({
           kind: 'draw',
+          // Which box this frame is for, so the worker can say when a frame
+          // for the box that is there now has reached the canvas.
+          turn: holding.sending(),
           frame,
           width: drawn.width,
           height: drawn.height,
@@ -581,15 +509,7 @@ export const createSceneWorkerClient = (
         fail(String(error));
       }
     },
-    holdPicture: (held) => {
-      if (held === pinned) {
-        return;
-      }
-      pinned = held;
-      // A new turn either way: held, the picture goes now; let go, only a
-      // frame sent from here on brings it back.
-      hold();
-    },
+    holdPicture: (held) => holding.pin(held),
     probe: (rects, heard) => {
       probeId += 1;
       probed = rects.length > 0 ? heard : undefined;
@@ -612,7 +532,7 @@ export const createSceneWorkerClient = (
       watchBox.observe(next);
       // A new box: off the screen until a frame drawn for it, which for a
       // canvas that has shown nothing yet is its first, faded in.
-      hold();
+      holding.moved();
     },
     whenShown: () => fullyShown,
     dispose: () => {

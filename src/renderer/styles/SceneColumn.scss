@@ -4,6 +4,8 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+@use 'motion' as *;
+
 // THE GRAPH'S SCENE OFF ITS PLOT, and only up its own column. The full
 // app's Backdrop - the scene behind the whole window, the panes veiled and
 // blurred over it, with Transparency and Blur in the actions menu - was taken
@@ -49,6 +51,33 @@ SPDX-License-Identifier: GPL-3.0-or-later
   overflow: hidden;
   pointer-events: none;
   contain: strict;
+
+  // The strip the EQ page's layer reaches under its bands' card, as strong as
+  // this says (`useSceneColumnReach.ts`, the mask in `App.scss`): hidden
+  // until a frame is drawn for it, faded in, and faded out before the layer
+  // is cut back. Every value in a stylesheet rule rather than the element's
+  // style, so the fade is a transition the hook hears end. With Animations
+  // off the hook never asks for the two fading states.
+  &[data-reach='arriving'] {
+    --scene-reach: 0;
+  }
+
+  &[data-reach='revealing'],
+  &[data-reach='leaving'] {
+    transition: --scene-reach $motion-slow $ease-out;
+  }
+
+  &[data-reach='leaving'] {
+    --scene-reach: 0;
+  }
+}
+
+// A number, so the strip's strength can be faded at all: an unregistered
+// custom property only ever jumps.
+@property --scene-reach {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
 }
 
 :root.is-scene-column .center-workspace.is-graph-first > .center-head {

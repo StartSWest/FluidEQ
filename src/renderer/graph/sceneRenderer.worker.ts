@@ -140,6 +140,12 @@ let tickMs = 1000 / 60;
  */
 let shownFrames = 0;
 let shownAt = 0;
+/**
+ * The page's box turn the newest frame on the canvas was drawn for. The page
+ * is answered before a frame is drawn, so this, not the answer, is what says
+ * a frame for a new box has reached the canvas (`sceneCanvasHold.ts`).
+ */
+let shownTurn = 0;
 
 const load = async (
   next: IScenePack,
@@ -434,13 +440,14 @@ const render = (request: TDrawRequest, now: number): TSceneWorkerReply => {
   shownFrames += 1;
   ledger.drew();
   shownAt = now;
+  shownTurn = request.turn;
   // No hand-off: the frame is committed when this task returns.
   return {
     kind: 'drawn',
     accent: program.musicAccent(),
     cost,
     skipped: false,
-    shown: { frames: shownFrames, atMs: shownAt },
+    shown: { frames: shownFrames, atMs: shownAt, turn: shownTurn },
   };
 };
 
@@ -489,7 +496,7 @@ const draw = (request: TDrawRequest): TSceneWorkerReply => {
     cost: lastReading,
     skipped: false,
     intervalMs: sceneClock.intervalMs(),
-    shown: { frames: shownFrames, atMs: shownAt },
+    shown: { frames: shownFrames, atMs: shownAt, turn: shownTurn },
   };
 };
 

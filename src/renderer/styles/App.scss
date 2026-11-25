@@ -3162,7 +3162,12 @@ $graph-card-pages: list.join(
   //   row's foot as before, and no pixel under the card is drawn. The scene
   //   keeps its framing on the plot (`sceneView.ts`), so the picture only
   //   carries on downwards. The card stands over the layer already (the tab
-  //   panel is positioned at 1).
+  //   panel is positioned at 1). The layer says so itself (`data-reach`,
+  //   `useSceneColumnReach.ts`), because the strip under the card comes in
+  //   only once it is drawn and fades out before the layer is cut back: the
+  //   part under the row's foot is laid behind a mask whose strength is the
+  //   fade (`--scene-reach`, `SceneColumn.scss`), the picture above it never
+  //   touched.
   // - The blur is laid on the layer, over the picture from the graph's foot
   //   down: a backdrop filter on the card itself would make it the box every
   //   fixed pop-up inside it is placed in, and the band editor's dropdowns
@@ -3173,13 +3178,28 @@ $graph-card-pages: list.join(
   //   picture behind it at that moment (`--scene-panel-floor`,
   //   `useSceneInk.ts`): a light window over a night sky, or a dark one over
   //   a pale sky, otherwise fell into the mid-greys at 50%.
-  :root.is-scene-column.has-scene-panel-glass & > .scene-column-layer {
+  :root.is-scene-column & > .scene-column-layer[data-reach] {
     height: var(
       --scene-column-full,
       calc(var(--scene-column-height, 0px) + #{$eq-row-height})
     );
     border-bottom-right-radius: calc(#{$radius-m} - 1px);
     border-bottom-left-radius: calc(#{$radius-m} - 1px);
+  }
+
+  :root.is-scene-column
+    &
+    > .scene-column-layer:is(
+      [data-reach='arriving'],
+      [data-reach='revealing'],
+      [data-reach='leaving']
+    ) {
+    $row-foot: calc(var(--scene-column-height, 0px) + #{$eq-row-height});
+
+    mask-image: linear-gradient(
+      #000 $row-foot,
+      rgb(0 0 0 / var(--scene-reach)) $row-foot
+    );
   }
 
   :root.is-scene-column.has-scene-panel-blur & > .scene-column-layer::after {

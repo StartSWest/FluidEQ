@@ -1,4 +1,5 @@
 import { createSceneWorkerClient } from '../../../renderer/graph/sceneWorkerClient';
+import { SCENE_SETTLED_EVENT } from '../../../renderer/graph/sceneCanvasHold';
 import type { IScenePack } from '../../../common/scenePacks';
 import type { ISceneFrame } from '../../../renderer/graph/sceneGl';
 import type { TSceneWorkerReply } from '../../../renderer/graph/sceneWorkerMessages';
@@ -61,6 +62,22 @@ const settle = async () => {
 };
 const reply = (data: TSceneWorkerReply) =>
   worker.onmessage?.({ data } as MessageEvent<TSceneWorkerReply>);
+/** The box turn the newest draw sent was for. */
+const lastTurn = () => {
+  const draws = worker.postMessage.mock.calls
+    .map(([request]) => request as { kind: string; turn?: number })
+    .filter((request) => request.kind === 'draw');
+  return draws[draws.length - 1]?.turn ?? 0;
+};
+/** The worker's answer, the newest frame on its canvas drawn for `turn`. */
+const drawnFor = (turn: number) =>
+  reply({
+    kind: 'drawn',
+    accent: 0,
+    cost: { behind: 0 },
+    skipped: false,
+    shown: { frames: 1, atMs: 0, turn },
+  });
 const start = () => {
   const host = document.createElement('div');
   const client = createSceneWorkerClient(host, jest.fn(), jest.fn());
@@ -106,6 +123,7 @@ it('loads in the worker and keeps one drawing in flight until it is committed', 
   );
   expect(worker.postMessage).toHaveBeenLastCalledWith({
     kind: 'draw',
+    turn: 0,
     frame: {},
     width: 50,
     height: 50,
@@ -348,8 +366,8 @@ it('keeps a held picture off the screen until a frame drawn after it is let go',
       jest.fn(),
     );
   };
-  const drawn = () =>
-    reply({ kind: 'drawn', accent: 0, cost: { behind: 0 }, skipped: false });
+  // The worker draws each frame as it is answered here.
+  const drawn = () => drawnFor(lastTurn());
   // The control: a frame drawn with nothing held leaves the picture shown.
   drawOnce();
   drawn();
@@ -417,7 +435,7 @@ it.each([
         0,
         jest.fn(),
       );
-      reply({ kind: 'drawn', accent: 0, cost: { behind: 0 }, skipped: false });
+      drawnFor(lastTurn());
       expect(canvas?.style.opacity).toBe('1');
       expect(canvas?.style.transition).toBe(transition);
       client?.dispose();
@@ -426,3 +444,116 @@ it.each([
     }
   },
 );
+
+/**
+ * See through on the EQ page leaving 0 runs the column's layer on under the
+ * bands' card: the canvas's box grows taller, the width the same. The worker
+ * answers a frame at once and draws it on its own next animation frame, and
+ * the picture used to be put back to filling its box on that answer — the
+ * old, shorter picture stretched over the taller box until the worker caught
+ * up, "for a second" while it paced or the GPU was busy (Ivan, 2026-11-25:
+ * "the scene kind of stretches out for a second"). Now the picture keeps its
+ * own size until a frame drawn for the new box is on the canvas.
+ */
+describe('a box that changes under a picture already shown', () => {
+  const box = (width: number, height: number) =>
+    [{ contentRect: { width, height } }] as unknown as ResizeObserverEntry[];
+  let measured: ResizeObserverCallback[] = [];
+  const inert = globalThis.ResizeObserver;
+  beforeEach(() => {
+    measured = [];
+    globalThis.ResizeObserver = jest.fn((callback: ResizeObserverCallback) => {
+      measured.push(callback);
+      return {
+        observe: jest.fn(),
+        unobserve: jest.fn(),
+        disconnect: jest.fn(),
+      };
+    }) as unknown as typeof ResizeObserver;
+  });
+  afterEach(() => {
+    globalThis.ResizeObserver = inert;
+  });
+  const resize = (width: number, height: number) =>
+    measured.forEach((callback) =>
+      callback(box(width, height), {} as ResizeObserver),
+    );
+  /** A client whose first picture, for an 800x300 box, is on the canvas. */
+  const shown = () => {
+    const host = document.createElement('div');
+    const client = createSceneWorkerClient(host, jest.fn(), jest.fn());
+    const canvas = host.querySelector('canvas');
+    const draw = () =>
+      client?.draw(
+        {} as ISceneFrame,
+        { width: 10, height: 10 },
+        { width: 10, height: 10 },
+        { fsr: false, fxaa: false },
+        [0, 0, 1, 1],
+        0,
+        jest.fn(),
+      );
+    const settles = jest.fn();
+    host.addEventListener(SCENE_SETTLED_EVENT, settles);
+    resize(800, 300);
+    draw();
+    drawnFor(lastTurn());
+    expect(canvas?.style.opacity).toBe('1');
+    expect(canvas?.style.objectFit).toBe('');
+    settles.mockClear();
+    return { client, canvas, draw, settles };
+  };
+
+  it('keeps the picture at its own size until a frame for the new box is on the canvas', () => {
+    const { client, canvas, draw, settles } = shown();
+    const before = lastTurn();
+    resize(800, 700);
+    // At its own size, from the top: the strip at the foot stays empty.
+    expect(canvas?.style.objectFit).toBe('contain');
+    expect(canvas?.style.objectPosition).toBe('50% 0');
+    draw();
+    expect(lastTurn()).not.toBe(before);
+    // Answered, nothing new drawn yet: the canvas still holds the 300-row
+    // picture, so it is not let fill — stretch — the 700-row box.
+    drawnFor(before);
+    expect(canvas?.style.objectFit).toBe('contain');
+    expect(settles).not.toHaveBeenCalled();
+    // The frame for the new box reaches the canvas: it fills it, and the
+    // layer waiting to reveal the strip under the card is told.
+    draw();
+    drawnFor(lastTurn());
+    expect(canvas?.style.objectFit).toBe('');
+    expect(canvas?.style.objectPosition).toBe('');
+    expect(settles).toHaveBeenCalledTimes(1);
+    client?.dispose();
+  });
+
+  it('cuts a picture off at the foot, unscaled, while the box gets shorter', () => {
+    const { client, canvas } = shown();
+    resize(800, 120);
+    expect(canvas?.style.objectFit).toBe('cover');
+    expect(canvas?.style.objectPosition).toBe('50% 0');
+    client?.dispose();
+  });
+
+  it('covers the box from the centre when the width moves too, as before', () => {
+    const { client, canvas } = shown();
+    resize(1200, 700);
+    expect(canvas?.style.objectFit).toBe('cover');
+    expect(canvas?.style.objectPosition).toBe('');
+    client?.dispose();
+  });
+
+  it('scales nothing while a frame for a box between may still land', () => {
+    const { client, canvas, draw } = shown();
+    // Grows to 700, a frame goes out for it, then back to 500 before any
+    // frame for 700 reached the canvas: 300 and 700 may both be there, and
+    // no single fit shows both unscaled, so it covers as before.
+    resize(800, 700);
+    draw();
+    resize(800, 500);
+    expect(canvas?.style.objectFit).toBe('cover');
+    expect(canvas?.style.objectPosition).toBe('');
+    client?.dispose();
+  });
+});

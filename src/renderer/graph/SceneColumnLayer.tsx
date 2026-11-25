@@ -8,6 +8,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { useCallback, useLayoutEffect, useState } from 'react';
 import { publishSceneColumnHost } from '../utils/sceneCover';
+import useSceneColumnReach from './useSceneColumnReach';
 
 /**
  * The layer behind an EQ page's head and its graph that a Plus visualizer is
@@ -90,11 +91,16 @@ export default function SceneColumnLayer() {
     };
   }, [layer]);
 
+  // How far under the bands' card it runs, and whether that strip is coming
+  // or going (`useSceneColumnReach.ts`); absent, it stops at the row's foot.
+  const reach = useSceneColumnReach(layer);
+
   return (
     <div
       ref={attach}
       className="scene-column-layer"
       data-scene-layer="column"
+      data-reach={reach === 'off' ? undefined : reach}
       aria-hidden="true"
     />
   );

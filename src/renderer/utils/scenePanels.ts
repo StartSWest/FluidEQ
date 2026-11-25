@@ -98,8 +98,9 @@ export const useScenePanelsBlur = () =>
  * The two values on the document's root, where the stylesheet reads them
  * (`App.scss`, `GraphCornerLegend.scss`): the panels' face as the share of the card's colour
  * left, the blur in pixels, and two marks - `has-scene-panel-glass` while any
- * of the scene comes through, which is also what runs the scene's layer on
- * down under the card (drawing those pixels only when they can be seen),
+ * of the scene comes through (the scene's layer runs on down under the card
+ * by its own `data-reach`, which fades that strip in and out around the
+ * moments this mark changes: `useSceneColumnReach.ts`),
  * `has-scene-panel-blur` while a blur is chosen (a backdrop filter at 0px
  * still costs its compositing), and `has-scene-panel-ink` once the words
  * need their outline.
