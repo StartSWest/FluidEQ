@@ -236,13 +236,16 @@ export default function StudioProjects({
               className="rich-pick__glyph"
             />
           ),
+          // One box for the row's whole end: the row's grid has a single
+          // column for it, so the review mark and a state chip as two loose
+          // children put the chip on a second line (Ivan, 2026-11-25).
           ...(trailing || mark
             ? {
                 trailing: (
-                  <>
+                  <span className="studio-projects__trailing">
                     {mark}
                     {trailing}
-                  </>
+                  </span>
                 ),
               }
             : {}),

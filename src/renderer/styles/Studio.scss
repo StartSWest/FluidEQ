@@ -584,6 +584,15 @@ $studio-stage-floor: 148px;
   }
 }
 
+// The end of a project's row: the review mark and the state chip side by
+// side on the name's line, never wrapping under each other.
+.studio-projects__trailing {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
 // What each scene's chat is doing, at the end of its row in the picker
 // (Ivan, 2026-11-07: "keep working in parallel on every scene"): a chip in
 // the accent, apart from the green of the watched project, its dot a
