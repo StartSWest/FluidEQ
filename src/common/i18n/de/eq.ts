@@ -230,6 +230,8 @@ const eq: Partial<Dictionary> = {
     'Wird nicht verwendet, solange das Fenster weiß ist',
   'graph.sceneColours.glowUnused':
     'Zu nah an Rot: FluidEQ behält sein eigenes „Ein“',
+  'graph.sceneColours.glowUnusedAccent':
+    'Zu nah an Rot: „Ein“ zeigt stattdessen der Akzent',
   'graph.sceneColours.glowAbout': 'Was eingeschaltet ist',
   'graph.sceneColours.accentAbout': 'Schaltflächen und Kurve',
   'graph.sceneColours.surfaceAbout': 'Bereiche und Felder',

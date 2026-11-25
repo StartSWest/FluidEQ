@@ -201,6 +201,8 @@ const eq = {
   'graph.sceneColours.surfaceUnused': '창이 흰색인 동안에는 쓰이지 않습니다',
   'graph.sceneColours.glowUnused':
     "빨간색에 너무 가까움: '켜짐'은 FluidEQ 색을 씁니다",
+  'graph.sceneColours.glowUnusedAccent':
+    "빨간색에 너무 가까움: '켜짐'은 강조 색을 씁니다",
   'graph.sceneColours.glowAbout': '켜져 있는 것',
   'graph.sceneColours.accentAbout': '버튼과 곡선',
   'graph.sceneColours.surfaceAbout': '패널과 입력란',

@@ -10,6 +10,8 @@ import WindowColourFinder from '../components/WindowColourFinder';
 import WindowColourSwatches from '../components/WindowColourSwatches';
 import WindowColoursPreview from '../components/WindowColoursPreview';
 import { useTranslation } from '../utils/I18nContext';
+import { useRainbowStops } from '../utils/rainbowPalette';
+import { useStudioAppColours } from '../utils/sceneAppColours';
 import StudioInfo from './StudioInfo';
 import type useStudioWindowColours from './useStudioWindowColours';
 import type { TWindowColoursSource } from './useStudioWindowColours';
@@ -41,6 +43,14 @@ export default function StudioWindowColours({
   const { t } = useTranslation();
   const titleId = useId();
   const { colours } = state;
+  // What the window's colourful marks run through while the bench lends the
+  // window its project, as `RainbowSource` decides it: the project's own
+  // wave palette first; colours only measured off its picture never reach
+  // them, which then wear the window's own pair - the stops worn now.
+  const projectStops = useStudioAppColours();
+  const liveStops = useRainbowStops();
+  const isMeasured = !state.isNamed && state.sourceOf(state.editing) === 'auto';
+  const run = projectStops ?? (isMeasured ? liveStops : undefined);
   return (
     <section
       className="studio-card studio-tune__box studio-window-colours"
@@ -68,6 +78,7 @@ export default function StudioWindowColours({
           <WindowColourSwatches
             colours={colours}
             own={state.own}
+            named={state.isNamed}
             disabled={idle}
             onChange={state.change}
             onCommit={state.commit}
@@ -78,7 +89,11 @@ export default function StudioWindowColours({
             disabled={idle || !state.finder.canFind}
             onFind={state.finder.find}
           />
-          <WindowColoursPreview colours={colours} named={state.isNamed} />
+          <WindowColoursPreview
+            colours={colours}
+            named={state.isNamed}
+            run={run}
+          />
         </>
       ) : (
         <p className="studio-window-colours__empty">

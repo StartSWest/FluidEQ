@@ -190,6 +190,7 @@ const eq = {
   'graph.sceneColours.surfaceUnused': '視窗為白色時不使用',
   'graph.sceneColours.glowUnused':
     '太接近紅色：「開啟」會使用 FluidEQ 自己的顏色',
+  'graph.sceneColours.glowUnusedAccent': '太接近紅色：「開啟」會使用強調色',
   'graph.sceneColours.glowAbout': '已開啟的項目',
   'graph.sceneColours.accentAbout': '按鈕和曲線',
   'graph.sceneColours.surfaceAbout': '面板和輸入框',

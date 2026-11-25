@@ -13,10 +13,10 @@ import {
 } from 'common/sceneWindowColours';
 import ColourPickerPopover from './ColourPickerPopover';
 import { useTranslation } from '../utils/I18nContext';
-import { skyFromWindowColours } from '../utils/sceneOwnColours';
 import { useThemeShade } from '../utils/theme';
 import { lightWindowOf } from '../utils/themeShade';
 import useColourLimits, { type TColourLimit } from '../utils/useColourLimits';
+import { onSourceOf } from '../utils/windowColoursPreview';
 
 const ROLE_NAME: Record<TSceneWindowColourRole, TranslationKey> = {
   surface: 'graph.sceneColours.surface',
@@ -86,6 +86,7 @@ function Swatch({
       <div
         className="window-colour-swatch is-fixed"
         style={{ '--swatch': fixed } as CSSProperties}
+        data-role={role}
       >
         <span className="window-colour-swatch__well" aria-hidden />
         <span className="window-colour-swatch__name">{name}</span>
@@ -102,6 +103,9 @@ function Swatch({
         type="button"
         className={`window-colour-swatch${changed ? ' is-changed' : ''}${isOpen ? ' is-open' : ''}`}
         style={{ '--swatch': value } as CSSProperties}
+        // What the small window under the three lights up while this one is
+        // pointed at, focused or open (`WindowColoursPreview.scss`).
+        data-role={role}
         disabled={disabled}
         aria-label={t('graph.sceneColours.pick', { role: name })}
         aria-haspopup="dialog"
@@ -138,6 +142,8 @@ interface IWindowColourSwatchesProps {
   colours: ISceneWindowColours;
   /** What a dot is measured against: the colours the scene comes with. */
   own: ISceneWindowColours | undefined;
+  /** Whether the window wears `colours` as named (`pickedWindow`). */
+  named: boolean;
   disabled?: boolean;
   onChange: (role: TSceneWindowColourRole, value: string) => void;
   onCommit: (role: TSceneWindowColourRole, value: string) => void;
@@ -146,12 +152,16 @@ interface IWindowColourSwatchesProps {
 /**
  * The three colours a scene lends the window, each changeable, a dot on any
  * that is no longer the scene's own. A glow too close to the red or the amber
- * that say off and wait says so, since the window keeps its own colour for
- * "on" then (`skyFromWindowColours`).
+ * that say off and wait says so, and says what says "on" in its place: the
+ * accent, for colours worn as named (`pickedWindow`), or FluidEQ's own, for
+ * colours that only lend the window their hue (`onSourceOf`). The note said
+ * FluidEQ's own for both until 2026-11-25, a week after named colours had
+ * moved to the accent (177506fbc): on screen, "on" was the accent.
  */
 export default function WindowColourSwatches({
   colours,
   own,
+  named,
   disabled = false,
   onChange,
   onCommit,
@@ -159,7 +169,11 @@ export default function WindowColourSwatches({
   const { t } = useTranslation();
   const shade = useThemeShade();
   const limits = useColourLimits(colours, shade);
-  const glowUnused = skyFromWindowColours(colours)?.active === null;
+  const on = onSourceOf(colours, named);
+  const glowNote: TranslationKey | undefined =
+    (on === 'accent' && 'graph.sceneColours.glowUnusedAccent') ||
+    (on === 'own' && 'graph.sceneColours.glowUnused') ||
+    undefined;
   // A white window keeps its panes white whatever the scene's surface is
   // (`pickedWindow.ts`), so the surface paints nothing there and its swatch
   // says so, held, rather than taking a colour nobody would see (Ivan,
@@ -174,9 +188,7 @@ export default function WindowColourSwatches({
           value={colours[role]}
           changed={own !== undefined && own[role] !== colours[role]}
           note={
-            (role === 'glow' &&
-              glowUnused &&
-              t('graph.sceneColours.glowUnused')) ||
+            (role === 'glow' && glowNote !== undefined && t(glowNote)) ||
             (role === 'surface' &&
               whitePane !== undefined &&
               t('graph.sceneColours.surfaceUnused')) ||

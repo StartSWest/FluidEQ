@@ -481,12 +481,23 @@ const paintRoot = () => {
   });
 };
 
+/**
+ * `palette` as the window would wear it on a light (`isLight`) or a dark
+ * window: what `setRainbowStops` paints for it there. For a picture of the
+ * window in colours it is not wearing yet (`WindowColoursPreview`).
+ */
+export const paletteForSide = (
+  palette: readonly string[],
+  isLight: boolean,
+): readonly string[] =>
+  isLight ? paletteOnWhite(palette) : paletteOnDark(palette);
+
 /** The seven stops in use now, as worn on this side of the Brightness. */
 export const getRainbowStops = (): readonly string[] => stops;
 
 /** Wear the chosen palette as this side of the window wants it. */
 const wear = () => {
-  const next = isLightWindow() ? paletteOnWhite(chosen) : paletteOnDark(chosen);
+  const next = paletteForSide(chosen, isLightWindow());
   if (next === stops) {
     return;
   }

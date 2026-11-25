@@ -4,112 +4,238 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useMemo, type CSSProperties } from 'react';
+import {
+  createContext,
+  useContext,
+  useId,
+  useMemo,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import type { ISceneWindowColours } from 'common/sceneWindowColours';
 import { useTranslation } from '../utils/I18nContext';
-import pickedWindow from '../utils/pickedWindow';
-import { skyFromWindowColours } from '../utils/sceneOwnColours';
-import { DARK_KNEE, darkenSurfaces } from '../utils/sceneTintDark';
-import { tintThemePalette } from '../utils/sceneTintPalette';
-import { toneShadeOf } from '../utils/sceneTintStore';
 import { useThemeShade } from '../utils/theme';
-import { themeShadeTokens } from '../utils/themeShade';
+import {
+  partWearers,
+  previewPaintOf,
+  type TOnSource,
+  type TPreviewPart,
+} from '../utils/windowColoursPreview';
+
+/** Who says "on" in the small window, and whether its run is its own. */
+const PaintContext = createContext<{ on: TOnSource; ownRun: boolean }>({
+  on: 'second',
+  ownRun: false,
+});
 
 /**
- * A small window painted in `colours` the way the real one would be at the
+ * A part of the small window: which part of the big one it is, which of the
+ * three colours it wears, and which one it stands in for - what the swatch
+ * over it lights up (`WindowColoursPreview.scss`) and what the tests read.
+ */
+function Part({
+  part,
+  className,
+  style,
+  children,
+}: {
+  part: TPreviewPart;
+  className: string;
+  style?: CSSProperties;
+  children?: ReactNode;
+}) {
+  const { on, ownRun } = useContext(PaintContext);
+  const { wears, standsIn } = partWearers(part, on, ownRun);
+  return (
+    <span
+      className={className}
+      style={style}
+      data-part={part}
+      data-wears={wears.join(' ')}
+      data-stands-in={standsIn.length > 0 ? standsIn.join(' ') : undefined}
+    >
+      {children}
+    </span>
+  );
+}
+
+/** The rail's processors, two on and one off: a lamp, a name, a switch. */
+const RAIL = [
+  { key: 'eq', isOn: true },
+  { key: 'punch', isOn: true },
+  { key: 'room', isOn: false },
+] as const;
+
+/** The spectrum's top edge, and the same closed down to the floor to fill. */
+const SPECTRUM =
+  'M0 15 C6 11 10 9 16 12 S26 8 32 10 S42 15 50 13 S60 9 68 14 S80 17 88 18 S96 20 100 21';
+
+/**
+ * A small FluidEQ painted in `colours` the way the real one would be at the
  * Brightness it is at now (Ivan, 2026-11-14, the tuning mockup's "live mini
- * window"): its floor, a pane and a field from the scene's surface, the power
- * key, a filled button and the curve in its accent, a switch and a pill for
- * "on" in its glow. Worked out with the window's own rules, never a
- * look-alike, so what it shows is what pressing the colour will do: colours
- * somebody named are worn as named (`pickedWindow`), light or dark by the
- * Brightness the pick leaves the window at, and colours worked out from a
- * palette lend their hue to the theme (`tintThemePalette`,
- * `darkenSurfaces`).
+ * window"; 2026-11-25: "this preview doesn't really show where the second
+ * colour may be used"). Each part is a part of the window that wears its
+ * colour (`windowColoursPreview.ts`): the floor, the panes and the graph's
+ * field in the surface; a filled button, the chosen tab, the switches that
+ * are on and the stage's curve in the accent; the rail's lamps, an ON badge,
+ * the live dot and the spectrum in the second colour, which also ends the
+ * title bar's wave and the meters' run from the accent. Where the second
+ * colour cannot say "on", those parts wear what does instead. The colours
+ * are worked out with the window's own rules, never a look-alike, so what
+ * it shows is what pressing the colour will do.
  */
 export default function WindowColoursPreview({
   colours,
   named,
+  run,
 }: {
   colours: ISceneWindowColours;
   /** Whether the window wears `colours` as named. */
   named: boolean;
+  /**
+   * What the window's colourful marks run through instead of the accent to
+   * the second colour: the scene's own wave palette (`sceneAppColours.ts`),
+   * or the window's own pair while these colours are only measured.
+   */
+  run?: readonly string[];
 }) {
   const { t } = useTranslation();
   const shade = useThemeShade();
-  const style = useMemo(() => {
-    // At the Brightness the window is at: a surface picked never moves it
-    // (Ivan, 2026-11-18), so the small window shows the colours as the window
-    // will wear them, the white one on a white window (2026-11-17: "make the
-    // inside white on the white theme").
-    const worn = named ? pickedWindow(colours, shade, 'brightness') : undefined;
-    if (worn) {
-      return {
-        '--preview-floor': worn.tokens['--surface-base'],
-        '--preview-pane': worn.tokens['--surface-panel'],
-        '--preview-field': worn.tokens['--surface-field'],
-        '--preview-accent': worn.tokens['--accent'],
-        '--preview-active': worn.tokens['--active'],
-      } as CSSProperties;
-    }
-    const sky = skyFromWindowColours(colours);
-    if (!sky) {
-      return undefined;
-    }
-    const base = (at: number) =>
-      themeShadeTokens(toneShadeOf('held', at)) as unknown as Record<
-        string,
-        string
-      >;
-    const palette = darkenSurfaces(
-      tintThemePalette(base(shade), sky),
-      tintThemePalette(base(DARK_KNEE), sky),
-      shade,
-    );
-    const token = (name: string) => palette[name] ?? base(shade)[name] ?? '';
-    return {
-      '--preview-floor': token('--surface-base'),
-      '--preview-pane': token('--surface-panel'),
-      '--preview-field': token('--surface-field'),
-      '--preview-accent': token('--accent'),
-      '--preview-active': palette['--active'] ?? 'var(--active)',
-    } as CSSProperties;
-  }, [colours, named, shade]);
-  if (!style) {
+  const id = useId();
+  const paint = useMemo(
+    () => previewPaintOf(colours, named, shade, run),
+    [colours, named, shade, run],
+  );
+  const context = useMemo(
+    () => ({ on: paint?.on ?? 'second', ownRun: paint?.ownRun ?? false }),
+    [paint],
+  );
+  if (!paint) {
     return null;
   }
+  const floor = partWearers('floor', paint.on, paint.ownRun);
+  const style = {
+    '--preview-floor': paint.floor,
+    '--preview-pane': paint.pane,
+    '--preview-field': paint.field,
+    '--preview-well': paint.well,
+    '--preview-accent': paint.accent,
+    '--preview-on-accent': paint.onAccent,
+    '--preview-active': paint.active,
+    '--preview-on-active': paint.onActive,
+    '--preview-ink': paint.ink,
+    '--preview-run': `linear-gradient(to top, ${paint.run.join(', ')})`,
+  } as CSSProperties;
+  const waveId = `${id}-wave`;
+  const last = paint.run.length - 1;
   return (
-    <div
-      className="window-colours-preview"
-      style={style}
-      role="img"
-      aria-label={t('graph.sceneColours.preview')}
-    >
-      <span className="window-colours-preview__bar">
-        <span className="window-colours-preview__logo" />
-        <span className="window-colours-preview__wave">
-          <svg viewBox="0 0 100 10" preserveAspectRatio="none">
-            <path d="M0 5 Q6 1 12 5 T24 5 T36 5 T48 5 T60 5 T72 5 T84 5 T100 5" />
-          </svg>
-        </span>
-      </span>
-      <span className="window-colours-preview__body">
-        <span className="window-colours-preview__side">
-          <span className="window-colours-preview__power" />
-          <span className="window-colours-preview__switch" />
-        </span>
-        <span className="window-colours-preview__pane">
-          <span className="window-colours-preview__pills">
-            <span className="window-colours-preview__pill is-filled" />
-            <span className="window-colours-preview__pill is-on" />
-          </span>
-          <span className="window-colours-preview__curve">
-            <svg viewBox="0 0 100 24" preserveAspectRatio="none">
-              <path d="M0 15 C14 10 22 8 32 11 S52 18 66 12 S88 7 100 10" />
+    <PaintContext.Provider value={context}>
+      <div
+        className={`window-colours-preview${paint.isLight ? ' is-light' : ''}`}
+        style={style}
+        role="img"
+        aria-label={t('graph.sceneColours.preview')}
+        data-on={paint.on}
+        data-part="floor"
+        data-wears={floor.wears.join(' ')}
+      >
+        <span className="window-colours-preview__bar">
+          <span className="window-colours-preview__mark" />
+          <Part part="wave" className="window-colours-preview__wave">
+            <svg viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden>
+              <defs>
+                <linearGradient id={waveId}>
+                  {paint.run.map((stop, index) => (
+                    <stop
+                      // eslint-disable-next-line react/no-array-index-key -- the run is always seven stops in order: a stop's place is its identity
+                      key={index}
+                      offset={index / last}
+                      stopColor={stop}
+                    />
+                  ))}
+                </linearGradient>
+              </defs>
+              <path
+                d="M0 5 Q4 1 8 5 T16 5 T24 5 T32 5 T40 5 T48 5 T56 5 T64 5 T72 5 T80 5 T88 5 T96 5 T100 5"
+                stroke={`url(#${waveId})`}
+              />
             </svg>
-          </span>
+          </Part>
+          <Part part="meter" className="window-colours-preview__meter">
+            {/* Near the top, where a loud moment reaches the second colour. */}
+            <span style={{ '--level': '92%' } as CSSProperties} />
+            <span style={{ '--level': '80%' } as CSSProperties} />
+          </Part>
         </span>
-      </span>
-    </div>
+        <span className="window-colours-preview__body">
+          <Part part="pane" className="window-colours-preview__rail">
+            {RAIL.map(({ key, isOn }) =>
+              isOn ? (
+                <span key={key} className="window-colours-preview__row is-on">
+                  <Part part="lamp" className="window-colours-preview__lamp" />
+                  <span className="window-colours-preview__label" />
+                  <Part
+                    part="switch"
+                    className="window-colours-preview__switch"
+                  />
+                </span>
+              ) : (
+                <span key={key} className="window-colours-preview__row">
+                  <span className="window-colours-preview__lamp" />
+                  <span className="window-colours-preview__label" />
+                  <span className="window-colours-preview__switch" />
+                </span>
+              ),
+            )}
+          </Part>
+          <Part part="pane" className="window-colours-preview__page">
+            <span className="window-colours-preview__tabs">
+              <Part part="tab" className="window-colours-preview__tab" />
+              <span className="window-colours-preview__tab" />
+              <span className="window-colours-preview__tab" />
+            </span>
+            <Part part="field" className="window-colours-preview__graph">
+              <Part
+                part="spectrum"
+                className="window-colours-preview__spectrum"
+              >
+                <svg
+                  viewBox="0 0 100 24"
+                  preserveAspectRatio="none"
+                  aria-hidden
+                >
+                  <path
+                    className="window-colours-preview__spectrum-fill"
+                    d={`${SPECTRUM} L100 24 L0 24 Z`}
+                  />
+                  <path
+                    className="window-colours-preview__spectrum-edge"
+                    d={SPECTRUM}
+                  />
+                </svg>
+              </Part>
+              <Part part="curve" className="window-colours-preview__curve">
+                <svg
+                  viewBox="0 0 100 24"
+                  preserveAspectRatio="none"
+                  aria-hidden
+                >
+                  <path d="M0 13 C12 12 18 6 28 7 S44 14 56 12 S76 5 86 8 S96 11 100 11" />
+                </svg>
+              </Part>
+            </Part>
+            <span className="window-colours-preview__foot">
+              <Part part="badge" className="window-colours-preview__badge">
+                <span />
+              </Part>
+              <Part part="live" className="window-colours-preview__live" />
+              <Part part="button" className="window-colours-preview__button">
+                <span />
+              </Part>
+            </span>
+          </Part>
+        </span>
+      </div>
+    </PaintContext.Provider>
   );
 }

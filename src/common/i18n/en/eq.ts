@@ -234,6 +234,9 @@ const eq = {
   'graph.sceneColours.surfaceUnused': 'Not used while the window is white',
   'graph.sceneColours.glowUnused':
     'Too close to red: FluidEQ keeps its own “on”',
+  // The same, for colours worn as named: there the accent says "on".
+  'graph.sceneColours.glowUnusedAccent':
+    'Too close to red: the accent shows “on” instead',
   'graph.sceneColours.glowAbout': 'What is switched on',
   'graph.sceneColours.accentAbout': 'Buttons and the curve',
   'graph.sceneColours.surfaceAbout': 'Panes and fields',

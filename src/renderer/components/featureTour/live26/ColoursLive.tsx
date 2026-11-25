@@ -89,6 +89,7 @@ export default function ColoursLive() {
         <WindowColourSwatches
           colours={scene.colours}
           own={scene.colours}
+          named
           onChange={nothing}
           onCommit={nothing}
         />

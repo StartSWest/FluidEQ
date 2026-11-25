@@ -1,0 +1,408 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'sass:list';
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// THE SMALL WINDOW UNDER A SCENE'S THREE COLOURS (`WindowColoursPreview.tsx`):
+// a title bar with the wave and the meters over the DSP rail and a page, each
+// part one the real window paints in that colour (`windowColoursPreview.ts`).
+// Its colours come in as `--preview-*` from the window's own toning, never
+// from the window it sits in, so every face here is the real one's drawn
+// with those: the switch is `Switch.scss`'s half block, the badge
+// `badge-on`'s, the button `button-solid`'s. No words: the parts are small
+// enough that letters would be noise, so a name is a bar of the quiet ink.
+//
+// Its height is the one the card always gave it (79px): a scene's colours
+// moving, or a second colour being refused, changes colours and never a
+// size.
+
+// The rail as the window has it: a narrow column beside a wide page, never
+// a third of a 600px card (the Studio's single column at about 1200px).
+$preview-rail: clamp(62px, 30%, 124px);
+
+.window-colours-preview {
+  display: grid;
+  height: 79px;
+  box-sizing: border-box;
+  grid-template-rows: 16px minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
+  border-radius: $radius-xs;
+  background: var(--preview-floor);
+  transition: background $motion-base $ease-out;
+}
+
+// A name, a tab's word, a button's label: a bar of the quiet ink.
+@mixin preview-word($width) {
+  width: $width;
+  height: 3px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--preview-ink) 55%, transparent);
+}
+
+// *** The title bar ***********************************************************
+
+.window-colours-preview__bar {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+}
+
+// The app's name, in the ink: the mark beside it keeps its own colours
+// whatever the scene, so it is left out rather than drawn in one.
+.window-colours-preview__mark {
+  @include preview-word(14px);
+
+  flex: 0 0 auto;
+  background: color-mix(in srgb, var(--preview-ink) 80%, transparent);
+}
+
+// The wave runs the colourful marks' stops, the accent to the second colour.
+.window-colours-preview__wave {
+  display: block;
+  min-width: 0;
+  height: 9px;
+  flex: 1 1 auto;
+
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  path {
+    fill: none;
+    stroke-linecap: round;
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+  }
+}
+
+// The level meters: lit from the bottom up the same run, so a loud moment
+// reaches the second colour at the top; unlit, the empty track.
+.window-colours-preview__meter {
+  display: flex;
+  height: 11px;
+  flex: 0 0 auto;
+  align-items: stretch;
+  gap: 2px;
+
+  > span {
+    width: 4px;
+    border-radius: 1px;
+    background:
+      linear-gradient(var(--preview-well) 0 0) top / 100%
+        calc(100% - var(--level)) no-repeat,
+      var(--preview-run);
+  }
+}
+
+// *** Under it: the rail and a page *******************************************
+
+.window-colours-preview__body {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: $preview-rail minmax(0, 1fr);
+  gap: 4px;
+  padding: 0 4px 4px;
+}
+
+.window-colours-preview__rail,
+.window-colours-preview__page {
+  min-width: 0;
+  min-height: 0;
+  border-radius: 4px;
+  background: var(--preview-pane);
+}
+
+// THE DSP RAIL: a processor's lamp says it is on in the second colour
+// (`_dspRail.scss`), and its switch beside it is on in the accent.
+.window-colours-preview__rail {
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  padding: 4px 5px;
+}
+
+.window-colours-preview__row {
+  display: grid;
+  align-items: center;
+  grid-template-columns: 5px minmax(0, 1fr) 16px;
+  gap: 4px;
+}
+
+.window-colours-preview__lamp {
+  width: 5px;
+  height: 5px;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, $edge-tint 10%, transparent);
+  border-radius: 50%;
+  background: var(--preview-well);
+
+  .is-on > & {
+    border-color: color-mix(in srgb, var(--preview-active) 58%, transparent);
+    background: var(--preview-active);
+  }
+}
+
+.window-colours-preview__label {
+  @include preview-word(100%);
+}
+
+// The half block (`Switch.scss`): off, a muted block on the left of the
+// empty track; on, the accent's block on the right over its lit tint.
+.window-colours-preview__switch {
+  position: relative;
+  height: 9px;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, var(--preview-ink) 30%, transparent);
+  border-radius: 2px;
+  background: var(--preview-well);
+
+  &::after {
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: 6px;
+    height: 5px;
+    border-radius: 1px;
+    background: color-mix(in srgb, var(--preview-ink) 80%, transparent);
+    content: '';
+  }
+
+  .is-on > & {
+    border-color: color-mix(in srgb, var(--preview-accent) 62%, transparent);
+    background:
+      linear-gradient(
+        color-mix(in srgb, var(--preview-accent) 22%, transparent) 0 0
+      ),
+      var(--preview-well);
+
+    &::after {
+      left: 7px;
+      background: var(--preview-accent);
+    }
+  }
+}
+
+// THE PAGE: its tabs, a stage's graph and the row under it.
+.window-colours-preview__page {
+  display: grid;
+  grid-template-rows: 7px minmax(0, 1fr) 9px;
+  gap: 4px;
+  padding: 4px 5px;
+}
+
+.window-colours-preview__tabs {
+  display: flex;
+  align-items: start;
+  gap: 6px;
+}
+
+// The chosen tab's underline is the accent (`tab` in `_buttonFaces.scss`),
+// its word the ink at full strength.
+.window-colours-preview__tab {
+  @include preview-word(16px);
+
+  &:first-child {
+    height: 7px;
+    box-sizing: border-box;
+    border-bottom: 2px solid var(--preview-accent);
+    border-radius: 0;
+    background: linear-gradient(var(--preview-ink) 0 0) top / 100% 3px no-repeat;
+  }
+}
+
+// A stage's graph on the DSP page: the music's spectrum in the second colour
+// (`--dsp-spectrum`), the line saying what the stage did in the accent
+// (`--dsp-applied`), on the graph's own field.
+.window-colours-preview__graph {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--preview-field);
+
+  > span {
+    position: absolute;
+    inset: 0;
+  }
+
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  path {
+    vector-effect: non-scaling-stroke;
+  }
+}
+
+.window-colours-preview__spectrum-fill {
+  fill: color-mix(in srgb, var(--preview-active) 26%, transparent);
+}
+
+.window-colours-preview__spectrum-edge {
+  fill: none;
+  stroke: var(--preview-active);
+  stroke-width: 1;
+}
+
+.window-colours-preview__curve path {
+  fill: none;
+  stroke: var(--preview-accent);
+  stroke-linecap: round;
+  stroke-width: 1.6;
+}
+
+.window-colours-preview__foot {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+}
+
+// ON, as the output in use says it (`badge-on`): the lit tint of "on" with
+// its words lit halfway to the ink on a dark window, the colour itself with
+// its own label on a light one.
+.window-colours-preview__badge {
+  display: flex;
+  width: 17px;
+  height: 9px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--preview-active) 22%, transparent);
+
+  > span {
+    width: 9px;
+    height: 3px;
+    border-radius: 1px;
+    background: color-mix(in oklab, var(--preview-active), var(--preview-ink));
+  }
+
+  .is-light & {
+    background: var(--preview-active);
+
+    > span {
+      background: var(--preview-on-active);
+    }
+  }
+}
+
+// Something live: the Studio's stage playing, a monitor driven, flat.
+.window-colours-preview__live {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--preview-active);
+}
+
+// The suggested action (`button-solid`): the accent, its own label on it.
+.window-colours-preview__button {
+  display: flex;
+  width: 26px;
+  height: 9px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  margin-inline-start: auto;
+  border-radius: 2px;
+  background: var(--preview-accent);
+
+  > span {
+    width: 13px;
+    height: 3px;
+    border-radius: 1px;
+    background: var(--preview-on-accent);
+  }
+}
+
+// *** Which parts a colour paints *********************************************
+
+// Pointing at a swatch, focusing it, or having its picker open lights up the
+// parts its colour paints: everything else on the floor steps back, what
+// wears the colour keeps its strength with an edge round it (an outline,
+// never a shadow), and a part where the colour is refused and something
+// else stands in is edged dashed. The swatches come before the small window
+// in every place they are used, side by side in one parent
+// (`WindowColourSwatches`).
+
+// What stands on the floor, the panes and the field. Those three are never
+// stepped back: their parts would go with them.
+$preview-leaves:
+  mark, wave, meter, lamp, label, switch, tab, spectrum, curve, badge, live,
+  button;
+$preview-leaf: ();
+
+@each $leaf in $preview-leaves {
+  $preview-leaf: list.append(
+    $preview-leaf,
+    '.window-colours-preview__#{$leaf}',
+    $separator: comma
+  );
+}
+
+.window-colours-preview :is(#{$preview-leaf}) {
+  transition: opacity $motion-fast $ease-out;
+}
+
+@each $role in surface, accent, glow {
+  .window-colour-swatches:has(
+      > [data-role='#{$role}']:is(:hover, :focus-visible, .is-open)
+    )
+    ~ .window-colours-preview {
+    :is(#{$preview-leaf}) {
+      opacity: 0.28;
+    }
+
+    :is(#{$preview-leaf}):is(
+      [data-wears~='#{$role}'],
+      [data-stands-in~='#{$role}']
+    ) {
+      opacity: 1;
+    }
+
+    [data-wears~='#{$role}'],
+    [data-stands-in~='#{$role}'] {
+      outline: 1px solid $text-primary;
+      outline-offset: 1px;
+    }
+
+    [data-stands-in~='#{$role}'] {
+      outline-style: dashed;
+    }
+
+    // The whole small window is the floor: edged inside, not round the card.
+    &[data-wears~='#{$role}'] {
+      outline: 1px solid $text-primary;
+      outline-offset: -2px;
+    }
+
+    // A line cannot take an edge of its own: it is lit by the rest stepping
+    // back, and the spectrum's is drawn dashed where it is stood in for.
+    :is(
+      .window-colours-preview__wave,
+      .window-colours-preview__spectrum,
+      .window-colours-preview__curve
+    ) {
+      outline: none;
+    }
+
+    [data-stands-in~='#{$role}'] .window-colours-preview__spectrum-edge {
+      stroke-dasharray: 3 2;
+    }
+  }
+}

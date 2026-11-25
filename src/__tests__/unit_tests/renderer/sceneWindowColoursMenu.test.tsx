@@ -197,11 +197,16 @@ it("goes back to the scene's own with one press", () => {
   expect(shownOn('surface')).toBe(OWN.surface.toUpperCase());
 });
 
-it('says when a glow is too close to red to mean "on"', () => {
+it('says when a glow is too close to red to mean "on", and that the accent says it', () => {
   render(<SceneWindowColours />);
-  expect(screen.queryByText('graph.sceneColours.glowUnused')).toBeNull();
+  expect(screen.queryByText('graph.sceneColours.glowUnusedAccent')).toBeNull();
+  // The scene names its colours, so they are worn as named, where the
+  // accent stands in for "on" (`pickedWindow`) - not FluidEQ's own.
   pickInto('glow', '#ff3030');
-  expect(screen.getByText('graph.sceneColours.glowUnused')).toBeInTheDocument();
+  expect(
+    screen.getByText('graph.sceneColours.glowUnusedAccent'),
+  ).toBeInTheDocument();
+  expect(screen.queryByText('graph.sceneColours.glowUnused')).toBeNull();
 });
 
 it('shows nothing for a look that is not a scene', () => {

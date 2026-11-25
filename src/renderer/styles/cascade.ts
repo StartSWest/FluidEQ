@@ -250,6 +250,8 @@ import './RemoteAudioGroup.scss';
 import './Euphoria.scss';
 // A scene's window colours: under the Window colours menu and on the Tune tab.
 import './SceneWindowColours.scss';
+// The small window painted in them, under the swatches.
+import './WindowColoursPreview.scss';
 // FluidEQ's colour picker, opened from those swatches.
 import './ColourPickerPopover.scss';
 import './SceneAmbient.scss';

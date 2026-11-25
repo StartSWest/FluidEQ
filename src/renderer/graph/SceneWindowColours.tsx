@@ -22,6 +22,11 @@ import {
   type TWindowColourSource,
 } from '../utils/sceneDayColours';
 import { useTranslation } from '../utils/I18nContext';
+import { useRainbowStops } from '../utils/rainbowPalette';
+import {
+  sceneAppColourStops,
+  useSceneColourControls,
+} from '../utils/sceneAppColours';
 import { useListenerParams } from '../utils/sceneParamStore';
 import {
   clearChosenWindowColours,
@@ -136,10 +141,28 @@ export default function SceneWindowColours() {
     apply: applyFound,
   });
 
+  // What the window's colourful marks run through, as `RainbowSource`
+  // decides it for a scene on the graph: the scene's own wave palette first;
+  // colours only measured off its picture never reach them, which then wear
+  // the window's own pair - the stops worn now.
+  const controls = useSceneColourControls(lookId);
+  const sceneStops = useMemo(
+    () =>
+      controls
+        ? sceneAppColourStops(controls, params ? { params } : {})
+        : undefined,
+    [controls, params],
+  );
+  const liveStops = useRainbowStops();
+  const isMeasured =
+    draft === undefined && sides[editing]?.source === 'measured';
+  const run = sceneStops ?? (isMeasured ? liveStops : undefined);
+
   if (!wearing) {
     return null;
   }
   const shown = draft ?? wearing;
+  const named = draft !== undefined || isWornAsNamed(sides);
   const isYours = Object.keys(chosen).length > 0;
   const title = names
     ? t('graph.sceneColours.title', {
@@ -159,6 +182,7 @@ export default function SceneWindowColours() {
       <WindowColourSwatches
         colours={shown}
         own={ownSet}
+        named={named}
         onChange={change}
         onCommit={commit}
       />
@@ -168,10 +192,7 @@ export default function SceneWindowColours() {
         disabled={!finder.canFind}
         onFind={finder.find}
       />
-      <WindowColoursPreview
-        colours={shown}
-        named={draft !== undefined || isWornAsNamed(sides)}
-      />
+      <WindowColoursPreview colours={shown} named={named} run={run} />
       <div className="scene-window-colours__actions">
         <button
           type="button"

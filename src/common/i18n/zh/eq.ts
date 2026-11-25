@@ -207,6 +207,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneColours.surfaceUnused': '窗口为白色时不使用',
   'graph.sceneColours.glowUnused':
     '太接近红色：“开启”将使用 FluidEQ 自己的颜色',
+  'graph.sceneColours.glowUnusedAccent': '太接近红色：“开启”将使用强调色',
   'graph.sceneColours.glowAbout': '已开启的项',
   'graph.sceneColours.accentAbout': '按钮和曲线',
   'graph.sceneColours.surfaceAbout': '面板和输入框',
