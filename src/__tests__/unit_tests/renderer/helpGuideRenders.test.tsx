@@ -15,25 +15,29 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import { isLiveFigure } from 'common/helpChapters/model';
 import { HELP_CHAPTERS } from 'common/helpGuide';
 import HelpGuide from 'renderer/help/HelpGuide';
 import { I18nProvider } from 'renderer/utils/I18nContext';
 
 /**
- * Every capture the chapters show, each drawn by `HelpFigure`. Counted from
- * the chapters rather than written down: each panel Help draws live takes a
- * capture away, and the Visualizers chapters took the guide under the thirty
- * this said.
+ * Every figure the chapters show, a capture drawn by `HelpFigure` or a panel
+ * drawn live by `HelpLiveFigure`. Counted from the chapters rather than
+ * written down: since 2.6 every one is live, and counting the captures alone
+ * left this counting nothing.
  */
-const CAPTURES = HELP_CHAPTERS.flatMap(({ figures }) => figures).filter(
-  (figure) => !isLiveFigure(figure),
-).length;
+const FIGURES = HELP_CHAPTERS.flatMap(({ figures }) => figures).length;
 
 let mockFigureRenders = 0;
 
-// Every capture a chapter draws, counted rather than drawn.
+// Every figure a chapter draws, counted rather than drawn.
 jest.mock('renderer/help/HelpFigure', () => ({
+  __esModule: true,
+  default: () => {
+    mockFigureRenders += 1;
+    return null;
+  },
+}));
+jest.mock('renderer/help/HelpLiveFigure', () => ({
   __esModule: true,
   default: () => {
     mockFigureRenders += 1;
@@ -105,9 +109,9 @@ const openGuide = () => {
 
 it('re-renders no chapter for a key that changes no answer', () => {
   const { search } = openGuide();
-  // The control: the guide drew its captures, every one of them.
-  expect(CAPTURES).toBeGreaterThan(0);
-  expect(mockFigureRenders).toBeGreaterThanOrEqual(CAPTURES);
+  // The control: the guide drew its figures, every one of them.
+  expect(FIGURES).toBeGreaterThan(0);
+  expect(mockFigureRenders).toBeGreaterThanOrEqual(FIGURES);
   const settled = mockFigureRenders;
   fireEvent.change(search, { target: { value: ' ' } });
   expect(search).toHaveValue(' ');

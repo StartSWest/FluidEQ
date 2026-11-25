@@ -21,6 +21,7 @@ import {
   isLiveFigure,
   type IHelpPictureFigure,
 } from '../../../common/helpGuide';
+import SHIPPED_CAPTURES from '../../data/helpCalloutFixtures';
 
 /**
  * The numbered call-outs round every help capture: a circle in the margin for
@@ -33,16 +34,21 @@ import {
  * guide ships, at a wide column and a narrow one, rather than on a sample.
  */
 
-// Every capture with circles on it. A live figure's boxes exist only once it
-// is drawn, so its layout is checked where it is drawn (the planner below is
-// the same; `helpLiveFigures.test.tsx` checks that its controls are there).
-const figures = HELP_CHAPTERS.flatMap((chapter) =>
-  chapter.figures.flatMap((figure) =>
-    isLiveFigure(figure) || (figure.controls?.length ?? 0) === 0
-      ? []
-      : [figure],
+// Every capture with circles on it, and the last ones the guide shipped
+// before every figure became live in 2.6 (`helpCalloutFixtures`): real
+// layouts the planner still lays live figures out by. A live figure's boxes
+// exist only once it is drawn, so its own layout is checked where it is drawn
+// (`helpLiveFigures.test.tsx` checks that its controls are there).
+const figures = [
+  ...HELP_CHAPTERS.flatMap((chapter) =>
+    chapter.figures.flatMap((figure) =>
+      isLiveFigure(figure) || (figure.controls?.length ?? 0) === 0
+        ? []
+        : [figure],
+    ),
   ),
-);
+  ...SHIPPED_CAPTURES,
+];
 
 /** A made-up capture, written the way a chapter writes one. */
 const capture = (figure: IHelpPictureFigure) => figure;
@@ -143,7 +149,8 @@ const planned = Object.entries(ROOMS).flatMap(([roomName, room]) =>
 
 describe('help call-outs on every shipped figure', () => {
   it('has the figures to check', () => {
-    expect(figures.length).toBeGreaterThan(10);
+    expect(figures.length).toBeGreaterThanOrEqual(SHIPPED_CAPTURES.length);
+    expect(SHIPPED_CAPTURES.length).toBeGreaterThan(5);
   });
 
   it('numbers every control exactly once, from 1', () => {

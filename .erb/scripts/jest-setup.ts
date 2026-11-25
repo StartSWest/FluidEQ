@@ -21,6 +21,22 @@ if (typeof HTMLMediaElement !== 'undefined') {
   });
 }
 
+// A path's length, which the graph's curves are drawn in with (a dash as long
+// as the path, `graph/Line.tsx`) and which jsdom, having no geometry, does not
+// implement. Every Help figure that draws the EQ graph mounts that curve, and
+// two graph suites had each been stubbing it for themselves. A length, not a
+// measurement: a suite that needs a real one defines its own over this.
+if (
+  typeof SVGElement !== 'undefined' &&
+  !('getTotalLength' in SVGElement.prototype)
+) {
+  Object.defineProperty(SVGElement.prototype, 'getTotalLength', {
+    configurable: true,
+    writable: true,
+    value: () => 100,
+  });
+}
+
 /**
  * `ResizeObserver`, which jsdom does not implement and Electron always has.
  *
