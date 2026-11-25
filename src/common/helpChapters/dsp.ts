@@ -310,7 +310,8 @@ const DSP_CHAPTERS = [
         still: '47-mic.png',
         controls: [
           {
-            target: '.mic-rail__own',
+            // The maker's own effects: the first row, over the rack's switch.
+            target: '.mic-rail > .dsp-rail-row:first-child',
             name: 'mic.stage.own',
             text: 'help.mic.own',
           },
@@ -320,7 +321,7 @@ const DSP_CHAPTERS = [
             text: 'help.mic.master',
           },
           {
-            target: '.mic-rail > .mic-rail__row:not(.mic-rail__own)',
+            target: '.mic-rail > .mic-rail__master ~ .dsp-rail-row',
             name: 'help.mic.stagesName',
             text: 'help.mic.stages',
           },
