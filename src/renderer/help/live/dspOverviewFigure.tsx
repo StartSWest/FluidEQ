@@ -176,6 +176,7 @@ export default function DspOverviewDrawing() {
           active="maximizer"
           onSelect={nothing}
           enabled={ENABLED}
+          onToggle={nothing}
           filtersDisabled={false}
           playbackDisabled={false}
         />

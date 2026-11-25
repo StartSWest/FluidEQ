@@ -9,11 +9,11 @@ import type { IDspSettings } from '../../common/dsp/chain';
 import type { ErrorDescription } from '../../common/errors';
 import DspSectionIcon from '../dsp/DspSectionIcon';
 import { dspPresetCatalog } from '../dsp/dspPresetCatalog';
+import { dspStageIsOn } from '../dsp/dspStageSwitch';
 import { DSP_LEVEL_SECTIONS, DSP_SECTIONS } from '../dsp/sections';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { openGamingLab } from './gamingLabEvents';
-import { rackStageIsOn } from './gamingStages';
 import { putMusicSoundBack } from './useGameSound';
 
 interface IDspPausedForGameProps {
@@ -44,7 +44,7 @@ const DspPausedForGame = ({ gameName, musicDsp }: IDspPausedForGameProps) => {
       : undefined) ?? t('dsp.eqPreset.custom');
   const waiting = musicDsp
     ? [...DSP_LEVEL_SECTIONS, ...DSP_SECTIONS].filter(
-        ({ id }) => id !== 'crossfade' && rackStageIsOn(id, musicDsp),
+        ({ id }) => id !== 'crossfade' && dspStageIsOn(id, musicDsp),
       )
     : undefined;
 

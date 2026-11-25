@@ -22,6 +22,8 @@ interface IDspCrossfadeCardProps {
   crossfade: ICrossfadeSettings;
   onPatch: (next: ICrossfadeSettings) => void;
   onCommit: () => void;
+  /** The stage's power switch, the same edit as the rail's (`dspStageSwitch`). */
+  onToggle: () => void;
 }
 
 const CURVE_LABELS: Record<TCrossfadeCurve, TranslationKey> = {
@@ -104,6 +106,7 @@ const DspCrossfadeCard = ({
   crossfade,
   onPatch,
   onCommit,
+  onToggle,
 }: IDspCrossfadeCardProps) => {
   const { t } = useTranslation();
   const meter = useDspCrossfadeMeter();
@@ -133,10 +136,7 @@ const DspCrossfadeCard = ({
       titleKey="dsp.crossfade.title"
       descriptionKey="dsp.crossfade.description"
       isEnabled={crossfade.enabled}
-      onToggle={() => {
-        onPatch({ ...crossfade, enabled: !crossfade.enabled });
-        onCommit();
-      }}
+      onToggle={onToggle}
     >
       <div className="dsp-crossfade-layout">
         {/*

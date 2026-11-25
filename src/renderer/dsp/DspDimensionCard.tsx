@@ -35,6 +35,8 @@ interface IDspDimensionCardProps {
   dimension: IDimensionSettings;
   onPatch: (next: IDimensionSettings) => void;
   onCommit: () => void;
+  /** The stage's power switch, the same edit as the rail's (`dspStageSwitch`). */
+  onToggle: () => void;
 }
 
 /**
@@ -125,6 +127,7 @@ const DspDimensionCard = ({
   dimension,
   onPatch,
   onCommit,
+  onToggle,
 }: IDspDimensionCardProps) => {
   const { t } = useTranslation();
   const sampleRate = useDspSampleRate();
@@ -144,10 +147,7 @@ const DspDimensionCard = ({
       id="dsp-dimension"
       titleKey="dsp.dimension.title"
       isEnabled={dimension.enabled}
-      onToggle={() => {
-        onPatch({ ...dimension, enabled: !dimension.enabled });
-        onCommit();
-      }}
+      onToggle={onToggle}
       toolbar={
         <DspDimensionBar
           dimension={dimension}

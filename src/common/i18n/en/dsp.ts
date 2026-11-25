@@ -154,6 +154,8 @@ const dsp = {
   'dsp.normalizer.mode': 'Normalization mode',
   'dsp.rail.levelGroup': 'Source level',
   'dsp.rail.filtersGroup': 'Filters',
+  'dsp.rail.turnOff': 'Turn {name} off',
+  'dsp.rail.turnOn': 'Turn {name} on',
   'dsp.normalizer.independent':
     'Separate from presets: picking one never changes it, and changing it keeps your preset.',
   'dsp.normalizer.off': 'Off',

@@ -72,34 +72,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // *** The rail ************************************************************
 
-// Each row: the stage's own button, then its switch beside it (a switch
-// cannot live inside the button that chooses the stage). The switch is the
-// app's, at the size a tight row may set (`Switch.scss`).
-.mic-rail__row {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-
-  > .dsp-rail-tab {
-    min-width: 0;
-    flex: 1 1 auto;
-  }
-
-  &.is-off .dsp-rail-name {
-    opacity: 0.55;
-  }
-}
-
-.mic-rail__switch {
-  display: inline-flex;
-  flex: 0 0 auto;
-  padding-right: 10px;
-
-  .switch {
-    --switch-width: 32px;
-    --switch-height: 17px;
-  }
-}
+// Each row and its switch are the rails' own (`DspRailRow`, `_dspRail.scss`),
+// shared with the DSP page and the Gaming Lab.
 
 // The whole mic, over its stages.
 .mic-rail__master {
@@ -110,10 +84,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   padding: 2px 0 10px 12px;
   border-bottom: 1px solid $studio-hair;
   font-size: $studio-text-row;
-
-  .mic-rail__switch {
-    padding-right: 10px;
-  }
 }
 
 .mic-rail__master-name {
@@ -147,7 +117,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   transform: scaleY(0.12);
   transform-origin: bottom;
 
-  .mic-rail__row.is-off & {
+  .dsp-rail-row.is-off & {
     background: color-mix(in srgb, $text-primary 22%, transparent);
     transform: scaleY(0.12);
   }

@@ -24,6 +24,8 @@ interface IDspMasterCardProps {
   loudness: IMasterLoudnessBreakdown;
   onPatch: (next: IMasterSettings) => void;
   onCommit: () => void;
+  /** The stage's power switch, the same edit as the rail's (`dspStageSwitch`). */
+  onToggle: () => void;
 }
 
 /** The final level, deliberately last in the visible chain. */
@@ -32,6 +34,7 @@ const DspMasterCard = ({
   loudness,
   onPatch,
   onCommit,
+  onToggle,
 }: IDspMasterCardProps) => {
   const { t } = useTranslation();
   // No headroom meter on this component: it changes with every host frame,
@@ -54,10 +57,7 @@ const DspMasterCard = ({
       id="dsp-master"
       titleKey="dsp.master.title"
       isEnabled={master.enabled}
-      onToggle={() => {
-        onPatch({ ...master, enabled: !master.enabled });
-        onCommit();
-      }}
+      onToggle={onToggle}
       toolbar={
         <DspMasterBar master={master} onChange={onPatch} onCommit={onCommit} />
       }

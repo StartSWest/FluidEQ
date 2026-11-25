@@ -129,6 +129,8 @@ const dsp = {
   'dsp.normalizer.mode': '正規化模式',
   'dsp.rail.levelGroup': '音源電平',
   'dsp.rail.filtersGroup': '濾鏡',
+  'dsp.rail.turnOff': '關閉{name}',
+  'dsp.rail.turnOn': '開啟{name}',
   'dsp.normalizer.independent':
     '與預設組無關：選擇預設組不會改變它，修改它也會保留你的預設組。',
   'dsp.normalizer.off': '關閉',

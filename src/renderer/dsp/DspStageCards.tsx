@@ -23,6 +23,7 @@ import DspMasterCard from './DspMasterCard';
 import DspMaximizerCard from './DspMaximizerCard';
 import DspNormalizerCard from './DspNormalizerCard';
 import DspRoomCard from './DspRoomCard';
+import { turnDspStage } from './dspStageSwitch';
 import { masterLoudnessBreakdown } from './inputNormalizer';
 import { TDspSection } from './sections';
 import {
@@ -90,6 +91,9 @@ const DspStageCards = ({
   const sampleRate = useDspSampleRate();
   const inputAnalysis = useDspInputAnalysis();
   const voiceModel = useVoiceModel();
+  // The card's power switch makes the rail's edit, so the two can never
+  // turn a stage off differently.
+  const toggle = () => turnDspStage(section, settings, onPatch, onCommit);
 
   switch (section) {
     case 'normalizer':
@@ -101,6 +105,7 @@ const DspStageCards = ({
           // or turning a dial never turns the chain's name into Custom.
           onPatch={(next) => onPatch({ normalizer: next }, true)}
           onCommit={onCommit}
+          onToggle={toggle}
         />
       );
     case 'denoise':
@@ -115,6 +120,7 @@ const DspStageCards = ({
           onRescan={() => requestDspNoiseRescan(inputAnalysis.trackId)}
           onPatch={(next) => onPatch({ denoise: next })}
           onCommit={onCommit}
+          onToggle={toggle}
         />
       );
     case 'deEsser':
@@ -123,6 +129,7 @@ const DspStageCards = ({
           deEsser={deEsser}
           onPatch={(next) => onPatch({ deEsser: next })}
           onCommit={onCommit}
+          onToggle={toggle}
         />
       );
     case 'crossfade':
@@ -133,6 +140,7 @@ const DspStageCards = ({
           // sound, so editing one does not turn the chain label Custom.
           onPatch={(next) => onPatch({ crossfade: next }, true)}
           onCommit={onCommit}
+          onToggle={toggle}
         />
       );
     case 'eq':
@@ -141,10 +149,7 @@ const DspStageCards = ({
           id="dsp-eq"
           titleKey="dsp.eq.title"
           isEnabled={eq.enabled}
-          onToggle={() => {
-            onPatch({ eq: { ...eq, enabled: !eq.enabled, isolate: false } });
-            onCommit();
-          }}
+          onToggle={toggle}
           beforePower={
             <div
               className="dsp-monitor-isolate"
@@ -195,6 +200,7 @@ const DspStageCards = ({
           game={{ footsteps, room }}
           onPatch={(next) => onPatch(next)}
           onCommit={onCommit}
+          onToggle={toggle}
         />
       );
     case 'exciter':
@@ -203,6 +209,7 @@ const DspStageCards = ({
           exciter={exciter}
           onPatch={(next) => onPatch({ exciter: next })}
           onCommit={onCommit}
+          onToggle={toggle}
         />
       );
     case 'bassForge':
@@ -211,6 +218,7 @@ const DspStageCards = ({
           bassForge={bassForge}
           onPatch={(next) => onPatch({ bassForge: next })}
           onCommit={onCommit}
+          onToggle={toggle}
         />
       );
     case 'bassPunch':
@@ -219,6 +227,7 @@ const DspStageCards = ({
           bassPunch={bassPunch}
           onPatch={(next) => onPatch({ bassPunch: next })}
           onCommit={onCommit}
+          onToggle={toggle}
         />
       );
     case 'dimension':
@@ -227,6 +236,7 @@ const DspStageCards = ({
           dimension={dimension}
           onPatch={(next) => onPatch({ dimension: next })}
           onCommit={onCommit}
+          onToggle={toggle}
         />
       );
     case 'room':
@@ -236,6 +246,7 @@ const DspStageCards = ({
           live={roomLive}
           onPatch={(next) => onPatch({ room: next })}
           onCommit={onCommit}
+          onToggle={toggle}
         />
       );
     case 'dynamics':
@@ -244,6 +255,7 @@ const DspStageCards = ({
           dynamics={settings.dynamics}
           onPatch={(next) => onPatch({ dynamics: next })}
           onCommit={onCommit}
+          onToggle={toggle}
         />
       );
     case 'maximizer':
@@ -252,6 +264,7 @@ const DspStageCards = ({
           maximizer={maximizer}
           onPatch={(next) => onPatch({ maximizer: next })}
           onCommit={onCommit}
+          onToggle={toggle}
         />
       );
     case 'master':
@@ -265,6 +278,7 @@ const DspStageCards = ({
           )}
           onPatch={(next) => onPatch({ master: next })}
           onCommit={onCommit}
+          onToggle={toggle}
         />
       );
     default:

@@ -14,7 +14,13 @@ import {
   yoursGamingProfileId,
 } from '../../common/gaming';
 import type { TranslationKey } from '../../common/i18n/en';
-import { useDspSettings } from '../dsp/store';
+import { turnDspStage } from '../dsp/dspStageSwitch';
+import type { TDspSection } from '../dsp/sections';
+import {
+  persistDspSettings,
+  readDspSettings,
+  useDspSettings,
+} from '../dsp/store';
 import useOutputName from '../player/useOutputName';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import {
@@ -30,7 +36,7 @@ import {
   GamingProfilePick,
 } from './GamingGameHead';
 import GamingSaveMenu from './GamingSaveMenu';
-import GamingStageEditor from './GamingStageEditor';
+import GamingStageEditor, { patchPlayingRack } from './GamingStageEditor';
 import GamingStageRail from './GamingStageRail';
 import GamingStageWaiting from './GamingStageWaiting';
 import { gamingProfileEntry } from './gamingCatalog';
@@ -114,20 +120,31 @@ const GamingGamePanel = ({
     startFrom(id);
   };
 
-  const lamps = isLoaded
-    ? Object.fromEntries(
-        GAME_SOUND_PARTS.map((part) => [
-          part,
-          gamingStageIsOn(part, rack, {
-            hasBands: Object.values(filters).some((band) => band.gain !== 0),
-            tone,
-            hasCurve:
-              Boolean(headphone) ||
-              Boolean(headset) ||
-              playingPreset !== undefined,
-          }),
-        ]),
-      )
+  const playing = isLoaded
+    ? {
+        lamps: Object.fromEntries(
+          GAME_SOUND_PARTS.map((part) => [
+            part,
+            gamingStageIsOn(part, rack, {
+              hasBands: Object.values(filters).some((band) => band.gain !== 0),
+              tone,
+              hasCurve:
+                Boolean(headphone) ||
+                Boolean(headset) ||
+                playingPreset !== undefined,
+            }),
+          ]),
+        ),
+        // The edit the stage card's own switch makes, on the rack playing
+        // now, which is this game's copy (`GamingRackStage`).
+        onToggle: (section: TDspSection) =>
+          turnDspStage(
+            section,
+            readDspSettings(),
+            patchPlayingRack,
+            persistDspSettings,
+          ),
+      }
     : undefined;
 
   return (
@@ -227,7 +244,7 @@ const GamingGamePanel = ({
         <GamingStageRail
           active={stage}
           onSelect={setStage}
-          lamps={lamps}
+          playing={playing}
           tuned={tuned}
         />
         {isLoaded ? (

@@ -247,6 +247,59 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: $active;
 }
 
+// A STAGE'S ROW (`DspRailRow`), on the Mic tab's, the DSP page's and the
+// Gaming Lab's rails: the button that chooses the stage, then the stage's own
+// switch beside it, since a switch cannot live inside a button. The chosen
+// row's highlight is the button's, so it ends a gap before the switch, and
+// the switch stands on the rail's own floor (Ivan, 2026-11-25: "do a gap
+// between the highlight and the toggle, because it doesn't look good"; it ran
+// right up to the switch's edge).
+.dsp-rail-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+
+  > .dsp-rail-tab {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  // Switched off: its name a step quieter, as the Mic rail has read since
+  // mockup A. Not over a row already out of reach, which is quieter still.
+  &.is-off > .dsp-rail-tab:not(:disabled) .dsp-rail-name {
+    opacity: 0.55;
+  }
+
+  // The switch says on or off while it is there; the lamp comes back where
+  // the switch goes with the words (`_dspStudio.scss`, `GamingLab.scss`).
+  &.has-switch .dsp-rail-lamp {
+    display: none;
+  }
+}
+
+// The switch's column, the same width on every row whether the row has a
+// switch or not, so every button ends at one place down the rail. The app's
+// switch, at the size a tight row may set (`Switch.scss`).
+.dsp-rail-switch {
+  display: inline-flex;
+  box-sizing: content-box;
+  width: 32px;
+  flex: 0 0 auto;
+  padding-right: 10px;
+
+  .switch {
+    --switch-width: 32px;
+    --switch-height: 17px;
+  }
+
+  // A rail with no switch on any row (the Gaming Lab's, while the game's
+  // sound is not the one on) keeps no column for one.
+  .dsp-rail:not(:has(.dsp-rail-row.has-switch)) & {
+    display: none;
+  }
+}
+
 .dsp-stage {
   display: flex;
   flex: 1 1 auto;

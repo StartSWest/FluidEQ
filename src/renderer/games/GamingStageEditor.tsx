@@ -15,6 +15,7 @@ import type { TDspSection } from '../dsp/sections';
 import {
   applyDspSettings,
   persistDspSettings,
+  readDspSettings,
   useDspSettings,
 } from '../dsp/store';
 import useNativeMeters from '../dsp/useNativeMeters';
@@ -46,6 +47,24 @@ const isSoloing = (rack: IDspSettings): boolean =>
   rack.exciter.isolate ||
   rack.bassForge.isolate ||
   rack.bassPunch.isolate;
+
+/**
+ * An edit of the rack playing now - the game's own while its sound is on -
+ * from a stage's card or from its switch on the Lab's rail alike.
+ */
+export const patchPlayingRack = (
+  next: Partial<IDspSettings>,
+  preservePreset = false,
+) => {
+  const rack = readDspSettings();
+  applyDspSettings(
+    clampDspSettings({
+      ...rack,
+      ...next,
+      presetId: preservePreset ? rack.presetId : '',
+    }),
+  );
+};
 
 /**
  * One stage of the game's rack, as the DSP page draws it, editing the rack
@@ -91,15 +110,7 @@ const GamingRackStage = ({ section }: { section: TDspSection }) => {
         <DspStageCards
           section={section}
           settings={rack}
-          onPatch={(next, preservePreset = false) =>
-            applyDspSettings(
-              clampDspSettings({
-                ...latest.current,
-                ...next,
-                presetId: preservePreset ? latest.current.presetId : '',
-              }),
-            )
-          }
+          onPatch={patchPlayingRack}
           onCommit={persistDspSettings}
           isSystemWide={isSystemWide}
           roomLive={roomLive}

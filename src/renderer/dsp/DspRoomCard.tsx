@@ -51,6 +51,8 @@ interface IDspRoomCardProps {
   live: IRoomLive;
   onPatch: (next: IRoomSettings) => void;
   onCommit: () => void;
+  /** The stage's power switch, the same edit as the rail's (`dspStageSwitch`). */
+  onToggle: () => void;
 }
 
 /**
@@ -70,7 +72,13 @@ interface IDspRoomCardProps {
  * the check and pass the build on, so the lock was a promise the licence
  * cannot keep.
  */
-const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
+const DspRoomCard = ({
+  room,
+  live,
+  onPatch,
+  onCommit,
+  onToggle,
+}: IDspRoomCardProps) => {
   const { t } = useTranslation();
   // The Room is sound, and sound is not Plus. Plus is the visualizers and
   // what the server does for them; everything on this page runs on the
@@ -144,10 +152,7 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
       id="dsp-room"
       titleKey="dsp.room.title"
       isEnabled={room.enabled}
-      onToggle={() => {
-        onPatch({ ...room, enabled: !room.enabled });
-        onCommit();
-      }}
+      onToggle={onToggle}
       toolbar={
         <DspRoomBar
           room={room}

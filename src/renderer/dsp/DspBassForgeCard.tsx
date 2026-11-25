@@ -15,6 +15,8 @@ interface IDspBassForgeCardProps {
   bassForge: IBassForgeSettings;
   onPatch: (next: IBassForgeSettings) => void;
   onCommit: () => void;
+  /** The stage's power switch, the same edit as the rail's (`dspStageSwitch`). */
+  onToggle: () => void;
 }
 
 /**
@@ -34,6 +36,7 @@ const DspBassForgeCard = ({
   bassForge,
   onPatch,
   onCommit,
+  onToggle,
 }: IDspBassForgeCardProps) => {
   const { t } = useTranslation();
 
@@ -52,13 +55,7 @@ const DspBassForgeCard = ({
       id="dsp-bass-forge"
       titleKey="dsp.bassForge.title"
       isEnabled={bassForge.enabled}
-      onToggle={() => {
-        // Disarmed on the way past, as every other monitor in the rack is.
-        // Left armed under bypass, the next enable plays the stage's
-        // contribution alone with the switch that did it out of sight.
-        onPatch({ ...bassForge, enabled: !bassForge.enabled, isolate: false });
-        onCommit();
-      }}
+      onToggle={onToggle}
       toolbar={
         <DspBassForgeBar
           bassForge={bassForge}

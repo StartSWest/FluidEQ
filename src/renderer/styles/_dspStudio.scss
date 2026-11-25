@@ -244,6 +244,22 @@ SPDX-License-Identifier: GPL-3.0-or-later
   background: $active;
 }
 
+// Folded to the glyphs, a row's switch leaves the row to its button: kept in
+// line while it is hidden with the words, it held its column and pressed the
+// glyph out of the folded rail. The lamp on the glyph's corner says on or
+// off in its place.
+.dsp-rail-switch {
+  @include folded-at-rest {
+    position: absolute;
+  }
+}
+
+.dsp-rail-row.has-switch .dsp-rail-lamp {
+  @include folded-at-rest {
+    display: block;
+  }
+}
+
 // The filters' heading arrives on the rail's beat, between the level group
 // and the first filter, rather than standing there from the first frame.
 .dsp-rail-filters-label {

@@ -173,7 +173,7 @@ describe('DspPanel and the engine', () => {
     expect(
       within(rail.querySelector('.dsp-rail-level') as HTMLElement).getByRole(
         'button',
-        { name: /Normalizer/i },
+        { name: /^Normalizer$/i },
       ),
     ).toBeEnabled();
   });
@@ -187,7 +187,9 @@ describe('DspPanel and the engine', () => {
       expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeDisabled();
       expect(screen.getByRole('checkbox', { name: 'DSP' })).not.toBeChecked();
       expect(container.querySelector('.dsp-stage')).toHaveAttribute('inert');
-      expect(screen.getByRole('button', { name: /Crossfade/i })).toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: /^Crossfade$/i }),
+      ).toBeDisabled();
       act(() => claimPlayback('library'));
       expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeChecked();
       expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeEnabled();
@@ -228,7 +230,9 @@ describe('DspPanel and the engine', () => {
       );
       expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeDisabled();
       expect(container.querySelector('.dsp-stage')).toHaveAttribute('inert');
-      expect(screen.getByRole('button', { name: /Crossfade/i })).toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: /^Crossfade$/i }),
+      ).toBeDisabled();
       expect(onChange).not.toHaveBeenCalled();
     });
   });
@@ -241,7 +245,7 @@ describe('DspPanel and the engine', () => {
    */
   it('shows one processor at a time', () => {
     renderPanel();
-    fireEvent.click(screen.getByRole('button', { name: /Maximizer/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Maximizer$/i }));
     expect(
       screen.getByText(/up or down with fixed gain and limits peaks/i),
     ).toBeInTheDocument();
@@ -291,12 +295,12 @@ describe('DspPanel and the engine', () => {
     expect(
       within(rail.querySelector('.dsp-rail-level') as HTMLElement).getByRole(
         'button',
-        { name: /Normalizer/i },
+        { name: /^Normalizer$/i },
       ),
     ).toBeDisabled();
-    expect(filters.getByRole('button', { name: /Denoise/i })).toBeDisabled();
+    expect(filters.getByRole('button', { name: /^Denoise$/i })).toBeDisabled();
     const crossfadeTab = playback.getByRole('button', {
-      name: /Crossfade/i,
+      name: /^Crossfade$/i,
     });
     expect(crossfadeTab).toBeEnabled();
     fireEvent.click(crossfadeTab);

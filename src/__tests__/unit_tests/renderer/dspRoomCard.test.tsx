@@ -33,6 +33,7 @@ const renderCard = (
       live={live}
       onPatch={onPatch}
       onCommit={onCommit}
+      onToggle={jest.fn()}
     />,
   );
   return { onPatch, onCommit };

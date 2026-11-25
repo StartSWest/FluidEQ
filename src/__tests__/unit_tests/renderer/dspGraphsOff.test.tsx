@@ -130,6 +130,7 @@ const GRAPHS: IGraph[] = [
         crossfade={{ ...DSP_DEFAULTS.crossfade, enabled }}
         onPatch={ignore}
         onCommit={ignore}
+        onToggle={ignore}
       />
     ),
   },

@@ -42,6 +42,8 @@ interface IDspDenoiseCardProps {
   onRescan: () => void;
   onPatch: (next: IDenoiseSettings) => void;
   onCommit: () => void;
+  /** The stage's power switch, the same edit as the rail's (`dspStageSwitch`). */
+  onToggle: () => void;
 }
 
 const PROFILE_SOURCES: readonly {
@@ -68,6 +70,7 @@ const DspDenoiseCard = ({
   onRescan,
   onPatch,
   onCommit,
+  onToggle,
 }: IDspDenoiseCardProps) => {
   const { t } = useTranslation();
   // Two flags, not the meter: the meter moves every host frame and its live
@@ -143,13 +146,7 @@ const DspDenoiseCard = ({
       titleKey="dsp.denoise.title"
       descriptionKey="dsp.denoise.description"
       isEnabled={isEnabled}
-      onToggle={() => {
-        // Isolate is an audition, never part of the processor's saved sound.
-        // Leaving it armed under bypass makes the next enable play only the
-        // rejected residue, which sounds like the filter has destroyed audio.
-        onPatch({ ...denoise, enabled: !denoise.enabled, isolate: false });
-        onCommit();
-      }}
+      onToggle={onToggle}
       toolbar={
         <DspDenoiseBar
           denoise={denoise}

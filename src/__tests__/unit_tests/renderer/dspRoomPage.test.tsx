@@ -58,6 +58,7 @@ const Page = ({
         setRoom(next);
       }}
       onCommit={() => undefined}
+      onToggle={() => undefined}
     />
   );
 };

@@ -344,7 +344,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 // Tuned away from its profile there: the word in the colour every "tuned"
-// in the Lab wears, before the stage's lamp at the row's end.
+// in the Lab wears, at the button's end, before the stage's switch.
 .gaming-rail__tuned {
   margin-left: auto;
   padding-left: 8px;
@@ -393,6 +393,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
     top: 5px;
     left: 24px;
     margin: 0;
+  }
+
+  // No switch beside a glyph alone: the lamp on its corner says on or off,
+  // and the stage's card keeps its own switch.
+  .gaming-rail .dsp-rail-switch {
+    display: none;
+  }
+
+  .gaming-rail .dsp-rail-row.has-switch .dsp-rail-lamp {
+    display: block;
   }
 
   .gaming-rail .dsp-rail-tab:has(.gaming-rail__tuned)::after {

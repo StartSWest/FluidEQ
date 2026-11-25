@@ -25,6 +25,8 @@ interface IDspNormalizerCardProps {
   analysisState: IDspInputAnalysisState;
   onPatch: (next: IInputNormalizerSettings) => void;
   onCommit: () => void;
+  /** The stage's power switch, the same edit as the rail's (`dspStageSwitch`). */
+  onToggle: () => void;
 }
 
 const MODES: readonly {
@@ -66,6 +68,7 @@ const DspNormalizerCard = ({
   analysisState,
   onPatch,
   onCommit,
+  onToggle,
 }: IDspNormalizerCardProps) => {
   const { t } = useTranslation();
   const { analysis } = analysisState;
@@ -88,7 +91,7 @@ const DspNormalizerCard = ({
         isLive ? 'dsp.normalizer.liveDescription' : 'dsp.normalizer.description'
       }
       isEnabled={enabled}
-      onToggle={() => selectMode(enabled ? 'off' : 'truePeak')}
+      onToggle={onToggle}
     >
       <div className="dsp-normalizer-dashboard">
         <section className="dsp-normalizer-control-surface">

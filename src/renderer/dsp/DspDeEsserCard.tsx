@@ -21,6 +21,8 @@ interface IDspDeEsserCardProps {
   deEsser: IDeEsserSettings;
   onPatch: (next: IDeEsserSettings) => void;
   onCommit: () => void;
+  /** The stage's power switch, the same edit as the rail's (`dspStageSwitch`). */
+  onToggle: () => void;
 }
 
 /**
@@ -32,6 +34,7 @@ const DspDeEsserCard = ({
   deEsser,
   onPatch,
   onCommit,
+  onToggle,
 }: IDspDeEsserCardProps) => {
   const { t } = useTranslation();
   // What the window already holds, never a new ask on mount.
@@ -64,11 +67,7 @@ const DspDeEsserCard = ({
       id="dsp-de-esser"
       titleKey="dsp.deEsser.title"
       isEnabled={deEsser.enabled}
-      onToggle={() => {
-        // Disarmed on the way past, as every other monitor in the rack is.
-        onPatch({ ...deEsser, enabled: !deEsser.enabled, isolate: false });
-        onCommit();
-      }}
+      onToggle={onToggle}
       toolbar={
         <DspDeEsserBar
           deEsser={deEsser}

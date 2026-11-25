@@ -144,6 +144,8 @@ const dsp = {
   'dsp.normalizer.mode': 'ノーマライズモード',
   'dsp.rail.levelGroup': 'ソースのレベル',
   'dsp.rail.filtersGroup': 'フィルター',
+  'dsp.rail.turnOff': '{name}をオフにする',
+  'dsp.rail.turnOn': '{name}をオンにする',
   'dsp.normalizer.independent':
     'プリセットとは別です。プリセットを選んでも変わらず、変更してもプリセットはそのままです。',
   'dsp.normalizer.off': 'オフ',

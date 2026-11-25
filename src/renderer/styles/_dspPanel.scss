@@ -72,7 +72,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include animate(rise-in, $motion-base, $ease-out, $dsp-rail-offset);
 }
 
-.dsp-rail-processors > .dsp-rail-tab {
+// Each row whole, its switch with its button.
+.dsp-rail-processors > .dsp-rail-row {
   @include stagger-in(
     $count: $dsp-rail-filters,
     $step: $dsp-rail-step,

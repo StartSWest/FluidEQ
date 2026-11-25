@@ -13,6 +13,7 @@ import DspRackSwitches from './DspRackSwitches';
 import DspScopeNotice from './DspScopeNotice';
 import TitleRate from '../components/TitleRate';
 import DspSideTabs from './DspSideTabs';
+import { dspStagesOn, turnDspStage } from './dspStageSwitch';
 import { useRailWidth } from '../library/LibraryRailSplitter';
 import {
   StudioRailPin,
@@ -174,21 +175,7 @@ const DspPanel = ({
    * lifetime is the exact demand signal the host needs.
    */
   useNativeMeters();
-  const {
-    normalizer,
-    denoise,
-    deEsser,
-    crossfade,
-    eq,
-    footsteps,
-    exciter,
-    bassForge,
-    bassPunch,
-    dimension,
-    maximizer,
-    master,
-    room,
-  } = settings;
+  const { room } = settings;
   /**
    * Which channels the rack is actually on, which is not always the switch.
    *
@@ -423,22 +410,10 @@ const DspPanel = ({
           onSelect={selectSection}
           filtersDisabled={!areControlsUsable}
           playbackDisabled={!hasLibraryPlayback}
-          enabled={{
-            normalizer: normalizer.mode !== 'off',
-            denoise: denoise.enabled,
-            deEsser: deEsser.enabled,
-            crossfade: crossfade.enabled,
-            eq: eq.enabled,
-            footsteps: footsteps.enabled,
-            exciter: exciter.enabled,
-            bassForge: bassForge.enabled,
-            bassPunch: bassPunch.enabled,
-            dimension: dimension.enabled,
-            room: room.enabled,
-            dynamics: settings.dynamics.enabled,
-            maximizer: maximizer.enabled,
-            master: master.enabled,
-          }}
+          // Through `patch`, as the card's own switch goes (`DspStageCards`):
+          // one edit, so both switches always read the same.
+          onToggle={(stage) => turnDspStage(stage, settings, patch, onCommit)}
+          enabled={dspStagesOn(settings)}
         />
       </StudioRailUnderBar>
       <div className="dsp-panel dsp-studio__main">

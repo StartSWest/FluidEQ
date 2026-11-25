@@ -208,7 +208,7 @@ describe('the DSP page while the engine publishes meters', () => {
   it('updates the Master readouts without redrawing its dials', async () => {
     renderPanel();
     await screen.findByText(/played from Library only/i);
-    fireEvent.click(screen.getByRole('button', { name: /Master/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Master$/i }));
     const { rail } = mockRenders;
     const { dials } = mockRenders;
 
@@ -254,7 +254,7 @@ describe('the DSP page while the engine publishes meters', () => {
       denoise: { ...DSP_DEFAULTS.denoise, enabled: true },
     });
     await screen.findByText(/played from Library only/i);
-    fireEvent.click(screen.getByRole('button', { name: /Denoise/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Denoise$/i }));
     const { dials } = mockRenders;
 
     hostFrames((frame) =>

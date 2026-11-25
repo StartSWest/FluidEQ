@@ -22,6 +22,8 @@ interface IDspMaximizerCardProps {
   maximizer: IMaximizerSettings;
   onPatch: (next: IMaximizerSettings) => void;
   onCommit: () => void;
+  /** The stage's power switch, the same edit as the rail's (`dspStageSwitch`). */
+  onToggle: () => void;
 }
 
 /**
@@ -39,6 +41,7 @@ const DspMaximizerCard = ({
   maximizer,
   onPatch,
   onCommit,
+  onToggle,
 }: IDspMaximizerCardProps) => {
   const { t } = useTranslation();
 
@@ -57,10 +60,7 @@ const DspMaximizerCard = ({
       id="dsp-maximizer"
       titleKey="dsp.maximizer.title"
       isEnabled={maximizer.enabled}
-      onToggle={() => {
-        onPatch({ ...maximizer, enabled: !maximizer.enabled });
-        onCommit();
-      }}
+      onToggle={onToggle}
       toolbar={
         <DspMaximizerBar
           maximizer={maximizer}

@@ -24,6 +24,8 @@ interface IDspExciterCardProps {
   exciter: IExciterSettings;
   onPatch: (next: IExciterSettings) => void;
   onCommit: () => void;
+  /** The stage's power switch, the same edit as the rail's (`dspStageSwitch`). */
+  onToggle: () => void;
 }
 
 const BAND_LABELS: TranslationKey[] = [
@@ -44,6 +46,7 @@ const DspExciterCard = ({
   exciter,
   onPatch,
   onCommit,
+  onToggle,
 }: IDspExciterCardProps) => {
   const { t } = useTranslation();
 
@@ -73,14 +76,7 @@ const DspExciterCard = ({
       id="dsp-exciter"
       titleKey="dsp.exciter.title"
       isEnabled={exciter.enabled}
-      onToggle={() => {
-        onPatch({
-          ...exciter,
-          enabled: !exciter.enabled,
-          isolate: false,
-        });
-        onCommit();
-      }}
+      onToggle={onToggle}
       beforePower={
         <div
           className="dsp-exciter-isolate"

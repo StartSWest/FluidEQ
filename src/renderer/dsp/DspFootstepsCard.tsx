@@ -23,6 +23,8 @@ interface IDspFootstepsCardProps {
   game: IGameRack;
   onPatch: (next: Partial<IGameRack>) => void;
   onCommit: () => void;
+  /** The stage's power switch, the same edit as the rail's (`dspStageSwitch`). */
+  onToggle: () => void;
 }
 
 /**
@@ -38,6 +40,7 @@ const DspFootstepsCard = ({
   game,
   onPatch,
   onCommit,
+  onToggle,
 }: IDspFootstepsCardProps) => {
   const { t } = useTranslation();
   const { footsteps } = game;
@@ -70,17 +73,7 @@ const DspFootstepsCard = ({
       id="dsp-footsteps"
       titleKey="dsp.footsteps.title"
       isEnabled={footsteps.enabled}
-      onToggle={() => {
-        // Disarmed on the way past, as every other monitor in the rack is.
-        onPatch({
-          footsteps: {
-            ...footsteps,
-            enabled: !footsteps.enabled,
-            isolate: false,
-          },
-        });
-        onCommit();
-      }}
+      onToggle={onToggle}
       toolbar={
         <DspFootstepsBar game={game} onChange={onPatch} onCommit={onCommit} />
       }

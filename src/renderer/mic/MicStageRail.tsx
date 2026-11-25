@@ -17,6 +17,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useRef } from 'react';
 import type { IDspSettings } from '../../common/dsp/chain';
 import type { TranslationKey } from '../../common/i18n';
+import DspRailRow from '../dsp/DspRailRow';
 import DspSectionIcon from '../dsp/DspSectionIcon';
 import type { TDspSection } from '../dsp/sections';
 import { useTranslation } from '../utils/I18nContext';
@@ -356,10 +357,15 @@ const MicStageRail = ({
       {/* The maker's own effects run ahead of everything below and are not
           the rack's, so the rack's switch does not govern them: a row of
           their own, first, as the voice meets them. */}
-      <div
-        className={`mic-rail__row mic-rail__own${ownEffects.on ? '' : ' is-off'}${
-          active === 'own' ? ' is-active' : ''
-        }`}
+      <DspRailRow
+        name={t('mic.stage.own')}
+        isOff={!ownEffects.on}
+        power={{
+          id: 'mic-rail-own',
+          isOn: ownEffects.on,
+          isDisabled: !ownEffects.available,
+          onToggle: onOwnToggle,
+        }}
       >
         <button
           type="button"
@@ -375,16 +381,7 @@ const MicStageRail = ({
             {t('mic.stage.own')}
           </span>
         </button>
-        <span className="mic-rail__switch studio-rail__word">
-          <Switch
-            id="mic-rail-own"
-            isOn={ownEffects.on}
-            isDisabled={!ownEffects.available}
-            handleToggle={onOwnToggle}
-            ariaLabel={t('mic.stage.own')}
-          />
-        </span>
-      </div>
+      </DspRailRow>
       <div className="mic-rail__master">
         <span className="mic-rail__master-name studio-rail__word">
           {t('mic.rail.master')}
@@ -394,7 +391,7 @@ const MicStageRail = ({
         </span>
         {/* Folded with the words, as each stage's switch is: left out, a
             sliver of it showed past the folded rail's edge. */}
-        <span className="mic-rail__switch studio-rail__word">
+        <span className="dsp-rail-switch studio-rail__word">
           <Switch
             id="mic-rail-master"
             isOn={settings.enabled}
@@ -408,11 +405,16 @@ const MicStageRail = ({
         const on = settings.enabled && micStageOn(settings, id);
         const switched = micStageOn(settings, id);
         return (
-          <div
+          <DspRailRow
             key={id}
-            className={`mic-rail__row${on ? '' : ' is-off'}${
-              id === active ? ' is-active' : ''
-            }`}
+            name={t(labelKey)}
+            isOff={!on}
+            power={{
+              id: `mic-rail-${id}`,
+              isOn: switched,
+              isDisabled: !settings.enabled,
+              onToggle: () => onToggle(id),
+            }}
           >
             <button
               type="button"
@@ -442,16 +444,7 @@ const MicStageRail = ({
                 {delayText(id, on)}
               </span>
             </button>
-            <span className="mic-rail__switch studio-rail__word">
-              <Switch
-                id={`mic-rail-${id}`}
-                isOn={switched}
-                isDisabled={!settings.enabled}
-                handleToggle={() => onToggle(id)}
-                ariaLabel={t(labelKey)}
-              />
-            </span>
-          </div>
+          </DspRailRow>
         );
       })}
       <p className="mic-rail__note studio-rail__word">{t('mic.rail.note')}</p>

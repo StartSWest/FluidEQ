@@ -110,6 +110,7 @@ it('keeps negative drive in the real Maximizer dial range', () => {
       maximizer={{ ...settings, driveDb: -2.75 }}
       onPatch={patch}
       onCommit={jest.fn()}
+      onToggle={jest.fn()}
     />,
   );
   const drive = screen.getByRole('slider', { name: 'Drive' });

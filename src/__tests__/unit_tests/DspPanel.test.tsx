@@ -190,7 +190,8 @@ describe('DspPanel', () => {
       'Master',
     ].forEach((name) => {
       expect(
-        rail.getByRole('button', { name: new RegExp(name, 'i') }),
+        // The whole name: each row's switch says it too ("Turn Room off").
+        rail.getByRole('button', { name: new RegExp(`^${name}$`, 'i') }),
       ).toBeInTheDocument();
     });
     const filters = within(
@@ -199,8 +200,10 @@ describe('DspPanel', () => {
     const playback = within(
       railElement.querySelector('.dsp-rail-playback') as HTMLElement,
     );
-    expect(filters.queryByRole('button', { name: /Crossfade/i })).toBeNull();
-    expect(playback.getByRole('button', { name: /Crossfade/i })).toBeVisible();
+    expect(filters.queryByRole('button', { name: /^Crossfade$/i })).toBeNull();
+    expect(
+      playback.getByRole('button', { name: /^Crossfade$/i }),
+    ).toBeVisible();
     expect(playback.getByText('Playback options')).toBeVisible();
   });
 
@@ -223,7 +226,7 @@ describe('DspPanel', () => {
 
   it('opens the Dynamics curves and applies its Punch preset', () => {
     const { onChange } = renderPanel();
-    fireEvent.click(screen.getByRole('button', { name: /Dynamics/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Dynamics$/i }));
     const card = screen.getByRole('region', { name: /Dynamics/i });
     expect(
       within(card).getAllByRole('group', {
@@ -254,7 +257,7 @@ describe('DspPanel', () => {
    */
   it('says the exciter invents its harmonics once its page is open', () => {
     renderPanel();
-    fireEvent.click(screen.getByRole('button', { name: /Exciter/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Exciter$/i }));
     expect(screen.getByText(/never in the signal/i)).toBeInTheDocument();
   });
 
@@ -266,7 +269,7 @@ describe('DspPanel', () => {
    */
   it('gives Bass Forge a page with a dial for each of its six controls', () => {
     renderPanel();
-    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Bass Forge$/i }));
     const page = within(screen.getByRole('region', { name: /Bass Forge/i }));
     ['Split', 'Sub', 'Presence', 'Texture', 'Drive', 'Amount'].forEach(
       (name) => {
@@ -283,7 +286,7 @@ describe('DspPanel', () => {
    */
   it('says the generated bass is mono, since no dial on the page can', () => {
     renderPanel();
-    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Bass Forge$/i }));
     expect(screen.getByText(/summed to mono/i)).toBeInTheDocument();
   });
 
@@ -301,7 +304,7 @@ describe('DspPanel', () => {
    */
   it('labels the graph fills by region, never by which generator made them', () => {
     const { container } = renderPanel();
-    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Bass Forge$/i }));
     const legend = container.querySelector('.dsp-bass-forge-legend');
     expect(legend).toHaveTextContent('Below split');
     expect(legend).toHaveTextContent('Above split');
@@ -323,7 +326,7 @@ describe('DspPanel', () => {
    */
   it('reads as stopped, not as running-and-quiet, while Bass Forge is off', () => {
     const { container } = renderPanel();
-    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Bass Forge$/i }));
     expect(container.querySelector('.dsp-bass-forge-display')).toHaveClass(
       'is-off',
     );
@@ -336,7 +339,7 @@ describe('DspPanel', () => {
       bassForge: { ...DSP_DEFAULTS.bassForge, enabled: true },
     };
     const { container } = renderPanel(active);
-    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Bass Forge$/i }));
     expect(container.querySelector('.dsp-bass-forge-display')).not.toHaveClass(
       'is-off',
     );
@@ -351,7 +354,7 @@ describe('DspPanel', () => {
    */
   it('resets Bass Forge to a profile that makes something', () => {
     const { onChange } = renderPanel();
-    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Bass Forge$/i }));
     // Exact, not a pattern: "Preset", "Previous preset" and "Next preset" all
     // contain the word, and the picker sits on the same bar as this button.
     const page = within(screen.getByRole('region', { name: /Bass Forge/i }));
@@ -369,7 +372,7 @@ describe('DspPanel', () => {
    */
   it('gives Bass Punch a page with a dial for each of its seven controls', () => {
     renderPanel();
-    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Bass Punch$/i }));
     const page = within(screen.getByRole('region', { name: /Bass Punch/i }));
     // Exact names, which is what separates "Bloom" from "Bloom decay" — a
     // pattern would match both and let either dial go missing unnoticed.
@@ -397,7 +400,7 @@ describe('DspPanel', () => {
       ...DSP_DEFAULTS,
       bassPunch: { ...DSP_DEFAULTS.bassPunch, enabled: true },
     });
-    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Bass Punch$/i }));
     const mix = screen.getByRole('slider', { name: 'Mix' });
     expect(mix).toHaveAttribute('aria-valuemin', '0');
     expect(mix).toHaveAttribute('aria-valuemax', '200');
@@ -413,7 +416,7 @@ describe('DspPanel', () => {
         ...DSP_DEFAULTS,
         bassPunch: { ...DSP_DEFAULTS.bassPunch, enabled: true, bloomAmount },
       });
-      fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+      fireEvent.click(screen.getByRole('button', { name: /^Bass Punch$/i }));
       const duck = screen.getByRole('slider', { name: 'Tail duck' });
       expect((duck as HTMLInputElement).disabled).toBe(bloomAmount === 0);
     },
@@ -421,7 +424,7 @@ describe('DspPanel', () => {
 
   it('keeps Attack and Sustain bipolar with the audible default profile', () => {
     renderPanel();
-    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Bass Punch$/i }));
     const page = within(screen.getByRole('region', { name: /Bass Punch/i }));
     ['Attack', 'Sustain'].forEach((name) => {
       const dial = page.getByRole('slider', { name });
@@ -448,7 +451,7 @@ describe('DspPanel', () => {
    */
   it('reads as stopped, not as running-and-flat, while Bass Punch is off', () => {
     const { container } = renderPanel();
-    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Bass Punch$/i }));
     expect(container.querySelector('.dsp-bass-punch-display')).toHaveClass(
       'is-off',
     );
@@ -461,7 +464,7 @@ describe('DspPanel', () => {
       bassPunch: { ...DSP_DEFAULTS.bassPunch, enabled: true },
     };
     const { container } = renderPanel(active);
-    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Bass Punch$/i }));
     expect(container.querySelector('.dsp-bass-punch-display')).not.toHaveClass(
       'is-off',
     );
@@ -477,7 +480,7 @@ describe('DspPanel', () => {
    */
   it('says why the attack lane is drawn as marks and the others as traces', () => {
     renderPanel();
-    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Bass Punch$/i }));
     expect(screen.getByText(/separate marks/i)).toBeInTheDocument();
   });
 
@@ -488,7 +491,7 @@ describe('DspPanel', () => {
    */
   it('resets Bass Punch to a profile that shapes something', () => {
     const { onChange } = renderPanel();
-    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Bass Punch$/i }));
     const page = within(screen.getByRole('region', { name: /Bass Punch/i }));
     fireEvent.click(page.getByRole('button', { name: 'Reset' }));
     const next = onChange.mock.calls[0][0] as IDspSettings;

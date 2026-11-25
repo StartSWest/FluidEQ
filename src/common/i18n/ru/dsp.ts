@@ -145,6 +145,8 @@ const dsp = {
   'dsp.normalizer.mode': 'Режим нормализации',
   'dsp.rail.levelGroup': 'Уровень источника',
   'dsp.rail.filtersGroup': 'Фильтры',
+  'dsp.rail.turnOff': 'Выключить «{name}»',
+  'dsp.rail.turnOn': 'Включить «{name}»',
   'dsp.normalizer.independent':
     'Не зависит от пресетов: выбор пресета его не меняет, а его изменение сохраняет пресет.',
   'dsp.normalizer.off': 'Выкл.',

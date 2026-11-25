@@ -21,6 +21,8 @@ interface IDspDynamicsCardProps {
   dynamics: IDynamicsSettings;
   onPatch: (next: IDynamicsSettings) => void;
   onCommit: () => void;
+  /** The stage's power switch, the same edit as the rail's (`dspStageSwitch`). */
+  onToggle: () => void;
 }
 
 /**
@@ -33,6 +35,7 @@ const DspDynamicsCard = ({
   dynamics,
   onPatch,
   onCommit,
+  onToggle,
 }: IDspDynamicsCardProps) => {
   const { t } = useTranslation();
   // What the window already holds, never a new ask on mount.
@@ -50,10 +53,7 @@ const DspDynamicsCard = ({
       id="dsp-dynamics"
       titleKey="dsp.dynamics.title"
       isEnabled={dynamics.enabled}
-      onToggle={() => {
-        onPatch({ ...dynamics, enabled: !dynamics.enabled });
-        onCommit();
-      }}
+      onToggle={onToggle}
       toolbar={
         <DspDynamicsBar
           dynamics={dynamics}

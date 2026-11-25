@@ -151,6 +151,7 @@ describe("the Dimension card's guard", () => {
         dimension={{ ...DSP_DEFAULTS.dimension, enabled: true }}
         onPatch={ignore}
         onCommit={ignore}
+        onToggle={ignore}
       />,
     );
 

@@ -16,11 +16,12 @@ import type { IGameCopySound } from '../../common/gaming';
 import type { TranslationKey } from '../../common/i18n/en';
 import { hasTone } from '../../common/tone';
 import { presetLayerNameOf } from '../dsp/dspPresetCatalog';
+import { dspStageIsOn } from '../dsp/dspStageSwitch';
 import type { TDspSection } from '../dsp/sections';
 import { useTranslation } from '../utils/I18nContext';
 import GamingProfileCurve from './GamingProfileCurve';
 import rackStageProfileKey from './gamingStageProfile';
-import { GAMING_STAGES, rackStageIsOn, TGamingStage } from './gamingStages';
+import { GAMING_STAGES, TGamingStage } from './gamingStages';
 
 /**
  * Where 20 Hz, 100 Hz, 1 kHz and 10 kHz stand on the curve's 20 Hz-20 kHz
@@ -174,10 +175,10 @@ const GamingSoundSheet = ({
     : t('gaming.profiles.noCurve');
 
   const playing = RACK_STAGES.filter(({ id }) =>
-    rackStageIsOn(id as TDspSection, dsp),
+    dspStageIsOn(id as TDspSection, dsp),
   );
   const resting = RACK_STAGES.filter(
-    ({ id }) => !rackStageIsOn(id as TDspSection, dsp),
+    ({ id }) => !dspStageIsOn(id as TDspSection, dsp),
   );
   const chainName = dsp.presetId ? presetLayerNameOf(dsp.presetId, t) : '';
 

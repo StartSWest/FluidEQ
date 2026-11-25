@@ -8,6 +8,7 @@ import type { IDspSettings } from '../../common/dsp/chain';
 import type { TGameSoundPart } from '../../common/gameSoundParts';
 import type { TranslationKey } from '../../common/i18n/en';
 import type { ITone } from '../../common/tone';
+import { dspStageIsOn } from '../dsp/dspStageSwitch';
 import { DSP_LEVEL_SECTIONS, DSP_SECTIONS, TDspSection } from '../dsp/sections';
 
 /**
@@ -66,14 +67,15 @@ export const GAMING_GROUP_KEYS: Record<TGamingStageGroup, TranslationKey> = {
   dsp: 'gaming.rail.dsp',
 };
 
-/** Whether a stage of a rack is switched on, as the DSP page's rail reads it. */
-export const rackStageIsOn = (
-  section: TDspSection,
-  rack: IDspSettings,
-): boolean =>
-  section === 'normalizer'
-    ? rack.normalizer.mode !== 'off'
-    : rack[section].enabled;
+/**
+ * The stage of the rack a part is, for a part with an on/off of its own: the
+ * Game filter and the rack's stages. The EQ page's two have none - the bands
+ * and the curve are on by being there.
+ */
+export const gamingStageSection = (
+  part: TGamingStage,
+): TDspSection | undefined =>
+  part === 'mainEq' || part === 'curve' ? undefined : part;
 
 /**
  * Whether a part is doing anything in the sound playing now: the rail's
@@ -100,6 +102,6 @@ export const gamingStageIsOn = (
     case 'curve':
       return sound.hasCurve;
     default:
-      return rackStageIsOn(part, rack);
+      return dspStageIsOn(part, rack);
   }
 };

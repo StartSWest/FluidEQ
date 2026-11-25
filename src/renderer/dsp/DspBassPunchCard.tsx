@@ -15,6 +15,8 @@ interface IDspBassPunchCardProps {
   bassPunch: IBassPunchSettings;
   onPatch: (next: IBassPunchSettings) => void;
   onCommit: () => void;
+  /** The stage's power switch, the same edit as the rail's (`dspStageSwitch`). */
+  onToggle: () => void;
 }
 
 /**
@@ -35,6 +37,7 @@ const DspBassPunchCard = ({
   bassPunch,
   onPatch,
   onCommit,
+  onToggle,
 }: IDspBassPunchCardProps) => {
   const { t } = useTranslation();
 
@@ -53,13 +56,7 @@ const DspBassPunchCard = ({
       id="dsp-bass-punch"
       titleKey="dsp.bassPunch.title"
       isEnabled={bassPunch.enabled}
-      onToggle={() => {
-        // Disarmed on the way past, as every other monitor in the rack is.
-        // Left armed under bypass, the next enable plays the stage's
-        // contribution alone with the switch that did it out of sight.
-        onPatch({ ...bassPunch, enabled: !bassPunch.enabled, isolate: false });
-        onCommit();
-      }}
+      onToggle={onToggle}
       toolbar={
         <DspBassPunchBar
           bassPunch={bassPunch}

@@ -13,6 +13,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { IDspSettings } from '../../common/dsp/chain';
 import { REVERB_DEFAULTS } from '../../common/dsp/reverbStage';
+import { dspStageSwitch } from '../dsp/dspStageSwitch';
 import { micStageOn, type TMicStage } from './MicStageRail';
 
 const micStageSwitch = (
@@ -45,21 +46,14 @@ const micStageSwitch = (
             voice: { ...settings.voice, enabled: true, levelEnabled: !on },
           }
         : {};
-    case 'deEsser':
-      // Disarmed on the way past, as every other monitor in the rack is.
-      return {
-        deEsser: { ...settings.deEsser, enabled: !on, isolate: false },
-      };
-    case 'eq':
-      return { eq: { ...settings.eq, enabled: !on, isolate: false } };
-    case 'dynamics':
-      return { dynamics: { ...settings.dynamics, enabled: !on } };
     case 'reverb':
       return {
         reverb: { ...(settings.reverb ?? REVERB_DEFAULTS), enabled: !on },
       };
     default:
-      return { maximizer: { ...settings.maximizer, enabled: !on } };
+      // The rack's own stages, whose cards are the DSP page's
+      // (`DspStageCards`): the edit their power switch makes.
+      return dspStageSwitch(stage, settings).patch;
   }
 };
 

@@ -144,6 +144,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     display: none;
   }
 
+  // A strip of glyphs has no room for a switch beside each: the buttons
+  // stand in the strip as they did before the rows had switches, each with
+  // its lamp.
+  .dsp-rail-row {
+    display: contents;
+
+    // The strip's own measure below, over the row's.
+    > .dsp-rail-tab {
+      min-width: 38px;
+      flex: 0 1 48px;
+    }
+  }
+
+  .dsp-rail-switch {
+    display: none;
+  }
+
+  .dsp-rail-row.has-switch .dsp-rail-lamp {
+    display: block;
+  }
+
   .dsp-rail-tab {
     position: relative;
     flex: 0 1 48px;

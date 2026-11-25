@@ -18,8 +18,10 @@ export const MIC_RAIL_WIDTH_KEY = 'fluideq.mic.railWidth';
  * width (measured in the harness, 2026-11-23), which left "Noise cancelling"
  * 52px of its 101: wide enough here for the English names on one line, as
  * mockup A drew them. A longer name wraps to a second line rather than being
- * cut (`MicRack.scss`).
+ * cut (`MicRack.scss`). 8px more since the gap that parts the chosen row's
+ * highlight from its switch (`DspRailRow`, 2026-11-25): without them "Noise
+ * cancelling" went onto two lines again.
  */
-export const MIC_RAIL_INITIAL_WIDTH = 288;
+export const MIC_RAIL_INITIAL_WIDTH = 296;
 
 export const MIC_RAIL_PINNED_KEY = 'fluideq.mic.railPinned';
