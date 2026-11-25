@@ -45,12 +45,6 @@
   }
 }
 
-.tour-lit__hint {
-  margin: 0;
-  color: $text-faint;
-  font-size: calc(var(--tour-unit) * 0.92);
-}
-
 .tour-lit__figure {
   display: grid;
   min-width: 0;
@@ -219,8 +213,52 @@
 
 // *** The first page ********************************************************
 
+// The head, then the window in everything that is left: the stage's whole
+// width, and its height down to the foot (Ivan, 2026-11-25: "the new
+// windows, the light and black we show, need to cover the whole scene").
 .tour-lit--window {
-  grid-template-rows: auto minmax(240px, 1fr) auto;
+  gap: calc(var(--tour-unit) * 1.1);
+  grid-template-rows: auto minmax(240px, 1fr);
+}
+
+// Kicker, title and lead stacked on the left, with nothing beside them.
+// It stops short of the frame's close button on the right, so it can rise
+// into the band the stage otherwise keeps clear for that button, and the
+// window has those pixels.
+.tour-lit__opener {
+  display: grid;
+  min-width: 0;
+  padding-inline-end: 48px;
+  gap: calc(var(--tour-unit) * 0.45);
+  justify-items: start;
+
+  .tour-slide__title {
+    font-size: calc(var(--tour-unit) * 2.1);
+  }
+
+  .tour-slide__lead {
+    font-size: calc(var(--tour-unit) * 1.05);
+    line-height: 1.45;
+  }
+}
+
+.feature-tour__stage:has(> .tour-lit--window) {
+  padding-top: calc(var(--tour-unit) * 1.6);
+}
+
+// The window over its caption; the window's room takes every pixel the
+// caption leaves.
+.tour-lit__figure--window {
+  gap: calc(var(--tour-unit) * 0.6);
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+// What to do with the handle, under the window and centred on it.
+.tour-lit__hint {
+  margin: 0;
+  color: $text-faint;
+  font-size: calc(var(--tour-unit) * 0.92);
+  text-align: center;
 }
 
 // Its room is a container, so the window takes the largest size of its own
@@ -356,61 +394,7 @@
   right: 12px;
 }
 
-// The six that follow, each a way to its slide.
-.tour-lit__chapters {
-  display: grid;
-  gap: calc(var(--tour-unit) * 0.6);
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-}
-
-.tour-lit__chapter {
-  display: grid;
-  align-content: start;
-  padding: calc(var(--tour-unit) * 0.75) calc(var(--tour-unit) * 0.85);
-  color: $text-primary;
-  border: 0;
-  border-radius: $radius-m;
-  background: $surface-block;
-  gap: 3px;
-  text-align: left;
-  cursor: pointer;
-  transition: $transition-control;
-
-  svg {
-    width: 18px;
-    height: 18px;
-    margin-bottom: 4px;
-    color: $secondary-light;
-  }
-
-  &:hover {
-    background: color-mix(in srgb, $edge-tint 7%, $surface-block);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-}
-
-.tour-lit__chapter-title {
-  font-size: calc(var(--tour-unit) * 0.98);
-  font-weight: $weight-semibold;
-  line-height: 1.25;
-}
-
-.tour-lit__chapter-line {
-  color: $text-faint;
-  font-size: calc(var(--tour-unit) * 0.85);
-  line-height: 1.35;
-}
-
 // *** Narrow windows ********************************************************
-
-@media (max-width: 1100px) {
-  .tour-lit__chapters {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
 
 @media (max-width: $bp-md) {
   .tour-lit--tall {
@@ -430,14 +414,10 @@
   .tour-lit__also ul {
     grid-template-columns: minmax(0, 1fr);
   }
-
-  .tour-lit__chapters {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 // A short window (a laptop's 600-odd pixels): the picture gives way first,
-// never the words, and the six ways on keep their names alone.
+// never the words.
 @media (max-height: 700px) {
   .tour-lit {
     grid-template-rows: auto minmax(150px, 1fr) auto;
@@ -445,15 +425,6 @@
   }
 
   .tour-lit--window {
-    grid-template-rows: auto minmax(150px, 1fr) auto;
-  }
-
-  .tour-lit__hint,
-  .tour-lit__chapter-line {
-    display: none;
-  }
-
-  .tour-lit__chapter {
-    padding-block: calc(var(--tour-unit) * 0.5);
+    grid-template-rows: auto minmax(180px, 1fr);
   }
 }

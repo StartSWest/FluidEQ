@@ -9,10 +9,9 @@ const tour26 = {
   'tour.v26.window.kicker': 'FLUIDEQ 2.6',
   'tour.v26.window.title': 'The whole window, redone',
   'tour.v26.window.lead':
-    'Every page is laid out like the Library now: flat and calm, with no shadows and nothing boxed in. Brightness runs from fully dark to fully white, and the Tint has a second colour for the window’s marks.',
+    'Every page flat and calm, from fully dark to fully white, with a second colour in the Tint.',
   'tour.v26.window.hint':
     'Drag the handle across the window to turn it from dark to white.',
-  'tour.v26.window.next': 'More to hear in 2.6',
   'tour.v26.window.seamLabel': 'Divider between white and dark',
   'tour.v26.window.seamValue': '{percent}% white',
   'tour.v26.window.white': 'White',

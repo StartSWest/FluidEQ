@@ -5,10 +5,9 @@ const tour26 = {
   'tour.v26.window.kicker': 'FLUIDEQ 2.6',
   'tour.v26.window.title': 'A janela inteira, refeita',
   'tour.v26.window.lead':
-    'Toda página agora segue o layout da Biblioteca: plana e calma, sem sombras e sem nada encaixotado. O Brilho vai do totalmente escuro ao totalmente branco, e o Tom tem uma segunda cor para as marcas da janela.',
+    'Toda página plana e calma, do totalmente escuro ao totalmente branco, com uma segunda cor no Tom.',
   'tour.v26.window.hint':
     'Arraste a alça pela janela para levá-la do escuro ao branco.',
-  'tour.v26.window.next': 'Mais para ouvir na 2.6',
   'tour.v26.window.seamLabel': 'Divisor entre branco e escuro',
   'tour.v26.window.seamValue': '{percent}% branca',
   'tour.v26.window.white': 'Branca',

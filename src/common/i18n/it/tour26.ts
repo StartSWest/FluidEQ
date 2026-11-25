@@ -5,10 +5,9 @@ const tour26 = {
   'tour.v26.window.kicker': 'FLUIDEQ 2.6',
   'tour.v26.window.title': 'Tutta la finestra, rifatta',
   'tour.v26.window.lead':
-    'Ogni pagina ora è disposta come la Libreria: piatta e calma, senza ombre e senza riquadri. La luminosità va dal tutto scuro al tutto bianco, e la Tinta ha un secondo colore per i segni della finestra.',
+    'Ogni pagina piatta e calma, dal tutto scuro al tutto bianco, con un secondo colore nella Tinta.',
   'tour.v26.window.hint':
     'Trascina la maniglia sulla finestra per portarla dallo scuro al bianco.',
-  'tour.v26.window.next': 'Altro da ascoltare nella 2.6',
   'tour.v26.window.seamLabel': 'Divisore tra bianco e scuro',
   'tour.v26.window.seamValue': '{percent}% bianca',
   'tour.v26.window.white': 'Bianca',

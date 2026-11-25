@@ -5,10 +5,9 @@ const tour26 = {
   'tour.v26.window.kicker': 'FLUIDEQ 2.6',
   'tour.v26.window.title': 'Toda la ventana, rehecha',
   'tour.v26.window.lead':
-    'Ahora cada página se organiza como la Biblioteca: plana y tranquila, sin sombras y sin nada encerrado en cajas. El Brillo va de totalmente oscuro a totalmente blanco, y el Tono tiene un segundo color para las marcas de la ventana.',
+    'Cada página plana y tranquila, de totalmente oscura a totalmente blanca, con un segundo color en el Tono.',
   'tour.v26.window.hint':
     'Arrastra la barra divisoria por la ventana para pasarla de oscura a blanca.',
-  'tour.v26.window.next': 'Más para escuchar en la 2.6',
   'tour.v26.window.seamLabel': 'Divisor entre blanco y oscuro',
   'tour.v26.window.seamValue': '{percent}% blanca',
   'tour.v26.window.white': 'Blanca',

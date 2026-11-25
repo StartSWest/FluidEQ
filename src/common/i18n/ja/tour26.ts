@@ -5,10 +5,9 @@ const tour26 = {
   'tour.v26.window.kicker': 'FLUIDEQ 2.6',
   'tour.v26.window.title': 'ウィンドウ全体を作り直しました',
   'tour.v26.window.lead':
-    'どのページもライブラリと同じレイアウトになりました。フラットで穏やか、影も囲みもありません。明るさは真っ暗から真っ白まで変えられ、色合いにはウィンドウの印に使う 2 つ目の色が加わりました。',
+    'どのページもフラットで穏やか。真っ暗から真っ白まで変えられ、色合いには 2 つ目の色が加わりました。',
   'tour.v26.window.hint':
     'ハンドルをウィンドウの上でドラッグすると、ダークからホワイトに変わります。',
-  'tour.v26.window.next': '2.6 で聴ける新機能をもっと',
   'tour.v26.window.seamLabel': 'ホワイトとダークの境界',
   'tour.v26.window.seamValue': 'ホワイト {percent}%',
   'tour.v26.window.white': 'ホワイト',

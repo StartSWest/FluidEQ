@@ -1,7 +1,5 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import type { TranslationKey } from '../../../common/i18n';
-import MenuIcon, { type MenuIconName } from '../../icons/MenuIcon';
 import { useTranslation } from '../../utils/I18nContext';
 import LitSlide from './LitSlide';
 import TourLiveFigure from './TourLiveFigure';
@@ -20,100 +18,32 @@ import type { ISlideActions } from './slides';
  * to hear, each on a live picture of the page it is on.
  */
 
-interface IChapter {
-  id: string;
-  icon: MenuIconName;
-  title: TranslationKey;
-  subtitle: TranslationKey;
-}
-
 /**
- * The slides that follow the first page, which it lists to jump to. Their
- * ids are the slides' own (`slides.ts`), so a press lands on that slide.
+ * The first page: a short head on the left, and under it the window, white
+ * and dark across a seam, as large as the slide holds (Ivan, 2026-11-25:
+ * "the new windows, the light and black we show, need to cover the whole
+ * scene. I don't like the text on the top right like that"). It used to end
+ * on six cards, one per slide after it; the rail beside the stage lists the
+ * same six, and every one of them cost the window height.
  */
-export const SOUND_26_CHAPTERS: readonly IChapter[] = [
-  {
-    id: 'auto-eq-26',
-    icon: 'smart',
-    title: 'tour.v26.autoEq.name',
-    subtitle: 'tour.v26.autoEq.subtitle',
-  },
-  {
-    id: 'mic-26',
-    icon: 'microphoneSettings',
-    title: 'tour.v26.mic.name',
-    subtitle: 'tour.v26.mic.subtitle',
-  },
-  {
-    id: 'eq-26',
-    icon: 'eqBars',
-    title: 'tour.v26.eq.name',
-    subtitle: 'tour.v26.eq.subtitle',
-  },
-  {
-    id: 'dynamics-26',
-    icon: 'steady',
-    title: 'tour.v26.dynamics.name',
-    subtitle: 'tour.v26.dynamics.subtitle',
-  },
-  {
-    id: 'library-26',
-    icon: 'album',
-    title: 'tour.v26.library.name',
-    subtitle: 'tour.v26.library.subtitle',
-  },
-  {
-    id: 'karaoke-26',
-    icon: 'microphone',
-    title: 'tour.v26.karaoke.name',
-    subtitle: 'tour.v26.karaoke.subtitle',
-  },
-];
-
-/**
- * The first page: the window turning from white to dark as its handle is
- * dragged, and the six things that follow, each a way straight to its slide.
- */
-export function WindowSlide({ actions }: { actions: ISlideActions }) {
+export function WindowSlide() {
   const { t } = useTranslation();
   return (
     <div className="tour-slide tour-lit tour-lit--window">
-      <header className="tour-lit__head">
-        <div className="tour-lit__name">
-          <span className="tour-slide__kicker">
-            {t('tour.v26.window.kicker')}
-          </span>
-          <h3 className="tour-slide__title">{t('tour.v26.window.title')}</h3>
-        </div>
-        <div className="tour-lit__lead">
-          <p className="tour-slide__lead">{t('tour.v26.window.lead')}</p>
-          <p className="tour-lit__hint">{t('tour.v26.window.hint')}</p>
-        </div>
+      <header className="tour-lit__opener">
+        <span className="tour-slide__kicker">
+          {t('tour.v26.window.kicker')}
+        </span>
+        <h3 className="tour-slide__title">{t('tour.v26.window.title')}</h3>
+        <p className="tour-slide__lead">{t('tour.v26.window.lead')}</p>
       </header>
 
-      <figure className="tour-lit__figure">
+      <figure className="tour-lit__figure tour-lit__figure--window">
         <TourSplitWindow />
+        <figcaption className="tour-lit__hint">
+          {t('tour.v26.window.hint')}
+        </figcaption>
       </figure>
-
-      <nav
-        className="tour-lit__chapters"
-        aria-label={t('tour.v26.window.next')}
-      >
-        {SOUND_26_CHAPTERS.map((chapter) => (
-          <button
-            key={chapter.id}
-            type="button"
-            className="tour-lit__chapter"
-            onClick={() => actions.showSlide(chapter.id)}
-          >
-            <MenuIcon name={chapter.icon} />
-            <span className="tour-lit__chapter-title">{t(chapter.title)}</span>
-            <span className="tour-lit__chapter-line">
-              {t(chapter.subtitle)}
-            </span>
-          </button>
-        ))}
-      </nav>
     </div>
   );
 }

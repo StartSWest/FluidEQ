@@ -5,10 +5,9 @@ const tour26 = {
   'tour.v26.window.kicker': 'FLUIDEQ 2.6',
   'tour.v26.window.title': '창 전체를 새롭게',
   'tour.v26.window.lead':
-    '이제 모든 페이지가 라이브러리처럼 배치됩니다. 그림자도 상자도 없이 평평하고 차분합니다. 밝기는 완전히 어두운 상태부터 완전히 흰 상태까지 조절되며, 색조에는 창의 표시에 쓰이는 두 번째 색이 생겼습니다.',
+    '모든 페이지가 평평하고 차분하며, 완전히 어두운 창부터 완전히 흰 창까지 고를 수 있고, 색조에는 두 번째 색이 생겼습니다.',
   'tour.v26.window.hint':
     '핸들을 창 위로 드래그하면 다크에서 화이트로 바뀝니다.',
-  'tour.v26.window.next': '2.6에서 들을 거리 더 보기',
   'tour.v26.window.seamLabel': '화이트와 다크의 경계',
   'tour.v26.window.seamValue': '화이트 {percent}%',
   'tour.v26.window.white': '화이트',

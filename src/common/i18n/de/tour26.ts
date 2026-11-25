@@ -5,10 +5,9 @@ const tour26 = {
   'tour.v26.window.kicker': 'FLUIDEQ 2.6',
   'tour.v26.window.title': 'Das ganze Fenster, neu gemacht',
   'tour.v26.window.lead':
-    'Jede Seite ist jetzt wie die Bibliothek aufgebaut: flach und ruhig, ohne Schatten und ohne Kästen. Die Helligkeit reicht von ganz dunkel bis ganz weiß, und der Farbton hat eine zweite Farbe für die Markierungen des Fensters.',
+    'Jede Seite flach und ruhig, von ganz dunkel bis ganz weiß, mit einer zweiten Farbe im Farbton.',
   'tour.v26.window.hint':
     'Ziehen Sie den Griff über das Fenster, um es von dunkel auf weiß zu stellen.',
-  'tour.v26.window.next': 'Mehr zu hören in 2.6',
   'tour.v26.window.seamLabel': 'Trennlinie zwischen Weiß und Dunkel',
   'tour.v26.window.seamValue': '{percent} % weiß',
   'tour.v26.window.white': 'Weiß',
