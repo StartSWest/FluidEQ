@@ -34,7 +34,6 @@ const eq: Partial<Dictionary> = {
     '把每个频段恢复到其布局的频率和Q值。增益保持不变。',
   'eq.mode.mainQHint':
     '仅适用于主EQ频段。恒定模式下Q值不随增益改变；比例和非对称模式下Q值随增益调整。',
-  'graph.item.eqLabels': 'EQ标签',
   'graph.contents.unlabelled': '无EQ标签',
   'eq.mode.linearDelayInactive': 'EQ生效时约增加 {ms} ms',
   'eq.mode.linearDelay': '约增加 {ms} ms 延迟',
@@ -750,7 +749,6 @@ const eq: Partial<Dictionary> = {
   'eq.layers.clearSmart': '移除测得的修正。你的频段和参考型号都会保留。',
   'eq.layers.clearCustom': '清除自定义效果的滤波器和文本',
   'eq.clear': '清空均衡',
-  'eq.addBand': '添加频段',
   'eq.tools.bands': '频段',
   'eq.tools.view': '视图',
   'eq.tools.add': '添加',
@@ -761,7 +759,6 @@ const eq: Partial<Dictionary> = {
   'eq.addBandAria': '添加一个均衡频段',
   'eq.quickLayouts': '快速布局',
   'eq.bandCount': '{count} 段',
-  'eq.selected': '选中的频段',
   'eq.selectedCount': '{count} 个频段',
   'eq.popover.title': '频段 {index} · {frequency}',
   'eq.popover.close': '关闭频段设置',

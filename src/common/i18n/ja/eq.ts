@@ -35,7 +35,6 @@ const eq: Partial<Dictionary> = {
     '各バンドをレイアウトの周波数とQに戻します。ゲインはそのままです。',
   'eq.mode.mainQHint':
     'メインEQのバンドのみ。一定ではゲインを変えてもQは変わりません。比例と非対称ではゲインに応じてQが変わります。',
-  'graph.item.eqLabels': 'EQラベル',
   'graph.contents.unlabelled': 'EQラベルなし',
   'eq.mode.linearDelayInactive': 'EQ有効時 約+{ms} ms',
   'eq.mode.linearDelay': '遅延 約+{ms} ms',
@@ -790,7 +789,6 @@ const eq: Partial<Dictionary> = {
     '測定した補正を外します。バンドとリファレンス機種はそのまま残ります。',
   'eq.layers.clearCustom': 'カスタム FX のフィルターとテキストを消去',
   'eq.clear': 'EQ をクリア',
-  'eq.addBand': 'バンドを追加',
   'eq.tools.bands': 'バンド',
   'eq.tools.view': '表示',
   'eq.tools.add': '追加',
@@ -801,7 +799,6 @@ const eq: Partial<Dictionary> = {
   'eq.addBandAria': 'EQ バンドを追加',
   'eq.quickLayouts': 'クイックレイアウト',
   'eq.bandCount': '{count} バンド',
-  'eq.selected': '選択中のバンド',
   'eq.selectedCount': '{count} バンド',
   'eq.popover.title': 'バンド {index} · {frequency}',
   'eq.popover.close': 'バンドの設定を閉じる',

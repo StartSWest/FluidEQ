@@ -35,7 +35,6 @@ const eq: Partial<Dictionary> = {
     'Remet chaque bande à la fréquence et au Q de sa disposition. Les gains restent tels quels.',
   'eq.mode.mainQHint':
     'Bandes de l’EQ principal uniquement. Constant conserve le Q quand le gain change. Proportionnel et Asymétrique adaptent le Q au gain.',
-  'graph.item.eqLabels': 'étiquettes de l’EQ',
   'graph.contents.unlabelled': 'Sans étiquettes de l’EQ',
   'eq.mode.linearDelayInactive': '≈ +{ms} ms avec EQ actif',
   'eq.mode.linearDelay': '≈ +{ms} ms de retard',
@@ -812,7 +811,6 @@ const eq: Partial<Dictionary> = {
   'eq.layers.clearCustom':
     'Effacer les filtres et le texte des FX personnalisés',
   'eq.clear': 'Vider l’égaliseur',
-  'eq.addBand': 'Ajouter une bande',
   'eq.tools.bands': 'Bandes',
   'eq.tools.view': 'Affichage',
   'eq.tools.add': 'Ajouter',
@@ -823,7 +821,6 @@ const eq: Partial<Dictionary> = {
   'eq.addBandAria': 'Ajouter une bande d’égalisation',
   'eq.quickLayouts': 'Dispositions rapides',
   'eq.bandCount': '{count} bandes',
-  'eq.selected': 'Bande sélectionnée',
   'eq.selectedCount': '{count} bandes',
   'eq.popover.title': 'Bande {index} · {frequency}',
   'eq.popover.close': 'Fermer les réglages de la bande',

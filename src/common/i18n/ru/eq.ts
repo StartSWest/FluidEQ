@@ -35,7 +35,6 @@ const eq: Partial<Dictionary> = {
     'Возвращает каждую полосу к частоте и Q её раскладки. Усиление остаётся прежним.',
   'eq.mode.mainQHint':
     'Только полосы основного EQ. Постоянный Q не меняется при изменении усиления. Пропорциональный и асимметричный режимы меняют Q в зависимости от усиления.',
-  'graph.item.eqLabels': 'подписи EQ',
   'graph.contents.unlabelled': 'Без подписей EQ',
   'eq.mode.linearDelayInactive': '≈ +{ms} мс с активным EQ',
   'eq.mode.linearDelay': '≈ +{ms} мс задержки',
@@ -799,7 +798,6 @@ const eq: Partial<Dictionary> = {
     'Убрать измеренную коррекцию. Ваши полосы и эталон останутся на месте.',
   'eq.layers.clearCustom': 'Очистить фильтры и текст пользовательских FX',
   'eq.clear': 'Сбросить EQ',
-  'eq.addBand': 'Добавить полосу',
   'eq.tools.bands': 'Полосы',
   'eq.tools.view': 'Вид',
   'eq.tools.add': 'Добавить',
@@ -810,7 +808,6 @@ const eq: Partial<Dictionary> = {
   'eq.addBandAria': 'Добавить полосу эквалайзера',
   'eq.quickLayouts': 'Готовые раскладки',
   'eq.bandCount': '{count} полос',
-  'eq.selected': 'Выбранная полоса',
   'eq.selectedCount': 'Полос: {count}',
   'eq.popover.title': 'Полоса {index} · {frequency}',
   'eq.popover.close': 'Закрыть настройки полосы',

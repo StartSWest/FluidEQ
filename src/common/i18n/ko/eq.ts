@@ -18,7 +18,6 @@ const eq = {
     '모든 밴드를 레이아웃의 주파수와 Q로 되돌립니다. 게인은 그대로 둡니다.',
   'eq.mode.mainQHint':
     '메인 EQ 밴드만 해당됩니다. 게인이 이동함에 따라 상수는 Q를 변경하지 않고 유지합니다. 비례 및 비대칭은 게인으로 Q를 조정합니다.',
-  'graph.item.eqLabels': 'EQ 라벨',
   'graph.contents.unlabelled': 'EQ 라벨 없음',
   'eq.mode.linearDelayInactive': '활성 EQ가 있는 경우 ≒ +{ms} ms',
   'eq.mode.linearDelay': '≒ +{ms} ms 지연',
@@ -760,7 +759,6 @@ const eq = {
     '측정된 보정을 제거합니다. 귀하의 밴드와 참고자료는 그대로 유지됩니다.',
   'eq.layers.clearCustom': '사용자 정의 FX 필터 및 텍스트 지우기',
   'eq.clear': 'EQ 지우기',
-  'eq.addBand': '밴드 추가',
   'eq.tools.bands': '밴드',
   'eq.tools.view': '보기',
   'eq.tools.add': '추가',
@@ -771,7 +769,6 @@ const eq = {
   'eq.addBandAria': 'EQ 밴드 추가',
   'eq.quickLayouts': '빠른 레이아웃',
   'eq.bandCount': '{count} 밴드',
-  'eq.selected': '선택한 밴드',
   'eq.selectedCount': '{count} 밴드',
   'eq.popover.title': '밴드 {index} · {frequency}',
   'eq.popover.close': '밴드 설정 닫기',

@@ -35,7 +35,6 @@ const eq: Partial<Dictionary> = {
     'हर बैंड को उसके लेआउट की फ़्रीक्वेंसी और Q पर लौटाएँ। गेन जैसे हैं वैसे रहते हैं।',
   'eq.mode.mainQHint':
     'केवल मुख्य EQ बैंड। स्थिर मोड में गेन बदलने पर Q नहीं बदलता। आनुपातिक और असममित मोड में Q गेन के अनुसार बदलता है।',
-  'graph.item.eqLabels': 'EQ लेबल',
   'graph.contents.unlabelled': 'बिना EQ लेबल',
   'eq.mode.linearDelayInactive': 'सक्रिय EQ पर ≈ +{ms} ms',
   'eq.mode.linearDelay': '≈ +{ms} ms देरी',
@@ -789,7 +788,6 @@ const eq: Partial<Dictionary> = {
     'मापा गया सुधार हटाएँ। आपके बैंड और संदर्भ मॉडल वैसे ही रहेंगे।',
   'eq.layers.clearCustom': 'कस्टम FX फ़िल्टर और टेक्स्ट साफ़ करें',
   'eq.clear': 'EQ ख़ाली करें',
-  'eq.addBand': 'बैंड जोड़ें',
   'eq.tools.bands': 'बैंड',
   'eq.tools.view': 'दृश्य',
   'eq.tools.add': 'जोड़ें',
@@ -800,7 +798,6 @@ const eq: Partial<Dictionary> = {
   'eq.addBandAria': 'EQ बैंड जोड़ें',
   'eq.quickLayouts': 'तेज़ लेआउट',
   'eq.bandCount': '{count} बैंड',
-  'eq.selected': 'चुना हुआ बैंड',
   'eq.selectedCount': '{count} बैंड',
   'eq.popover.title': 'बैंड {index} · {frequency}',
   'eq.popover.close': 'बैंड की सेटिंग बंद करें',

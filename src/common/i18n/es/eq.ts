@@ -35,7 +35,6 @@ const eq: Partial<Dictionary> = {
     'Devuelve cada banda a la frecuencia y la Q de su diseño. Las ganancias se mantienen.',
   'eq.mode.mainQHint':
     'Solo las bandas del EQ principal. Constante mantiene el Q al mover la ganancia. Proporcional y Asimétrico lo ajustan según la ganancia.',
-  'graph.item.eqLabels': 'etiquetas del EQ',
   'graph.contents.unlabelled': 'Sin etiquetas del EQ',
   'eq.mode.linearDelayInactive': '≈ +{ms} ms con EQ activo',
   'eq.mode.linearDelay': '≈ +{ms} ms de retardo',
@@ -807,7 +806,6 @@ const eq: Partial<Dictionary> = {
     'Quitar la corrección medida. Tus bandas y la referencia se mantienen.',
   'eq.layers.clearCustom': 'Borrar los filtros y el texto de FX personalizados',
   'eq.clear': 'Vaciar EQ',
-  'eq.addBand': 'Añadir banda',
   'eq.tools.bands': 'Bandas',
   'eq.tools.view': 'Vista',
   'eq.tools.add': 'Añadir',
@@ -818,7 +816,6 @@ const eq: Partial<Dictionary> = {
   'eq.addBandAria': 'Añadir una banda de EQ',
   'eq.quickLayouts': 'Diseños rápidos',
   'eq.bandCount': '{count} bandas',
-  'eq.selected': 'Banda seleccionada',
   'eq.selectedCount': '{count} bandas',
   'eq.popover.title': 'Banda {index} · {frequency}',
   'eq.popover.close': 'Cerrar los ajustes de la banda',

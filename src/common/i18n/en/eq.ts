@@ -33,7 +33,6 @@ const eq = {
     'Put every band back at its layout’s frequency and Q. Gains stay as they are.',
   'eq.mode.mainQHint':
     'Main EQ bands only. Constant keeps Q unchanged as gain moves. Proportional and Asymmetric adjust Q with gain.',
-  'graph.item.eqLabels': 'EQ labels',
   'graph.contents.unlabelled': 'Without EQ labels',
   'eq.mode.linearDelayInactive': '≈ +{ms} ms with active EQ',
   'eq.mode.linearDelay': '≈ +{ms} ms delay',
@@ -809,7 +808,6 @@ const eq = {
     'Remove the measured correction. Your bands and the reference stay.',
   'eq.layers.clearCustom': 'Clear custom FX filters and text',
   'eq.clear': 'Clear EQ',
-  'eq.addBand': 'Add band',
   'eq.tools.bands': 'Bands',
   'eq.tools.view': 'View',
   'eq.tools.add': 'Add',
@@ -820,7 +818,6 @@ const eq = {
   'eq.addBandAria': 'Add EQ band',
   'eq.quickLayouts': 'Quick layouts',
   'eq.bandCount': '{count} Band',
-  'eq.selected': 'Selected band',
   'eq.selectedCount': '{count} bands',
   'eq.popover.title': 'Band {index} · {frequency}',
   'eq.popover.close': 'Close the band settings',

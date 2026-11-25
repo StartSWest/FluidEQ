@@ -17,7 +17,6 @@ const eq = {
     '將每個頻段恢復為其版面配置的頻率與 Q。增益保持不變。',
   'eq.mode.mainQHint':
     '僅主要 EQ 頻段。隨著增益的變化，常數使 Q 值保持不變。比例與非對稱調整 Q 與增益。',
-  'graph.item.eqLabels': 'EQ 標籤',
   'graph.contents.unlabelled': '沒有 EQ 標籤',
   'eq.mode.linearDelayInactive': '≈ +{ms} ms，附主動等化器',
   'eq.mode.linearDelay': '≈ +{ms} 毫秒延遲',
@@ -727,7 +726,6 @@ const eq = {
   'eq.layers.clearSmart': '刪除測量的校正。您的頻段和參考將保留。',
   'eq.layers.clearCustom': '清除自訂 FX 過濾器和文字',
   'eq.clear': '清除 EQ',
-  'eq.addBand': '新增頻段',
   'eq.tools.bands': '頻段',
   'eq.tools.view': '檢視',
   'eq.tools.add': '新增',
@@ -738,7 +736,6 @@ const eq = {
   'eq.addBandAria': '新增 EQ 頻段',
   'eq.quickLayouts': '快速佈局',
   'eq.bandCount': '{count} 頻段',
-  'eq.selected': '所選頻段',
   'eq.selectedCount': '{count} 條帶',
   'eq.popover.title': '頻段 {index} · {frequency}',
   'eq.popover.close': '關閉頻段設定',
