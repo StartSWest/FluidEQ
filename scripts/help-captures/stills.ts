@@ -24,8 +24,10 @@ import { serve } from './serve';
  *   --skip-build        use the harness as last built
  *
  * Each picture is `<docs>/<still>`, the path its figure names (`help/<live
- * id>.png`). In English and the window's default colours, on a window as wide
- * as the guide's illustrated edition reads; run `pnpm docs:guide` after it.
+ * id>.png`), and for the figures the README shows (`PLAIN`) the same
+ * drawing without its circles in `help/plain/`. In English and the window's
+ * default colours, on a window as wide as the guide's illustrated edition
+ * reads; run `pnpm docs:guide` after it.
  */
 
 /** Wide enough that the guide's column is the illustrated edition's. */
@@ -42,6 +44,30 @@ const MUSIC_FRAMES = 45;
 
 /** Painted frames a short count of circles must hold before it is believed. */
 const STEADY_FRAMES = 60;
+
+/**
+ * The figures the README shows, also taken plain into `help/plain/<live
+ * id>.png`: the README has no list for the circles to point into, so there
+ * they would be numbers that say nothing.
+ */
+const PLAIN = new Set([
+  'config-page',
+  'convolution-page',
+  'dsp-denoise',
+  'dsp-overview',
+  'dsp-room',
+  'eq-page',
+  'gallery-scene',
+  'headphones-page',
+  'karaoke-stage',
+  'library-page',
+  'library-record',
+  'maker-editor',
+  'online-page',
+  'share-page',
+  'sound-panel',
+  'studio-bench',
+]);
 
 const argument = (name: string): string[] =>
   process.argv.flatMap((value, at) =>
@@ -104,11 +130,20 @@ const takeStill = async (page: IPage, wanted: IWanted): Promise<Buffer> => {
       `${wanted.live}: ${circles} of its ${wanted.controls} circles drawn — a control it names is not in the drawing`,
     );
   }
+  return cut(page, wanted, `${figure}?.querySelector('.help-figure__frame')`);
+};
+
+/** The part `finder` finds, as the window paints it now. */
+const cut = async (
+  page: IPage,
+  wanted: IWanted,
+  finder: string,
+): Promise<Buffer> => {
   const rect = await page.evaluate<IRect | null>(
     inPage(`
-      const frameBox = ${figure}?.querySelector('.help-figure__frame');
-      if (!frameBox) return null;
-      const box = frameBox.getBoundingClientRect();
+      const part = ${finder};
+      if (!part) return null;
+      const box = part.getBoundingClientRect();
       return { x: box.left, y: box.top, width: box.width, height: box.height };
     `),
   );
@@ -132,6 +167,34 @@ const takeStill = async (page: IPage, wanted: IWanted): Promise<Buffer> => {
     captureBeyondViewport: false,
   });
   return Buffer.from(shot.data, 'base64');
+};
+
+/**
+ * The same figure, just drawn, with no circle, lead or ring over it: for a
+ * page that shows the picture without the list its numbers point into.
+ */
+const takePlain = async (page: IPage, wanted: IWanted): Promise<Buffer> => {
+  const figure = figureIn(wanted);
+  await page.evaluate(
+    inPage(`
+      const bare = document.createElement('style');
+      bare.id = 'stills-plain';
+      bare.textContent = '.help-callouts, .help-callout, .help-figure__ring { visibility: hidden !important; }';
+      document.head.append(bare);
+      await settle();
+    `),
+  );
+  try {
+    return await cut(
+      page,
+      wanted,
+      `${figure}?.querySelector('.help-figure__live')`,
+    );
+  } finally {
+    await page.evaluate(
+      `(() => { document.getElementById('stills-plain')?.remove(); return 1; })()`,
+    );
+  }
 };
 
 const main = async () => {
@@ -229,6 +292,12 @@ const main = async () => {
           fs.mkdirSync(path.dirname(file), { recursive: true });
           writeAtomically(file, picture);
           say(`${one.still}: ${one.chapter}, figure ${one.index + 1}`);
+          if (PLAIN.has(one.live)) {
+            const plain = path.join(docs, 'help', 'plain', `${one.live}.png`);
+            fs.mkdirSync(path.dirname(plain), { recursive: true });
+            writeAtomically(plain, await takePlain(page, one));
+            say(`help/plain/${one.live}.png`);
+          }
           return undefined;
         }),
       Promise.resolve(),
