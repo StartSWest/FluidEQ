@@ -260,7 +260,13 @@ const transportLevelIcon = (level: IKaraokeTransportLevel) =>
     <KaraokeTransportIcon name="volume" />
   ));
 
-const KaraokeTransportLevel = ({
+/**
+ * One fader with its mute and its reading: on the bar, beside it, and in the
+ * mix menu. Exported for Help's picture of the mix menu
+ * (`help/live/karaokePanelFigures.tsx`), which cannot draw the menu itself:
+ * it is portalled to the window's body.
+ */
+export const KaraokeTransportLevel = ({
   level,
   inputId,
   onTouch,

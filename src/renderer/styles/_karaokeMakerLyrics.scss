@@ -569,7 +569,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 @media (max-width: 620px) {
-  .karaoke-maker__download-overall {
+  .karaoke-maker__download-overall#{$on-the-window} {
     grid-template-columns: minmax(0, 1fr) auto;
 
     span:nth-of-type(2) {

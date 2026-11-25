@@ -342,145 +342,398 @@ const LISTEN_CHAPTERS = [
   {
     id: 'karaoke',
     group: 'listen',
-    // The Karaoke page alone, from the running window at 2560 x 1392 on
-    // 2026-09-30, on FluidEQ's own song: somebody else's songs stay out of
-    // the guide, the playlist shows only ours, and the bar at the
-    // window's foot, which names whatever else the computer plays, is
-    // left outside the picture.
-    figures: [{ image: '11-karaoke-player.png', width: 2098, height: 1254 }],
-  },
-  {
-    id: 'maker',
-    group: 'listen',
+    // The page drawn by its own parts (`help/live/karaokeFigures`), singing
+    // a made-up song a third of the way in with the microphone on; the
+    // stage and the song list are framed out of one drawing, and the mix
+    // menu, the microphone's panel and the summary at a song's end are
+    // drawn apart (`karaokePanelFigures`). Their still is the 2.5 capture,
+    // on FluidEQ's own song, for the exported guide.
     figures: [
       {
-        image: '12-karaoke-maker-pitch-and-lyrics.png',
-        width: 2098,
-        height: 1254,
-      },
-      {
-        image: '35-karaoke-maker-toolbar.png',
-        width: 830,
-        height: 42,
-        caption: 'help.makerBar.caption',
+        live: 'karaoke-stage',
+        width: 1000,
+        height: 640,
+        frame: '.karaoke-workspace__stage',
+        still: '11-karaoke-player.png',
+        caption: 'help.karaoke.stageCaption',
         controls: [
           {
-            box: [4, 5, 32, 32],
-            name: 'karaoke.maker.openProject',
-            text: 'help.makerBar.import',
+            target: '.karaoke-stage-bar__switch:not(:has(> :nth-child(3)))',
+            name: 'karaoke.stage.show',
+            text: 'help.karaoke.guides',
           },
           {
-            box: [40, 5, 32, 32],
-            name: 'karaoke.maker.lyrics',
-            text: 'help.makerBar.lyrics',
+            target: '.karaoke-stage-bar__switch:has(> :nth-child(4))',
+            name: 'karaoke.stage.background',
+            text: 'help.karaoke.background',
           },
           {
-            box: [148, 5, 32, 32],
-            name: 'karaoke.maker.lyricsTiming',
-            text: 'help.makerBar.timing',
+            target: '.karaoke-stage-bar__maker',
+            name: 'karaoke.maker.openIn',
+            text: 'help.karaoke.maker',
           },
           {
-            box: [184, 5, 32, 32],
-            name: 'karaoke.maker.panView',
-            text: 'help.makerBar.pan',
+            target: '.view-bar__icon:has(.karaoke-stage-bar__glyph)',
+            name: 'karaoke.lyrics.textSize',
+            text: 'help.karaoke.textSize',
           },
           {
-            // The "As recorded" picker itself. The old box ran on over the
-            // bin to "Add a language", and its middle — where the line lands —
-            // was the bin.
-            box: [230, 5, 108, 32],
-            name: 'karaoke.translation.picker',
-            text: 'help.makerBar.language',
+            target: '.view-bar__icon.is-live',
+            name: 'karaoke.mic.settings',
+            text: 'help.karaoke.micSettings',
           },
           {
-            box: [494, 5, 32, 32],
-            name: 'karaoke.maker.recordLines',
-            text: 'help.makerBar.record',
+            target: '.view-bar__toggles',
+            name: 'karaoke.fullscreen.enter',
+            text: 'help.karaoke.fullScreen',
           },
           {
-            box: [530, 5, 32, 32],
-            name: 'karaoke.maker.selectNotes',
-            text: 'help.makerBar.select',
+            target: '.karaoke-chords > :first-child',
+            name: 'karaoke.stage.chords',
+            text: 'help.karaoke.chords',
           },
           {
-            box: [566, 5, 32, 32],
-            name: 'karaoke.maker.paintNotes',
-            text: 'help.makerBar.paint',
+            target: '.karaoke-pitch canvas',
+            name: 'karaoke.pitch.title',
+            text: 'help.karaoke.pitch',
           },
           {
-            box: [674, 5, 32, 32],
-            name: 'karaoke.maker.split',
-            text: 'help.makerBar.split',
+            target: '.karaoke-pitch__mic',
+            name: 'karaoke.mic.turnOn',
+            text: 'help.karaoke.micToggle',
           },
           {
-            box: [756, 5, 32, 32],
-            name: 'karaoke.maker.advanced',
-            text: 'help.makerBar.repair',
-          },
-          {
-            box: [798, 5, 32, 32],
-            name: 'karaoke.maker.export',
-            text: 'help.makerBar.export',
+            target: '.karaoke-score',
+            name: 'karaoke.score.title',
+            text: 'help.karaoke.score',
           },
         ],
       },
       {
-        image: '34-karaoke-maker-lyrics.png',
-        width: 1312,
-        height: 852,
+        live: 'karaoke-playlist',
+        width: 1000,
+        height: 640,
+        frame: '.karaoke-playlist__heading, .karaoke-playlist__tree',
+        margin: 12,
+        still: '11-karaoke-player.png',
+        caption: 'help.karaoke.playlistCaption',
+        controls: [
+          {
+            target: '.karaoke-playlist__heading > button:nth-of-type(1)',
+            name: 'karaoke.playlist.search',
+            text: 'help.karaoke.search',
+          },
+          {
+            target: '.karaoke-playlist__add > .karaoke-playlist__tool',
+            name: 'karaoke.playlist.add',
+            text: 'help.karaoke.add',
+          },
+          {
+            target: '.karaoke-playlist__heading > button:nth-of-type(2)',
+            name: 'karaoke.playlist.collapse',
+            text: 'help.karaoke.fold',
+          },
+          {
+            target: '.karaoke-playlist__item.is-selected',
+            name: 'help.karaoke.singingName',
+            text: 'help.karaoke.singing',
+          },
+          {
+            target:
+              '.karaoke-playlist__tree > .karaoke-playlist__tree-node:nth-child(2) > .karaoke-playlist__folder',
+            name: 'help.karaoke.folderName',
+            text: 'help.karaoke.folder',
+          },
+        ],
+      },
+      {
+        live: 'karaoke-mix',
+        width: 480,
+        height: 520,
+        frame: '.karaoke-transport__mix-popover',
+        still: '11-karaoke-player.png',
+        caption: 'help.karaoke.mixCaption',
+        controls: [
+          {
+            target: '.karaoke-transport__volume:not([data-channel])',
+            name: 'library.volume',
+            text: 'help.karaoke.volume',
+          },
+          {
+            target: '.karaoke-transport__volume[data-channel="melody"]',
+            name: 'karaoke.pitch.toneVolume',
+            text: 'help.karaoke.melody',
+          },
+          {
+            target: '.karaoke-transport__volume[data-channel="backing"]',
+            name: 'karaoke.maker.stemBacking',
+            text: 'help.karaoke.backing',
+          },
+          {
+            target: '.karaoke-transport__volume[data-channel="vocal"]',
+            name: 'karaoke.transport.vocalLevel',
+            text: 'help.karaoke.vocal',
+          },
+          {
+            target: '.karaoke-transport__mix-popover > [role="group"]',
+            name: 'karaoke.stage.scene',
+            text: 'help.karaoke.scene',
+          },
+        ],
+      },
+      {
+        live: 'karaoke-mic',
+        width: 420,
+        height: 300,
+        frame: '.karaoke-microphone-popover',
+        still: '11-karaoke-player.png',
+        caption: 'help.karaoke.micCaption',
+        controls: [
+          {
+            target: '.karaoke-microphone__controls > :first-child',
+            name: 'karaoke.mic.select',
+            text: 'help.karaoke.micInput',
+          },
+          {
+            target: '.karaoke-microphone__toggle',
+            name: 'karaoke.mic.turnOn',
+            text: 'help.karaoke.micOn',
+          },
+          {
+            target: '.karaoke-microphone__meter',
+            name: 'karaoke.mic.level',
+            text: 'help.karaoke.micLevel',
+          },
+          {
+            target: '#karaoke-microphone-gain',
+            name: 'karaoke.mic.volume',
+            text: 'help.karaoke.micVolume',
+          },
+        ],
+      },
+      {
+        live: 'karaoke-score',
+        width: 1000,
+        height: 720,
+        still: '11-karaoke-player.png',
+        caption: 'help.karaoke.scoreCaption',
+        controls: [
+          {
+            target: '.karaoke-score-card__big > :first-child',
+            name: 'karaoke.score.recapTitle',
+            text: 'help.karaoke.total',
+          },
+          {
+            target: '.karaoke-score-card__stats',
+            name: 'help.karaoke.statsName',
+            text: 'help.karaoke.stats',
+          },
+          {
+            target:
+              '.karaoke-score-card__pane:first-child .karaoke-score-card__block',
+            name: 'karaoke.score.hardestTitle',
+            text: 'help.karaoke.hardest',
+          },
+          {
+            target: '.karaoke-score-card__actions > .button:not(.subtle)',
+            name: 'karaoke.score.practisePassage',
+            text: 'help.karaoke.practise',
+          },
+          {
+            target: '.karaoke-score-card__actions > .button.subtle',
+            name: 'karaoke.score.singAgain',
+            text: 'help.karaoke.again',
+          },
+          {
+            target: '.karaoke-score-card__lines',
+            name: 'karaoke.score.mapTitle',
+            text: 'help.karaoke.map',
+          },
+          {
+            target: '.karaoke-score-card__history',
+            name: 'karaoke.score.historyTitle',
+            text: 'help.karaoke.attempts',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'maker',
+    group: 'listen',
+    // The editor drawn by the Maker's own parts (`help/live/makerFigures`)
+    // on the made-up song the Karaoke chapter sings, its tools framed out of
+    // the same drawing; the lyrics dialog and the Repair tools drawn apart
+    // (`makerPanelFigures`). The stills are the 2.5 captures, for the
+    // exported guide.
+    figures: [
+      {
+        live: 'maker-editor',
+        width: 1000,
+        height: 760,
+        still: '12-karaoke-maker-pitch-and-lyrics.png',
+        caption: 'help.maker.editorCaption',
+        controls: [
+          {
+            target: '.karaoke-maker__canvas',
+            name: 'help.maker.gridName',
+            text: 'help.maker.grid',
+          },
+          {
+            target: '.karaoke-maker-pitch',
+            name: 'karaoke.maker.pitchRange',
+            text: 'help.maker.pitchRange',
+          },
+          {
+            target: '.karaoke-maker-nav__overview',
+            name: 'karaoke.maker.songPosition',
+            text: 'help.maker.overview',
+          },
+          {
+            target: '.karaoke-maker-nav__follow',
+            name: 'karaoke.lyrics.follow',
+            text: 'help.maker.follow',
+          },
+          {
+            target: '.karaoke-maker-preview__stage',
+            name: 'karaoke.maker.livePreview',
+            text: 'help.maker.preview',
+          },
+          {
+            target: '.karaoke-maker__word-state-legend',
+            name: 'karaoke.maker.wordStateLegend',
+            text: 'help.maker.checked',
+          },
+        ],
+      },
+      {
+        live: 'maker-bar',
+        width: 1000,
+        height: 120,
+        frame: '.karaoke-maker__header',
+        still: '35-karaoke-maker-toolbar.png',
+        caption: 'help.makerBar.caption',
+        controls: [
+          {
+            target:
+              '.karaoke-maker__tools > .karaoke-maker__tool-group:first-child > :nth-child(1)',
+            name: 'karaoke.maker.openProject',
+            text: 'help.makerBar.import',
+          },
+          {
+            target:
+              '.karaoke-maker__tools > .karaoke-maker__tool-group:first-child > :nth-child(2)',
+            name: 'karaoke.maker.lyrics',
+            text: 'help.makerBar.lyrics',
+          },
+          {
+            target:
+              '.karaoke-maker__tools > .karaoke-maker__tool-group:first-child > .karaoke-maker__tool-cluster',
+            name: 'karaoke.maker.lyricsTiming',
+            text: 'help.makerBar.timing',
+          },
+          {
+            target: '.karaoke-maker__translation-group > :first-child',
+            name: 'karaoke.translation.picker',
+            text: 'help.makerBar.language',
+          },
+          {
+            target: '.karaoke-maker__wide-edit-tools > :nth-child(1)',
+            name: 'karaoke.maker.recordLines',
+            text: 'help.makerBar.record',
+          },
+          {
+            target: '.karaoke-maker__wide-edit-tools > :nth-child(2)',
+            name: 'karaoke.maker.selectNotes',
+            text: 'help.makerBar.select',
+          },
+          {
+            target: '.karaoke-maker__wide-edit-tools > :nth-child(3)',
+            name: 'karaoke.maker.paintNotes',
+            text: 'help.makerBar.paint',
+          },
+          {
+            target:
+              '.karaoke-maker__wide-analysis-tools .karaoke-maker__tool-button',
+            name: 'karaoke.maker.advanced',
+            text: 'help.makerBar.repair',
+          },
+          {
+            target: '.karaoke-maker__export-wrap > .karaoke-maker__tool-button',
+            name: 'karaoke.maker.export',
+            text: 'help.makerBar.export',
+          },
+          {
+            target: '.karaoke-maker__header-action.is-primary',
+            name: 'karaoke.maker.apply',
+            text: 'help.makerBar.apply',
+          },
+        ],
+      },
+      {
+        live: 'maker-lyrics',
+        width: 1280,
+        height: 820,
+        still: '34-karaoke-maker-lyrics.png',
         caption: 'help.maker.lyricsCaption',
         controls: [
           {
-            box: [309, 65, 369, 685],
-            name: 'help.maker.referenceName',
+            target: '.karaoke-maker__lyrics-source',
+            name: 'karaoke.maker.referenceLyrics',
             text: 'help.maker.reference',
           },
           {
-            box: [702, 77, 553, 431],
-            name: 'help.maker.timingName',
+            target: '.karaoke-maker__lyrics-token-preview',
+            name: 'karaoke.maker.wordTiming',
             text: 'help.maker.timing',
           },
           {
-            box: [702, 517, 553, 221],
-            name: 'help.maker.wordName',
+            target: '.karaoke-maker__lyrics-word-editor',
+            name: 'karaoke.maker.lyricsSelectedWord',
             text: 'help.maker.word',
           },
         ],
       },
       {
-        image: '33-karaoke-maker-tools.png',
-        width: 454,
-        height: 525,
+        live: 'maker-tools',
+        width: 520,
+        height: 560,
+        frame: '.karaoke-maker__analysis-popover',
+        still: '33-karaoke-maker-tools.png',
         caption: 'help.maker.toolsCaption',
         controls: [
           {
-            box: [29, 52, 396, 32],
+            target:
+              '.karaoke-maker__tool-group-titled:first-child .karaoke-maker__tool-button:nth-child(1)',
             name: 'karaoke.maker.removeBackground',
             text: 'help.maker.separate',
           },
           {
-            box: [29, 89, 396, 32],
+            target:
+              '.karaoke-maker__tool-group-titled:first-child .karaoke-maker__tool-button:nth-child(2)',
             name: 'karaoke.maker.vocalStem',
             text: 'help.maker.loadVocals',
           },
           {
-            box: [29, 175, 396, 32],
+            target:
+              '.karaoke-maker__tool-group-titled:nth-child(2) .karaoke-maker__tool-button:nth-child(1)',
             name: 'karaoke.maker.repairLyrics',
             text: 'help.maker.redetectTiming',
           },
           {
-            box: [29, 212, 396, 32],
+            target:
+              '.karaoke-maker__tool-group-titled:nth-child(2) .karaoke-maker__tool-button:nth-child(2)',
             name: 'karaoke.maker.repairMelody',
             text: 'help.maker.redetectNotes',
           },
           {
-            box: [39, 298, 376, 127],
-            name: 'help.maker.modelsName',
+            target: '.karaoke-maker__memory-models',
+            name: 'karaoke.maker.speechMemory',
             text: 'help.maker.models',
           },
           {
-            box: [39, 434, 376, 54],
-            name: 'help.maker.idleName',
+            target: '.karaoke-maker__memory-options',
+            name: 'karaoke.maker.memoryAfterUse',
             text: 'help.maker.idle',
           },
         ],

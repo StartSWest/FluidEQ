@@ -79,6 +79,14 @@
   justify-content: start;
 }
 
+// THE MAKER'S REPAIR TOOLS, drawn open on their own (`help/live/
+// makerPanelFigures`): laid in the figure's box rather than hung under the
+// toolbar button they open from, which the figure does not draw.
+.help-live .karaoke-maker__analysis-popover {
+  position: relative;
+  inset: auto;
+}
+
 // The press that enlarges a live figure, over the drawing: a button may not
 // hold the panel's own buttons, inert or not.
 .help-figure__enlarge {

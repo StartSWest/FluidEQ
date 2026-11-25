@@ -43,40 +43,40 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 @media (max-width: 900px) {
-  .karaoke-maker__capture-coach {
+  .karaoke-maker__capture-coach#{$on-the-window} {
     grid-template-columns: 46px minmax(0, 1fr);
     padding: 17px 14px 13px;
   }
 
-  .karaoke-maker__capture-coach-start,
-  .karaoke-maker__capture-coach-action {
+  .karaoke-maker__capture-coach-start#{$on-the-window},
+  .karaoke-maker__capture-coach-action#{$on-the-window} {
     grid-column: 1 / -1;
     justify-self: stretch;
   }
 
-  .karaoke-maker__capture-coach-start {
+  .karaoke-maker__capture-coach-start#{$on-the-window} {
     min-height: 44px;
   }
 
-  .karaoke-maker__capture-coach-action {
+  .karaoke-maker__capture-coach-action#{$on-the-window} {
     justify-content: space-between;
   }
 
-  .karaoke-maker__capture-coach-controls {
+  .karaoke-maker__capture-coach-controls#{$on-the-window} {
     flex-wrap: wrap;
   }
 
-  .karaoke-maker__capture-coach-help {
+  .karaoke-maker__capture-coach-help#{$on-the-window} {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 560px) {
-  .karaoke-maker__capture-coach-copy > p {
+  .karaoke-maker__capture-coach-copy > p#{$on-the-window} {
     font-size: 11px;
   }
 
-  .karaoke-maker__capture-coach-controls > button {
+  .karaoke-maker__capture-coach-controls > button#{$on-the-window} {
     flex: 1 1 auto;
     justify-content: center;
 
@@ -85,11 +85,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
-  .karaoke-maker__capture-coach-steps {
+  .karaoke-maker__capture-coach-steps#{$on-the-window} {
     display: none;
   }
 
-  .karaoke-maker__capture-coach-help > div > small {
+  .karaoke-maker__capture-coach-help > div > small#{$on-the-window} {
     white-space: normal;
   }
 }

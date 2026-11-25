@@ -766,52 +766,130 @@ const help = {
 
   'help.karaoke.title': 'Sing with Karaoke',
   'help.karaoke.intro':
-    'Karaoke pairs your own audio with lyrics. Timed lyrics follow playback; pitch targets depend on the song’s note data. A microphone adds your live pitch when configured, and the stage can fill the screen.',
+    "Karaoke puts your own songs on a stage: the words as they are sung, the chords, and a pitch strip that draws your voice against the song's notes and scores every line. Your songs stand in a list beside it, as in the Library, and a song plays through the Library's player, with your sound settings.",
   'help.karaoke.steps':
-    'Open Karaoke. Use Add files or Add folder to bring in audio and matching lyric files.\nChoose a song and start playback. Check that the correct lyrics and backing track are paired.\nConfigure microphone input for live pitch, adjust lyric size for your viewing distance, and use the stage’s fullscreen control to sing.\nUse the stage’s cover and scene buttons to choose its background. Its Transparency and Blur are separate from the main graph’s. Group the playlist by folder, then press a folder heading to fold its songs away.',
+    "Open Karaoke and press + beside Songs to add files or a whole folder: each song with its lyric file. Double-click a song to sing it.\nUse the row at the top of the stage: Pitch and Chords turn the pitch strip and the chord chips on and off, each on its own; Scene, Art, Video or None chooses what stands behind the words. With Scene on, the scene picker appears beside it.\nTurn on the microphone in the pitch strip's corner and sing. Each note is a box and your voice is a line through it: green in tune, yellow close, red off. Every note gets its verdict as it ends.\nUnder the strip, each line of the song is a row of cells with its score. Press a line to sing it again from just before it. When the song ends, its summary shows your score out of 10,000, what was hardest, a tip and every line against your best; See results opens it again.\nOpen Mix settings on the player bar for the volume, the melody tone, the backing track and, once the Maker has separated the song, the Guide vocal: the singer's own voice under the music, as loud as you want it.\nFull screen gives the window to the stage. The row and the player bar step away after a few still seconds: move the pointer to the top edge for the header or to the bottom edge for the bar, or pin them with the buttons beside full screen.",
   'help.karaoke.tip':
-    'A lyric-only file does not contain target notes. Karaoke plays at your computer’s volume; the melody, backing and guide vocal levels are under Mix settings. The microphone is analysed locally for level and pitch; FluidEQ does not play it through the speakers or record it.',
+    "A lyric file with only the words has no notes, so there is nothing on the strip to sing to or score; UltraStar files carry them, and the Karaoke Maker can add them. Chords come from the song's own files when it has them, a chord sheet beside the song or chords in its lyric file, and are worked out from the music otherwise. The microphone is analysed on this computer for level and pitch; FluidEQ never records it or plays it through your speakers.",
   'help.karaoke.keywords':
-    'sing, singing, sing along, lyrics, microphone, mic, pitch, lrc, ultrastar, songs',
+    'sing, singing, sing along, lyrics, microphone, mic, pitch, score, scoring, chords, guide vocal, full screen, lrc, ultrastar, songs',
+  'help.karaoke.stageCaption':
+    'The stage: the words, the chords, your pitch and your score',
+  'help.karaoke.guides':
+    'Pitch shows the strip of notes, Chords the chord chips. Each turns on and off by itself; with both off the stage shows only the words.',
+  'help.karaoke.background':
+    "What stands behind the words: the scene, the song's cover art, its video, or nothing. Art and Video are there when the song brings them.",
+  'help.karaoke.maker':
+    'Opens this song in the Karaoke Maker, to fix its timing, its words or its notes.',
+  'help.karaoke.textSize':
+    'Makes the words bigger or smaller for the distance you sing from.',
+  'help.karaoke.micSettings':
+    'Which microphone to sing into, how loud it hears you and its volume. It lights up while the microphone is on.',
+  'help.karaoke.fullScreen':
+    'Gives the whole window to the stage; double-clicking the stage does the same. In full screen two more buttons here keep the header or the player bar on screen.',
+  'help.karaoke.chords':
+    'The chord just played, the one sounding now, lit, and the next two.',
+  'help.karaoke.pitch':
+    'The notes to sing as boxes, and your voice as a line through them: green in tune, yellow close, red off. Drag it to move through the song, and drag the handle above it to make it taller.',
+  'help.karaoke.micToggle':
+    'Turns the microphone on or off. While it listens, the note you are singing shows beside it.',
+  'help.karaoke.score':
+    "Each line as a row of cells, one for each note, in its verdict's colour, with your running score and your streak. Press a line to sing it again.",
+  'help.karaoke.playlistCaption': 'Your songs, beside the stage',
+  'help.karaoke.search':
+    "Finds a song in the list by its title or its file's name.",
+  'help.karaoke.add':
+    'Add files or a folder, group the list by folder, or clear it.',
+  'help.karaoke.fold':
+    "Folds the list away to give the stage the room. The Playlist button at the start of the stage's row brings it back.",
+  'help.karaoke.singingName': 'The song on the stage',
+  'help.karaoke.singing':
+    'It wears moving bars while it is sung. Click a song to pick it and double-click it to sing; point at a row to move it up or down or take it out of the list.',
+  'help.karaoke.folderName': 'A folder',
+  'help.karaoke.folder':
+    'With the list grouped by folder, press a folder to fold its songs away or open them again. The number is how many songs it holds.',
+  'help.karaoke.mixCaption':
+    'Mix settings, on the player bar at the foot of the window',
+  'help.karaoke.volume':
+    "Your computer's volume, the same fader every tab's bar has. Its icon mutes the sound.",
+  'help.karaoke.melody':
+    "A tone that plays the song's notes, to sing along with. Its button turns it on or off.",
+  'help.karaoke.backing':
+    'The music: the song itself, or its backing track once the Karaoke Maker has separated the voice from it.',
+  'help.karaoke.vocal':
+    "The singer's own voice, laid under the backing when the song has been separated. Down to zero for the music alone.",
+  'help.karaoke.scene':
+    "With the scene behind the words, how much of it shows through and how blurred it is. The Karaoke keeps its own, apart from the graph's.",
+  'help.karaoke.micCaption': 'Microphone settings',
+  'help.karaoke.micInput': 'The microphone you sing into.',
+  'help.karaoke.micOn':
+    "Starts or stops listening. Whether it is on shows at the panel's top right.",
+  'help.karaoke.micLevel':
+    'How loud the microphone hears you right now. Sing and watch it move.',
+  'help.karaoke.micVolume':
+    'Raises a microphone too quiet for your pitch to be heard, or lowers one that is too loud.',
+  'help.karaoke.scoreCaption': 'The summary at the end of a song',
+  'help.karaoke.total':
+    'Your score out of 10,000, its word, and how it stands against your best on this song.',
+  'help.karaoke.statsName': 'In tune · On time · Notes',
+  'help.karaoke.stats':
+    'How much of the time you sang inside the notes, how many notes you came in on time, and how many you hit, with every verdict counted under them.',
+  'help.karaoke.hardest':
+    'The line that gave you the most trouble and why, with one thing to try next time under it.',
+  'help.karaoke.practise':
+    'Takes you back to just before that line to sing it again.',
+  'help.karaoke.again': 'The whole song again, from the start.',
+  'help.karaoke.map':
+    'Every line with its rating and how many points it moved since your best. Press a line to practise it.',
+  'help.karaoke.attempts':
+    'Your last tries at this song, this one and your best among them.',
 
   'help.maker.title': 'Create in Karaoke Maker',
   'help.maker.intro':
-    'Maker turns your audio into an editable karaoke project. Its timeline brings together audio, lyrics and pitch notes. Automatic results are a starting point: check words, timing and notes against the recording.',
+    "The Karaoke Maker turns a song into a karaoke you can sing: its words, when each one is sung, and the notes of the melody. It opens on the song on the stage, in one editor: the tools along the top, the song's sound with the words and notes under it, and a live preview of how the stage will show them.",
   'help.maker.steps':
-    'Open Make from Karaoke and load the source audio. Choose the available separation or transcription tools you need.\nWatch progress; first use of an AI tool may require a model download. Review the resulting lyrics and notes in the timeline.\nPlay short passages, correct the timing and text, save the project for later editing, then export the karaoke files.\nIf you already have the words, paste the complete reference lyrics, including repeated lines. You can record line entries while listening and refine words and notes afterwards. Keep a project file for editable work; export LRC or UltraStar for the player.',
+    "On the Karaoke stage, press Open in Maker. Press Lyrics and paste the song's words or load a lyric file, one line per row, with every repeat written out.\nPress Detect timing and melody to let FluidEQ listen for when each word is sung and which notes carry it, or Accept and record timing to tap each line in yourself as the song plays. The first time, the AI models it needs are downloaded.\nCheck the result in the grid: the words sit in lanes above the notes, and the notes are drawn as the stage draws them. Drag a word or a note to move it, or its edge to change its length. Select notes draws a box round several; Paint notes draws new ones.\nMove through the song with the overview under the grid, or drag with the middle mouse button anywhere on the grid to move in time and pitch at once. The Pitch range against the grid's left edge zooms and scrolls the notes. Follow lyrics keeps the playhead in view, turning the page as it reaches the edge.\nPress Use in player to sing it on the stage. Export saves it as a FluidEQ project, UltraStar TXT, LRC or enhanced LRC; a song from your Library can also be saved back to it with Save to Library.",
+  'help.maker.editorCaption':
+    "The editor: the song's sound, its words and its notes",
+  'help.maker.gridName': 'The grid',
+  'help.maker.grid':
+    "The song's sound across the top, its words in three lanes under it, and its notes as boxes on the pitch grid, as the stage draws them. Drag with the middle mouse button to move through it in time and pitch.",
+  'help.maker.pitchRange':
+    'Where the grid stands in pitch, against the whole range. Drag its ends to zoom, its middle to scroll; double-click it to fit the notes.',
+  'help.maker.overview':
+    'The whole song, with the part shown in the grid framed. Drag the frame to move, its edges to zoom.',
+  'help.maker.follow':
+    'Keeps the playhead in view as the song plays, turning the page when it reaches the edge.',
+  'help.maker.preview':
+    'The words as the stage will show them, as the song plays. Its A slider sizes the words; hide it for more room.',
+  'help.maker.checked':
+    "How many words you have adjusted by hand, and how many are still as they were detected or imported, with the song's notes, words and checks beside them.",
   'help.maker.lyricsCaption': 'The words, and when each one is sung',
-  'help.maker.referenceName': 'Reference lyrics',
   'help.maker.reference':
     'The whole song as text, one line per row. Paste it or load a file; FluidEQ finds the timing from it.',
-  'help.maker.timingName': 'Word timing',
   'help.maker.timing':
     'Every word, in order, with how many are timed so far. Press one to work on it.',
-  'help.maker.wordName': 'Selected word',
   'help.maker.word':
     'Where the chosen word starts and how long it lasts. Moving its edge gives or takes time from the word beside it; the line keeps its length.',
-  'help.maker.toolsCaption': 'The AI tools, and the models they need',
+  'help.maker.toolsCaption': 'Repair tools, and the AI models they need',
   'help.maker.separate':
-    'Splits the recording into voice and music, so the karaoke can play without the singer.',
+    'Splits the recording into voice and music. The karaoke can then play without the singer, the Guide vocal fader can bring the voice back under it, and detection hears the words more clearly.',
   'help.maker.loadVocals':
     'Use a vocal-only file you already have, instead of separating one here.',
   'help.maker.redetectTiming':
-    'Listens to the voice again and re-times the words you already have.',
+    'Listens to the separated voice again and re-times the words you already have. It waits until the voice is separated.',
   'help.maker.redetectNotes':
-    'Listens again for the melody and rewrites the notes under the words.',
-  'help.maker.modelsName': 'AI model memory',
+    'Listens to the separated voice again for the melody and rewrites the notes under the words. It waits until the voice is separated.',
   'help.maker.models':
     'What each model needs and whether it is on this computer. They are downloaded the first time you use one.',
-  'help.maker.idleName': 'When it is idle',
   'help.maker.idle':
     'Whether a model stays in memory between uses, and for how long. Releasing it frees memory; keeping it makes the next run start at once.',
-  'help.makerBar.caption': 'The tools along the top of the maker',
+  'help.makerBar.caption': 'The tools along the top of the Maker',
   'help.makerBar.import':
     'Opens a karaoke file or a saved project, and keeps the audio already loaded.',
   'help.makerBar.lyrics': 'The words and their timing, in one window.',
   'help.makerBar.timing':
     'Moves the words and notes together, for a song that runs early or late from the first second.',
-  'help.makerBar.pan':
-    'Drag anywhere on the timeline to travel through the song without changing anything.',
   'help.makerBar.language':
     'Which language the words are in, and a second one beside it so the song can be sung in either.',
   'help.makerBar.record':
@@ -819,16 +897,16 @@ const help = {
   'help.makerBar.select':
     'Draw a box around notes to move or delete them as one.',
   'help.makerBar.paint': 'Draw the melody straight onto the pitch grid.',
-  'help.makerBar.split':
-    'Cuts a word into syllables, so a long word can carry a note on each one.',
   'help.makerBar.repair':
-    'The tools that listen for you, and the models they need.',
+    'Separates the voice from the music and listens again for the words or the melody, with the AI models they need.',
   'help.makerBar.export':
     'Writes the finished karaoke out as a FluidEQ project, UltraStar TXT, LRC or enhanced LRC.',
+  'help.makerBar.apply':
+    'Hands the finished karaoke to the stage and closes the Maker.',
   'help.maker.tip':
-    'Model downloads need a connection and free disk space. Processing time depends on your hardware and song length. Use audio you are permitted to work with and review exports before sharing.',
+    'Detection is a starting point: play short passages and correct the words and notes against the recording. Separating the voice from the music first lets detection hear the words more clearly, and gives the player its Guide vocal fader. Models need a connection and disk space the first time; use audio and lyrics you are allowed to work with.',
   'help.maker.keywords':
-    'vocals, vocal, remove vocals, vocal remover, voice removal, instrumental, acapella, a cappella, stems, stem separation, separate, isolate vocals, lyrics sync, timing, melody, notes, ultrastar, lrc, make karaoke, create karaoke, transcribe',
+    'vocals, vocal, remove vocals, vocal remover, voice removal, instrumental, acapella, a cappella, stems, stem separation, separate, isolate vocals, lyrics sync, timing, melody, notes, pitch, ultrastar, lrc, make karaoke, create karaoke, transcribe, maker',
 
   'help.share.title': 'Share audio between computers',
   'help.share.intro':

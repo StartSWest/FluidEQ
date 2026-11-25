@@ -65,3 +65,12 @@ $wizard-step-gap: 6px;
 // colour, a lighter slab laid in the dialog, and so was every word chip and
 // button on it (Ivan, 2026-09-26: "fix all modals", "review all panes").
 $lyrics-well: color-mix(in srgb, $surface-base 55%, transparent);
+
+// On the window, never in Help (`help/live`), as `DialogFrame.scss` spells
+// it: the Karaoke and the Maker drawn in a Help figure are laid out at the
+// figure's own width and scaled to it, and the window's width and height
+// reached them through every size rule written against the window. In a
+// 720px Help window the 1180px Maker came out in its narrowest layout, its
+// edit tools folded behind a button the figure's call-outs pointed at, a
+// layout no window ever shows. `:where` adds nothing to the weight.
+$on-the-window: ':where(:not(.help-live *))';

@@ -17,6 +17,14 @@ import GamingProfilesDrawing from './gamingProfilesFigure';
 import { LibraryPageDrawing, LibraryRecordDrawing } from './libraryFigures';
 import { LibraryLyricsDrawing } from './libraryPaneFigures';
 import LibraryTagsDrawing from './libraryTagFigure';
+import KaraokeDrawing from './karaokeFigures';
+import {
+  KaraokeMicDrawing,
+  KaraokeMixDrawing,
+  KaraokeScoreDrawing,
+} from './karaokePanelFigures';
+import MakerDrawing from './makerFigures';
+import { MakerLyricsDrawing, MakerToolsDrawing } from './makerPanelFigures';
 import LightingDrawing from './lightingFigures';
 import LookPickerDrawing from './lookFigures';
 import MicPageDrawing from './micFigures';
@@ -42,10 +50,10 @@ import WindowHeaderDrawing from './windowFigures';
  */
 const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
   'desktop-dialog': DesktopDialogDrawing,
-  'dsp-overview': DspOverviewDrawing,
-  'dsp-dynamics': DynamicsDrawing,
   'dsp-deesser': DeEsserDrawing,
   'dsp-denoise': DenoiseDrawing,
+  'dsp-dynamics': DynamicsDrawing,
+  'dsp-overview': DspOverviewDrawing,
   'dsp-room': RoomDrawing,
   'forum-page': ForumDrawing,
   'gallery-scene': SceneDrawing,
@@ -54,6 +62,11 @@ const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
   'gaming-profiles': GamingProfilesDrawing,
   'header-left': WindowHeaderDrawing,
   'header-right': WindowHeaderDrawing,
+  'karaoke-mic': KaraokeMicDrawing,
+  'karaoke-mix': KaraokeMixDrawing,
+  'karaoke-playlist': KaraokeDrawing,
+  'karaoke-score': KaraokeScoreDrawing,
+  'karaoke-stage': KaraokeDrawing,
   'library-lyrics': LibraryLyricsDrawing,
   'library-page': LibraryPageDrawing,
   'library-queue': LibraryRecordDrawing,
@@ -63,13 +76,17 @@ const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
   'lighting-page': LightingDrawing,
   'lighting-tuning': LightingDrawing,
   'look-picker': LookPickerDrawing,
+  'maker-bar': MakerDrawing,
+  'maker-editor': MakerDrawing,
+  'maker-lyrics': MakerLyricsDrawing,
+  'maker-tools': MakerToolsDrawing,
   'mic-page': MicPageDrawing,
   'online-page': OnlineMediaDrawing,
-  'player-top': PlayerDrawing,
-  'player-sound': PlayerDrawing,
-  'player-queue': PlayerDrawing,
-  'player-menu': PlayerMenuDrawing,
   'player-folded': PlayerFoldDrawing,
+  'player-menu': PlayerMenuDrawing,
+  'player-queue': PlayerDrawing,
+  'player-sound': PlayerDrawing,
+  'player-top': PlayerDrawing,
   'share-page': ShareDrawing,
   'studio-bench': StudioDrawing,
   'visualizers-gallery': VisualizersDrawing,

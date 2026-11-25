@@ -772,54 +772,132 @@ const help: Record<keyof typeof en, string> = {
 
   'help.karaoke.title': 'Cante com Karaokê',
   'help.karaoke.intro':
-    'Karaokê combina áudio e letras locais. Letras sincronizadas seguem a reprodução; alvos de afinação exigem dados de notas. Um microfone configurado acrescenta sua afinação ao vivo.',
+    'O Karaokê coloca as suas próprias músicas num palco: a letra enquanto é cantada, os acordes e uma faixa de afinação que desenha a sua voz sobre as notas da música e pontua cada linha. Suas músicas ficam numa lista ao lado, como na Biblioteca, e cada uma toca pelo player da Biblioteca, com as suas configurações de som.',
   'help.karaoke.steps':
-    'Abra Karaokê e use Adicionar arquivos ou Adicionar pasta para áudio e letras correspondentes.\nSelecione uma música, reproduza e confira o pareamento.\nConfigure o microfone, ajuste o tamanho das letras e use a tela cheia do palco.\nEscolha o fundo pelos botões de capa e cena do palco. Transparência e Desfoque são independentes do gráfico principal. Agrupe a playlist por pasta e pressione um cabeçalho para recolher as músicas.',
+    'Abra o Karaokê e pressione + ao lado de Músicas para adicionar arquivos ou uma pasta inteira: cada música com o seu arquivo de letra. Clique duas vezes numa música para cantá-la.\nUse a linha no topo do palco: Afinação e Acordes mostram ou escondem a faixa de afinação e os acordes, cada um por si; Cena, Capa, Vídeo ou Nenhum escolhe o que fica atrás da letra. Com Cena, a escolha da cena aparece ao lado.\nAtive o microfone no canto da faixa de afinação e cante. Cada nota é uma caixa e a sua voz uma linha que a atravessa: verde afinada, amarela perto, vermelha fora. Cada nota recebe o seu veredito ao terminar.\nSob a faixa, cada linha da música é uma fileira de células com a sua pontuação. Pressione uma linha para cantá-la de novo a partir de logo antes. Quando a música termina, o resumo mostra a sua pontuação de 10.000, o que foi mais difícil, uma dica e cada linha diante do seu recorde; Ver resultados abre de novo.\nAbra Configurações de mistura na barra do player para o volume, o tom da melodia, a faixa base e, depois que o Criador separou a música, a Voz guia: a voz do cantor por baixo da música, tão alta quanto você quiser.\nA tela cheia dá a janela ao palco. A linha e a barra do player saem depois de alguns segundos parados: leve o ponteiro à borda de cima para o cabeçalho ou à de baixo para a barra, ou fixe-os com os botões ao lado da tela cheia.',
   'help.karaoke.tip':
-    'Um arquivo só de letras não tem notas-alvo. O Karaokê toca no volume do seu computador; os níveis da melodia, da base e da voz guia ficam em Configurações de mistura. O microfone é analisado localmente para nível e afinação. O FluidEQ não o reproduz nos alto-falantes nem o grava.',
-  'help.karaoke.keywords': 'cantar, videokê, pontuação, pitch, LRC, UltraStar',
+    'Um arquivo de letra só com as palavras não tem notas, então não há nada na faixa para cantar nem pontuar; arquivos UltraStar as trazem, e o Criador de karaokê pode adicioná-las. Os acordes vêm dos próprios arquivos da música quando ela os tem, uma folha de acordes ao lado da música ou acordes no arquivo de letra, e senão são tirados da música. O microfone é analisado neste computador para nível e afinação; o FluidEQ nunca o grava nem o toca pelos seus alto-falantes.',
+  'help.karaoke.keywords':
+    'cantar, letra, microfone, mic, afinação, pontuação, acordes, voz guia, tela cheia, lrc, ultrastar, músicas, lyrics, sing',
+  'help.karaoke.stageCaption':
+    'O palco: a letra, os acordes, a sua afinação e a sua pontuação',
+  'help.karaoke.guides':
+    'Afinação mostra a faixa de notas, Acordes os acordes. Cada um liga e desliga sozinho; com os dois desligados o palco mostra só a letra.',
+  'help.karaoke.background':
+    'O que fica atrás da letra: a cena, a capa da música, o vídeo dela ou nada. Capa e Vídeo aparecem quando a música os traz.',
+  'help.karaoke.maker':
+    'Abre esta música no Criador de karaokê para corrigir o tempo, a letra ou as notas.',
+  'help.karaoke.textSize':
+    'Aumenta ou diminui a letra conforme a distância de onde você canta.',
+  'help.karaoke.micSettings':
+    'Qual microfone usar, quão alto ele ouve você e o volume dele. Ele acende enquanto o microfone está ativo.',
+  'help.karaoke.fullScreen':
+    'Dá a janela inteira ao palco; clicar duas vezes no palco faz o mesmo. Em tela cheia, mais dois botões aqui mantêm o cabeçalho ou a barra do player na tela.',
+  'help.karaoke.chords':
+    'O acorde que acabou de tocar, o que soa agora, em destaque, e os dois seguintes.',
+  'help.karaoke.pitch':
+    'As notas a cantar como caixas, e a sua voz como uma linha que as atravessa: verde afinada, amarela perto, vermelha fora. Arraste-a para percorrer a música, e arraste a alça acima dela para deixá-la mais alta.',
+  'help.karaoke.micToggle':
+    'Liga ou desliga o microfone. Enquanto ele escuta, a nota que você está cantando aparece ao lado.',
+  'help.karaoke.score':
+    'Cada linha como uma fileira de células, uma por nota, na cor do veredito, com a pontuação acumulada e a sequência. Pressione uma linha para cantá-la de novo.',
+  'help.karaoke.playlistCaption': 'Suas músicas, ao lado do palco',
+  'help.karaoke.search':
+    'Encontra uma música na lista pelo título ou pelo nome do arquivo.',
+  'help.karaoke.add':
+    'Adicione arquivos ou uma pasta, agrupe a lista por pasta ou esvazie-a.',
+  'help.karaoke.fold':
+    'Recolhe a lista para dar espaço ao palco. O botão Playlist no início da linha do palco a traz de volta.',
+  'help.karaoke.singingName': 'A música no palco',
+  'help.karaoke.singing':
+    'Ela mostra barras em movimento enquanto é cantada. Clique numa música para escolhê-la e clique duas vezes para cantar; aponte para uma linha para subi-la, descê-la ou tirá-la da lista.',
+  'help.karaoke.folderName': 'Uma pasta',
+  'help.karaoke.folder':
+    'Com a lista agrupada por pasta, pressione uma pasta para recolher as músicas dela ou abri-las de novo. O número é quantas músicas ela tem.',
+  'help.karaoke.mixCaption':
+    'Configurações de mistura, na barra do player no pé da janela',
+  'help.karaoke.volume':
+    'O volume do computador, o mesmo controle que a barra de cada aba tem. O ícone dele silencia o som.',
+  'help.karaoke.melody':
+    'Um tom que toca as notas da música, para cantar junto. O botão dele liga ou desliga.',
+  'help.karaoke.backing':
+    'A música: a própria música, ou a faixa base depois que o Criador de karaokê separou a voz dela.',
+  'help.karaoke.vocal':
+    'A voz do próprio cantor, posta sob a faixa base quando a música foi separada. Em zero, só a música.',
+  'help.karaoke.scene':
+    'Com a cena atrás da letra, quanto ela transparece e quanto fica desfocada. O Karaokê guarda os seus, à parte dos do gráfico.',
+  'help.karaoke.micCaption': 'Configurações do microfone',
+  'help.karaoke.micInput': 'O microfone em que você canta.',
+  'help.karaoke.micOn':
+    'Começa ou para de escutar. Se está ativo aparece no alto à direita do painel.',
+  'help.karaoke.micLevel':
+    'Quão alto o microfone ouve você agora. Cante e veja se mexer.',
+  'help.karaoke.micVolume':
+    'Aumenta um microfone baixo demais para a sua afinação ser ouvida, ou abaixa um alto demais.',
+  'help.karaoke.scoreCaption': 'O resumo no fim de uma música',
+  'help.karaoke.total':
+    'A sua pontuação de 10.000, a avaliação dela e como fica diante do seu recorde nesta música.',
+  'help.karaoke.statsName': 'Afinação · No tempo · Notas',
+  'help.karaoke.stats':
+    'Quanto do tempo você cantou dentro das notas, em quantas notas entrou no tempo e quantas acertou, com cada veredito contado embaixo.',
+  'help.karaoke.hardest':
+    'A linha que mais deu trabalho e por quê, com uma coisa para tentar na próxima vez embaixo.',
+  'help.karaoke.practise':
+    'Leva você para logo antes dessa linha para cantá-la de novo.',
+  'help.karaoke.again': 'A música inteira de novo, desde o início.',
+  'help.karaoke.map':
+    'Cada linha com a avaliação dela e quantos pontos mudou desde o seu recorde. Pressione uma linha para praticá-la.',
+  'help.karaoke.attempts':
+    'Suas últimas tentativas nesta música, entre elas esta e a melhor.',
 
   'help.maker.title': 'Crie no Criador de karaokê',
   'help.maker.intro':
-    'O Criador de karaokê transforma áudio em um projeto editável com letras e notas na linha do tempo. Confira palavras e tempos gerados automaticamente.',
+    'O Criador de karaokê transforma uma música num karaokê para cantar: a letra, quando cada palavra é cantada e as notas da melodia. Ele abre a música do palco num só editor: as ferramentas no alto, o som da música com a letra e as notas embaixo, e uma prévia ao vivo de como o palco vai mostrá-las.',
   'help.maker.steps':
-    'Abra Criar em Karaokê e carregue o áudio. Escolha as ferramentas de separação ou transcrição necessárias.\nAcompanhe o progresso; o primeiro uso de IA pode baixar modelos. Revise letras e notas.\nOuça pequenos trechos, corrija texto e tempos, salve o projeto e exporte os arquivos.\nSe já tiver a letra, cole o texto completo com repetições. Registre as entradas das linhas ouvindo e refine palavras e notas depois. Guarde um projeto editável e exporte LRC ou UltraStar para tocar.',
+    'No palco do Karaokê, pressione Abrir no Criador. Pressione Letra e cole a letra da música ou carregue um arquivo de letra, uma linha por fileira, com cada repetição escrita.\nPressione Detectar tempo e melodia para o FluidEQ ouvir quando cada palavra é cantada e quais notas a levam, ou Aceitar e gravar tempos para marcar você mesmo cada linha enquanto a música toca. Na primeira vez, os modelos de IA necessários são baixados.\nConfira o resultado na grade: as palavras ficam em faixas acima das notas, e as notas são desenhadas como no palco. Arraste uma palavra ou uma nota para movê-la, ou a borda para mudar a duração. Selecionar notas desenha uma caixa em volta de várias; Desenhar notas desenha novas.\nPercorra a música com a visão geral sob a grade, ou arraste com o botão do meio do mouse em qualquer ponto da grade para se mover no tempo e na altura ao mesmo tempo. A Faixa de altura, na borda esquerda da grade, amplia e rola as notas. Seguir a letra mantém o cursor de reprodução à vista e vira a página quando ele chega à borda.\nPressione Usar no player para cantar no palco. Exportar salva como projeto FluidEQ, UltraStar TXT, LRC ou LRC aprimorado; uma música da sua Biblioteca também pode ser salva de volta nela com Salvar na biblioteca.',
+  'help.maker.editorCaption': 'O editor: o som da música, a letra e as notas',
+  'help.maker.gridName': 'A grade',
+  'help.maker.grid':
+    'No alto o som da música, embaixo a letra em três faixas e as notas como caixas na grade de altura, como o palco as desenha. Arraste com o botão do meio do mouse para se mover no tempo e na altura.',
+  'help.maker.pitchRange':
+    'Onde a grade está na altura, diante de toda a faixa. Arraste as pontas para ampliar e o meio para rolar; clique duas vezes para ajustar às notas.',
+  'help.maker.overview':
+    'A música inteira, com a parte mostrada na grade enquadrada. Arraste o quadro para se mover e as bordas para ampliar.',
+  'help.maker.follow':
+    'Mantém o cursor de reprodução à vista enquanto a música toca e vira a página quando ele chega à borda.',
+  'help.maker.preview':
+    'A letra como o palco vai mostrá-la enquanto a música toca. O controle A muda o tamanho; esconda a prévia para ter mais espaço.',
+  'help.maker.checked':
+    'Quantas palavras você ajustou à mão e quantas ainda estão como foram detectadas ou importadas, com as notas, palavras e verificações da música ao lado.',
 
   'help.maker.lyricsCaption': 'A letra, e quando cada palavra é cantada',
-  'help.maker.referenceName': 'Letra de referência',
   'help.maker.reference':
     'A música inteira como texto, um verso por linha. Cole-a ou carregue um arquivo; o FluidEQ encontra os tempos a partir dela.',
-  'help.maker.timingName': 'Tempo da palavra',
   'help.maker.timing':
     'Todas as palavras em ordem, com quantas já têm tempo. Clique em uma para trabalhar nela.',
-  'help.maker.wordName': 'Palavra selecionada',
   'help.maker.word':
     'Onde começa a palavra escolhida e quanto dura. Mover a borda dela dá ou tira tempo da palavra ao lado; a linha mantém a duração.',
   'help.maker.toolsCaption':
-    'As ferramentas de IA e os modelos de que precisam',
+    'Ferramentas de reparo e os modelos de IA de que precisam',
   'help.maker.separate':
-    'Separa a gravação em voz e música, para o karaokê tocar sem o cantor.',
+    'Divide a gravação em voz e música. O karaokê pode então tocar sem o cantor, o controle Voz guia pode trazer a voz de volta por baixo e a detecção ouve a letra com mais clareza.',
   'help.maker.loadVocals':
     'Use um arquivo só de voz que você já tenha, em vez de separá-lo aqui.',
   'help.maker.redetectTiming':
-    'Volta a ouvir a voz e recalcula os tempos das palavras que você já tem.',
+    'Escuta de novo a voz separada e refaz o tempo das palavras que você já tem. Ele espera a voz estar separada.',
   'help.maker.redetectNotes':
-    'Volta a ouvir a melodia e reescreve as notas sob as palavras.',
-  'help.maker.modelsName': 'Memória dos modelos de IA',
+    'Escuta de novo a melodia na voz separada e reescreve as notas sob a letra. Ele espera a voz estar separada.',
   'help.maker.models':
     'O que cada modelo precisa e se ele está neste computador. Eles são baixados na primeira vez que você usa um.',
-  'help.maker.idleName': 'Quando estiver ocioso',
   'help.maker.idle':
     'Se um modelo fica na memória entre usos, e por quanto tempo. Liberá-lo deixa memória livre; mantê-lo faz a próxima vez começar de imediato.',
 
-  'help.makerBar.caption': 'As ferramentas no topo do Criador',
+  'help.makerBar.caption': 'As ferramentas no alto do Criador',
   'help.makerBar.import':
     'Abre um arquivo de karaokê ou um projeto salvo, e mantém o áudio já carregado.',
   'help.makerBar.lyrics': 'As palavras e os seus tempos, numa só janela.',
   'help.makerBar.timing':
     'Move palavras e notas em conjunto, para uma música adiantada ou atrasada desde o primeiro segundo.',
-  'help.makerBar.pan':
-    'Arraste pela linha do tempo para percorrer a música sem mudar nada.',
   'help.makerBar.language':
     'Em que língua estão as palavras, e uma segunda ao lado para que a música possa ser cantada em qualquer uma.',
   'help.makerBar.record':
@@ -827,16 +905,15 @@ const help: Record<keyof typeof en, string> = {
   'help.makerBar.select':
     'Desenhe uma caixa ao redor das notas para movê-las ou apagá-las juntas.',
   'help.makerBar.paint': 'Desenhe a melodia diretamente sobre a grade de tons.',
-  'help.makerBar.split':
-    'Corta uma palavra em sílabas, para que uma palavra longa leve uma nota em cada uma.',
   'help.makerBar.repair':
-    'As ferramentas que ouvem por você, e os modelos de que precisam.',
+    'Separa a voz da música e escuta de novo a letra ou a melodia, com os modelos de IA necessários.',
   'help.makerBar.export':
     'Salva o karaokê pronto como projeto FluidEQ, UltraStar TXT, LRC ou LRC aprimorado.',
+  'help.makerBar.apply': 'Entrega o karaokê pronto ao palco e fecha o Criador.',
   'help.maker.tip':
-    'Modelos exigem conexão e espaço. O tempo depende do computador e da música. Use áudio autorizado e revise antes de compartilhar.',
+    'A detecção é um ponto de partida: toque trechos curtos e corrija as palavras e as notas pela gravação. Separar primeiro a voz da música faz a detecção ouvir a letra com mais clareza e dá ao player o controle de Voz guia. Os modelos precisam de conexão e espaço em disco na primeira vez; use áudio e letras com que você tem permissão para trabalhar.',
   'help.maker.keywords':
-    'remover voz, isolar voz, instrumental, playback, acapella, a capela, stems, sincronizar letra, transcrever, timing, editor de karaokê',
+    'remover voz, vocais, vocal remover, instrumental, acapella, faixas, separar voz, isolar voz, sincronizar letra, tempo, melodia, notas, afinação, ultrastar, lrc, criar karaokê, transcrever, criador',
 
   'help.share.title': 'Compartilhe áudio entre computadores',
   'help.share.intro':

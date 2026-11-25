@@ -4,8 +4,6 @@ import eq from '../../../docs/03-eq-parametric-bands-and-live-response.png';
 import headphones from '../../../docs/04-eq-headphone-correction-and-import.png';
 import convolution from '../../../docs/05-eq-convolution-library.png';
 import config from '../../../docs/06-eq-equalizer-apo-config.png';
-import karaoke from '../../../docs/11-karaoke-player.png';
-import maker from '../../../docs/12-karaoke-maker-pitch-and-lyrics.png';
 import engine from '../../../docs/15-engine-dialog.png';
 import bands from '../../../docs/16-eq-bands.png';
 import bandMenu from '../../../docs/17-band-menu.png';
@@ -14,9 +12,6 @@ import bandDesigns from '../../../docs/19-band-designs.png';
 import strip from '../../../docs/21-graph-strip.png';
 import stripPlus from '../../../docs/22-graph-strip-plus.png';
 import viewMenu from '../../../docs/23-graph-view-menu.png';
-import makerTools from '../../../docs/33-karaoke-maker-tools.png';
-import makerLyrics from '../../../docs/34-karaoke-maker-lyrics.png';
-import makerToolbar from '../../../docs/35-karaoke-maker-toolbar.png';
 import bandSelected from '../../../docs/36-eq-band-selected.png';
 import railLeft from '../../../docs/39-rail-left.png';
 import railRight from '../../../docs/40-rail-right.png';
@@ -36,8 +31,6 @@ const SHOTS: Record<THelpPicture, string> = {
   '04-eq-headphone-correction-and-import.png': headphones,
   '05-eq-convolution-library.png': convolution,
   '06-eq-equalizer-apo-config.png': config,
-  '11-karaoke-player.png': karaoke,
-  '12-karaoke-maker-pitch-and-lyrics.png': maker,
   '15-engine-dialog.png': engine,
   '16-eq-bands.png': bands,
   '17-band-menu.png': bandMenu,
@@ -46,9 +39,6 @@ const SHOTS: Record<THelpPicture, string> = {
   '21-graph-strip.png': strip,
   '22-graph-strip-plus.png': stripPlus,
   '23-graph-view-menu.png': viewMenu,
-  '33-karaoke-maker-tools.png': makerTools,
-  '34-karaoke-maker-lyrics.png': makerLyrics,
-  '35-karaoke-maker-toolbar.png': makerToolbar,
   '36-eq-band-selected.png': bandSelected,
   '39-rail-left.png': railLeft,
   '40-rail-right.png': railRight,

@@ -25,21 +25,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'karaokeTokens' as *;
 
 @media (max-width: 1280px) {
-  .karaoke-maker__wide-analysis-tools {
+  .karaoke-maker__wide-analysis-tools#{$on-the-window} {
     display: none;
   }
 
-  .karaoke-maker__compact-analysis-tools {
+  .karaoke-maker__compact-analysis-tools#{$on-the-window} {
     display: flex;
   }
 }
 
 @media (max-width: 1580px) {
-  .karaoke-maker {
+  .karaoke-maker#{$on-the-window} {
     --karaoke-maker-header-height: 101px;
   }
 
-  .karaoke-maker__header {
+  .karaoke-maker__header#{$on-the-window} {
     grid-template-areas:
       'identity actions'
       'tools tools';
@@ -74,60 +74,61 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 @media (max-width: 1120px) {
-  .karaoke-maker__header {
+  .karaoke-maker__header#{$on-the-window} {
     grid-template-columns: minmax(220px, 1fr) auto;
   }
 
-  .karaoke-maker__command-primary > .karaoke-maker__status-row {
+  .karaoke-maker__command-primary
+    > .karaoke-maker__status-row#{$on-the-window} {
     padding-block: 3px;
   }
 
-  .karaoke-maker__modal-backdrop {
+  .karaoke-maker__modal-backdrop#{$on-the-window} {
     padding: 8px;
   }
 
-  .dialog-frame.karaoke-maker__lyrics-modal {
+  .dialog-frame.karaoke-maker__lyrics-modal#{$on-the-window} {
     height: calc(100dvh - 16px);
     max-height: calc(100dvh - 16px);
   }
 
   // One column, and the body scrolls as a whole: squeezed into the window's
   // height, the word list under the lyrics was left six pixels tall.
-  .karaoke-maker__lyrics-modal > .dialog-frame__body {
+  .karaoke-maker__lyrics-modal > .dialog-frame__body#{$on-the-window} {
     grid-template-rows: auto;
     align-content: start;
   }
 
-  .karaoke-maker__lyrics-editor-body {
+  .karaoke-maker__lyrics-editor-body#{$on-the-window} {
     grid-template-columns: 1fr;
     grid-template-rows: minmax(220px, auto) auto;
   }
 
-  .karaoke-maker__lyrics-timing-editor {
+  .karaoke-maker__lyrics-timing-editor#{$on-the-window} {
     grid-template-rows: auto minmax(120px, 220px) auto;
   }
 
-  .karaoke-maker__tool-group,
-  .karaoke-maker__export-wrap {
+  .karaoke-maker__tool-group#{$on-the-window},
+  .karaoke-maker__export-wrap#{$on-the-window} {
     flex: 0 0 auto;
   }
 
-  .karaoke-maker__inspector {
+  .karaoke-maker__inspector#{$on-the-window} {
     grid-template-columns: 1fr auto;
   }
 
-  .karaoke-maker__selection-coach {
+  .karaoke-maker__selection-coach#{$on-the-window} {
     width: calc(100% - 16px);
     padding: 25px 42px 12px 12px;
     border-radius: $radius-l;
   }
 
-  .karaoke-maker__note-inspector {
+  .karaoke-maker__note-inspector#{$on-the-window} {
     grid-template-columns: 1fr;
     gap: 8px;
   }
 
-  .karaoke-maker__note-inspector-summary {
+  .karaoke-maker__note-inspector-summary#{$on-the-window} {
     grid-template-columns: auto auto minmax(0, 1fr);
 
     strong {
@@ -139,12 +140,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
-  .karaoke-maker__note-inspector-link {
+  .karaoke-maker__note-inspector-link#{$on-the-window} {
     justify-content: flex-start;
     flex-wrap: wrap;
   }
 
-  .karaoke-maker__selection-coach .karaoke-maker__word-inspector {
+  .karaoke-maker__selection-coach
+    .karaoke-maker__word-inspector#{$on-the-window} {
     grid-template-columns: minmax(130px, 0.72fr) minmax(300px, 1.4fr);
 
     .karaoke-maker__word-inspector-actions {
@@ -158,51 +160,51 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
-  .karaoke-maker__syllable-editor {
+  .karaoke-maker__syllable-editor#{$on-the-window} {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .karaoke-maker__syllable-editor-copy,
-  .karaoke-maker__syllable-actions {
+  .karaoke-maker__syllable-editor-copy#{$on-the-window},
+  .karaoke-maker__syllable-actions#{$on-the-window} {
     grid-column: 1;
     grid-row: auto;
   }
 
-  .karaoke-maker__syllable-actions {
+  .karaoke-maker__syllable-actions#{$on-the-window} {
     flex-direction: row;
     justify-content: flex-end;
   }
 
-  .karaoke-maker__rights {
+  .karaoke-maker__rights#{$on-the-window} {
     display: none;
   }
 }
 
 @media (max-width: 760px) {
-  .karaoke-maker {
+  .karaoke-maker#{$on-the-window} {
     --karaoke-maker-dock-height: 151px;
     grid-template-rows: auto minmax(300px, 1fr) auto auto;
   }
 
-  .karaoke-maker__header {
+  .karaoke-maker__header#{$on-the-window} {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 6px;
     padding-inline: 7px;
   }
 
-  .karaoke-maker__identity {
+  .karaoke-maker__identity#{$on-the-window} {
     gap: 5px;
   }
 
-  .karaoke-maker__header-actions {
+  .karaoke-maker__header-actions#{$on-the-window} {
     gap: 2px;
     padding: 3px;
   }
 
   // Labels remain available as hover/focus tooltips. Icons preserve every
   // action while avoiding a second header collision at minimum window width.
-  .karaoke-maker__header-action,
-  .karaoke-maker__fullscreen-exit {
+  .karaoke-maker__header-action#{$on-the-window},
+  .karaoke-maker__fullscreen-exit#{$on-the-window} {
     width: 32px;
     min-width: 32px !important;
     padding-inline: 0 !important;
@@ -212,7 +214,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
-  .karaoke-maker__tools {
+  .karaoke-maker__tools#{$on-the-window} {
     width: 100%;
     justify-content: flex-start;
     gap: 4px;
@@ -225,7 +227,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
-  .karaoke-maker__status-row {
+  .karaoke-maker__status-row#{$on-the-window} {
     min-width: 0;
     align-items: center;
     gap: 8px;
@@ -238,11 +240,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
-  .karaoke-maker__status-end {
+  .karaoke-maker__status-end#{$on-the-window} {
     flex: 0 0 auto;
   }
 
-  .karaoke-maker__word-state-legend {
+  .karaoke-maker__word-state-legend#{$on-the-window} {
     gap: 6px;
     padding-inline: 5px;
 
@@ -258,13 +260,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
-  .karaoke-maker__inspector {
+  .karaoke-maker__inspector#{$on-the-window} {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px;
     padding-inline: 8px;
   }
 
-  .karaoke-maker__fields {
+  .karaoke-maker__fields#{$on-the-window} {
     min-width: 0;
     gap: 7px;
 
@@ -279,7 +281,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
-  .karaoke-maker__word-inspector {
+  .karaoke-maker__word-inspector#{$on-the-window} {
     grid-template-columns: minmax(0, 1fr);
 
     input:not([type='range']) {
@@ -292,46 +294,47 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
-  .karaoke-maker__word-timing-sliders {
+  .karaoke-maker__word-timing-sliders#{$on-the-window} {
     min-width: 0;
     flex-basis: 100%;
   }
 
-  .karaoke-maker__lyrics-word-actions button {
+  .karaoke-maker__lyrics-word-actions button#{$on-the-window} {
     flex: 1 1 auto;
     justify-content: center;
   }
 
-  .karaoke-maker__wide-edit-tools {
+  .karaoke-maker__wide-edit-tools#{$on-the-window} {
     display: none;
   }
 
-  .karaoke-maker__compact-edit-tools {
+  .karaoke-maker__compact-edit-tools#{$on-the-window} {
     display: flex;
   }
 
-  .karaoke-maker__compact-edit-tools .karaoke-maker__tool-popover {
+  .karaoke-maker__compact-edit-tools
+    .karaoke-maker__tool-popover#{$on-the-window} {
     left: 0;
     transform: none;
   }
 
-  .karaoke-maker__timing-popover {
+  .karaoke-maker__timing-popover#{$on-the-window} {
     top: 64vh;
     left: 50%;
     transform: translate(-50%, -50%);
   }
 
-  .karaoke-maker-nav {
+  .karaoke-maker-nav#{$on-the-window} {
     grid-template-columns: minmax(110px, 1fr) auto;
     gap: 4px;
     padding-inline: 5px;
   }
 
-  .karaoke-maker-nav__summary {
+  .karaoke-maker-nav__summary#{$on-the-window} {
     display: none;
   }
 
-  .karaoke-maker-nav__follow {
+  .karaoke-maker-nav__follow#{$on-the-window} {
     min-width: 29px !important;
     padding-inline: 7px !important;
 
@@ -409,11 +412,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Keeping those two together leaves the tools as the sole second row and
 // prevents a third header row from overflowing a short editor.
 @media (max-width: 520px) {
-  .karaoke-maker {
+  .karaoke-maker#{$on-the-window} {
     --karaoke-maker-header-height: 101px;
   }
 
-  .karaoke-maker__header {
+  .karaoke-maker__header#{$on-the-window} {
     grid-template-areas:
       'identity actions'
       'tools tools';
@@ -421,12 +424,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     grid-template-rows: 42px 42px;
   }
 
-  .karaoke-maker__identity,
-  .karaoke-maker__header-actions {
+  .karaoke-maker__identity#{$on-the-window},
+  .karaoke-maker__header-actions#{$on-the-window} {
     justify-self: stretch;
   }
 
-  .karaoke-maker__header-actions {
+  .karaoke-maker__header-actions#{$on-the-window} {
     justify-self: end;
   }
 }
@@ -435,30 +438,30 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // dock are separate grid rows. On a 13-inch laptop those rows must share the
 // available height instead of retaining desktop-sized 260-300px floors.
 @media (max-height: 760px) {
-  .karaoke-maker {
+  .karaoke-maker#{$on-the-window} {
     --karaoke-maker-dock-height: 120px;
     grid-template-rows: auto minmax(132px, 1fr) auto auto;
   }
 
-  .karaoke-maker__header {
+  .karaoke-maker__header#{$on-the-window} {
     min-height: 0;
     padding-block: 4px;
   }
 
-  .karaoke-maker__canvas-host {
+  .karaoke-maker__canvas-host#{$on-the-window} {
     margin-top: 5px;
   }
 
-  .karaoke-maker-nav {
+  .karaoke-maker-nav#{$on-the-window} {
     min-height: 46px;
     padding-block: 3px;
   }
 
-  .karaoke-maker-nav__overview {
+  .karaoke-maker-nav__overview#{$on-the-window} {
     height: 36px;
   }
 
-  .karaoke-maker-preview {
+  .karaoke-maker-preview#{$on-the-window} {
     margin-block: 4px;
 
     > header {
@@ -467,44 +470,45 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
-  .karaoke-maker-preview__stage {
+  .karaoke-maker-preview__stage#{$on-the-window} {
     height: clamp(64px, var(--karaoke-maker-preview-height, 120px), 22dvh);
   }
 
-  .karaoke-maker__command-primary > .karaoke-maker__status-row {
+  .karaoke-maker__command-primary
+    > .karaoke-maker__status-row#{$on-the-window} {
     min-height: 0;
     padding-block: 2px;
   }
 
-  .karaoke-maker__status-end {
+  .karaoke-maker__status-end#{$on-the-window} {
     display: none;
   }
 
-  .karaoke-maker__tools {
+  .karaoke-maker__tools#{$on-the-window} {
     min-height: 38px;
     padding-block: 3px;
   }
 
-  .karaoke-maker__header-tools > .karaoke-maker__tools {
+  .karaoke-maker__header-tools > .karaoke-maker__tools#{$on-the-window} {
     min-height: 38px;
   }
 
-  .karaoke-maker__command-dock > .karaoke-transport {
+  .karaoke-maker__command-dock > .karaoke-transport#{$on-the-window} {
     margin-block: 5px 12px;
   }
 }
 
 @media (max-height: 620px) {
-  .karaoke-maker {
+  .karaoke-maker#{$on-the-window} {
     --karaoke-maker-dock-height: 120px;
     grid-template-rows: auto minmax(104px, 1fr) auto auto;
   }
 
-  .karaoke-maker-preview__stage {
+  .karaoke-maker-preview__stage#{$on-the-window} {
     height: clamp(56px, var(--karaoke-maker-preview-height, 92px), 18dvh);
   }
 
-  .karaoke-maker-preview__zoom {
+  .karaoke-maker-preview__zoom#{$on-the-window} {
     display: none;
   }
 }
@@ -513,11 +517,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // their dedicated tools row even when height is scarce; collapsing that row
 // is what previously made the tools cover the editor.
 @media (min-width: 1581px) and (max-height: 760px) {
-  .karaoke-maker {
+  .karaoke-maker#{$on-the-window} {
     --karaoke-maker-header-height: 47px;
   }
 
-  .karaoke-maker__header {
+  .karaoke-maker__header#{$on-the-window} {
     grid-template-rows: 38px;
   }
 }

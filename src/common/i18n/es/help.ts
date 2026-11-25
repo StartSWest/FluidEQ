@@ -782,55 +782,133 @@ const help: Record<keyof typeof en, string> = {
 
   'help.karaoke.title': 'Canta con Karaoke',
   'help.karaoke.intro':
-    'Karaoke combina tu audio con letras. Las letras temporizadas siguen la reproducción; los objetivos de tono requieren datos de notas. Un micrófono configurado añade tu tono en directo.',
+    'Karaoke pone tus propias canciones en un escenario: la letra mientras se canta, los acordes y una franja de tono que dibuja tu voz sobre las notas de la canción y puntúa cada línea. Tus canciones están en una lista al lado, como en la Biblioteca, y cada una suena por el reproductor de la Biblioteca, con tus ajustes de sonido.',
   'help.karaoke.steps':
-    'Abre Karaoke y usa Añadir archivos o Añadir carpeta para importar audio y letras correspondientes.\nElige una canción, reprodúcela y comprueba que letras y acompañamiento coincidan.\nConfigura el micrófono, ajusta el tamaño de letra y usa el control de pantalla completa del escenario.\nElige el fondo con los botones de portada y escena del escenario. Su Transparencia y Desenfoque son independientes del gráfico principal. Agrupa la playlist por carpetas y pulsa una cabecera para plegar sus canciones.',
+    'Abre Karaoke y pulsa + junto a Canciones para añadir archivos o una carpeta entera: cada canción con su archivo de letra. Haz doble clic en una canción para cantarla.\nUsa la fila de arriba del escenario: Tono y Acordes muestran u ocultan la franja de tono y los acordes, cada uno por su cuenta; Escena, Portada, Vídeo o Ninguno elige qué hay detrás de la letra. Con Escena aparece a su lado el selector de escenas.\nActiva el micrófono en la esquina de la franja de tono y canta. Cada nota es una caja y tu voz una línea que la cruza: verde afinada, amarilla cerca, roja fuera. Cada nota recibe su veredicto al terminar.\nBajo la franja, cada línea de la canción es una fila de celdas con su puntuación. Pulsa una línea para cantarla otra vez desde justo antes. Al acabar la canción, el resumen muestra tu puntuación sobre 10.000, lo que más costó, un consejo y cada línea frente a tu mejor intento; Ver resultados lo vuelve a abrir.\nAbre Ajustes de mezcla en la barra del reproductor para el volumen, el tono guía, la pista base y, cuando el Creador ha separado la canción, la Voz guía: la voz del cantante bajo la música, tan alta como quieras.\nPantalla completa le da la ventana al escenario. La fila y la barra del reproductor se apartan tras unos segundos quietos: lleva el puntero al borde superior para la cabecera o al inferior para la barra, o fíjalas con los botones junto a pantalla completa.',
   'help.karaoke.tip':
-    'Un archivo de solo letras no contiene notas objetivo. Karaoke suena al volumen de tu ordenador; los niveles de la melodía, la base y la voz guía están en Ajustes de mezcla. El micrófono se analiza localmente para nivel y tono: FluidEQ no lo reproduce por los altavoces ni lo graba.',
+    'Un archivo de letra solo con palabras no trae notas, así que la franja no tiene nada que cantar ni puntuar; los archivos UltraStar las traen y el Creador de karaoke puede añadirlas. Los acordes salen de los propios archivos de la canción cuando los tiene, una hoja de acordes junto a la canción o acordes dentro de su letra, y si no se deducen de la música. El micrófono se analiza en este ordenador para el nivel y el tono; FluidEQ nunca lo graba ni lo reproduce por tus altavoces.',
   'help.karaoke.keywords':
-    'afinación, entonación, puntuación, puntaje, LRC, UltraStar, agregar canciones, letras sincronizadas',
+    'cantar, letra, micrófono, mic, tono, puntuación, acordes, voz guía, pantalla completa, lrc, ultrastar, canciones, lyrics, sing',
+  'help.karaoke.stageCaption':
+    'El escenario: la letra, los acordes, tu tono y tu puntuación',
+  'help.karaoke.guides':
+    'Tono muestra la franja de notas y Acordes, los acordes. Cada uno se activa por su cuenta; con los dos apagados el escenario muestra solo la letra.',
+  'help.karaoke.background':
+    'Lo que hay detrás de la letra: la escena, la portada de la canción, su vídeo o nada. Portada y Vídeo están cuando la canción los trae.',
+  'help.karaoke.maker':
+    'Abre esta canción en el Creador de karaoke para corregir sus tiempos, su letra o sus notas.',
+  'help.karaoke.textSize':
+    'Agranda o achica la letra según la distancia desde la que cantas.',
+  'help.karaoke.micSettings':
+    'Qué micrófono usar, cuánto te oye y su volumen. Se ilumina mientras el micrófono está activo.',
+  'help.karaoke.fullScreen':
+    'Da toda la ventana al escenario; un doble clic en el escenario hace lo mismo. En pantalla completa, dos botones más aquí mantienen visibles la cabecera o la barra del reproductor.',
+  'help.karaoke.chords':
+    'El acorde que acaba de sonar, el que suena ahora, resaltado, y los dos siguientes.',
+  'help.karaoke.pitch':
+    'Las notas que cantar como cajas y tu voz como una línea que las cruza: verde afinada, amarilla cerca, roja fuera. Arrástrala para moverte por la canción y arrastra el asa de encima para hacerla más alta.',
+  'help.karaoke.micToggle':
+    'Activa o desactiva el micrófono. Mientras escucha, a su lado aparece la nota que estás cantando.',
+  'help.karaoke.score':
+    'Cada línea como una fila de celdas, una por nota, del color de su veredicto, con tu puntuación acumulada y tu racha. Pulsa una línea para cantarla otra vez.',
+  'help.karaoke.playlistCaption': 'Tus canciones, junto al escenario',
+  'help.karaoke.search':
+    'Busca una canción en la lista por su título o el nombre de su archivo.',
+  'help.karaoke.add':
+    'Añade archivos o una carpeta, agrupa la lista por carpeta o vacíala.',
+  'help.karaoke.fold':
+    'Pliega la lista para dejarle el sitio al escenario. El botón Lista de reproducción al principio de la fila del escenario la devuelve.',
+  'help.karaoke.singingName': 'La canción del escenario',
+  'help.karaoke.singing':
+    'Lleva barras en movimiento mientras se canta. Haz clic en una canción para elegirla y doble clic para cantarla; pasa el puntero por una fila para subirla, bajarla o quitarla de la lista.',
+  'help.karaoke.folderName': 'Una carpeta',
+  'help.karaoke.folder':
+    'Con la lista agrupada por carpeta, pulsa una carpeta para plegar sus canciones o volver a abrirlas. El número es cuántas canciones tiene.',
+  'help.karaoke.mixCaption':
+    'Ajustes de mezcla, en la barra del reproductor al pie de la ventana',
+  'help.karaoke.volume':
+    'El volumen de tu ordenador, el mismo deslizador que tiene la barra de cada pestaña. Su icono silencia el sonido.',
+  'help.karaoke.melody':
+    'Un tono que toca las notas de la canción para cantar con él. Su botón lo activa o lo apaga.',
+  'help.karaoke.backing':
+    'La música: la propia canción, o su pista base cuando el Creador de karaoke le ha separado la voz.',
+  'help.karaoke.vocal':
+    'La voz del propio cantante, puesta bajo la pista base cuando la canción se ha separado. A cero para la música sola.',
+  'help.karaoke.scene':
+    'Con la escena detrás de la letra, cuánto se transparenta y cuánto se desenfoca. Karaoke guarda los suyos, aparte de los del gráfico.',
+  'help.karaoke.micCaption': 'Ajustes del micrófono',
+  'help.karaoke.micInput': 'El micrófono en el que cantas.',
+  'help.karaoke.micOn':
+    'Empieza o deja de escuchar. Si está activo se ve arriba a la derecha del panel.',
+  'help.karaoke.micLevel':
+    'Cuánto te oye el micrófono ahora mismo. Canta y mira cómo se mueve.',
+  'help.karaoke.micVolume':
+    'Sube un micrófono demasiado bajo para que se oiga tu tono, o baja uno demasiado alto.',
+  'help.karaoke.scoreCaption': 'El resumen al final de una canción',
+  'help.karaoke.total':
+    'Tu puntuación sobre 10.000, su calificación y cómo queda frente a tu mejor intento en esta canción.',
+  'help.karaoke.statsName': 'Afinación · A tiempo · Notas',
+  'help.karaoke.stats':
+    'Cuánto tiempo cantaste dentro de las notas, en cuántas notas entraste a tiempo y cuántas acertaste, con cada veredicto contado debajo.',
+  'help.karaoke.hardest':
+    'La línea que más te costó y por qué, con algo que probar la próxima vez debajo.',
+  'help.karaoke.practise':
+    'Te lleva a justo antes de esa línea para cantarla otra vez.',
+  'help.karaoke.again': 'Toda la canción otra vez, desde el principio.',
+  'help.karaoke.map':
+    'Cada línea con su calificación y cuántos puntos se movió desde tu mejor intento. Pulsa una línea para practicarla.',
+  'help.karaoke.attempts':
+    'Tus últimos intentos con esta canción, entre ellos este y el mejor.',
 
   'help.maker.title': 'Crea en el Creador de karaoke',
   'help.maker.intro':
-    'El Creador de karaoke convierte audio en un proyecto editable con audio, letras y notas en una línea de tiempo. Revisa siempre las palabras y los tiempos generados automáticamente.',
+    'El Creador de karaoke convierte una canción en un karaoke que puedes cantar: su letra, cuándo se canta cada palabra y las notas de la melodía. Se abre sobre la canción del escenario, en un solo editor: las herramientas arriba, el sonido de la canción con la letra y las notas debajo, y una vista previa en vivo de cómo las mostrará el escenario.',
   'help.maker.steps':
-    'Abre Crear desde Karaoke y carga el audio. Elige las herramientas de separación o transcripción disponibles que necesites.\nSigue el progreso: el primer uso de IA puede requerir descargar modelos. Revisa letras y notas en la línea de tiempo.\nEscucha fragmentos, corrige texto y tiempos, guarda el proyecto y exporta los archivos de karaoke.\nSi ya tienes la letra, pega el texto completo, incluidas las repeticiones. Puedes registrar las entradas de las líneas mientras escuchas y afinar después palabras y notas. Guarda el proyecto editable y exporta LRC o UltraStar para reproducirlo.',
+    'En el escenario de Karaoke, pulsa Abrir en el Creador. Pulsa Letra y pega la letra de la canción o carga un archivo de letra, una línea por fila, con cada repetición escrita.\nPulsa Detectar tiempos y melodía para que FluidEQ escuche cuándo se canta cada palabra y qué notas la llevan, o Aceptar y grabar tiempos para marcar tú cada línea mientras suena la canción. La primera vez se descargan los modelos de IA que hacen falta.\nRevisa el resultado en la cuadrícula: las palabras van en carriles sobre las notas, y las notas se dibujan como en el escenario. Arrastra una palabra o una nota para moverla, o su borde para cambiar su duración. Seleccionar notas dibuja un recuadro alrededor de varias; Pintar notas dibuja notas nuevas.\nMuévete por la canción con la vista general bajo la cuadrícula, o arrastra con el botón central del ratón en cualquier punto de la cuadrícula para moverte en el tiempo y en el tono a la vez. El Rango de tono, contra el borde izquierdo de la cuadrícula, amplía y desplaza las notas. Seguir la letra mantiene el cabezal a la vista y pasa de página al llegar al borde.\nPulsa Usar en el reproductor para cantarla en el escenario. Exportar la guarda como proyecto de FluidEQ, UltraStar TXT, LRC o LRC mejorado; una canción de tu Biblioteca también puede guardarse de vuelta con Guardar en la biblioteca.',
+  'help.maker.editorCaption':
+    'El editor: el sonido de la canción, su letra y sus notas',
+  'help.maker.gridName': 'La cuadrícula',
+  'help.maker.grid':
+    'Arriba el sonido de la canción, debajo su letra en tres carriles y sus notas como cajas sobre la cuadrícula de tono, como las dibuja el escenario. Arrastra con el botón central del ratón para moverte en el tiempo y en el tono.',
+  'help.maker.pitchRange':
+    'Dónde está la cuadrícula en tono, frente a todo el rango. Arrastra sus extremos para ampliar y su centro para desplazar; doble clic para ajustarla a las notas.',
+  'help.maker.overview':
+    'Toda la canción, con la parte que muestra la cuadrícula enmarcada. Arrastra el marco para moverte y sus bordes para ampliar.',
+  'help.maker.follow':
+    'Mantiene el cabezal a la vista mientras suena la canción y pasa de página al llegar al borde.',
+  'help.maker.preview':
+    'La letra tal como la mostrará el escenario mientras suena la canción. Su deslizador A cambia el tamaño; ocúltala para tener más sitio.',
+  'help.maker.checked':
+    'Cuántas palabras has ajustado a mano y cuántas siguen como se detectaron o importaron, con las notas, palabras y comprobaciones de la canción al lado.',
 
   'help.maker.lyricsCaption': 'La letra, y cuándo se canta cada palabra',
-  'help.maker.referenceName': 'Letra de referencia',
   'help.maker.reference':
     'La canción entera como texto, una línea por fila. Pégala o carga un archivo; FluidEQ saca de ahí los tiempos.',
-  'help.maker.timingName': 'Sincronización por palabra',
   'help.maker.timing':
     'Todas las palabras en orden, con cuántas llevan tiempo asignado. Pulsa una para trabajarla.',
-  'help.maker.wordName': 'Palabra seleccionada',
   'help.maker.word':
     'Dónde empieza la palabra elegida y cuánto dura. Mover su borde le da o le quita tiempo a la de al lado; la línea conserva su duración.',
   'help.maker.toolsCaption':
-    'Las herramientas de IA y los modelos que necesitan',
+    'Herramientas de reparación y los modelos de IA que necesitan',
   'help.maker.separate':
-    'Separa la grabación en voz y música, para que el karaoke suene sin el cantante.',
+    'Divide la grabación en voz y música. El karaoke puede sonar entonces sin el cantante, el deslizador Voz guía puede devolver la voz debajo y la detección oye la letra con más claridad.',
   'help.maker.loadVocals':
     'Usa un archivo de solo voz que ya tengas, en vez de separarlo aquí.',
   'help.maker.redetectTiming':
-    'Vuelve a escuchar la voz y recalcula los tiempos de las palabras que ya tienes.',
+    'Vuelve a escuchar la voz separada y reajusta los tiempos de las palabras que ya tienes. Espera a que la voz esté separada.',
   'help.maker.redetectNotes':
-    'Vuelve a escuchar la melodía y reescribe las notas bajo las palabras.',
-  'help.maker.modelsName': 'Memoria de modelos de IA',
+    'Vuelve a escuchar la melodía en la voz separada y reescribe las notas bajo la letra. Espera a que la voz esté separada.',
   'help.maker.models':
     'Qué necesita cada modelo y si está en este ordenador. Se descargan la primera vez que usas uno.',
-  'help.maker.idleName': 'Cuando esté inactivo',
   'help.maker.idle':
     'Si un modelo sigue en memoria entre usos, y durante cuánto. Liberarlo deja memoria libre; mantenerlo hace que la próxima vez arranque al instante.',
 
-  'help.makerBar.caption': 'Las herramientas de la parte de arriba del creador',
+  'help.makerBar.caption': 'Las herramientas de la parte superior del Creador',
   'help.makerBar.import':
     'Abre un archivo de karaoke o un proyecto guardado, y conserva el audio que ya tenías.',
   'help.makerBar.lyrics': 'Las palabras y sus tiempos, en una sola ventana.',
   'help.makerBar.timing':
     'Mueve palabras y notas a la vez, para una canción que va adelantada o atrasada desde el primer segundo.',
-  'help.makerBar.pan':
-    'Arrastra por la línea de tiempo para recorrer la canción sin cambiar nada.',
   'help.makerBar.language':
     'En qué idioma están las palabras, y un segundo al lado para poder cantarla en cualquiera de los dos.',
   'help.makerBar.record':
@@ -839,16 +917,16 @@ const help: Record<keyof typeof en, string> = {
     'Dibuja un recuadro sobre las notas para moverlas o borrarlas juntas.',
   'help.makerBar.paint':
     'Dibuja la melodía directamente sobre la rejilla de tonos.',
-  'help.makerBar.split':
-    'Parte una palabra en sílabas, para que una palabra larga lleve una nota en cada una.',
   'help.makerBar.repair':
-    'Las herramientas que escuchan por ti, y los modelos que necesitan.',
+    'Separa la voz de la música y vuelve a escuchar la letra o la melodía, con los modelos de IA que necesitan.',
   'help.makerBar.export':
     'Guarda el karaoke terminado como proyecto de FluidEQ, TXT de UltraStar, LRC o LRC mejorado.',
+  'help.makerBar.apply':
+    'Pasa el karaoke terminado al escenario y cierra el Creador.',
   'help.maker.tip':
-    'Los modelos requieren conexión y espacio. La duración del proceso depende del equipo y la canción. Utiliza audio que tengas permiso para trabajar y revisa antes de compartir.',
+    'La detección es un punto de partida: reproduce pasajes cortos y corrige las palabras y las notas contra la grabación. Separar primero la voz de la música hace que la detección oiga la letra con más claridad y da al reproductor su deslizador de Voz guía. Los modelos necesitan conexión y espacio en disco la primera vez; usa audio y letras con los que tengas permiso para trabajar.',
   'help.maker.keywords':
-    'eliminar voz, quitar voces, instrumental, acapella, stems, aislar la voz, vocal remover, separador de voz, sincronizar letras, timing, transcribir, inteligencia artificial',
+    'quitar la voz, voces, vocal remover, instrumental, acapella, pistas, separar voz, aislar voz, sincronizar letra, tiempos, melodía, notas, tono, ultrastar, lrc, crear karaoke, transcribir, creador',
 
   'help.share.title': 'Comparte audio entre ordenadores',
   'help.share.intro':

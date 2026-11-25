@@ -501,13 +501,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 @media (max-width: 920px) {
-  .karaoke-maker__status-end > span:last-child {
+  .karaoke-maker__status-end > span:last-child#{$on-the-window} {
     display: none;
   }
 }
 
 @media (max-width: 640px) {
-  .karaoke-maker__word-state-legend {
+  .karaoke-maker__word-state-legend#{$on-the-window} {
     .is-touched,
     .is-pending {
       font-size: 0;
