@@ -15,6 +15,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { getDefaultTuning, type ILookTuning } from 'common/customLooks';
 import { getRainbowStops } from '../../../../renderer/utils/rainbowPalette';
 import {
+  DEFAULT_SECOND_COLOUR,
+  type IWindowTintSnapshot,
+  restoreWindowTint,
+  setWindowTintSecondary,
+  windowTintSnapshot,
+} from '../../../../renderer/utils/windowTint';
+import {
   sceneColours,
   sceneLook,
 } from '../../../../renderer/graph/sceneViews/drawSceneView';
@@ -40,7 +47,12 @@ const tuned = (changes: Partial<ILookTuning>): ILookTuning => ({
 
 describe("a scene's colours", () => {
   const root = document.documentElement;
+  let tint: IWindowTintSnapshot;
+  beforeEach(() => {
+    tint = windowTintSnapshot();
+  });
   afterEach(() => {
+    restoreWindowTint(tint);
     root.classList.remove('is-euphoric');
     root.style.removeProperty('--accent-dark');
     root.style.removeProperty('--accent');
@@ -56,8 +68,10 @@ describe("a scene's colours", () => {
   });
 
   // The accent's walk, its dark to its light, as every look with no colours
-  // of its own paints in Normal mode (`windowInk.ts`).
-  it("are the window's accent walk in Normal mode", () => {
+  // of its own paints in Normal mode on a window that wears one colour
+  // (`windowInk.ts`): the Tint's second colour taken off with its ×.
+  it("are the window's accent walk in Normal mode with one colour", () => {
+    setWindowTintSecondary(undefined);
     root.style.setProperty('--accent-dark', '#0a0b0c');
     root.style.setProperty('--accent', '#112233');
     root.style.setProperty('--accent-light', '#445566');
@@ -66,6 +80,24 @@ describe("a scene's colours", () => {
     expect(sceneColours('rainbow', [])).toEqual(walk);
     // One flat colour is the primary alone.
     expect(sceneColours('signal', [])).toEqual(['#112233']);
+  });
+
+  // A new window has a second colour, the Tint's violet (2026-11-24), and a
+  // look with no colours of its own runs from the accent to it.
+  it('run from the accent to the second colour, the violet on a new window', () => {
+    root.style.setProperty('--accent-dark', '#0a0b0c');
+    root.style.setProperty('--accent', '#112233');
+    root.style.setProperty('--accent-light', '#445566');
+    const level = sceneColours('level', []);
+    expect(level).toHaveLength(3);
+    expect(level[0]).toBe('#112233');
+    expect(level[2]).toBe(DEFAULT_SECOND_COLOUR);
+    expect(sceneColours('rainbow', [])).toEqual(level);
+    // Flat is still the accent alone.
+    expect(sceneColours('signal', [])).toEqual(['#112233']);
+
+    setWindowTintSecondary('#ff8800');
+    expect(sceneColours('level', [])[2]).toBe('#ff8800');
   });
 
   it("are Rainbow mode's palette while the mode is on", () => {

@@ -19,7 +19,9 @@ import {
   featureFilmUrl,
   filmCueAt,
 } from 'renderer/components/featureTour/featureFilms';
+import FILM_POSTERS from 'renderer/components/featureTour/filmPosters';
 import en from 'common/i18n/en';
+import { installWatchingObserver } from '../../utils/watchingObserver';
 
 let frames: FrameRequestCallback[] = [];
 beforeAll(() =>
@@ -96,12 +98,17 @@ it('places one walkthrough in the first chapter, with no old tutorial card besid
 });
 
 it('keeps a bundled poster and fetches neither film nor track before Play', () => {
+  // The poster is drawn only near the reader; the setup's observer never
+  // reports, so this one says the film is in view.
+  const observer = installWatchingObserver();
   const { container } = render(<HelpFilm id="walkthrough" />);
+  observer.comeNear();
+  observer.restore();
   expect(container.querySelector('video')).toBeNull();
   expect(container.querySelector('track')).toBeNull();
-  expect(container.querySelector('img')?.getAttribute('src')).not.toMatch(
-    /^https?:/,
-  );
+  const poster = container.querySelector('img');
+  expect(poster).toHaveAttribute('src', FILM_POSTERS.walkthrough);
+  expect(poster?.getAttribute('src')).not.toMatch(/^https?:/);
   fireEvent.click(screen.getByRole('button'));
   const video = container.querySelector('video');
   expect(video).toHaveAttribute('src', featureFilmUrl('walkthrough', 'en'));

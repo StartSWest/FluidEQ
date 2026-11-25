@@ -13,6 +13,8 @@ import {
   within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { STARTER_CREDITS } from '../../../common/sceneStore';
+import { pluralCategory } from '../../../renderer/utils/pluralCategory';
 import { subscribeAccountPanelRequests } from '../../../renderer/account/accountPanel';
 import { resetAccountStore } from '../../../renderer/account/accountStore';
 import { resetEntitlementStore } from '../../../renderer/account/entitlementStore';
@@ -266,8 +268,11 @@ describe('the Plus tab', () => {
     const unsubscribe = subscribeAccountPanelRequests(requests);
     await renderPanel();
 
+    // Worded for the starter credits a new account gets — one since
+    // 2026-11-24 — in the form English counts that many in.
+    const plural = pluralCategory(STARTER_CREDITS, 'en');
     expect(
-      screen.getByRole('heading', { name: 'plus.signedOut.title.other' }),
+      screen.getByRole('heading', { name: `plus.signedOut.title.${plural}` }),
     ).toBeInTheDocument();
     expect(screen.getByText('plus.signedOut.free.title')).toBeInTheDocument();
     expect(
@@ -275,7 +280,7 @@ describe('the Plus tab', () => {
     ).toBeInTheDocument();
     // The way in twice: under the headline (shown narrow) and on the offer.
     const creates = screen.getAllByRole('button', {
-      name: /plus.signedOut.create plus.signedOut.createSub.other/,
+      name: `plus.signedOut.create plus.signedOut.createSub.${plural}`,
     });
     expect(creates).toHaveLength(2);
     creates.forEach((create) => {

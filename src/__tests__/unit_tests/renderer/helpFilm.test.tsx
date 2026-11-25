@@ -11,6 +11,7 @@ import {
   screen,
 } from '@testing-library/react';
 import HelpChapter from 'renderer/help/HelpChapter';
+import { HelpDrawsContext } from 'renderer/help/HelpColumn';
 import HelpFilm from 'renderer/help/HelpFilm';
 import HELP_FILMS, { FILMS_AWAY } from 'renderer/help/helpFilms';
 import { WALKTHROUGH_FILM } from 'renderer/components/featureTour/WalkthroughSlide';
@@ -24,6 +25,10 @@ import {
 } from 'renderer/components/featureTour/featureFilms';
 import { HELP_CHAPTERS } from 'common/helpGuide';
 import en from 'common/i18n/en';
+import {
+  type IWatchingObserver,
+  installWatchingObserver,
+} from '../../utils/watchingObserver';
 
 afterEach(cleanup);
 
@@ -53,17 +58,52 @@ const filmsOnSlides = () =>
       ),
   );
 
-it('is a bundled picture until pressed, and fetches nothing before', () => {
-  const { container } = render(<HelpFilm id="each-ear" />);
-  expect(container.querySelector('video')).toBeNull();
-  const card = screen.getByRole('button', {
-    name: en['help.video.play'].replace('{title}', intro),
+describe('the poster before Play', () => {
+  let observer: IWatchingObserver;
+  beforeEach(() => {
+    observer = installWatchingObserver();
   });
-  expect(card.querySelector('img')).toHaveAttribute(
-    'src',
-    FILM_POSTERS['each-ear'],
-  );
-  expect(card).toHaveTextContent(intro);
+  afterEach(() => observer.restore());
+
+  const card = () =>
+    screen.getByRole('button', {
+      name: en['help.video.play'].replace('{title}', intro),
+    });
+
+  it('is a bundled picture until pressed, and fetches nothing before', () => {
+    const { container } = render(<HelpFilm id="each-ear" />);
+    observer.comeNear();
+    expect(container.querySelector('video')).toBeNull();
+    expect(card().querySelector('img')).toHaveAttribute(
+      'src',
+      FILM_POSTERS['each-ear'],
+    );
+    expect(card()).toHaveTextContent(intro);
+  });
+
+  // Help draws a picture only near the reader (2026-11-25): every figure,
+  // capture and poster kept alive once shown grew the renderer from 891 MB
+  // to 1,610 MB read through.
+  it('is drawn as the reader nears it and taken down once they are past it', () => {
+    render(<HelpFilm id="each-ear" />);
+    expect(card().querySelector('img')).toBeNull();
+    // The card itself stands from the first paint, so nothing moves.
+    expect(card()).toHaveTextContent(intro);
+    observer.comeNear();
+    expect(card().querySelector('img')).not.toBeNull();
+    observer.goFar();
+    expect(card().querySelector('img')).toBeNull();
+  });
+
+  it('is not drawn under a figure enlarged over the guide', () => {
+    render(
+      <HelpDrawsContext.Provider value={false}>
+        <HelpFilm id="each-ear" />
+      </HelpDrawsContext.Provider>,
+    );
+    observer.comeNear();
+    expect(card().querySelector('img')).toBeNull();
+  });
 });
 
 it("plays in the reader's language once pressed, its first line under it", () => {

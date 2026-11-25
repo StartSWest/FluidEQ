@@ -61,6 +61,23 @@ it('keeps known reference names while still detecting untranslated prose beside 
 const KEY = String.raw`(?:Ctrl|Alt|Shift|Tab|Esc|Enter|Space|F\d{1,2}|[A-Z0-9])`;
 const KEY_CHORD = new RegExp(`^${KEY}(?:\\+${KEY})+$`);
 
+/**
+ * Unit symbols, which are not words of English: a readout such as
+ * "{hz} Hz · {slope} dB/oct" is the same in a catalogue that keeps the
+ * symbols, as Korean's keeps "dB/oct" in its other slope readouts.
+ */
+const UNITS: ReadonlySet<string> = new Set([
+  'Hz',
+  'kHz',
+  'dB',
+  'dBFS',
+  'dBTP',
+  'LUFS',
+  'LU',
+  'ms',
+  'oct',
+]);
+
 /** An English source handed back unchanged, as a whole translation. */
 const isCopiedProse = (source: string, translated: string): boolean => {
   if (
@@ -73,7 +90,9 @@ const isCopiedProse = (source: string, translated: string): boolean => {
   if (source === 'FluidEQ Audio Processing Engine') {
     return false;
   }
-  const words = source.replace(/\{\w+\}/g, '').match(/\b[A-Za-z]+\b/g) ?? [];
+  const words = (
+    source.replace(/\{\w+\}/g, '').match(/\b[A-Za-z]+\b/g) ?? []
+  ).filter((word) => !UNITS.has(word));
   return words.length >= 3;
 };
 
@@ -84,6 +103,19 @@ it('lets a keyboard chord stand as it is, and still catches a sentence round one
     isCopiedProse('Press Ctrl+Shift+I to fix', 'Press Ctrl+Shift+I to fix'),
   ).toBe(true);
   expect(isCopiedProse('Ctrl Shift Escape', 'Ctrl Shift Escape')).toBe(true);
+});
+
+it('lets a readout of numbers and unit symbols stand, and still catches words round them', () => {
+  expect(
+    isCopiedProse('{hz} Hz · {slope} dB/oct', '{hz} Hz · {slope} dB/oct'),
+  ).toBe(false);
+  // The control: the same symbols inside English prose are copied prose.
+  expect(
+    isCopiedProse(
+      'Cut below {hz} Hz at {slope} dB/oct',
+      'Cut below {hz} Hz at {slope} dB/oct',
+    ),
+  ).toBe(true);
 });
 
 describe.each(catalogs)('%s catalog contracts', (_code, dictionary) => {

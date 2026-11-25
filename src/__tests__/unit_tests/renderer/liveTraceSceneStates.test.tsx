@@ -30,6 +30,10 @@ jest.mock('renderer/audio/LiveAudioContext', () => ({
   ...jest.requireActual('renderer/audio/LiveAudioContext'),
   useLiveAudioFrame: () => mockFrame,
   useLiveAudioControl: () => ({ isPaused: false }),
+  // The stereo views' channel readers tap the capture through this, which
+  // reads the control inside the module, past the mock above: the control
+  // given here has no capture, so there is nothing to tap.
+  useAnalysisTap: () => undefined,
 }));
 
 jest.mock('renderer/graph/spaceInvasion', () => {
