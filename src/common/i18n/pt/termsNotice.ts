@@ -27,6 +27,8 @@ const termsNotice = {
     'Uma cena que quem a criou despublica agora continua com todos que a obtiveram. Uma cena retirada ou apagada por violar os termos devolve o crédito a quem a comprou, e quem a criou devolve o que essas compras renderam. O banimento de contas é substituído pela suspensão: uma conta suspensa pode pedir o reembolso do que pagou pouco antes, e é apagada pouco depois. Ao recusar ou retirar uma cena, o criador do FluidEQ também pode impedir por um tempo que essa cena, ou todas as de um criador, sejam publicadas.',
   'termsNotice.change.13':
     'O FluidEQ agora conta quantos computadores usam cada motor de áudio, uma vez por dia, como totais anônimos: só o nome do motor é enviado, sem nada que o ligue a você, à sua conta ou ao seu computador.',
+  'termsNotice.change.14':
+    'Contas novas agora recebem um crédito grátis para começar, em vez de três.',
 } as const;
 
 export default termsNotice;

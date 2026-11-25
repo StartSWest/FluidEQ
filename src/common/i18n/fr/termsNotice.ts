@@ -27,6 +27,8 @@ const termsNotice = {
     'Une scène que son auteur dépublie reste désormais à toutes les personnes qui l’ont obtenue. Une scène retirée ou supprimée pour avoir enfreint les conditions rend leur crédit à ses acheteurs, et son auteur rend ce que ces achats lui ont rapporté. Les bannissements sont remplacés par la suspension : un compte suspendu peut demander le remboursement de ce qu’il a payé peu avant, et il est supprimé peu après. En refusant ou en retirant une scène, le créateur de FluidEQ peut aussi empêcher un temps la publication de cette scène, ou de toutes les scènes d’un auteur.',
   'termsNotice.change.13':
     'FluidEQ compte désormais, une fois par jour et sous forme de totaux anonymes, combien d’ordinateurs utilisent chaque moteur audio : seul le nom du moteur est envoyé, sans rien qui le relie à vous, à votre compte ou à votre ordinateur.',
+  'termsNotice.change.14':
+    'Les nouveaux comptes reçoivent désormais un crédit gratuit pour commencer, au lieu de trois.',
 } as const;
 
 export default termsNotice;

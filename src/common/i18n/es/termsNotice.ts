@@ -27,6 +27,8 @@ const termsNotice = {
     'Una escena que su autor retira ahora sigue siendo de todos los que la obtuvieron. Una escena retirada o borrada por incumplir las condiciones devuelve el crédito a quienes la compraron, y su autor devuelve lo que esas compras le hicieron ganar. La suspensión sustituye al bloqueo de cuentas: una cuenta suspendida puede pedir el reembolso de lo que pagó poco antes, y se borra poco después. Al rechazar o retirar una escena, el creador de FluidEQ también puede impedir durante un tiempo que esa escena, o todas las de un autor, se publiquen.',
   'termsNotice.change.13':
     'FluidEQ ahora cuenta cuántos ordenadores usan cada motor de audio, una vez al día y como totales anónimos: solo se envía el nombre del motor, sin nada que lo vincule contigo, con tu cuenta ni con tu ordenador.',
+  'termsNotice.change.14':
+    'Las cuentas nuevas ahora reciben un crédito gratis para empezar, en lugar de tres.',
 } as const;
 
 export default termsNotice;

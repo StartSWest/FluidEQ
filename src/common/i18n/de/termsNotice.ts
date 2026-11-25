@@ -27,6 +27,8 @@ const termsNotice = {
     'Eine Szene, die ihr Ersteller zurückzieht, bleibt jetzt bei allen, die sie geholt haben. Eine wegen eines Verstoßes entfernte oder gelöschte Szene gibt ihren Käufern den Credit zurück, und ihr Ersteller gibt zurück, was diese Käufe eingebracht haben. Kontosperren für immer werden durch vorübergehende Sperren ersetzt: Ein gesperrtes Konto kann die Erstattung dessen beantragen, was es kurz zuvor bezahlt hat, und wird bald danach gelöscht. Beim Ablehnen oder Entfernen einer Szene kann der Macher von FluidEQ außerdem für eine Weile verhindern, dass diese Szene oder alle Szenen eines Erstellers veröffentlicht werden.',
   'termsNotice.change.13':
     'FluidEQ zählt jetzt einmal am Tag als anonyme Summe, wie viele Computer welche Audio-Engine nutzen: Gesendet wird nur der Name der Engine, ohne etwas, das ihn mit Ihnen, Ihrem Konto oder Ihrem Computer verbindet.',
+  'termsNotice.change.14':
+    'Neue Konten erhalten zum Start jetzt einen kostenlosen Credit statt drei.',
 } as const;
 
 export default termsNotice;

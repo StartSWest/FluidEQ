@@ -27,6 +27,8 @@ const termsNotice = {
     'Una scena che il suo autore ritira ora resta a chiunque l’abbia ottenuta. Una scena rimossa o eliminata per aver violato le condizioni restituisce il credito a chi l’ha acquistata, e il suo autore restituisce ciò che quegli acquisti gli hanno fatto guadagnare. Il blocco degli account è sostituito dalla sospensione: un account sospeso può chiedere il rimborso di ciò che ha pagato poco prima, e viene eliminato poco dopo. Quando rifiuta o rimuove una scena, il creatore di FluidEQ può anche impedire per un po’ la pubblicazione di quella scena, o di tutte quelle di un autore.',
   'termsNotice.change.13':
     'FluidEQ ora conta quanti computer usano ciascun motore audio, una volta al giorno, come totali anonimi: si invia solo il nome del motore, senza nulla che lo colleghi a te, al tuo account o al tuo computer.',
+  'termsNotice.change.14':
+    'I nuovi account ora ricevono un credito gratis per iniziare, invece di tre.',
 } as const;
 
 export default termsNotice;

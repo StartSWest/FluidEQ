@@ -170,6 +170,16 @@
  * deployed with the release that carries this. Publishing's and checkout's
  * floors do not move: the change gives nobody anything to agree to again.
  */
+/**
+ * 14: a confirmed account's starter claim gives one credit, not three (Ivan,
+ * 2026-11-24; premium 0119, and `STARTER_CREDITS` follows it). Accounts that
+ * already claimed three keep them; only what a new account is given changes.
+ * The terms quote the number (`terms.credits.p2`), and revision 13 promised
+ * three, so this is a raise and edition 8, and every member is told. The
+ * server's `plus_terms_version()` moves to 14 in premium 0120, deployed with
+ * the release that carries this, after 0119. Publishing's and checkout's
+ * floors do not move: nobody who already agreed loses anything they have.
+ */
 /** Internal acceptance revision used by checkout, publishing and saved agreements.
  * Do not reset it: pre-release revisions may already be recorded by the server.
  *
@@ -178,14 +188,14 @@
  * tells every eligible new account to update FluidEQ, on the newest build
  * there is. Raise both in the same release.
  */
-export const PLUS_TERMS_VERSION = 13;
+export const PLUS_TERMS_VERSION = 14;
 
 /** Published editions. Pre-release acceptance revisions are not editions. */
-export const PLUS_TERMS_EDITION = 7;
+export const PLUS_TERMS_EDITION = 8;
 export const PLUS_TERMS_FIRST_PUBLIC_REVISION = 7;
 
 /** The day this version took effect, as a calendar date. */
-export const PLUS_TERMS_EFFECTIVE = '2026-11-13';
+export const PLUS_TERMS_EFFECTIVE = '2026-11-25';
 
 /**
  * Days Plus keeps working without the server confirming the membership: a

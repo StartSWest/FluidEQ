@@ -37,6 +37,8 @@ const termsNotice = {
     'A scene its maker unpublishes now stays with everyone who got it. A scene taken down or deleted for breaking the terms gives its buyers their credit back, and its maker gives back what those buys earned. Bans are replaced by suspension: a suspended account can ask for a refund of what it paid shortly before, and is deleted soon after. When declining or taking down a scene, FluidEQ’s maker can also stop that scene, or all of a maker’s scenes, being published for a while.',
   'termsNotice.change.13':
     'FluidEQ now counts how many computers use each audio engine, once a day, as anonymous totals: only the engine’s name is sent, with nothing that ties it to you, your account or your computer.',
+  'termsNotice.change.14':
+    'New accounts now get one free credit to start, instead of three.',
 } as const;
 
 export default termsNotice;
