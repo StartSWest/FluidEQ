@@ -14,16 +14,15 @@ import {
   toward,
   type ILab,
 } from './oklab';
+import { codeInkTokens, type TCodeInkToken } from './codeInk';
 import {
   cardHexOf,
-  codeInkTokens,
   EDGE_TINT,
   edgeOn,
   groundOf,
   inkTokens,
   LIGHT_INK,
   type IInkSet,
-  type TCodeInkToken,
   type TInkToken,
 } from './themeInk';
 import {

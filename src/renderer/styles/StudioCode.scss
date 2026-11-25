@@ -25,6 +25,11 @@ $code-pad-inline: 12px;
 // line, so the bar never lies over the code.
 $code-bar: 10px;
 
+// The white window's file head: half way from the pane down to the floor,
+// the code's well (`$surface-base`) being the floor itself, so the two are
+// steps of the one grey the side columns stand on.
+$studio-code-head-light: color-mix(in srgb, $surface-base 50%, $surface-panel);
+
 .studio-code {
   display: grid;
   gap: $spacing-s;
@@ -107,6 +112,15 @@ $code-bar: 10px;
   &:hover {
     border-color: color-mix(in srgb, $edge-tint 16%, $surface-panel);
   }
+
+  // On the white window a file is steps of the window's own grey, with no
+  // edge (its width kept, so nothing moves): the head half way from the page
+  // down to the floor, the code the floor itself (below). An edge round a
+  // grey file on the page's card was a box inside the card.
+  :root[data-window-ink='dark'] & {
+    border-color: transparent;
+    background: $studio-code-head-light;
+  }
 }
 
 // ONE SCROLL IN THE CODE TAB: the tab's panel. Every file is as tall as its
@@ -137,6 +151,14 @@ $code-bar: 10px;
     border-bottom: 1px solid $border-subtle;
     border-radius: calc(#{$radius-m} - 1px) calc(#{$radius-m} - 1px) 0 0;
     background: color-mix(in srgb, $edge-tint 6%, $surface-panel);
+  }
+
+  // The head over its code is told from it by the step down to the floor,
+  // not by a rule (its width kept).
+  :root[data-window-ink='dark'] &,
+  :root[data-window-ink='dark'] .is-open > & {
+    border-bottom-color: transparent;
+    background: $studio-code-head-light;
   }
 
   // Stuck at the panel's top it is a flat bar: its rounded corners belong to
@@ -181,6 +203,23 @@ $code-bar: 10px;
 
   &:hover .studio-code__chevron {
     stroke: $text-primary;
+  }
+
+  // An open file on the white window: the lit fill was a pale slab of the
+  // accent across the grey head. Its name in the primary ink and the chevron
+  // in the accent say it is open; the pointer still lights it.
+  :root[data-window-ink='dark'] &[aria-expanded='true'] {
+    color: $text-primary;
+    background: none;
+
+    &:hover:not([aria-disabled='true'], :disabled) {
+      color: $text-primary;
+      background: $fill-hover;
+    }
+
+    .studio-code__chevron {
+      stroke: $secondary-light;
+    }
   }
 }
 
@@ -443,6 +482,14 @@ $code-bar: 10px;
   overflow: hidden;
   border-radius: 0 0 calc(#{$radius-m} - 1px) calc(#{$radius-m} - 1px);
   background: color-mix(in srgb, $black 32%, $surface-block);
+
+  // A dark well, made for a dark window: on the white one the black turned
+  // the block a mid grey (#aaa at Brightness 100, Ivan, 2026-11-25: "too
+  // dark"). There it is the floor, the grey the side columns stand on, and
+  // the words are in inks solved on it (`codeInkTokens`).
+  :root[data-window-ink='dark'] & {
+    background: $surface-base;
+  }
 }
 
 .studio-code__gutter {
@@ -458,6 +505,10 @@ $code-bar: 10px;
   line-height: $code-line;
   text-align: end;
   user-select: none;
+
+  :root[data-window-ink='dark'] & {
+    color: var(--code-studio-line);
+  }
 
   span {
     min-width: 3ch;
@@ -513,6 +564,10 @@ $code-bar: 10px;
   overflow: hidden;
   color: $text-muted;
   pointer-events: none;
+
+  :root[data-window-ink='dark'] & {
+    color: var(--code-studio-text);
+  }
 }
 
 // The caret and the selection are the textarea's; its own letters are clear
@@ -606,6 +661,11 @@ $code-bar: 10px;
   line-height: $code-line;
   @include slim-scrollbar;
   @include animate(fade-in, $motion-fast);
+
+  // The editor's well, for the code it stands in for (above).
+  :root[data-window-ink='dark'] & {
+    background: $surface-base;
+  }
 }
 
 .studio-code__row {
@@ -617,6 +677,10 @@ $code-bar: 10px;
   padding: 0 $code-pad-inline 0 8px;
   color: $text-muted;
   white-space: pre;
+
+  :root[data-window-ink='dark'] & {
+    color: var(--code-studio-text);
+  }
 
   code {
     font: inherit;
@@ -631,6 +695,12 @@ $code-bar: 10px;
 
     code {
       opacity: 0.8;
+
+      // Dimmed, the inks solved for the red row fell under AA; the red and
+      // the sign already say the line went.
+      :root[data-window-ink='dark'] & {
+        opacity: 1;
+      }
     }
   }
 }
@@ -639,6 +709,10 @@ $code-bar: 10px;
   color: $text-dim;
   text-align: end;
   user-select: none;
+
+  :root[data-window-ink='dark'] & {
+    color: var(--code-studio-line);
+  }
 }
 
 .studio-code__sign {
@@ -660,6 +734,10 @@ $code-bar: 10px;
   background: color-mix(in srgb, $edge-tint 3%, transparent);
   font-family: inherit;
   font-size: $text-micro;
+
+  :root[data-window-ink='dark'] & {
+    color: var(--code-studio-line);
+  }
 }
 
 .studio-code__glsl--comment {
@@ -684,6 +762,37 @@ $code-bar: 10px;
 
 .studio-code__glsl--call {
   color: $text-primary;
+}
+
+// The same kinds on the white window, each the dark window's hue taken deep
+// and solved on the floor the code stands on (`codeInkTokens`). Mixed toward
+// the white window's ink and read off a mid grey, they measured 1.8 to 3.9:1
+// there (a JSON key 2.4:1 at Brightness 100, 1.8:1 at 77; a line number
+// 2.4:1). Plain text is the paint's own colour.
+:root[data-window-ink='dark'] {
+  .studio-code__glsl--comment {
+    color: var(--code-studio-comment);
+  }
+
+  .studio-code__glsl--keyword {
+    color: var(--code-studio-keyword);
+  }
+
+  .studio-code__glsl--number {
+    color: var(--code-studio-number);
+  }
+
+  .studio-code__glsl--uniform {
+    color: var(--code-studio-uniform);
+  }
+
+  .studio-code__glsl--builtin {
+    color: var(--code-studio-builtin);
+  }
+
+  .studio-code__glsl--call {
+    color: var(--code-studio-call);
+  }
 }
 
 // THE NOTES AS FIELDS (`StudioCodeNotes.tsx`): the description and the line

@@ -6,7 +6,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * The inks code is read in on the white window (`codeInkTokens`): a Forum
- * post's code block and the Studio's problems log. On the white window the
+ * post's code block, the Studio's problems log and the Studio's Code tab,
+ * whose well is the window's floor and whose lines may be laid over with the
+ * diff's red or green. On the white window the
  * dark theme's lifted colours stood on a grey well at 1.0 to 2.6:1. Each ink
  * now reaches AA on its well at every Brightness of the light stretch, keeps
  * the hue it has on the dark window, and is never written on a dark window,
@@ -26,7 +28,7 @@ import {
   toLinear,
 } from 'renderer/utils/oklab';
 import pickedWindow from 'renderer/utils/pickedWindow';
-import { CODE_INK_TOKENS } from 'renderer/utils/themeInk';
+import { CODE_INK_TOKENS } from 'renderer/utils/codeInk';
 import {
   DARK_END_SHADE,
   OCEAN_SHADE,
@@ -86,6 +88,30 @@ const LOG_INKS = [
   '--code-log-message',
 ] as const;
 
+/**
+ * The Studio's Code tab (StudioCode.scss): its well is the floor, and a
+ * line is laid over with the red (a wrong line 14%, a removed one 13%) or
+ * the green (an added line in a change 12%, one an outside save wrote 11%).
+ */
+const GREEN = rgbOf('#54ff8a');
+const STUDIO_LINES = [
+  { name: 'a plain line', tint: RED, share: 0 },
+  { name: 'a wrong line', tint: RED, share: 0.14 },
+  { name: 'a removed line', tint: RED, share: 0.13 },
+  { name: 'an added line', tint: GREEN, share: 0.12 },
+  { name: 'a line an outside save wrote', tint: GREEN, share: 0.11 },
+] as const;
+const STUDIO_INKS = [
+  '--code-studio-text',
+  '--code-studio-comment',
+  '--code-studio-keyword',
+  '--code-studio-number',
+  '--code-studio-uniform',
+  '--code-studio-builtin',
+  '--code-studio-call',
+  '--code-studio-line',
+] as const;
+
 interface IWindowTokens {
   floor: string;
   pane: string;
@@ -114,7 +140,12 @@ const wellsOf = (window: IWindowTokens) => {
     name: `the problems box on ${groundName}`,
     well: over(RED, LOG_RED, over(RED, BOX_RED, ground)),
   }));
-  return { forum, log };
+  const floor = rgbOf(window.floor);
+  const studio = STUDIO_LINES.map(({ name, tint, share }) => ({
+    name: `${name} in the Code tab`,
+    well: over(tint, share, floor),
+  }));
+  return { forum, log, studio };
 };
 
 const lowestOn = (
@@ -147,10 +178,11 @@ const themeWindow = (shade: number): IWindowTokens => {
 };
 
 const failing = (window: IWindowTokens) => {
-  const { forum, log } = wellsOf(window);
+  const { forum, log, studio } = wellsOf(window);
   return [
     ...lowestOn(window, FORUM_INKS, forum),
     ...lowestOn(window, LOG_INKS, log),
+    ...lowestOn(window, STUDIO_INKS, studio),
   ]
     .filter((reading) => reading.ratio < 4.5)
     .map(({ token, where, ratio: r }) => `${token} on ${where}: ${r}`);
@@ -160,7 +192,7 @@ const LIGHT_SHADES = [DARK_END_SHADE + 1, 90, THEME_SHADE_MAX];
 
 describe('the code inks on the white window', () => {
   it.each(LIGHT_SHADES)(
-    'reach AA on every well both places paint, at Brightness %i',
+    'reach AA on every well the three places paint, at Brightness %i',
     (shade) => {
       expect(failing(themeWindow(shade))).toEqual([]);
     },
@@ -199,6 +231,56 @@ describe('the code inks on the white window', () => {
         expect(ink).toBeDefined();
         expect(apart(hue(ink ?? '#000000'), hue(dark[token]))).toBeLessThan(30);
       });
+    });
+  });
+});
+
+describe('the Studio’s Code tab on the white window', () => {
+  /** A colour's hue in OKLab, in degrees. */
+  const hue = (text: string) => {
+    const { a, b } = rgbToLab(rgbOf(text));
+    return (Math.atan2(b, a) * 180) / Math.PI;
+  };
+  const apart = (one: number, other: number) => {
+    const turn = Math.abs(one - other) % 360;
+    return Math.min(turn, 360 - turn);
+  };
+
+  it.each(LIGHT_SHADES)(
+    'stood under AA there before (the control): the dark well came out grey, at Brightness %i',
+    (shade) => {
+      // StudioCode.scss as it shipped: 32% black over the block, a JSON key
+      // the pink 70% into the window's ink, a line number the dim tier.
+      const table = themeShadeTokens(shade);
+      const { inks } = themeWindow(shade);
+      const ink = rgbOf(inks['--ink'] ?? '#000000');
+      const grey = over([0, 0, 0], 0.32, rgbOf(table['--surface-block']));
+      const jsonKey = over(rgbOf('#ff3cac'), 0.7, ink);
+      expect(contrast(lum(jsonKey), lum(grey))).toBeLessThan(3);
+      // The well it stands on now is the floor, a step lighter.
+      expect(lum(rgbOf(table['--surface-base']))).toBeGreaterThan(lum(grey));
+    },
+  );
+
+  it('keeps the hue each kind has on the dark window', () => {
+    // StudioCode.scss's dark colours: the keyword is the violet, a uniform
+    // or a JSON key the pink, a number the amber, a built-in the accent.
+    const dark = {
+      '--code-studio-keyword': '#8b5cff',
+      '--code-studio-uniform': '#ff3cac',
+      '--code-studio-number': '#ffb059',
+    } as const;
+    LIGHT_SHADES.forEach((shade) => {
+      const { inks } = themeWindow(shade);
+      (Object.keys(dark) as (keyof typeof dark)[]).forEach((token) => {
+        const ink = inks[token];
+        expect(ink).toBeDefined();
+        expect(apart(hue(ink ?? '#000000'), hue(dark[token]))).toBeLessThan(30);
+      });
+      const builtin = inks['--code-studio-builtin'];
+      const accent = themeShadeTokens(shade)['--accent'];
+      expect(builtin).toBeDefined();
+      expect(apart(hue(builtin ?? '#000000'), hue(accent))).toBeLessThan(30);
     });
   });
 });

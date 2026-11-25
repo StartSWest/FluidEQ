@@ -14,15 +14,14 @@ import {
   toByte,
   type ILab,
 } from './oklab';
+import { CODE_INK_TOKENS, type TCodeInkToken } from './codeInk';
 import {
-  CODE_INK_TOKENS,
   EDGE_CONTRAST,
   INK_TOKENS,
   cardHexOf,
   edgeOn,
   groundOf,
   inkTokens,
-  type TCodeInkToken,
   type TInkToken,
 } from './themeInk';
 import { filledOn, labOf } from './windowFill';

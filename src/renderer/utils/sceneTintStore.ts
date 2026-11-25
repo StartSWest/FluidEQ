@@ -24,12 +24,11 @@ import { getThemeShade, subscribeTheme } from './theme';
 import { setLightWindow } from './windowSide';
 import { migrateStopKey } from './sceneDayColours';
 import pickedWindow, { type TSurfaceWalk } from './pickedWindow';
+import { CODE_INK_TOKENS, codeInkTokens } from './codeInk';
 import {
-  CODE_INK_TOKENS,
   INK_TOKENS,
   LIGHT_INK,
   WINDOW_INK_ATTRIBUTE,
-  codeInkTokens,
   groundOf,
   inkTokens,
 } from './themeInk';
