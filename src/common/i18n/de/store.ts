@@ -24,7 +24,7 @@ const store: Partial<Dictionary> = {
   'store.credits.half':
     'Ein halber Credit wartet: Die nächste Ihrer Szenen, die jemand mit einem bezahlten Credit holt, macht ihn voll.',
   'store.credits.buy': 'Mehr Credits holen',
-  'store.credits.getFree': 'Gratis-Credits holen',
+  'store.credits.getFree': 'Gratis-Credit holen',
   'store.error.offline':
     'FluidEQ war nicht erreichbar. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
   'store.error.signedOut':
@@ -107,15 +107,15 @@ const store: Partial<Dictionary> = {
   'store.welcome.cardClaimedTitle.other': '{count} Credits bereit zum Ausgeben',
   'store.welcome.eyebrow': 'Willkommen bei FluidEQ',
   'store.welcome.body':
-    'Jeder Credit bringt Ihnen eine Szene aus dem Tab „{visualizers}“, die Sie für immer behalten. Holen Sie sie jetzt ab und wählen Sie Ihre ersten Szenen.',
+    'Ein Credit bringt Ihnen eine Szene aus dem Tab „{visualizers}“, die Sie für immer behalten. Holen Sie ihn jetzt ab und wählen Sie Ihre erste Szene.',
   'store.welcome.fine':
     'Einmal pro Konto. Jede Szene können Sie ein paar Sekunden ansehen, bevor Sie einen Credit ausgeben.',
   'store.welcome.later': 'Später',
   'store.welcome.claimedBody':
-    'Wählen Sie Ihre ersten Szenen. „{notMine}“ ist an, also zeigt der Tab „{visualizers}“ nur Szenen, die Sie noch nicht haben.',
-  'store.welcome.pick': 'Meine ersten Szenen wählen',
+    'Wählen Sie Ihre erste Szene. „{notMine}“ ist an, also zeigt der Tab „{visualizers}“ nur Szenen, die Sie noch nicht haben.',
+  'store.welcome.pick': 'Meine erste Szene wählen',
   'store.welcome.cardBody':
-    'Holen Sie sie ab und wählen Sie Ihre ersten Szenen zum Behalten.',
+    'Holen Sie ihn ab und wählen Sie Ihre erste Szene zum Behalten.',
   'store.welcome.cardClaimedBody':
     'Hier sehen Sie Szenen, die Sie noch nicht haben. Sehen Sie sich jede ein paar Sekunden an und holen Sie sie dann für einen Credit.',
   'store.welcome.gotIt': 'Verstanden',

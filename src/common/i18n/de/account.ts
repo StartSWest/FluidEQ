@@ -128,7 +128,7 @@ const account = {
     'Google ist in Ihrem Browser geöffnet. FluidEQ meldet Sie von selbst an, sobald Sie dort fertig sind.',
   'account.google.cancel': 'Abbrechen',
   // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
-  'account.welcome.createTitle.one': 'Ihre {count} Szene wartet',
+  'account.welcome.createTitle.one': 'Ihre Gratis-Szene wartet',
   'account.welcome.createTitle.few': 'Ihre {count} Szenen warten',
   'account.welcome.createTitle.many': 'Ihre {count} Szenen warten',
   'account.welcome.createTitle.other': 'Ihre {count} Szenen warten',
@@ -142,7 +142,7 @@ const account = {
     'Ein kostenloses Konto startet mit {count} Credits. Jeder bringt Ihnen eine Szene, die Sie für immer behalten.',
   'account.welcome.step.create': 'Konto erstellen',
   'account.welcome.step.confirm': 'E-Mail bestätigen',
-  'account.welcome.step.pick.one': 'Ihre {count} Szene wählen',
+  'account.welcome.step.pick.one': 'Ihre Szene wählen',
   'account.welcome.step.pick.few': 'Ihre {count} Szenen wählen',
   'account.welcome.step.pick.many': 'Ihre {count} Szenen wählen',
   'account.welcome.step.pick.other': 'Ihre {count} Szenen wählen',

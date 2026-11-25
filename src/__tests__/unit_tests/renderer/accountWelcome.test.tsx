@@ -64,15 +64,15 @@ it('opens on Create account with the coin and the three steps, the first lit', (
   );
   expect(
     screen.getByRole('heading', {
-      name: 'account.welcome.createTitle.other:3',
+      name: 'account.welcome.createTitle.one:1',
     }),
   ).toBeInTheDocument();
-  expect(container.querySelector('.credit-coin__badge')).toHaveTextContent('3');
+  expect(container.querySelector('.credit-coin__badge')).toHaveTextContent('1');
   const steps = rail().getAllByRole('listitem');
   expect(steps.map((step) => step.textContent)).toEqual([
     '1account.welcome.step.create',
     '2account.welcome.step.confirm',
-    '3account.welcome.step.pick.other:3',
+    '3account.welcome.step.pick.one:1',
   ]);
   expect(steps[0]).toHaveAttribute('aria-current', 'step');
   // The tabs: Create account first.
@@ -95,7 +95,7 @@ it('says what is waiting when signing in, and follows the tabs both ways', async
   await userEvent.click(screen.getByRole('tab', { name: 'account.signUp' }));
   expect(
     screen.getByRole('heading', {
-      name: 'account.welcome.createTitle.other:3',
+      name: 'account.welcome.createTitle.one:1',
     }),
   ).toBeInTheDocument();
   expect(container.querySelector('.credit-coin')).not.toBeNull();

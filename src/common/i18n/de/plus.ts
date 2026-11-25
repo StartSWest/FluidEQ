@@ -218,18 +218,18 @@ const plus = {
   'plus.welcome.scene.prismBloom': 'Prismenblüte',
 
   // The tab before signing in (`VisualizersSignedOut`).
-  'plus.signedOut.title.one': '{count} Szene geht auf uns.',
+  'plus.signedOut.title.one': 'Ihre erste Szene geht auf uns.',
   'plus.signedOut.title.few': 'Ihre ersten {count} Szenen gehen auf uns.',
   'plus.signedOut.title.many': 'Ihre ersten {count} Szenen gehen auf uns.',
   'plus.signedOut.title.other': 'Ihre ersten {count} Szenen gehen auf uns.',
   'plus.signedOut.line':
-    'Erstellen Sie ein kostenloses Konto und holen Sie sich Ihre Start-Credits. Jeder Credit bringt Ihnen eine Szene, die Sie für immer behalten.',
+    'Erstellen Sie ein kostenloses Konto und holen Sie sich Ihren Start-Credit. Er bringt Ihnen eine Szene, die Sie für immer behalten.',
   'plus.signedOut.free.title': 'Kostenlos, ohne Konto',
   'plus.signedOut.free.body':
     'Der Equalizer, die Audioeffekte, die Musikwiedergabe und die Standardstile des Diagramms von FluidEQ. Ganz ohne Anmeldung.',
   'plus.signedOut.account.title': 'Mit einem kostenlosen Konto',
   'plus.signedOut.account.body':
-    'Szenen aus der Galerie holen, die ersten gratis, und im Studio eigene Szenen bauen.',
+    'Szenen aus der Galerie holen, die erste gratis, und im Studio eigene Szenen bauen.',
   'plus.signedOut.create': 'Kostenloses Konto erstellen',
   'plus.signedOut.createSub.one': 'und {count} Szene holen',
   'plus.signedOut.createSub.few': 'und {count} Szenen holen',
@@ -254,10 +254,10 @@ const plus = {
   'plus.signedOut.offerTitle.many': '{count} Szenen gratis',
   'plus.signedOut.offerTitle.other': '{count} Szenen gratis',
   'plus.signedOut.offerBody':
-    'Ein kostenloses Konto startet mit einem Credit für jede, und jede Szene, die Sie holen, gehört für immer Ihnen.',
+    'Ein kostenloses Konto startet mit einem Credit, und jede Szene, die Sie holen, gehört für immer Ihnen.',
   'plus.signedOut.step.create': 'Konto erstellen',
   'plus.signedOut.step.confirm': 'E-Mail bestätigen',
-  'plus.signedOut.step.pick': 'Szenen zum Behalten wählen',
+  'plus.signedOut.step.pick': 'Ihre Szene zum Behalten wählen',
   'plus.add.notOwned':
     'Holen Sie sich {name} zuerst: Das kostet einen Credit, danach kommt sie zu Ihren Darstellungen.',
 } as const;

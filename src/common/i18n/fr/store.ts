@@ -24,7 +24,7 @@ const store: Partial<Dictionary> = {
   'store.credits.half':
     'Un demi-crédit vous attend : la prochaine de vos scènes obtenue avec un crédit payé le complète.',
   'store.credits.buy': 'Obtenir plus de crédits',
-  'store.credits.getFree': 'Recevoir des crédits gratuits',
+  'store.credits.getFree': 'Recevoir votre crédit gratuit',
   'store.error.offline':
     'Impossible de joindre FluidEQ. Vérifiez votre connexion et réessayez.',
   'store.error.signedOut': 'Reconnectez-vous pour utiliser vos crédits.',
@@ -86,7 +86,7 @@ const store: Partial<Dictionary> = {
   'store.packs.none':
     'Aucun pack n’est en vente pour l’instant. Réessayez plus tard.',
   'store.cancel': 'Annuler',
-  'store.starter.title': '{credits} offerts pour commencer',
+  'store.starter.title': 'Cadeau de bienvenue : {credits}',
   'store.starter.body':
     'Une fois par compte, pour une adresse e-mail confirmée.',
   'store.starter.claim': 'Recevoir {credits}',
@@ -110,15 +110,15 @@ const store: Partial<Dictionary> = {
     '{count} crédits prêts à être utilisés',
   'store.welcome.eyebrow': 'Bienvenue dans FluidEQ',
   'store.welcome.body':
-    'Chaque crédit vous donne une scène de l’onglet {visualizers} à garder pour toujours. Récupérez-les maintenant et choisissez vos premières scènes.',
+    'Un crédit vous donne une scène de l’onglet {visualizers} à garder pour toujours. Récupérez-le maintenant et choisissez votre première scène.',
   'store.welcome.fine':
     'Une fois par compte. Vous pouvez regarder chaque scène quelques secondes avant d’utiliser un crédit.',
   'store.welcome.later': 'Plus tard',
   'store.welcome.claimedBody':
-    'Choisissez vos premières scènes. « {notMine} » est activé : l’onglet {visualizers} ne montre que les scènes que vous n’avez pas.',
-  'store.welcome.pick': 'Choisir mes premières scènes',
+    'Choisissez votre première scène. « {notMine} » est activé : l’onglet {visualizers} ne montre que les scènes que vous n’avez pas.',
+  'store.welcome.pick': 'Choisir ma première scène',
   'store.welcome.cardBody':
-    'Récupérez-les et choisissez vos premières scènes à garder.',
+    'Récupérez-le et choisissez votre première scène à garder.',
   'store.welcome.cardClaimedBody':
     'Voici les scènes que vous n’avez pas encore. Regardez-en une quelques secondes, puis obtenez-la pour un crédit.',
   'store.welcome.gotIt': 'Compris',

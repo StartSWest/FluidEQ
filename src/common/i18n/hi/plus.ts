@@ -203,18 +203,18 @@ const plus = {
   'plus.welcome.scene.prismBloom': 'प्रिज़्म का फूल',
 
   // The tab before signing in (`VisualizersSignedOut`).
-  'plus.signedOut.title.one': 'आपका पहला {count} सीन हमारी ओर से।',
+  'plus.signedOut.title.one': 'आपका पहला सीन हमारी ओर से।',
   'plus.signedOut.title.few': 'आपके पहले {count} सीन हमारी ओर से।',
   'plus.signedOut.title.many': 'आपके पहले {count} सीन हमारी ओर से।',
   'plus.signedOut.title.other': 'आपके पहले {count} सीन हमारी ओर से।',
   'plus.signedOut.line':
-    'मुफ़्त खाता बनाएँ और अपने शुरुआती क्रेडिट लें। हर क्रेडिट से आपको एक सीन मिलता है, जो हमेशा आपका रहता है।',
+    'मुफ़्त खाता बनाएँ और अपना शुरुआती क्रेडिट लें। इससे आपको एक सीन मिलता है, जो हमेशा आपका रहता है।',
   'plus.signedOut.free.title': 'मुफ़्त, खाते की ज़रूरत नहीं',
   'plus.signedOut.free.body':
     'FluidEQ का इक्वलाइज़र, ऑडियो इफ़ेक्ट, संगीत चलाना और ग्राफ़ की सामान्य स्टाइल। बिना साइन अप किए इस्तेमाल करें।',
   'plus.signedOut.account.title': 'मुफ़्त खाते के साथ',
   'plus.signedOut.account.body':
-    'गैलरी से सीन पाएँ (पहले वाले मुफ़्त), और स्टूडियो में अपने सीन बनाएँ।',
+    'गैलरी से सीन पाएँ (पहला मुफ़्त), और स्टूडियो में अपने सीन बनाएँ।',
   'plus.signedOut.create': 'अपना मुफ़्त खाता बनाएँ',
   'plus.signedOut.createSub.one': 'और {count} सीन पाएँ',
   'plus.signedOut.createSub.few': 'और {count} सीन पाएँ',
@@ -239,10 +239,10 @@ const plus = {
   'plus.signedOut.offerTitle.many': '{count} सीन मुफ़्त',
   'plus.signedOut.offerTitle.other': '{count} सीन मुफ़्त',
   'plus.signedOut.offerBody':
-    'मुफ़्त खाता हर सीन के लिए एक क्रेडिट से शुरू होता है, और आप जो भी सीन पाते हैं वह हमेशा आपका रहता है।',
+    'मुफ़्त खाता एक क्रेडिट से शुरू होता है, और आप जो भी सीन पाते हैं वह हमेशा आपका रहता है।',
   'plus.signedOut.step.create': 'अपना खाता बनाएँ',
   'plus.signedOut.step.confirm': 'अपना ईमेल पक्का करें',
-  'plus.signedOut.step.pick': 'रखने के लिए सीन चुनें',
+  'plus.signedOut.step.pick': 'रखने के लिए अपना सीन चुनें',
   'plus.add.notOwned':
     'पहले {name} लें: इसमें एक क्रेडिट लगता है, फिर यह आपके रूपों में आ जाता है।',
 } as const;

@@ -116,7 +116,7 @@ describe('the account panel', () => {
     // The rail says what creating one gets (Ivan approved it 2026-11-13).
     expect(
       screen.getByRole('heading', {
-        name: 'account.welcome.createTitle.other:3',
+        name: 'account.welcome.createTitle.one:1',
       }),
     ).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'terms.title' })).toBeNull();

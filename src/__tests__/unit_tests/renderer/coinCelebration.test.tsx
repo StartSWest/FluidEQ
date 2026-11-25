@@ -280,7 +280,8 @@ describe('the celebration', () => {
     expect(moving).toHaveLength(0);
   });
 
-  // Ivan, 2026-11-14: claiming the 3 free credits plays the same burst,
+  // Ivan, 2026-11-14: claiming the free credits (one since 2026-11-24,
+  // server 0119; three before) plays the same burst,
   // from the welcome, the Scenes card or Get credits, which all claim
   // through `claimStarterCredits` - with one coin: "we don't want them to
   // think they got the 19 plan", whose pile is three.
@@ -291,7 +292,8 @@ describe('the celebration', () => {
     });
     expect(document.querySelectorAll('.coin-celebration')).toHaveLength(1);
     expect(coinsOnScreen()).toBe(1);
-    expect(screen.getByRole('status')).toHaveTextContent('+3 credits');
+    expect(screen.getByRole('status')).toHaveTextContent('+1 credit');
+    expect(screen.getByRole('status')).not.toHaveTextContent('credits');
     await act(async () =>
       animations.forEach((animation) => animation.finish()),
     );

@@ -113,10 +113,15 @@ export const isCheckoutLocale = (value: unknown): value is TCheckoutLocale =>
   (CHECKOUT_LOCALES as readonly string[]).includes(value);
 
 /**
- * The free credits every confirmed account gets once (premium 0055's
- * `claim_starter_credits`); the terms quote it, so keep the two in step.
+ * The free credits every confirmed account gets once, as the server's
+ * `claim_starter_credits` grants them: three from 0055, one from 0119 (Ivan,
+ * 2026-11-24: whoever wants a second scene buys it). Accounts that claimed
+ * three keep them. The terms quote it, and the welcome, the signed-out
+ * Scenes page, Help and the tour are written in the singular for it, so
+ * changing it means a pass over that copy in every language
+ * (`starterCreditCopy.test.ts`).
  */
-export const STARTER_CREDITS = 3;
+export const STARTER_CREDITS = 1;
 
 /**
  * The least an account that paid for Plus gets when Plus members move to

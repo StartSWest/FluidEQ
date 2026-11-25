@@ -28,15 +28,16 @@ const creates = () =>
     name: new RegExp(en['plus.signedOut.create']),
   });
 
-it('says what the starter credits are, with the number in it', () => {
+// One starter credit since 2026-11-24 (server 0119): the singular forms.
+it('says what the starter credit is, with the number in it', () => {
   render(<VisualizersSignedOut onSignIn={jest.fn()} />);
   expect(
-    screen.getByRole('heading', { name: 'Your first 3 scenes are on us.' }),
+    screen.getByRole('heading', { name: 'Your first scene is on us.' }),
   ).toBeInTheDocument();
   expect(
-    screen.getByRole('heading', { name: '3 scenes, free' }),
+    screen.getByRole('heading', { name: '1 scene, free' }),
   ).toBeInTheDocument();
-  expect(creates()[0]).toHaveTextContent('and get 3 scenes');
+  expect(creates()[0]).toHaveTextContent('and get 1 scene');
 });
 
 it('creates an account and lands in the gallery afterwards', async () => {

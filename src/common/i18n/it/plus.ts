@@ -207,19 +207,19 @@ const plus = {
   'plus.welcome.scene.prismBloom': 'Fiore di prisma',
 
   // The tab before signing in (`VisualizersSignedOut`).
-  'plus.signedOut.title.one': '{count} scena te la offriamo noi.',
+  'plus.signedOut.title.one': 'La tua prima scena te la offriamo noi.',
   'plus.signedOut.title.few': 'Le tue prime {count} scene te le offriamo noi.',
   'plus.signedOut.title.many': 'Le tue prime {count} scene te le offriamo noi.',
   'plus.signedOut.title.other':
     'Le tue prime {count} scene te le offriamo noi.',
   'plus.signedOut.line':
-    'Crea un account gratuito e riscatta i tuoi crediti iniziali. Ogni credito ti dà una scena da tenere per sempre.',
+    'Crea un account gratuito e riscatta il tuo credito iniziale. Ti dà una scena da tenere per sempre.',
   'plus.signedOut.free.title': 'Gratis, senza account',
   'plus.signedOut.free.body':
     'L’equalizzatore, gli effetti audio, la riproduzione musicale e gli stili standard del grafico di FluidEQ. Usali senza mai registrarti.',
   'plus.signedOut.account.title': 'Con un account gratuito',
   'plus.signedOut.account.body':
-    'Ottieni scene dalla galleria, le prime gratis, e crea le tue scene nello Studio.',
+    'Ottieni scene dalla galleria, la prima gratis, e crea le tue scene nello Studio.',
   'plus.signedOut.create': 'Crea il tuo account gratuito',
   'plus.signedOut.createSub.one': 'e ottieni {count} scena',
   'plus.signedOut.createSub.few': 'e ottieni {count} scene',
@@ -244,10 +244,10 @@ const plus = {
   'plus.signedOut.offerTitle.many': '{count} scene gratis',
   'plus.signedOut.offerTitle.other': '{count} scene gratis',
   'plus.signedOut.offerBody':
-    'Un account gratuito parte con un credito per ciascuna, e ogni scena che ottieni resta tua per sempre.',
+    'Un account gratuito parte con un credito, e ogni scena che ottieni resta tua per sempre.',
   'plus.signedOut.step.create': 'Crea il tuo account',
   'plus.signedOut.step.confirm': 'Conferma la tua email',
-  'plus.signedOut.step.pick': 'Scegli le scene da tenere',
+  'plus.signedOut.step.pick': 'Scegli la scena da tenere',
   'plus.add.notOwned':
     'Prima ottieni {name}: costa un credito, e poi entra nei tuoi aspetti.',
 } as const;

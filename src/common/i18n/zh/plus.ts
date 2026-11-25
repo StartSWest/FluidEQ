@@ -190,10 +190,10 @@ const plus = {
   'plus.welcome.scene.prismBloom': '棱镜之花',
 
   // The tab before signing in (`VisualizersSignedOut`).
-  'plus.signedOut.title.one': '你的前 {count} 个场景由我们买单。',
-  'plus.signedOut.title.few': '你的前 {count} 个场景由我们买单。',
-  'plus.signedOut.title.many': '你的前 {count} 个场景由我们买单。',
-  'plus.signedOut.title.other': '你的前 {count} 个场景由我们买单。',
+  'plus.signedOut.title.one': '{count} 个场景由我们买单。',
+  'plus.signedOut.title.few': '{count} 个场景由我们买单。',
+  'plus.signedOut.title.many': '{count} 个场景由我们买单。',
+  'plus.signedOut.title.other': '{count} 个场景由我们买单。',
   'plus.signedOut.line':
     '创建免费账户并领取起步点数。每个点数可换一个永久归你的场景。',
   'plus.signedOut.free.title': '免费，无需账户',
@@ -201,7 +201,7 @@ const plus = {
     'FluidEQ 的均衡器、音频效果、音乐播放和图表的标准样式。无需注册即可使用。',
   'plus.signedOut.account.title': '有了免费账户',
   'plus.signedOut.account.body':
-    '从图库获取场景（最初几个免费），并在“工作室”中制作自己的场景。',
+    '从图库获取场景（第一个免费），并在“工作室”中制作自己的场景。',
   'plus.signedOut.create': '创建免费账户',
   'plus.signedOut.createSub.one': '并获得 {count} 个场景',
   'plus.signedOut.createSub.few': '并获得 {count} 个场景',
@@ -226,7 +226,7 @@ const plus = {
   'plus.signedOut.offerTitle.many': '{count} 个场景，免费',
   'plus.signedOut.offerTitle.other': '{count} 个场景，免费',
   'plus.signedOut.offerBody':
-    '免费账户为每个场景各备好一点，你获取的每个场景都永久归你。',
+    '免费账户自带一个点数，你获取的每个场景都永久归你。',
   'plus.signedOut.step.create': '创建账户',
   'plus.signedOut.step.confirm': '确认邮箱',
   'plus.signedOut.step.pick': '挑选要保留的场景',

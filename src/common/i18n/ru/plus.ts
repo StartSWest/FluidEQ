@@ -205,18 +205,18 @@ const plus = {
   'plus.welcome.scene.prismBloom': 'Цветок-призма',
 
   // The tab before signing in (`VisualizersSignedOut`).
-  'plus.signedOut.title.one': '{count} сцена — за наш счёт.',
+  'plus.signedOut.title.one': 'Ваша первая сцена — за наш счёт.',
   'plus.signedOut.title.few': 'Ваши первые {count} сцены — за наш счёт.',
   'plus.signedOut.title.many': 'Ваши первые {count} сцен — за наш счёт.',
   'plus.signedOut.title.other': 'Ваши первые {count} сцены — за наш счёт.',
   'plus.signedOut.line':
-    'Создайте бесплатный аккаунт и получите стартовые кредиты. Каждый кредит — это сцена, которая останется у вас навсегда.',
+    'Создайте бесплатный аккаунт и получите стартовый кредит. Это сцена, которая останется у вас навсегда.',
   'plus.signedOut.free.title': 'Бесплатно, без аккаунта',
   'plus.signedOut.free.body':
     'Эквалайзер, аудиоэффекты, воспроизведение музыки и стандартные стили графика FluidEQ. Пользуйтесь ими, вообще не регистрируясь.',
   'plus.signedOut.account.title': 'С бесплатным аккаунтом',
   'plus.signedOut.account.body':
-    'Получайте сцены из галереи (первые — бесплатно) и создавайте свои сцены в «Студии».',
+    'Получайте сцены из галереи (первую — бесплатно) и создавайте свои сцены в «Студии».',
   'plus.signedOut.create': 'Создать бесплатный аккаунт',
   'plus.signedOut.createSub.one': 'и получить {count} сцену',
   'plus.signedOut.createSub.few': 'и получить {count} сцены',
@@ -241,10 +241,10 @@ const plus = {
   'plus.signedOut.offerTitle.many': '{count} сцен бесплатно',
   'plus.signedOut.offerTitle.other': '{count} сцены бесплатно',
   'plus.signedOut.offerBody':
-    'Бесплатный аккаунт начинается с кредита на каждую, и каждая полученная сцена остаётся вашей навсегда.',
+    'Бесплатный аккаунт начинается с одного кредита, и каждая полученная сцена остаётся вашей навсегда.',
   'plus.signedOut.step.create': 'Создайте аккаунт',
   'plus.signedOut.step.confirm': 'Подтвердите почту',
-  'plus.signedOut.step.pick': 'Выберите сцены, которые оставите себе',
+  'plus.signedOut.step.pick': 'Выберите сцену, которую оставите себе',
   'plus.add.notOwned':
     'Сначала получите «{name}»: это стоит один кредит, и после этого она попадёт в ваши оформления.',
 } as const;

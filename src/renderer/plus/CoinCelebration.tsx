@@ -179,7 +179,7 @@ export default function CoinCelebration() {
     };
     const offPaid = onCreditsArrived((credits) => enqueue(credits));
     // The free starter credits celebrate the same way (Ivan, 2026-11-14),
-    // with one coin and their "+3 credits": "just one coin on the claim",
+    // with one coin and their "+N credits": "just one coin on the claim",
     // "we don't want them to think they got the 19 plan" - three coins are
     // the pile of the biggest pack in Get credits.
     const offStarter = onStarterCreditsClaimed(() =>

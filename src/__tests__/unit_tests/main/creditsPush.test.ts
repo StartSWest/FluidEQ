@@ -17,6 +17,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { IAccountConfig } from '../../../common/accountConfig';
 import type { IAccountState } from '../../../main/account/session';
+import { STARTER_CREDITS } from '../../../common/sceneStore';
 import {
   createCreditsPush,
   MAX_REJOINS,
@@ -456,20 +457,20 @@ describe('the store listening while a payment is owed', () => {
 
     // The window celebrates a starter claim itself (`onStarterCreditsClaimed`);
     // claimed while Get credits waits on a pack, its rise used to be read as
-    // the pack arriving, and the same three credits celebrated twice.
+    // the pack arriving, and the same starter credits celebrated twice.
     it('takes a starter claim made while a pack is owed for no payment, and still says the pack', async () => {
       const owned = ownership();
       const arrived = jest.fn();
       owned.onCreditsArrived(arrived);
       await owned.refreshNow();
       await owned.checkout('pack-12', 'en');
-      balance = 6;
+      balance = 3 + STARTER_CREDITS;
       const claimed = await owned.claimStarter();
       expect(claimed.ok).toBe(true);
-      expect(owned.known()?.balance).toBe(6);
+      expect(owned.known()?.balance).toBe(3 + STARTER_CREDITS);
       expect(arrived).not.toHaveBeenCalled();
       // The pack lands afterwards, and is said as itself.
-      balance = 18;
+      balance = 3 + STARTER_CREDITS + 12;
       credits();
       await settled();
       await settled();

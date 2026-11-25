@@ -24,7 +24,7 @@ const store: Partial<Dictionary> = {
   'store.credits.half':
     'Tienes medio crédito en espera: la próxima escena tuya que alguien consiga con un crédito pagado lo completa.',
   'store.credits.buy': 'Conseguir más créditos',
-  'store.credits.getFree': 'Obtener créditos gratis',
+  'store.credits.getFree': 'Obtener tu crédito gratis',
   'store.error.offline':
     'No se pudo conectar con FluidEQ. Revisa tu conexión e inténtalo de nuevo.',
   'store.error.signedOut': 'Vuelve a iniciar sesión para usar tus créditos.',
@@ -103,15 +103,15 @@ const store: Partial<Dictionary> = {
   'store.welcome.cardClaimedTitle.other': '{count} créditos listos para gastar',
   'store.welcome.eyebrow': 'Te damos la bienvenida a FluidEQ',
   'store.welcome.body':
-    'Cada crédito te da una escena de la pestaña {visualizers} para siempre. Reclámalos ahora y elige tus primeras escenas.',
+    'Un crédito te da una escena de la pestaña {visualizers} para siempre. Reclámalo ahora y elige tu primera escena.',
   'store.welcome.fine':
     'Una vez por cuenta. Puedes ver cada escena unos segundos antes de gastar un crédito.',
   'store.welcome.later': 'Más tarde',
   'store.welcome.claimedBody':
-    'Elige tus primeras escenas. “{notMine}” está activado, así que la pestaña {visualizers} solo muestra escenas que aún no tienes.',
-  'store.welcome.pick': 'Elegir mis primeras escenas',
+    'Elige tu primera escena. “{notMine}” está activado, así que la pestaña {visualizers} solo muestra escenas que aún no tienes.',
+  'store.welcome.pick': 'Elegir mi primera escena',
   'store.welcome.cardBody':
-    'Reclámalos y elige tus primeras escenas para quedártelas.',
+    'Reclámalo y elige tu primera escena para quedártela.',
   'store.welcome.cardClaimedBody':
     'Ves escenas que aún no tienes. Mira cualquiera unos segundos y consíguela por un crédito.',
   'store.welcome.gotIt': 'Entendido',

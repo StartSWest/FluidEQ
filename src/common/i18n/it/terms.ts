@@ -250,7 +250,7 @@ const terms = {
   'terms.credits.p1':
     'Un credito ti dà una scena di Scene — una di FluidEQ o una pubblicata da un membro — e la scena diventa tua per sempre: sul grafico, sul desktop e sulle tue luci, su ogni computer in cui accedi, con ogni nuova versione che il suo autore pubblica. Prima di ottenerla, qualsiasi scena si riproduce sulla sua pagina per {tasteSeconds} secondi. FluidEQ ti chiede conferma prima di spendere un credito, e un credito speso non si può riprendere.',
   'terms.credits.p2':
-    'I crediti sono in pacchetti, pagati una sola volta su Stripe, secondo le sue condizioni. FluidEQ non vede mai la tua carta né i tuoi dati bancari, e nulla si rinnova. Un account confermato riceve {starterCredits} crediti una volta, gratis. I crediti non hanno valore in denaro, non si possono vendere né trasferire a un altro account, e servono per ottenere scene e nient’altro.',
+    'I crediti sono in pacchetti, pagati una sola volta su Stripe, secondo le sue condizioni. FluidEQ non vede mai la tua carta né i tuoi dati bancari, e nulla si rinnova. Un account confermato riceve {starterCredits} credito una volta, gratis. I crediti non hanno valore in denaro, non si possono vendere né trasferire a un altro account, e servono per ottenere scene e nient’altro.',
   'terms.credits.p3':
     'Se il pagamento di un pacchetto viene rimborsato per intero o contestato, i crediti di quel pacchetto vengono ripresi, anche quelli già spesi: il tuo saldo può scendere sotto zero, e nessuna scena si può ottenere finché un nuovo pacchetto non lo riporta su. Le scene che hai già restano tue.',
   'terms.credits.p4':

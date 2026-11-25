@@ -125,11 +125,11 @@ describe('the welcome dialog', () => {
   it('offers the credits to a member who has not claimed them', () => {
     render(<StarterWelcome />);
     expect(
-      screen.getByRole('dialog', { name: 'store.welcome.title.other:3' }),
+      screen.getByRole('dialog', { name: 'store.welcome.title.one:1' }),
     ).toBeInTheDocument();
     // The claim is the loud button, Later the quiet one.
     const claim = screen.getByRole('button', {
-      name: 'store.starter.claim:store.credit.other:3',
+      name: 'store.starter.claim:store.credit.one:1',
     });
     expect(claim).toHaveClass('button', 'small', 'coin-action');
     expect(claim).not.toHaveClass('subtle');
@@ -199,14 +199,14 @@ describe('the welcome dialog', () => {
     render(<StarterWelcome />);
     await userEvent.click(
       screen.getByRole('button', {
-        name: 'store.starter.claim:store.credit.other:3',
+        name: 'store.starter.claim:store.credit.one:1',
       }),
     );
     expect(mockClaim).toHaveBeenCalledTimes(1);
     // Still up although the store now says claimed: it is telling them so.
     expect(
       screen.getByRole('dialog', {
-        name: 'store.welcome.claimedTitle.other:3',
+        name: 'store.welcome.claimedTitle.one:1',
       }),
     ).toBeInTheDocument();
     await userEvent.click(
@@ -223,7 +223,7 @@ describe('the welcome dialog', () => {
     mockClaim.mockResolvedValueOnce({ ok: false, reason: 'unconfirmed' });
     render(<StarterWelcome />);
     const claim = screen.getByRole('button', {
-      name: 'store.starter.claim:store.credit.other:3',
+      name: 'store.starter.claim:store.credit.one:1',
     });
     await userEvent.click(claim);
     expect(screen.getByRole('alert')).toHaveTextContent(
@@ -242,7 +242,7 @@ describe('the welcome dialog', () => {
     );
     render(<StarterWelcome />);
     const claim = screen.getByRole('button', {
-      name: 'store.starter.claim:store.credit.other:3',
+      name: 'store.starter.claim:store.credit.one:1',
     });
     act(() => {
       claim.click();
@@ -281,10 +281,10 @@ describe('the card in Visualizers', () => {
   it('offers the credits on every visit while they are not claimed', () => {
     render(<StarterCard accountId={ME} />);
     expect(
-      screen.getByRole('heading', { name: 'store.welcome.cardTitle.other:3' }),
+      screen.getByRole('heading', { name: 'store.welcome.cardTitle.one:1' }),
     ).toBeInTheDocument();
     const claim = screen.getByRole('button', {
-      name: 'store.starter.claim:store.credit.other:3',
+      name: 'store.starter.claim:store.credit.one:1',
     });
     expect(claim).toHaveClass('coin-action');
     expect(claim.firstElementChild?.tagName).toBe('svg');
@@ -323,13 +323,13 @@ describe('the card in Visualizers', () => {
     render(<StarterCard accountId={ME} />);
     await userEvent.click(
       screen.getByRole('button', {
-        name: 'store.starter.claim:store.credit.other:3',
+        name: 'store.starter.claim:store.credit.one:1',
       }),
     );
     expect(mockNotMine).toHaveBeenCalledTimes(1);
     expect(
       screen.getByRole('heading', {
-        name: 'store.welcome.cardClaimedTitle.other:3',
+        name: 'store.welcome.cardClaimedTitle.one:1',
       }),
     ).toBeInTheDocument();
     await userEvent.click(

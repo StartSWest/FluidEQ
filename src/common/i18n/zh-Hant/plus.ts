@@ -183,10 +183,10 @@ const plus = {
   'plus.welcome.scene.prismBloom': '稜鏡綻放',
 
   // The tab before signing in (`VisualizersSignedOut`).
-  'plus.signedOut.title.one': '您的前 {count} 個場景由我們買單。',
-  'plus.signedOut.title.few': '您的前 {count} 個場景由我們買單。',
-  'plus.signedOut.title.many': '您的前 {count} 個場景由我們買單。',
-  'plus.signedOut.title.other': '您的前 {count} 個場景由我們買單。',
+  'plus.signedOut.title.one': '{count} 個場景由我們買單。',
+  'plus.signedOut.title.few': '{count} 個場景由我們買單。',
+  'plus.signedOut.title.many': '{count} 個場景由我們買單。',
+  'plus.signedOut.title.other': '{count} 個場景由我們買單。',
   'plus.signedOut.line':
     '建立免費帳戶並領取起步點數。每個點數可換一個永久屬於您的場景。',
   'plus.signedOut.free.title': '免費，無需帳戶',
@@ -194,7 +194,7 @@ const plus = {
     'FluidEQ 的等化器、音訊效果、音樂播放和圖表的標準樣式。無需註冊即可使用。',
   'plus.signedOut.account.title': '有了免費帳戶',
   'plus.signedOut.account.body':
-    '從畫廊取得場景（最初幾個免費），並在「工作室」中製作自己的場景。',
+    '從畫廊取得場景（第一個免費），並在「工作室」中製作自己的場景。',
   'plus.signedOut.create': '建立免費帳戶',
   'plus.signedOut.createSub.one': '並取得 {count} 個場景',
   'plus.signedOut.createSub.few': '並取得 {count} 個場景',
@@ -219,7 +219,7 @@ const plus = {
   'plus.signedOut.offerTitle.many': '{count} 個場景，免費',
   'plus.signedOut.offerTitle.other': '{count} 個場景，免費',
   'plus.signedOut.offerBody':
-    '免費帳戶為每個場景各備好一點，您取得的每個場景都永久屬於您。',
+    '免費帳戶附帶一個點數，您取得的每個場景都永久屬於您。',
   'plus.signedOut.step.create': '建立帳戶',
   'plus.signedOut.step.confirm': '確認電子郵件',
   'plus.signedOut.step.pick': '挑選要保留的場景',

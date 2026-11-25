@@ -24,7 +24,7 @@ const store: Partial<Dictionary> = {
   'store.credits.half':
     'आधा क्रेडिट इंतज़ार में है: भुगतान किए क्रेडिट से पाया गया आपका अगला सीन इसे पूरा कर देगा।',
   'store.credits.buy': 'और क्रेडिट पाएँ',
-  'store.credits.getFree': 'मुफ़्त क्रेडिट लें',
+  'store.credits.getFree': 'अपना मुफ़्त क्रेडिट लें',
   'store.error.offline':
     'FluidEQ से जुड़ा नहीं जा सका। अपना कनेक्शन जाँचें और फिर कोशिश करें।',
   'store.error.signedOut':
@@ -111,14 +111,14 @@ const store: Partial<Dictionary> = {
     '{count} क्रेडिट ख़र्च करने के लिए तैयार',
   'store.welcome.eyebrow': 'FluidEQ में आपका स्वागत है',
   'store.welcome.body':
-    'हर क्रेडिट से आपको {visualizers} टैब का एक सीन हमेशा के लिए मिलता है। अभी इन्हें लें और अपने पहले सीन चुनें।',
+    'एक क्रेडिट से आपको {visualizers} टैब का एक सीन हमेशा के लिए मिलता है। अभी इसे लें और अपना पहला सीन चुनें।',
   'store.welcome.fine':
     'हर खाते के लिए एक बार। क्रेडिट ख़र्च करने से पहले आप हर सीन को कुछ सेकंड देख सकते हैं।',
   'store.welcome.later': 'बाद में',
   'store.welcome.claimedBody':
-    'अपने पहले सीन चुनें। ‘{notMine}’ चालू है, इसलिए {visualizers} टैब में सिर्फ़ वे सीन दिखते हैं जो आपके पास नहीं हैं।',
-  'store.welcome.pick': 'मेरे पहले सीन चुनें',
-  'store.welcome.cardBody': 'इन्हें लें और रखने के लिए अपने पहले सीन चुनें।',
+    'अपना पहला सीन चुनें। ‘{notMine}’ चालू है, इसलिए {visualizers} टैब में सिर्फ़ वे सीन दिखते हैं जो आपके पास नहीं हैं।',
+  'store.welcome.pick': 'मेरा पहला सीन चुनें',
+  'store.welcome.cardBody': 'इसे लें और रखने के लिए अपना पहला सीन चुनें।',
   'store.welcome.cardClaimedBody':
     'वे सीन दिख रहे हैं जो अभी आपके पास नहीं हैं। किसी को भी कुछ सेकंड देखें, फिर एक क्रेडिट में ले लें।',
   'store.welcome.gotIt': 'ठीक है',

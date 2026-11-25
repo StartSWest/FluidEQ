@@ -260,7 +260,7 @@ const terms = {
   'terms.credits.p1':
     'A credit gets you one scene from Scenes — one of FluidEQ’s or one a member published — and the scene is then yours for good: on the graph, your desktop and your lights, on every computer you sign in to, with every new version its maker publishes. Before you get one, any scene plays on its page for {tasteSeconds} seconds. FluidEQ asks before it spends a credit, and a credit spent cannot be taken back.',
   'terms.credits.p2':
-    'Credits come in packs, paid once on Stripe, under its own terms. FluidEQ never sees your card or bank details, and nothing renews. A confirmed account gets {starterCredits} credits once, free. Credits have no cash value, cannot be sold or moved to another account, and buy scenes and nothing else.',
+    'Credits come in packs, paid once on Stripe, under its own terms. FluidEQ never sees your card or bank details, and nothing renews. A confirmed account gets {starterCredits} credit once, free. Credits have no cash value, cannot be sold or moved to another account, and buy scenes and nothing else.',
   'terms.credits.p3':
     'If a payment for a pack is refunded in full or disputed, the pack’s credits are taken back, even ones you already spent: your balance can go below zero, and no scene can be got until a new pack brings it back up. Scenes you already have stay yours.',
   'terms.credits.p4':

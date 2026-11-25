@@ -125,7 +125,7 @@ const account = {
     'Google आपके ब्राउज़र में खुला है। वहाँ पूरा करते ही FluidEQ आपको अपने-आप साइन इन कर देगा।',
   'account.google.cancel': 'रद्द करें',
   // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
-  'account.welcome.createTitle.one': 'आपका {count} सीन इंतज़ार कर रहा है',
+  'account.welcome.createTitle.one': 'आपका मुफ़्त सीन इंतज़ार कर रहा है',
   'account.welcome.createTitle.few': 'आपके {count} सीन इंतज़ार कर रहे हैं',
   'account.welcome.createTitle.many': 'आपके {count} सीन इंतज़ार कर रहे हैं',
   'account.welcome.createTitle.other': 'आपके {count} सीन इंतज़ार कर रहे हैं',
@@ -139,7 +139,7 @@ const account = {
     'मुफ़्त खाता {count} क्रेडिट से शुरू होता है। हर क्रेडिट से आपको एक सीन मिलता है, जो हमेशा आपका रहता है।',
   'account.welcome.step.create': 'अपना खाता बनाएँ',
   'account.welcome.step.confirm': 'अपना ईमेल पक्का करें',
-  'account.welcome.step.pick.one': 'अपने {count} सीन चुनें',
+  'account.welcome.step.pick.one': 'अपना सीन चुनें',
   'account.welcome.step.pick.few': 'अपने {count} सीन चुनें',
   'account.welcome.step.pick.many': 'अपने {count} सीन चुनें',
   'account.welcome.step.pick.other': 'अपने {count} सीन चुनें',

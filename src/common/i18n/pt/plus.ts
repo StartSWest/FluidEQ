@@ -206,7 +206,7 @@ const plus = {
   'plus.welcome.scene.prismBloom': 'Flor de prisma',
 
   // The tab before signing in (`VisualizersSignedOut`).
-  'plus.signedOut.title.one': '{count} cena por nossa conta.',
+  'plus.signedOut.title.one': 'Sua primeira cena é por nossa conta.',
   'plus.signedOut.title.few':
     'Suas {count} primeiras cenas são por nossa conta.',
   'plus.signedOut.title.many':
@@ -214,13 +214,13 @@ const plus = {
   'plus.signedOut.title.other':
     'Suas {count} primeiras cenas são por nossa conta.',
   'plus.signedOut.line':
-    'Crie uma conta grátis e resgate seus créditos iniciais. Cada crédito vale uma cena para você guardar para sempre.',
+    'Crie uma conta grátis e resgate seu crédito inicial. Ele vale uma cena para você guardar para sempre.',
   'plus.signedOut.free.title': 'Grátis, sem conta',
   'plus.signedOut.free.body':
     'O equalizador, os efeitos de áudio, a reprodução de música e os estilos padrão do gráfico do FluidEQ. Use sem nunca se cadastrar.',
   'plus.signedOut.account.title': 'Com uma conta grátis',
   'plus.signedOut.account.body':
-    'Obtenha cenas da galeria, as primeiras de graça, e crie suas próprias cenas no Estúdio.',
+    'Obtenha cenas da galeria, a primeira de graça, e crie suas próprias cenas no Estúdio.',
   'plus.signedOut.create': 'Criar sua conta grátis',
   'plus.signedOut.createSub.one': 'e ganhar {count} cena',
   'plus.signedOut.createSub.few': 'e ganhar {count} cenas',
@@ -245,10 +245,10 @@ const plus = {
   'plus.signedOut.offerTitle.many': '{count} cenas grátis',
   'plus.signedOut.offerTitle.other': '{count} cenas grátis',
   'plus.signedOut.offerBody':
-    'Uma conta grátis começa com um crédito para cada uma, e cada cena que você obtém é sua para sempre.',
+    'Uma conta grátis começa com um crédito, e cada cena que você obtém é sua para sempre.',
   'plus.signedOut.step.create': 'Crie sua conta',
   'plus.signedOut.step.confirm': 'Confirme seu email',
-  'plus.signedOut.step.pick': 'Escolha as cenas para guardar',
+  'plus.signedOut.step.pick': 'Escolha a cena para guardar',
   'plus.add.notOwned':
     'Obtenha {name} primeiro: custa um crédito, e depois vai para os seus visuais.',
 } as const;

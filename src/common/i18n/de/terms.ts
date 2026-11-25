@@ -250,7 +250,7 @@ const terms = {
   'terms.credits.p1':
     'Ein Credit bringt Ihnen eine Szene aus „Szenen“ — eine von FluidEQ oder eine, die ein Mitglied veröffentlicht hat —, und die Szene gehört Ihnen dann für immer: im Diagramm, auf Ihrem Desktop und an Ihren Lichtern, auf jedem Computer, an dem Sie sich anmelden, mit jeder neuen Version, die ihr Ersteller veröffentlicht. Bevor Sie sie holen, läuft jede Szene auf ihrer Seite {tasteSeconds} Sekunden lang. FluidEQ fragt nach, bevor es einen Credit ausgibt, und ein ausgegebener Credit lässt sich nicht zurücknehmen.',
   'terms.credits.p2':
-    'Credits gibt es in Paketen, einmal bei Stripe bezahlt, unter dessen eigenen Bedingungen. FluidEQ sieht weder Ihre Karte noch Ihre Bankdaten, und nichts verlängert sich. Ein bestätigtes Konto erhält einmalig {starterCredits} Credits gratis. Credits haben keinen Geldwert, können weder verkauft noch auf ein anderes Konto übertragen werden und dienen dem Holen von Szenen und nichts anderem.',
+    'Credits gibt es in Paketen, einmal bei Stripe bezahlt, unter dessen eigenen Bedingungen. FluidEQ sieht weder Ihre Karte noch Ihre Bankdaten, und nichts verlängert sich. Ein bestätigtes Konto erhält einmalig {starterCredits} Credit gratis. Credits haben keinen Geldwert, können weder verkauft noch auf ein anderes Konto übertragen werden und dienen dem Holen von Szenen und nichts anderem.',
   'terms.credits.p3':
     'Wird die Zahlung für ein Paket vollständig erstattet oder angefochten, werden die Credits dieses Pakets zurückgenommen, auch bereits ausgegebene: Ihr Guthaben kann unter null fallen, und bis ein neues Paket es ausgleicht, lässt sich keine Szene holen. Szenen, die Sie bereits haben, bleiben Ihre.',
   'terms.credits.p4':

@@ -124,7 +124,7 @@ const account = {
     'O Google está aberto no seu navegador. O FluidEQ faz você entrar sozinho assim que você terminar lá.',
   'account.google.cancel': 'Cancelar',
   // The sign-in screens Ivan approved on 2026-11-13 (`AccountWelcome`).
-  'account.welcome.createTitle.one': 'Sua {count} cena está esperando',
+  'account.welcome.createTitle.one': 'Sua cena grátis está esperando',
   'account.welcome.createTitle.few': 'Suas {count} cenas estão esperando',
   'account.welcome.createTitle.many': 'Suas {count} cenas estão esperando',
   'account.welcome.createTitle.other': 'Suas {count} cenas estão esperando',
@@ -138,7 +138,7 @@ const account = {
     'Uma conta grátis começa com {count} créditos. Cada um vale uma cena para você guardar para sempre.',
   'account.welcome.step.create': 'Crie sua conta',
   'account.welcome.step.confirm': 'Confirme seu email',
-  'account.welcome.step.pick.one': 'Escolha sua {count} cena',
+  'account.welcome.step.pick.one': 'Escolha sua cena',
   'account.welcome.step.pick.few': 'Escolha suas {count} cenas',
   'account.welcome.step.pick.many': 'Escolha suas {count} cenas',
   'account.welcome.step.pick.other': 'Escolha suas {count} cenas',

@@ -24,7 +24,7 @@ const store: Partial<Dictionary> = {
   'store.credits.half':
     'Hai mezzo credito in attesa: la prossima tua scena ottenuta con un credito pagato lo completa.',
   'store.credits.buy': 'Ottieni altri crediti',
-  'store.credits.getFree': 'Ricevi crediti gratuiti',
+  'store.credits.getFree': 'Ricevi il tuo credito gratuito',
   'store.error.offline':
     'Impossibile raggiungere FluidEQ. Controlla la connessione e riprova.',
   'store.error.signedOut': 'Accedi di nuovo per usare i tuoi crediti.',
@@ -105,14 +105,14 @@ const store: Partial<Dictionary> = {
   'store.welcome.cardClaimedTitle.other': '{count} crediti pronti da usare',
   'store.welcome.eyebrow': 'Benvenuto in FluidEQ',
   'store.welcome.body':
-    'Ogni credito ti dà una scena della scheda {visualizers} da tenere per sempre. Riscattali ora e scegli le tue prime scene.',
+    'Un credito ti dà una scena della scheda {visualizers} da tenere per sempre. Riscattalo ora e scegli la tua prima scena.',
   'store.welcome.fine':
     'Una volta per account. Puoi guardare ogni scena per qualche secondo prima di spendere un credito.',
   'store.welcome.later': 'Più tardi',
   'store.welcome.claimedBody':
-    'Scegli le tue prime scene. “{notMine}” è attivo, quindi la scheda {visualizers} mostra solo le scene che non hai.',
-  'store.welcome.pick': 'Scegli le mie prime scene',
-  'store.welcome.cardBody': 'Riscattali e scegli le tue prime scene da tenere.',
+    'Scegli la tua prima scena. “{notMine}” è attivo, quindi la scheda {visualizers} mostra solo le scene che non hai.',
+  'store.welcome.pick': 'Scegli la mia prima scena',
+  'store.welcome.cardBody': 'Riscattalo e scegli la tua prima scena da tenere.',
   'store.welcome.cardClaimedBody':
     'Ecco le scene che non hai ancora. Guardane una per qualche secondo, poi prendila per un credito.',
   'store.welcome.gotIt': 'Capito',

@@ -250,7 +250,7 @@ const terms = {
   'terms.credits.p1':
     'Um crédito lhe dá uma cena de Cenas — uma do FluidEQ ou uma que um membro publicou —, e a cena passa a ser sua para sempre: no gráfico, na sua área de trabalho e nas suas luzes, em todo computador em que você entrar, com cada nova versão que quem a criou publicar. Antes de obtê-la, qualquer cena toca na página dela durante {tasteSeconds} segundos. O FluidEQ pergunta antes de gastar um crédito, e um crédito gasto não pode ser devolvido.',
   'terms.credits.p2':
-    'Os créditos vêm em pacotes, pagos uma única vez na Stripe, sob os termos dela. O FluidEQ nunca vê seu cartão nem seus dados bancários, e nada é renovado. Uma conta confirmada recebe {starterCredits} créditos uma vez, grátis. Os créditos não têm valor em dinheiro, não podem ser vendidos nem passados para outra conta, e servem para obter cenas e nada mais.',
+    'Os créditos vêm em pacotes, pagos uma única vez na Stripe, sob os termos dela. O FluidEQ nunca vê seu cartão nem seus dados bancários, e nada é renovado. Uma conta confirmada recebe {starterCredits} crédito uma vez, grátis. Os créditos não têm valor em dinheiro, não podem ser vendidos nem passados para outra conta, e servem para obter cenas e nada mais.',
   'terms.credits.p3':
     'Se o pagamento de um pacote for reembolsado por inteiro ou contestado, os créditos desse pacote são retirados, até os que você já gastou: seu saldo pode ficar abaixo de zero, e nenhuma cena pode ser obtida até um novo pacote recuperá-lo. As cenas que você já tem continuam sendo suas.',
   'terms.credits.p4':

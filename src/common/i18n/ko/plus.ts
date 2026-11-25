@@ -198,10 +198,10 @@ const plus = {
   'plus.welcome.scene.prismBloom': '프리즘 블룸',
 
   // The tab before signing in (`VisualizersSignedOut`).
-  'plus.signedOut.title.one': '첫 {count}개 장면은 무료로 드립니다.',
-  'plus.signedOut.title.few': '첫 {count}개 장면은 무료로 드립니다.',
-  'plus.signedOut.title.many': '첫 {count}개 장면은 무료로 드립니다.',
-  'plus.signedOut.title.other': '첫 {count}개 장면은 무료로 드립니다.',
+  'plus.signedOut.title.one': '장면 {count}개를 무료로 드립니다.',
+  'plus.signedOut.title.few': '장면 {count}개를 무료로 드립니다.',
+  'plus.signedOut.title.many': '장면 {count}개를 무료로 드립니다.',
+  'plus.signedOut.title.other': '장면 {count}개를 무료로 드립니다.',
   'plus.signedOut.line':
     '무료 계정을 만들고 시작 크레딧을 받으세요. 크레딧 하나로 영원히 간직할 장면 하나를 받을 수 있습니다.',
   'plus.signedOut.free.title': '무료, 계정 없이',
@@ -209,7 +209,7 @@ const plus = {
     'FluidEQ의 이퀄라이저, 오디오 효과, 음악 재생, 그래프의 기본 스타일. 가입하지 않아도 쓸 수 있습니다.',
   'plus.signedOut.account.title': '무료 계정이 있으면',
   'plus.signedOut.account.body':
-    '갤러리에서 장면을 받고(처음 몇 개는 무료), 스튜디오에서 나만의 장면을 만들 수 있습니다.',
+    '갤러리에서 장면을 받고(첫 장면은 무료), 스튜디오에서 나만의 장면을 만들 수 있습니다.',
   'plus.signedOut.create': '무료 계정 만들기',
   'plus.signedOut.createSub.one': '장면 {count}개 받기',
   'plus.signedOut.createSub.few': '장면 {count}개 받기',
@@ -234,7 +234,7 @@ const plus = {
   'plus.signedOut.offerTitle.many': '장면 {count}개 무료',
   'plus.signedOut.offerTitle.other': '장면 {count}개 무료',
   'plus.signedOut.offerBody':
-    '무료 계정은 장면마다 크레딧 하나로 시작하며, 받은 장면은 영원히 내 것입니다.',
+    '무료 계정은 크레딧 하나로 시작하며, 받은 장면은 영원히 내 것입니다.',
   'plus.signedOut.step.create': '계정 만들기',
   'plus.signedOut.step.confirm': '이메일 확인',
   'plus.signedOut.step.pick': '간직할 장면 고르기',

@@ -298,7 +298,7 @@ const tour: Partial<Dictionary> = {
   'tour.plus.lead':
     'Ein ganzer Tab mit Extras, der FluidEQ wachsen lässt: Szenen, die auf Ihrer Grafikkarte gezeichnet werden, ein Studio für eigene Szenen, Desktop-Hintergründe und dynamische Beleuchtung. Eine Szene kostet einen Credit und bleibt Ihre, und der Equalizer, das Rack und die Player bleiben kostenlos, wie sie es immer waren.',
   'tour.plus.point1':
-    'Melden Sie sich im Tab Szenen an: Ein bestätigtes Konto erhält zum Start Credits gratis.',
+    'Melden Sie sich im Tab Szenen an: Ein bestätigtes Konto erhält zum Start einen Credit gratis.',
   'tour.plus.point2':
     'Credit-Pakete werden einmalig bezahlt, mit Bedingungen in klaren Worten vor der Zahlung. Nichts verlängert sich, und die App sieht Ihre Karte nie.',
   'tour.plus.point3':

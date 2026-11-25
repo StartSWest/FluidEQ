@@ -26,7 +26,7 @@ const store = {
   'store.credits.half':
     'Half a credit is waiting: the next scene of yours got with a paid credit makes it whole.',
   'store.credits.buy': 'Get more credits',
-  'store.credits.getFree': 'Claim free credits',
+  'store.credits.getFree': 'Claim your free credit',
   'store.error.offline':
     "Couldn't reach FluidEQ. Check your connection and try again.",
   'store.error.signedOut': 'Sign in again to use your credits.',
@@ -102,14 +102,14 @@ const store = {
   'store.welcome.cardClaimedTitle.other': '{count} credits ready to spend',
   'store.welcome.eyebrow': 'Welcome to FluidEQ',
   'store.welcome.body':
-    'Each credit gets you one scene to keep for good, from the {visualizers} tab. Claim them now and pick your first scenes.',
+    'A credit gets you one scene to keep for good, from the {visualizers} tab. Claim it now and pick your first scene.',
   'store.welcome.fine':
     'Once per account. You can watch every scene for a few seconds before you spend a credit.',
   'store.welcome.later': 'Later',
   'store.welcome.claimedBody':
-    'Pick your first scenes. {notMine} is on, so the {visualizers} tab shows only scenes you don’t have.',
-  'store.welcome.pick': 'Pick my first scenes',
-  'store.welcome.cardBody': 'Claim them and pick your first scenes to keep.',
+    'Pick your first scene. {notMine} is on, so the {visualizers} tab shows only scenes you don’t have.',
+  'store.welcome.pick': 'Pick my first scene',
+  'store.welcome.cardBody': 'Claim it and pick your first scene to keep.',
   'store.welcome.cardClaimedBody':
     'Showing scenes you don’t have yet. Watch any of them for a few seconds, then get it for one credit.',
   'store.welcome.gotIt': 'Got it',

@@ -94,13 +94,13 @@ const store: Partial<Dictionary> = {
   'store.welcome.cardClaimedTitle.other': '{count} 个点数可以使用',
   'store.welcome.eyebrow': '欢迎使用 FluidEQ',
   'store.welcome.body':
-    '每个点数可以从“{visualizers}”标签页永久获得一个场景。现在领取，挑选你的第一批场景。',
+    '一个点数可以从“{visualizers}”标签页永久获得一个场景。现在领取，挑选你的第一个场景。',
   'store.welcome.fine': '每个账户一次。花点数之前，每个场景都可以先看几秒。',
   'store.welcome.later': '稍后',
   'store.welcome.claimedBody':
-    '挑选你的第一批场景。“{notMine}”已开启，所以“{visualizers}”标签页只显示你还没有的场景。',
-  'store.welcome.pick': '挑选我的第一批场景',
-  'store.welcome.cardBody': '领取后，挑选你要永久保留的第一批场景。',
+    '挑选你的第一个场景。“{notMine}”已开启，所以“{visualizers}”标签页只显示你还没有的场景。',
+  'store.welcome.pick': '挑选我的第一个场景',
+  'store.welcome.cardBody': '领取后，挑选你要永久保留的第一个场景。',
   'store.welcome.cardClaimedBody':
     '正在显示你还没有的场景。先看几秒，再用一个点数获得它。',
   'store.welcome.gotIt': '知道了',

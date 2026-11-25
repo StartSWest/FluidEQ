@@ -24,7 +24,7 @@ const store: Partial<Dictionary> = {
   'store.credits.half':
     'Você tem meio crédito à espera: a próxima cena sua obtida com um crédito pago o completa.',
   'store.credits.buy': 'Obter mais créditos',
-  'store.credits.getFree': 'Pegar créditos grátis',
+  'store.credits.getFree': 'Pegar seu crédito grátis',
   'store.error.offline':
     'Não foi possível conectar ao FluidEQ. Verifique sua conexão e tente de novo.',
   'store.error.signedOut': 'Entre de novo para usar seus créditos.',
@@ -103,15 +103,15 @@ const store: Partial<Dictionary> = {
   'store.welcome.cardClaimedTitle.other': '{count} créditos prontos para usar',
   'store.welcome.eyebrow': 'Boas-vindas ao FluidEQ',
   'store.welcome.body':
-    'Cada crédito dá a você uma cena da aba {visualizers} para sempre. Resgate-os agora e escolha suas primeiras cenas.',
+    'Um crédito dá a você uma cena da aba {visualizers} para sempre. Resgate-o agora e escolha sua primeira cena.',
   'store.welcome.fine':
     'Uma vez por conta. Você pode assistir a cada cena por alguns segundos antes de gastar um crédito.',
   'store.welcome.later': 'Mais tarde',
   'store.welcome.claimedBody':
-    'Escolha suas primeiras cenas. “{notMine}” está ativado, então a aba {visualizers} mostra só cenas que você ainda não tem.',
-  'store.welcome.pick': 'Escolher minhas primeiras cenas',
+    'Escolha sua primeira cena. “{notMine}” está ativado, então a aba {visualizers} mostra só cenas que você ainda não tem.',
+  'store.welcome.pick': 'Escolher minha primeira cena',
   'store.welcome.cardBody':
-    'Resgate-os e escolha suas primeiras cenas para guardar.',
+    'Resgate-o e escolha sua primeira cena para guardar.',
   'store.welcome.cardClaimedBody':
     'Mostrando cenas que você ainda não tem. Assista a qualquer uma por alguns segundos e pegue-a por um crédito.',
   'store.welcome.gotIt': 'Entendi',

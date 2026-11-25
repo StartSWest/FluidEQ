@@ -209,10 +209,10 @@ const plus = {
   'plus.welcome.scene.prismBloom': 'プリズムの花',
 
   // The tab before signing in (`VisualizersSignedOut`).
-  'plus.signedOut.title.one': '最初の{count}つのシーンは無料です。',
-  'plus.signedOut.title.few': '最初の{count}つのシーンは無料です。',
-  'plus.signedOut.title.many': '最初の{count}つのシーンは無料です。',
-  'plus.signedOut.title.other': '最初の{count}つのシーンは無料です。',
+  'plus.signedOut.title.one': 'シーンを{count}つ無料で差し上げます。',
+  'plus.signedOut.title.few': 'シーンを{count}つ無料で差し上げます。',
+  'plus.signedOut.title.many': 'シーンを{count}つ無料で差し上げます。',
+  'plus.signedOut.title.other': 'シーンを{count}つ無料で差し上げます。',
   'plus.signedOut.line':
     '無料アカウントを作成して、スタート用のクレジットを受け取りましょう。1クレジットで、ずっと使えるシーンを1つ入手できます。',
   'plus.signedOut.free.title': '無料・アカウント不要',
@@ -245,7 +245,7 @@ const plus = {
   'plus.signedOut.offerTitle.many': 'シーン{count}つが無料',
   'plus.signedOut.offerTitle.other': 'シーン{count}つが無料',
   'plus.signedOut.offerBody':
-    '無料アカウントにはシーンごとに1クレジットが付いていて、入手したシーンはずっとあなたのものです。',
+    '無料アカウントには1クレジットが付いていて、入手したシーンはずっとあなたのものです。',
   'plus.signedOut.step.create': 'アカウントを作成',
   'plus.signedOut.step.confirm': 'メールを確認',
   'plus.signedOut.step.pick': '残しておくシーンを選ぶ',

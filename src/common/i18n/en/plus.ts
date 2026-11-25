@@ -208,18 +208,18 @@ const plus = {
   'plus.welcome.scene.prismBloom': 'Prism Bloom',
 
   // The tab before signing in (`VisualizersSignedOut`).
-  'plus.signedOut.title.one': 'Your first {count} scene is on us.',
+  'plus.signedOut.title.one': 'Your first scene is on us.',
   'plus.signedOut.title.few': 'Your first {count} scenes are on us.',
   'plus.signedOut.title.many': 'Your first {count} scenes are on us.',
   'plus.signedOut.title.other': 'Your first {count} scenes are on us.',
   'plus.signedOut.line':
-    'Create a free account and claim your starting credits. Each credit gets you a scene to keep for good.',
+    'Create a free account and claim your starting credit. It gets you a scene to keep for good.',
   'plus.signedOut.free.title': 'Free, no account needed',
   'plus.signedOut.free.body':
     'FluidEQ’s equaliser, audio effects, music playback and the graph’s standard looks. Use them without ever signing up.',
   'plus.signedOut.account.title': 'With a free account',
   'plus.signedOut.account.body':
-    'Get scenes from the gallery, your first ones free, and make your own scenes in the Studio.',
+    'Get scenes from the gallery, your first one free, and make your own scenes in the Studio.',
   'plus.signedOut.create': 'Create your free account',
   'plus.signedOut.createSub.one': 'and get {count} scene',
   'plus.signedOut.createSub.few': 'and get {count} scenes',
@@ -244,10 +244,10 @@ const plus = {
   'plus.signedOut.offerTitle.many': '{count} scenes, free',
   'plus.signedOut.offerTitle.other': '{count} scenes, free',
   'plus.signedOut.offerBody':
-    'A free account starts with one credit for each, and every scene you get stays yours for good.',
+    'A free account starts with one credit, and every scene you get stays yours for good.',
   'plus.signedOut.step.create': 'Create your account',
   'plus.signedOut.step.confirm': 'Confirm your email',
-  'plus.signedOut.step.pick': 'Pick your scenes to keep',
+  'plus.signedOut.step.pick': 'Pick your scene to keep',
   'plus.add.notOwned':
     'Get {name} first: it takes one credit, and then it goes in your looks.',
 } as const;
