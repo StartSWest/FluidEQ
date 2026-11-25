@@ -27,3 +27,10 @@ export const HelpColumnContext = createContext<IHelpColumn | undefined>(
  * window's own viewport.
  */
 export const HelpScrollContext = createContext<Element | null>(null);
+
+/**
+ * Whether the article draws its pictures at all: false while the guide shows
+ * a figure enlarged over it, which covers the article whole and is the one
+ * figure drawn (`live/useNearView`). True outside the guide.
+ */
+export const HelpDrawsContext = createContext(true);

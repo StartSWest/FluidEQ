@@ -23,6 +23,7 @@ import HelpChapter, {
 } from './HelpChapter';
 import {
   HelpColumnContext,
+  HelpDrawsContext,
   HelpScrollContext,
   type IHelpColumn,
 } from './HelpColumn';
@@ -420,14 +421,18 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
                   {t('help.captureNote')}
                 </p>
               </header>
-              {chapters.map((chapter, index) => (
-                <HelpChapter
-                  key={chapter.id}
-                  chapter={chapter}
-                  groupLabel={groupLabelAt(index)}
-                  onEnlarge={setCapture}
-                />
-              ))}
+              {/* Nothing in the article is drawn while a figure is shown
+                  enlarged over it: the lightbox draws that one alone. */}
+              <HelpDrawsContext.Provider value={capture === undefined}>
+                {chapters.map((chapter, index) => (
+                  <HelpChapter
+                    key={chapter.id}
+                    chapter={chapter}
+                    groupLabel={groupLabelAt(index)}
+                    onEnlarge={setCapture}
+                  />
+                ))}
+              </HelpDrawsContext.Provider>
               {chapters.length > 0 && (
                 <button
                   className="button small subtle"

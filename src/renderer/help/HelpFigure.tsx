@@ -1,6 +1,6 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import { useContext, useMemo } from 'react';
+import { useContext, useMemo, useRef } from 'react';
 import {
   HELP_CAPTURE_MAX_VIEWPORT,
   type IHelpPictureFigure,
@@ -14,6 +14,7 @@ import {
   useFigureLights,
 } from './HelpCalloutParts';
 import { HelpColumnContext } from './HelpColumn';
+import useNearView from './live/useNearView';
 
 interface IHelpFigureProps {
   figure: IHelpPictureFigure;
@@ -39,6 +40,10 @@ interface IHelpFigureProps {
  * the control it went to, until something is pointed at, and lights every
  * line whose name it found.
  *
+ * The picture itself is there only while the reader is near it
+ * (`useNearView`): a capture of the whole window decodes to 14 MB, and the
+ * guide held every one it had shown. Its frame keeps its size without it.
+ *
  * A panel drawn live instead of captured is `HelpLiveFigure`, with the same
  * circles and list (`HelpCalloutParts`).
  */
@@ -52,6 +57,8 @@ export default function HelpFigure({
   const { t } = useTranslation();
   const lights = useFigureLights(anchor);
   const column = useContext(HelpColumnContext);
+  const host = useRef<HTMLDivElement>(null);
+  const isNear = useNearView(host);
   const plan = useMemo(
     () =>
       column &&
@@ -65,7 +72,7 @@ export default function HelpFigure({
   return (
     <figure className="help-figure">
       <HelpFigureCaption caption={figure.caption} anchor={anchor} />
-      <div className="help-figure__host">
+      <div className="help-figure__host" ref={host}>
         {plan && (
           <div
             className="help-figure__frame"
@@ -83,13 +90,14 @@ export default function HelpFigure({
               aria-label={t('help.enlarge', { title })}
               onClick={onEnlarge}
             >
-              <img
-                src={src}
-                alt={title}
-                loading="lazy"
-                width={figure.width}
-                height={figure.height}
-              />
+              {isNear && (
+                <img
+                  src={src}
+                  alt={title}
+                  width={figure.width}
+                  height={figure.height}
+                />
+              )}
             </button>
             <HelpCalloutMarks
               plan={plan}

@@ -10,6 +10,7 @@ import {
 } from '../components/featureTour/featureFilms';
 import FILM_POSTERS from '../components/featureTour/filmPosters';
 import useFilmPlayback from '../components/featureTour/useFilmPlayback';
+import useNearView from './live/useNearView';
 
 type TFilmState = 'loading' | 'playing' | 'failed';
 
@@ -87,11 +88,17 @@ function HelpFilmPlayback({
   );
 }
 
-/** A bundled poster until Play; Help and What's New share subtitles and fallback. */
+/**
+ * A bundled poster until Play; Help and What's New share subtitles and
+ * fallback. The poster is drawn only while the reader is near it
+ * (`useNearView`); its frame keeps the film's shape without it.
+ */
 export default function HelpFilm({ id }: { id: string }) {
   const { t, locale } = useTranslation();
   const [pressed, setPressed] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const screen = useRef<HTMLSpanElement>(null);
+  const isNear = useNearView(screen);
   const film = FEATURE_FILMS[id];
   const poster = FILM_POSTERS[id];
   if (!film || !poster) {
@@ -126,8 +133,8 @@ export default function HelpFilm({ id }: { id: string }) {
         .filter(Boolean)
         .join('. ')}
     >
-      <span className="help-film__screen">
-        <img src={poster} alt="" />
+      <span className="help-film__screen" ref={screen}>
+        {isNear && <img src={poster} alt="" />}
         <span className="help-video__play" aria-hidden="true">
           <PlayerIcon name="play" />
         </span>

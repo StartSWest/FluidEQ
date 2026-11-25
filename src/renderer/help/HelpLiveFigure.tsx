@@ -62,9 +62,10 @@ const layoutOf = (
  * A figure drawn by the app's own components (`IHelpLiveFigure`), with the
  * same numbered circles and list as a capture's (`HelpFigure`).
  *
- * Drawn once the reader nears it (`useNearView`), and kept. Until then it
- * holds the room it expects — or, opened again, the room it measured last
- * (`liveMeasures`) — and its list is already there, numbered as listed, so a
+ * Drawn while the reader is near it (`useNearView`), and taken down again
+ * once they are well past it. Undrawn, it holds the room it expects — or the
+ * room it measured last (`liveMeasures`), so leaving and coming back moves
+ * nothing — and its list is already there, numbered as listed, so a
  * search can land on any of its controls before its picture exists. The
  * circles come with the drawing: they are placed from what it measured, in
  * its own pixels, and keep the numbers the list already showed.
