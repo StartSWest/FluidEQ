@@ -100,3 +100,11 @@
   place-items: center;
   padding: 20px;
 }
+
+// THE GAMING LAB, drawn in a figure (`help/live/gamingFigures`): in the window
+// the page runs to the window's foot, so the rail always shows its games and
+// Add a game under them. Drawn only as tall as the game's header, the rail
+// was cut after two games and Add a game had no circle to point at.
+.help-live .workspace-tab-panel--games .gaming-lab {
+  min-height: 260px;
+}
