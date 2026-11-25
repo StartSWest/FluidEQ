@@ -8,8 +8,8 @@
 // 2.6's slides, look A (Ivan, 2026-11-25): the words on one line, a large
 // live picture of the real page under them, three numbered points under
 // that (`LitSlide`, `TourLiveFigure`), and the first page's window turning
-// from white to dark under the pointer (`TourSplitWindow`). Flat: edges and
-// steps of light, no shadow anywhere (Ivan, 2026-11-19).
+// from white to dark as its handle is dragged (`TourSplitWindow`). Flat:
+// edges and steps of light, no shadow anywhere (Ivan, 2026-11-19).
 
 .tour-lit {
   grid-template-rows: auto minmax(220px, 1fr) auto;
@@ -244,13 +244,7 @@
   border-radius: $radius-l;
   aspect-ratio: 1920 / 1200;
   background: $surface-base;
-  cursor: ew-resize;
-  touch-action: pan-y;
   user-select: none;
-
-  &:focus-visible {
-    @include focus-ring;
-  }
 }
 
 .tour-split__picture {
@@ -267,26 +261,79 @@
   clip-path: inset(0 calc(100% - var(--seam)) 0 0);
 }
 
+// The handle: the line and its grip, inside a strip wide enough to take with
+// a finger, which is all of the window that answers the pointer. The seam
+// stands between a white picture and a dark one whatever the window's own
+// colours, so each part is the accent edged in the ink that is written on the
+// accent (`$on-accent`): a dark window's bright accent reads on the dark
+// picture and its dark ink on the white one, and a white window's deep accent
+// and white ink the other way round.
 .tour-split__seam {
   position: absolute;
   top: 0;
   bottom: 0;
   left: var(--seam);
-  width: 2px;
-  background: $secondary-default;
-  translate: -1px 0;
+  display: grid;
+  width: 40px;
+  outline: none;
+  cursor: ew-resize;
+  place-items: center;
+  touch-action: none;
+  translate: -50% 0;
 }
 
-.tour-split__grip {
+.tour-split__line {
   position: absolute;
-  top: 50%;
+  top: 0;
+  bottom: 0;
   left: 50%;
-  width: 14px;
-  height: 44px;
-  border: 2px solid $secondary-default;
-  border-radius: 7px;
-  background: $surface-panel;
-  translate: -50% -50%;
+  width: 4px;
+  border-inline: 1px solid $on-accent;
+  background: $secondary-default;
+  translate: -50% 0;
+}
+
+// 36px across on a window of ordinary size, down to 28px where the slide leaves
+// the window a strip (an 800x600 window draws it 166px tall), so the grip never
+// stands over a fifth of the picture. The strip around it stays 40px for a
+// finger, and `GRIP_REACH_PX` is the largest grip's half and edge.
+.tour-split__grip {
+  position: relative;
+  display: grid;
+  width: clamp(28px, min(6.6cqw, 10.5cqh), 36px);
+  box-sizing: border-box;
+  aspect-ratio: 1;
+  color: $on-accent;
+  border: 2px solid $on-accent;
+  border-radius: $radius-pill;
+  background: $secondary-default;
+  place-items: center;
+  transition: $transition-control;
+
+  svg {
+    width: 56%;
+    height: 56%;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+}
+
+// A step away from the ink under the pointer and further held, as the loud
+// button takes it: lighter under a dark window's dark ink, darker under a
+// white window's white one.
+.tour-split__seam:hover .tour-split__grip {
+  background: color-mix(in oklab, $secondary-default 86%, $on-accent-far);
+}
+
+.tour-split__seam[data-dragging] .tour-split__grip {
+  background: color-mix(in oklab, $secondary-default 74%, $on-accent-far);
+}
+
+.tour-split__seam:focus-visible .tour-split__grip {
+  @include focus-outline;
 }
 
 .tour-split__tag {

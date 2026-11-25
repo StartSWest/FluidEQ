@@ -7,10 +7,10 @@ const tour26 = {
   'tour.v26.window.lead':
     'Ahora cada página se organiza como la Biblioteca: plana y tranquila, sin sombras y sin nada encerrado en cajas. El Brillo va de totalmente oscuro a totalmente blanco, y el Tono tiene un segundo color para las marcas de la ventana.',
   'tour.v26.window.hint':
-    'Mueve el puntero por la ventana para pasarla de oscura a blanca.',
+    'Arrastra la barra divisoria por la ventana para pasarla de oscura a blanca.',
   'tour.v26.window.next': 'Más para escuchar en la 2.6',
-  'tour.v26.window.seamLabel': 'La ventana, blanca y oscura',
-  'tour.v26.window.seamValue': 'Blanca a la izquierda, oscura a la derecha',
+  'tour.v26.window.seamLabel': 'Divisor entre blanco y oscuro',
+  'tour.v26.window.seamValue': '{percent}% blanca',
   'tour.v26.window.white': 'Blanca',
   'tour.v26.window.dark': 'Oscura',
 

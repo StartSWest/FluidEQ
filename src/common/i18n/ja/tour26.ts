@@ -7,10 +7,10 @@ const tour26 = {
   'tour.v26.window.lead':
     'どのページもライブラリと同じレイアウトになりました。フラットで穏やか、影も囲みもありません。明るさは真っ暗から真っ白まで変えられ、色合いにはウィンドウの印に使う 2 つ目の色が加わりました。',
   'tour.v26.window.hint':
-    'ポインターをウィンドウの上で動かすと、ダークからホワイトに変わります。',
+    'ハンドルをウィンドウの上でドラッグすると、ダークからホワイトに変わります。',
   'tour.v26.window.next': '2.6 で聴ける新機能をもっと',
-  'tour.v26.window.seamLabel': 'ホワイトとダークのウィンドウ',
-  'tour.v26.window.seamValue': '左がホワイト、右がダーク',
+  'tour.v26.window.seamLabel': 'ホワイトとダークの境界',
+  'tour.v26.window.seamValue': 'ホワイト {percent}%',
   'tour.v26.window.white': 'ホワイト',
   'tour.v26.window.dark': 'ダーク',
 

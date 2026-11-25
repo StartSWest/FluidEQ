@@ -71,8 +71,8 @@ export const SOUND_26_CHAPTERS: readonly IChapter[] = [
 ];
 
 /**
- * The first page: the window turning from white to dark under the pointer,
- * and the six things that follow, each a way straight to its slide.
+ * The first page: the window turning from white to dark as its handle is
+ * dragged, and the six things that follow, each a way straight to its slide.
  */
 export function WindowSlide({ actions }: { actions: ISlideActions }) {
   const { t } = useTranslation();

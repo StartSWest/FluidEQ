@@ -7,10 +7,10 @@ const tour26 = {
   'tour.v26.window.lead':
     'Jede Seite ist jetzt wie die Bibliothek aufgebaut: flach und ruhig, ohne Schatten und ohne Kästen. Die Helligkeit reicht von ganz dunkel bis ganz weiß, und der Farbton hat eine zweite Farbe für die Markierungen des Fensters.',
   'tour.v26.window.hint':
-    'Fahren Sie mit dem Zeiger über das Fenster, um es von dunkel auf weiß zu stellen.',
+    'Ziehen Sie den Griff über das Fenster, um es von dunkel auf weiß zu stellen.',
   'tour.v26.window.next': 'Mehr zu hören in 2.6',
-  'tour.v26.window.seamLabel': 'Das Fenster, weiß und dunkel',
-  'tour.v26.window.seamValue': 'Links weiß, rechts dunkel',
+  'tour.v26.window.seamLabel': 'Trennlinie zwischen Weiß und Dunkel',
+  'tour.v26.window.seamValue': '{percent} % weiß',
   'tour.v26.window.white': 'Weiß',
   'tour.v26.window.dark': 'Dunkel',
 

@@ -6,10 +6,10 @@ const tour26 = {
   'tour.v26.window.title': '整个窗口，焕然一新',
   'tour.v26.window.lead':
     '现在每个页面都像媒体库一样排布：平整安静，没有阴影，也没有被框住的东西。亮度可从全黑调到全白，“色调”还多了第二种颜色，用于窗口里的标记。',
-  'tour.v26.window.hint': '在窗口上移动指针，就能把它从深色变成白色。',
+  'tour.v26.window.hint': '在窗口上拖动手柄，就能把它从深色变成白色。',
   'tour.v26.window.next': '2.6 还有更多值得一听',
-  'tour.v26.window.seamLabel': '白色与深色的窗口',
-  'tour.v26.window.seamValue': '左边是白色，右边是深色',
+  'tour.v26.window.seamLabel': '白色与深色的分界',
+  'tour.v26.window.seamValue': '白色占 {percent}%',
   'tour.v26.window.white': '白色',
   'tour.v26.window.dark': '深色',
 

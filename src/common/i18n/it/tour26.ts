@@ -7,10 +7,10 @@ const tour26 = {
   'tour.v26.window.lead':
     'Ogni pagina ora è disposta come la Libreria: piatta e calma, senza ombre e senza riquadri. La luminosità va dal tutto scuro al tutto bianco, e la Tinta ha un secondo colore per i segni della finestra.',
   'tour.v26.window.hint':
-    'Passa il puntatore sulla finestra per portarla dallo scuro al bianco.',
+    'Trascina la maniglia sulla finestra per portarla dallo scuro al bianco.',
   'tour.v26.window.next': 'Altro da ascoltare nella 2.6',
-  'tour.v26.window.seamLabel': 'La finestra, bianca e scura',
-  'tour.v26.window.seamValue': 'Bianca a sinistra, scura a destra',
+  'tour.v26.window.seamLabel': 'Divisore tra bianco e scuro',
+  'tour.v26.window.seamValue': '{percent}% bianca',
   'tour.v26.window.white': 'Bianca',
   'tour.v26.window.dark': 'Scura',
 

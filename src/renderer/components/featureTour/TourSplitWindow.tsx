@@ -17,38 +17,47 @@ const SWEEP_MIDDLE = 0.5;
 const SWEEP_REACH = 0.24;
 /** How far the seam may go: a sliver of either window stays in sight. */
 const EDGE = 0.03;
-/** The seam catches up with the pointer over about this long, not at once. */
+/**
+ * Half the largest grip and a little air (`.tour-split__grip`, at most 36px
+ * across, its 2px edge included), so the grip is never cut by the window's
+ * edge on a narrow slide, where 3% of the width is less than that.
+ */
+const GRIP_REACH_PX = 20;
+/** The seam catches up with a key's step over about this long, not at once. */
 const CATCH_MS = 70;
 const KEY_STEP = 0.05;
+const PAGE_STEP = 0.2;
 const SETTLED = 0.0005;
 
-const clampSeam = (seam: number) => Math.min(1 - EDGE, Math.max(EDGE, seam));
 const sweepAt = (seconds: number) =>
   SWEEP_MIDDLE +
   SWEEP_REACH * Math.sin((seconds / SWEEP_SECONDS) * 2 * Math.PI);
-/** Where on the sweep a seam stands, so leaving the window never jumps it. */
-const sweepSecondsAt = (seam: number) =>
-  (Math.asin(Math.max(-1, Math.min(1, (seam - SWEEP_MIDDLE) / SWEEP_REACH))) /
-    (2 * Math.PI)) *
-  SWEEP_SECONDS;
 
 /**
  * The opening page's window: the same EQ page as the app draws it in a
  * white window and in a dark one, side by side across one seam.
  *
- * White left of the seam and dark right of it, so moving the pointer right
- * makes the window whiter, as the Brightness slider does (Ivan picked look A
- * on 2026-11-25: "when the user hovers on the window it moves the white and
- * dark by moving the mouse left to right"). Left alone, the seam sweeps
- * slowly back and forth; under the pointer it follows the pointer; from the
- * keyboard the arrows move it, and it stays where they put it until the
- * window loses focus.
+ * White left of the seam and dark right of it, so taking the handle right
+ * makes the window whiter, as the Brightness slider does. The seam moves only
+ * when the reader takes its handle (Ivan, 2026-11-25: "I don't like the mouse
+ * moving and turning white or black. Let's make them actually click the
+ * handle and drag it if they want"): pressed on the grip or anywhere in the
+ * strip around the line, then dragged, with the pointer captured so a drag
+ * past either edge keeps going. A press anywhere else on the picture, and a
+ * pointer passing over it, do nothing. From the keyboard the handle is a
+ * slider: the arrows step it, Page Up and Page Down take larger steps, Home
+ * and End take it to either side.
+ *
+ * Until the reader first takes the handle, the seam sweeps slowly back and
+ * forth, to show that it moves; from the first press or key it stays where
+ * it was left. The sweep waits while the pointer is over the handle or the
+ * handle has focus, so a moving target is never what the reader reaches for.
+ * With Animations off it never sweeps and rests in the middle.
  *
  * The seam is written straight into the element's style once per painted
  * frame, never through a React render, and only while the window is in
- * sight: the loop stops when it scrolls away, when the slide changes, and,
- * with Animations off, as soon as the seam has reached the pointer — it
- * never sweeps by itself then.
+ * sight: the loop stops when it scrolls away, when the slide changes, and as
+ * soon as the seam stands where it was put.
  *
  * Both pictures are the app's own captures (the tour harness, 2026-11-25),
  * in the window's default colours: a capture cannot take the reader's Tint,
@@ -58,22 +67,45 @@ export default function TourSplitWindow() {
   const { t } = useTranslation();
   const roomRef = useRef<HTMLDivElement>(null);
   const windowRef = useRef<HTMLDivElement>(null);
+  const handleRef = useRef<HTMLSpanElement>(null);
   const isStill = useRef(prefersReducedMotion());
   const seam = useRef(SWEEP_MIDDLE);
-  const pointer = useRef<number | undefined>(undefined);
+  /** Where the reader left the seam; unset until the handle is first taken. */
   const held = useRef<number | undefined>(undefined);
+  /** The pointer's distance from the seam when it pressed, while dragging. */
+  const grab = useRef<{ pointerId: number; offset: number } | undefined>(
+    undefined,
+  );
+  const isHovered = useRef(false);
+  const isFocused = useRef(false);
   const sweepSeconds = useRef(0);
   const wake = useRef<() => void>(() => undefined);
+  // The frame loop writes the value's words outside any render, so it reads
+  // the language through this rather than the closure it was made in.
+  const valueTextOf = useRef<(share: number) => string>(() => '');
+  valueTextOf.current = (share: number) =>
+    t('tour.v26.window.seamValue', { percent: Math.round(share * 100) });
+
+  /** The seam kept clear of both edges by a share and by the grip's reach. */
+  const clampSeam = (value: number) => {
+    const width = windowRef.current?.getBoundingClientRect().width ?? 0;
+    const edge = width > 0 ? Math.max(EDGE, GRIP_REACH_PX / width) : EDGE;
+    return Math.min(1 - edge, Math.max(edge, value));
+  };
+  const clampRef = useRef(clampSeam);
+  clampRef.current = clampSeam;
 
   useEffect(() => {
     const room = roomRef.current;
     const frame = windowRef.current;
-    if (!room || !frame) {
+    const handle = handleRef.current;
+    if (!room || !frame || !handle) {
       return undefined;
     }
     const show = (value: number) => {
       frame.style.setProperty('--seam', `${(value * 100).toFixed(2)}%`);
-      frame.setAttribute('aria-valuenow', String(Math.round(value * 100)));
+      handle.setAttribute('aria-valuenow', String(Math.round(value * 100)));
+      handle.setAttribute('aria-valuetext', valueTextOf.current(value));
     };
     show(seam.current);
 
@@ -86,15 +118,22 @@ export default function TourSplitWindow() {
       lastAt = now;
       const isSweeping =
         !isStill.current &&
-        pointer.current === undefined &&
-        held.current === undefined;
+        held.current === undefined &&
+        !isHovered.current &&
+        !isFocused.current;
       if (isSweeping) {
         sweepSeconds.current += elapsed / 1000;
       }
-      const target = clampSeam(
-        pointer.current ?? held.current ?? sweepAt(sweepSeconds.current),
+      const target = clampRef.current(
+        held.current ??
+          (isStill.current ? SWEEP_MIDDLE : sweepAt(sweepSeconds.current)),
       );
-      const share = isStill.current ? 1 : 1 - Math.exp(-elapsed / CATCH_MS);
+      // A drag is under the reader's hand and goes where the hand is; only
+      // a key's step glides.
+      const share =
+        isStill.current || grab.current !== undefined
+          ? 1
+          : 1 - Math.exp(-elapsed / CATCH_MS);
       seam.current += (target - seam.current) * share;
       show(seam.current);
       if (
@@ -133,36 +172,65 @@ export default function TourSplitWindow() {
     };
   }, []);
 
-  const followPointer = (event: PointerEvent<HTMLDivElement>) => {
-    const box = event.currentTarget.getBoundingClientRect();
-    if (box.width > 0) {
-      pointer.current = clampSeam((event.clientX - box.left) / box.width);
-      wake.current();
-    }
+  /** The pointer's place across the window, 0 at its left edge. */
+  const shareOf = (clientX: number) => {
+    const box = windowRef.current?.getBoundingClientRect();
+    return box && box.width > 0 ? (clientX - box.left) / box.width : undefined;
   };
 
-  const leave = () => {
-    pointer.current = undefined;
-    // The sweep picks up from where the seam was left, so it glides on.
-    sweepSeconds.current = sweepSecondsAt(seam.current);
+  const take = (event: PointerEvent<HTMLSpanElement>) => {
+    const at = shareOf(event.clientX);
+    if (!event.isPrimary || event.button !== 0 || at === undefined) {
+      return;
+    }
+    // Captured, the drag keeps coming here past either edge of the window
+    // and outside it, until the button is let go.
+    event.currentTarget.setPointerCapture(event.pointerId);
+    handleRef.current?.setAttribute('data-dragging', 'true');
+    // Measured from the seam, so taking the grip off its centre does not
+    // jump the seam to the pointer.
+    grab.current = { pointerId: event.pointerId, offset: at - seam.current };
+    held.current = clampSeam(seam.current);
     wake.current();
   };
 
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+  const drag = (event: PointerEvent<HTMLSpanElement>) => {
+    const at = shareOf(event.clientX);
+    if (grab.current?.pointerId !== event.pointerId || at === undefined) {
+      return;
+    }
+    held.current = clampSeam(at - grab.current.offset);
+    wake.current();
+  };
+
+  const letGo = (event: PointerEvent<HTMLSpanElement>) => {
+    if (grab.current?.pointerId !== event.pointerId) {
+      return;
+    }
+    grab.current = undefined;
+    handleRef.current?.removeAttribute('data-dragging');
+    wake.current();
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLSpanElement>) => {
     const from = held.current ?? seam.current;
     let next: number | undefined;
     if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
       next = from - KEY_STEP;
     } else if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
       next = from + KEY_STEP;
+    } else if (event.key === 'PageDown') {
+      next = from - PAGE_STEP;
+    } else if (event.key === 'PageUp') {
+      next = from + PAGE_STEP;
     } else if (event.key === 'Home') {
       next = 0;
     } else if (event.key === 'End') {
       next = 1;
     }
     if (next !== undefined) {
-      // The tour walks its slides on the same arrows; on the window they
-      // are the window's.
+      // The tour walks its slides on the same arrows; on the handle they
+      // are the handle's.
       event.preventDefault();
       event.stopPropagation();
       held.current = clampSeam(next);
@@ -170,28 +238,15 @@ export default function TourSplitWindow() {
     }
   };
 
+  /** The sweep waits on these and goes on from where it stood after. */
+  const pauseSweep = (isPaused: boolean, flag: { current: boolean }) => {
+    flag.current = isPaused;
+    wake.current();
+  };
+
   return (
     <div ref={roomRef} className="tour-split">
-      <div
-        ref={windowRef}
-        className="tour-split__window"
-        role="slider"
-        tabIndex={0}
-        aria-label={t('tour.v26.window.seamLabel')}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={Math.round(seam.current * 100)}
-        aria-valuetext={t('tour.v26.window.seamValue')}
-        onPointerEnter={followPointer}
-        onPointerMove={followPointer}
-        onPointerLeave={leave}
-        onKeyDown={onKeyDown}
-        onBlur={() => {
-          held.current = undefined;
-          sweepSeconds.current = sweepSecondsAt(seam.current);
-          wake.current();
-        }}
-      >
+      <div ref={windowRef} className="tour-split__window">
         <img
           className="tour-split__picture"
           src={windowDark}
@@ -208,9 +263,6 @@ export default function TourSplitWindow() {
           height={1200}
           draggable={false}
         />
-        <span className="tour-split__seam" aria-hidden="true">
-          <span className="tour-split__grip" />
-        </span>
         <span
           className="tour-split__tag tour-split__tag--white"
           aria-hidden="true"
@@ -222,6 +274,35 @@ export default function TourSplitWindow() {
           aria-hidden="true"
         >
           {t('tour.v26.window.dark')}
+        </span>
+        <span
+          ref={handleRef}
+          className="tour-split__seam"
+          role="slider"
+          tabIndex={0}
+          aria-label={t('tour.v26.window.seamLabel')}
+          aria-orientation="horizontal"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(seam.current * 100)}
+          aria-valuetext={valueTextOf.current(seam.current)}
+          onPointerDown={take}
+          onPointerMove={drag}
+          onPointerUp={letGo}
+          onPointerCancel={letGo}
+          onLostPointerCapture={letGo}
+          onPointerEnter={() => pauseSweep(true, isHovered)}
+          onPointerLeave={() => pauseSweep(false, isHovered)}
+          onFocus={() => pauseSweep(true, isFocused)}
+          onBlur={() => pauseSweep(false, isFocused)}
+          onKeyDown={onKeyDown}
+        >
+          <span className="tour-split__line" />
+          <span className="tour-split__grip">
+            <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+              <path d="M7.5 5.5 3 10l4.5 4.5M12.5 5.5 17 10l-4.5 4.5" />
+            </svg>
+          </span>
         </span>
       </div>
     </div>

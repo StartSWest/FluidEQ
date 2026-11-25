@@ -7,10 +7,10 @@ const tour26 = {
   'tour.v26.window.lead':
     'Chaque page est désormais organisée comme la Bibliothèque : plate et calme, sans ombres et sans encadrés. La Luminosité va du tout sombre au tout blanc, et la Teinte a une deuxième couleur pour les repères de la fenêtre.',
   'tour.v26.window.hint':
-    'Passez le pointeur sur la fenêtre pour la faire passer du sombre au blanc.',
+    'Faites glisser la poignée sur la fenêtre pour la faire passer du sombre au blanc.',
   'tour.v26.window.next': 'Plus à écouter dans la 2.6',
-  'tour.v26.window.seamLabel': 'La fenêtre, blanche et sombre',
-  'tour.v26.window.seamValue': 'Blanche à gauche, sombre à droite',
+  'tour.v26.window.seamLabel': 'Séparation entre blanc et sombre',
+  'tour.v26.window.seamValue': '{percent} % blanche',
   'tour.v26.window.white': 'Blanche',
   'tour.v26.window.dark': 'Sombre',
 

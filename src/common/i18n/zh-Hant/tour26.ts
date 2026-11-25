@@ -6,10 +6,10 @@ const tour26 = {
   'tour.v26.window.title': '整個視窗，煥然一新',
   'tour.v26.window.lead':
     '現在每個頁面都像媒體庫一樣排列：平整安靜，沒有陰影，也沒有被框住的東西。亮度可從全黑調到全白，「色調」還多了第二種顏色，用於視窗裡的標記。',
-  'tour.v26.window.hint': '在視窗上移動指標，就能把它從深色變成白色。',
+  'tour.v26.window.hint': '在視窗上拖曳控點，就能把它從深色變成白色。',
   'tour.v26.window.next': '2.6 還有更多值得一聽',
-  'tour.v26.window.seamLabel': '白色與深色的視窗',
-  'tour.v26.window.seamValue': '左邊是白色，右邊是深色',
+  'tour.v26.window.seamLabel': '白色與深色的分界',
+  'tour.v26.window.seamValue': '白色佔 {percent}%',
   'tour.v26.window.white': '白色',
   'tour.v26.window.dark': '深色',
 

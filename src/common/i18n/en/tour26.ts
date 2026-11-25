@@ -11,10 +11,10 @@ const tour26 = {
   'tour.v26.window.lead':
     'Every page is laid out like the Library now: flat and calm, with no shadows and nothing boxed in. Brightness runs from fully dark to fully white, and the Tint has a second colour for the window’s marks.',
   'tour.v26.window.hint':
-    'Move the pointer across the window to turn it from dark to white.',
+    'Drag the handle across the window to turn it from dark to white.',
   'tour.v26.window.next': 'More to hear in 2.6',
-  'tour.v26.window.seamLabel': 'The window, white and dark',
-  'tour.v26.window.seamValue': 'White on the left, dark on the right',
+  'tour.v26.window.seamLabel': 'Divider between white and dark',
+  'tour.v26.window.seamValue': '{percent}% white',
   'tour.v26.window.white': 'White',
   'tour.v26.window.dark': 'Dark',
 
