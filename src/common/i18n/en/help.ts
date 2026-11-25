@@ -68,6 +68,8 @@ const help = {
     'YouTube, YouTube Music, Bandcamp, Twitch and Suno, played inside FluidEQ with your EQ on them.',
   'help.window.share':
     'Sends this computer’s sound to another one, or plays another one’s here.',
+  'help.window.mic':
+    'Your microphones, each with a voice sound of its own that every app hears.',
   'help.window.gaming':
     'Your games, each with a sound of its own, tuned for that game.',
   'help.window.eq':

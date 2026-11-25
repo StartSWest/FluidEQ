@@ -64,6 +64,8 @@ const help: Record<keyof typeof en, string> = {
     'YouTube, YouTube Music, Bandcamp, Twitch y Suno, reproducidos dentro de FluidEQ con tu EQ aplicado.',
   'help.window.share':
     'Envía el sonido de este ordenador a otro, o reproduce aquí el de otro.',
+  'help.window.mic':
+    'Tus micrófonos, cada uno con su propio sonido de voz, que oyen todas las apps.',
   'help.window.gaming':
     'Tus juegos, cada uno con un sonido propio, ajustado para ese juego.',
   'help.window.eq':

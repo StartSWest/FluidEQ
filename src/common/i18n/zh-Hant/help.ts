@@ -61,6 +61,8 @@ const help = {
     'YouTube、YouTube Music、Bandcamp、Twitch 和 Suno 在 FluidEQ 中播放並使用您的 EQ。',
   'help.window.share':
     '將這臺電腦的聲音傳送到另一臺電腦，或在此處播放另一臺電腦的聲音。',
+  'help.window.mic':
+    '您的麥克風，每個都有自己的人聲音色，所有應用程式都能聽到。',
   'help.window.gaming': '您的遊戲，每個都有為它調整的專屬聲音。',
   'help.window.eq': '您的頻段、預設、耳機校正和引擎的配置。',
   'help.window.waveName': '音訊訊號',

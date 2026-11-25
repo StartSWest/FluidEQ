@@ -64,6 +64,8 @@ const help: Record<keyof typeof en, string> = {
     'YouTube、YouTube Music、Bandcamp、Twitch、Suno を、EQ をかけて FluidEQ の中で再生します。',
   'help.window.share':
     'このコンピューターの音を別のコンピューターに送るか、別のコンピューターの音をここで再生します。',
+  'help.window.mic':
+    'あなたのマイク。それぞれに専用の声のサウンドがあり、どのアプリにも届きます。',
   'help.window.gaming':
     'あなたのゲーム。それぞれ専用のサウンドを、そのゲーム向けに調整します。',
   'help.window.eq': 'バンド、プリセット、ヘッドホン補正、エンジンの設定。',

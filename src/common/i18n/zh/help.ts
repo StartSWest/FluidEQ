@@ -62,6 +62,7 @@ const help: Record<keyof typeof en, string> = {
     'YouTube、YouTube Music、Bandcamp、Twitch 和 Suno，在 FluidEQ 内播放，并经过你的 EQ 处理。',
   'help.window.share':
     '把这台电脑的声音发送到另一台电脑，或在这里播放另一台电脑的声音。',
+  'help.window.mic': '你的麦克风，每个都有自己的人声音色，所有应用都能听到。',
   'help.window.gaming': '你的游戏，每个都有为它调整的专属声音。',
   'help.window.eq': '你的频段、预设、耳机校正以及引擎配置。',
   'help.window.waveName': '音频信号',

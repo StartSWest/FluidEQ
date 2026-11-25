@@ -63,6 +63,8 @@ const help: Record<keyof typeof en, string> = {
     'YouTube, YouTube Music, Bandcamp, Twitch и Suno воспроизводятся прямо в FluidEQ, через ваш эквалайзер.',
   'help.window.share':
     'Передаёт звук этого компьютера на другой или воспроизводит здесь звук другого.',
+  'help.window.mic':
+    'Ваши микрофоны, у каждого свой звук голоса, который слышат все приложения.',
   'help.window.gaming':
     'Ваши игры, у каждой свой звук, настроенный для этой игры.',
   'help.window.eq':

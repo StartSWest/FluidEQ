@@ -62,6 +62,8 @@ const help = {
     'YouTube, YouTube Music, Bandcamp, Twitch 및 Suno를 EQ와 함께 FluidEQ에서 재생했습니다.',
   'help.window.share':
     '이 컴퓨터의 사운드를 다른 컴퓨터로 보내거나 여기에서 다른 컴퓨터의 사운드를 재생합니다.',
+  'help.window.mic':
+    '내 마이크. 마이크마다 고유한 목소리 사운드가 있고, 모든 앱이 그 소리를 듣습니다.',
   'help.window.gaming':
     '내 게임. 게임마다 그 게임에 맞게 조정한 전용 사운드가 있습니다.',
   'help.window.eq': '밴드, 프리셋, 헤드폰 보정 및 엔진 구성.',
