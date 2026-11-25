@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { APP_ICON_GRID, appIconFrameFor } from 'common/appIconFrame';
 import { TASKBAR_ICON_SIZES, type ITaskbarIconImage } from 'common/taskbarIcon';
 
 /**
@@ -27,8 +28,7 @@ export interface ITaskbarIconColours {
   logo: readonly [string, string, string, string, string];
 }
 
-/** The app icon's grid: `assets/icon.svg` is drawn on 512. */
-const GRID = 512;
+const GRID = APP_ICON_GRID;
 /** The wave, on that grid. */
 const WAVE = {
   from: [112, 256],
@@ -151,12 +151,42 @@ const runAcross = (
 };
 
 /**
+ * Where the tile and its edge fall at `size`, in that size's frame
+ * (`appIconFrame.ts`), so the drawn icon is the installed one's size and
+ * weight. The tile's outline and the edge's width land on whole pixels, the
+ * edge flush inside the outline; `edgeAlpha` keeps the large frame's edge at
+ * the grid's own weight where whole pixels round it up (1.7px at 96 is drawn
+ * 2px wide at 84%).
+ */
+const frameAt = (size: number) => {
+  const frame = appIconFrameFor(size);
+  const exactEdge = size * (frame.rim.width / GRID);
+  if (frame.name === 'large') {
+    const edgeWidth = Math.max(1, Math.round(exactEdge));
+    return {
+      inset: Math.floor(size * ((GRID / 2 - frame.body) / GRID)),
+      edgeWidth,
+      edgeAlpha: Math.min(1, exactEdge / edgeWidth),
+      glyphScale: frame.glyphScale,
+    };
+  }
+  // The small and mid frames carry the edge at full strength: a ring as
+  // visible as FluidWallpapers' beside it (Ivan, 2026-11-25), where a faint
+  // one left the tile reading as smaller than its neighbour.
+  return {
+    inset: Math.round(size * ((GRID / 2 - frame.body) / GRID)),
+    edgeWidth: Math.max(1, Math.round(exactEdge)),
+    edgeAlpha: 1,
+    glyphScale: frame.glyphScale,
+  };
+};
+
+/**
  * One size of the icon, filling a `size` × `size` canvas.
  *
  * The tile's edge sits on whole pixels and its stroke is whole pixels wide at
  * every size, and the wave is thickened a little at the two smallest, where
- * the grid's weight would be a pixel and a half of grey: the stock icon's own
- * small sizes were tuned the same way.
+ * the grid's weight would be a pixel and a half of grey.
  */
 export const drawTaskbarIcon = (
   context: CanvasRenderingContext2D,
@@ -164,8 +194,7 @@ export const drawTaskbarIcon = (
   { tile, logo }: ITaskbarIconColours,
 ) => {
   const scale = size / GRID;
-  const inset = Math.floor(size * (20 / GRID));
-  const edgeWidth = Math.max(1, Math.round(size * (9 / GRID)));
+  const { inset, edgeWidth, edgeAlpha, glyphScale } = frameAt(size);
   const extent = size - inset * 2;
   const radius = extent * 0.24;
   const glowBlur = Math.max(0.6, size * (16 / GRID));
@@ -216,9 +245,12 @@ export const drawTaskbarIcon = (
   context.fillRect(0, 0, size, 250 * scale);
   context.restore();
 
-  // The wave: its glow, then the stroke.
+  // The wave: its glow, then the stroke, grown with the tile about its centre.
   context.save();
   context.scale(scale, scale);
+  context.translate(GRID / 2, GRID / 2);
+  context.scale(glyphScale, glyphScale);
+  context.translate(-GRID / 2, -GRID / 2);
   const waveRun = runAcross(context, logo, 112, 0, 400, 0);
   context.lineCap = 'round';
   context.strokeStyle = waveRun;
@@ -255,14 +287,9 @@ export const drawTaskbarIcon = (
   );
   context.strokeStyle = runAcross(context, logo, 0, 0, size, size);
   context.lineWidth = edgeWidth;
-  // As faint as the grid's own edge would be: 9 of 512 is a third of a pixel
-  // at 16, which the stock icon shows as a dim line. Rounded up to a whole
-  // pixel at full strength, it boxed the small sizes in a bright outline.
   // A light window's light tile keeps its edge whole: faint, the tile all but
   // vanished on a light taskbar, where the dark stock icon stands out.
-  context.globalAlpha = isLight(tile[1])
-    ? 1
-    : Math.min(1, (size * (9 / GRID)) / edgeWidth);
+  context.globalAlpha = isLight(tile[1]) ? 1 : edgeAlpha;
   context.stroke(edgePath);
 
   context.restore();

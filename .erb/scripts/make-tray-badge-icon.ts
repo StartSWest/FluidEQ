@@ -17,7 +17,8 @@
  * uncompressed DIB is a quarter of a megabyte for a size no notification
  * area ever asks for.
  *
- * Re-run this whenever assets/icon.ico changes:
+ * Re-run this whenever assets/icon.ico changes (`pnpm make-app-icons` runs
+ * it after building icon.ico):
  *   pnpm make-tray-badge-icon
  */
 import { execFileSync } from 'child_process';
@@ -38,6 +39,8 @@ const RING_RGB = { r: 0x07, g: 0x05, b: 0x12 };
 const repoRoot = path.resolve(__dirname, '../..');
 const sourceIcon = path.join(repoRoot, 'assets', 'icon.ico');
 const targetIcon = path.join(repoRoot, 'assets', 'icon-update.ico');
+/** icon.ico's 256 frame as a file System.Drawing can open (make-app-icons). */
+const sourcePng256 = path.join(repoRoot, 'assets', 'icons', '256x256.png');
 
 /** A single-quoted PowerShell literal escapes an apostrophe by doubling it. */
 const psLiteral = (value: string) => `'${value.replace(/'/g, "''")}'`;
@@ -57,10 +60,14 @@ const buildPowershell = (outDir: string) =>
     `$sizes = @(${SIZES.join(',')})`,
     `$dot = [System.Drawing.Color]::FromArgb(255, ${DOT_RGB.r}, ${DOT_RGB.g}, ${DOT_RGB.b})`,
     `$ring = [System.Drawing.Color]::FromArgb(255, ${RING_RGB.r}, ${RING_RGB.g}, ${RING_RGB.b})`,
+    `$png256 = ${psLiteral(sourcePng256)}`,
     'foreach ($size in $sizes) {',
     // Ask the .ico for the nearest real frame rather than scaling the 256.
+    // Except the 256 itself: it is a PNG frame, which System.Drawing.Icon
+    // cannot read, so it answered with the 128 blown up to 256. The same
+    // drawing is on disk as a PNG, which System.Drawing.Bitmap does read.
     '  $icon = New-Object System.Drawing.Icon($src, $size, $size)',
-    '  $source = $icon.ToBitmap()',
+    '  $source = if ($size -ge 256) { New-Object System.Drawing.Bitmap($png256) } else { $icon.ToBitmap() }',
     '  $bitmap = New-Object System.Drawing.Bitmap($size, $size, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)',
     '  $g = [System.Drawing.Graphics]::FromImage($bitmap)',
     '  $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias',
