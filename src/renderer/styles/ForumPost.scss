@@ -27,12 +27,13 @@ it under the terms of the GNU General Public License version 3 or later.
   background: color-mix(in srgb, $edge-tint 2.5%, transparent);
 
   // The opening post is the topic: a breath of the accent, with the accent
-  // across its top rim so the eye lands there first.
+  // across its top rim so the eye lands there first. No drop shadow under
+  // it (Ivan: no shadows, steps of light); on the white window it read as a
+  // grey smear below the post.
   &--opening {
     background: color-mix(in srgb, $secondary-default 5%, transparent);
-    box-shadow:
-      inset 0 1px 0 color-mix(in srgb, $secondary-light 40%, transparent),
-      0 10px 28px rgba($black, 0.22);
+    box-shadow: inset 0 1px 0
+      color-mix(in srgb, $secondary-light 40%, transparent);
   }
 
   // The accepted answer: the accent all round and a glow, because it is what
