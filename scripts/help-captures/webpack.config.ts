@@ -20,6 +20,12 @@ import BUILT from './built';
 
 const HERE = __dirname;
 
+/** The account the harness is built with: one that answers nothing. */
+const HARNESS_ACCOUNT: Record<string, string> = {
+  FLUIDEQ_SUPABASE_URL: 'https://harness.invalid',
+  FLUIDEQ_SUPABASE_ANON_KEY: 'sb_publishable_harnessharnessharnessharness',
+};
+
 const configuration: webpack.Configuration = {
   mode: 'production',
   target: 'web',
@@ -97,8 +103,24 @@ const configuration: webpack.Configuration = {
     new webpack.EnvironmentPlugin({
       NODE_ENV: 'production',
       DEBUG_PROD: false,
-      ...PUBLIC_ENV_DEFAULTS,
+      ...Object.fromEntries(
+        Object.entries(PUBLIC_ENV_DEFAULTS).filter(
+          ([name]) => !(name in HARNESS_ACCOUNT),
+        ),
+      ),
     }),
+    // A build with the account configured, as every shipped one is: without
+    // it the window has no Scenes tab and the guide's Scenes figures draw
+    // nothing. At an address that answers nothing, whatever the shell that
+    // builds it has set, so no picture can reach a real server.
+    new webpack.DefinePlugin(
+      Object.fromEntries(
+        Object.entries(HARNESS_ACCOUNT).map(([name, value]) => [
+          `process.env.${name}`,
+          JSON.stringify(value),
+        ]),
+      ),
+    ),
     new MiniCssExtractPlugin({ filename: '[name].css' }),
     new HtmlWebpackPlugin({
       filename: 'index.html',

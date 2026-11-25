@@ -13,7 +13,7 @@ const ENGINE_CHAPTER = {
       width: 620,
       height: 480,
       frame: '.engine-dialog',
-      still: '15-engine-dialog.png',
+      still: 'help/engine-dialog.png',
       controls: [
         {
           target: '.engine-dialog__option:nth-child(1)',

@@ -74,9 +74,10 @@ export interface IHelpLiveControl {
  * a capture's crop kept some: the title bar's parts would otherwise touch
  * the figure's own edge.
  *
- * `still` is the capture the exported guide and the README go on showing
- * until pictures are drawn from these figures by script; it can be older
- * than the figure, and the reader never sees it.
+ * `still` is the picture the exported guide shows in its place, in `docs/`:
+ * `help/<live>.png`, one per figure, taken from this very drawing with its
+ * numbered circles by `scripts/help-captures/stills.ts` (`pnpm docs:stills`).
+ * The reader never sees it; retake it whenever the drawing changes.
  */
 export interface IHelpLiveFigure<TImage extends string = string> {
   readonly live: string;

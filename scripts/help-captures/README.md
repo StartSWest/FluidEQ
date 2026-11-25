@@ -56,3 +56,23 @@ face (and measures other boxes).
 Each run builds into `node_modules/.cache/fluideq-help-captures`, out of the
 source tree. A figure whose control has moved or been renamed fails with the
 finder that found nothing; fix its finder in `figures.ts`.
+
+## The live figures' pictures
+
+The guide in the app draws its figures from the app's own parts
+(`src/renderer/help/live/`), so it has no capture to show, but the exported
+guide (`docs/USER-GUIDE.md`, `docs/user-guide.html`) is a page of pictures.
+`stills.ts` takes them from the figures themselves, in the same harness:
+
+```powershell
+pnpm docs:stills
+pnpm docs:guide
+```
+
+It opens the guide (F1), scrolls to every live figure, waits for its drawing
+and its numbered circles, lets its made-up music play for a moment, and cuts
+the figure at twice the pixels into `docs/help/<live id>.png` — the `still`
+each figure names. English, the window's default colours, software GL so the
+run takes nobody's GPU. `--only rail-left` (repeatable) takes one figure,
+`--skip-build` uses the harness as last built. Retake the pictures whenever a
+drawing changes, then export the guide again.

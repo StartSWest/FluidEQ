@@ -14,11 +14,11 @@ const PLUS_CHAPTERS = [
       {
         // The tab drawn by its own parts (`help/live/plusFigures`) for a
         // made-up member; this figure is its rail and the gallery's first
-        // row. Its still is the 2.0 capture, for the exported guide.
+        // row.
         live: 'visualizers-rail',
         width: 1400,
         height: 440,
-        still: '25-plus-visualizers.png',
+        still: 'help/visualizers-rail.png',
         controls: [
           {
             target: '.community__channel:nth-of-type(1)',
@@ -57,7 +57,7 @@ const PLUS_CHAPTERS = [
         width: 1400,
         height: 440,
         frame: '.community__main',
-        still: '25-plus-visualizers.png',
+        still: 'help/visualizers-gallery.png',
         controls: [
           {
             target: '.gallery-search',
@@ -111,7 +111,7 @@ const PLUS_CHAPTERS = [
         height: 1020,
         frame: '.community__main',
         caption: 'help.gallery.sceneCaption',
-        still: '26-plus-scene.png',
+        still: 'help/gallery-scene.png',
         controls: [
           {
             target: '.gallery-scene__actions > .button:first-child',
@@ -144,13 +144,12 @@ const PLUS_CHAPTERS = [
       {
         // The bench drawn by its own parts (`help/live/studioFigures`) for a
         // made-up project, the work tabs open on What it hears and the chat
-        // beside the stage; the rail is the Visualizers figures'. Its still
-        // is the 2.0 capture, for the exported guide.
+        // beside the stage; the rail is the Visualizers figures'.
         live: 'studio-bench',
         width: 1400,
         height: 834,
         frame: '.community__main',
-        still: '31-plus-studio.png',
+        still: 'help/studio-bench.png',
         controls: [
           {
             target: '.studio-projects',
@@ -199,13 +198,12 @@ const PLUS_CHAPTERS = [
     figures: [
       {
         // The dialog drawn by its own frame, stage and choices
-        // (`help/live/desktopFigures`) for three made-up monitors. Its still
-        // is the 2.0 capture, for the exported guide.
+        // (`help/live/desktopFigures`) for three made-up monitors.
         live: 'desktop-dialog',
         width: 900,
         height: 760,
         frame: '.wallpaper-dialog',
-        still: '27-desktop-dialog.png',
+        still: 'help/desktop-dialog.png',
         controls: [
           {
             // The monitor tiles the line describes, not the "All monitors"
@@ -253,12 +251,11 @@ const PLUS_CHAPTERS = [
         // still, in two figures: the page whole is nearly as tall as it is
         // wide, and drawn whole on a 1280 x 800 window it came out a third
         // of the column wide. This one is the switch, the scene and the desk.
-        // Both stills are the 2.0 capture, for the exported guide.
         live: 'lighting-page',
         width: 1400,
         height: 560,
         frame: '.lighting-hero',
-        still: '29-plus-lighting.png',
+        still: 'help/lighting-page.png',
         controls: [
           {
             target: '.lighting-switch',
@@ -283,7 +280,7 @@ const PLUS_CHAPTERS = [
         width: 1400,
         height: 740,
         frame: '.lighting-columns',
-        still: '29-plus-lighting.png',
+        still: 'help/lighting-tuning.png',
         controls: [
           {
             // The device rows, not the whole card. Their line tells of the

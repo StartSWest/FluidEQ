@@ -17,7 +17,7 @@ const CORRECTION_CHAPTERS = [
         live: 'headphones-page',
         width: 1000,
         height: 470,
-        still: '04-eq-headphone-correction-and-import.png',
+        still: 'help/headphones-page.png',
         controls: [
           {
             target: '.autoeq-panel__libraries',
@@ -65,7 +65,7 @@ const CORRECTION_CHAPTERS = [
         live: 'convolution-page',
         width: 1000,
         height: 470,
-        still: '05-eq-convolution-library.png',
+        still: 'help/convolution-page.png',
         controls: [
           {
             target: '.convolution-panel__intro .convolution-button',

@@ -8,8 +8,6 @@ const LISTEN_CHAPTERS = [
     // The page drawn by its own bar and the rail it shares with the Library
     // (`help/live/onlineFigure`), on YouTube with made-up recent searches; a
     // still of a film stands where the site plays, which Help cannot draw.
-    // Its still is the 2026-09-29 capture of the window on NASA's channel,
-    // for the exported guide.
     id: 'online',
     group: 'listen',
     figures: [
@@ -17,7 +15,7 @@ const LISTEN_CHAPTERS = [
         live: 'online-page',
         width: 1100,
         height: 560,
-        still: '01-online-media-youtube-live-eq.png',
+        still: 'help/online-page.png',
         controls: [
           {
             target: '.video-rail__item.is-active',
@@ -57,8 +55,7 @@ const LISTEN_CHAPTERS = [
     // The Library drawn by its own rail, bar, place bar and status line from
     // a made-up collection (`help/live/libraryFigures`, `libraryTagFigure`):
     // the Albums shelf in Grid, then an untagged album in the tag editor as
-    // Fix tags leaves it, with what Save would write beside it. The stills
-    // are the 2.5 captures, for the exported guide.
+    // Fix tags leaves it, with what Save would write beside it.
     id: 'library',
     group: 'listen',
     figures: [
@@ -66,7 +63,7 @@ const LISTEN_CHAPTERS = [
         live: 'library-page',
         width: 1240,
         height: 660,
-        still: '08-library-artists-and-up-next.png',
+        still: 'help/library-page.png',
         controls: [
           {
             target: '.library-rail__item.is-active',
@@ -126,7 +123,7 @@ const LISTEN_CHAPTERS = [
         height: 980,
         frame: '.library-main',
         caption: 'help.library.tagsCaption',
-        still: '08-library-artists-and-up-next.png',
+        still: 'help/library-tags.png',
         controls: [
           {
             target: '.library-tags-set__fix',
@@ -181,7 +178,7 @@ const LISTEN_CHAPTERS = [
           '.library-tags-panel__head, .library-tags-changes > section:first-child, .library-tags-changes__song:first-of-type',
         margin: 8,
         caption: 'help.library.changesCaption',
-        still: '08-library-artists-and-up-next.png',
+        still: 'help/library-tags-changes.png',
         controls: [
           {
             target: '.library-tags-panel__head h3',
@@ -216,7 +213,7 @@ const LISTEN_CHAPTERS = [
         height: 720,
         frame: '.library-main',
         caption: 'help.queue.recordCaption',
-        still: '09-library-album-and-play-queue.png',
+        still: 'help/library-record.png',
         controls: [
           {
             target: '.library-place__crumb--shelf',
@@ -263,7 +260,7 @@ const LISTEN_CHAPTERS = [
         height: 720,
         frame: '.library-side',
         caption: 'help.queue.paneCaption',
-        still: '09-library-album-and-play-queue.png',
+        still: 'help/library-queue.png',
         controls: [
           {
             target: '.library-now',
@@ -303,7 +300,7 @@ const LISTEN_CHAPTERS = [
         width: 624,
         height: 600,
         caption: 'help.queue.lyricsCaption',
-        still: '09-library-album-and-play-queue.png',
+        still: 'help/library-lyrics.png',
         controls: [
           {
             target: '.library-lyrics__line.is-active',
@@ -346,15 +343,14 @@ const LISTEN_CHAPTERS = [
     // a made-up song a third of the way in with the microphone on; the
     // stage and the song list are framed out of one drawing, and the mix
     // menu, the microphone's panel and the summary at a song's end are
-    // drawn apart (`karaokePanelFigures`). Their still is the 2.5 capture,
-    // on FluidEQ's own song, for the exported guide.
+    // drawn apart (`karaokePanelFigures`).
     figures: [
       {
         live: 'karaoke-stage',
         width: 1000,
         height: 640,
         frame: '.karaoke-workspace__stage',
-        still: '11-karaoke-player.png',
+        still: 'help/karaoke-stage.png',
         caption: 'help.karaoke.stageCaption',
         controls: [
           {
@@ -415,7 +411,7 @@ const LISTEN_CHAPTERS = [
         height: 640,
         frame: '.karaoke-playlist__heading, .karaoke-playlist__tree',
         margin: 12,
-        still: '11-karaoke-player.png',
+        still: 'help/karaoke-playlist.png',
         caption: 'help.karaoke.playlistCaption',
         controls: [
           {
@@ -451,7 +447,7 @@ const LISTEN_CHAPTERS = [
         width: 480,
         height: 520,
         frame: '.karaoke-transport__mix-popover',
-        still: '11-karaoke-player.png',
+        still: 'help/karaoke-mix.png',
         caption: 'help.karaoke.mixCaption',
         controls: [
           {
@@ -486,7 +482,7 @@ const LISTEN_CHAPTERS = [
         width: 420,
         height: 300,
         frame: '.karaoke-microphone-popover',
-        still: '11-karaoke-player.png',
+        still: 'help/karaoke-mic.png',
         caption: 'help.karaoke.micCaption',
         controls: [
           {
@@ -515,7 +511,7 @@ const LISTEN_CHAPTERS = [
         live: 'karaoke-score',
         width: 1000,
         height: 720,
-        still: '11-karaoke-player.png',
+        still: 'help/karaoke-score.png',
         caption: 'help.karaoke.scoreCaption',
         controls: [
           {
@@ -571,7 +567,7 @@ const LISTEN_CHAPTERS = [
         live: 'maker-editor',
         width: 1000,
         height: 760,
-        still: '12-karaoke-maker-pitch-and-lyrics.png',
+        still: 'help/maker-editor.png',
         caption: 'help.maker.editorCaption',
         controls: [
           {
@@ -611,7 +607,7 @@ const LISTEN_CHAPTERS = [
         width: 1000,
         height: 120,
         frame: '.karaoke-maker__header',
-        still: '35-karaoke-maker-toolbar.png',
+        still: 'help/maker-bar.png',
         caption: 'help.makerBar.caption',
         controls: [
           {
@@ -674,7 +670,7 @@ const LISTEN_CHAPTERS = [
         live: 'maker-lyrics',
         width: 1280,
         height: 820,
-        still: '34-karaoke-maker-lyrics.png',
+        still: 'help/maker-lyrics.png',
         caption: 'help.maker.lyricsCaption',
         controls: [
           {
@@ -699,7 +695,7 @@ const LISTEN_CHAPTERS = [
         width: 520,
         height: 560,
         frame: '.karaoke-maker__analysis-popover',
-        still: '33-karaoke-maker-tools.png',
+        still: 'help/maker-tools.png',
         caption: 'help.maker.toolsCaption',
         controls: [
           {
@@ -745,15 +741,13 @@ const LISTEN_CHAPTERS = [
     group: 'listen',
     // The page drawn by its own parts (`help/live/shareFigures`) with a
     // made-up group of four, laid out at a laptop window's width, where the
-    // group and the mix still stand side by side. Its still is the capture
-    // from before the group, one computer linked, the connection code and
-    // every network address blurred, for the exported guide.
+    // group and the mix still stand side by side.
     figures: [
       {
         live: 'share-page',
         width: 1040,
         height: 830,
-        still: '14-share-audio-roles.png',
+        still: 'help/share-page.png',
         controls: [
           {
             target: '.remote-audio__mix',
@@ -804,7 +798,7 @@ const LISTEN_CHAPTERS = [
         height: 200,
         frame: '.compact-frame',
         margin: 6,
-        still: '06-eq-equalizer-apo-config.png',
+        still: 'help/trouble-notice.png',
         controls: [
           {
             target: '.compact-frame__title',
@@ -829,14 +823,13 @@ const LISTEN_CHAPTERS = [
     id: 'forum',
     group: 'help',
     // The page drawn by its own rail and list (`help/live/forumFigures`)
-    // from a made-up forum, on All topics with two topics new; its still is
-    // the 2.0 capture of the window, for the exported guide.
+    // from a made-up forum, on All topics with two topics new.
     figures: [
       {
         live: 'forum-page',
         width: 1120,
         height: 640,
-        still: '30-forum.png',
+        still: 'help/forum-page.png',
         controls: [
           {
             target: '.community__channels',

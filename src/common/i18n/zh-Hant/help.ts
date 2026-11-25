@@ -7,7 +7,7 @@ const help = {
   'help.title': '使用者指南',
   'help.subtitle': '找到你的聲音。請隨便一點，就像在自己家一樣。',
   'help.intro':
-    '一份實用的 FluidEQ 指南，配有應用程式自身控制項繪製的插圖和真實視窗截圖。從第一次聆聽開始，依自己的步調探索。',
+    '一份實用的 FluidEQ 指南，配有應用程式自身控制項繪製的插圖。從第一次聆聽開始，依自己的步調探索。',
   'help.offline': '離線可用',
   'help.search': '搜尋指南',
   'help.searchHint': '嘗試引擎、低音、場景…',
@@ -21,7 +21,7 @@ const help = {
   'help.closeImage': '關閉截圖',
   'help.controlsOf': '{title} 中每個控制項的作用',
   'help.captureNote':
-    '即時插圖會配合您的語言和視窗配色。舊截圖的名稱或位置可能不同。範例設定只是說明控制項的用法，並非建議的預設組。',
+    '即時插圖會配合您的語言和視窗配色。範例設定只是說明控制項的用法，並非建議的預設組。',
   'help.steps': '嘗試一下',
   'help.tip': '很高興知道',
   'help.back': '回到頂部',

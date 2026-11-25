@@ -6,7 +6,7 @@ const help: Record<keyof typeof en, string> = {
   'help.title': 'Benutzerhandbuch',
   'help.subtitle': 'Finden Sie Ihren Klang. Fühlen Sie sich zu Hause.',
   'help.intro':
-    'Ein praktischer Leitfaden zu FluidEQ, mit Abbildungen aus den eigenen Bedienelementen der App und echten Fensteraufnahmen. Beginnen Sie mit Ihrer ersten Hörsitzung und erkunden Sie alles in Ihrem Tempo.',
+    'Ein praktischer Leitfaden zu FluidEQ, mit Abbildungen aus den eigenen Bedienelementen der App. Beginnen Sie mit Ihrer ersten Hörsitzung und erkunden Sie alles in Ihrem Tempo.',
   'help.offline': 'Offline verfügbar',
   'help.search': 'Handbuch durchsuchen',
   'help.searchHint': 'Zum Beispiel Engine, Bass, Szene…',
@@ -21,7 +21,7 @@ const help: Record<keyof typeof en, string> = {
   'help.closeImage': 'Bildschirmaufnahme schließen',
   'help.controlsOf': 'Was jedes Bedienelement tut: {title}',
   'help.captureNote':
-    'Live-Abbildungen übernehmen Ihre Sprache und Fensterfarben. Ältere Fensteraufnahmen können andere Beschriftungen oder Positionen zeigen. Beispielwerte erklären die Bedienung; sie sind keine empfohlenen Presets.',
+    'Live-Abbildungen übernehmen Ihre Sprache und Fensterfarben. Beispielwerte erklären die Bedienung; sie sind keine empfohlenen Presets.',
   'help.steps': 'Ausprobieren',
   'help.tip': 'Gut zu wissen',
   'help.back': 'Nach oben',

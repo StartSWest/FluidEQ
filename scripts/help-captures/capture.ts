@@ -7,6 +7,8 @@ import { findBrowser, openPage, type IPage } from './cdp';
 import { FIGURES, type IFigureSpec } from './figures';
 import { serve } from './serve';
 import BUILT from './built';
+import { ROOT, buildHarness, writeAtomically } from './harnessBuild';
+import { HELPERS, inPage } from './pageHelpers';
 
 /**
  * Takes the guide's 2.1 figures from the real window, and measures every
@@ -27,8 +29,6 @@ import BUILT from './built';
  * the way every file the app writes is. See README.md for the Windows run.
  */
 
-const ROOT = path.resolve(__dirname, '../..');
-const HERE = __dirname;
 const WINDOW = { width: 2560, height: 1392 };
 
 interface IRect {
@@ -60,83 +60,6 @@ const argument = (name: string): string[] =>
 
 /** What the run is doing, on the terminal it was started from. */
 const say = (line: string) => process.stdout.write(`${line}\n`);
-
-const writeAtomically = (file: string, bytes: string | Buffer) => {
-  const temporary = `${file}.${process.pid}.tmp`;
-  fs.writeFileSync(temporary, bytes);
-  fs.renameSync(temporary, file);
-};
-
-/**
- * What the steps and finders are written against (`figures.ts`). Waiting is
- * by frames painted, never by a clock: `until` gives up after a number of
- * frames, and `settle` waits on the fonts and on every animation that ends.
- */
-const HELPERS = `
-(() => {
-  const frame = () => new Promise((done) => requestAnimationFrame(() => done()));
-  const $ = (css, root = document) => root.querySelector(css);
-  const $$ = (css, root = document) => [...root.querySelectorAll(css)];
-  const ownText = (element) =>
-    [...element.childNodes]
-      .filter((node) => node.nodeType === Node.TEXT_NODE)
-      .map((node) => node.textContent)
-      .join('')
-      .trim();
-  const byText = (root, words) => {
-    if (!root) return null;
-    const all = [root, ...root.querySelectorAll('*')];
-    return all.find((element) => ownText(element).startsWith(words)) ?? null;
-  };
-  const rowOf = (element) =>
-    element?.closest('button, [role=menuitem], [role=menuitemcheckbox], label, a') ?? element;
-  const union = (...elements) => elements.filter(Boolean);
-  const until = async (test, frames = 900) => {
-    for (let at = 0; at < frames; at += 1) {
-      if (test()) return;
-      await frame();
-    }
-    throw new Error('Never became true: ' + test.toString());
-  };
-  const click = (element) => {
-    if (!element) throw new Error('Nothing to click');
-    const box = element.getBoundingClientRect();
-    const at = { bubbles: true, cancelable: true, composed: true, view: window,
-      clientX: box.x + box.width / 2, clientY: box.y + box.height / 2,
-      button: 0, buttons: 1, pointerId: 1, pointerType: 'mouse', isPrimary: true };
-    element.dispatchEvent(new PointerEvent('pointerdown', at));
-    element.dispatchEvent(new MouseEvent('mousedown', at));
-    element.dispatchEvent(new PointerEvent('pointerup', { ...at, buttons: 0 }));
-    element.dispatchEvent(new MouseEvent('mouseup', { ...at, buttons: 0 }));
-    element.dispatchEvent(new MouseEvent('click', { ...at, buttons: 0 }));
-  };
-  const settle = async () => {
-    await document.fonts.ready;
-    await Promise.all(
-      document
-        .getAnimations()
-        .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
-        .map((animation) => animation.finished.catch(() => undefined)),
-    );
-    await frame();
-    await frame();
-  };
-  const rectOf = (found) => {
-    const elements = (Array.isArray(found) ? found : [found]).filter(Boolean);
-    if (elements.length === 0) return null;
-    const boxes = elements.map((element) => element.getBoundingClientRect());
-    const left = Math.min(...boxes.map((box) => box.left));
-    const top = Math.min(...boxes.map((box) => box.top));
-    const right = Math.max(...boxes.map((box) => box.right));
-    const bottom = Math.max(...boxes.map((box) => box.bottom));
-    return { x: left, y: top, width: right - left, height: bottom - top };
-  };
-  Object.assign(window, { __capture: { frame, $, $$, byText, rowOf, union, until, click, settle, rectOf } });
-})();
-`;
-
-const inPage = (body: string) =>
-  `(async () => { const { frame, $, $$, byText, rowOf, union, until, click, settle, rectOf } = window.__capture; ${body} })()`;
 
 const rectOf = async (page: IPage, finder: string): Promise<IRect> => {
   const rect = await page.evaluate<IRect | null>(
@@ -278,28 +201,6 @@ const writeBoxes = (file: string, figures: Record<string, ICapturedFigure>) => {
   });
 };
 
-const build = () => {
-  // Emptied here rather than by either compiler, which share the folder.
-  fs.rmSync(BUILT, { recursive: true, force: true });
-  const built = spawnSync(
-    'pnpm',
-    ['exec', 'webpack', '--config', path.join(HERE, 'webpack.config.ts')],
-    {
-      cwd: ROOT,
-      stdio: 'inherit',
-      shell: process.platform === 'win32',
-      env: {
-        ...process.env,
-        NODE_ENV: 'production',
-        TS_NODE_TRANSPILE_ONLY: 'true',
-      },
-    },
-  );
-  if (built.status !== 0) {
-    throw new Error('The harness did not build.');
-  }
-};
-
 const main = async () => {
   const only = argument('--only');
   const docs = path.resolve(argument('--docs')[0] ?? path.join(ROOT, 'docs'));
@@ -314,7 +215,7 @@ const main = async () => {
     throw new Error(`No figure called ${only.join(', ')}.`);
   }
   if (!process.argv.includes('--skip-build')) {
-    build();
+    buildHarness();
   }
   fs.mkdirSync(docs, { recursive: true });
   const server = await serve(BUILT);

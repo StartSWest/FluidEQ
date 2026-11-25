@@ -12,7 +12,7 @@ const DSP_CHAPTERS = [
         live: 'dsp-overview',
         width: 1280,
         height: 808,
-        still: '20-dsp.png',
+        still: 'help/dsp-overview.png',
         controls: [
           {
             target: '[data-dsp-section="normalizer"]',
@@ -112,7 +112,7 @@ const DSP_CHAPTERS = [
         live: 'dsp-denoise',
         width: 1180,
         height: 600,
-        still: '13-dsp-denoise-and-source-analysis.png',
+        still: 'help/dsp-denoise.png',
         controls: [
           {
             target: '.dsp-card-header .dsp-eq-preset-first',
@@ -171,7 +171,7 @@ const DSP_CHAPTERS = [
         live: 'dsp-deesser',
         width: 1180,
         height: 297,
-        still: '43-dsp-deesser.png',
+        still: 'help/dsp-deesser.png',
         controls: [
           {
             target: '.dsp-de-esser-controls > .dsp-band:nth-child(1)',
@@ -205,7 +205,7 @@ const DSP_CHAPTERS = [
         live: 'dsp-dynamics',
         width: 1180,
         height: 755,
-        still: '42-dsp-dynamics.png',
+        still: 'help/dsp-dynamics.png',
         controls: [
           {
             target: '.is-band-0',
@@ -246,7 +246,7 @@ const DSP_CHAPTERS = [
         live: 'dsp-room',
         width: 1280,
         height: 860,
-        still: '32-dsp-room.png',
+        still: 'help/dsp-room.png',
         controls: [
           {
             target: '.dsp-room-bar .dsp-eq-preset-first',
@@ -307,7 +307,7 @@ const DSP_CHAPTERS = [
         live: 'mic-page',
         width: 1280,
         height: 760,
-        still: '47-mic.png',
+        still: 'help/mic-page.png',
         controls: [
           {
             // The maker's own effects: the first row, over the rack's switch.

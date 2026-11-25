@@ -6,7 +6,7 @@ const help: Record<keyof typeof en, string> = {
   'help.title': 'ユーザーガイド',
   'help.subtitle': '自分の音を見つけよう。気軽に使いこなそう。',
   'help.intro':
-    'アプリ自身のコントロールで描く図と実際のウィンドウ画像で学ぶ、FluidEQの実用ガイドです。まずは聴き始めるところから、ご自分のペースで進めてください。',
+    'アプリ自身のコントロールで描く図で学ぶ、FluidEQの実用ガイドです。まずは聴き始めるところから、ご自分のペースで進めてください。',
   'help.offline': 'オフラインで利用可能',
   'help.search': 'ガイドを検索',
   'help.searchHint': '例：エンジン、低音、シーン…',
@@ -21,7 +21,7 @@ const help: Record<keyof typeof en, string> = {
   'help.closeImage': '拡大画面を閉じる',
   'help.controlsOf': '「{title}」の各操作の働き',
   'help.captureNote':
-    'ライブの図は、選んだ言語とウィンドウの色に合わせて表示されます。以前の画面画像では名前や位置が異なることがあります。設定値は操作の例であり、おすすめのプリセットではありません。',
+    'ライブの図は、選んだ言語とウィンドウの色に合わせて表示されます。設定値は操作の例であり、おすすめのプリセットではありません。',
   'help.steps': '試してみよう',
   'help.tip': '覚えておきたいこと',
   'help.back': '先頭に戻る',

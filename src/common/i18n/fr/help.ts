@@ -6,7 +6,7 @@ const help: Record<keyof typeof en, string> = {
   'help.title': 'Guide utilisateur',
   'help.subtitle': 'Trouvez votre son. Prenez vos marques.',
   'help.intro':
-    'Un guide pratique de FluidEQ, illustré par les propres commandes de l’app et de vraies captures de fenêtre. Commencez par votre première écoute, puis explorez à votre rythme.',
+    'Un guide pratique de FluidEQ, illustré par les propres commandes de l’app. Commencez par votre première écoute, puis explorez à votre rythme.',
   'help.offline': 'Disponible hors ligne',
   'help.search': 'Rechercher dans le guide',
   'help.searchHint': 'Essayez moteur, basses, scène…',
@@ -21,7 +21,7 @@ const help: Record<keyof typeof en, string> = {
   'help.closeImage': 'Fermer la capture',
   'help.controlsOf': 'Ce que fait chaque commande : {title}',
   'help.captureNote':
-    'Les illustrations en direct suivent votre langue et les couleurs de votre fenêtre. Les anciennes captures peuvent montrer d’autres libellés ou positions. Les réglages d’exemple expliquent les commandes ; ce ne sont pas des préréglages recommandés.',
+    'Les illustrations en direct suivent votre langue et les couleurs de votre fenêtre. Les réglages d’exemple expliquent les commandes ; ce ne sont pas des préréglages recommandés.',
   'help.steps': 'À essayer',
   'help.tip': 'Bon à savoir',
   'help.back': 'Revenir en haut',

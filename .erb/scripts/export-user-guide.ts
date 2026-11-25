@@ -44,15 +44,22 @@ const chapters = HELP_CHAPTERS.map(({ id, group, figures }) => ({
   steps: en[`help.${id}.steps`].split('\n'),
   tip: en[`help.${id}.tip`],
 }));
-// A live figure is drawn by the app and has no capture of its own yet: this
-// document shows the still its chapter names for it, which can be older than
-// the panel, plain and with its controls listed under it — its circles were
-// measured on the drawing, not on the still — until pictures are drawn from
-// the live figures by script.
+// A live figure is drawn by the app: this document shows the picture taken
+// from that drawing (`pnpm docs:stills`, `help/<live id>.png`), its numbered
+// circles already in it, with its controls listed under it in the same
+// order. Retake the pictures before exporting when a drawing has changed.
 const captures = new Set(
   chapters.flatMap((chapter) => chapter.figures.map(figureImage)),
 );
 const output = path.resolve(__dirname, '../../docs');
+
+/**
+ * What the pictures are, in this document: the app's note says its live
+ * illustrations follow the reader's language and colours, which a page of
+ * fixed pictures cannot.
+ */
+const PICTURE_NOTE =
+  "Every picture is drawn by FluidEQ's own interface, in English and its default colours; in the app the same figures follow your language and window colours. Example settings illustrate the controls; they are not recommended presets.";
 captures.forEach((image) => {
   if (!fs.existsSync(path.join(output, image))) {
     throw new Error(`User guide capture is missing: ${image}`);
@@ -100,7 +107,7 @@ const markdown = [
   '',
   en['help.intro'],
   '',
-  en['help.captureNote'],
+  PICTURE_NOTE,
   '',
   '**In FluidEQ: Help → User guide, or press F1.**',
   '',
@@ -231,8 +238,8 @@ main{min-width:0;padding:60px clamp(22px,5vw,80px)}.hero{padding-bottom:38px}.ey
 @media(max-width:850px){.shell{display:block}.rail{position:static;height:auto;padding:20px}.rail nav{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:32px 20px}h2{font-size:24px}}
 @media print{ :root{color-scheme:light;--bg:white;--panel:#f2f6f7;--well:#dfe8ec;--text:#132b38;--muted:#425d6d;--accent:#17665e;--line:#b7cbd4}body{font-size:10pt}.shell{display:block}.rail{display:none}main{padding:0}.hero{break-after:page}h1{font-size:38pt}section{break-before:page;padding:12pt 0;border:0}.chapter-heading,figure,.tip{break-inside:avoid}figure img{border-radius:4px}figure{margin:14pt 0}h2{font-size:20pt}h3{break-after:avoid}li{margin:6pt 0}button{display:none}a{color:inherit;text-decoration:none}.callouts.wide{display:block!important}.callouts.narrow{display:none!important}.callouts,.controls .n{-webkit-print-color-adjust:exact;print-color-adjust:exact}.annotated{break-inside:avoid}@page{size:A4;margin:16mm}}
 </style></head><body><div class="shell"><aside class="rail"><div class="brand">FluidEQ</div><small>User guide · Offline edition</small><nav aria-label="In this guide">${chapters.map((chapter, index) => `${startsGroup(index) ? `<span class="part">${escape(en[`help.group.${chapter.group}`])}</span>` : ''}<a href="#${chapter.id}">${String(index + 1).padStart(2, '0')} &nbsp; ${escape(chapter.title)}</a>`).join('')}</nav></aside>
-<main><header class="hero"><span class="eyebrow">FluidEQ / The illustrated guide</span><h1>${escape(en['help.subtitle'])}</h1><p class="lead">${escape(en['help.intro'])}</p><span class="badge">${chapters.length} chapters · ${captures.size} real interface captures · Offline</span><p><strong>In FluidEQ: Help → User guide, or press F1.</strong></p><button type="button" id="print">Print / Save as PDF</button><p class="note">${escape(en['help.captureNote'])}</p></header>${sections}<footer>FluidEQ · User guide · © 2026 Ivan Carmenates Garcia. Screenshots remain unaltered. Keep this document beside its PNG files for offline viewing.</footer></main></div>
-<script>document.getElementById('print').addEventListener('click',async()=>{const button=document.getElementById('print');button.disabled=true;try{await Promise.all(Array.from(document.images,image=>{image.loading='eager';return image.decode()}));window.print()}catch(error){console.error('Cannot print the guide because a screenshot did not load.',error);button.textContent='A screenshot could not load. Keep the PNG files beside this document, then try again.'}finally{button.disabled=false}});</script></body></html>`;
+<main><header class="hero"><span class="eyebrow">FluidEQ / The illustrated guide</span><h1>${escape(en['help.subtitle'])}</h1><p class="lead">${escape(en['help.intro'])}</p><span class="badge">${chapters.length} chapters · ${captures.size} pictures of the interface · Offline</span><p><strong>In FluidEQ: Help → User guide, or press F1.</strong></p><button type="button" id="print">Print / Save as PDF</button><p class="note">${escape(PICTURE_NOTE)}</p></header>${sections}<footer>FluidEQ · User guide · © 2026 Ivan Carmenates Garcia. Keep this document beside its PNG files for offline viewing.</footer></main></div>
+<script>document.getElementById('print').addEventListener('click',async()=>{const button=document.getElementById('print');button.disabled=true;try{await Promise.all(Array.from(document.images,image=>{image.loading='eager';return image.decode()}));window.print()}catch(error){console.error('Cannot print the guide because a picture did not load.',error);button.textContent='A picture could not load. Keep the PNG files beside this document, then try again.'}finally{button.disabled=false}});</script></body></html>`;
 
 const writeGuide = async (): Promise<void> => {
   const [formattedMarkdown, formattedHtml] = await Promise.all([

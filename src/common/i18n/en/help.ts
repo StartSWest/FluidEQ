@@ -11,7 +11,7 @@ const help = {
   'help.title': 'User guide',
   'help.subtitle': 'Find your sound. Make yourself at home.',
   'help.intro':
-    'A practical guide to FluidEQ, with illustrations drawn by the app’s own controls and real window captures. Start with your first listening session, then explore at your own pace.',
+    'A practical guide to FluidEQ, with illustrations drawn by the app’s own controls. Start with your first listening session, then explore at your own pace.',
   'help.offline': 'Available offline',
   'help.search': 'Search the guide',
   'help.searchHint': 'Try engine, bass, scene…',
@@ -25,7 +25,7 @@ const help = {
   'help.closeImage': 'Close screenshot',
   'help.controlsOf': 'What each control in {title} does',
   'help.captureNote':
-    'Live illustrations follow your language and window colours. Older window captures may show different labels or positions. Example settings illustrate the controls; they are not recommended presets.',
+    'Live illustrations follow your language and window colours. Example settings illustrate the controls; they are not recommended presets.',
   'help.steps': 'Try it',
   'help.tip': 'Good to know',
   'help.back': 'Back to top',

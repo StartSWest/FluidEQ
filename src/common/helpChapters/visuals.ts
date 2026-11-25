@@ -18,7 +18,7 @@ const VISUAL_CHAPTERS = [
         height: 400,
         frame: '.graph-wrapper',
         caption: 'help.graph.stripCaption',
-        still: '21-graph-strip.png',
+        still: 'help/graph-style.png',
         controls: [
           {
             target: '.graph-corner-legend',
@@ -95,7 +95,7 @@ const VISUAL_CHAPTERS = [
         frame: '.graph-gallery-reel',
         margin: 10,
         caption: 'help.graph.plusCaption',
-        still: '22-graph-strip-plus.png',
+        still: 'help/graph-scene.png',
         controls: [
           {
             target: '.graph-gallery-credit__who',
@@ -126,7 +126,7 @@ const VISUAL_CHAPTERS = [
         frame: '.graph-view-menu__list',
         margin: 6,
         caption: 'help.graph.viewCaption',
-        still: '23-graph-view-menu.png',
+        still: 'help/graph-view-menu.png',
         controls: [
           {
             target: '.graph-view-menu__list > button[role="menuitemradio"]',
@@ -184,14 +184,13 @@ const VISUAL_CHAPTERS = [
         // from FluidEQ's styles and made-up scenes on the stills the app
         // ships, laid out as the Library is since 2026-11-19: the rail of
         // places, the From tabs over the looks, the view and the order.
-        // Its still is the 2.0 capture, for the exported guide.
         live: 'look-picker',
         width: 880,
         height: 600,
         // The picker's own box: on a window under 896px it is narrower than
         // the 880 it is laid out at, as the real one is there.
         frame: '.look-picker__menu',
-        still: '24-look-picker.png',
+        still: 'help/look-picker.png',
         controls: [
           {
             target: '.look-picker__search',

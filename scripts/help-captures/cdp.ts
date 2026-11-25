@@ -97,6 +97,8 @@ export const openPage = async (
   executable: string,
   width: number,
   height: number,
+  /** More of the browser's switches, after its own. */
+  switches: readonly string[] = [],
 ): Promise<IPage> => {
   // A fresh profile per run, emptied as the run starts rather than as it
   // ends: the browser's helper processes go on writing into it for a moment
@@ -122,6 +124,7 @@ export const openPage = async (
       // Chromium refuses to start as root with its sandbox on, which is
       // how a Linux container runs it; anywhere else the sandbox stays.
       ...(process.getuid?.() === 0 ? ['--no-sandbox'] : []),
+      ...switches,
       'about:blank',
     ],
     { stdio: ['ignore', 'ignore', 'pipe'] },

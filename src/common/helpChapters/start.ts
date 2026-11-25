@@ -17,7 +17,7 @@ const START_CHAPTERS = [
         live: 'eq-page',
         width: 1180,
         height: 800,
-        still: '03-eq-parametric-bands-and-live-response.png',
+        still: 'help/eq-page.png',
         controls: [
           {
             target: '.workspace-tab-group',
@@ -81,7 +81,7 @@ const START_CHAPTERS = [
         // at 10 the right figure showed a sliver of the signal's rim.
         margin: 6,
         caption: 'help.window.headerLeftCaption',
-        still: '37-header-left.png',
+        still: 'help/header-left.png',
         controls: [
           {
             target: '.window-titlebar__left .workspace-tab:nth-of-type(1)',
@@ -123,7 +123,7 @@ const START_CHAPTERS = [
         frame: '.window-titlebar__right',
         margin: 6,
         caption: 'help.window.headerRightCaption',
-        still: '38-header-right.png',
+        still: 'help/header-right.png',
         controls: [
           {
             target: '.window-titlebar__right .workspace-tab:nth-of-type(1)',
@@ -169,7 +169,7 @@ const START_CHAPTERS = [
         width: 132,
         height: 700,
         caption: 'help.window.railCaption',
-        still: '39-rail-left.png',
+        still: 'help/rail-left.png',
         controls: [
           {
             target: '.side-bar__power-button',
@@ -209,8 +209,7 @@ const START_CHAPTERS = [
     // and what new"). The drawing lays the whole player out as its window
     // holds it, 480 CSS pixels wide, and each figure frames one part of it:
     // the whole player held twenty-seven numbered controls, which no layout
-    // keeps readable. Each control is found by its own class on the drawing;
-    // the stills are the 2.0 captures, for the exported guide.
+    // keeps readable. Each control is found by its own class on the drawing.
     id: 'player',
     group: 'start',
     figures: [
@@ -220,7 +219,7 @@ const START_CHAPTERS = [
         height: 362,
         frame: '.player-title, .player-top',
         caption: 'help.player.topCaption',
-        still: '42-player-top.png',
+        still: 'help/player-top.png',
         controls: [
           {
             target: '.player-title__mark',
@@ -293,7 +292,7 @@ const START_CHAPTERS = [
         height: 330,
         frame: '.player-sound',
         caption: 'help.player.eqCaption',
-        still: '43-player-eq.png',
+        still: 'help/player-sound.png',
         controls: [
           {
             target: '.player-sound__fold',
@@ -349,7 +348,7 @@ const START_CHAPTERS = [
         height: 280,
         frame: '.player-shelf, .player-foot',
         caption: 'help.player.queueCaption',
-        still: '44-player-queue.png',
+        still: 'help/player-queue.png',
         controls: [
           {
             target: '.player-shelf__tab',
@@ -404,7 +403,7 @@ const START_CHAPTERS = [
         height: 560,
         frame: '.player-menu',
         caption: 'help.player.menuCaption',
-        still: '45-player-menu.png',
+        still: 'help/player-menu.png',
         controls: [
           {
             target: '.player-menu__home',
@@ -445,7 +444,7 @@ const START_CHAPTERS = [
         width: 480,
         height: 64,
         caption: 'help.player.foldedCaption',
-        still: '46-player-folded.png',
+        still: 'help/player-folded.png',
         controls: [
           {
             target: '.player-fold__mark',

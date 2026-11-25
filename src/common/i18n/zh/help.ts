@@ -6,7 +6,7 @@ const help: Record<keyof typeof en, string> = {
   'help.title': '用户指南',
   'help.subtitle': '找到你的声音，轻松上手。',
   'help.intro':
-    '一份实用的 FluidEQ 指南，配有应用自身控件绘制的插图和真实窗口截图。从第一次聆听开始，按自己的节奏探索。',
+    '一份实用的 FluidEQ 指南，配有应用自身控件绘制的插图。从第一次聆听开始，按自己的节奏探索。',
   'help.offline': '可离线阅读',
   'help.search': '搜索指南',
   'help.searchHint': '试试：引擎、低音、场景…',
@@ -20,7 +20,7 @@ const help: Record<keyof typeof en, string> = {
   'help.closeImage': '关闭截图',
   'help.controlsOf': '{title}：各控件的作用',
   'help.captureNote':
-    '实时插图会跟随你的语言和窗口配色。旧截图的名称或位置可能不同。示例设置只是说明控件用法，并不是推荐预设。',
+    '实时插图会跟随你的语言和窗口配色。示例设置只是说明控件用法，并不是推荐预设。',
   'help.steps': '动手试试',
   'help.tip': '实用提示',
   'help.back': '返回顶部',

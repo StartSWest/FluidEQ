@@ -20,7 +20,7 @@ const SOUND_CHAPTERS = [
         frame: '.eq-layer-tabs',
         margin: 6,
         caption: 'help.eq.rowCaption',
-        still: '16-eq-bands.png',
+        still: 'help/eq-tab-row.png',
         controls: [
           {
             target: '.eq-layer-tabs__tab:nth-of-type(1)',
@@ -80,7 +80,7 @@ const SOUND_CHAPTERS = [
         height: 330,
         frame: '.workspace-tab-panel__scroll',
         caption: 'help.eq.bandsCaption',
-        still: '16-eq-bands.png',
+        still: 'help/eq-bands.png',
         controls: [
           {
             // The fourth band's whole column: its caption, slider and gain.
@@ -113,7 +113,7 @@ const SOUND_CHAPTERS = [
           '.eq-flat-editor--popover, .bandWrapper:nth-child(4), .bandWrapper:nth-child(7)',
         margin: 10,
         caption: 'help.eq.bandCaption',
-        still: '36-eq-band-selected.png',
+        still: 'help/eq-band-popover.png',
         controls: [
           {
             target: '.eq-band-popover__step:first-child',
@@ -166,7 +166,7 @@ const SOUND_CHAPTERS = [
         frame: '.band-menu',
         margin: 8,
         caption: 'help.eq.menuCaption',
-        still: '17-band-menu.png',
+        still: 'help/eq-band-menu.png',
         controls: [
           {
             target: '.band-menu > button:nth-of-type(1)',
@@ -215,7 +215,7 @@ const SOUND_CHAPTERS = [
         height: 470,
         frame: '.eq-mode-card',
         caption: 'help.eqmode.modeCaption',
-        still: '18-eq-mode.png',
+        still: 'help/eqmode-card.png',
         controls: [
           {
             target: '.eq-mode-card__unpin',
@@ -259,7 +259,7 @@ const SOUND_CHAPTERS = [
         frame: '.band-designs__menu',
         margin: 8,
         caption: 'help.eqmode.designsCaption',
-        still: '19-band-designs.png',
+        still: 'help/eqmode-designs.png',
         controls: [
           {
             target: '.band-designs__grid',
@@ -298,7 +298,7 @@ const SOUND_CHAPTERS = [
         live: 'gaming-lab',
         width: 1280,
         height: 330,
-        still: '44-gaming-lab.png',
+        still: 'help/gaming-lab.png',
         controls: [
           {
             target: '.gaming-lab .studio-rail__pin',
@@ -349,7 +349,7 @@ const SOUND_CHAPTERS = [
         live: 'gaming-parts',
         width: 900,
         height: 720,
-        still: '45-gaming-parts.png',
+        still: 'help/gaming-parts.png',
         controls: [
           {
             target: '.gaming-rail',
@@ -362,7 +362,7 @@ const SOUND_CHAPTERS = [
         live: 'gaming-profiles',
         width: 1040,
         height: 470,
-        still: '46-gaming-profiles.png',
+        still: 'help/gaming-profiles.png',
         caption: 'gaming.view.profiles',
         controls: [
           {
@@ -389,7 +389,7 @@ const SOUND_CHAPTERS = [
         height: 520,
         frame:
           '.device-profiles, .extra-outputs, .extra-outputs + .sidebar-section',
-        still: '40-rail-right.png',
+        still: 'help/sound-panel.png',
         controls: [
           {
             target: '.device-profiles__row',
@@ -441,7 +441,7 @@ const SOUND_CHAPTERS = [
         live: 'config-page',
         width: 1000,
         height: 700,
-        still: '06-eq-equalizer-apo-config.png',
+        still: 'help/config-page.png',
         controls: [
           {
             target: '.config-status',
