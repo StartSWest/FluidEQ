@@ -262,6 +262,7 @@ const dsp = {
   'dsp.eqPreset.vShape': 'V型',
   'dsp.eqPreset.rock': '搖滾',
   'dsp.eqPreset.pop': '流行音樂',
+  'dsp.eqPreset.dancePop': '舞曲流行音樂',
   'dsp.eqPreset.ballad': '歌謠',
   'dsp.eqPreset.jazz': '爵士樂',
   'dsp.eqPreset.classical': '古典',

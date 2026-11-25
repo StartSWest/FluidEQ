@@ -111,8 +111,8 @@ describe('dsp chain settings', () => {
   });
 
   it('ships the complete, uniquely named DSP preset catalog', () => {
-    // 108, and the Gaming tab's ten.
-    expect(DSP_PRESETS).toHaveLength(118);
+    // 109, and the Gaming tab's ten.
+    expect(DSP_PRESETS).toHaveLength(119);
     expect(new Set(DSP_PRESETS.map((preset) => preset.id)).size).toBe(
       DSP_PRESETS.length,
     );

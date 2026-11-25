@@ -26,6 +26,32 @@ export default {
   'genre.pop.off':
     'Die Bass-Schmiede wird unter dem Namen Pop angeboten und bleibt aus: Der Sub steckt im Master.',
 
+  'genre.dancePop.hook': 'Pop für die Tanzfläche',
+  'genre.dancePop.story':
+    'Popsongs für den Club, von Madonna und Kylie Minogue bis Lady Gaga, Dua Lipa und Demi Lovato: eine Kick auf jedem Schlag bei 115 bis 130 BPM, unter der der Bass zurückweicht, eine helle Leadstimme obenauf und breite Synths. Vom Produzenten geprägt und laut gemastert, oft −6 bis −10 LUFS mit Spitzen über Vollaussteuerung.',
+  'genre.dancePop.pin.80': 'Die Kick auf jedem Schlag',
+  'genre.dancePop.pin.80.why':
+    'Der Schlag auf jeder Zählzeit, über den Sub gehoben, statt mehr Sub hinzuzufügen.',
+  'genre.dancePop.pin.315': 'Platz für Kick und Stimme',
+  'genre.dancePop.pin.315.why':
+    'Der Stau aus Pads und Bass in den unteren Mitten wird herausgenommen, damit Kick und Stimme durchkommen.',
+  'genre.dancePop.pin.3150': 'Eine helle, präsente Stimme',
+  'genre.dancePop.pin.3150.why':
+    'Präsenz für den Lead; die Zischlaute knapp darüber werden gemildert, nicht angehoben.',
+  'genre.dancePop.pin.12500': 'Luftige, polierte Höhen',
+  'genre.dancePop.pin.12500.why':
+    'Der Glanz, für den Dance-Master bekannt sind, etwas breiter geöffnet.',
+  'genre.dancePop.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
+  'genre.dancePop.stage.bassPunch':
+    'Verkürzt den Bassausklang unter jeder Kick, damit die Lücke, die der Sidechain geöffnet hat, frei bleibt. Der Anschlag der Kick bleibt wie gemastert.',
+  'genre.dancePop.stage.dimension':
+    'Bass unter 120 Hz in Mono, wo ein Club Kick und Bass zusammenfasst, und die Luft über 7 kHz breiter geöffnet. Das Band der Stimme bleibt wie gemischt.',
+  'genre.dancePop.stage.maximizer':
+    'Ein fester Headroom vor einem einzigen letzten Limiter, der Spitzen bei −1 dBTP abfängt und innerhalb einer Sechzehntelnote bei 124 BPM loslässt, damit er nie gegen die Kick pumpt. Master und Dynamics bleiben aus.',
+  'genre.dancePop.off':
+    'Kein Bass Forge und kein Exciter: Dance-Master bringen ihren Sub und helle, begrenzte Höhen schon mit, und erzeugte Obertöne würden auf den S-Lauten der Stimme landen. Der Exciter für das Luftband wird unter dem Namen dieses Genres angeboten.',
+
   'genre.indiePop.hook': 'Leichter und wärmer als die Charts',
   'genre.indiePop.story':
     'Klirrende Gitarren und geschichtete Harmonien um eine mittige Stimme, 90 bis 130 BPM, oft absichtlich auf Band oder Kassette aufgenommen. Weicher und etwa ein Dezibel leiser als Chart-Pop, mit weniger Sub: Die Wärme ist der Look.',

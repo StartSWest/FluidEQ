@@ -91,6 +91,10 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
   Default, Reference, Music, Warm, Air, Punch, Expansive, Late night and the
   Jazz, Smooth jazz, Electronic, EDM and Lo-fi chains, leaving cymbals alone.
 - **The low and high cuts are heard the moment their dial turns.**
+- **A Dance-pop preset,** beside Pop, for pop made for the dance floor:
+  Madonna, Kylie Minogue, Lady Gaga, Dua Lipa, Demi Lovato. The kick on every
+  beat stands out over a sub left as mastered, the voice comes forward with
+  its "s" sounds kept soft, and the top opens airy and a little wider.
 
 #### The Library
 

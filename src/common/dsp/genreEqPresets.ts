@@ -134,6 +134,21 @@ const STYLES: readonly (readonly [string, readonly number[]])[] = [
     ],
   ],
   [
+    // Fitted 2026-11-25 through its whole rack, on Pop's and K-pop's loud
+    // references and then on its own two: the four-on-the-floor kick at
+    // 80 Hz lifted over a sub left as mastered (dance records carry theirs),
+    // the pad-and-bass build-up at 200-500 Hz cleared for the kick and the
+    // voice, presence at 3.15 kHz with the sibilance at 8 kHz eased rather
+    // than lifted (the De-esser's band), and the polished air dance masters
+    // are known for. Level-matched on four records (its two and Pop's two),
+    // against Pop it keeps 0.7 dB less sub, 0.5 dB more presence, 1.3 dB
+    // more air and its esses 0.3 dB lower; against EDM the voice's 1-2 kHz
+    // sits 0.5 dB forward and the esses 1.1 dB lower. Nearest row in the
+    // whole catalogue 1.1 dB away, Pop 1.3 and EDM 1.4.
+    'dancePop',
+    [-0.3, 0, 1.7, 0.4, -1.1, -1.5, -1.1, 0, 0.3, 0.4, 1, 0.3, -0.7, 1.5, 1.6],
+  ],
+  [
     'indiePop',
     [
       -0.1, 0, 0.2, 0.8, 0, -1.8, -1.4, 0.6, 1.4, 0.7, -0.49, -0.5, 1.18, 0.51,
@@ -513,6 +528,7 @@ const STYLES: readonly (readonly [string, readonly number[]])[] = [
  * stereo bass. Rows absent from this table preserve that recorded space.
  */
 const MONO_BELOW_HZ: Readonly<Record<string, number>> = {
+  dancePop: 120,
   edm: 150,
   house: 150,
   techno: 150,

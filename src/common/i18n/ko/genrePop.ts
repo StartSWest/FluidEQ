@@ -26,6 +26,32 @@ const genrePop = {
     '입력 정규화 후 7 dB를 더해 −1 dBTP 피크 한도에서 약 −11 LUFS를 목표로 합니다. Master는 끄고 마지막 리미터 하나로 펀치를 유지합니다.',
   'genre.pop.off':
     'Bass Forge는 Pop의 이름으로 제공되고 중단되었습니다. 서브가 마스터에 있습니다.',
+  'genre.dancePop.hook': '댄스 플로어를 위한 팝',
+  'genre.dancePop.story':
+    '마돈나와 카일리 미노그부터 레이디 가가, 두아 리파, 데미 로바토까지, 클럽을 위해 만든 팝. 115~130 BPM에서 매 박마다 울리는 포 온 더 플로어 킥, 그 아래로 물러나는 베이스, 위에 얹힌 밝은 리드 보컬과 넓은 신스. 프로듀서 중심으로 만들어 크게 마스터링되며, 흔히 −6~−10 LUFS에 피크는 풀스케일을 넘습니다.',
+  'genre.dancePop.pin.80': '매 박의 킥',
+  'genre.dancePop.pin.80.why':
+    '서브를 더하는 대신, 매 박의 타격을 서브 위로 끌어올립니다.',
+  'genre.dancePop.pin.315': '킥과 목소리를 위한 공간',
+  'genre.dancePop.pin.315.why':
+    '패드와 베이스가 쌓는 중저역을 덜어 내어 킥과 보컬이 뚫고 나오게 합니다.',
+  'genre.dancePop.pin.3150': '밝고 앞에 선 보컬',
+  'genre.dancePop.pin.3150.why':
+    '리드에 존재감을 주고, 바로 위의 치찰음은 올리지 않고 부드럽게 합니다.',
+  'genre.dancePop.pin.12500': '공기감 있고 매끈한 고역',
+  'genre.dancePop.pin.12500.why':
+    '댄스 마스터 특유의 광택을 조금 더 넓게 엽니다.',
+  'genre.dancePop.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.dancePop.stage.bassPunch':
+    '킥마다 베이스 꼬리를 줄여 사이드체인이 연 틈을 깨끗하게 유지합니다. 킥의 어택은 마스터 그대로입니다.',
+  'genre.dancePop.stage.dimension':
+    '클럽이 킥과 베이스를 합치는 120 Hz 아래는 모노로, 7 kHz 위의 공기감은 더 넓게 엽니다. 보컬 대역은 믹스 그대로입니다.',
+  'genre.dancePop.stage.maximizer':
+    '고정된 헤드룸 뒤에 최종 리미터 하나만 두어 피크를 −1 dBTP에서 잡고 124 BPM의 16분음표 안에 놓아 주므로, 킥에 맞서 펌핑하지 않습니다. Master와 Dynamics는 꺼 둡니다.',
+  'genre.dancePop.off':
+    'Bass Forge와 Exciter는 쓰지 않습니다. 댄스 마스터에는 이미 서브와 밝고 제한된 고역이 있고, 생성된 배음은 보컬의 치찰음에 얹히기 때문입니다. 공기 대역 Exciter는 이 장르 이름으로 제공됩니다.',
+
   'genre.indiePop.hook': '차트보다 가볍고 따뜻해요',
   'genre.indiePop.story':
     '90~130BPM의 중심 목소리를 중심으로 장글링 기타와 쌓인 하모니는 종종 일부러 테이프나 카세트로 잘라냅니다. 차트 팝보다 더 부드럽고 약 데시벨 더 조용하며 서브가 적습니다. 따뜻함이 외관입니다.',

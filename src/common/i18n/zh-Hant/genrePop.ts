@@ -24,6 +24,31 @@ const genrePop = {
     '輸入響度統一後提升 7 dB，以約 −11 LUFS 為目標，峰值上限為 −1 dBTP。Master 保持關閉，只用一個最終限制器保留衝擊力。',
   'genre.pop.off':
     'Bass Forge 以 Pop 的名義提供，並保留下來：低音砲位於母帶中。',
+  'genre.dancePop.hook': '為舞池而生的流行音樂',
+  'genre.dancePop.story':
+    '從瑪丹娜、凱莉·米洛到 Lady Gaga、杜娃·黎波和黛咪·洛瓦托，為夜店打造的流行歌曲：115 至 130 BPM 每拍一下的四四拍大鼓，貝斯在它下面讓位，明亮的主唱在上，寬闊的合成器鋪底。以製作人為主導，母帶響度很高，常在 −6 至 −10 LUFS，峰值超過滿刻度。',
+  'genre.dancePop.pin.80': '每拍一下的大鼓',
+  'genre.dancePop.pin.80.why':
+    '把每一拍的衝擊提到超低頻之上，而不是再加超低頻。',
+  'genre.dancePop.pin.315': '為大鼓和人聲留出空間',
+  'genre.dancePop.pin.315.why':
+    '去掉鋪底和貝斯堆積的中低頻，讓大鼓和人聲穿透出來。',
+  'genre.dancePop.pin.3150': '明亮、靠前的人聲',
+  'genre.dancePop.pin.3150.why':
+    '為主唱增加臨場感；正上方的齒音被柔化，而不是提升。',
+  'genre.dancePop.pin.12500': '通透、精緻的高頻',
+  'genre.dancePop.pin.12500.why': '舞曲母帶特有的光澤，並稍微開得更寬。',
+  'genre.dancePop.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.dancePop.stage.bassPunch':
+    '縮短每個大鼓下的貝斯尾音，讓側鏈壓縮留出的空隙保持乾淨。大鼓的起音保持母帶原樣。',
+  'genre.dancePop.stage.dimension':
+    '120 Hz 以下低頻設為單聲道（夜店音響在此把大鼓和貝斯合併），7 kHz 以上的空氣感開得更寬。人聲頻段保持混音原樣。',
+  'genre.dancePop.stage.maximizer':
+    '固定的餘裕之後只有一個最終限制器，把峰值限制在 −1 dBTP，並在 124 BPM 的十六分音符內釋放，因此不會逆著大鼓抽吸。Master 和 Dynamics 維持關閉。',
+  'genre.dancePop.off':
+    '不用 Bass Forge，也不用 Exciter：舞曲母帶本身已有超低頻和明亮、經過限制的高頻，生成的諧波會落在人聲的齒音上。空氣頻段的 Exciter 以此曲風的名稱提供。',
+
   'genre.indiePop.hook': '比圖表更輕更溫暖',
   'genre.indiePop.story':
     '刺耳的吉他聲和圍繞著中心聲音的堆疊和聲，90 到 130 BPM，通常被故意剪成磁帶或盒式磁帶。比流行音樂流行音樂更柔和，安靜約一個分貝，低音更少：溫暖就是外觀。',

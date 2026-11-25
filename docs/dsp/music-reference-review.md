@@ -1,7 +1,7 @@
 # Factory DSP at the original source level
 
-All 118 factory racks take their input at the recording's original level.
-This includes 83 music genres and 35 standard, voice, repair, Room and Gaming
+All 119 factory racks take their input at the recording's original level.
+This includes 84 music genres and 35 standard, voice, repair, Room and Gaming
 racks. Factory selection switches the Normalizer and adaptive Master off.
 Reference, Speech, Podcast and Audiobook use a fixed Maximizer profile.
 The None rack passes the input through. The manual Normalizer and Master
@@ -93,8 +93,8 @@ Game Mode. Matched-level spectrum and dynamics are checked against the
 approved Pop and K-pop control renders. Listening remains a separate
 check of preference.
 
-At 48 kHz, the candidate and its base report identical delay for all 118
-factory racks in Library and Live, and for 15 complete Gaming and Room
+At 48 kHz, the candidate and its base report identical delay for the 118 racks
+that review covered, in Library and Live, and for 15 complete Gaming and Room
 graphs. Standard Gaming is 48 samples. Game Night retains its 645-sample
 dynamics path.
 

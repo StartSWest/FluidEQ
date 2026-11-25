@@ -74,6 +74,9 @@
     "dancehall": {
       "limiterLossBudgetLu": 0.65
     },
+    "dancePop": {
+      "limiterLossBudgetLu": 0.65
+    },
     "disco": {
       "limiterLossBudgetLu": 0.65
     },

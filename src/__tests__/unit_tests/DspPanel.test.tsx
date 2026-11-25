@@ -158,7 +158,7 @@ describe('DspPanel', () => {
     // Include the new worldwide genre chains; the literal is here so that
     // a chain added without a row in the menu is a failure
     // rather than a menu quietly one short.
-    expect(DSP_PRESETS).toHaveLength(118);
+    expect(DSP_PRESETS).toHaveLength(119);
     expect(
       screen.getByRole('menuitemradio', { name: /Repair compressed/i }),
     ).toBeInTheDocument();

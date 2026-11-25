@@ -26,6 +26,32 @@ export default {
   'genre.pop.off':
     'La Fucina dei bassi è offerta con il nome di Pop e resta spenta: il sub è nel master.',
 
+  'genre.dancePop.hook': 'Il pop fatto per la pista da ballo',
+  'genre.dancePop.story':
+    'Canzoni pop pensate per il club, da Madonna e Kylie Minogue a Lady Gaga, Dua Lipa e Demi Lovato: una cassa su ogni battito a 115-130 BPM con il basso che si abbassa sotto di lei, una voce solista brillante in primo piano e synth ampi. Guidato dal produttore e masterizzato forte, spesso tra −6 e −10 LUFS con picchi oltre il fondo scala.',
+  'genre.dancePop.pin.80': 'La cassa su ogni battito',
+  'genre.dancePop.pin.80.why':
+    'Il colpo di ogni battito, sollevato sopra il sub invece di aggiungere altro sub.',
+  'genre.dancePop.pin.315': 'Spazio per cassa e voce',
+  'genre.dancePop.pin.315.why':
+    'L’accumulo di medio-bassi di pad e basso viene tolto, così cassa e voce emergono.',
+  'genre.dancePop.pin.3150': 'Una voce brillante e in avanti',
+  'genre.dancePop.pin.3150.why':
+    'Presenza per la voce solista; la sibilanza appena sopra viene ammorbidita, non alzata.',
+  'genre.dancePop.pin.12500': 'Alti ariosi e levigati',
+  'genre.dancePop.pin.12500.why':
+    'La lucentezza per cui sono noti i master dance, un po’ più aperta.',
+  'genre.dancePop.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
+  'genre.dancePop.stage.bassPunch':
+    'Accorcia la coda del basso sotto ogni cassa, così lo spazio aperto dal sidechain resta pulito. L’attacco della cassa resta come masterizzato.',
+  'genre.dancePop.stage.dimension':
+    'Bassi in mono sotto 120 Hz, dove un club somma cassa e basso, e l’aria sopra 7 kHz più aperta. La banda della voce resta come mixata.',
+  'genre.dancePop.stage.maximizer':
+    'Un margine fisso prima di un unico limiter finale che ferma i picchi a −1 dBTP e rilascia entro una semicroma a 124 BPM, così non pompa mai contro la cassa. Master e Dynamics restano disattivati.',
+  'genre.dancePop.off':
+    'Niente Bass Forge né Exciter: i master dance hanno già il loro sub e alti brillanti e limitati, e le armoniche generate cadrebbero sulle sibilanti della voce. L’Exciter della banda dell’aria è offerto con il nome di questo genere.',
+
   'genre.indiePop.hook': 'Più leggero e più caldo delle classifiche',
   'genre.indiePop.story':
     'Chitarre tintinnanti e armonie sovrapposte intorno a una voce centrata, da 90 a 130 BPM, spesso incise di proposito su nastro o cassetta. Più morbido e circa un decibel più basso del pop da classifica, con meno sub: il calore è lo stile.',

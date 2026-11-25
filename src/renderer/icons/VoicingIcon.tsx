@@ -183,6 +183,8 @@ const ALIASES: Record<string, string> = {
   indiePop: 'pop',
   synthPop: 'electronic',
   newWave: 'electronic',
+  // A pop song made for the club: the voice in front, as Pop draws it.
+  dancePop: 'pop',
   kPop: 'pop',
   jPop: 'pop',
   cPop: 'pop',

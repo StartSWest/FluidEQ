@@ -27,6 +27,32 @@ export default {
   'genre.pop.off':
     'La Forge de basses est proposée sous le nom de Pop et reste désactivée : le sub est dans le master.',
 
+  'genre.dancePop.hook': 'La pop faite pour la piste de danse',
+  'genre.dancePop.story':
+    'Des chansons pop pensées pour le club, de Madonna et Kylie Minogue à Lady Gaga, Dua Lipa et Demi Lovato : une grosse caisse sur chaque temps entre 115 et 130 BPM, la basse qui s’efface sous elle, une voix lead brillante au-dessus et des synthés larges. Façonnée par le producteur et masterisée fort, souvent entre −6 et −10 LUFS avec des crêtes au-delà de la pleine échelle.',
+  'genre.dancePop.pin.80': 'La grosse caisse sur chaque temps',
+  'genre.dancePop.pin.80.why':
+    'Le coup de chaque temps, relevé au-dessus du sub plutôt que d’ajouter du sub.',
+  'genre.dancePop.pin.315': 'De la place pour la grosse caisse et la voix',
+  'genre.dancePop.pin.315.why':
+    'L’accumulation de bas-médiums des nappes et de la basse est retirée, pour que la grosse caisse et la voix passent devant.',
+  'genre.dancePop.pin.3150': 'Une voix brillante et en avant',
+  'genre.dancePop.pin.3150.why':
+    'De la présence pour le lead ; la sibilance juste au-dessus est adoucie, pas relevée.',
+  'genre.dancePop.pin.12500': 'Un aigu aéré et poli',
+  'genre.dancePop.pin.12500.why':
+    'Le brillant qui fait la réputation des masters dance, un peu plus ouvert.',
+  'genre.dancePop.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.dancePop.stage.bassPunch':
+    'Raccourcit la queue de la basse sous chaque grosse caisse, pour que le creux ouvert par le sidechain reste net. L’attaque de la grosse caisse reste telle que masterisée.',
+  'genre.dancePop.stage.dimension':
+    'Graves en mono sous 120 Hz, là où un club additionne grosse caisse et basse, et l’air au-dessus de 7 kHz plus ouvert. La bande de la voix reste telle que mixée.',
+  'genre.dancePop.stage.maximizer':
+    'Une marge fixe avant un seul limiteur final qui arrête les crêtes à −1 dBTP et relâche en une double croche à 124 BPM, pour ne jamais pomper contre la grosse caisse. Master et Dynamics restent désactivés.',
+  'genre.dancePop.off':
+    'Ni Bass Forge ni Exciter : les masters dance apportent déjà leur sub et un aigu brillant et limité, et des harmoniques générées tomberaient sur les sifflantes de la voix. L’Exciter de la bande d’air est proposé sous le nom de ce genre.',
+
   'genre.indiePop.hook': 'Plus léger et plus chaud que les hit-parades',
   'genre.indiePop.story':
     'Des guitares cristallines et des harmonies superposées autour d’une voix centrée, de 90 à 130 BPM, souvent gravées exprès sur bande ou cassette. Plus douce et environ un décibel moins forte que la pop des hit-parades, avec moins de sub : la chaleur fait partie du style.',

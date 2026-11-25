@@ -4,7 +4,17 @@
 // stage's own picker. New styles belong beside their relatives, not at the end
 // simply because their recipe was added later.
 const STYLE_FAMILIES = [
-  ['pop', 'indiePop', 'synthPop', 'newWave', 'kPop', 'jPop', 'cPop', 'ballad'],
+  [
+    'pop',
+    'dancePop',
+    'indiePop',
+    'synthPop',
+    'newWave',
+    'kPop',
+    'jPop',
+    'cPop',
+    'ballad',
+  ],
   [
     'rock',
     'popRock',

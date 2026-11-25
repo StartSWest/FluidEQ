@@ -295,6 +295,7 @@ const dsp = {
   'dsp.eqPreset.vShape': 'V-Form',
   'dsp.eqPreset.rock': 'Rock',
   'dsp.eqPreset.pop': 'Pop',
+  'dsp.eqPreset.dancePop': 'Dance-pop',
   'dsp.eqPreset.ballad': 'Ballade',
   'dsp.eqPreset.jazz': 'Jazz',
   'dsp.eqPreset.classical': 'Klassik',

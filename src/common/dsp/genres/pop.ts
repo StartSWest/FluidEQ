@@ -71,6 +71,54 @@ const POP_RACKS: readonly IGenreRack[] = [
     offered: ['bassForge'],
   },
   {
+    // Dance-pop (Ivan, 2026-11-25): pop songs built for the club — Madonna,
+    // Kylie Minogue, Lady Gaga, Dua Lipa, Demi Lovato's "Neon Lights" and
+    // her 2025 album "It's Not That Deep". Producer-driven, a four-on-the-
+    // floor kick at 115-130 BPM with the bass ducking under it, the vocal
+    // bright and on top, and masters of -6 to -10 LUFS with true peaks over
+    // full scale (iZotope's chart analysis; Sage Audio puts most dance
+    // masters near -8 LUFS). So the rack adds nothing the record carries:
+    // no generated sub or harmonics (Bass Forge is a generator, and a top
+    // that arrives bright and limited only gets harsher), the kick's attack
+    // left alone, and the ceiling only catches.
+    // https://en.wikipedia.org/wiki/Dance-pop
+    // https://www.izotope.com/en/learn/dance-electronic-analysis
+    // https://sageaudio.com/articles/mastering-for-dance-music
+    id: 'dancePop',
+    // Bright, close vocals over cymbals that carry the groove: the same
+    // restrained mid-only spectral cuts as Pop, the hats protected.
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
+    // Offered under the genre's name and left off: a sparkle on the air
+    // band for a dull transfer. Dance masters already carry "a crisp and
+    // prominent high end", and harmonics there land on the sibilants.
+    exciter: exciterProfile([
+      { enabled: false },
+      { enabled: false },
+      { freqHz: 10_000, drive: 2, mix: 0.25, texture: 0.4 },
+    ]),
+    // The pump is the groove: a kick on every beat with the bass ducked
+    // under it. The kick's attack is left as mastered; only the tail under
+    // it is shortened, so the gap the sidechain opened stays open.
+    bassPunch: punch(100, 0, -0.3, 0, 40, 0),
+    // Mono under 120 Hz, where a club sums the kick and the bass, and the
+    // air above 7 kHz opened as dance masters are widened (Sage Audio: a
+    // side shelf above 7 kHz). The vocal's band is left where it was mixed.
+    dimension: width(0.55, 1, 1.2, 120, 7_000, 0),
+    maximizer: ceiling(-2.5, -1, 3, sixteenthMs(124)),
+    offered: ['exciter'],
+  },
+  {
     // Lighter and warmer than chart pop, often deliberately lo-fi, and about
     // a decibel quieter: the warmth is the look, so nothing here brightens
     // it. The Exciter adds to the warmth alone — Organic's body in the low

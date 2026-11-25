@@ -217,6 +217,8 @@ const GENRE_OWN_SOURCES: Readonly<Record<string, string>> = {
   jPop: 'iZotope · FabFilter · Idol — YOASOBI · Lemon — Kenshi Yonezu (Apple previews)',
   cPop: 'iZotope · FabFilter · Tian Mi Mi — Teresa Teng · Qing Tian — Jay Chou (Apple previews)',
   pop: 'iZotope · FabFilter · The Weeknd — Blinding Lights · Dua Lipa — Levitating (Apple preview)',
+  dancePop:
+    'Recording Academy · iZotope · Sage Audio · Neon Lights — Demi Lovato · Padam Padam — Kylie Minogue (Apple previews)',
   kPop: 'BIGHIT MUSIC · YG Entertainment · iZotope · FabFilter · BTS — Dynamite · BLACKPINK — How You Like That (Apple previews)',
   ballad:
     'Sound On Sound · Mix · Waves · Elowsson & Friberg (KTH) · DR Database',
@@ -230,7 +232,7 @@ export const genreSources = (id: string): string | undefined =>
 /**
  * Current factory-only reference measurements: mean loudness change against
  * untouched source in LU, and highest final true peak in dBTP. Two named
- * recordings per genre, measured 2026-11-24 without headset/user correction,
+ * recordings per genre, measured 2026-11-25 without headset/user correction,
  * live settings, system Auto normalize or an output device. Full settings,
  * raw source/output levels and fixed-gain comparisons are
  * recorded in docs/dsp/music-reference-audit.json. These are playback
@@ -240,6 +242,7 @@ export const GENRE_MEASURED: Readonly<
   Record<string, readonly [number, number]>
 > = {
   pop: [-2.94, -1],
+  dancePop: [-2.64, -1],
   indiePop: [-2.14, -1],
   synthPop: [-0.98, -1],
   newWave: [-1.63, -1],
@@ -411,6 +414,7 @@ const UPDATED_MEASURED_SONGS: Readonly<Record<string, number>> = {
   cPop: 2,
   ballad: 2,
   pop: 2,
+  dancePop: 2,
   kPop: 2,
 };
 

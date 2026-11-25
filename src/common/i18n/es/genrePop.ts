@@ -26,6 +26,32 @@ export default {
   'genre.pop.off':
     'La Forja de graves se ofrece con el nombre de Pop y queda apagada: el sub está en el máster.',
 
+  'genre.dancePop.hook': 'Pop hecho para la pista de baile',
+  'genre.dancePop.story':
+    'Canciones pop hechas para el club, de Madonna y Kylie Minogue a Lady Gaga, Dua Lipa y Demi Lovato: un bombo en cada tiempo a 115-130 BPM con el bajo cediendo bajo él, una voz principal brillante encima y sintetizadores amplios. Guiado por el productor y masterizado fuerte, a menudo entre −6 y −10 LUFS con picos por encima de la escala completa.',
+  'genre.dancePop.pin.80': 'El bombo en cada tiempo',
+  'genre.dancePop.pin.80.why':
+    'El golpe de cada pulso, realzado por encima del sub en lugar de añadir más sub.',
+  'genre.dancePop.pin.315': 'Espacio para el bombo y la voz',
+  'genre.dancePop.pin.315.why':
+    'Se retira la acumulación de medios graves de pads y bajo para que el bombo y la voz atraviesen la mezcla.',
+  'genre.dancePop.pin.3150': 'Una voz brillante y al frente',
+  'genre.dancePop.pin.3150.why':
+    'Presencia para la voz principal; la sibilancia justo encima se suaviza, no se realza.',
+  'genre.dancePop.pin.12500': 'Un agudo aireado y pulido',
+  'genre.dancePop.pin.12500.why':
+    'El brillo por el que se conocen los másteres de dance, un poco más abierto.',
+  'genre.dancePop.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
+  'genre.dancePop.stage.bassPunch':
+    'Acorta la cola del bajo bajo cada bombo para que el hueco que abrió el sidechain siga limpio. El ataque del bombo queda como se masterizó.',
+  'genre.dancePop.stage.dimension':
+    'Graves en mono por debajo de 120 Hz, donde un club suma el bombo y el bajo, y el aire por encima de 7 kHz más abierto. La banda de la voz queda como se mezcló.',
+  'genre.dancePop.stage.maximizer':
+    'Un margen fijo antes de un único limitador final que detiene los picos en −1 dBTP y suelta en una semicorchea a 124 BPM, para no bombear nunca contra el bombo. Master y Dynamics permanecen apagados.',
+  'genre.dancePop.off':
+    'Sin Bass Forge ni Exciter: los másteres de dance ya traen su sub y un agudo brillante y limitado, y los armónicos generados caerían sobre las eses de la voz. El Exciter de la banda de aire se ofrece con el nombre de este género.',
+
   'genre.indiePop.hook': 'Más ligero y cálido que las listas de éxitos',
   'genre.indiePop.story':
     'Guitarras tintineantes y armonías apiladas alrededor de una voz centrada, de 90 a 130 BPM, a menudo grabadas en cinta o casete a propósito. Más suave y cerca de un decibelio más bajo que el pop de las listas, con menos sub: la calidez es la estética.',

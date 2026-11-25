@@ -137,7 +137,7 @@ const budgets = (loss: number) => {
 };
 
 describe('measured music factory contract', () => {
-  it('requires fresh evidence for all 83 racks and the 166 original references', () => {
+  it('requires fresh evidence for all 84 racks and the 168 original references', () => {
     expect(audit.schema).toBe(3);
     expect(audit.completeCatalogue).toBe(true);
     expect(audit.processingSources).toEqual(musicProcessingSources(root));
@@ -158,14 +158,14 @@ describe('measured music factory contract', () => {
     expect(audit.genres.map((one) => one.id).sort()).toEqual(
       GENRE_RACKS.map((one) => one.id).sort(),
     );
-    expect(audit.media).toHaveLength(166);
-    expect(new Set(audit.media.map((one) => one.id)).size).toBe(166);
+    expect(audit.media).toHaveLength(168);
+    expect(new Set(audit.media.map((one) => one.id)).size).toBe(168);
     expect(JSON.stringify(audit)).not.toMatch(/[A-Z]:[\\/]|\\\\Users\\|\.wav"/);
   });
 
   it('holds exact curves and native settings to the fixture that actually runs in CI', () => {
     const rows = readFileSync(fixture, 'utf8').trim().split(/\r?\n/);
-    expect(rows).toHaveLength(83);
+    expect(rows).toHaveLength(84);
     audit.genres.forEach((genre) => {
       const preset = presetOf(genre.chainId);
       const rack = GENRE_RACKS.find((one) => one.id === genre.id);

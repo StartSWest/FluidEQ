@@ -22,6 +22,31 @@ export default {
     '输入响度统一后提升 7 dB，以约 −11 LUFS 为目标，峰值上限为 −1 dBTP。Master 保持关闭，只用一个最终限制器保留冲击力。',
   'genre.pop.off': '低音熔炉以“流行”的名义提供，但保持关闭：超低音已在母带里。',
 
+  'genre.dancePop.hook': '为舞池而生的流行',
+  'genre.dancePop.story':
+    '从麦当娜、凯莉·米洛到 Lady Gaga、杜阿·利帕和黛米·洛瓦托，为夜店打造的流行歌曲：115 至 130 BPM 每拍一下的四四拍底鼓，贝斯在它下面让位，明亮的主唱在上，宽阔的合成器铺底。以制作人为主导，母带响度很高，常在 −6 至 −10 LUFS，峰值超过满刻度。',
+  'genre.dancePop.pin.80': '每拍一下的底鼓',
+  'genre.dancePop.pin.80.why':
+    '把每一拍的冲击提到超低频之上，而不是再加超低频。',
+  'genre.dancePop.pin.315': '给底鼓和人声留出空间',
+  'genre.dancePop.pin.315.why':
+    '去掉铺底和贝斯堆积的中低频，让底鼓和人声穿透出来。',
+  'genre.dancePop.pin.3150': '明亮、靠前的人声',
+  'genre.dancePop.pin.3150.why':
+    '为主唱增加临场感；正上方的齿音被柔化，而不是提升。',
+  'genre.dancePop.pin.12500': '通透、精致的高频',
+  'genre.dancePop.pin.12500.why': '舞曲母带特有的光泽，并稍微打开得更宽。',
+  'genre.dancePop.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.dancePop.stage.bassPunch':
+    '缩短每个底鼓下的贝斯尾音，让侧链压缩留出的空隙保持干净。底鼓的起音保持母带原样。',
+  'genre.dancePop.stage.dimension':
+    '120 Hz 以下低频设为单声道（夜店音响在此把底鼓和贝斯合并），7 kHz 以上的空气感打开得更宽。人声频段保持混音原样。',
+  'genre.dancePop.stage.maximizer':
+    '固定的余量之后只有一个最终限制器，把峰值限制在 −1 dBTP，并在 124 BPM 的十六分音符内释放，因此不会逆着底鼓抽吸。Master 和 Dynamics 保持关闭。',
+  'genre.dancePop.off':
+    '不用 Bass Forge，也不用 Exciter：舞曲母带本身已有超低频和明亮、经过限制的高频，生成的谐波会落在人声的齿音上。空气频段的 Exciter 以此曲风的名称提供。',
+
   'genre.indiePop.hook': '比排行榜更轻、更暖',
   'genre.indiePop.story':
     '叮当作响的吉他和层层叠叠的和声围绕着居中的人声，90 到 130 BPM，常常故意录在磁带或卡带上。比排行榜流行更柔和，响度低约 1 dB，超低音也更少：温暖本身就是它的样子。',

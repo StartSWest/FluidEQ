@@ -86,11 +86,14 @@ const NEVER_LIFTED: Readonly<Record<string, readonly [number, number]>> = {
   bhangra: [40, 120],
   bachata: [3_000, 8_000],
   ballad: [6_000, 10_000],
+  // "The sibilance just above it is eased, not lifted."
+  dancePop: [6_500, 9_000],
 };
 
 /** Where a genre's notes say its bass is mono, the corner that makes it so. */
 const MONO_UNDER: Readonly<Record<string, number>> = {
   pop: 140,
+  dancePop: 120,
   electronic: 150,
   edm: 150,
   house: 150,

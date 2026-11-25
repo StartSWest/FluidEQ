@@ -560,7 +560,7 @@ int main(int argc, char** argv) {
     ++count;
   }
   if (programme_only) return count == 1 && failures == 0 ? 0 : 1;
-  check(count == 83, "all 83 music factory configurations were actually rendered");
+  check(count == 84, "all 84 music factory configurations were actually rendered");
   wanted_colour_contract();
   input_readback_controls();
   control.settings.exciter.enabled = 1;

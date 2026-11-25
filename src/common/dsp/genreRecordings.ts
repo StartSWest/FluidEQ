@@ -13,6 +13,8 @@ import type { GenreRecording } from './genreNotes';
 const RECORDING_VIDEOS: Readonly<Record<GenreRecording, string>> = {
   'Blinding Lights — The Weeknd': '4NRXx6U8ABQ',
   'Levitating — Dua Lipa': 'N000qglmmY0',
+  'Neon Lights — Demi Lovato': 'v9uDwppN5-w',
+  'Padam Padam — Kylie Minogue': 'p6Cnazi_Fi0',
   'Young Folks — Peter Bjorn and John': 'OIRE6iw-ws4',
   'Electric Feel — MGMT': 'MmZexg8sxyk',
   'Don’t You Want Me — The Human League': 'uPudE8nDog0',

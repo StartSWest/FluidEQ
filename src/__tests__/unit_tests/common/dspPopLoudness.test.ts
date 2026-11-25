@@ -86,7 +86,7 @@ describe('Pop source loudness', () => {
     };
     // The control: the listener's Normalizer is not the default one.
     expect(previous.normalizer).not.toEqual(DSP_DEFAULTS.normalizer);
-    expect(DSP_PRESETS).toHaveLength(118);
+    expect(DSP_PRESETS).toHaveLength(119);
     DSP_PRESETS.forEach(({ id, settings }) => {
       const next = dspPresetSettings(id, previous);
       expect(next?.normalizer).toEqual(previous.normalizer);

@@ -18,7 +18,7 @@ it.each([
       'indieRock',
       'progressiveRock',
     ],
-    ['pop', 'indiePop', 'synthPop'],
+    ['pop', 'dancePop', 'indiePop', 'synthPop'],
     ['hiphop', 'rap', 'trap'],
     ['jazz', 'smoothJazz', 'fusion'],
     ['classical', 'orchestra', 'opera'],

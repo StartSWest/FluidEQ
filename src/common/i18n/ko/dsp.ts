@@ -271,6 +271,7 @@ const dsp = {
   'dsp.eqPreset.vShape': 'V자형',
   'dsp.eqPreset.rock': '록',
   'dsp.eqPreset.pop': '팝',
+  'dsp.eqPreset.dancePop': '댄스팝',
   'dsp.eqPreset.ballad': '발라드',
   'dsp.eqPreset.jazz': '재즈',
   'dsp.eqPreset.classical': '클래식',

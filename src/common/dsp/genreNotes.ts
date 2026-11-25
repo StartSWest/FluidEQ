@@ -38,6 +38,10 @@ const GENRE_NOTES_DATA = {
     pins: [50, 315, 5000],
     listen: ['Blinding Lights — The Weeknd', 'Levitating — Dua Lipa'],
   },
+  dancePop: {
+    pins: [80, 315, 3150, 12500],
+    listen: ['Neon Lights — Demi Lovato', 'Padam Padam — Kylie Minogue'],
+  },
   indiePop: {
     pins: [50, 315, 1250, 12500],
     listen: ['Young Folks — Peter Bjorn and John', 'Electric Feel — MGMT'],

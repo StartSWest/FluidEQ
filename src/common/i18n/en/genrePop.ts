@@ -27,6 +27,32 @@ const genrePop = {
   'genre.pop.off':
     'Bass Forge is offered under Pop’s name and left off: the sub is in the master.',
 
+  'genre.dancePop.hook': 'Pop made for the dance floor',
+  'genre.dancePop.story':
+    'Pop songs built for the club, from Madonna and Kylie Minogue to Lady Gaga, Dua Lipa and Demi Lovato: a four-on-the-floor kick at 115 to 130 BPM with the bass ducking under it, a bright lead vocal on top and wide synths. Producer-driven and mastered loud, often −6 to −10 LUFS with peaks over full scale.',
+  'genre.dancePop.pin.80': 'The four-on-the-floor kick',
+  'genre.dancePop.pin.80.why':
+    'The thump on every beat, lifted above the sub rather than adding more sub.',
+  'genre.dancePop.pin.315': 'Room for the kick and the voice',
+  'genre.dancePop.pin.315.why':
+    'The low-mid build-up of pads and bass taken out, so the kick and the vocal cut through.',
+  'genre.dancePop.pin.3150': 'A bright, forward vocal',
+  'genre.dancePop.pin.3150.why':
+    'Presence for the lead; the sibilance just above it is eased, not lifted.',
+  'genre.dancePop.pin.12500': 'An airy, polished top',
+  'genre.dancePop.pin.12500.why':
+    'The sheen dance masters are known for, opened a little wider.',
+  'genre.dancePop.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.dancePop.stage.bassPunch':
+    'Shortens the bass tail under each kick, so the gap the sidechain opened stays clear. The kick’s attack is left as mastered.',
+  'genre.dancePop.stage.dimension':
+    'Bass in mono under 120 Hz, where a club sums the kick and the bass, and the air above 7 kHz opened wider. The vocal’s band is left as mixed.',
+  'genre.dancePop.stage.maximizer':
+    'A fixed headroom before one final limiter that catches peaks at −1 dBTP and lets go within a sixteenth note at 124 BPM, so it never pumps against the kick. Master and Dynamics stay off.',
+  'genre.dancePop.off':
+    'No Bass Forge and no Exciter: dance masters already carry their sub and a bright, limited top, and generated harmonics would land on the vocal’s esses. The air-band Exciter is offered under this genre’s name.',
+
   'genre.indiePop.hook': 'Lighter and warmer than the charts',
   'genre.indiePop.story':
     'Jangling guitars and stacked harmonies around a centred voice, 90 to 130 BPM, often cut to tape or cassette on purpose. Softer and about a decibel quieter than chart pop, with less sub: the warmth is the look.',
