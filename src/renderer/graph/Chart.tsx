@@ -26,6 +26,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import type { IResolvedLook } from 'common/customLooks';
 import { levelAxisSuitsLook } from 'common/graphAnalysis';
 import Axis from './Axis';
 import { ChartIdsContext, TChartIdOf } from './chartIds';
@@ -135,6 +136,12 @@ interface IChartProps {
    * nothing.
    */
   onPlotDoubleClick?: (toWindow: boolean) => void;
+  /**
+   * A look the live trace is drawn in as a picture of itself, instead of the
+   * graph's look or scene: Help's figures (`HelpEqGraph`), which show the
+   * window as it opens and must not start the reader's chosen scene.
+   */
+  livePicture?: IResolvedLook;
 }
 
 const Chart = ({
@@ -147,6 +154,7 @@ const Chart = ({
   outputOffset,
   isPlotPartOfWindow = false,
   onPlotDoubleClick,
+  livePicture,
 }: IChartProps) => {
   const { width, height, margins } = dimensions;
   // This chart's own ids for its clips and its spectrum (`chartIds.ts`).
@@ -218,12 +226,15 @@ const Chart = ({
       frequencyRange: graphFrequencyRange(isGridHidden, frequencyRangeChoice),
     });
 
-  const scene = useSceneLook();
-  const sceneTrouble = useSceneTrouble();
+  const chosenScene = useSceneLook();
+  const chosenSceneTrouble = useSceneTrouble();
+  const scene = livePicture ? undefined : chosenScene;
+  const sceneTrouble = livePicture ? undefined : chosenSceneTrouble;
   const hasScene = Boolean(scene);
   // Only to decide whether the level scale describes what is drawn; the
   // trace subscribes to the look itself and is not re-rendered from here.
-  const look = useGraphLook();
+  const chosenLook = useGraphLook();
+  const look = livePicture ?? chosenLook;
   const liveLevelScale = useMemo(
     () =>
       liveLevelScaleFor({
@@ -474,6 +485,7 @@ const Chart = ({
             offsetLeft={margins.left}
             offsetTop={margins.top}
             isForeground={isLiveOutputForeground}
+            picture={livePicture}
             // Before & after shows the music as it reached the EQ by taking
             // this back out of the reading; nothing else on the canvas uses
             // it, and no other curve on this chart is the whole chain.

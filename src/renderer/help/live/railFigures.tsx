@@ -1,12 +1,15 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
+import { useCallback, useRef } from 'react';
 import { MAX_GAIN, PREAMP_MIN_GAIN } from 'common/constants';
 import LiveFigure from '../../components/LiveFigure';
 import PowerGlyph from '../../icons/PowerGlyph';
 import { useTranslation } from '../../utils/I18nContext';
+import writeLiveText from '../../utils/liveText';
 import Knob from '../../widgets/Knob';
 import Switch from '../../widgets/Switch';
-import HelpMeterStill from './HelpMeterStill';
+import HelpMeter from './HelpMeter';
+import HelpMusic from './HelpMusic';
 import '../../styles/SideBar.scss';
 
 /**
@@ -17,14 +20,54 @@ import '../../styles/SideBar.scss';
  * The dial and the switches are the rail's own widgets; the power key and the
  * two switch rows are their markup, class for class, because the rail's own
  * parts read the reader's engine, power and graph and act on them. The meter
- * is `HelpMeterStill`: the real one claims the reader's audio capture. Laid
- * out in a column of the rail's own width (`$side-bar-width`), as tall as a
- * short window gives it, with the FluidEQ Engine on and Auto normalize
- * holding the dial.
+ * is `HelpMeter`, moving with made-up music: the real one claims the
+ * reader's audio capture. Laid out in a column of the rail's own width
+ * (`$side-bar-width`), as tall as a short window gives it, with the FluidEQ
+ * Engine on and Auto normalize holding the dial.
  */
 
 const nothing = () => undefined;
 const nowhere = async () => undefined;
+
+const NO_READING = '–';
+const READING_WIDEST = ['-00.0 dB', NO_READING];
+
+/**
+ * The meter and the number over it, written as `SideBar` writes it: straight
+ * into the readout from the meter's report, never a render of the column.
+ */
+const MeterSection = () => {
+  const { t } = useTranslation();
+  const readingRef = useRef<HTMLSpanElement>(null);
+  const readingTextRef = useRef<HTMLSpanElement>(null);
+  const handleReading = useCallback((peakDb: number | null) => {
+    writeLiveText(
+      readingTextRef.current,
+      peakDb === null ? NO_READING : `${peakDb.toFixed(1)} dB`,
+    );
+    readingRef.current?.classList.toggle('is-idle', peakDb === null);
+  }, []);
+  return (
+    <section className="side-bar__meter">
+      <h4 className="side-bar__head">
+        <span>{t('sidebar.output')}</span>
+        <LiveFigure
+          className="side-bar__reading is-idle"
+          widest={READING_WIDEST}
+          textRef={readingTextRef}
+          figureRef={readingRef}
+        >
+          {NO_READING}
+        </LiveFigure>
+      </h4>
+      <div className="side-bar__well">
+        <HelpMusic>
+          <HelpMeter onReading={handleReading} />
+        </HelpMusic>
+      </div>
+    </section>
+  );
+};
 
 /** The rail's column, and the room a window of about 900px leaves it. */
 const COLUMN = { width: 132, height: 700 };
@@ -85,20 +128,7 @@ export default function RailDrawing() {
           />
         </div>
         <div className="side-bar__rule" />
-        <section className="side-bar__meter">
-          <h4 className="side-bar__head">
-            <span>{t('sidebar.output')}</span>
-            <LiveFigure
-              className="side-bar__reading"
-              widest={['-00.0 dB', '–']}
-            >
-              -6.4 dB
-            </LiveFigure>
-          </h4>
-          <div className="side-bar__well">
-            <HelpMeterStill />
-          </div>
-        </section>
+        <MeterSection />
       </div>
     </div>
   );

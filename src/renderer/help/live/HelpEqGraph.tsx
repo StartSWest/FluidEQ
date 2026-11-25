@@ -2,15 +2,20 @@
 
 import { useMemo, type ReactNode } from 'react';
 import { getDefaultState, isBandEnabled } from 'common/constants';
+import { resolveBuiltInLook } from 'common/customLooks';
+import { DEFAULT_GRAPH_LOOK } from 'common/graphStyles';
 import Chart from '../../graph/Chart';
 import type { IEditableChartPoint } from '../../graph/ChartController';
 import { buildChartData } from '../../graph/buildChartData';
+import { SUPPORTING_CURVE_OPACITY } from '../../graph/chartCurves';
+import liveTraceCurves from '../../graph/liveTraceCurves';
 import { GRID_BOTTOM_MARGIN, plotTopMargin } from '../../graph/plotMargins';
 import { getLineGainAtFrequency } from '../../graph/utils';
 import { getBandColor } from '../../utils/bandColors';
 import FILTER_TYPE_NAME_KEYS from '../../utils/filterTypeNames';
 import { useTranslation } from '../../utils/I18nContext';
 import { useRainbowStops } from '../../utils/rainbowPalette';
+import HelpMusic from './HelpMusic';
 import { HELP_EQ_FILTERS } from './helpEqState';
 
 /**
@@ -21,13 +26,23 @@ import { HELP_EQ_FILTERS } from './helpEqState';
  * markup class for class (`GraphCornerLegend`, `GraphGalleryKeys`): those
  * read and switch the reader's own graph settings.
  *
- * No live wave: the trace draws the reader's own sound from the capture,
- * which a figure must never open. `children` is what else the card's options
- * row carries — the gallery, in the graph chapter's figure.
+ * The live wave behind the curves moves with made-up music (`HelpMusic`),
+ * never the reader's own sound, and is drawn in the look the window opens
+ * on rather than the reader's look or scene (`livePicture`). `children` is
+ * what else the card's options row carries — the gallery, in the graph
+ * chapter's figure.
  */
 
 const nothing = () => undefined;
 const DEFAULT_STATE = getDefaultState();
+const OPENING_LOOK = resolveBuiltInLook(DEFAULT_GRAPH_LOOK);
+/** The wave as the graph draws it behind the curves, as the window opens. */
+const LIVE_CURVES = liveTraceCurves({
+  orientation: 'up',
+  height: 1,
+  position: 0,
+  opacity: SUPPORTING_CURVE_OPACITY,
+});
 
 /** The plot's size in the figure, in its own pixels. */
 export interface IHelpGraphSize {
@@ -169,21 +184,25 @@ export const HelpEqPlot = ({
       className="graph-plot is-measured"
       style={{ flex: 'none', width: size.width, height: size.height }}
     >
-      <Chart
-        data={data}
-        dimensions={{
-          width: size.width,
-          height: size.height,
-          margins: {
-            top: plotTopMargin(false),
-            right: 0,
-            bottom: GRID_BOTTOM_MARGIN,
-            left: 0,
-          },
-        }}
-        editablePoints={points}
-        isLiveOutputForeground={false}
-      />
+      <HelpMusic>
+        <Chart
+          data={data}
+          dimensions={{
+            width: size.width,
+            height: size.height,
+            margins: {
+              top: plotTopMargin(false),
+              right: 0,
+              bottom: GRID_BOTTOM_MARGIN,
+              left: 0,
+            },
+          }}
+          editablePoints={points}
+          liveCurves={LIVE_CURVES}
+          livePicture={OPENING_LOOK}
+          isLiveOutputForeground={false}
+        />
+      </HelpMusic>
     </div>
   );
 };
