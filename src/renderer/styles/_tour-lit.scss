@@ -217,7 +217,7 @@
 // width, and its height down to the foot (Ivan, 2026-11-25: "the new
 // windows, the light and black we show, need to cover the whole scene").
 .tour-lit--window {
-  gap: calc(var(--tour-unit) * 1.1);
+  gap: calc(var(--tour-unit) * 0.9);
   grid-template-rows: auto minmax(240px, 1fr);
 }
 
@@ -229,27 +229,30 @@
   display: grid;
   min-width: 0;
   padding-inline-end: 48px;
-  gap: calc(var(--tour-unit) * 0.45);
+  gap: calc(var(--tour-unit) * 0.3);
   justify-items: start;
 
   .tour-slide__title {
-    font-size: calc(var(--tour-unit) * 2.1);
+    font-size: calc(var(--tour-unit) * 1.9);
   }
 
   .tour-slide__lead {
     font-size: calc(var(--tour-unit) * 1.05);
-    line-height: 1.45;
+    line-height: 1.4;
   }
 }
 
+// The stage's top and foot are kept tight on this page too: at the window's
+// size every pixel of height is 1.6 of width.
 .feature-tour__stage:has(> .tour-lit--window) {
-  padding-top: calc(var(--tour-unit) * 1.6);
+  padding-top: calc(var(--tour-unit) * 1.1);
+  padding-bottom: var(--tour-unit);
 }
 
 // The window over its caption; the window's room takes every pixel the
 // caption leaves.
 .tour-lit__figure--window {
-  gap: calc(var(--tour-unit) * 0.6);
+  gap: calc(var(--tour-unit) * 0.45);
   grid-template-rows: minmax(0, 1fr) auto;
 }
 
