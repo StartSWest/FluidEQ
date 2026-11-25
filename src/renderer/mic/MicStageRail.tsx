@@ -359,6 +359,7 @@ const MicStageRail = ({
           their own, first, as the voice meets them. */}
       <DspRailRow
         name={t('mic.stage.own')}
+        isActive={active === 'own'}
         isOff={!ownEffects.on}
         power={{
           id: 'mic-rail-own',
@@ -408,6 +409,7 @@ const MicStageRail = ({
           <DspRailRow
             key={id}
             name={t(labelKey)}
+            isActive={id === active}
             isOff={!on}
             power={{
               id: `mic-rail-${id}`,

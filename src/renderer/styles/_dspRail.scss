@@ -250,19 +250,35 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // A STAGE'S ROW (`DspRailRow`), on the Mic tab's, the DSP page's and the
 // Gaming Lab's rails: the button that chooses the stage, then the stage's own
 // switch beside it, since a switch cannot live inside a button. The chosen
-// row's highlight is the button's, so it ends a gap before the switch, and
-// the switch stands on the rail's own floor (Ivan, 2026-11-25: "do a gap
-// between the highlight and the toggle, because it doesn't look good"; it ran
-// right up to the switch's edge).
+// row's highlight is the ROW's: one band across the button and the switch,
+// with the switch's own air after it so it never meets the band's edge, and
+// the switch at the same place on every row, chosen or not (Ivan,
+// 2026-11-25: "I want the toggles to be inside the selected, the highlight.
+// So it's like a full band with the toggle inside. And make sure there is
+// padding after the toggle"). The same day's first answer, a band that
+// stopped a gap short of the switch, was sent back.
 .dsp-rail-row {
   display: flex;
   min-width: 0;
   align-items: center;
   gap: 8px;
+  border-radius: $radius-s;
+  transition: background 140ms ease;
 
   > .dsp-rail-tab {
     min-width: 0;
     flex: 1 1 auto;
+  }
+
+  // The button's own highlight hands over to the row's, so the band does not
+  // stop at the button's edge.
+  &.is-active {
+    background: $selected-accent;
+
+    > .dsp-rail-tab.is-active {
+      border-color: transparent;
+      background: none;
+    }
   }
 
   // Switched off: its name a step quieter, as the Mic rail has read since

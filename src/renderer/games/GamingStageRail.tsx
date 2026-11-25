@@ -91,6 +91,7 @@ const GamingStageRail = ({
                 <DspRailRow
                   key={id}
                   name={t(labelKey)}
+                  isActive={id === active}
                   isOff={playing !== undefined && !isOn}
                   power={
                     playing && section

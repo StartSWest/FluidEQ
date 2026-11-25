@@ -298,11 +298,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 // The DSP page's rows (`_dspStudio.scss` draws them for both pages), in
-// three named groups.
+// three named groups. A studio rail's width since each row carries its
+// switch (`DspRailRow`): at 212px the switch left "Game filter" beside its
+// "tuned" word as "Game fil…" (harness, 2026-11-25).
 .gaming-rail {
   flex: 0 0 auto;
   gap: 4px;
-  width: 212px;
+  width: $studio-rail-width;
 }
 
 // One line, as the DSP rail's and the Library's shelf names: a name that

@@ -373,9 +373,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // Onto a second line rather than cut, as the DSP rail's names are: beside a
 // meter, a delay and a switch, a cut name read "Noise …" and "De-ess…" at
 // the default width (harness, 2026-11-23), and a translation is longer.
+//
+// A name keeps room for a word, and on a rail too narrow for the name, the
+// meter and the delay side by side, the meter and the delay go under the
+// name at the row's end: at the narrowest rail the three on one line left
+// the name 18px, a letter to a line and a row 230px tall (harness,
+// 2026-11-25).
 .mic-rail .dsp-rail-name {
-  min-width: 0;
-  flex: 1 1 auto;
+  // Never so much that the glyph and the name part lines: the glyph is 18px
+  // and the row's gap 10 (`studio-rail-item`).
+  min-width: min(5.5em, calc(100% - 28px));
+  // From nothing, so the line breaks at that floor and not at the name's
+  // whole width, which put a long name on a line of its own under the glyph.
+  flex: 1 1 0;
   line-height: 1.25;
   overflow-wrap: anywhere;
 
@@ -383,8 +393,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // wrap, it broke a letter to a line and stood every row a hundred pixels
   // tall under its glyph (harness at 760, 2026-11-23).
   @include folded-at-rest {
+    min-width: 0;
     white-space: nowrap;
   }
+}
+
+.mic-rail .dsp-rail-tab {
+  flex-wrap: wrap;
+  row-gap: 4px;
+
+  @include folded-at-rest {
+    flex-wrap: nowrap;
+  }
+}
+
+// The meter leads what goes under the name, so the pair keeps to the row's
+// end on either line.
+.mic-rail .mic-rail__meter {
+  margin-left: auto;
 }
 
 // The DSP page's column air: the Library's 14px over its first row, 16 at

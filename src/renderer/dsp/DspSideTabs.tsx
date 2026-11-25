@@ -58,6 +58,7 @@ const DspSideTabs = ({
       <DspRailRow
         key={id}
         name={t(labelKey)}
+        isActive={id === active}
         isOff={!enabled[id]}
         power={{
           id: `dsp-rail-${id}`,

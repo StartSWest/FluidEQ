@@ -198,6 +198,29 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
+// THE CHOSEN ROW IS ONE BAND (`DspRailRow`): the Library's mark across the
+// whole row, its switch inside it with the switch's air after it (Ivan,
+// 2026-11-25: "a full band with the toggle inside"). The button inside keeps
+// the chosen ink and glyph and gives its background up to the row; pointed
+// at, the row lifts as one too, so the lift and the band end at the same
+// place. Not a row out of reach, which answers the pointer with nothing.
+:is(.dsp-studio, .gaming-lab, .mic-page) .dsp-rail-row {
+  border-radius: 0;
+
+  > .dsp-rail-tab:is(:hover, .is-active) {
+    background: none;
+  }
+
+  &:hover:has(> .dsp-rail-tab:not(:disabled)) {
+    background: $fill-hover;
+  }
+
+  &.is-active,
+  &.is-active:hover {
+    @include studio-mark;
+  }
+}
+
 // One line, as the Library's shelf names (`.library-rail__label`): the old
 // rail let a name wrap so it never ended in an ellipsis, and folded to 36px
 // every name with a space in it stood two lines tall, 48px rows among 32px

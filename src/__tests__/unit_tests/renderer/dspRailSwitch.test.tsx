@@ -179,6 +179,22 @@ describe('a stage switch on the DSP rail', () => {
     expect(screen.getByRole('region', { name: 'Room' })).toBeInTheDocument();
   });
 
+  it('draws the chosen stage as one band holding its switch', () => {
+    renderPanel(DSP_DEFAULTS);
+    openStage('Room');
+    // The band is the row's, so the switch stands inside it (Ivan,
+    // 2026-11-25: "a full band with the toggle inside").
+    const chosen = rail().getByRole('button', { name: 'Room' });
+    const row = chosen.closest('.dsp-rail-row');
+    expect(row).toHaveClass('is-active');
+    expect(row).toContainElement(railSwitch('Room', 'on'));
+    expect(
+      rail()
+        .getByRole('button', { name: 'Dimension' })
+        .closest('.dsp-rail-row'),
+    ).not.toHaveClass('is-active');
+  });
+
   it('keeps the preset named for the source level and the transition', () => {
     const { seen } = renderPanel({ ...DSP_DEFAULTS, presetId: 'balanced' });
     const normalizerOn = DSP_DEFAULTS.normalizer.mode !== 'off';
