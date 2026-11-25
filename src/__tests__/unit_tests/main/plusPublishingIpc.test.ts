@@ -454,6 +454,37 @@ describe('what the open project was published as', () => {
     ).toEqual({ ok: true });
   });
 
+  it('says one of FluidEQ’s own scenes is published, though its settings are not read here', async () => {
+    // The account that publishes FluidEQ's scenes, on its own project of one:
+    // only the official half of the list has it. Read as "never published",
+    // the Studio told its maker Aurora was not in the gallery (2026-11-25).
+    serving([
+      listed({ official: true, version: 7 }),
+      listed({ official: true, version: 6 }),
+    ]);
+    setup();
+    expect(
+      await invoke<Promise<TPublishedSettingsOutcome>>(
+        'studio-published-settings',
+      ),
+    ).toEqual({ ok: true, listed: { version: 7 } });
+    // Only the list is asked: an official file is not a member's to open.
+    expect(calls.some((call) => call.url.includes('/object/'))).toBe(false);
+  });
+
+  it('reads a taken-down official scene, and somebody else’s id, as not published', async () => {
+    serving([
+      listed({ official: true, blocked: true }),
+      listed({ official: true, scene_id: 'another-scene' }),
+    ]);
+    setup();
+    expect(
+      await invoke<Promise<TPublishedSettingsOutcome>>(
+        'studio-published-settings',
+      ),
+    ).toEqual({ ok: true });
+  });
+
   it('asks nothing for a FluidEQ scene opened to look inside, or signed out', async () => {
     inspecting = true;
     setup();

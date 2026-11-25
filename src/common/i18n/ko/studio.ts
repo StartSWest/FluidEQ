@@ -83,6 +83,9 @@ const studio = {
   'studio.project.inReview': '검토 중',
   'studio.project.inReviewHint':
     '이 버전은 검토를 기다리고 있으며 이후 변경된 것이 없습니다',
+  'studio.project.changed': '변경됨',
+  'studio.project.changedHint':
+    '갤러리 버전 이후 변경되었으며 아직 게시되지 않았습니다',
   'studio.project.aiWorking': 'AI 작업 중',
   'studio.project.aiReplied': 'AI가 답변함',
   'studio.project.aiWorkingElsewhere': '다른 장면에서 AI가 작업 중입니다',
@@ -422,7 +425,7 @@ const studio = {
   'studio.line.changed':
     '버전 {version}이(가) 갤러리에 올라간 뒤로 장면을 바꿨습니다.',
   'studio.line.elsewhere':
-    '버전 {version}이(가) 갤러리에 있습니다. 다른 컴퓨터에서 게시되었습니다.',
+    '버전 {version}이(가) 갤러리에 있습니다. 이 컴퓨터에서는 그 뒤로 바뀌었는지 알 수 없습니다.',
   'studio.line.inGallery': '버전 {version}이(가) 갤러리에 있습니다.',
   'studio.line.review':
     '버전 {version}이(가) 검토를 기다리고 있습니다. 그때까지 갤러리에는 버전 {live}이(가) 남습니다.',

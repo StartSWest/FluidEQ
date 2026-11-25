@@ -659,6 +659,18 @@ $studio-stage-floor: 148px;
     }
   }
 
+  // Changed since a version went out: the gallery is not the latest. The
+  // amber of the version line's own mark for it, still - nothing is running.
+  &.is-changed {
+    color: $ink-caution;
+    border-color: color-mix(in srgb, $amber 40%, transparent);
+    background: color-mix(in srgb, $amber 10%, transparent);
+
+    &::before {
+      background: $amber;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     &.is-working::before,
     &.is-waiting::before {

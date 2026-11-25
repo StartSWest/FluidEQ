@@ -130,11 +130,15 @@ export const studioVersionLine = ({
     return record.unchanged
       ? line('studio.line.same', { version: live }, 'live')
       : line('studio.line.changed', { version: live }, 'changed', {
-          publish: 'ready',
+          publish: 'changes',
         });
   }
   // No record here of the version people have: it went out from another
-  // computer, and this folder cannot be compared with it.
+  // computer, or from this one before the records were kept, or it is one of
+  // FluidEQ's own scenes, published by the account that publishes those.
+  // Which, nothing here can say, and the folder cannot be compared with it;
+  // the sentence says only that (it said "from another computer" of scenes
+  // published from this very one).
   if (record === undefined || record.version < live) {
     return line('studio.line.elsewhere', { version: live }, 'live');
   }

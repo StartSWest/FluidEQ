@@ -84,6 +84,9 @@ const studio = {
   'studio.project.inReview': 'En vérification',
   'studio.project.inReviewHint':
     'Cette version attend d’être vérifiée, et rien n’a changé depuis',
+  'studio.project.changed': 'Modifiée',
+  'studio.project.changedHint':
+    'Modifiée depuis la version de la galerie, et pas encore publiée',
   'studio.project.aiWorking': 'IA au travail',
   'studio.project.aiReplied': 'L’IA a répondu',
   'studio.project.aiWorkingElsewhere': 'Une IA travaille sur une autre scène',
@@ -446,7 +449,7 @@ const studio = {
   'studio.line.changed':
     'Vous l’avez modifiée depuis que la version {version} est dans la galerie.',
   'studio.line.elsewhere':
-    'La version {version} est dans la galerie. Elle a été publiée depuis un autre ordinateur.',
+    'La version {version} est dans la galerie. Cet ordinateur ne peut pas savoir si elle a changé depuis.',
   'studio.line.inGallery': 'La version {version} est dans la galerie.',
   'studio.line.review':
     'La version {version} attend d’être vérifiée. D’ici là, la galerie garde la version {live}.',

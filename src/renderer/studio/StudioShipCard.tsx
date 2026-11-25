@@ -142,7 +142,7 @@ export default function StudioShipCard({
       <button
         type="button"
         className={`button small studio-ship__publish${
-          publishCall !== 'changes' ? ' subtle' : ''
+          publishCall === 'quiet' ? ' subtle' : ''
         }${beckoning ? ' is-beckoning' : ''}${publishing ? ' is-running' : ''}`}
         aria-busy={publishing}
         onClick={onPublish}

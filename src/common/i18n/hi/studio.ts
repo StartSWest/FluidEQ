@@ -82,6 +82,9 @@ const studio = {
   'studio.project.inReview': 'समीक्षा में',
   'studio.project.inReviewHint':
     'यह संस्करण समीक्षा की प्रतीक्षा में है, और तब से कुछ नहीं बदला',
+  'studio.project.changed': 'बदला गया',
+  'studio.project.changedHint':
+    'गैलरी वाले संस्करण के बाद बदला गया, और अभी प्रकाशित नहीं हुआ',
   'studio.project.aiWorking': 'AI काम कर रहा है',
   'studio.project.aiReplied': 'AI ने जवाब दिया',
   'studio.project.aiWorkingElsewhere': 'एक AI दूसरे सीन पर काम कर रहा है',
@@ -432,7 +435,7 @@ const studio = {
   'studio.line.changed':
     'संस्करण {version} के गैलरी में जाने के बाद आपने इसे बदला है।',
   'studio.line.elsewhere':
-    'संस्करण {version} गैलरी में है। इसे किसी दूसरे कंप्यूटर से प्रकाशित किया गया था।',
+    'संस्करण {version} गैलरी में है। यह कंप्यूटर नहीं बता सकता कि तब से इसमें बदलाव हुआ है या नहीं।',
   'studio.line.inGallery': 'संस्करण {version} गैलरी में है।',
   'studio.line.review':
     'संस्करण {version} समीक्षा की प्रतीक्षा में है। तब तक गैलरी में संस्करण {live} रहेगा।',

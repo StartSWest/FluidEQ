@@ -62,11 +62,13 @@ const WORK_LABEL: Record<TStudioChatWork, TranslationKey> = {
 const RELEASE_LABEL: Record<TProjectRelease, TranslationKey> = {
   published: 'studio.project.published',
   review: 'studio.project.inReview',
+  changed: 'studio.project.changed',
 };
 
 const RELEASE_HINT: Record<TProjectRelease, TranslationKey> = {
   published: 'studio.project.publishedHint',
   review: 'studio.project.inReviewHint',
+  changed: 'studio.project.changedHint',
 };
 
 /** What the picker's own button says about the other scenes' chats. */

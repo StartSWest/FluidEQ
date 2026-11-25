@@ -82,6 +82,9 @@ const studio = {
   'studio.project.inReview': 'На проверке',
   'studio.project.inReviewHint':
     'Эта версия ждёт проверки, и с тех пор ничего не менялось',
+  'studio.project.changed': 'Изменена',
+  'studio.project.changedHint':
+    'Изменена после версии в галерее и ещё не опубликована',
   'studio.project.aiWorking': 'ИИ работает',
   'studio.project.aiReplied': 'ИИ ответил',
   'studio.project.aiWorkingElsewhere': 'ИИ работает над другой сценой',
@@ -436,7 +439,7 @@ const studio = {
   'studio.line.changed':
     'Вы изменили сцену с тех пор, как версия {version} попала в галерею.',
   'studio.line.elsewhere':
-    'Версия {version} в галерее. Она опубликована с другого компьютера.',
+    'Версия {version} в галерее. Этот компьютер не может определить, менялась ли она с тех пор.',
   'studio.line.inGallery': 'Версия {version} в галерее.',
   'studio.line.review':
     'Версия {version} ждёт проверки. До тех пор в галерее остаётся версия {live}.',

@@ -82,6 +82,9 @@ const studio = {
   'studio.project.inReview': '審査中',
   'studio.project.inReviewHint':
     'このバージョンは審査待ちで、その後の変更はありません',
+  'studio.project.changed': '変更あり',
+  'studio.project.changedHint':
+    'ギャラリーのバージョンから変更があり、まだ公開されていません',
   'studio.project.aiWorking': 'AI が作業中',
   'studio.project.aiReplied': 'AI が返信しました',
   'studio.project.aiWorkingElsewhere': '別のシーンで AI が作業中です',
@@ -439,7 +442,7 @@ const studio = {
   'studio.line.changed':
     'バージョン {version} をギャラリーに出したあと、変更しています。',
   'studio.line.elsewhere':
-    'バージョン {version} がギャラリーにあります。別のコンピューターから公開されました。',
+    'バージョン {version} がギャラリーにあります。その後変更したかどうかは、このコンピューターではわかりません。',
   'studio.line.inGallery': 'バージョン {version} がギャラリーにあります。',
   'studio.line.review':
     'バージョン {version} は審査待ちです。それまでギャラリーにはバージョン {live} が残ります。',

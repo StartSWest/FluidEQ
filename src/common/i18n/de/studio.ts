@@ -83,6 +83,9 @@ const studio = {
   'studio.project.inReview': 'In Prüfung',
   'studio.project.inReviewHint':
     'Diese Version wartet auf die Prüfung, und seitdem wurde nichts geändert',
+  'studio.project.changed': 'Geändert',
+  'studio.project.changedHint':
+    'Seit der Version in der Galerie geändert und noch nicht veröffentlicht',
   'studio.project.aiWorking': 'KI arbeitet',
   'studio.project.aiReplied': 'KI hat geantwortet',
   'studio.project.aiWorkingElsewhere':
@@ -453,7 +456,7 @@ const studio = {
   'studio.line.changed':
     'Sie haben die Szene geändert, seit Version {version} in die Galerie kam.',
   'studio.line.elsewhere':
-    'Version {version} ist in der Galerie. Sie wurde von einem anderen Computer veröffentlicht.',
+    'Version {version} ist in der Galerie. Dieser Computer kann nicht erkennen, ob sie sich seitdem geändert hat.',
   'studio.line.inGallery': 'Version {version} ist in der Galerie.',
   'studio.line.review':
     'Version {version} wartet auf die Prüfung. Bis dahin bleibt Version {live} in der Galerie.',

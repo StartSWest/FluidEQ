@@ -157,7 +157,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // so only that small band repaints; nothing is laid out again.
 //
 // Still under Animations off and reduced motion: the whole edge stands in the
-// accent instead, so the button is as marked as before without anything
+// light's colour instead, so the button is as marked as before without anything
 // moving. Held while the window is switching out of sight
 // (`data-window-hidden`); the component takes the class off while the
 // window cannot be seen at all (`useDocumentShown`).
@@ -174,21 +174,38 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .button.is-beckoning {
+  // The light's head: the accent's light on a dark window, where the loud
+  // button is a tint and its light stands out of it; the button's own word
+  // colour on the white one, where the loud button is the accent itself and
+  // the accent's light is the same colour (#00777d over #00777d, measured).
+  // Its tail, in the accent on a dark window; on the white one the accent
+  // is the button's own fill, so the tail is the word colour, fainter.
+  --beckon-head: #{$secondary-light};
+  --beckon-tail: #{$secondary-default};
+
   position: relative;
+
+  :root[data-window-ink='dark'] & {
+    --beckon-head: #{$on-accent};
+    --beckon-tail: color-mix(in srgb, #{$on-accent} 60%, transparent);
+  }
 
   &::after {
     position: absolute;
     // Over the button's own 1px edge, and half a pixel into it.
     inset: -1px;
-    padding: 1.5px;
+    // Two pixels: the button's own edge and one inside it, so the light
+    // reads at a glance rather than as a hairline.
+    padding: 2px;
     border-radius: inherit;
     background: conic-gradient(
       from var(--beckon-angle),
       transparent 0turn,
-      transparent 0.5turn,
-      color-mix(in srgb, $secondary-default 55%, transparent) 0.78turn,
-      $secondary-default 0.92turn,
-      $secondary-light 0.97turn,
+      transparent 0.42turn,
+      color-mix(in srgb, var(--beckon-tail) 40%, transparent) 0.66turn,
+      var(--beckon-tail) 0.84turn,
+      var(--beckon-head) 0.93turn,
+      var(--beckon-head) 0.97turn,
       transparent 1turn
     );
     content: '';
@@ -199,12 +216,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     animation: button-beckon 3.2s linear infinite;
 
     @media (prefers-reduced-motion: reduce) {
-      background: $secondary-default;
+      background: var(--beckon-head);
       animation: none;
     }
 
     :root[data-motion='reduced'] & {
-      background: $secondary-default;
+      background: var(--beckon-head);
       animation: none;
     }
 

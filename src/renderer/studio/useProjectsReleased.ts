@@ -17,12 +17,17 @@ import { loadMyScenes } from '../plus/myScenes';
  *
  * - published: the version last published from its folder is live in the
  *   gallery for everyone, and the folder holds exactly what went out;
- * - review: that version waits for review, the folder still unchanged.
+ * - review: that version waits for review, the folder still unchanged;
+ * - changed: the folder changed since a version went out from it, so what
+ *   is in the gallery (or in review) is not the latest (Ivan, 2026-11-25: "I
+ *   want to show in the list if something is modified and not the latest;
+ *   I don't want to show published if it is not the latest").
  *
- * Nothing at all while its folder changed since, which is a scene being
- * worked on again; and the list puts its AI's state ahead of either.
+ * Nothing for a folder with no record here of what went out: it cannot be
+ * compared, and "published" is never said of a bench that may differ. The
+ * list puts a project's AI state ahead of all of these.
  */
-export type TProjectRelease = 'published' | 'review';
+export type TProjectRelease = 'published' | 'review' | 'changed';
 
 export const releaseOf = (
   project: Pick<IStudioProject, 'published'>,
@@ -30,8 +35,11 @@ export const releaseOf = (
   sent: readonly ISceneSubmission[],
 ): TProjectRelease | undefined => {
   const { published } = project;
-  if (!published?.unchanged) {
+  if (!published) {
     return undefined;
+  }
+  if (!published.unchanged) {
+    return 'changed';
   }
   const { sceneId, version } = published;
   // This account's own publications, FluidEQ's own among them for an account

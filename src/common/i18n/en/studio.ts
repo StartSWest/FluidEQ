@@ -90,6 +90,9 @@ const studio = {
   'studio.project.inReview': 'In review',
   'studio.project.inReviewHint':
     'This version is waiting for review, and nothing has changed since',
+  'studio.project.changed': 'Changed',
+  'studio.project.changedHint':
+    'Changed since the version in the gallery, and not published yet',
   'studio.project.aiWorking': 'AI working',
   'studio.project.aiReplied': 'AI replied',
   'studio.project.aiWorkingElsewhere': 'An AI is working on another scene',
@@ -444,7 +447,7 @@ const studio = {
   'studio.line.changed':
     'You’ve changed it since version {version} went to the gallery.',
   'studio.line.elsewhere':
-    'Version {version} is in the gallery. It was published from another computer.',
+    'Version {version} is in the gallery. This computer can’t tell whether it has changed since.',
   'studio.line.inGallery': 'Version {version} is in the gallery.',
   'studio.line.review':
     'Version {version} is waiting for review. The gallery keeps version {live} until then.',

@@ -82,9 +82,20 @@ export type TUnpublishOutcome =
  * a real answer. `ok: false` is "could not ask" — signed out, offline, a file
  * whose signature does not verify — and the Studio then resets to the scene's
  * own settings rather than pretending it was never published.
+ *
+ * `listed` is a version the gallery has whose settings are not read here: one
+ * of FluidEQ's own scenes, published by an account allowed to publish those.
+ * Its file travels through the official store, not a member's, so Reset has
+ * nothing to go back to; but it IS published, and the Studio's line must
+ * say so. Leaving it out answered "never published" for every FluidEQ scene
+ * its maker opened (Ivan, 2026-11-25: Aurora "not in the gallery").
  */
 export type TPublishedSettingsOutcome =
-  | { ok: true; published?: { version: number; settings: ISceneSettings } }
+  | {
+      ok: true;
+      published?: { version: number; settings: ISceneSettings };
+      listed?: { version: number };
+    }
   | { ok: false };
 
 export interface IPlusPublishingIpcDeps {
@@ -200,7 +211,25 @@ export const registerPlusPublishingIpc = ({
         (entry) => !entry.official && entry.sceneId === build.pack.id,
       );
       if (!scene) {
-        return { ok: true };
+        // The official half of the list answers for FluidEQ's own scenes: a
+        // live one is published, though its settings are not read from here.
+        const official = mine.scenes
+          .filter(
+            (entry) =>
+              entry.official &&
+              !entry.blocked &&
+              entry.sceneId === build.pack.id,
+          )
+          .reduce<number | undefined>(
+            (highest, entry) =>
+              highest === undefined || entry.version > highest
+                ? entry.version
+                : highest,
+            undefined,
+          );
+        return official === undefined
+          ? { ok: true }
+          : { ok: true, listed: { version: official } };
       }
       const envelope = await fetchEnvelope(
         auth,

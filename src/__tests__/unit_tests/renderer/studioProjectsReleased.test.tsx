@@ -49,10 +49,22 @@ describe('where a project stands in the gallery', () => {
     ).toBe('published');
   });
 
-  it('is nothing once its folder changed, even with that version live', () => {
+  // Ivan, 2026-11-25: "I want to show in the list if something is modified
+  // and not the latest; I don't want to show published if it is not the
+  // latest".
+  it('is changed once its folder changed, never published, whatever the gallery has', () => {
     expect(releaseOf(published(3, false), [live('lake', 3)], [])).toBe(
-      undefined,
+      'changed',
     );
+    // Sent and then changed again: the version in review is not the latest.
+    expect(
+      releaseOf(
+        published(4, false),
+        [live('lake', 3)],
+        [sent('lake', 4, 'pending')],
+      ),
+    ).toBe('changed');
+    expect(releaseOf(published(3, false), [], [])).toBe('changed');
   });
 
   it('is nothing when the gallery holds another version, or took it down', () => {
@@ -60,6 +72,7 @@ describe('where a project stands in the gallery', () => {
     expect(
       releaseOf(published(3), [{ ...live('lake', 3), blocked: true }], []),
     ).toBe(undefined);
+    // No record here of what went out: nothing to compare, so nothing said.
     expect(releaseOf({}, [live('lake', 3)], [])).toBe(undefined);
   });
 
@@ -195,4 +208,31 @@ it('marks a version in review with its icon alone, its words on a hover', async 
   expect(rowState()).toBe('');
   expect(row).not.toHaveTextContent('studio.project.inReview');
   expect(row.querySelectorAll('.scene-review-mark')).toHaveLength(1);
+});
+
+it('says Changed in the list for a folder changed since its version went out', async () => {
+  const changed = studio();
+  changed.projects = changed.projects.map((project) => ({
+    ...project,
+    published: { sceneId: 'lake', version: 3, unchanged: false },
+  }));
+  await act(async () => {
+    render(
+      <StudioProjects
+        state={changed}
+        onNewProject={() => undefined}
+        onLinkFolder={() => undefined}
+        onOpenFile={() => undefined}
+      />,
+    );
+  });
+  fireEvent.click(screen.getByRole('button', { name: /studio.project.label/ }));
+  const state = screen
+    .getAllByRole('menuitemradio')[0]
+    .querySelector('.studio-projects__state');
+  expect(state).toHaveTextContent('studio.project.changed');
+  expect(state).toHaveClass('is-changed');
+  expect(state).toHaveAttribute('title', 'studio.project.changedHint');
+  // The same version live in the gallery is not called published.
+  expect(rowState()).not.toBe('studio.project.published');
 });

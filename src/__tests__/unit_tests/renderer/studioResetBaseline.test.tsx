@@ -202,3 +202,12 @@ it('asks again for another project, and never shows the last project’s answer 
   expect(result.current.gallery).toEqual({ state: 'asking' });
   expect(result.current.settings).toBeUndefined();
 });
+
+it('reads one of FluidEQ’s own scenes as published, with nothing for Reset to go back to', async () => {
+  askPublished.mockResolvedValue({ ok: true, listed: { version: 7 } });
+  const { result } = renderHook(() => useStudioBaseline(PROJECT, 0));
+  await waitFor(() =>
+    expect(result.current.gallery).toEqual({ state: 'live', version: 7 }),
+  );
+  expect(result.current.settings).toBeUndefined();
+});

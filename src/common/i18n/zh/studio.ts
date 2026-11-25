@@ -79,6 +79,8 @@ const studio = {
     '此版本已在图库中向所有人开放，之后没有任何更改',
   'studio.project.inReview': '审核中',
   'studio.project.inReviewHint': '此版本正在等待审核，之后没有任何更改',
+  'studio.project.changed': '已修改',
+  'studio.project.changedHint': '在图库版本之后有修改，尚未发布',
   'studio.project.aiWorking': 'AI 正在工作',
   'studio.project.aiReplied': 'AI 已回复',
   'studio.project.aiWorkingElsewhere': '有 AI 正在处理另一个场景',
@@ -389,7 +391,7 @@ const studio = {
   'studio.line.same': '第 {version} 版已在图库中，和你现在看到的完全一样。',
   'studio.line.changed': '第 {version} 版进入图库后，你又改过它。',
   'studio.line.elsewhere':
-    '第 {version} 版已在图库中。它是从另一台电脑发布的。',
+    '第 {version} 版已在图库中。这台电脑无法判断之后是否改过。',
   'studio.line.inGallery': '第 {version} 版已在图库中。',
   'studio.line.review':
     '第 {version} 版正在等待审核。在此之前，图库中仍是第 {live} 版。',

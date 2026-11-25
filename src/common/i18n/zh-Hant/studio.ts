@@ -80,6 +80,8 @@ const studio = {
     '此版本已在圖庫中向所有人開放，之後沒有任何變更',
   'studio.project.inReview': '審核中',
   'studio.project.inReviewHint': '此版本正在等待審核，之後沒有任何變更',
+  'studio.project.changed': '已修改',
+  'studio.project.changedHint': '在圖庫版本之後有修改，尚未發布',
   'studio.project.aiWorking': '人工智慧正在工作',
   'studio.project.aiReplied': '人工智慧已回覆',
   'studio.project.aiWorkingElsewhere': '有人工智慧正在處理另一個場景',
@@ -378,7 +380,7 @@ const studio = {
   'studio.line.same': '第 {version} 版已在圖庫中，和你現在看到的完全一樣。',
   'studio.line.changed': '第 {version} 版進入圖庫後，你又改過它。',
   'studio.line.elsewhere':
-    '第 {version} 版已在圖庫中。它是從另一台電腦發布的。',
+    '第 {version} 版已在圖庫中。這台電腦無法判斷之後是否改過。',
   'studio.line.inGallery': '第 {version} 版已在圖庫中。',
   'studio.line.review':
     '第 {version} 版正在等待審核。在此之前，圖庫中仍是第 {live} 版。',

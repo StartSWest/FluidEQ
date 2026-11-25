@@ -89,6 +89,15 @@ export default function useStudioBaseline(
               gallery: { state: 'live', version: outcome.published.version },
             },
           });
+        } else if (outcome.listed) {
+          // Published, with no settings for Reset to go back to: one of
+          // FluidEQ's own scenes, opened by the account that publishes them.
+          setAnswer({
+            project,
+            baseline: {
+              gallery: { state: 'live', version: outcome.listed.version },
+            },
+          });
         } else {
           setAnswer({ project, baseline: { gallery: { state: 'none' } } });
         }
