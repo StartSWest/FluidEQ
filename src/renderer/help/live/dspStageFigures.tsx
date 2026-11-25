@@ -80,6 +80,7 @@ export function DenoiseDrawing() {
           onRescan={nothing}
           onPatch={nothing}
           onCommit={nothing}
+          onToggle={nothing}
         />
       </div>
     </div>
@@ -106,6 +107,7 @@ export function RoomDrawing() {
           live={SEVEN_ONE}
           onPatch={nothing}
           onCommit={nothing}
+          onToggle={nothing}
         />
       </div>
     </div>

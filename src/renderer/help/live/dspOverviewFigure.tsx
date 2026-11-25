@@ -187,6 +187,7 @@ export default function DspOverviewDrawing() {
             maximizer={MAXIMIZER}
             onPatch={nothing}
             onCommit={nothing}
+            onToggle={nothing}
           />
         </div>
       </div>
