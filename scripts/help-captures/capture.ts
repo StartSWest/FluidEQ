@@ -16,7 +16,7 @@ import { HELPERS, inPage } from './pageHelpers';
  *
  *   pnpm exec ts-node scripts/help-captures/capture.ts [options]
  *
- *   --only <image>      one figure, e.g. --only 18-eq-mode.png (repeatable)
+ *   --only <image>      one figure, e.g. --only 14-share-audio-roles.png (repeatable)
  *   --chrome <path>     the browser; otherwise CHROME_PATH, Chrome or Edge
  *   --docs <dir>        where the pictures go (default docs/)
  *   --boxes <file>      where the boxes go

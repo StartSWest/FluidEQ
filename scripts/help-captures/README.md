@@ -41,9 +41,10 @@ face (and measures other boxes).
    ```
 
    It builds the harness (about three minutes the first time), starts Edge
-   or Chrome headless — nothing appears on screen — and writes the six
-   pictures and `captured.ts`. Use `--chrome "C:\path\to\chrome.exe"` to name
-   the browser, and `--only 18-eq-mode.png` (repeatable) to take one figure.
+   or Chrome headless — nothing appears on screen — and writes the picture
+   and `captured.ts`. Use `--chrome "C:\path\to\chrome.exe"` to name the
+   browser, and `--only 14-share-audio-roles.png` (repeatable) to take one
+   figure.
    The browser should be at least as new as the Chromium in the app's
    Electron: the band rail's dB scale is placed with CSS anchor positioning,
    and an older browser draws it beside the wrong part of the faders.
