@@ -642,33 +642,133 @@ const help: Record<keyof typeof en, string> = {
 
   'help.online.title': 'Ouça com Mídia online',
   'help.online.intro':
-    'Mídia online mantém sites compatíveis ao lado do seu EQ. A reprodução e o login dos sites ainda dependem do provedor e da sua conexão. A barra na parte de baixo do FluidEQ acompanha o player ativo, e o volume dela é o do seu computador.',
+    'A Mídia online toca YouTube, YouTube Music, Bandcamp, Twitch e Suno dentro do FluidEQ, com o mesmo layout da Biblioteca: os sites e suas pesquisas recentes na barra lateral, a barra de ferramentas sobre a página. O que toca passa pelo seu EQ como qualquer outro app; a reprodução e o login são de cada site.',
   'help.online.steps':
-    'Abra Mídia online, escolha um site e inicie a reprodução na página.\nVá à EQ para ajustar ouvindo; volte à página para os controles próprios.\nAtive Um reprodutor de cada vez para evitar sobreposição com outros players.',
+    'Escolha um site na barra lateral. Pesquise pela barra de ferramentas ou encontre algo na página dele e dê play.\nPressione uma pesquisa recente para repeti-la no site aberto.\nVá para outra aba enquanto toca: a página continua tocando e a barra no rodapé da janela acompanha.\nAtive Um reprodutor de cada vez se o FluidEQ e outros players devem pausar um ao outro em vez de tocar juntos.',
   'help.online.tip':
     'Com o Motor FluidEQ, a Mídia online passa pelo seu EQ e pelo rack DSP como qualquer outro app. Com o Equalizer APO, o rack fica com as faixas da Biblioteca.',
   'help.online.keywords':
-    'YouTube, YouTube Music, Bandcamp, Twitch, Suno, streaming, web, internet, navegador',
+    'youtube, youtube music, bandcamp, twitch, suno, streaming, web, site, navegador, online, histórico de pesquisa, pesquisas recentes, sair, logout, cores, página escura',
+  'help.online.sites':
+    'Os sites. Um ponto ao lado indica que está tocando. O alfinete sobre a barra lateral a recolhe aos ícones.',
+  'help.online.recent':
+    'O que você pesquisou antes. Pressione uma para pesquisar de novo no site aberto; o × dela a esquece.',
+  'help.online.colours':
+    'Colore a página do site com as cores do FluidEQ, só na sua tela. Vídeos, imagens e logotipos nunca mudam, e sites de páginas claras mantêm as próprias cores.',
+  'help.online.signOut':
+    'Apaga todos os logins, cookies e páginas em cache que o player guarda.',
+  'help.online.navName': 'Voltar, avançar e recarregar',
+  'help.online.nav':
+    'Navegue pelas páginas que você abriu no site ou recarregue a página.',
+  'help.online.search':
+    'Pesquisa no site aberto e guarda a pesquisa em Pesquisas recentes.',
 
-  'help.library.title': 'Monte sua biblioteca local',
+  'help.library.title': 'Navegue e organize sua Biblioteca',
   'help.library.intro':
-    'A Biblioteca reúne músicas e vídeos das suas unidades. Navegue por álbuns, artistas, gêneros, músicas, pastas, uma árvore de pastas ou suas playlists. Capas e detalhes vêm dos seus arquivos, então a mesma coleção pode parecer diferente dependendo das tags.',
+    'A Biblioteca reúne as músicas e os vídeos das suas unidades numa página: as estantes na barra lateral, uma barra para encontrar e organizar, e abaixo dela onde você está. Capas e detalhes vêm das tags dos arquivos, que o editor de tags corrige.',
   'help.library.steps':
-    'Abra Biblioteca e adicione a pasta com suas mídias. Deixe a leitura terminar antes de avaliar o que está faltando.\nEscolha um artista ou álbum, ou busque uma música. Inicie uma faixa nos resultados.\nUse a barra na parte de baixo da janela para pausar, mudar a posição e pular. O volume dela é o do seu computador, o mesmo do Windows.\nGrade, Lista, Cover Flow e árvore de pastas mostram a mesma coleção. Selecione músicas ou use o menu de um álbum para enfileirar ou organizar em conjunto. O menu de uma faixa de áudio pode enviá-la ao Karaoke.',
+    'Pressione Adicionar pasta no pé da barra lateral e escolha a pasta com suas músicas. A linha de status abaixo da página diz quando a Biblioteca está em dia.\nEscolha uma estante: Álbuns, Artistas, Gêneros, Músicas, Pastas (suas pastas se abrem como árvore embaixo), Vídeos ou uma playlist. Um vídeo toca na própria página, com uma aba Legendas para as legendas dele.\nPesquise pela barra, mostre a estante em Detalhes, Grade ou Cover Flow e ordene com Ordenar. As setas voltam e avançam pelos lugares por onde você passou.\nAbra um álbum, um artista ou uma pasta para ver as músicas. O nome de um artista, onde quer que apareça, abre a página dele: os álbuns e todas as músicas em que ele está.\nPara corrigir tags, clique com o botão direito numa música, em várias ou num álbum e escolha Editar tags (Ctrl+I) ou Corrigir tags automaticamente (Ctrl+Shift+I). Uma música abre ao lado da página; um álbum, uma pasta ou uma seleção abre como a página.\nConfira as alterações e pressione Salvar. Os arquivos são gravados em segundo plano, e o cartão no canto oferece Desfazer, que devolve as tags antigas.',
   'help.library.tip':
-    'Passe o mouse sobre o botão do FluidEQ na barra de tarefas do Windows para ter Anterior, Reproduzir e Próximo, mesmo com ele minimizado. A Biblioteca precisa dos arquivos originais: reconecte uma unidade ou adicione de novo uma pasta que foi movida.',
+    'Passe o mouse sobre o botão do FluidEQ na barra de tarefas do Windows para Anterior, Reproduzir e Próxima, mesmo minimizado. Solte músicas na Biblioteca para tocá-las. A Biblioteca precisa dos arquivos onde os encontrou: reconecte a unidade ou adicione de novo uma pasta movida.',
   'help.library.keywords':
-    'reprodutor de música, tocador, adicionar músicas, escanear, metadados, MP3, FLAC, AAC, WAV, Playlists, Nova playlist',
+    'reprodutor de música, tocador, adicionar músicas, escanear, metadados, árvore de pastas, cover flow, grade, legendas, tags, editar tags, corrigir tags, ID3, renomear arquivos, capas, musicbrainz, desfazer, MP3, FLAC, AAC, WAV, Playlists, Nova playlist',
+  'help.library.shelvesName': 'Estantes',
+  'help.library.shelves':
+    'O que a Biblioteca tem, com quanto há em cada uma. Pastas abre embaixo uma árvore das suas pastas.',
+  'help.library.playlists':
+    'Todas as suas playlists, onde se cria uma nova; embaixo, Favoritos e as suas.',
+  'help.library.addFolder':
+    'Adiciona uma pasta de músicas ou vídeos. Suas pastas, embaixo, lista as pastas e remove uma.',
+  'help.library.history': 'Volta e avança pelos lugares que você abriu.',
+  'help.library.search':
+    'Encontra músicas, artistas e álbuns na Biblioteca inteira.',
+  'help.library.views': 'Detalhes, Grade ou Cover Flow, em todas as estantes.',
+  'help.library.sort':
+    'Ordena a estante por título, artista, ano, adicionadas recentemente, mais tocadas e mais. A seta inverte a ordem.',
+  'help.library.upNext':
+    'Abre e recolhe o painel direito: a música tocando, A seguir, Detalhes e Letra.',
+  'help.library.album':
+    'Abre o álbum. Clique com o botão direito para tocar, enfileirar, pôr numa playlist ou editar as tags dele inteiro.',
+  'help.library.rescan':
+    'Diz se a Biblioteca está em dia. Escanear novamente relê suas pastas atrás de mudanças; Forçar nova leitura, ao lado, lê cada arquivo do zero.',
+  'help.library.tagsCaption': 'Um álbum no editor de tags, depois de corrigido',
+  'help.library.fixAuto':
+    'Preenche o que falta a partir dos nomes dos arquivos, do nome da pasta, de uma folha .cue e do que a maioria das músicas tem em comum, com a imagem da pasta como capa. Nada é buscado na internet.',
+  'help.library.searchWeb':
+    'Abre o álbum no MusicBrainz no seu navegador. O FluidEQ não baixa nada.',
+  'help.library.cover':
+    'Uma capa para todas as músicas. Pressione-a para escolher uma imagem, colar ou procurar uma, ou solte uma imagem sobre ela.',
+  'help.library.albumFields':
+    'Valores digitados uma vez para todas as músicas. O que mudou fica colorido, com o valor substituído riscado embaixo; a seta devolve o antigo.',
+  'help.library.findReplace':
+    'Encontra palavras em todos os títulos e as substitui de uma vez.',
+  'help.library.fileNames':
+    'Renomeia os arquivos a partir das tags, por um padrão. Cada nome novo aparece sob a música, com o antigo riscado.',
+  'help.library.sheet':
+    'Número, título e artista de cada música, editados como numa planilha. Arraste uma linha pela alça e pressione Renumerar pela ordem.',
+  'help.library.save':
+    'Grava as alterações; antes disso nada muda no disco. Descartar joga todas fora.',
+  'help.library.changesCaption': 'Alterações: o que Salvar vai gravar',
+  'help.library.changes':
+    'Tudo o que Salvar vai gravar, contado. Ocupa o lugar de A seguir enquanto o editor está aberto.',
+  'help.library.changesAlbum':
+    'O que muda em todas as músicas. Um valor preenchido onde não havia nenhum fica verde; um substituído mostra o antigo riscado.',
+  'help.library.changesSongs':
+    'As alterações de cada música e, depois, os arquivos que ganham nome novo.',
 
-  'help.queue.title': 'Álbuns e fila de reprodução',
+  'help.queue.title': 'Álbuns, A seguir e letras',
   'help.queue.intro':
-    'A fila define a ordem de escuta. Abrir outro álbum permite explorar sem trocar a música atual. A faixa ativa e A seguir ajudam a acompanhar.',
+    'Um álbum abre sob a capa sem parar o que está tocando. Ao lado, o painel direito mostra a música tocando sobre três abas: A seguir, os Detalhes da música e a Letra.',
   'help.queue.steps':
-    'Abra um álbum para ver as faixas dele e inicie a que você quer ouvir.\nClique com o botão direito em uma música para Adicionar à fila, Adicionar aos Favoritos ou Adicionar a uma playlist.\nAbra A seguir para ver o que toca depois e ative Continuar tocando para seguir com mais do mesmo gênero.\nArraste linhas de A seguir para mudar a ordem e use a ação de remover para tirá-las da fila. Salve a fila como playlist para manter a ordem.\nNo Windows, solte arquivos ou pastas musicais no player compacto para analisar e adicionar à Biblioteca e à fila. Sobre uma linha, entram antes dela; abaixo da lista, no fim. O aviso mostra o progresso da leitura das pastas.',
+    'Abra um álbum e pressione Reproduzir, ou pressione uma música para começar por ela. Um segundo toque numa música a recomeça do início.\nClique com o botão direito numa música para Adicionar à fila, Adicionar aos Favoritos ou Adicionar a uma playlist; escolha várias com Ctrl ou Shift.\nEm A seguir, pressione uma música para tocá-la agora, arraste para mudar a ordem, ou aponte para ela e pressione × para tirá-la.\nAtive Continuar tocando para seguir com mais do mesmo gênero quando a lista acabar. Me surpreenda, no pé de A seguir e na barra de reprodução, toca uma música aleatória da sua Biblioteca e continua no estilo dela.\nLetra mostra as palavras da música a partir das tags dela, ou de um arquivo .lrc ou .txt com o mesmo nome ao lado. Linhas sincronizadas acompanham a música palavra por palavra.\nSem letra, ou com a errada? Encontrar outra letra pesquisa a música na internet pelo seu navegador. Importe o arquivo baixado, cole a letra ou solte o arquivo na aba; o FluidEQ a guarda com a música.',
   'help.queue.tip':
-    'Iniciar a reprodução da Biblioteca assume o lugar dos outros players do FluidEQ. Use a faixa atual mostrada na barra para confirmar qual fonte está com a reprodução.',
+    'Abrir no Karaokê transforma a letra de uma música num karaokê no Criador de karaokê, onde o tempo dela pode ser corrigido. No Windows, solte arquivos ou pastas de música no Player compacto para adicioná-los à Biblioteca e à fila.',
   'help.queue.keywords':
-    'próxima música, tocar em seguida, aleatório, shuffle, repetir, autoplay, reprodução automática, lista de reprodução',
+    'fila, a seguir, próxima música, aleatório, repetir, favoritos, playlist, continuar tocando, reprodução automática, me surpreenda, aleatória, tocando agora, letra, letras, lrc, letra sincronizada, lrclib, genius, musixmatch, karaokê, ordem',
+  'help.queue.recordCaption': 'Um álbum aberto',
+  'help.queue.place':
+    'Onde você está: a estante, depois o álbum. Pressione a estante para voltar a ela.',
+  'help.queue.artist':
+    'Abre a página do artista: os álbuns e todas as músicas em que ele está.',
+  'help.queue.fix':
+    'Abre o álbum no editor de tags com as propostas da correção já preenchidas.',
+  'help.queue.actionsName': 'Os botões do álbum',
+  'help.queue.actions':
+    'Reproduzir, Aleatório, Adicionar à fila, Mostrar no Explorador e o menu do álbum: Favoritos, playlists, Editar tags e mais.',
+  'help.queue.albumSound':
+    'Um som para este álbum, um EQ salvo ou um preset, que toca com qualquer música dele.',
+  'help.queue.filter':
+    'Filtra as músicas deste álbum enquanto você digita. A pesquisa da barra procura na Biblioteca inteira.',
+  'help.queue.songsName': 'As músicas',
+  'help.queue.songs':
+    'Pressione uma música para tocá-la. As barras marcam a que está tocando, a estrela seus Favoritos; o clique direito abre o menu dela.',
+  'help.queue.paneCaption': 'O painel direito, em A seguir',
+  'help.queue.now': 'A música tocando. O nome do artista abre a página dele.',
+  'help.queue.tabs':
+    'A seguir, os Detalhes da música (arquivo, formato e loudness) e a Letra. Num vídeo, a última aba é Legendas.',
+  'help.queue.keep':
+    'Quando a lista acaba, segue com mais do mesmo gênero e depois com uma surpresa.',
+  'help.queue.rowsName': 'O que toca em seguida',
+  'help.queue.rows':
+    'O resto do que você estava ouvindo, sob o nome do álbum. Pressione uma música para tocá-la agora, arraste para reordenar, aponte para ver o ×.',
+  'help.queue.picks':
+    'As músicas que você adicionou, depois do resto do álbum, na ordem em que as adicionou.',
+  'help.queue.surprise':
+    'Uma música aleatória da sua Biblioteca agora, depois mais do estilo dela.',
+  'help.queue.lyricsCaption': 'Letra, e Encontrar outra letra',
+  'help.queue.lyricsLine':
+    'A linha sendo cantada, acesa palavra por palavra. Pressione qualquer linha para tocar a partir dela.',
+  'help.queue.sourceName': 'De onde vieram',
+  'help.queue.source':
+    'As tags da música, ou o arquivo de letra ao lado dela, pelo nome. A lixeira apaga um arquivo de letra guardado com a música; a letra dentro do próprio arquivo da música nunca é alterada.',
+  'help.queue.karaoke':
+    'Cria um karaokê com esta letra no Criador de karaokê, onde o tempo dela pode ser corrigido.',
+  'help.queue.findOther':
+    'Abre a busca, mostrada à direita, para trazer outra letra.',
+  'help.queue.sites':
+    'Pesquisa a música no LRCLIB (letras grátis e sincronizadas), Genius ou Musixmatch, no seu navegador. O FluidEQ não baixa letras por conta própria.',
+  'help.queue.import':
+    'Guarda a letra com a música: um arquivo baixado, texto colado ou um arquivo solto na aba (.lrc, .srt, .vtt, .ttml, .json, .yaml ou .txt).',
 
   'help.karaoke.title': 'Cante com Karaokê',
   'help.karaoke.intro':

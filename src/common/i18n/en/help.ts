@@ -635,33 +635,134 @@ const help = {
 
   'help.online.title': 'Listen with Online Media',
   'help.online.intro':
-    'Online Media keeps supported sites beside your EQ. Site playback and sign-in still depend on the provider and your connection. The bar at the foot of FluidEQ follows the active player, and its volume is your computer’s own.',
+    'Online Media plays YouTube, YouTube Music, Bandcamp, Twitch and Suno inside FluidEQ, laid out like the Library: the sites and your recent searches down the rail, the bar over the page. What plays goes through your EQ like any other app; playback and sign-in are each site’s own.',
   'help.online.steps':
-    'Open Online Media and choose a supported site. Find and start something on that page.\nSwitch to EQ to tune while listening, then return to the page when you need its own controls.\nUse One player at a time if you want FluidEQ and other players to pause one another instead of overlapping.',
+    'Pick a site on the rail. Search it from the bar, or find something on its page and start it.\nPress a recent search to run it again on the site that is open.\nGo to another tab while it plays: the page keeps playing, and the bar at the foot of the window follows it.\nTurn on One player at a time if FluidEQ and other players should pause each other instead of overlapping.',
   'help.online.tip':
     'Under the FluidEQ Engine, Online Media goes through your EQ and the DSP rack like every other app. Under Equalizer APO the rack stays with Library tracks.',
   'help.online.keywords':
-    'youtube, youtube music, bandcamp, twitch, suno, streaming, stream, web, website, browser, online',
+    'youtube, youtube music, bandcamp, twitch, suno, streaming, stream, web, website, browser, online, search history, recent searches, sign out, log out, colours, dark page',
+  'help.online.sites':
+    'The sites. A dot beside one says it is playing. The pin above them folds the rail to its icons.',
+  'help.online.recent':
+    'What you searched before. Press one to search the open site again; its × forgets it.',
+  'help.online.colours':
+    'Colours the site’s page to match FluidEQ, on your screen only. Videos, pictures and logos are never changed, and sites with light pages keep their own.',
+  'help.online.signOut':
+    'Clears every login, cookie and cached page the player holds.',
+  'help.online.navName': 'Back, forward and reload',
+  'help.online.nav':
+    'Move through the pages you opened on the site, or load the page again.',
+  'help.online.search':
+    'Searches the site that is open, and keeps the search in Recent searches.',
 
-  'help.library.title': 'Build your local library',
+  'help.library.title': 'Browse and tidy your Library',
   'help.library.intro':
-    'Library brings together music and video from your drives. Browse by albums, artists, genres, songs, folders, a folder tree or your playlists. Album art and details come from your files, so the same collection may look different depending on its tags.',
+    'The Library gathers the music and videos on your drives in one page: the shelves down the rail, a bar to find and lay them out, and where you are under it. Covers and details come from the files’ tags, which the tag editor puts right.',
   'help.library.steps':
-    'Open Library and add the folder containing your media. Let the scan finish before judging what is missing.\nChoose an artist or album, or search for a song. Start a track from the results.\nUse the bar at the foot of the window to pause, seek and skip. Its volume is your computer’s own, the same as in Windows.\nUse Grid, List, Cover Flow or the folder tree to browse the same collection. Select several songs, or open an album’s menu, to queue or file them together. A single audio track’s menu can send it to Karaoke.',
+    'Press Add folder at the foot of the rail and choose the folder with your music. The status line under the page says when the Library is up to date.\nPick a shelf: Albums, Artists, Genres, Songs, Folders (your folders open as a tree under it), Videos, or a playlist. A video plays in the page, with a Subtitles tab for its captions.\nSearch from the bar, show the shelf in Details, Grid or Cover Flow, and order it with Sort. The arrows step back and forward through where you have been.\nOpen a record, an artist or a folder for its songs. An artist’s name, wherever it is shown, opens their page: their records and every song they are on.\nTo fix tags, right-click a song, several songs or a record and choose Edit tags (Ctrl+I) or Fix tags automatically (Ctrl+Shift+I). One song opens beside the page; an album, a folder or a selection opens as the page.\nLook the changes over and press Save. The files are written in the background, and the card in the corner offers Undo, which puts the old tags back.',
   'help.library.tip':
-    'Hover FluidEQ’s button on the Windows taskbar for Previous, Play and Next, even while it is minimized. Library needs the original files: reconnect a drive or add a moved folder again.',
+    'Hover FluidEQ’s button on the Windows taskbar for Previous, Play and Next, even while it is minimized. Drop music on the Library to play it. The Library needs the files where it found them: plug a drive back in, or add a moved folder again.',
   'help.library.keywords':
-    'music player, player, local files, local music, mp3, flac, wav, aac, folders, albums, artists, genres, playlist, video, videos, scan, tags, cover art, album art, Playlists, New playlist',
+    'music player, player, local files, local music, mp3, flac, wav, aac, folders, folder tree, albums, artists, artist page, genres, playlist, video, videos, subtitles, scan, rescan, cover flow, grid, sort, tags, tag editor, edit tags, fix tags, id3, rename files, cover art, album art, musicbrainz, undo, Playlists, New playlist',
+  'help.library.shelvesName': 'Shelves',
+  'help.library.shelves':
+    'What the Library holds, with how much is on each. Folders opens a tree of your folders under it.',
+  'help.library.playlists':
+    'All your playlists, where a new one is made; Favourites and your own under it.',
+  'help.library.addFolder':
+    'Adds a folder of music or videos. Your folders, under it, lists them and removes one.',
+  'help.library.history':
+    'Steps back and forward through the places you opened.',
+  'help.library.search':
+    'Finds songs, artists and albums in the whole Library.',
+  'help.library.views': 'Details, Grid or Cover Flow, on every shelf.',
+  'help.library.sort':
+    'Orders the shelf by title, artist, year, recently added, most played and more. The arrow turns the order round.',
+  'help.library.upNext':
+    'Opens and folds the right pane: the song playing, Up next, Details and Lyrics.',
+  'help.library.album':
+    'Opens the record. Right-click it to play all of it, queue it, add it to a playlist or edit its tags.',
+  'help.library.rescan':
+    'Says whether the Library is up to date. Rescan reads your folders again for changes; Force rescan, beside it, reads every file afresh.',
+  'help.library.tagsCaption': 'An album in the tag editor, after Fix tags',
+  'help.library.fixAuto':
+    'Fills in what is missing from the file names, the folder’s name, a .cue sheet and what most songs agree on, with the folder’s picture as the cover. Nothing is looked up online.',
+  'help.library.searchWeb':
+    'Opens the album on MusicBrainz in your browser. FluidEQ downloads nothing.',
+  'help.library.cover':
+    'One cover for every song. Press it to choose a picture, paste one or search for one, or drop an image on it.',
+  'help.library.albumFields':
+    'Values typed once for every song. What changed is in colour, a replaced value struck through under it; the arrow puts the old one back.',
+  'help.library.findReplace':
+    'Finds words in every title and replaces them at once.',
+  'help.library.fileNames':
+    'Renames the files from their tags by a pattern. Each new name shows under its song, the old one struck through.',
+  'help.library.sheet':
+    'Each song’s number, title and artist, edited like a spreadsheet. Drag a row by its grip, then press Renumber by order.',
+  'help.library.save':
+    'Writes the changes; nothing on disk changes before. Discard drops them all.',
+  'help.library.changesCaption': 'Changes: what Save will write',
+  'help.library.changes':
+    'Everything Save will write, counted. It takes Up next’s place while the editor is open.',
+  'help.library.changesAlbum':
+    'What changes on every song. A value filled where there was none is green; a replaced one shows the old value struck through.',
+  'help.library.changesSongs':
+    'Each song’s own changes, then the files that get a new name.',
 
-  'help.queue.title': 'Albums & your play queue',
+  'help.queue.title': 'Records, Up next and lyrics',
   'help.queue.intro':
-    'The queue is the listening order; browsing is where you choose music. Opening another album lets you explore without making it the current song. The active track and Up next help you keep your place.',
+    'A record opens under its cover without stopping what plays. Beside it, the right pane holds the song playing over three tabs: Up next, the song’s Details and its Lyrics.',
   'help.queue.steps':
-    'Open an album to inspect its tracks. Start the one you want to hear.\nRight-click a song for Add to up next, Add to Favourites or Add to playlist.\nOpen Up next to see what plays after, and turn on Keep playing to continue with more of the same genre.\nDrag an Up next row to change the order and use its remove action to take it out of the queue. Save the queue as a playlist when you want to keep the listening order.\nOn Windows, drop music files or folders onto the Compact player to scan them into Library and queue them. Drop over an Up next row to insert before it, or below the list to append; the progress notice follows folder scanning.',
+    'Open a record and press Play, or press a song to start there. A second press on a song starts it again from the top.\nRight-click a song for Add to up next, Add to Favourites or Add to playlist; pick several with Ctrl or Shift.\nIn Up next, press a song to play it now, drag it to change the order, or point at it and press × to take it out.\nTurn on Keep playing to go on with more of the same genre when the list runs out. Surprise me, at Up next’s foot and on the playing bar, starts a random song from your Library and carries on in its style.\nLyrics shows the song’s words from its tags, or from a .lrc or .txt file of the same name beside it. Timed lines follow the song word by word.\nNo lyrics, or the wrong ones? Find other lyrics searches the song online in your browser. Import the file you download, paste the words, or drop the file on the tab; FluidEQ keeps them with the song.',
   'help.queue.tip':
-    'Starting Library playback takes over from FluidEQ’s other players. Use the current track shown in the bar to confirm which source owns playback.',
+    'Open in Karaoke turns a song’s lyrics into a karaoke in the Karaoke Maker, where their timing can be fixed. On Windows, drop music files or folders on the Compact player to add them to the Library and queue them.',
   'help.queue.keywords':
-    'queue, up next, next song, shuffle, repeat, favourites, favorites, playlist, keep playing, autoplay, play order',
+    'queue, up next, next song, shuffle, repeat, favourites, favorites, playlist, keep playing, autoplay, surprise me, random, now playing, lyrics, lrc, synced lyrics, timed lyrics, lrclib, genius, musixmatch, karaoke, play order',
+  'help.queue.recordCaption': 'A record, open',
+  'help.queue.place':
+    'Where you are: the shelf, then the record. Press the shelf to go back to it.',
+  'help.queue.artist':
+    'Opens the artist’s page: their records, and every song they are on.',
+  'help.queue.fix':
+    'Opens the record in the tag editor with Fix tags’ proposals typed in.',
+  'help.queue.actionsName': 'The record’s buttons',
+  'help.queue.actions':
+    'Play, Shuffle, Add to up next, Show in Explorer, and the record’s menu: Favourites, playlists, Edit tags and more.',
+  'help.queue.albumSound':
+    'A sound for this album, a saved EQ or a preset, that plays with any of its songs.',
+  'help.queue.filter':
+    'Narrows this record’s songs as you type. The bar’s search looks through the whole Library.',
+  'help.queue.songsName': 'The songs',
+  'help.queue.songs':
+    'Press a song to play it. The bars mark the one playing, the star your Favourites; right-click for its menu.',
+  'help.queue.paneCaption': 'The right pane, on Up next',
+  'help.queue.now': 'The song playing. Its artist’s name opens their page.',
+  'help.queue.tabs':
+    'Up next, the song’s Details (its file, format and loudness), and its Lyrics. For a video the last tab is Subtitles.',
+  'help.queue.keep':
+    'When the list runs out, carries on with more of the same genre, then a surprise.',
+  'help.queue.rowsName': 'What plays next',
+  'help.queue.rows':
+    'The rest of what you were playing, headed by its record. Press a song to play it now, drag it to reorder, point at it for its ×.',
+  'help.queue.picks':
+    'Songs you added, after the rest of the record, in the order you added them.',
+  'help.queue.surprise':
+    'A random song from your Library now, then more of its style.',
+  'help.queue.lyricsCaption': 'Lyrics, and Find other lyrics',
+  'help.queue.lyricsLine':
+    'The line being sung, lit word by word. Press any line to play from it.',
+  'help.queue.sourceName': 'Where they came from',
+  'help.queue.source':
+    'The song’s tags, or the lyrics file beside it, by name. The bin deletes a lyrics file kept with the song; words inside the song’s own file are never changed.',
+  'help.queue.karaoke':
+    'Starts a karaoke from these lyrics in the Karaoke Maker, where their timing can be fixed.',
+  'help.queue.findOther':
+    'Opens the finder, shown on the right, to bring in other lyrics.',
+  'help.queue.sites':
+    'Searches the song on LRCLIB (free, timed lyrics), Genius or Musixmatch, in your browser. FluidEQ fetches no lyrics itself.',
+  'help.queue.import':
+    'Keeps the words with the song: a file you downloaded, pasted words, or a file dropped on the tab (.lrc, .srt, .vtt, .ttml, .json, .yaml or .txt).',
 
   'help.karaoke.title': 'Sing with Karaoke',
   'help.karaoke.intro':

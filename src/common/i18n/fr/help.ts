@@ -650,33 +650,135 @@ const help: Record<keyof typeof en, string> = {
 
   'help.online.title': 'Écoutez avec Médias en ligne',
   'help.online.intro':
-    'Médias en ligne place les sites compatibles à côté de votre EQ. La lecture et l’identification sur ces sites dépendent toujours du fournisseur et de votre connexion. La barre en bas de FluidEQ suit le lecteur actif, et son volume est celui de votre ordinateur.',
+    'Médias en ligne lit YouTube, YouTube Music, Bandcamp, Twitch et Suno dans FluidEQ, disposé comme la Bibliothèque : les sites et vos recherches récentes dans le panneau latéral, la barre au-dessus de la page. Ce qui est lu passe par votre EQ comme toute autre application ; la lecture et la connexion dépendent de chaque site.',
   'help.online.steps':
-    'Ouvrez Médias en ligne, choisissez un site et lancez quelque chose sur la page.\nPassez à l’Égaliseur pour régler en écoutant, puis revenez aux commandes propres à la page.\nActivez Un seul lecteur pour éviter les lectures superposées.',
+    'Choisissez un site dans le panneau latéral. Cherchez depuis la barre, ou trouvez quelque chose sur sa page et lancez-le.\nAppuyez sur une recherche récente pour la relancer sur le site ouvert.\nPassez à un autre onglet pendant la lecture : la page continue de jouer et la barre en bas de la fenêtre la suit.\nActivez Un seul lecteur si FluidEQ et les autres lecteurs doivent se mettre en pause l’un l’autre plutôt que se superposer.',
   'help.online.tip':
     'Avec le moteur FluidEQ, Médias en ligne passe par votre EQ et le rack DSP comme toute autre application. Avec Equalizer APO, le rack reste réservé aux pistes de la Bibliothèque.',
   'help.online.keywords':
-    'musique en ligne, vidéos YouTube, internet, navigateur intégré, YouTube, YouTube Music, Bandcamp, Twitch, Suno, streaming, web',
+    'youtube, youtube music, bandcamp, twitch, suno, streaming, web, site, navigateur, en ligne, historique de recherche, recherches récentes, déconnexion, couleurs, page sombre',
+  'help.online.sites':
+    'Les sites. Un point à côté indique qu’il est en lecture. L’épingle au-dessus du panneau le replie sur leurs icônes.',
+  'help.online.recent':
+    'Ce que vous avez cherché. Appuyez sur une recherche pour la relancer sur le site ouvert ; son × l’oublie.',
+  'help.online.colours':
+    'Colore la page du site aux couleurs de FluidEQ, sur votre écran seulement. Les vidéos, images et logos ne changent jamais, et les sites aux pages claires gardent les leurs.',
+  'help.online.signOut':
+    'Efface toutes les connexions, cookies et pages en cache que garde le lecteur.',
+  'help.online.navName': 'Précédent, suivant et actualiser',
+  'help.online.nav':
+    'Parcourez les pages ouvertes sur le site, ou rechargez la page.',
+  'help.online.search':
+    'Cherche sur le site ouvert et garde la recherche dans Recherches récentes.',
 
-  'help.library.title': 'Constituez votre bibliothèque locale',
+  'help.library.title': 'Parcourez et rangez votre Bibliothèque',
   'help.library.intro':
-    'Bibliothèque rassemble la musique et les vidéos de vos disques. Parcourez-les par albums, artistes, genres, chansons, dossiers, par arborescence de dossiers ou dans vos playlists. Les pochettes et les informations viennent de vos fichiers : une même collection peut donc sembler différente selon ses tags.',
+    'La Bibliothèque réunit la musique et les vidéos de vos disques sur une page : les rayons dans le panneau latéral, une barre pour trouver et disposer, et en dessous l’endroit où vous êtes. Pochettes et informations viennent des tags des fichiers, que l’éditeur de tags remet en ordre.',
   'help.library.steps':
-    'Ouvrez la Bibliothèque et ajoutez le dossier contenant vos médias. Laissez l’analyse se terminer avant de juger ce qui manque.\nChoisissez un artiste ou un album, ou recherchez une chanson. Lancez une piste depuis les résultats.\nUtilisez la barre en bas de la fenêtre pour mettre en pause, vous déplacer dans le morceau et passer au suivant. Son volume est celui de votre ordinateur, le même que dans Windows.\nGrille, Liste, Cover Flow et l’arborescence parcourent la même collection. Sélectionnez plusieurs morceaux ou ouvrez le menu d’un album pour les classer ou les ajouter ensemble. Le menu d’un morceau audio peut l’envoyer dans Karaoke.',
+    'Appuyez sur Ajouter un dossier au bas du panneau latéral et choisissez le dossier de votre musique. La ligne d’état sous la page indique quand la Bibliothèque est à jour.\nChoisissez un rayon : Albums, Artistes, Genres, Chansons, Dossiers (vos dossiers s’ouvrent en arborescence dessous), Vidéos ou une playlist. Une vidéo se lit dans la page, avec un onglet Sous-titres pour ses sous-titres.\nCherchez depuis la barre, affichez le rayon en Détails, Grille ou Cover Flow, et ordonnez-le avec Trier. Les flèches reviennent en arrière et en avant parmi les endroits visités.\nOuvrez un album, un artiste ou un dossier pour ses chansons. Le nom d’un artiste, où qu’il soit, ouvre sa page : ses albums et toutes les chansons où il apparaît.\nPour corriger des tags, faites un clic droit sur une chanson, plusieurs chansons ou un album et choisissez Modifier les tags (Ctrl+I) ou Corriger les tags automatiquement (Ctrl+Maj+I). Une chanson s’ouvre à côté de la page ; un album, un dossier ou une sélection s’ouvre comme la page.\nVérifiez les modifications et appuyez sur Enregistrer. Les fichiers sont écrits en arrière-plan, et la carte dans le coin propose Annuler, qui remet les anciens tags.',
   'help.library.tip':
-    'Survolez le bouton de FluidEQ dans la barre des tâches de Windows pour Précédent, Lire et Suivant, même quand FluidEQ est réduit. Bibliothèque a besoin des fichiers d’origine : rebranchez un disque ou ajoutez de nouveau un dossier déplacé.',
+    'Survolez le bouton de FluidEQ dans la barre des tâches de Windows pour Précédent, Lecture et Suivant, même fenêtre réduite. Déposez de la musique sur la Bibliothèque pour la lire. La Bibliothèque a besoin des fichiers là où elle les a trouvés : rebranchez le disque, ou ajoutez à nouveau un dossier déplacé.',
   'help.library.keywords':
-    'lecteur audio, médiathèque, formats audio, jaquette, métadonnées, scanner, importer ma musique, MP3, FLAC, WAV, AAC, ID3, cover, Playlists, Nouvelle playlist',
+    'lecteur audio, médiathèque, formats audio, jaquette, pochette, métadonnées, scanner, importer ma musique, arborescence, cover flow, grille, sous-titres, éditeur de tags, modifier les tags, renommer les fichiers, musicbrainz, annuler, MP3, FLAC, WAV, AAC, ID3, Playlists, Nouvelle playlist',
+  'help.library.shelvesName': 'Rayons',
+  'help.library.shelves':
+    'Ce que contient la Bibliothèque, avec le nombre sur chaque rayon. Dossiers ouvre en dessous l’arborescence de vos dossiers.',
+  'help.library.playlists':
+    'Toutes vos playlists, où l’on en crée une nouvelle ; dessous, Favoris et les vôtres.',
+  'help.library.addFolder':
+    'Ajoute un dossier de musique ou de vidéos. Vos dossiers, dessous, les liste et en retire un.',
+  'help.library.history':
+    'Revient en arrière et en avant parmi les endroits ouverts.',
+  'help.library.search':
+    'Trouve chansons, artistes et albums dans toute la Bibliothèque.',
+  'help.library.views': 'Détails, Grille ou Cover Flow, sur chaque rayon.',
+  'help.library.sort':
+    'Ordonne le rayon par titre, artiste, année, ajout récent, les plus écoutés et plus encore. La flèche inverse l’ordre.',
+  'help.library.upNext':
+    'Ouvre et replie le panneau de droite : le titre en cours, À suivre, Détails et Paroles.',
+  'help.library.album':
+    'Ouvre l’album. Un clic droit le lit, le met en file, le range dans une playlist ou en modifie les tags en entier.',
+  'help.library.rescan':
+    'Indique si la Bibliothèque est à jour. Analyser à nouveau relit vos dossiers pour les changements ; Forcer une nouvelle analyse, à côté, relit chaque fichier.',
+  'help.library.tagsCaption':
+    'Un album dans l’éditeur de tags, après la correction automatique',
+  'help.library.fixAuto':
+    'Complète ce qui manque à partir des noms de fichiers, du nom du dossier, d’un fichier .cue et de ce sur quoi la plupart des chansons s’accordent, avec l’image du dossier comme pochette. Rien n’est cherché en ligne.',
+  'help.library.searchWeb':
+    'Ouvre l’album sur MusicBrainz dans votre navigateur. FluidEQ ne télécharge rien.',
+  'help.library.cover':
+    'Une pochette pour toutes les chansons. Appuyez dessus pour choisir une image, en coller une ou en chercher une, ou déposez une image dessus.',
+  'help.library.albumFields':
+    'Valeurs saisies une fois pour toutes les chansons. Ce qui a changé est en couleur, la valeur remplacée barrée dessous ; la flèche remet l’ancienne.',
+  'help.library.findReplace':
+    'Trouve des mots dans tous les titres et les remplace d’un coup.',
+  'help.library.fileNames':
+    'Renomme les fichiers d’après leurs tags selon un modèle. Chaque nouveau nom apparaît sous sa chanson, l’ancien barré.',
+  'help.library.sheet':
+    'Le numéro, le titre et l’artiste de chaque chanson, modifiés comme dans un tableur. Faites glisser une ligne par sa poignée, puis appuyez sur Renuméroter dans l’ordre.',
+  'help.library.save':
+    'Écrit les modifications ; rien ne change sur le disque avant. Abandonner les supprime toutes.',
+  'help.library.changesCaption': 'Modifications : ce qu’Enregistrer va écrire',
+  'help.library.changes':
+    'Tout ce qu’Enregistrer va écrire, compté. La liste prend la place d’À suivre tant que l’éditeur est ouvert.',
+  'help.library.changesAlbum':
+    'Ce qui change sur toutes les chansons. Une valeur ajoutée là où il n’y en avait pas est en vert ; une valeur remplacée montre l’ancienne barrée.',
+  'help.library.changesSongs':
+    'Les modifications propres à chaque chanson, puis les fichiers qui changent de nom.',
 
-  'help.queue.title': 'Albums et file de lecture',
+  'help.queue.title': 'Albums, À suivre et paroles',
   'help.queue.intro':
-    'La file définit l’ordre d’écoute. Ouvrir un autre album permet de parcourir sans remplacer le morceau courant. Le morceau actif et À suivre vous situent.',
+    'Un album s’ouvre sous sa pochette sans arrêter ce qui joue. À côté, le panneau de droite montre le titre en cours au-dessus de trois onglets : À suivre, les Détails du titre et ses Paroles.',
   'help.queue.steps':
-    'Ouvrez un album pour voir ses pistes. Lancez le morceau voulu.\nFaites un clic droit sur une chanson pour Ajouter à la file, Ajouter aux Favoris ou Ajouter à une playlist.\nOuvrez À suivre pour voir ce qui vient ensuite, et activez Continuer la lecture pour poursuivre avec d’autres titres du même genre.\nDéplacez les lignes d’À suivre pour réordonner la file et retirez-les avec leur commande de suppression. Enregistrez la file en playlist pour garder cet ordre.\nSous Windows, déposez des fichiers ou dossiers musicaux sur le lecteur compact pour les analyser et les ajouter. Sur une ligne, ils s’insèrent avant elle ; sous la liste, à la fin. La notification suit l’analyse des dossiers.',
+    'Ouvrez un album et appuyez sur Lire, ou appuyez sur une chanson pour commencer par elle. Un second appui sur une chanson la reprend depuis le début.\nFaites un clic droit sur une chanson pour Ajouter à la file, Ajouter aux Favoris ou Ajouter à une playlist ; sélectionnez-en plusieurs avec Ctrl ou Maj.\nDans À suivre, appuyez sur une chanson pour la lire tout de suite, faites-la glisser pour changer l’ordre, ou survolez-la et appuyez sur × pour la retirer.\nActivez Continuer la lecture pour poursuivre avec le même genre quand la liste se termine. Surprenez-moi, au bas d’À suivre et dans la barre de lecture, lance une chanson au hasard de votre Bibliothèque et continue dans son style.\nParoles affiche les mots de la chanson depuis ses tags, ou depuis un fichier .lrc ou .txt du même nom à côté. Les lignes synchronisées suivent la chanson mot à mot.\nPas de paroles, ou les mauvaises ? Trouver d’autres paroles cherche la chanson en ligne dans votre navigateur. Importez le fichier téléchargé, collez le texte ou déposez le fichier sur l’onglet ; FluidEQ le garde avec la chanson.',
   'help.queue.tip':
-    'Lancer la lecture dans la Bibliothèque prend le relais des autres lecteurs de FluidEQ. Fiez-vous au morceau affiché dans la barre pour savoir quelle source a la main sur la lecture.',
+    'Ouvrir dans Karaoké transforme les paroles d’une chanson en karaoké dans le Créateur de karaoké, où leur synchronisation se corrige. Sous Windows, déposez des fichiers ou dossiers de musique sur le Lecteur compact pour les ajouter à la Bibliothèque et à la file.',
   'help.queue.keywords':
-    "file d'attente, aléatoire, mélanger, répéter, en boucle, suivant, prochain morceau, lecture automatique, préférés, liste de lecture, queue, shuffle, repeat, autoplay",
+    'file, à suivre, chanson suivante, aléatoire, répéter, favoris, playlist, continuer la lecture, lecture automatique, surprenez-moi, hasard, lecture en cours, paroles, lrc, paroles synchronisées, lrclib, genius, musixmatch, karaoké, ordre de lecture',
+  'help.queue.recordCaption': 'Un album ouvert',
+  'help.queue.place':
+    'Où vous êtes : le rayon, puis l’album. Appuyez sur le rayon pour y revenir.',
+  'help.queue.artist':
+    'Ouvre la page de l’artiste : ses albums et toutes les chansons où il apparaît.',
+  'help.queue.fix':
+    'Ouvre l’album dans l’éditeur de tags, les propositions de la correction déjà saisies.',
+  'help.queue.actionsName': 'Les boutons de l’album',
+  'help.queue.actions':
+    'Lire, Aléatoire, Ajouter à la file, Afficher dans l’Explorateur, et le menu de l’album : Favoris, playlists, Modifier les tags et plus.',
+  'help.queue.albumSound':
+    'Un son pour cet album, un EQ enregistré ou un préréglage, appliqué à chacune de ses chansons.',
+  'help.queue.filter':
+    'Restreint les chansons de cet album à mesure que vous tapez. La recherche de la barre couvre toute la Bibliothèque.',
+  'help.queue.songsName': 'Les chansons',
+  'help.queue.songs':
+    'Appuyez sur une chanson pour la lire. Les barres marquent celle en cours, l’étoile vos Favoris ; un clic droit ouvre son menu.',
+  'help.queue.paneCaption': 'Le panneau de droite, sur À suivre',
+  'help.queue.now': 'La chanson en cours. Le nom de l’artiste ouvre sa page.',
+  'help.queue.tabs':
+    'À suivre, les Détails du titre (fichier, format et sonie) et ses Paroles. Pour une vidéo, le dernier onglet est Sous-titres.',
+  'help.queue.keep':
+    'Quand la liste se termine, continue avec le même genre, puis avec une surprise.',
+  'help.queue.rowsName': 'Ce qui joue ensuite',
+  'help.queue.rows':
+    'La suite de ce que vous écoutiez, sous le nom de son album. Appuyez sur une chanson pour la lire tout de suite, faites-la glisser pour la déplacer, survolez-la pour son ×.',
+  'help.queue.picks':
+    'Les chansons que vous avez ajoutées, après la suite de l’album, dans l’ordre où vous les avez ajoutées.',
+  'help.queue.surprise':
+    'Une chanson au hasard de votre Bibliothèque tout de suite, puis d’autres dans son style.',
+  'help.queue.lyricsCaption': 'Paroles, et Trouver d’autres paroles',
+  'help.queue.lyricsLine':
+    'La ligne chantée, éclairée mot à mot. Appuyez sur une ligne pour lire à partir d’elle.',
+  'help.queue.sourceName': 'Leur provenance',
+  'help.queue.source':
+    'Les tags de la chanson, ou le fichier de paroles à côté, nommé. La corbeille supprime un fichier de paroles gardé avec la chanson ; les paroles à l’intérieur du fichier de la chanson ne sont jamais modifiées.',
+  'help.queue.karaoke':
+    'Crée un karaoké à partir de ces paroles dans le Créateur de karaoké, où leur synchronisation se corrige.',
+  'help.queue.findOther':
+    'Ouvre la recherche, à droite, pour apporter d’autres paroles.',
+  'help.queue.sites':
+    'Cherche la chanson sur LRCLIB (paroles gratuites et synchronisées), Genius ou Musixmatch, dans votre navigateur. FluidEQ ne récupère aucunes paroles lui-même.',
+  'help.queue.import':
+    'Garde les paroles avec la chanson : un fichier téléchargé, du texte collé ou un fichier déposé sur l’onglet (.lrc, .srt, .vtt, .ttml, .json, .yaml ou .txt).',
 
   'help.karaoke.title': 'Chantez avec Karaoké',
   'help.karaoke.intro':

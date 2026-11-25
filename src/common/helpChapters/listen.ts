@@ -5,29 +5,339 @@ import { type IHelpChapter, WINDOW } from './model';
 /** Listening, singing and sharing, and where to turn when something is wrong. */
 const LISTEN_CHAPTERS = [
   {
-    // The running window on 2026-09-29 as it stood, 1776 x 1392, with the
-    // web view laid into its rectangle: a picture of the window leaves it
-    // empty. NASA's channel, signed out, as since 1.7.3: United States
-    // government work, no advertising in it.
+    // The page drawn by its own bar and the rail it shares with the Library
+    // (`help/live/onlineFigure`), on YouTube with made-up recent searches; a
+    // still of a film stands where the site plays, which Help cannot draw.
+    // Its still is the 2026-09-29 capture of the window on NASA's channel,
+    // for the exported guide.
     id: 'online',
     group: 'listen',
     figures: [
       {
-        image: '01-online-media-youtube-live-eq.png',
-        width: 1776,
-        height: 1392,
+        live: 'online-page',
+        width: 1100,
+        height: 560,
+        still: '01-online-media-youtube-live-eq.png',
+        controls: [
+          {
+            target: '.video-rail__item.is-active',
+            name: 'video.railSites',
+            text: 'help.online.sites',
+          },
+          {
+            target: '.video-rail__recent:first-child',
+            name: 'video.searchRecent',
+            text: 'help.online.recent',
+          },
+          {
+            target: '.video-rail__match',
+            name: 'video.matchColours',
+            text: 'help.online.colours',
+          },
+          {
+            target: '.video-rail__sign-out',
+            name: 'video.signOut',
+            text: 'help.online.signOut',
+          },
+          {
+            target: '.video-browser__nav',
+            name: 'help.online.navName',
+            text: 'help.online.nav',
+          },
+          {
+            target: '.video-browser__search',
+            name: 'video.searchAria',
+            text: 'help.online.search',
+          },
+        ],
       },
     ],
   },
   {
+    // The Library drawn by its own rail, bar, place bar and status line from
+    // a made-up collection (`help/live/libraryFigures`, `libraryTagFigure`):
+    // the Albums shelf in Grid, then an untagged album in the tag editor as
+    // Fix tags leaves it, with what Save would write beside it. The stills
+    // are the 2.5 captures, for the exported guide.
     id: 'library',
     group: 'listen',
-    figures: [{ image: '08-library-artists-and-up-next.png', ...WINDOW }],
+    figures: [
+      {
+        live: 'library-page',
+        width: 1240,
+        height: 660,
+        still: '08-library-artists-and-up-next.png',
+        controls: [
+          {
+            target: '.library-rail__item.is-active',
+            name: 'help.library.shelvesName',
+            text: 'help.library.shelves',
+          },
+          {
+            target: '.library-rail__heading--link',
+            name: 'library.browse.playlist',
+            text: 'help.library.playlists',
+          },
+          {
+            target: '.library-rail__item--add',
+            name: 'library.add',
+            text: 'help.library.addFolder',
+          },
+          {
+            target: '.library-top__nav',
+            name: 'library.history',
+            text: 'help.library.history',
+          },
+          {
+            target: '.library-top__search',
+            name: 'library.searchPlaceholder',
+            text: 'help.library.search',
+          },
+          {
+            target: '.library-top__views',
+            name: 'library.view.aria',
+            text: 'help.library.views',
+          },
+          {
+            target: '.library-top__sort',
+            name: 'library.sort',
+            text: 'help.library.sort',
+          },
+          {
+            target: '.library-up-next__chip',
+            name: 'library.upNext',
+            text: 'help.library.upNext',
+          },
+          {
+            target: '.library-grid__tile:first-child .library-grid__art',
+            name: 'library.kind.album',
+            text: 'help.library.album',
+          },
+          {
+            target: '.library-status__scan',
+            name: 'library.rescan',
+            text: 'help.library.rescan',
+          },
+        ],
+      },
+      {
+        live: 'library-tags',
+        width: 1400,
+        height: 980,
+        frame: '.library-main',
+        caption: 'help.library.tagsCaption',
+        still: '08-library-artists-and-up-next.png',
+        controls: [
+          {
+            target: '.library-tags-set__fix',
+            name: 'library.tags.set.fixAuto',
+            text: 'help.library.fixAuto',
+          },
+          {
+            target: '.library-tags-set__web',
+            name: 'library.tags.set.searchWeb',
+            text: 'help.library.searchWeb',
+          },
+          {
+            target: '.library-tags__cover-frame',
+            name: 'library.tags.cover.change',
+            text: 'help.library.cover',
+          },
+          {
+            target: '.library-tags-album__title',
+            name: 'library.tags.field.album',
+            text: 'help.library.albumFields',
+          },
+          {
+            target: '.library-tags-set__replace',
+            name: 'library.tags.set.find',
+            text: 'help.library.findReplace',
+          },
+          {
+            target: '.library-tags-files__pick',
+            name: 'library.tags.files.title',
+            text: 'help.library.fileNames',
+          },
+          {
+            // The first song's row: the row under it is its file's new name.
+            target: '.library-tags-sheet tbody tr:first-child',
+            name: 'library.tags.set.songs',
+            text: 'help.library.sheet',
+          },
+          {
+            target: '.library-tags-set__actions > .button:not(.subtle)',
+            name: 'library.tags.save',
+            text: 'help.library.save',
+          },
+        ],
+      },
+      {
+        // The same drawing, its side column: the head of what Save writes,
+        // the album's values and the first song's.
+        live: 'library-tags-changes',
+        width: 1400,
+        height: 980,
+        frame:
+          '.library-tags-panel__head, .library-tags-changes > section:first-child, .library-tags-changes__song:first-of-type',
+        margin: 8,
+        caption: 'help.library.changesCaption',
+        still: '08-library-artists-and-up-next.png',
+        controls: [
+          {
+            target: '.library-tags-panel__head h3',
+            name: 'library.tags.changes.title',
+            text: 'help.library.changes',
+          },
+          {
+            target: '.library-tags-changes > section:first-child > h4',
+            name: 'library.tags.changes.album',
+            text: 'help.library.changesAlbum',
+          },
+          {
+            target: '.library-tags-changes__song:first-of-type > b',
+            name: 'library.tags.changes.songs',
+            text: 'help.library.changesSongs',
+          },
+        ],
+      },
+    ],
   },
   {
+    // One drawing of the Library with a record open and Up next beside it
+    // (`help/live/libraryFigures`), framed twice: the record, then the right
+    // pane; and the Lyrics tab twice, its timed words and Find other lyrics
+    // (`libraryPaneFigures`). The stills are the 2.5 captures.
     id: 'queue',
     group: 'listen',
-    figures: [{ image: '09-library-album-and-play-queue.png', ...WINDOW }],
+    figures: [
+      {
+        live: 'library-record',
+        width: 1440,
+        height: 720,
+        frame: '.library-main',
+        caption: 'help.queue.recordCaption',
+        still: '09-library-album-and-play-queue.png',
+        controls: [
+          {
+            target: '.library-place__crumb--shelf',
+            name: 'library.place.aria',
+            text: 'help.queue.place',
+          },
+          {
+            target: '.library-hero__who .library-artist-link',
+            name: 'library.kind.artist',
+            text: 'help.queue.artist',
+          },
+          {
+            target: '.library-hero__fix',
+            name: 'library.tags.hero.fix',
+            text: 'help.queue.fix',
+          },
+          {
+            // The row of five as one: numbered apart, their lines ran down
+            // through the songs to circles under the table.
+            target: '.library-hero__actions > .library-hero__button',
+            name: 'help.queue.actionsName',
+            text: 'help.queue.actions',
+          },
+          {
+            target: '.library-hero__sound',
+            name: 'library.sound.albumTitle',
+            text: 'help.queue.albumSound',
+          },
+          {
+            target: '.library-hero__filter',
+            name: 'library.filterHere',
+            text: 'help.queue.filter',
+          },
+          {
+            target: '.library-list__row--playing .library-list__col--no',
+            name: 'help.queue.songsName',
+            text: 'help.queue.songs',
+          },
+        ],
+      },
+      {
+        live: 'library-queue',
+        width: 1440,
+        height: 720,
+        frame: '.library-side',
+        caption: 'help.queue.paneCaption',
+        still: '09-library-album-and-play-queue.png',
+        controls: [
+          {
+            target: '.library-now',
+            name: 'library.nowPlaying',
+            text: 'help.queue.now',
+          },
+          {
+            target: '.library-pane__tabs',
+            name: 'library.pane.tabs',
+            text: 'help.queue.tabs',
+          },
+          {
+            target: '.library-up-next__keep',
+            name: 'library.upNext.keepPlaying',
+            text: 'help.queue.keep',
+          },
+          {
+            target:
+              '.library-up-next__list > :nth-child(3) .library-up-next__row',
+            name: 'help.queue.rowsName',
+            text: 'help.queue.rows',
+          },
+          {
+            target: '.library-up-next__section.is-added',
+            name: 'library.upNext.added',
+            text: 'help.queue.picks',
+          },
+          {
+            target: '.library-up-next__surprise',
+            name: 'library.upNext.surprise',
+            text: 'help.queue.surprise',
+          },
+        ],
+      },
+      {
+        live: 'library-lyrics',
+        width: 624,
+        height: 600,
+        caption: 'help.queue.lyricsCaption',
+        still: '09-library-album-and-play-queue.png',
+        controls: [
+          {
+            target: '.library-lyrics__line.is-active',
+            name: 'library.pane.lyrics',
+            text: 'help.queue.lyricsLine',
+          },
+          {
+            target: '.library-lyrics__source-row',
+            name: 'help.queue.sourceName',
+            text: 'help.queue.source',
+          },
+          {
+            target: '.library-lyrics__karaoke',
+            name: 'library.lyrics.karaoke.open',
+            text: 'help.queue.karaoke',
+          },
+          {
+            target: '.library-lyrics__other',
+            name: 'library.lyrics.other',
+            text: 'help.queue.findOther',
+          },
+          {
+            target: '.library-lyrics-finder__sites',
+            name: 'library.lyrics.find.heading',
+            text: 'help.queue.sites',
+          },
+          {
+            target: '.library-lyrics-finder__actions',
+            name: 'library.lyrics.import.heading',
+            text: 'help.queue.import',
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'karaoke',

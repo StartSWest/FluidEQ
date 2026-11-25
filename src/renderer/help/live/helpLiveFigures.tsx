@@ -14,9 +14,13 @@ import { DenoiseDrawing, RoomDrawing } from './dspStageFigures';
 import ForumDrawing from './forumFigures';
 import GamingLabDrawing, { GamingPartsDrawing } from './gamingFigures';
 import GamingProfilesDrawing from './gamingProfilesFigure';
+import { LibraryPageDrawing, LibraryRecordDrawing } from './libraryFigures';
+import { LibraryLyricsDrawing } from './libraryPaneFigures';
+import LibraryTagsDrawing from './libraryTagFigure';
 import LightingDrawing from './lightingFigures';
 import LookPickerDrawing from './lookFigures';
 import MicPageDrawing from './micFigures';
+import OnlineMediaDrawing from './onlineFigure';
 import { SceneDrawing, VisualizersDrawing } from './plusFigures';
 import ShareDrawing from './shareFigures';
 import StudioDrawing from './studioFigures';
@@ -50,10 +54,17 @@ const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
   'gaming-profiles': GamingProfilesDrawing,
   'header-left': WindowHeaderDrawing,
   'header-right': WindowHeaderDrawing,
+  'library-lyrics': LibraryLyricsDrawing,
+  'library-page': LibraryPageDrawing,
+  'library-queue': LibraryRecordDrawing,
+  'library-record': LibraryRecordDrawing,
+  'library-tags': LibraryTagsDrawing,
+  'library-tags-changes': LibraryTagsDrawing,
   'lighting-page': LightingDrawing,
   'lighting-tuning': LightingDrawing,
   'look-picker': LookPickerDrawing,
   'mic-page': MicPageDrawing,
+  'online-page': OnlineMediaDrawing,
   'player-top': PlayerDrawing,
   'player-sound': PlayerDrawing,
   'player-queue': PlayerDrawing,

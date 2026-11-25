@@ -646,33 +646,134 @@ const help: Record<keyof typeof en, string> = {
 
   'help.online.title': 'Ascolta con Media online',
   'help.online.intro':
-    'Media online affianca i siti compatibili all’EQ. Riproduzione e accesso dipendono dal fornitore e dalla connessione. La barra in fondo a FluidEQ segue il lettore attivo, e il suo volume è quello del tuo computer.',
+    'Media online riproduce YouTube, YouTube Music, Bandcamp, Twitch e Suno dentro FluidEQ, disposto come la Libreria: i siti e le tue ricerche recenti nella barra laterale, la barra degli strumenti sopra la pagina. Ciò che suona passa dal tuo EQ come ogni altra app; riproduzione e accesso dipendono da ciascun sito.',
   'help.online.steps':
-    'Apri Media online, scegli un sito e avvia qualcosa sulla pagina.\nPassa a EQ per regolare durante l’ascolto e torna alla pagina per i suoi controlli.\nAttiva Un solo lettore per evitare sovrapposizioni con altri lettori.',
+    'Scegli un sito nella barra laterale. Cerca dalla barra degli strumenti, oppure trova qualcosa nella sua pagina e avvialo.\nPremi una ricerca recente per ripeterla sul sito aperto.\nPassa a un’altra scheda mentre suona: la pagina continua e la barra in fondo alla finestra la segue.\nAttiva Un solo lettore se FluidEQ e gli altri lettori devono mettersi in pausa a vicenda invece di sovrapporsi.',
   'help.online.tip':
     'Con il motore FluidEQ, Media online passa dal tuo EQ e dal rack DSP come ogni altra app. Con Equalizer APO il rack resta legato ai brani della Libreria.',
   'help.online.keywords':
-    'YouTube, YouTube Music, Bandcamp, Twitch, Suno, musica online, streaming, web, browser',
+    'youtube, youtube music, bandcamp, twitch, suno, streaming, web, sito, browser, online, cronologia ricerche, ricerche recenti, disconnetti, esci, colori, pagina scura',
+  'help.online.sites':
+    'I siti. Un punto accanto indica che sta suonando. La puntina sopra la barra laterale la riduce alle icone.',
+  'help.online.recent':
+    'Ciò che hai cercato prima. Premine una per ripeterla sul sito aperto; la sua × la dimentica.',
+  'help.online.colours':
+    'Colora la pagina del sito come FluidEQ, solo sul tuo schermo. Video, immagini e loghi non cambiano mai, e i siti con pagine chiare mantengono i propri colori.',
+  'help.online.signOut':
+    'Cancella tutti gli accessi, i cookie e le pagine in cache del lettore.',
+  'help.online.navName': 'Indietro, avanti e ricarica',
+  'help.online.nav':
+    'Spostati tra le pagine aperte sul sito o ricarica la pagina.',
+  'help.online.search':
+    'Cerca nel sito aperto e conserva la ricerca in Ricerche recenti.',
 
-  'help.library.title': 'Crea la tua libreria locale',
+  'help.library.title': 'Sfoglia e riordina la tua Libreria',
   'help.library.intro':
-    'Libreria raccoglie musica e video dai tuoi dischi. Sfoglia per album, artisti, generi, brani, cartelle, albero delle cartelle o playlist. Copertine e dettagli provengono dai file, quindi la stessa collezione può apparire diversa a seconda dei tag.',
+    'La Libreria riunisce musica e video dei tuoi dischi in una pagina: gli scaffali nella barra laterale, una barra per trovarli e disporli, e sotto dove ti trovi. Copertine e dettagli vengono dai tag dei file, che l’editor dei tag sistema.',
   'help.library.steps':
-    'Apri Libreria e aggiungi la cartella multimediale. Lascia finire la scansione prima di valutare cosa manca.\nScegli artista o album oppure cerca un brano e avvialo dai risultati.\nUsa la barra in fondo alla finestra per mettere in pausa, cercare e saltare. Il suo volume è quello del tuo computer, lo stesso di Windows.\nGriglia, Elenco, Cover Flow e albero delle cartelle mostrano la stessa raccolta. Seleziona più brani o il menu di un album per metterli in coda o archiviarli insieme. Il menu di un singolo brano audio può inviarlo a Karaoke.',
+    'Premi Aggiungi cartella in fondo alla barra laterale e scegli la cartella con la tua musica. La riga di stato sotto la pagina dice quando la Libreria è aggiornata.\nScegli uno scaffale: Album, Artisti, Generi, Brani, Cartelle (le tue cartelle si aprono sotto come albero), Video o una playlist. Un video si riproduce nella pagina, con una scheda Sottotitoli per i suoi sottotitoli.\nCerca dalla barra, mostra lo scaffale in Dettagli, Griglia o Cover Flow e ordinalo con Ordina. Le frecce tornano indietro e avanti tra i posti visitati.\nApri un album, un artista o una cartella per vederne i brani. Il nome di un artista, ovunque compaia, apre la sua pagina: i suoi album e ogni brano in cui c’è.\nPer correggere i tag, fai clic destro su un brano, su più brani o su un album e scegli Modifica tag (Ctrl+I) o Correggi i tag automaticamente (Ctrl+Maiusc+I). Un brano si apre accanto alla pagina; un album, una cartella o una selezione si aprono come pagina.\nControlla le modifiche e premi Salva. I file vengono scritti in background, e la scheda nell’angolo offre Annulla, che rimette i tag precedenti.',
   'help.library.tip':
-    'Passa il mouse sul pulsante di FluidEQ nella barra delle applicazioni di Windows per Precedente, Riproduci e Successivo, anche quando è ridotto a icona. Libreria ha bisogno dei file originali: ricollega il disco o aggiungi di nuovo una cartella spostata.',
+    'Passa sul pulsante di FluidEQ nella barra delle applicazioni di Windows per Precedente, Riproduci e Successivo, anche a finestra ridotta. Trascina musica sulla Libreria per riprodurla. La Libreria ha bisogno dei file dove li ha trovati: ricollega il disco o aggiungi di nuovo una cartella spostata.',
   'help.library.keywords':
-    'lettore musicale, player, canzoni, aggiungere musica, raccolta, metadati, MP3, FLAC, AAC, WAV, Playlist, Nuova playlist',
+    'lettore musicale, player, canzoni, aggiungere musica, raccolta, metadati, albero delle cartelle, cover flow, griglia, sottotitoli, tag, editor dei tag, correggere i tag, ID3, rinominare file, copertine, musicbrainz, annulla, MP3, FLAC, AAC, WAV, Playlist, Nuova playlist',
+  'help.library.shelvesName': 'Scaffali',
+  'help.library.shelves':
+    'Cosa contiene la Libreria, con quanto c’è su ciascuno. Cartelle apre sotto un albero delle tue cartelle.',
+  'help.library.playlists':
+    'Tutte le tue playlist, dove se ne crea una nuova; sotto, Preferiti e le tue.',
+  'help.library.addFolder':
+    'Aggiunge una cartella di musica o video. Le tue cartelle, sotto, le elenca e ne rimuove una.',
+  'help.library.history': 'Torna indietro e avanti tra i posti che hai aperto.',
+  'help.library.search': 'Trova brani, artisti e album in tutta la Libreria.',
+  'help.library.views': 'Dettagli, Griglia o Cover Flow, su ogni scaffale.',
+  'help.library.sort':
+    'Ordina lo scaffale per titolo, artista, anno, aggiunti di recente, più ascoltati e altro. La freccia inverte l’ordine.',
+  'help.library.upNext':
+    'Apre e chiude il pannello destro: il brano in riproduzione, In coda, Dettagli e Testo.',
+  'help.library.album':
+    'Apre l’album. Con il clic destro lo riproduci, lo metti in coda, lo aggiungi a una playlist o ne modifichi i tag per intero.',
+  'help.library.rescan':
+    'Dice se la Libreria è aggiornata. Analizza di nuovo rilegge le cartelle per le modifiche; Forza nuova scansione, accanto, rilegge ogni file da capo.',
+  'help.library.tagsCaption':
+    'Un album nell’editor dei tag, dopo la correzione',
+  'help.library.fixAuto':
+    'Completa ciò che manca dai nomi dei file, dal nome della cartella, da un file .cue e da ciò su cui concordano la maggior parte dei brani, con l’immagine della cartella come copertina. Niente viene cercato online.',
+  'help.library.searchWeb':
+    'Apre l’album su MusicBrainz nel tuo browser. FluidEQ non scarica nulla.',
+  'help.library.cover':
+    'Una copertina per tutti i brani. Premila per scegliere un’immagine, incollarla o cercarla, oppure trascinaci sopra un’immagine.',
+  'help.library.albumFields':
+    'Valori scritti una volta per tutti i brani. Ciò che è cambiato è a colori, il valore sostituito barrato sotto; la freccia rimette quello vecchio.',
+  'help.library.findReplace':
+    'Trova parole in tutti i titoli e le sostituisce in un colpo.',
+  'help.library.fileNames':
+    'Rinomina i file dai loro tag secondo uno schema. Ogni nuovo nome appare sotto il suo brano, quello vecchio barrato.',
+  'help.library.sheet':
+    'Numero, titolo e artista di ogni brano, modificati come in un foglio di calcolo. Trascina una riga dalla maniglia, poi premi Rinumera per ordine.',
+  'help.library.save':
+    'Scrive le modifiche; prima sul disco non cambia nulla. Scarta le annulla tutte.',
+  'help.library.changesCaption': 'Modifiche: cosa scriverà Salva',
+  'help.library.changes':
+    'Tutto ciò che Salva scriverà, contato. Prende il posto di In coda finché l’editor è aperto.',
+  'help.library.changesAlbum':
+    'Cosa cambia su tutti i brani. Un valore aggiunto dove mancava è verde; uno sostituito mostra il vecchio barrato.',
+  'help.library.changesSongs':
+    'Le modifiche di ciascun brano, poi i file che ricevono un nuovo nome.',
 
-  'help.queue.title': 'Album e coda di riproduzione',
+  'help.queue.title': 'Album, In coda e testi',
   'help.queue.intro':
-    'La coda determina l’ordine d’ascolto. Aprire un altro album permette di esplorare senza cambiare il brano attuale. Il brano attivo e In coda aiutano a orientarti.',
+    'Un album si apre sotto la sua copertina senza fermare ciò che suona. Accanto, il pannello destro mostra il brano in riproduzione sopra tre schede: In coda, i Dettagli del brano e il suo Testo.',
   'help.queue.steps':
-    'Apri un album e avvia il brano desiderato.\nFai clic destro su un brano per Aggiungi alla coda, Aggiungi ai Preferiti o Aggiungi a una playlist.\nApri In coda per vedere cosa suona dopo e attiva Continua a suonare per proseguire con altra musica dello stesso genere.\nTrascina le righe di Prossimi per cambiare l’ordine e usa la loro azione di rimozione per toglierle dalla coda. Salva la coda come playlist per conservarla.\nIn Windows, file e cartelle musicali rilasciati sul lettore compatto vengono analizzati e aggiunti a Libreria e coda. Su una riga si inseriscono prima; sotto l’elenco finiscono in fondo. L’avviso segue l’analisi delle cartelle.',
+    'Apri un album e premi Riproduci, oppure premi un brano per cominciare da lì. Una seconda pressione su un brano lo fa ripartire dall’inizio.\nFai clic destro su un brano per Aggiungi alla coda, Aggiungi ai Preferiti o Aggiungi a una playlist; scegline più d’uno con Ctrl o Maiusc.\nIn In coda, premi un brano per suonarlo subito, trascinalo per cambiare l’ordine, oppure passaci sopra e premi × per toglierlo.\nAttiva Continua a suonare per proseguire con altro dello stesso genere quando la lista finisce. Sorprendimi, in fondo a In coda e sulla barra di riproduzione, avvia un brano a caso della tua Libreria e continua nel suo stile.\nTesto mostra le parole del brano dai suoi tag, o da un file .lrc o .txt con lo stesso nome accanto. Le righe sincronizzate seguono il brano parola per parola.\nNessun testo, o quello sbagliato? Trova un altro testo cerca il brano online nel tuo browser. Importa il file scaricato, incolla le parole o trascina il file sulla scheda; FluidEQ lo conserva con il brano.',
   'help.queue.tip':
-    'Avviare Libreria prende il posto degli altri lettori FluidEQ. Il brano attuale mostrato nella barra ti conferma quale sorgente ha la riproduzione.',
+    'Apri in Karaoke trasforma il testo di un brano in un karaoke nel Creatore di karaoke, dove se ne corregge il tempo. Su Windows, trascina file o cartelle di musica sul Lettore compatto per aggiungerli alla Libreria e metterli in coda.',
   'help.queue.keywords':
-    'riproduzione casuale, shuffle, ripetizione, ripetere brano, loop, prossima canzone, autoplay, riproduzione automatica',
+    'coda, in coda, brano successivo, casuale, ripeti, preferiti, playlist, continua a suonare, riproduzione automatica, sorprendimi, a caso, in riproduzione, testo, testi, lrc, testo sincronizzato, lrclib, genius, musixmatch, karaoke, ordine',
+  'help.queue.recordCaption': 'Un album aperto',
+  'help.queue.place':
+    'Dove sei: lo scaffale, poi l’album. Premi lo scaffale per tornarci.',
+  'help.queue.artist':
+    'Apre la pagina dell’artista: i suoi album e ogni brano in cui c’è.',
+  'help.queue.fix':
+    'Apre l’album nell’editor dei tag con le proposte della correzione già scritte.',
+  'help.queue.actionsName': 'I pulsanti dell’album',
+  'help.queue.actions':
+    'Riproduci, Casuale, Aggiungi alla coda, Mostra in Esplora file e il menu dell’album: Preferiti, playlist, Modifica tag e altro.',
+  'help.queue.albumSound':
+    'Un suono per questo album, un EQ salvato o un preset, che suona con ognuno dei suoi brani.',
+  'help.queue.filter':
+    'Filtra i brani di questo album mentre scrivi. La ricerca nella barra guarda in tutta la Libreria.',
+  'help.queue.songsName': 'I brani',
+  'help.queue.songs':
+    'Premi un brano per riprodurlo. Le barre segnano quello in riproduzione, la stella i tuoi Preferiti; il clic destro apre il suo menu.',
+  'help.queue.paneCaption': 'Il pannello destro, su In coda',
+  'help.queue.now':
+    'Il brano in riproduzione. Il nome dell’artista apre la sua pagina.',
+  'help.queue.tabs':
+    'In coda, i Dettagli del brano (file, formato e loudness) e il suo Testo. Per un video l’ultima scheda è Sottotitoli.',
+  'help.queue.keep':
+    'Quando la lista finisce, continua con altro dello stesso genere, poi con una sorpresa.',
+  'help.queue.rowsName': 'Cosa suona dopo',
+  'help.queue.rows':
+    'Il resto di ciò che stavi ascoltando, sotto il nome del suo album. Premi un brano per suonarlo subito, trascinalo per riordinare, passaci sopra per la sua ×.',
+  'help.queue.picks':
+    'I brani che hai aggiunto, dopo il resto dell’album, nell’ordine in cui li hai aggiunti.',
+  'help.queue.surprise':
+    'Un brano a caso della tua Libreria subito, poi altro nel suo stile.',
+  'help.queue.lyricsCaption': 'Testo, e Trova un altro testo',
+  'help.queue.lyricsLine':
+    'La riga cantata, illuminata parola per parola. Premi una riga qualsiasi per riprodurre da lì.',
+  'help.queue.sourceName': 'Da dove vengono',
+  'help.queue.source':
+    'I tag del brano, o il file del testo accanto, con il suo nome. Il cestino elimina un file del testo conservato con il brano; il testo dentro il file del brano non viene mai cambiato.',
+  'help.queue.karaoke':
+    'Crea un karaoke da questo testo nel Creatore di karaoke, dove se ne corregge il tempo.',
+  'help.queue.findOther':
+    'Apre la ricerca, a destra, per portare un altro testo.',
+  'help.queue.sites':
+    'Cerca il brano su LRCLIB (testi gratuiti e sincronizzati), Genius o Musixmatch, nel tuo browser. FluidEQ non scarica testi da solo.',
+  'help.queue.import':
+    'Conserva le parole con il brano: un file scaricato, testo incollato o un file trascinato sulla scheda (.lrc, .srt, .vtt, .ttml, .json, .yaml o .txt).',
 
   'help.karaoke.title': 'Canta con Karaoke',
   'help.karaoke.intro':

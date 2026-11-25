@@ -657,33 +657,135 @@ const help: Record<keyof typeof en, string> = {
 
   'help.online.title': 'Mit Online-Medien hören',
   'help.online.intro':
-    'Online-Medien hält unterstützte Seiten neben Ihrem EQ bereit. Wiedergabe und Anmeldung auf den Seiten hängen weiterhin vom Anbieter und von Ihrer Verbindung ab. Die Leiste am unteren Rand von FluidEQ folgt dem aktiven Player, und ihre Lautstärke ist die Ihres Computers.',
+    'Online-Medien spielt YouTube, YouTube Music, Bandcamp, Twitch und Suno in FluidEQ ab, aufgebaut wie die Bibliothek: die Seiten und Ihre letzten Suchanfragen in der Leiste, die Bedienleiste über der Seite. Was spielt, läuft wie jede andere App durch Ihren EQ; Wiedergabe und Anmeldung regelt jede Seite selbst.',
   'help.online.steps':
-    'Öffnen Sie Online-Medien, wählen Sie eine Seite und starten Sie dort die Wiedergabe.\nWechseln Sie zum EQ für Anpassungen beim Hören und zurück für seiteneigene Bedienelemente.\nAktivieren Sie Nur ein Player, um überlappende Wiedergabe zu vermeiden.',
+    'Wählen Sie in der Leiste eine Seite. Durchsuchen Sie sie über die Bedienleiste oder starten Sie etwas direkt auf der Seite.\nDrücken Sie eine letzte Suche, um sie auf der geöffneten Seite erneut auszuführen.\nWechseln Sie ruhig den Tab: Die Seite spielt weiter, und die Leiste am unteren Fensterrand folgt ihr.\nAktivieren Sie Nur ein Player, wenn FluidEQ und andere Player sich gegenseitig anhalten sollen, statt sich zu überlagern.',
   'help.online.tip':
     'Unter der FluidEQ-Engine läuft der Tab Online-Medien wie jede andere App durch Ihren EQ und das DSP-Rack. Unter Equalizer APO bleibt das Rack bei den Titeln der Bibliothek.',
   'help.online.keywords':
-    'YouTube, YouTube Music, Bandcamp, Twitch, Suno, streaming, streamingdienst, musik streamen, webseite, internet, browser',
+    'youtube, youtube music, bandcamp, twitch, suno, streaming, stream, web, webseite, browser, online, suchverlauf, letzte suchanfragen, abmelden, ausloggen, farben, dunkle seite',
+  'help.online.sites':
+    'Die Seiten. Ein Punkt daneben zeigt, dass sie gerade spielt. Die Nadel über der Leiste klappt sie auf die Symbole zusammen.',
+  'help.online.recent':
+    'Ihre früheren Suchen. Drücken Sie eine, um die geöffnete Seite erneut zu durchsuchen; ihr × vergisst sie.',
+  'help.online.colours':
+    'Färbt die Seite passend zu FluidEQ ein, nur auf Ihrem Bildschirm. Videos, Bilder und Logos bleiben unverändert, und Seiten mit hellem Design behalten ihre Farben.',
+  'help.online.signOut':
+    'Löscht alle Anmeldungen, Cookies und zwischengespeicherten Seiten des Players.',
+  'help.online.navName': 'Zurück, vor und neu laden',
+  'help.online.nav':
+    'Durch die geöffneten Seiten blättern oder die Seite neu laden.',
+  'help.online.search':
+    'Durchsucht die geöffnete Seite und merkt sich die Suche unter Letzte Suchanfragen.',
 
-  'help.library.title': 'Ihre lokale Bibliothek aufbauen',
+  'help.library.title': 'Ihre Bibliothek durchstöbern und ordnen',
   'help.library.intro':
-    'Die Bibliothek bringt Musik und Videos von Ihren Laufwerken zusammen. Stöbern Sie nach Alben, Interpreten, Genres, Songs, Ordnern, in einem Ordnerbaum oder in Ihren Playlists. Cover und Details stammen aus Ihren Dateien, deshalb kann dieselbe Sammlung je nach ihren Tags unterschiedlich aussehen.',
+    'Die Bibliothek bringt Musik und Videos Ihrer Laufwerke auf eine Seite: die Regale in der Leiste, eine Bedienleiste zum Finden und Anordnen und darunter, wo Sie gerade sind. Cover und Details stammen aus den Tags der Dateien, die der Tag-Editor in Ordnung bringt.',
   'help.library.steps':
-    'Öffnen Sie Bibliothek und fügen Sie den Ordner mit Ihren Medien hinzu. Warten Sie, bis das Einlesen fertig ist, bevor Sie beurteilen, was fehlt.\nWählen Sie einen Interpreten oder ein Album oder suchen Sie nach einem Song. Starten Sie einen Titel aus den Ergebnissen.\nMit der Leiste am unteren Fensterrand pausieren, spulen und springen Sie. Die Lautstärke dort ist die Ihres Computers, dieselbe wie in Windows.\nRaster, Liste, Cover Flow und Ordnerbaum zeigen dieselbe Sammlung. Wählen Sie mehrere Titel oder das Albummenü, um sie gemeinsam einzureihen oder abzulegen. Ein einzelner Audiotitel kann über sein Menü an Karaoke gesendet werden.',
+    'Drücken Sie unten in der Leiste Ordner hinzufügen und wählen Sie den Ordner mit Ihrer Musik. Die Statuszeile unter der Seite zeigt, wann die Bibliothek aktuell ist.\nWählen Sie ein Regal: Alben, Interpreten, Genres, Songs, Ordner (Ihre Ordner öffnen sich darunter als Baum), Videos oder eine Playlist. Ein Video spielt in der Seite, mit einem Tab Untertitel für seine Untertitel.\nSuchen Sie über die Bedienleiste, zeigen Sie das Regal als Details, Raster oder Cover Flow und ordnen Sie es mit Sortieren. Die Pfeile gehen durch die besuchten Orte zurück und vor.\nÖffnen Sie ein Album, einen Interpreten oder einen Ordner für seine Songs. Der Name eines Interpreten öffnet überall seine Seite: seine Alben und jeden Song, auf dem er zu hören ist.\nUm Tags zu korrigieren, klicken Sie mit der rechten Maustaste auf einen Song, mehrere Songs oder ein Album und wählen Tags bearbeiten (Strg+I) oder Tags automatisch korrigieren (Strg+Umschalt+I). Ein einzelner Song öffnet sich neben der Seite; ein Album, ein Ordner oder eine Auswahl öffnet sich als Seite.\nPrüfen Sie die Änderungen und drücken Sie Speichern. Die Dateien werden im Hintergrund geschrieben, und die Karte in der Ecke bietet Rückgängig an, das die alten Tags zurückbringt.',
   'help.library.tip':
-    'Fahren Sie mit der Maus über das Symbol von FluidEQ in der Windows-Taskleiste, um Vorheriger Titel, Wiedergeben und Nächster Titel zu nutzen, auch wenn FluidEQ minimiert ist. Die Bibliothek braucht die Originaldateien: Verbinden Sie ein Laufwerk erneut oder fügen Sie einen verschobenen Ordner neu hinzu.',
+    'Zeigen Sie auf die FluidEQ-Schaltfläche in der Windows-Taskleiste, um Zurück, Wiedergabe und Weiter zu nutzen, auch wenn das Fenster minimiert ist. Ziehen Sie Musik auf die Bibliothek, um sie abzuspielen. Die Bibliothek braucht die Dateien dort, wo sie sie gefunden hat: Schließen Sie ein Laufwerk wieder an oder fügen Sie einen verschobenen Ordner neu hinzu.',
   'help.library.keywords':
-    'musikplayer, mediathek, musiksammlung, eigene musik, musik hinzufügen, abspielen, wiedergabeleiste, künstler, wiedergabeliste, MP3, FLAC, WAV, AAC, dateiformate, scannen, metadaten, ID3-tags, albumcover, musikordner, Playlists, Neue Playlist',
+    'musikplayer, mediathek, musiksammlung, eigene musik, musik hinzufügen, abspielen, künstler, interpreten, wiedergabeliste, MP3, FLAC, WAV, AAC, dateiformate, scannen, ordnerbaum, cover flow, raster, sortieren, untertitel, metadaten, ID3-tags, tags bearbeiten, tag-editor, dateien umbenennen, albumcover, musicbrainz, rückgängig, Playlists, Neue Playlist',
+  'help.library.shelvesName': 'Regale',
+  'help.library.shelves':
+    'Was die Bibliothek enthält, mit der Anzahl auf jedem Regal. Ordner öffnet darunter einen Baum Ihrer Ordner.',
+  'help.library.playlists':
+    'Alle Ihre Playlists, wo auch neue entstehen; darunter Favoriten und Ihre eigenen.',
+  'help.library.addFolder':
+    'Fügt einen Ordner mit Musik oder Videos hinzu. Ihre Ordner darunter listet sie auf und entfernt einen.',
+  'help.library.history': 'Geht durch die geöffneten Orte zurück und vor.',
+  'help.library.search':
+    'Findet Songs, Interpreten und Alben in der ganzen Bibliothek.',
+  'help.library.views': 'Details, Raster oder Cover Flow, für jedes Regal.',
+  'help.library.sort':
+    'Ordnet das Regal nach Titel, Interpret, Jahr, zuletzt hinzugefügt, meistgespielt und mehr. Der Pfeil kehrt die Reihenfolge um.',
+  'help.library.upNext':
+    'Öffnet und schließt den rechten Bereich: den laufenden Song, Als Nächstes, Details und Songtext.',
+  'help.library.album':
+    'Öffnet das Album. Mit der rechten Maustaste spielen, einreihen, ablegen oder taggen Sie es ganz.',
+  'help.library.rescan':
+    'Zeigt, ob die Bibliothek aktuell ist. Erneut einlesen prüft Ihre Ordner auf Änderungen; Neu einlesen erzwingen daneben liest jede Datei von vorn.',
+  'help.library.tagsCaption':
+    'Ein Album im Tag-Editor, nach dem automatischen Korrigieren',
+  'help.library.fixAuto':
+    'Ergänzt Fehlendes aus den Dateinamen, dem Ordnernamen, einer .cue-Datei und dem, worin die meisten Songs übereinstimmen, mit dem Bild des Ordners als Cover. Nichts wird online nachgeschlagen.',
+  'help.library.searchWeb':
+    'Öffnet das Album auf MusicBrainz in Ihrem Browser. FluidEQ lädt nichts herunter.',
+  'help.library.cover':
+    'Ein Cover für alle Songs. Drücken Sie darauf, um ein Bild auszuwählen, einzufügen oder zu suchen, oder ziehen Sie ein Bild darauf.',
+  'help.library.albumFields':
+    'Werte, die einmal für alle Songs eingetragen werden. Geändertes ist farbig, ein ersetzter Wert steht durchgestrichen darunter; der Pfeil setzt den alten zurück.',
+  'help.library.findReplace':
+    'Findet Wörter in allen Titeln und ersetzt sie auf einmal.',
+  'help.library.fileNames':
+    'Benennt die Dateien nach einem Muster aus ihren Tags um. Jeder neue Name steht unter seinem Song, der alte durchgestrichen.',
+  'help.library.sheet':
+    'Nummer, Titel und Interpret jedes Songs, bearbeitet wie in einer Tabelle. Ziehen Sie eine Zeile am Griff und drücken Sie dann Nach Reihenfolge nummerieren.',
+  'help.library.save':
+    'Schreibt die Änderungen; vorher ändert sich nichts auf dem Datenträger. Verwerfen verwirft alle.',
+  'help.library.changesCaption': 'Änderungen: was Speichern schreiben wird',
+  'help.library.changes':
+    'Alles, was Speichern schreiben wird, gezählt. Solange der Editor offen ist, steht es an der Stelle von Als Nächstes.',
+  'help.library.changesAlbum':
+    'Was sich bei allen Songs ändert. Ein Wert, wo vorher keiner war, ist grün; ein ersetzter zeigt den alten durchgestrichen.',
+  'help.library.changesSongs':
+    'Die eigenen Änderungen jedes Songs, danach die Dateien, die einen neuen Namen bekommen.',
 
-  'help.queue.title': 'Alben und Wiedergabewarteschlange',
+  'help.queue.title': 'Alben, Als Nächstes und Songtexte',
   'help.queue.intro':
-    'Die Warteschlange bestimmt die Hörreihenfolge. Ein anderes Album zu öffnen ersetzt nicht den aktuellen Titel. Aktiver Titel und Als Nächstes zeigen Ihren Platz.',
+    'Ein Album öffnet sich unter seinem Cover, ohne das Laufende anzuhalten. Daneben zeigt der rechte Bereich den laufenden Song über drei Tabs: Als Nächstes, die Details des Songs und seinen Songtext.',
   'help.queue.steps':
-    'Öffnen Sie ein Album, um seine Titel anzusehen. Starten Sie den, den Sie hören wollen.\nKlicken Sie mit der rechten Maustaste auf einen Song, um Zur Warteschlange, Zu Favoriten hinzufügen oder Zu Playlist hinzufügen zu wählen.\nÖffnen Sie Als Nächstes, um zu sehen, was danach läuft, und schalten Sie Weiterspielen ein, um mit mehr aus demselben Genre weiterzuhören.\nZiehen Sie Zeilen in Als Nächstes in eine andere Reihenfolge oder entfernen Sie sie mit ihrer Aktion. Speichern Sie die Warteschlange als Playlist, um die Reihenfolge zu behalten.\nUnter Windows scannen abgelegte Musikdateien und Ordner im Kompaktplayer in Bibliothek und Warteschlange. Auf einer Zeile werden sie davor eingefügt, unter der Liste angehängt. Ein Hinweis zeigt den Scanfortschritt.',
+    'Öffnen Sie ein Album und drücken Sie Wiedergeben, oder drücken Sie einen Song, um dort zu beginnen. Ein zweiter Druck auf einen Song startet ihn von vorn.\nKlicken Sie mit der rechten Maustaste auf einen Song für Zur Warteschlange, Zu Favoriten hinzufügen oder Zu Playlist hinzufügen; mehrere wählen Sie mit Strg oder Umschalt.\nDrücken Sie in Als Nächstes einen Song, um ihn sofort zu spielen, ziehen Sie ihn, um die Reihenfolge zu ändern, oder zeigen Sie darauf und drücken Sie ×, um ihn herauszunehmen.\nAktivieren Sie Weiterspielen, um nach dem Ende der Liste mit mehr aus demselben Genre fortzufahren. Überraschen lassen, unten in Als Nächstes und in der Wiedergabeleiste, startet einen zufälligen Song Ihrer Bibliothek und spielt in seinem Stil weiter.\nSongtext zeigt die Worte aus den Tags des Songs oder aus einer gleichnamigen .lrc- oder .txt-Datei daneben. Zeitgesteuerte Zeilen folgen dem Song Wort für Wort.\nKein Songtext oder der falsche? Anderen Songtext finden sucht den Song online in Ihrem Browser. Importieren Sie die heruntergeladene Datei, fügen Sie den Text ein oder ziehen Sie die Datei auf den Tab; FluidEQ bewahrt ihn beim Song auf.',
   'help.queue.tip':
-    'Starten Sie die Wiedergabe in der Bibliothek, übernimmt sie von den anderen Playern in FluidEQ. Am aktuellen Titel in der Leiste erkennen Sie, welche Quelle gerade wiedergibt.',
+    'In Karaoke öffnen macht aus dem Songtext ein Karaoke im Karaoke-Editor, wo sich das Timing korrigieren lässt. Unter Windows ziehen Sie Musikdateien oder Ordner auf den Kompakten Player, um sie der Bibliothek hinzuzufügen und einzureihen.',
   'help.queue.keywords':
-    'queue, zufallswiedergabe, shuffle, wiederholen, repeat, dauerschleife, nächstes lied, autoplay, lieblingssongs, playlist erstellen',
+    'warteschlange, als nächstes, nächster song, zufallswiedergabe, wiederholen, favoriten, playlist, weiterspielen, autoplay, überraschen, zufall, läuft gerade, songtext, liedtext, lrc, synchronisiert, lrclib, genius, musixmatch, karaoke, reihenfolge',
+  'help.queue.recordCaption': 'Ein geöffnetes Album',
+  'help.queue.place':
+    'Wo Sie sind: das Regal, dann das Album. Drücken Sie das Regal, um dorthin zurückzukehren.',
+  'help.queue.artist':
+    'Öffnet die Seite des Interpreten: seine Alben und jeden Song, auf dem er zu hören ist.',
+  'help.queue.fix':
+    'Öffnet das Album im Tag-Editor, mit den Vorschlägen der Korrektur bereits eingetragen.',
+  'help.queue.actionsName': 'Die Schaltflächen des Albums',
+  'help.queue.actions':
+    'Wiedergeben, Zufallswiedergabe, Zur Warteschlange, Im Explorer anzeigen und das Menü des Albums: Favoriten, Playlists, Tags bearbeiten und mehr.',
+  'help.queue.albumSound':
+    'Ein Klang für dieses Album, ein gespeicherter EQ oder ein Preset, der bei jedem seiner Songs spielt.',
+  'help.queue.filter':
+    'Grenzt beim Tippen die Songs dieses Albums ein. Die Suche in der Bedienleiste durchsucht die ganze Bibliothek.',
+  'help.queue.songsName': 'Die Songs',
+  'help.queue.songs':
+    'Drücken Sie einen Song, um ihn zu spielen. Die Balken markieren den laufenden, der Stern Ihre Favoriten; die rechte Maustaste öffnet sein Menü.',
+  'help.queue.paneCaption': 'Der rechte Bereich, auf Als Nächstes',
+  'help.queue.now':
+    'Der laufende Song. Der Name des Interpreten öffnet seine Seite.',
+  'help.queue.tabs':
+    'Als Nächstes, die Details des Songs (Datei, Format und Lautheit) und sein Songtext. Bei einem Video heißt der letzte Tab Untertitel.',
+  'help.queue.keep':
+    'Wenn die Liste endet, geht es mit mehr aus demselben Genre weiter, danach mit einer Überraschung.',
+  'help.queue.rowsName': 'Was als Nächstes spielt',
+  'help.queue.rows':
+    'Der Rest dessen, was Sie gerade hören, mit seinem Album als Überschrift. Drücken Sie einen Song, um ihn sofort zu spielen, ziehen Sie ihn zum Umordnen, zeigen Sie darauf für sein ×.',
+  'help.queue.picks':
+    'Songs, die Sie hinzugefügt haben, nach dem Rest des Albums, in der Reihenfolge des Hinzufügens.',
+  'help.queue.surprise':
+    'Sofort ein zufälliger Song aus Ihrer Bibliothek, danach mehr in seinem Stil.',
+  'help.queue.lyricsCaption': 'Songtext und Anderen Songtext finden',
+  'help.queue.lyricsLine':
+    'Die gesungene Zeile, Wort für Wort hervorgehoben. Drücken Sie eine Zeile, um ab dort zu spielen.',
+  'help.queue.sourceName': 'Herkunft',
+  'help.queue.source':
+    'Die Tags des Songs oder die Songtext-Datei daneben, mit Namen. Der Papierkorb löscht eine beim Song aufbewahrte Songtext-Datei; Text in der Songdatei selbst wird nie verändert.',
+  'help.queue.karaoke':
+    'Startet aus diesem Songtext ein Karaoke im Karaoke-Editor, wo sich das Timing korrigieren lässt.',
+  'help.queue.findOther':
+    'Öffnet die Suche (rechts zu sehen), um einen anderen Songtext hereinzuholen.',
+  'help.queue.sites':
+    'Sucht den Song auf LRCLIB (freie, zeitgesteuerte Songtexte), Genius oder Musixmatch, in Ihrem Browser. FluidEQ lädt selbst keine Songtexte.',
+  'help.queue.import':
+    'Bewahrt den Text beim Song auf: eine heruntergeladene Datei, eingefügter Text oder eine auf den Tab gezogene Datei (.lrc, .srt, .vtt, .ttml, .json, .yaml oder .txt).',
 
   'help.karaoke.title': 'Mit Karaoke singen',
   'help.karaoke.intro':

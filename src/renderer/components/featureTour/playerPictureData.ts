@@ -16,41 +16,43 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { GraphStyle } from 'common/graphStyles';
 import type { TranslationKey } from 'common/i18n';
 
-const cover = (body: string) =>
+/** A drawn cover, 120 units square, as a picture an `<img>` can show. */
+export const pictureCover = (body: string) =>
   `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="240" height="240">${body}</svg>`,
   )}`;
 
-const COVERS = {
+/** The five albums' covers, which Help's Library drawings shelve too. */
+export const PICTURE_COVERS = {
   // A sea at dusk under a low sun.
-  coastlines: cover(
+  coastlines: pictureCover(
     '<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2a6b"/><stop offset=".55" stop-color="#e2718a"/><stop offset=".56" stop-color="#1d4f7a"/><stop offset="1" stop-color="#0b1c33"/></linearGradient></defs>' +
       '<rect width="120" height="120" fill="url(#s)"/><circle cx="60" cy="64" r="16" fill="#ffd3a1" opacity=".92"/>' +
       '<rect y="66" width="120" height="54" fill="#12375c" opacity=".92"/>' +
       '<g stroke="#ffd3a1" stroke-width="1.4" opacity=".55"><path d="M40 74h40M46 80h28M52 86h16"/></g>',
   ),
   // A cut-paper moon on warm paper.
-  paperMoons: cover(
+  paperMoons: pictureCover(
     '<rect width="120" height="120" fill="#f1e2c8"/><circle cx="62" cy="54" r="30" fill="#e4a95c"/>' +
       '<circle cx="74" cy="46" r="27" fill="#f1e2c8"/><path d="M0 96 Q30 84 60 96 T120 96 V120 H0Z" fill="#2f4a5c"/>' +
       '<path d="M0 104 Q30 94 60 104 T120 104 V120 H0Z" fill="#1d3140"/>',
   ),
   // A night grid under a pink storm.
-  neonWeather: cover(
+  neonWeather: pictureCover(
     '<defs><linearGradient id="n" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#12002b"/><stop offset="1" stop-color="#3a0a52"/></linearGradient></defs>' +
       '<rect width="120" height="120" fill="url(#n)"/><circle cx="60" cy="52" r="24" fill="#ff3fa4" opacity=".85"/>' +
       '<g stroke="#27e2ff" stroke-width="1" opacity=".8"><path d="M0 78h120M0 88h120M0 100h120M0 114h120"/>' +
       '<path d="M60 78 L10 120M60 78 L35 120M60 78 L60 120M60 78 L85 120M60 78 L110 120"/></g>',
   ),
   // Green water in long bands.
-  slowCurrents: cover(
+  slowCurrents: pictureCover(
     '<rect width="120" height="120" fill="#0e3b3a"/>' +
       '<g fill="none" stroke-width="7" stroke-linecap="round"><path d="M-10 30 Q30 14 60 30 T130 30" stroke="#3fb58f"/>' +
       '<path d="M-10 52 Q30 36 60 52 T130 52" stroke="#6fd1a8"/><path d="M-10 74 Q30 58 60 74 T130 74" stroke="#a5e8c2"/>' +
       '<path d="M-10 96 Q30 80 60 96 T130 96" stroke="#e4f7d9"/></g>',
   ),
   // Rings from one point, in warm light.
-  frequencies: cover(
+  frequencies: pictureCover(
     '<rect width="120" height="120" fill="#1a1110"/>' +
       '<g fill="none" stroke="#ff8a3d"><circle cx="38" cy="82" r="10" stroke-width="3"/><circle cx="38" cy="82" r="24" stroke-width="2.4" opacity=".8"/>' +
       '<circle cx="38" cy="82" r="40" stroke-width="1.8" opacity=".6"/><circle cx="38" cy="82" r="58" stroke-width="1.2" opacity=".4"/>' +
@@ -73,43 +75,43 @@ export const PICTURE_QUEUE: readonly IPictureSong[] = [
   {
     title: 'Paper Moons',
     artist: 'Kestrel Bay',
-    cover: COVERS.paperMoons,
+    cover: PICTURE_COVERS.paperMoons,
     durationMs: 226_000,
   },
   {
     title: 'Afterglow Avenue',
     artist: 'Velvet Circuit',
-    cover: COVERS.neonWeather,
+    cover: PICTURE_COVERS.neonWeather,
     durationMs: 245_000,
   },
   {
     title: 'Low Orbit',
     artist: 'Velvet Circuit',
-    cover: COVERS.neonWeather,
+    cover: PICTURE_COVERS.neonWeather,
     durationMs: 302_000,
   },
   {
     title: 'Tidewater',
     artist: 'Mono Atlas',
-    cover: COVERS.slowCurrents,
+    cover: PICTURE_COVERS.slowCurrents,
     durationMs: 204_000,
   },
   {
     title: 'Summer in Reverse',
     artist: 'Mono Atlas',
-    cover: COVERS.slowCurrents,
+    cover: PICTURE_COVERS.slowCurrents,
     durationMs: 219_000,
   },
   {
     title: 'Lanterns',
     artist: 'Aurora Lane',
-    cover: COVERS.coastlines,
+    cover: PICTURE_COVERS.coastlines,
     durationMs: 235_000,
   },
   {
     title: 'Static Hearts',
     artist: 'Northbound Echo',
-    cover: COVERS.frequencies,
+    cover: PICTURE_COVERS.frequencies,
     durationMs: 198_000,
   },
 ];
