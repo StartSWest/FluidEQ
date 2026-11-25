@@ -9,8 +9,6 @@ import type { IStudioState } from 'main/ipc/memberScenes';
 import PlaceHead from '../../community/PlaceHead';
 import Glyph from '../../community/Glyph';
 import type { ISceneFrame } from '../../graph/sceneGl';
-import StudioChatEffortDots from '../../studio/chat/StudioChatEffortDots';
-import StudioChatModelPick from '../../studio/chat/StudioChatModelPick';
 import StudioChatThread from '../../studio/chat/StudioChatThread';
 import StudioListen from '../../studio/StudioListen';
 import StudioMeters from '../../studio/StudioMeters';
@@ -24,6 +22,7 @@ import StudioVersionLine from '../../studio/StudioVersionLine';
 import { studioVersionLine } from '../../studio/versionLine';
 import StudioWorkTabs from '../../studio/StudioWorkTabs';
 import { useTranslation } from '../../utils/I18nContext';
+import Dropdown from '../../widgets/Dropdown';
 import aurora from '../../../../assets/tour/scene-aurora.jpg';
 import { PlusTab } from './plusFigures';
 import '../../styles/Studio.scss';
@@ -44,10 +43,70 @@ import '../../styles/StudioWork.scss';
  * markup, class for class, as `StudioStage` draws it. The chat's head and
  * its message box are their markup as `StudioChat` and
  * `StudioChatComposer` draw them, around the chat's own thread: each of
- * those reads the reader's own Claude account, session and draft.
+ * those reads the reader's own Claude account, session and draft. So do
+ * the model and effort picks in the box, which ask the app for the
+ * reader's own models and keep the reader's own picks: here the model is
+ * the app's dropdown on Default and the effort its dots on Medium.
  */
 
 const nothing = () => undefined;
+
+/** The five effort dots, Low to Max, as `StudioChatEffortDots` draws them. */
+const EFFORT_DOTS = [
+  'studioChat.effortLow',
+  'studioChat.effortMedium',
+  'studioChat.effortHigh',
+  'studioChat.effortXhigh',
+  'studioChat.effortMax',
+] as const;
+const EFFORT_AT = 1;
+
+/** The box's model pick, closed on Default (`ClaudeModelPick`). */
+const ModelPick = () => {
+  const { t } = useTranslation();
+  const label = t('studioChat.modelDefault');
+  return (
+    <Dropdown
+      name={t('studioChat.model')}
+      className="studio-chat__model"
+      menuClassName="studio-chat__model-menu"
+      placement="up"
+      isDisabled={false}
+      value="default"
+      options={[{ value: 'default', label, display: label }]}
+      handleChange={nothing}
+    />
+  );
+};
+
+/** The box's effort dots on Medium (`StudioChatEffortDots`). */
+const EffortDots = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="studio-chat__effort" title={t('studioChat.effortHint')}>
+      <div
+        className="studio-chat__effort-dots"
+        role="radiogroup"
+        aria-label={t('studioChat.effort')}
+      >
+        {EFFORT_DOTS.map((word, index) => (
+          <button
+            key={word}
+            type="button"
+            role="radio"
+            aria-checked={index === EFFORT_AT}
+            aria-label={t(word)}
+            className={index <= EFFORT_AT ? 'is-lit' : undefined}
+            tabIndex={index === EFFORT_AT ? 0 : -1}
+          />
+        ))}
+      </div>
+      <span className="studio-chat__effort-name" aria-hidden="true">
+        {t(EFFORT_DOTS[EFFORT_AT])}
+      </span>
+    </div>
+  );
+};
 const NOTHING_RESTORED = () =>
   Promise.resolve({ ok: false, reason: 'failed' } as const);
 
@@ -320,8 +379,8 @@ const StudioDrawing = () => {
                       >
                         <Glyph name="camera" />
                       </button>
-                      <StudioChatModelPick disabled={false} />
-                      <StudioChatEffortDots disabled={false} />
+                      <ModelPick />
+                      <EffortDots />
                       <button
                         type="submit"
                         className="button small studio-chat__send"
