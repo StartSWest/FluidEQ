@@ -21,6 +21,7 @@ import { framedFrame } from './sceneFramingView';
 import { FULL_VIEW, panelSize, type TSceneView } from './sceneView';
 import { SCENE_CONTEXT_ATTRIBUTES } from './sceneHealth';
 import { linkSceneProgram } from './sceneCompile';
+import { markSceneStep, timeSceneStep } from './sceneLoadMarks';
 import compileWorldScene from './sceneWorldLoader';
 import type { IEngineLookInput } from './engineLooks/engineLookInput';
 import { createLookGl } from './engineLooks/lookGl';
@@ -165,6 +166,15 @@ export interface ISceneProgram {
   dispose(): void;
 }
 
+/**
+ * A scene's picture as a build is handed it: decoded already, or still being
+ * decoded, so that the build can start its link and wait for the picture only
+ * where the picture is needed (`decodeSceneArtwork`). The build only reads it;
+ * whoever decoded it closes it once the build has settled.
+ */
+export type TSceneArtworkArrival =
+  ImageBitmap | PromiseLike<ImageBitmap | undefined> | undefined;
+
 export type TSceneCompileResult =
   | {
       ok: true;
@@ -237,27 +247,37 @@ const PALETTE_FIRST_UNIT = 4;
 const compileShaderScene = async (
   gl: WebGL2RenderingContext,
   pack: IScenePack,
-  artwork?: ImageBitmap,
+  arriving: TSceneArtworkArrival,
   signal?: AbortSignal,
   /** Fired when no window is on screen to poll the link on (`linkSceneProgram`). */
   hurry?: AbortSignal,
 ): Promise<TSceneCompileResult> => {
-  if (pack.artwork && !artwork) {
-    return { ok: false, log: 'scene artwork was not decoded' };
-  }
   const { source, sourceLineOffset } = assembleFragmentSource(pack);
 
-  const linked = await linkSceneProgram(
-    gl,
-    source,
-    sourceLineOffset,
-    signal,
-    hurry,
+  // Linked first, the picture awaited only once the link is done: the two
+  // run side by side, the link on the driver's threads and the decode on the
+  // browser's image threads. Awaited the other way round, the decode of
+  // Hanami's 3040x2702 picture and Alpine's 4096x2048 one (170-290 ms on
+  // software GL) came before the link even started, which a cold Alpine or
+  // Hanami then began 0.2-0.3 s late (harness, 2026-11-25).
+  const linked = await timeSceneStep('link', () =>
+    linkSceneProgram(gl, source, sourceLineOffset, signal, hurry),
   );
   if (!linked.ok) {
     return linked;
   }
   const { program } = linked;
+  let artwork: ImageBitmap | undefined;
+  try {
+    artwork = await arriving;
+  } catch (error) {
+    gl.deleteProgram(program);
+    throw error;
+  }
+  if (pack.artwork && !artwork) {
+    gl.deleteProgram(program);
+    return { ok: false, log: 'scene artwork was not decoded' };
+  }
 
   const spectrumTexture = createDataTexture(gl, SPECTRUM_TEXELS);
   const waveformTexture = createDataTexture(gl, WAVEFORM_TEXELS);
@@ -282,6 +302,7 @@ const compileShaderScene = async (
     return { ok: false, log: 'could not create artwork texture' };
   }
   if (artwork && artworkTexture) {
+    const uploadStartedAt = performance.now();
     gl.bindTexture(gl.TEXTURE_2D, artworkTexture);
     gl.texImage2D(
       gl.TEXTURE_2D,
@@ -300,6 +321,7 @@ const compileShaderScene = async (
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.generateMipmap(gl.TEXTURE_2D);
+    markSceneStep('artwork-upload', uploadStartedAt);
   }
 
   const location = (name: string) => gl.getUniformLocation(program, name);
@@ -585,7 +607,8 @@ const framing = (result: TSceneCompileResult): TSceneCompileResult =>
 export const compileScene = async (
   gl: WebGL2RenderingContext,
   pack: IScenePack,
-  artwork?: ImageBitmap,
+  /** Its picture, or the decode of it still under way, awaited only once needed. */
+  artwork?: TSceneArtworkArrival,
   signal?: AbortSignal,
   /** Fired when no window is on screen to poll the link on (`linkSceneProgram`). */
   hurry?: AbortSignal,

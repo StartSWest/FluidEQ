@@ -3,6 +3,7 @@ import { displayTickMs, isFrameDue } from '../utils/framePace';
 import type { ISceneCostReading } from './sceneHealth';
 import { decodeSceneArtwork } from './sceneArtwork';
 import { linksSettled } from './sceneCompile';
+import { markSceneStep, timeSceneStep } from './sceneLoadMarks';
 import {
   compileScene,
   createSceneContext,
@@ -146,6 +147,8 @@ let shownAt = 0;
  * a frame for a new box has reached the canvas (`sceneCanvasHold.ts`).
  */
 let shownTurn = 0;
+/** A program just built has not drawn yet (`markSceneStep`'s `first-draw`). */
+let firstDrawPending = false;
 
 const load = async (
   next: IScenePack,
@@ -179,16 +182,20 @@ const load = async (
   }
   // The last scene's slowest frame is not this one's to answer for.
   lastCostMs = 0;
-  let artwork: ImageBitmap | undefined;
+  // Decoded beside the compile, not ahead of it: the build starts its link
+  // at once and waits for the picture only where it needs it
+  // (`TSceneArtworkArrival`). Its own failure is read by the build; this
+  // branch only keeps a picture the build never waited for from being a
+  // rejection nobody heard.
+  const decoding = timeSceneStep('artwork-decode', () =>
+    decodeSceneArtwork(next),
+  );
+  decoding.catch(() => undefined);
   try {
-    artwork = await decodeSceneArtwork(next);
-    if (gl.isContextLost() || losses !== startedWithLosses) {
-      return { kind: 'lost' };
-    }
-    if (mine !== generation) {
-      return { kind: 'cancelled' };
-    }
-    const result = await compileScene(gl, next, artwork, controller.signal);
+    const context = gl;
+    const result = await timeSceneStep('compile', () =>
+      compileScene(context, next, decoding, controller.signal),
+    );
     if (
       mine !== generation ||
       gl.isContextLost() ||
@@ -209,6 +216,7 @@ const load = async (
     }
     program?.dispose();
     program = result.program;
+    firstDrawPending = true;
     // A different scene starts from the beginning of its clock, as the page's
     // own bookkeeping does; a new version of the same one carries on.
     if (pack?.id !== next.id) {
@@ -235,7 +243,12 @@ const load = async (
     }
     return { kind: 'compile', log: String(error) };
   } finally {
-    artwork?.close();
+    // The build has its textures, or has failed: the picture goes, now or
+    // whenever a decode the build did not wait for arrives.
+    decoding.then(
+      (artwork) => artwork?.close(),
+      () => undefined,
+    );
   }
 };
 
@@ -420,6 +433,7 @@ const render = (request: TDrawRequest, now: number): TSceneWorkerReply => {
     canvas.height = shown.height;
   }
 
+  const drawStartedAt = performance.now();
   clock.begin();
   gl.enable(gl.SCISSOR_TEST);
   gl.scissor(...scissorBox(clip, width, height));
@@ -436,6 +450,12 @@ const render = (request: TDrawRequest, now: number): TSceneWorkerReply => {
     });
   }
   clock.end();
+  if (firstDrawPending) {
+    // The new program's first frame: what the driver still does on first
+    // use, and the artwork's upload, land here.
+    firstDrawPending = false;
+    markSceneStep('first-draw', drawStartedAt);
+  }
   probing.drew(gl, shown.width, shown.height);
   shownFrames += 1;
   ledger.drew();

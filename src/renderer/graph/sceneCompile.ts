@@ -1,3 +1,4 @@
+import { markSceneStep } from './sceneLoadMarks';
 import { SCENE_VIEW_VERTEX_SOURCE } from './sceneView';
 
 /**
@@ -151,6 +152,7 @@ export const linkSceneProgram = async (
   }
   let linked = false;
   let linking = false;
+  const issuedAt = performance.now();
   try {
     // `uv` measured across the scene's panel, which is the canvas everywhere
     // but the Backdrop (`sceneView.ts`).
@@ -162,6 +164,7 @@ export const linkSceneProgram = async (
     gl.attachShader(program, fragment);
     gl.linkProgram(program);
     linking = true;
+    markSceneStep('link-issue', issuedAt);
     // Reading either shader's status here made Alpine block the shared GPU
     // process for eight seconds. Only query logs/status after completion —
     // unless no frame will come to wait on (see `hurry` above).

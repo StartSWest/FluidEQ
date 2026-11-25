@@ -19,15 +19,13 @@ import {
   UnsignedByteType,
   WebGLRenderer,
   WebGLRenderTarget,
-  type Material,
-  type Mesh,
-  type Object3D,
 } from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import type { IScenePack } from 'common/scenePacks';
 import { worldHasMirror, worldVarUniform } from 'common/sceneWorld';
 import { controlDeclarations } from 'common/sceneUniformContract';
-import type { TWorldCompileResult } from '../sceneGl';
+import type { TSceneArtworkArrival, TWorldCompileResult } from '../sceneGl';
+import { markSceneStep, timeSceneStep } from '../sceneLoadMarks';
 import { createWorldBloom } from './worldBloom';
 import createWorldCamera from './worldCamera';
 import { createWorldComposite } from './worldComposite';
@@ -49,6 +47,11 @@ import {
   waitForPrograms,
 } from './worldRenderer';
 import worldSamples from './worldSamples';
+import {
+  compileWorldPrograms,
+  drawWithEverythingShown,
+  silentTrialFrame,
+} from './worldTrial';
 
 /**
  * A 3D world as a scene program: the same `draw`, on the same context, into
@@ -77,7 +80,8 @@ const abortError = () => new DOMException('World load abandoned', 'AbortError');
 const compileWorld = async (
   gl: WebGL2RenderingContext,
   pack: IScenePack,
-  artwork: ImageBitmap | undefined,
+  /** The picture, or its decode still under way (`TSceneArtworkArrival`). */
+  artwork: TSceneArtworkArrival,
   signal: AbortSignal | undefined,
   hurry: AbortSignal | undefined,
   /**
@@ -175,26 +179,32 @@ const compileWorld = async (
 
     const floatTargets = gl.getExtension('EXT_color_buffer_float') !== null;
     const maxSamples = Number(gl.getParameter(gl.MAX_SAMPLES)) || 0;
-    const contractArtwork = artwork ? new Texture(artwork) : null;
+    // The picture's textures are made now and given the picture only once
+    // the programs are linked (below): nothing before the first frame reads
+    // a texture's pixels, and the decode runs beside the whole build instead
+    // of in front of it.
+    const hasArtwork = pack.artwork !== undefined;
+    const contractArtwork = hasArtwork ? new Texture() : null;
     if (contractArtwork) {
       contractArtwork.flipY = false;
-      contractArtwork.needsUpdate = true;
       disposables.push(contractArtwork);
     }
     const usesAtlas = Object.values(world.materials).some(
       (material) => material.map || material.emissiveMap,
     );
-    const atlas = artwork && usesAtlas ? new Texture(artwork) : null;
+    const atlas = hasArtwork && usesAtlas ? new Texture() : null;
     if (atlas) {
       atlas.flipY = false;
       atlas.colorSpace = SRGBColorSpace;
-      atlas.needsUpdate = true;
       disposables.push(atlas);
     }
 
     const inputs = createWorldInputs(pack, contractArtwork);
     disposables.push(inputs);
-    const read = await parseWorldModels(world.models);
+    const read = await timeSceneStep('world-models', () =>
+      parseWorldModels(world.models),
+    );
+    const buildStartedAt = performance.now();
     models = read.parsed;
     const { notes } = read;
     if (signal?.aborted) {
@@ -362,21 +372,28 @@ const compileWorld = async (
 
     // Compiled before the first frame, never during it: every program is
     // linked on the driver's threads and waited for here.
-    const materials = new Set<Material>();
-    renderer.setRenderTarget(drawn);
-    renderer
-      .compile(scene, camera)
-      .forEach((material) => materials.add(material));
-    pass.use(composite.material);
-    // Pointed at the default framebuffer until a frame points it at the
-    // worker's: set as a target before that, three would make one of its own.
-    external.point(shown, null);
-    renderer.setRenderTarget(shown);
-    renderer
-      .compile(pass.scene, pass.camera)
-      .forEach((material) => materials.add(material));
-    await waitForPrograms(renderer, [...materials], signal, hurry);
-    if (signal?.aborted) {
+    markSceneStep('world-build', buildStartedAt);
+    const compileStartedAt = performance.now();
+    const materials = compileWorldPrograms(
+      renderer,
+      { scene, camera, drawn },
+      pass,
+      // The glow's passes, then the final mix the pass is left with.
+      [...(bloom?.materials ?? []), composite.material],
+      {
+        target: shown,
+        // Pointed at the default framebuffer until a frame points it at the
+        // worker's: set as a target before that, three would make one of its
+        // own.
+        point: () => external.point(shown, null),
+      },
+    );
+    markSceneStep('world-compile-issue', compileStartedAt);
+    await timeSceneStep('world-link', () =>
+      waitForPrograms(renderer, [...materials], signal, hurry),
+    );
+    const trialStartedAt = performance.now();
+    const abandon = () => {
       // Given up on while linking, most likely: deleting a program the driver
       // is still linking waits for the link on the GPU process's main thread,
       // and every scene in the window froze for as long as that took. Its
@@ -388,61 +405,38 @@ const compileWorld = async (
           [...materials].every((material) => programReady(renderer, material)),
         release,
       );
-      throw abortError();
+      return abortError();
+    };
+    if (signal?.aborted) {
+      throw abandon();
     }
+    // The picture, decoded beside the build, is wanted from here on: the
+    // trial frame uploads every texture.
+    const picture = await artwork;
+    if (signal?.aborted) {
+      throw abandon();
+    }
+    if (hasArtwork && !picture) {
+      throw new Error('scene artwork was not decoded');
+    }
+    [contractArtwork, atlas].forEach((texture) => {
+      if (texture && picture) {
+        texture.image = picture;
+        texture.needsUpdate = true;
+      }
+    });
     // The frames drawn by the old program in the wait moved GL state under
     // three's cache of it.
     renderer.resetState();
     // One frame into its own targets with no music, so a material that fails
     // to link says so now — three reports a program on its first use — and so
     // the textures are on the GPU before anyone is watching.
-    inputs.update(
-      {
-        timeSeconds: 0,
-        deltaMs: 0,
-        level: 0,
-        beat: 0,
-        bands: [0, 0, 0],
-        musicAccent: [0, 0],
-        musicRun: [0, 0],
-        accent: [1, 1, 1],
-        fade: 1,
-        spectrum: new Uint8Array(0),
-        waveform: new Uint8Array(0),
-        params: {},
-      },
-      2,
-      2,
-    );
+    inputs.update(silentTrialFrame(), 2, 2);
     aim(1);
     build.update(0);
-    // Every object drawn, whatever its formulas and the camera say at 0 s:
-    // one first drawn later linked later, and failed where no note is read,
-    // and its textures were uploaded later — from the scene's picture, which
-    // the worker closes the moment this build returns, so they came up
-    // black. So the trial shows everything, and every texture goes up now.
-    const shownBefore = new Map<Object3D, [boolean, boolean]>();
-    scene.traverse((object) => {
-      shownBefore.set(object, [object.visible, object.frustumCulled]);
-      Object.assign(object, { visible: true, frustumCulled: false });
-    });
-    scene.traverse((object) => {
-      const { material } = object as Partial<Mesh>;
-      (Array.isArray(material) ? material : [material]).forEach((each) =>
-        Object.values(each ?? {}).forEach((value: unknown) => {
-          if (value instanceof Texture) {
-            renderer.initTexture(value);
-          }
-        }),
-      );
-    });
-    if (contractArtwork) {
-      renderer.initTexture(contractArtwork);
-    }
-    renderWorld(2, 2);
-    shownBefore.forEach(([visible, frustumCulled], object) => {
-      Object.assign(object, { visible, frustumCulled });
-    });
+    drawWithEverythingShown(renderer, scene, [contractArtwork], () =>
+      renderWorld(2, 2),
+    );
     // The last pass too, into a target of its own: the pack's shader is linked
     // into it, and it is the one program the world's own frame does not use.
     const trial = new WebGLRenderTarget(2, 2, { depthBuffer: false });
@@ -451,6 +445,7 @@ const compileWorld = async (
     renderer.render(pass.scene, pass.camera);
     trial.dispose();
     renderer.resetState();
+    markSceneStep('world-trial', trialStartedAt);
     if (problems.length > 0) {
       release();
       return {

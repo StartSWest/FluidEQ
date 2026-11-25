@@ -15,6 +15,7 @@ import {
   UnsignedByteType,
   Vector2,
   WebGLRenderTarget,
+  type Material,
   type Texture,
   type WebGLRenderer,
 } from 'three';
@@ -97,6 +98,12 @@ export interface IWorldBloom {
   /** The glow of `source`, a `width × height` picture, half its size. */
   render(source: Texture, width: number, height: number): Texture;
   setShape(threshold: number, radius: number): void;
+  /**
+   * Its passes' materials, for the world to link with every other program
+   * before the first frame: left to that frame, each was linked on its first
+   * use, one after the other, with the worker held waiting on every one.
+   */
+  materials: readonly Material[];
   dispose(): void;
 }
 
@@ -200,6 +207,7 @@ export const createWorldBloom = (
       }
       return targets[0].texture;
     },
+    materials: [down, up],
     setShape: (threshold, spread) => {
       down.uniforms.uThreshold.value = threshold;
       radius = spread;

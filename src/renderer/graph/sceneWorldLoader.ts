@@ -7,7 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { IScenePack } from 'common/scenePacks';
 import type { TWorldNote } from 'common/worldNotes';
 import { releaseWhenLinked } from './sceneCompile';
-import type { TWorldCompileResult } from './sceneGl';
+import { markSceneStep } from './sceneLoadMarks';
+import type { TSceneArtworkArrival, TWorldCompileResult } from './sceneGl';
 import type compileWorld from './world/worldProgram';
 
 /**
@@ -49,8 +50,10 @@ const loadWorldEngine = (): TCompileWorld | null => {
     engine = null;
     return engine;
   }
+  const startedAt = performance.now();
   try {
     scope.importScripts(engineUrl(scope.location.href));
+    markSceneStep('world-engine', startedAt);
   } catch (error) {
     unavailable = { code: 'engine-failed', detail: String(error) };
     engine = null;
@@ -76,7 +79,7 @@ const loadWorldEngine = (): TCompileWorld | null => {
 const compileWorldScene = async (
   gl: WebGL2RenderingContext,
   pack: IScenePack,
-  artwork: ImageBitmap | undefined,
+  artwork: TSceneArtworkArrival,
   signal: AbortSignal | undefined,
   hurry: AbortSignal | undefined,
 ): Promise<TWorldCompileResult> => {

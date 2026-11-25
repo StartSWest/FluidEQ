@@ -24,6 +24,39 @@ export const isDebug =
   process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
 
 /**
+ * ROOM IN THE GPU PROCESS FOR EVERY SCENE'S COMPILED PROGRAM.
+ *
+ * A scene's shader is compiled by the graphics driver the first time it is
+ * linked, and that is the whole of a slow scene's load: on software GL,
+ * Alpine's 92 KB shader took 12 s to link and Hanami's 8 s, where every other
+ * step from the pick to the first frame took 0.3 s together (harness,
+ * 2026-11-25). Chromium keeps each linked program — in memory for the
+ * session, and on disk (`GPUCache`) for the next launch — so a scene is meant
+ * to cost that once per machine per version.
+ *
+ * Both stores default to 6 MB, and FluidEQ's scenes do not fit in 6 MB: one
+ * compiled Alpine is 337 KB, and Ivan's own `GPUCache` on 2026-11-25 held
+ * 6.3 MB of programs — full, with Hanami's already pushed out. The memory
+ * store is also the only one a link asks (Chromium's
+ * `passthrough_program_cache.cc`: a miss there is a compile): the disk's
+ * entries are loaded into it at startup and trimmed back to its limit by the
+ * next program stored, so a scene whose binary was on disk compiled from
+ * nothing all the same. 64 MB holds every scene FluidEQ ships with room for
+ * their updates, and costs memory only as far as programs are stored.
+ * `gpu-program-cache-size-kb` sizes the memory store, `gpu-disk-cache-size-kb`
+ * the disk one; both are in this Electron's binary. Software GL keeps no
+ * program on disk at all, so the effect is measured only on a real GPU.
+ */
+export const SCENE_PROGRAM_CACHE_KB = 64 * 1024;
+export const SCENE_PROGRAM_CACHE_SWITCHES: readonly (readonly [
+  string,
+  string,
+])[] = [
+  ['gpu-program-cache-size-kb', String(SCENE_PROGRAM_CACHE_KB)],
+  ['gpu-disk-cache-size-kb', String(SCENE_PROGRAM_CACHE_KB)],
+];
+
+/**
  * What Chromium and the debugging tools are told before the app is ready:
  * source maps, the sandbox in a container, the DevTools port, and the features
  * this build must not claim to have.
@@ -160,6 +193,10 @@ export const applyLaunchSwitches = () => {
    * it, which is the safety that matters and is not ours to remove.
    */
   app.disableDomainBlockingFor3DAPIs();
+
+  SCENE_PROGRAM_CACHE_SWITCHES.forEach(([name, value]) =>
+    app.commandLine.appendSwitch(name, value),
+  );
 
   if (isDebug) {
     /*
