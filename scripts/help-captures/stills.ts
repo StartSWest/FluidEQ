@@ -46,27 +46,34 @@ const MUSIC_FRAMES = 45;
 const STEADY_FRAMES = 60;
 
 /**
- * The figures the README shows, also taken plain into `help/plain/<live
- * id>.png`: the README has no list for the circles to point into, so there
- * they would be numbers that say nothing.
+ * The figures the README and the site show, also taken plain into
+ * `help/plain/<live id>.png`: neither has a list for the circles to point
+ * into, so there they would be numbers that say nothing. The site's assets
+ * script copies its pictures from `docs/` by name (`releaseImages` in the
+ * site's `site.config.json`): a figure it shows stays on this list.
  */
 const PLAIN = new Set([
   'config-page',
   'convolution-page',
+  'desktop-dialog',
   'dsp-denoise',
   'dsp-overview',
   'dsp-room',
+  'engine-dialog',
   'eq-page',
   'gallery-scene',
   'headphones-page',
   'karaoke-stage',
   'library-page',
   'library-record',
+  'lighting-page',
+  'look-picker',
   'maker-editor',
   'online-page',
   'share-page',
   'sound-panel',
   'studio-bench',
+  'visualizers-gallery',
 ]);
 
 const argument = (name: string): string[] =>

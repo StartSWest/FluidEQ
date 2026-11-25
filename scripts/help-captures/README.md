@@ -74,9 +74,9 @@ It opens the guide (F1), scrolls to every live figure, waits for its drawing
 and its numbered circles, lets its made-up music play for a moment, and cuts
 the figure at twice the pixels into `docs/help/<live id>.png` — the `still`
 each figure names. English, the window's default colours, software GL so the
-run takes nobody's GPU. The figures the repository's README shows (`PLAIN`
+run takes nobody's GPU. The figures the README and the site show (`PLAIN`
 in `stills.ts`) are also taken without their circles into
-`docs/help/plain/<live id>.png`, because the README has no list for the
+`docs/help/plain/<live id>.png`, because neither has a list for the
 numbers to point into. `--only rail-left` (repeatable) takes one figure,
 `--skip-build` uses the harness as last built. Retake the pictures whenever a
 drawing changes, then export the guide again.
