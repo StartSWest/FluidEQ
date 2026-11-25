@@ -1183,9 +1183,16 @@ Out-String` (or any other capture) is what actually waits for it and shows
   "somebody else's effects" verdict. What the card shows is the helper's
   own reading — `runs` (Windows' reading rules: per slot, the list, else
   the single; the legacy pair only with no modern values), `ownEffectsOff`
-  and `ownEffectsTaken`, each named by its registered class name — never a
-  guess from the app's side. Only an endpoint `list_capture_endpoints`
-  finds is accepted: an output's effects are its own business.
+  and `ownEffectsTaken` — never a guess from the app's side. Each effect is
+  named by `setup/apo_lookup.cpp` + `apo_names.cpp` (read-only): the
+  AudioProcessingObjects FriendlyName, the CLSID class name, the DLL's
+  version description, then the effects component's own driver key —
+  Windows 11 "audio effects components" register their name only there, not
+  under `HKLM\SOFTWARE\Classes`, which is why every name once read
+  "unnamed". A worded name beats a code-like one, and the driver kit's
+  placeholder company ("Windows (R) Win 7 DDK provider") is never the maker.
+  Only an endpoint `list_capture_endpoints` finds is accepted: an output's
+  effects are its own business.
 - **Installed, attached, and never once created by Windows is its own state,
   and the app repairs it.** Two machine-wide things decide whether
   `audiodg.exe` will load this effect at all: `DisableProtectedAudioDG`, and
