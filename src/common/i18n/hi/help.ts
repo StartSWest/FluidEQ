@@ -738,6 +738,20 @@ const help: Record<keyof typeof en, string> = {
     'कनेक्शन कोड निजी रखें: यही लिंक की अनुमति देता है। FluidEQ इंजन के साथ, यह कंप्यूटर साझा करते समय अपना DSP चालू रखता है, और इसकी आवाज़ चलाने वाला कंप्यूटर अपना DSP लगाता है। एक साथ चलाने और भेजने के लिए उस कंप्यूटर पर Windows चाहिए; बाकी जगह लिंक एक दिशा में चलता है।',
   'help.share.keywords':
     'ऑडियो शेयर, share audio, नेटवर्क, network, वाईफ़ाई, wifi, lan, लोकल नेटवर्क, local network, ऑडियो स्ट्रीम, stream audio, send audio, दूसरा पीसी, another pc, another computer, second computer, लैपटॉप से पीसी, remote, receiver, sender, pairing, pair, connection code, दोनों दिशाएँ, both ways, two way, duplex, लिंक, link, लिंक हटाएँ, unlink, रोकें, pause, फिर शुरू करें, resume, वॉल्यूम, volume, समूह, group, कंप्यूटर जोड़ें, add computer, प्राप्त करें, भेजें, मिक्स, ऑफ़लाइन, offline',
+  'help.share.mix':
+    'इस PC की आवाज़, और हर उस कंप्यूटर का स्तर जिसे आप सुनते हैं।',
+  'help.share.outputName': 'आउटपुट',
+  'help.share.output': 'यह कंप्यूटर समूह को कहाँ बजाता है।',
+  'help.share.add':
+    'इस कंप्यूटर का कोड कॉपी करें, या किसी दूसरे का पेस्ट करके लिंक करें दबाएँ।',
+  'help.share.shareSwitch':
+    'साझा करें इस कंप्यूटर की ध्वनि पूरे समूह को भेजता है; बगल का Fluid रुकने वाले कनेक्शन के लिए थोड़ा बफ़र जोड़ता है।',
+  'help.share.switchesName': 'प्राप्त करें और भेजें',
+  'help.share.switches':
+    'प्राप्त करें उस कंप्यूटर को यहाँ बजाता है; भेजें इसे वहाँ बजाता है। उसका ••• मेनू उसे रोकता, फिर चलाता, फिर जोड़ता या अलग करता है।',
+  'help.share.laneName': 'वह क्या बजा रहा है',
+  'help.share.lane':
+    'उस कंप्यूटर का गाना और आती हुई उसकी ध्वनि, दोनों ओर की देरी के साथ।',
 
   'help.trouble.title': 'जब आवाज़ ठीक न लगे',
   'help.trouble.intro':

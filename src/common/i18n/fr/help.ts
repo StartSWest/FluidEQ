@@ -757,6 +757,20 @@ const help: Record<keyof typeof en, string> = {
     'Le code de connexion autorise la liaison : gardez-le privé. Avec le moteur FluidEQ, cet ordinateur garde son DSP pendant qu’il partage, et l’ordinateur qui joue son son applique le sien. Jouer et envoyer à la fois demande Windows sur cet ordinateur ; ailleurs, une liaison fonctionne dans un seul sens.',
   'help.share.keywords':
     'réseau local, diffuser, transmettre, autre PC, deuxième PC, jumelage, LAN, wifi, Ethernet, deux sens, bidirectionnel, relier, délier, pause, reprendre, volume, groupe, ajouter un ordinateur, recevoir, envoyer, partager, mixage, hors ligne, plusieurs ordinateurs',
+  'help.share.mix':
+    'Le volume de ce PC, et un niveau pour chaque ordinateur que vous entendez.',
+  'help.share.outputName': 'Sortie',
+  'help.share.output': 'Là où cet ordinateur joue le groupe.',
+  'help.share.add':
+    'Copiez le code de cet ordinateur, ou collez celui d’un autre et cliquez sur Relier.',
+  'help.share.shareSwitch':
+    'Partager envoie le son de cet ordinateur à tout le groupe ; Fluid à côté ajoute une petite réserve pour une connexion qui cale.',
+  'help.share.switchesName': 'Recevoir et Envoyer',
+  'help.share.switches':
+    'Recevoir joue cet ordinateur ici ; Envoyer joue celui-ci là-bas. Son menu ••• le met en pause, le reprend, le reconnecte ou le délie.',
+  'help.share.laneName': 'Ce qu’il joue',
+  'help.share.lane':
+    'Le morceau de cet ordinateur et son son tel qu’il arrive, avec le délai dans chaque sens.',
 
   'help.trouble.title': 'Quand le son ne va pas',
   'help.trouble.intro':

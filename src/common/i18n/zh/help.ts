@@ -691,6 +691,18 @@ const help: Record<keyof typeof en, string> = {
     '连接码授权链接，请保密。使用 FluidEQ 引擎时，这台电脑在共享时会保持 DSP 开启，播放其声音的电脑会套用自己的 DSP。同时播放和发送需要那台电脑使用 Windows；在其他系统上，链接只能单向工作。',
   'help.share.keywords':
     '局域网, 内网, LAN, WiFi, 串流, 音频传输, 声音共享, 远程, 另一台电脑, 两台电脑, 防火墙, 双向, 链接, 取消链接, 暂停, 继续, 恢复, 音量, 群组, 添加电脑, 接收, 发送, 共享, 混音, 离线, 多台电脑',
+  'help.share.mix': '本机的音量，以及你听到的每台电脑各自的电平。',
+  'help.share.outputName': '输出',
+  'help.share.output': '本机播放整个组的声音所用的输出。',
+  'help.share.add': '复制本机的代码，或粘贴另一台电脑的代码并点击“链接”。',
+  'help.share.shareSwitch':
+    '“共享”把本机的声音发送给整个组；旁边的 Fluid 为容易卡顿的连接加一点缓冲。',
+  'help.share.switchesName': '接收与发送',
+  'help.share.switches':
+    '“接收”在这里播放那台电脑的声音；“发送”在那里播放本机的声音。它的 ••• 菜单可暂停、继续、重新连接或解除连接。',
+  'help.share.laneName': '正在播放的内容',
+  'help.share.lane':
+    '那台电脑正在播放的歌曲和到达时的声音，以及两个方向的延迟。',
 
   'help.trouble.title': '声音不对时怎么办',
   'help.trouble.intro':

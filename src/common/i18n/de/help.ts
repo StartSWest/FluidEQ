@@ -763,6 +763,20 @@ const help: Record<keyof typeof en, string> = {
     'Halten Sie den Verbindungscode privat: Er erlaubt das Verbinden. Unter der FluidEQ-Engine bleibt das DSP dieses Computers beim Teilen an, und der Computer, der seinen Ton abspielt, wendet sein eigenes an. Gleichzeitig abspielen und senden erfordert Windows auf diesem Computer; anderswo läuft eine Verbindung in eine Richtung.',
   'help.share.keywords':
     'LAN, WLAN, heimnetzwerk, lokales netzwerk, anderer PC, anderer rechner, audio streamen, audio übertragen, remote, koppeln, beide richtungen, zwei richtungen, verbinden, trennen, duplex, pausieren, pause, fortsetzen, lautstärke, gruppe, computer hinzufügen, empfangen, senden, teilen, mix, offline, mehrere computer',
+  'help.share.mix':
+    'Die Lautstärke dieses PCs und ein Pegel für jeden Computer, den Sie hören.',
+  'help.share.outputName': 'Ausgabe',
+  'help.share.output': 'Wo dieser Computer die Gruppe abspielt.',
+  'help.share.add':
+    'Den Code dieses Computers kopieren oder den eines anderen einfügen und auf Verbinden klicken.',
+  'help.share.shareSwitch':
+    'Teilen schickt den Klang dieses Computers an die ganze Gruppe; Fluid daneben fügt einen kleinen Puffer für eine stockende Verbindung hinzu.',
+  'help.share.switchesName': 'Empfangen und Senden',
+  'help.share.switches':
+    'Empfangen spielt jenen Computer hier; Senden spielt diesen dort. Sein •••-Menü pausiert, setzt fort, verbindet neu oder trennt ihn.',
+  'help.share.laneName': 'Was er spielt',
+  'help.share.lane':
+    'Der Titel jenes Computers und sein Klang, wie er ankommt, mit der Verzögerung in beide Richtungen.',
 
   'help.trouble.title': 'Wenn etwas falsch klingt',
   'help.trouble.intro':

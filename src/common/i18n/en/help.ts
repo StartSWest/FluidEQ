@@ -738,6 +738,19 @@ const help = {
     'Keep the connection code private: it authorizes linking. Under the FluidEQ Engine this computer keeps its DSP on while it shares, and the computer playing its sound applies its own. Playing and sending at once needs Windows on that computer; elsewhere a link runs one way.',
   'help.share.keywords':
     'network, lan, wifi, local network, stream audio, send audio, another pc, another computer, second computer, remote, receiver, sender, connection code, pair, both ways, two way, link, unlink, duplex, pause, resume, volume, group, add computer, receive, send, share, mix, offline, several computers',
+  'help.share.mix': 'This PC’s volume, and a level for each computer you hear.',
+  'help.share.outputName': 'Output',
+  'help.share.output': 'Where this computer plays the group.',
+  'help.share.add':
+    'Copy this computer’s code, or paste another’s and press Link.',
+  'help.share.shareSwitch':
+    'Share sends this computer’s sound to the whole group; Fluid beside it adds a small cushion for a connection that stalls.',
+  'help.share.switchesName': 'Receive and Send',
+  'help.share.switches':
+    'Receive plays that computer here; Send plays this one there. Its ••• menu pauses, resumes, reconnects or unlinks it.',
+  'help.share.laneName': 'What it plays',
+  'help.share.lane':
+    'That computer’s song and its sound as it arrives, with the delay each way.',
 
   'help.trouble.title': 'When something sounds wrong',
   'help.trouble.intro':

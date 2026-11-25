@@ -191,6 +191,41 @@ const LISTEN_CHAPTERS = [
         width: 1040,
         height: 830,
         still: '14-share-audio-roles.png',
+        controls: [
+          {
+            target: '.remote-audio__mix',
+            name: 'remoteAudio.group.mix',
+            text: 'help.share.mix',
+          },
+          {
+            target: '.remote-audio__rail-foot',
+            name: 'help.share.outputName',
+            text: 'help.share.output',
+          },
+          {
+            target: '.remote-audio__head > .button',
+            name: 'remoteAudio.group.add',
+            text: 'help.share.add',
+          },
+          {
+            target:
+              '.remote-audio__group > .remote-audio__group-row .remote-audio__group-actions',
+            name: 'remoteAudio.group.share',
+            text: 'help.share.shareSwitch',
+          },
+          {
+            target:
+              '.remote-audio__group-list > .remote-audio__group-row:nth-child(3) .remote-audio__group-lanes',
+            name: 'help.share.laneName',
+            text: 'help.share.lane',
+          },
+          {
+            target:
+              '.remote-audio__group-list > .remote-audio__group-row:nth-child(3) .remote-audio__group-actions',
+            name: 'help.share.switchesName',
+            text: 'help.share.switches',
+          },
+        ],
       },
     ],
   },

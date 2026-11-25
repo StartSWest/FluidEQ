@@ -747,6 +747,20 @@ const help: Record<keyof typeof en, string> = {
     'Mantenha o código de conexão privado: ele autoriza o vínculo. Com o Motor FluidEQ, este computador mantém o DSP enquanto compartilha, e o computador que toca o som dele aplica o próprio. Tocar e enviar ao mesmo tempo exige Windows nesse computador; em outros, um vínculo funciona em um sentido só.',
   'help.share.keywords':
     'rede local, LAN, wifi, outro PC, transmitir, receber áudio, remoto, dois sentidos, bidirecional, vincular, desvincular, rede, enviar áudio, outro computador, segundo computador, receptor, transmissor, código de conexão, parear, conexão, pausar, retomar, volume, grupo, adicionar computador, receber, enviar, compartilhar, mixagem, offline, vários computadores',
+  'help.share.mix':
+    'O volume deste PC e um nível para cada computador que você ouve.',
+  'help.share.outputName': 'Saída',
+  'help.share.output': 'Onde este computador toca o grupo.',
+  'help.share.add':
+    'Copie o código deste computador, ou cole o de outro e clique em Vincular.',
+  'help.share.shareSwitch':
+    'Compartilhar envia o som deste computador para todo o grupo; Fluid ao lado adiciona uma pequena folga para uma conexão que trava.',
+  'help.share.switchesName': 'Receber e Enviar',
+  'help.share.switches':
+    'Receber toca aquele computador aqui; Enviar toca este lá. O menu ••• dele pausa, retoma, reconecta ou desvincula.',
+  'help.share.laneName': 'O que ele toca',
+  'help.share.lane':
+    'A música daquele computador e o som dela como chega, com o atraso em cada sentido.',
 
   'help.trouble.title': 'Quando o som está errado',
   'help.trouble.intro':
