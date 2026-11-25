@@ -633,9 +633,11 @@ figcaption.help-film__line {
   border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
   border-radius: 50%;
   background: $secondary-default;
+  // The floor's colour round it, so a line or a picture under it stops
+  // short of the number; no glow under it (Ivan, 2026-11-19: "no
+  // dropshadow always clean").
   box-shadow:
     0 0 0 3px $surface-base,
-    0 4px 12px color-mix(in srgb, $secondary-default 22%, transparent),
     inset 0 1px 0 rgba($white, 0.36);
   font-size: 12px;
   font-weight: $weight-bold;
@@ -663,9 +665,7 @@ figcaption.help-film__line {
   padding: 3px;
   border: 2px solid $secondary-light;
   border-radius: $radius-s;
-  box-shadow:
-    0 0 0 4px color-mix(in srgb, $secondary-default 22%, transparent),
-    0 0 26px color-mix(in srgb, $secondary-light 55%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, $secondary-default 22%, transparent);
   pointer-events: none;
   @include animate(fade-in, $motion-fast);
 }
