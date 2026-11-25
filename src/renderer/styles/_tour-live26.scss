@@ -1,0 +1,128 @@
+/* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// *** The drawings' own room ***********************************************
+//
+// Each live drawing is a page laid out at a fixed size (`release26.tsx`);
+// these give the pages that fill their window's height a height of their
+// own, and the parts a drawing draws instead of the reader's (a cover).
+
+.tour-live26-mic {
+  height: 640px;
+}
+
+.tour-live26-library {
+  --up-next-width: 100%;
+
+  display: flex;
+  width: 100%;
+  height: 600px;
+  flex-direction: column;
+}
+
+.tour-live26-library__art {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  border-radius: $radius-m;
+  background: linear-gradient(135deg, $secondary-default, $active);
+}
+
+.tour-live26-karaoke {
+  display: grid;
+  padding: 12px;
+  gap: 12px;
+
+  .karaoke-pitch {
+    height: 190px;
+  }
+}
+
+.tour-live26-autoeq {
+  position: static;
+}
+
+// A scene and the colours it lends: the scene's picture on the left, the
+// three pictures crossing as the colours change beside them.
+.tour-live26-colours {
+  display: grid;
+  align-items: start;
+  padding: 16px;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+}
+
+.tour-live26-colours__stage {
+  position: relative;
+  overflow: hidden;
+  border-radius: $radius-m;
+  aspect-ratio: 16 / 9;
+
+  img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    inset: 0;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 600ms $ease-out;
+
+    &.is-shown {
+      opacity: 1;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+}
+
+.tour-live26-colours__name {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  padding: 3px 9px;
+  color: $text-primary;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-2xs;
+  background: $surface-panel;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}
+
+// Publishing's note and preview, on the dialog's own panel.
+// Room on the left for the numbers that stand beside its parts.
+.tour-live26-publish {
+  display: grid;
+  padding: 18px 20px 18px 40px;
+  background: $surface-panel;
+  gap: 16px;
+
+  // One column: the parts' own places belong to the dialog's grid.
+  > * {
+    grid-area: auto;
+    grid-column: 1;
+  }
+}
+
+.tour-live26-publish__head {
+  display: grid;
+  gap: 4px;
+
+  strong {
+    color: $text-primary;
+    font-size: $text-lead;
+    font-weight: $weight-bold;
+  }
+}
+
+.tour-live26-publish__foot {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 12px;
+  border-top: 1px solid $border-subtle;
+  gap: 8px;
+}

@@ -138,11 +138,23 @@ const LyricsRow = memo(
  * it. Scrolling by hand lets go of the song until the reader asks for it back
  * or presses a line. Everything moves on the player's own clock — a reading
  * moves the line, a painted frame moves the word — and never on a timer.
+ *
+ * The view is given that clock and what a press on a line does, so 2.6's
+ * What's New draws the same lines on a made-up song
+ * (`featureTour/live26/LibraryLive.tsx`); the Library's own wears the
+ * player's (`LibraryLyricsSynced`, below).
  */
-const LibraryLyricsSynced = ({
+export const LibraryLyricsSyncedView = ({
   lines: allLines,
+  positionMs,
+  isPlaying,
+  onPlayFrom,
 }: {
   lines: readonly ILyricsLine[];
+  positionMs: number;
+  isPlaying: boolean;
+  /** A press on a line: play the song from its time. */
+  onPlayFrom: (timeMs: number) => void;
 }) => {
   // The words and their times, and the stanzas as the file parts them -
   // never a row of dots, which drew pauses between lines sung straight
@@ -163,7 +175,6 @@ const LibraryLyricsSynced = ({
     );
   }, [allLines]);
   const { t } = useTranslation();
-  const { positionMs, isPlaying, seek, toggle } = useLibraryPlayer();
   // Through a stanza's space the line sung last stays lit until the next
   // begins: the space is never the song's place.
   const reached = reachedIndex(lines, positionMs);
@@ -245,19 +256,13 @@ const LibraryLyricsSynced = ({
     };
   }, []);
 
-  // A press plays the song from that line, paused or stopped as it may be:
-  // the jump alone left a paused song sitting silent at the new line, which
-  // read as the press doing nothing (Ivan, 2026-11-15). Play is the bar's
-  // own (`toggle`), after the jump, so it starts where the line is.
+  // A press plays from that line and follows the song again.
   const handleSeek = useCallback(
     (line: ILyricsLine) => {
-      seek(line.timeMs);
-      if (!isPlaying) {
-        toggle();
-      }
+      onPlayFrom(line.timeMs);
       setIsFollowing(true);
     },
-    [isPlaying, seek, toggle],
+    [onPlayFrom],
   );
 
   return (
@@ -305,6 +310,32 @@ const LibraryLyricsSynced = ({
         </button>
       )}
     </div>
+  );
+};
+
+/** The Library's: the lines on its own player's clock. */
+const LibraryLyricsSynced = ({ lines }: { lines: readonly ILyricsLine[] }) => {
+  const { positionMs, isPlaying, seek, toggle } = useLibraryPlayer();
+  // A press plays the song from that line, paused or stopped as it may be:
+  // the jump alone left a paused song sitting silent at the new line, which
+  // read as the press doing nothing (Ivan, 2026-11-15). Play is the bar's
+  // own (`toggle`), after the jump, so it starts where the line is.
+  const playFrom = useCallback(
+    (timeMs: number) => {
+      seek(timeMs);
+      if (!isPlaying) {
+        toggle();
+      }
+    },
+    [isPlaying, seek, toggle],
+  );
+  return (
+    <LibraryLyricsSyncedView
+      lines={lines}
+      positionMs={positionMs}
+      isPlaying={isPlaying}
+      onPlayFrom={playFrom}
+    />
   );
 };
 

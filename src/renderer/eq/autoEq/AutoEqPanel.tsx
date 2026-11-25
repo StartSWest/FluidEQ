@@ -31,7 +31,7 @@ import AutoEqEqPicker from './AutoEqEqPicker';
 import { backToSaved, storedPresetOf } from '../../audio/songCardSound';
 
 /** One of the panel's parts: its name and line, its switch, what it holds. */
-const AutoEqPart = ({
+export const AutoEqPart = ({
   id,
   title,
   hint,

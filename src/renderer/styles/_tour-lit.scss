@@ -1,0 +1,412 @@
+/* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// 2.6's slides, look A (Ivan, 2026-11-25): the words on one line, a large
+// live picture of the real page under them, three numbered points under
+// that (`LitSlide`, `TourLiveFigure`), and the first page's window turning
+// from white to dark under the pointer (`TourSplitWindow`). Flat: edges and
+// steps of light, no shadow anywhere (Ivan, 2026-11-19).
+
+.tour-lit {
+  grid-template-rows: auto minmax(220px, 1fr) auto;
+  gap: calc(var(--tour-unit) * 1.2);
+
+  // Under a list of the rest, the picture gives the list its room.
+  &:has(.tour-lit__also) {
+    grid-template-rows: auto minmax(160px, 1fr) auto auto;
+  }
+}
+
+.tour-lit__head {
+  display: grid;
+  align-items: end;
+  gap: calc(var(--tour-unit) * 0.6) calc(var(--tour-unit) * 1.8);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+}
+
+.tour-lit__name {
+  display: grid;
+  min-width: 0;
+  gap: calc(var(--tour-unit) * 0.5);
+}
+
+.tour-lit__lead {
+  display: grid;
+  min-width: 0;
+  gap: calc(var(--tour-unit) * 0.7);
+  justify-items: start;
+
+  .tour-slide__lead {
+    font-size: calc(var(--tour-unit) * 1.05);
+  }
+}
+
+.tour-lit__hint {
+  margin: 0;
+  color: $text-faint;
+  font-size: calc(var(--tour-unit) * 0.92);
+}
+
+.tour-lit__figure {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+}
+
+// A tall panel: the picture down the left, the words and points beside it,
+// top to bottom.
+.tour-lit--tall {
+  align-content: start;
+  column-gap: calc(var(--tour-unit) * 2);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr;
+
+  .tour-lit__figure {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+
+  .tour-lit__head {
+    align-items: start;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tour-lit__points {
+    align-content: start;
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+// *** The live picture ******************************************************
+
+.tour-live {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  place-items: center;
+}
+
+// The window's own floor under the panel, so it reads as the page it is.
+// The drawing is clipped to the frame's corners; the numbers are not, so
+// one can stand just outside a part at the frame's edge.
+.tour-live__frame {
+  position: relative;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-l;
+  background: $surface-base;
+}
+
+.tour-live__drawing {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  border-radius: calc(#{$radius-l} - 1px);
+}
+
+.tour-live__mark {
+  position: absolute;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  color: $on-accent;
+  border-radius: 50%;
+  background: $secondary-default;
+  outline: 2px solid $surface-panel;
+  font-size: $text-small;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  place-items: center;
+  translate: -50% -50%;
+
+  // A ring out of each number, three times as the slide arrives and then
+  // still: enough to find the numbers, never a light that keeps blinking.
+  &::after {
+    position: absolute;
+    border: 2px solid $secondary-default;
+    border-radius: 50%;
+    content: '';
+    inset: -2px;
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    &::after {
+      animation: tour-mark-ring 1.6s $ease-out 3 both;
+    }
+
+    &:nth-of-type(2)::after {
+      animation-delay: 0.35s;
+    }
+
+    &:nth-of-type(3)::after {
+      animation-delay: 0.7s;
+    }
+  }
+}
+
+@keyframes tour-mark-ring {
+  from {
+    opacity: 0.85;
+    scale: 1;
+  }
+
+  to {
+    opacity: 0;
+    scale: 1.9;
+  }
+}
+
+// *** The three points ******************************************************
+
+.tour-lit__points {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: calc(var(--tour-unit) * 0.9) calc(var(--tour-unit) * 1.6);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+
+  li {
+    display: grid;
+    align-items: start;
+    color: $text-muted;
+    font-size: calc(var(--tour-unit) * 0.98);
+    gap: calc(var(--tour-unit) * 0.7);
+    grid-template-columns: auto minmax(0, 1fr);
+    line-height: 1.5;
+  }
+}
+
+.tour-lit__number {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  color: $secondary-light;
+  border: 1.5px solid $secondary-default;
+  border-radius: 50%;
+  font-size: $text-small;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+  place-items: center;
+}
+
+// The rest of the release, a quiet list under the last slide of a part.
+.tour-lit__also {
+  display: grid;
+  padding-top: calc(var(--tour-unit) * 0.9);
+  border-top: 1px solid $border-subtle;
+  gap: calc(var(--tour-unit) * 0.5);
+
+  ul {
+    display: grid;
+    margin: 0;
+    padding-left: 1.1em;
+    color: $text-muted;
+    font-size: calc(var(--tour-unit) * 0.95);
+    gap: calc(var(--tour-unit) * 0.3) calc(var(--tour-unit) * 1.6);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    line-height: 1.45;
+  }
+}
+
+// *** The first page ********************************************************
+
+.tour-lit--window {
+  grid-template-rows: auto minmax(240px, 1fr) auto;
+}
+
+// Its room is a container, so the window takes the largest size of its own
+// shape that fits, whatever the slide leaves it.
+.tour-split {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  container-type: size;
+  place-items: center;
+}
+
+.tour-split__window {
+  --seam: 50%;
+
+  position: relative;
+  width: min(100cqw, 160cqh);
+  overflow: hidden;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-l;
+  aspect-ratio: 1920 / 1200;
+  background: $surface-base;
+  cursor: ew-resize;
+  touch-action: pan-y;
+  user-select: none;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.tour-split__picture {
+  position: absolute;
+  display: block;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+}
+
+// White from the left edge to the seam: the pointer moving right makes the
+// window whiter, as the Brightness slider does.
+.tour-split__picture--white {
+  clip-path: inset(0 calc(100% - var(--seam)) 0 0);
+}
+
+.tour-split__seam {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--seam);
+  width: 2px;
+  background: $secondary-default;
+  translate: -1px 0;
+}
+
+.tour-split__grip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 44px;
+  border: 2px solid $secondary-default;
+  border-radius: 7px;
+  background: $surface-panel;
+  translate: -50% -50%;
+}
+
+.tour-split__tag {
+  position: absolute;
+  bottom: 12px;
+  padding: 3px 9px;
+  color: $text-primary;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-2xs;
+  background: $surface-panel;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}
+
+.tour-split__tag--white {
+  left: 12px;
+}
+
+.tour-split__tag--dark {
+  right: 12px;
+}
+
+// The six that follow, each a way to its slide.
+.tour-lit__chapters {
+  display: grid;
+  gap: calc(var(--tour-unit) * 0.6);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.tour-lit__chapter {
+  display: grid;
+  align-content: start;
+  padding: calc(var(--tour-unit) * 0.75) calc(var(--tour-unit) * 0.85);
+  color: $text-primary;
+  border: 0;
+  border-radius: $radius-m;
+  background: $surface-block;
+  gap: 3px;
+  text-align: left;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    margin-bottom: 4px;
+    color: $secondary-light;
+  }
+
+  &:hover {
+    background: color-mix(in srgb, $edge-tint 7%, $surface-block);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.tour-lit__chapter-title {
+  font-size: calc(var(--tour-unit) * 0.98);
+  font-weight: $weight-semibold;
+  line-height: 1.25;
+}
+
+.tour-lit__chapter-line {
+  color: $text-faint;
+  font-size: calc(var(--tour-unit) * 0.85);
+  line-height: 1.35;
+}
+
+// *** Narrow windows ********************************************************
+
+@media (max-width: 1100px) {
+  .tour-lit__chapters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: $bp-md) {
+  .tour-lit--tall {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(260px, 1fr) auto;
+
+    .tour-lit__figure {
+      grid-row: 2;
+    }
+  }
+
+  .tour-lit__head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tour-lit__points,
+  .tour-lit__also ul {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tour-lit__chapters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+// A short window (a laptop's 600-odd pixels): the picture gives way first,
+// never the words, and the six ways on keep their names alone.
+@media (max-height: 700px) {
+  .tour-lit {
+    grid-template-rows: auto minmax(150px, 1fr) auto;
+    gap: calc(var(--tour-unit) * 0.8);
+  }
+
+  .tour-lit--window {
+    grid-template-rows: auto minmax(150px, 1fr) auto;
+  }
+
+  .tour-lit__hint,
+  .tour-lit__chapter-line {
+    display: none;
+  }
+
+  .tour-lit__chapter {
+    padding-block: calc(var(--tour-unit) * 0.5);
+  }
+}

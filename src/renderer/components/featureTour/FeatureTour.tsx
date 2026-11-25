@@ -173,8 +173,14 @@ export default function FeatureTour({
         onClose(false);
         requestHelpGuide();
       },
+      showSlide: (id: string) => {
+        const at = slides.findIndex((entry) => entry.id === id);
+        if (at >= 0) {
+          setIndex(at);
+        }
+      },
     }),
-    [onOpenTab, onClose],
+    [onOpenTab, onClose, slides],
   );
 
   const slide = slides[index];

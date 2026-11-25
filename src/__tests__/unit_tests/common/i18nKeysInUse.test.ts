@@ -121,6 +121,13 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
       '*.*',
     ],
   ],
+  // 2.6's slides, look A: each a prefix and the suffixes `LitSlide` reads.
+  'src/renderer/components/featureTour/LitSlide.tsx': [
+    [
+      'tour.v26.{autoEq,mic,eq,dynamics,library,karaoke,looks,colours,gallery,publish}.{kicker,title,lead,open,point1,point2,point3}',
+      '*.*',
+    ],
+  ],
   // The weather choice's three chips.
   'src/renderer/components/featureTour/SceneControlsVisual.tsx': [
     ['tour.controls.{clear,rain,snow}', 'tour.controls.*'],

@@ -41,6 +41,7 @@ import mic from './mic';
 import remoteAudio from './remoteAudio';
 import tour from './tour';
 import tour24 from './tour24';
+import tour26 from './tour26';
 import help from './help';
 import helpDetails from './helpDetails';
 import about from './about';
@@ -105,6 +106,7 @@ const es: Partial<Dictionary> = {
   ...remoteAudio,
   ...tour,
   ...tour24,
+  ...tour26,
   ...help,
   ...helpDetails,
   ...about,

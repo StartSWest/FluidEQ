@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useTranslation } from '../../utils/I18nContext';
 import {
+  type ISmartEqPreview,
   requestSmartEqRemeasure,
   useSmartEqPreview,
 } from '../../utils/smartEqPreview';
@@ -23,10 +24,18 @@ import {
  *
  * Its own component because the heard time moves every half second: down
  * here that redraws one line, not the panel.
+ *
+ * The view takes the measurement it tells, so 2.6's What's New draws the
+ * same line on a made-up song (`featureTour/live26/AutoEqLive.tsx`).
  */
-const AutoEqSmartStatus = () => {
+export const AutoEqSmartStatusView = ({
+  preview,
+  onAgain,
+}: {
+  preview: ISmartEqPreview;
+  onAgain: () => void;
+}) => {
   const { t, locale } = useTranslation();
-  const preview = useSmartEqPreview();
   const isHeld = preview.phase === 'held';
   const heard = smartHeardSeconds(preview, t, locale);
 
@@ -53,7 +62,7 @@ const AutoEqSmartStatus = () => {
             type="button"
             className="button small subtle eq-auto-smart__again"
             title={t('autoEq.smart.againHint')}
-            onClick={requestSmartEqRemeasure}
+            onClick={onAgain}
           >
             {t('autoEq.smart.again')}
           </button>
@@ -81,5 +90,12 @@ const AutoEqSmartStatus = () => {
     </div>
   );
 };
+
+const AutoEqSmartStatus = () => (
+  <AutoEqSmartStatusView
+    preview={useSmartEqPreview()}
+    onAgain={requestSmartEqRemeasure}
+  />
+);
 
 export default AutoEqSmartStatus;

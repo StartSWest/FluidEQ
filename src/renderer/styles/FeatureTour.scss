@@ -26,6 +26,8 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'tour-release25';
 @use 'tour-release25b';
 @use 'tour-signed';
+@use 'tour-lit';
+@use 'tour-live26';
 @use 'tour-film';
 @use 'tour-walkthrough';
 @use 'tour-miniature';
@@ -49,12 +51,17 @@ it under the terms of the GNU General Public License version 3 or later.
 // column's proportions (`_tour-showcase.scss`) fit all thirteen new slides in
 // all ten languages there. Taller windows keep two thirds, where the extra
 // height would only be empty stage.
+//
+// From 2.6 a little more room at the sizes most windows have (look A, Ivan
+// 2026-11-25: a live picture of the page under the words): up to 1060 wide
+// and 680 tall in a 1280 x 800 window, where two thirds left the picture a
+// strip. Larger windows keep two thirds.
 .dialog-frame.feature-tour {
   @include dialog.size(
-    max(66vw, min(920px, 100vw - #{$spacing-l} * 2)),
+    max(66vw, min(1060px, 100vw - #{$spacing-l} * 2)),
     calc(100vh - #{$spacing-l} * 2)
   );
-  height: max(66vh, min(72vh, 780px), min(600px, 100vh - #{$spacing-l} * 2));
+  height: max(66vh, min(86vh, 680px), min(600px, 100vh - #{$spacing-l} * 2));
 
   // The slide's type scale, one unit everything on the stage is a multiple of.
   --tour-unit: #{tour-miniature.$tour-unit-size};

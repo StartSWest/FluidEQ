@@ -70,6 +70,21 @@ import {
   WatchSlide,
 } from './release25';
 import WalkthroughSlide, { WALKTHROUGH_FILM } from './WalkthroughSlide';
+import {
+  AutoEqSlide,
+  DynamicsSlide,
+  EqSlide,
+  KaraokeSlide26,
+  LibrarySlide26,
+  MicSlide,
+  WindowSlide,
+} from './release26';
+import {
+  ColoursSlide,
+  GallerySlide,
+  LooksSlide,
+  PublishSlide,
+} from './release26Visuals';
 
 /**
  * The workspace tabs a slide can send the user to. `community` is Plus;
@@ -84,6 +99,7 @@ export type TTourTab =
   | 'dsp'
   | 'karaoke'
   | 'video'
+  | 'mic'
   | 'community';
 
 /** What a slide can ask the app to do on the user's behalf. */
@@ -94,6 +110,8 @@ export interface ISlideActions {
   openPlayer: () => void;
   /** Close the tour and open the user guide. */
   openGuide: () => void;
+  /** Put another slide of the same What's New on stage, by its id. */
+  showSlide: (id: string) => void;
 }
 
 export interface ITourSlide {
@@ -493,6 +511,87 @@ const SIGNED: TSlideEntry = {
   Body: SignedSlide,
 };
 
+/**
+ * 2.6's sound (Ivan picked look A on 2026-11-25): the window, white or dark,
+ * first, then Auto EQ, the Mic tab, the EQ page, Dynamics' curves, the
+ * Library and Karaoke's score, each on a live picture of its page; and in
+ * the Scenes tab's own, the look picker, a scene's window colours, the
+ * publishing on press and the gallery.
+ */
+const RELEASE_26: TSlideEntry[] = [
+  {
+    id: 'window-26',
+    titleKey: 'tour.v26.window.name',
+    subtitleKey: 'tour.v26.window.subtitle',
+    Body: WindowSlide,
+  },
+  {
+    id: 'auto-eq-26',
+    titleKey: 'tour.v26.autoEq.name',
+    subtitleKey: 'tour.v26.autoEq.subtitle',
+    Body: AutoEqSlide,
+  },
+  {
+    id: 'mic-26',
+    titleKey: 'tour.v26.mic.name',
+    subtitleKey: 'tour.v26.mic.subtitle',
+    Body: MicSlide,
+  },
+  {
+    id: 'eq-26',
+    titleKey: 'tour.v26.eq.name',
+    subtitleKey: 'tour.v26.eq.subtitle',
+    Body: EqSlide,
+  },
+  {
+    id: 'dynamics-26',
+    titleKey: 'tour.v26.dynamics.name',
+    subtitleKey: 'tour.v26.dynamics.subtitle',
+    Body: DynamicsSlide,
+  },
+  {
+    id: 'library-26',
+    titleKey: 'tour.v26.library.name',
+    subtitleKey: 'tour.v26.library.subtitle',
+    Body: LibrarySlide26,
+  },
+  {
+    id: 'karaoke-26',
+    titleKey: 'tour.v26.karaoke.name',
+    subtitleKey: 'tour.v26.karaoke.subtitle',
+    Body: KaraokeSlide26,
+  },
+  // The Scenes tab's own What's New, in the same look.
+  {
+    id: 'looks-26',
+    part: 'visuals',
+    titleKey: 'tour.v26.looks.name',
+    subtitleKey: 'tour.v26.looks.subtitle',
+    Body: LooksSlide,
+  },
+  {
+    id: 'colours-26',
+    part: 'visuals',
+    titleKey: 'tour.v26.colours.name',
+    subtitleKey: 'tour.v26.colours.subtitle',
+    Body: ColoursSlide,
+  },
+  {
+    id: 'publish-26',
+    part: 'visuals',
+    titleKey: 'tour.v26.publish.name',
+    subtitleKey: 'tour.v26.publish.subtitle',
+    Body: PublishSlide,
+  },
+  {
+    id: 'gallery-26',
+    part: 'visuals',
+    titleKey: 'tour.v26.gallery.name',
+    subtitleKey: 'tour.v26.gallery.subtitle',
+    Body: GallerySlide,
+  },
+];
+
 const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
   entries.map((entry) => ({ ...entry, release }));
 
@@ -509,6 +608,23 @@ const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
  * from decides what is new to them, not the version they are going to.
  */
 const NEW_BY_RELEASE: Record<string, ITourSlide[]> = {
+  // 2.6 first, then 2.5 still new under its number for whoever skipped it
+  // (its signing page, and the Studio's slides in the Scenes part), then
+  // everything before, no longer announced.
+  '2.6': [
+    ...announced('2.6', RELEASE_26),
+    ...announced('2.5', [SIGNED]),
+    ...announced('2.5', RELEASE_25),
+    SONG_LEVEL,
+    ...RELEASE_24,
+    ...RELEASE_23,
+    // The walkthrough film opens from 2.5's first page, so it is not shown twice.
+    ...RELEASE_22.filter((entry) => entry.id !== WALKTHROUGH_FILM),
+    ...RELEASE_21.filter((entry) => !RELEASE_23.includes(entry)),
+    ...RELEASE_20.filter(
+      (entry) => !RELEASE_21.includes(entry) && !RELEASE_23.includes(entry),
+    ),
+  ],
   // The sound's What's New opens on 2.5's signing, then 2.4's sound,
   // never shown as a slide before; the Visualizers' opens on 2.5's own and
   // keeps 2.4 as new under its number.
