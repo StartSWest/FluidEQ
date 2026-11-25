@@ -213,6 +213,9 @@ const help: Record<keyof typeof en, string> = {
     'Führt eigene APO-Befehle, Peace und VST-Plugins aus. Das DSP-Rack bleibt bei der Wiedergabe aus der Bibliothek.',
   'help.engine.apply':
     'Wechselt die Engine. Windows fragt einmal nach, und Audio startet neu, was ein paar Sekunden dauert.',
+  'help.engine.nowName': 'Die aktuelle Engine',
+  'help.engine.now':
+    'Welche Engine Ihren Klang gerade spielt; Übernehmen bleibt aus, bis Sie die andere wählen.',
 
   'help.eq.title': 'Formen Sie Ihren Klang mit EQ',
   'help.eq.intro':
@@ -352,11 +355,27 @@ const help: Record<keyof typeof en, string> = {
   'help.headphones.intro':
     'Eine Korrektur gleicht ein gemessenes Modell aus und ergänzt eigene Bänder und Presets. Prüfen Sie genaue Modellbezeichnung und Urheber der Messung.',
   'help.headphones.steps':
-    'Öffnen Sie EQ → Kopfhörer-Korrekturen und suchen Sie nach Ihrem Kopfhörermodell. Sehen Sie sich die verfügbaren Messungen an und wählen Sie den passenden Eintrag.\nFür EQ-Text aus einem anderen Programm verwenden Sie EQ-Einstellungen importieren im Aktionsmenü. Prüfen Sie die erkannten Bänder und die Kurve, bevor Sie sie anwenden.\nÖffnen Sie für Squiglink Meine Kurven und wählen Sie Aus Squiglink importieren. Fügen Sie den Export ein und prüfen Sie die Kurvenvorschau. In Meine Kurven speichern bewahrt sie für später auf; Speichern und anwenden nutzt sie auch als Kopfhörerkorrektur. Stattdessen auf den bearbeitbaren EQ anwenden ersetzt Ihre Bänder nach Bestätigung.\nMeine Kurven ist Ihre eigene Liste neben der OPRA-Bibliothek: Kurve hinzufügen nimmt einen Squiglink-Export, eine .txt-Datei, Ihren aktuellen EQ oder eine OPRA-Auswahl. Jede Kurve hat Als Kurve anwenden und Als EQ anwenden; ihr Menü benennt sie um, bearbeitet ihre Bänder, dupliziert sie, kopiert sie als Text oder löscht sie. Liste exportieren und Liste importieren bringen die ganze Liste auf einen anderen Computer.\nImportieren in, neben Als EQ anwenden, wählt Beide Ohren, Linkes Ohr oder Rechtes Ohr: Ein Ohr ersetzt nur die Bänder dieses Ohrs und lässt das andere, wie es war.',
+    'Öffnen Sie EQ → Kopfhörer-Korrekturen. Die Seite öffnet sich auf Meine Kurven, Ihrer eigenen Liste; der Reiter OPRA-Bibliothek daneben hält gemessene Korrekturen für Tausende Kopfhörermodelle bereit. Suchen Sie Ihr genaues Modell und wählen Sie den passenden Eintrag.\nFür EQ-Text aus einem anderen Programm verwenden Sie EQ-Einstellungen importieren im Aktionsmenü. Prüfen Sie die erkannten Bänder und die Kurve vor dem Anwenden.\nFür Squiglink drücken Sie auf Meine Kurven Aus Squiglink importieren, fügen den Export ein und prüfen die Live-Vorschau der Kurve; dann nutzen Sie ihn als Kurve oder als bearbeitbaren EQ.\nKurve hinzufügen nimmt einen Squiglink-Export, eine .txt-Datei, Ihren aktuellen EQ oder eine OPRA-Auswahl und fragt, für welche Ohren sie gilt: beide, links oder rechts. Jede Kurve hat Als Kurve anwenden und Als EQ anwenden; Als EQ anwenden ersetzt nur die Bänder dieser Ohren, nach Rückfrage.\nDas Menü einer Kurve (≡) benennt sie um, bearbeitet ihre Bänder, dupliziert sie, kopiert sie als Text oder löscht sie. Liste exportieren und Liste importieren bringen die ganze Liste auf einen anderen Computer.',
   'help.headphones.tip':
     'Eine als Nicht angewendet markierte Vorschau verändert keinen Ton. Vermeiden Sie versehentlich zwei vollständige Korrekturen für denselben Kopfhörer.',
   'help.headphones.keywords':
     'AutoEq, kopfhörer-EQ, kopfhörerprofil, Harman, zielkurve, in-ear, IEM, ohrhörer, earbuds, headset, frequenzgang, Crinacle, oratory1990, kalibrieren, linkes Ohr, rechtes Ohr, ein Ohr, meine kurven, gespeicherte kurven, kurvenliste, liste exportieren, liste importieren',
+  'help.headphones.tabsName': 'Meine Kurven und OPRA',
+  'help.headphones.tabs':
+    'Ihre eigenen Kurven, mit ihrer Anzahl, und OPRAs Bibliothek gemessener Kopfhörer-Korrekturen.',
+  'help.headphones.libraryName': 'OPRA-Aktualisierungen',
+  'help.headphones.library':
+    'Ob OPRAs Bibliothek aktuell ist und wie viele Modelle sie hat; gibt es eine neuere, holt Datenbank aktualisieren sie.',
+  'help.headphones.add':
+    'Ein Squiglink-Export, eine .txt-Datei, Ihr aktueller EQ oder eine OPRA-Auswahl, für beide Ohren oder eines. Aus Squiglink importieren daneben fügt direkt aus Squiglink ein; Liste importieren und Liste exportieren tragen die ganze Liste.',
+  'help.headphones.searchName': 'Suche und Reihenfolge',
+  'help.headphones.search':
+    'Findet eine Kurve nach ihrem Namen; Neueste und A–Z daneben sortieren die Liste.',
+  'help.headphones.applyEq':
+    'Als Kurve anwenden spielt sie als Korrekturebene und behält Ihre Bänder; Als EQ anwenden setzt sie stattdessen in Ihre Bänder (nur für die Ohren, für die sie gespeichert wurde), nach Rückfrage.',
+  'help.headphones.moreName': 'Menü einer Kurve',
+  'help.headphones.more':
+    'Umbenennen, Bänder bearbeiten, duplizieren, als Text kopieren oder löschen.',
 
   'help.convolution.title': 'Eine Impulsantwort verwenden',
   'help.convolution.intro':
@@ -367,6 +386,17 @@ const help: Record<keyof typeof en, string> = {
     'Die FluidEQ-Engine rechnet jede Impulsrate selbst um. Equalizer APO braucht eine importierte WAV mit der Abtastrate des Ausgangs. Katalogdownloads brauchen eine Verbindung, das Handbuch nicht.',
   'help.convolution.keywords':
     'convolution, convolver, FIR-filter, raumkorrektur, raumeinmessung, REW, Room EQ Wizard, korrekturdatei, samplerate',
+  'help.convolution.import':
+    'Wendet eine WAV an, die Sie schon haben, mit der FluidEQ-Engine in jeder Abtastrate.',
+  'help.convolution.applied':
+    'Die Impulsantwort, die dieser Ausgang gerade spielt. Entfernen nimmt sie heraus.',
+  'help.convolution.search':
+    'Durchsucht AutoEqs Katalog nach Modell oder Messautor.',
+  'help.convolution.resultName': 'Ein Treffer',
+  'help.convolution.result':
+    'Das Modell, wer es gemessen hat, sowie Phase und Rate der Impulsantwort. Quelle öffnet, wo sie veröffentlicht wurde.',
+  'help.convolution.apply':
+    'Lädt die Impulsantwort in der Rate Ihres Ausgangs und wendet sie an. Angewendet markiert die laufende.',
 
   'help.profiles.title': 'Geräte, Profile und zweite Ausgabe',
   'help.profiles.intro':
@@ -405,6 +435,22 @@ const help: Record<keyof typeof en, string> = {
     'Generierte Ebenendateien werden neu geschrieben, wenn sich ihre Einstellungen ändern; dauerhafte eigene Zeilen gehören in die benutzerdefinierte Datei des jeweiligen Ausgangs. Die FluidEQ-Engine liest daraus die Zeilen Filter, Preamp, GraphicEQ und Convolution; andere APO-Befehle und Plugins brauchen Equalizer APO.',
   'help.config.keywords':
     'backup, sicherung, sicherungskopie, wiederherstellung, konfiguration, konfigurationsdatei, config.txt, textdatei, erweiterte einstellungen',
+  'help.config.statusName': 'Ob sie angewendet wird',
+  'help.config.status':
+    'Ob die Engine diese Konfiguration überhaupt liest, vor allem anderen gesagt.',
+  'help.config.outputsName': 'Ausgänge',
+  'help.config.outputs':
+    'Jeder Ausgang in der Konfiguration, mit Profil und Anzahl der Filter; Läuft gerade markiert den, den Sie hören. Drücken Sie einen, um seine Kette zu sehen.',
+  'help.config.transferName': 'Export und Import',
+  'help.config.transfer':
+    'Kette exportieren speichert die Kette dieses Ausgangs als .fluideq-Datei; Kette importieren bringt eine auf den Ausgang zurück, den Sie hören.',
+  'help.config.treeName': 'Die Dateien der Kette',
+  'help.config.tree':
+    'Die Datei des Ausgangs und darunter die Datei jeder Ebene, in der Reihenfolge, in der die Engine sie liest, mit ihrem Inhalt.',
+  'help.config.customName': 'Ihre eigene Datei',
+  'help.config.custom':
+    'Die eine Datei, die FluidEQ nie neu schreibt: Dauerhafte eigene Zeilen gehören mit Bearbeiten hierher.',
+  'help.config.reload': 'Liest die Konfiguration erneut von der Festplatte.',
 
   'help.dsp.title': 'Das DSP-Rack erkunden',
   'help.dsp.intro':
@@ -1002,11 +1048,18 @@ const help: Record<keyof typeof en, string> = {
   'help.trouble.intro':
     'Beginnen Sie bei Quelle und Ausgang und isolieren Sie dann die Ebene. Ein Diagramm, ein gespeichertes Preset oder ein eingeschalteter Schalter allein beweist nicht, dass der Ton das gewünschte Gerät erreicht hat. Das Menü Hilfe führt außerdem zur Audioreparatur, zu Problemberichten und zum Forum.',
   'help.trouble.steps':
-    'Kein Ton: Prüfen Sie, ob die Wiedergabe läuft, der erwartete Ausgang gewählt ist, die Lautstärke aufgedreht und das Gerät verbunden ist. Prüfen Sie, ob Nur ein Player eine andere Quelle pausiert hat.\nKeine EQ-Wirkung: Prüfen Sie, ob System-EQ eingeschaltet ist und beim Ausgang nicht AUS steht; falls doch, drücken Sie Aktivieren. Meldet ein Hinweis, dass die Engine nicht läuft, drücken Sie Windows-Audio neu starten.\nAlles sieht richtig aus und der EQ tut trotzdem nichts: Windows spielt die Musik möglicherweise an der Engine vorbei. Der Hinweis sagt das und bietet an, sie mit einem Druck dorthin zu verschieben, wo Windows sie nutzt; das kostet eine Berechtigung und eine Sekunde Stille.\nVerzerrung oder zu viel Bass: Lassen Sie Automatisch normalisieren eingeschaltet, reduzieren Sie Anhebungen und umgehen Sie Ebenen einzeln. Falls es bleibt, nutzen Sie Problem melden und prüfen Sie den Bericht vor dem Senden.',
+    'Kein Ton: Prüfen Sie, dass die Wiedergabe läuft, der erwartete Ausgang gewählt, die Lautstärke aufgedreht und das Gerät verbunden ist. Prüfen Sie, ob Nur ein Player eine andere Quelle angehalten hat.\nKeine EQ-Änderung: Prüfen Sie, dass die Ein/Aus-Taste oben in der linken Leiste an ist und der Ausgang kein AUS-Abzeichen zeigt; drücken Sie sonst Aktivieren. Sagt der Hinweis der Engine, dass sie nicht läuft, drücken Sie Windows-Audio neu starten.\nAlles sieht richtig aus und der EQ tut trotzdem nichts: Windows spielt die Musik womöglich an der Engine vorbei. Der Hinweis sagt das und bietet mit einem Druck an, die Engine dorthin zu verlegen, wo Windows sie nutzt; das kostet eine Berechtigungsabfrage und eine Sekunde Stille.\nVerzerrung oder zu viel Bass: Lassen Sie Automatisch normalisieren an, verringern Sie Anhebungen und umgehen Sie Ebenen nacheinander. Bleibt es, nutzen Sie Problem melden und prüfen Sie den Bericht vor dem Senden.',
   'help.trouble.tip':
     'F1 öffnet dieses Handbuch. Esc schließt zuerst eine vergrößerte Aufnahme, dann das Handbuch. Ist die Oberfläche zu groß, setzt Strg + 0 den Zoom zurück. Prozesse im Aktionsmenü zeigt, was jeder Teil von FluidEQ gerade tut.',
   'help.trouble.keywords':
     'funktioniert nicht, geht nicht, kein sound, höre nichts, stumm, fehlerbehebung, problembehandlung, fehlerbericht, bug, beheben, reparieren, aussetzer, knacken, knackt, stottern, verzerrt, übersteuert, clipping, zu leise, support, tastenkürzel, tastaturkürzel, tastenkombinationen, shortcuts, zoom zurücksetzen',
+  'help.trouble.noticeName': 'Der Hinweis der Engine',
+  'help.trouble.notice':
+    'Sagt unten rechts im Fenster, welchen Ausgang die Engine nicht erreicht und warum, sobald dort Klang zu hören ist.',
+  'help.trouble.useApo':
+    'Wechselt stattdessen über den Engine-Dialog zu Equalizer APO.',
+  'help.trouble.restart':
+    'Startet Windows-Audio neu, was die Engine meist zurückbringt. Windows fragt nach der Erlaubnis.',
 
   'help.forum.title': 'Im Forum fragen',
   'help.forum.intro':

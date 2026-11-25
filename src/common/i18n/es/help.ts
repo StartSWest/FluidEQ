@@ -213,6 +213,9 @@ const help: Record<keyof typeof en, string> = {
     'Ejecuta comandos personalizados de APO, Peace y plugins VST. El rack DSP se limita a la reproducción de la Biblioteca.',
   'help.engine.apply':
     'Cambia el motor. Windows pide permiso una vez y el audio se reinicia durante unos segundos.',
+  'help.engine.nowName': 'El motor actual',
+  'help.engine.now':
+    'Qué motor reproduce tu sonido ahora; Aplicar sigue desactivado hasta que eliges el otro.',
 
   'help.eq.title': 'Moldea el sonido con EQ',
   'help.eq.intro':
@@ -348,11 +351,27 @@ const help: Record<keyof typeof en, string> = {
   'help.headphones.intro':
     'La corrección compensa un modelo medido y sirve de punto de partida junto a tus bandas y presets. Comprueba el modelo exacto y el autor de la medición.',
   'help.headphones.steps':
-    'Abre EQ → Correcciones de auriculares y busca tu modelo de auriculares. Revisa las mediciones disponibles y elige la que corresponda.\nPara texto de EQ de otra herramienta, usa Importar ajustes de EQ en el menú de acciones. Revisa las bandas y la curva detectadas antes de aplicar.\nPara Squiglink, abre Mis curvas y elige Importar desde Squiglink. Pega su exportación y revisa la curva en la vista previa. Guardar en Mis curvas la conserva para después; Guardar y aplicar también la usa como corrección de auriculares. Aplicar al EQ editable en su lugar reemplaza tus bandas tras confirmar.\nMis curvas es tu propia lista junto a la Biblioteca OPRA: Añadir curva toma una exportación de Squiglink, un archivo .txt, tu EQ tal como está o una elección de OPRA. Cada curva tiene Aplicar como curva y Aplicar como EQ, y su menú la renombra, edita sus bandas, la duplica, la copia como texto o la elimina. Exportar lista e Importar lista llevan la lista entera a otro equipo.\nImportar en, junto a Aplicar como EQ, elige Ambos oídos, Oído izquierdo u Oído derecho: un solo oído reemplaza solo las bandas de ese oído y deja el otro como estaba.',
+    'Abre EQ → Correcciones de auriculares. Se abre en Mis curvas, tu propia lista; la pestaña Biblioteca OPRA de al lado tiene correcciones medidas para miles de modelos de auriculares. Busca tu modelo exacto y elige la entrada que coincide.\nPara texto de EQ de otra herramienta, usa Importar ajustes de EQ en el menú de acciones. Revisa las bandas y la curva leídas antes de aplicar.\nPara Squiglink, pulsa Importar desde Squiglink en Mis curvas, pega su exportación y revisa la vista previa en vivo de la curva; luego úsala como curva o como EQ editable.\nAñadir curva admite una exportación de Squiglink, un archivo .txt, tu EQ tal como está o una elección de OPRA, y pregunta para qué oídos es: ambos, el izquierdo o el derecho. Cada curva tiene Aplicar como curva y Aplicar como EQ; Aplicar como EQ sustituye solo las bandas de esos oídos, tras preguntar.\nEl menú de una curva (≡) la renombra, edita sus bandas, la duplica, la copia como texto o la elimina. Exportar lista e Importar lista llevan la lista entera a otro ordenador.',
   'help.headphones.tip':
     'Una vista previa marcada como no aplicada no cambia el sonido. Evita acumular dos correcciones completas del mismo auricular por accidente; compara apagando la capa de auriculares.',
   'help.headphones.keywords':
     'AutoEq, audífonos, cascos, IEM, in-ear, intraurales, earbuds, Harman, curva objetivo, target, Crinacle, oratory1990, respuesta en frecuencia, perfil de auriculares, ecualizador para auriculares, ecualización de auriculares, oído izquierdo, oído derecho, un oído, mis curvas, curvas guardadas, lista de curvas, exportar lista, importar lista',
+  'help.headphones.tabsName': 'Mis curvas y OPRA',
+  'help.headphones.tabs':
+    'Tus propias curvas, con cuántas guardas, y la biblioteca de OPRA de correcciones de auriculares medidas.',
+  'help.headphones.libraryName': 'Actualizaciones de OPRA',
+  'help.headphones.library':
+    'Si la biblioteca de OPRA está al día y cuántos modelos tiene; si hay una más nueva, Actualizar base de datos la descarga.',
+  'help.headphones.add':
+    'Una exportación de Squiglink, un archivo .txt, tu EQ tal como está o una elección de OPRA, para ambos oídos o uno. Importar desde Squiglink, al lado, pega directamente desde Squiglink; Importar lista y Exportar lista llevan la lista entera.',
+  'help.headphones.searchName': 'Búsqueda y orden',
+  'help.headphones.search':
+    'Encuentra una curva por su nombre; Recientes y A–Z, al lado, ordenan la lista.',
+  'help.headphones.applyEq':
+    'Aplicar como curva la reproduce como capa de corrección y conserva tus bandas; Aplicar como EQ la pone en tus bandas (solo en los oídos para los que se guardó), tras preguntar.',
+  'help.headphones.moreName': 'Menú de una curva',
+  'help.headphones.more':
+    'Renombrar, editar sus bandas, duplicar, copiar como texto o eliminar.',
 
   'help.convolution.title': 'Usa una respuesta al impulso',
   'help.convolution.intro':
@@ -363,6 +382,17 @@ const help: Record<keyof typeof en, string> = {
     'El Motor FluidEQ convierte él mismo cualquier frecuencia del impulso. Equalizer APO necesita un WAV importado a la frecuencia de la propia salida. Descargar del catálogo requiere conexión; esta guía no.',
   'help.convolution.keywords':
     'IRs, impulse response, convolver, FIR, REW, corrección acústica, calibración, frecuencia de muestreo, sample rate',
+  'help.convolution.import':
+    'Aplica un WAV que ya tienes, a cualquier frecuencia con el Motor FluidEQ.',
+  'help.convolution.applied':
+    'El impulso que suena ahora en esta salida. Quitar lo retira.',
+  'help.convolution.search':
+    'Busca en el catálogo de AutoEq por modelo o autor de la medición.',
+  'help.convolution.resultName': 'Un resultado',
+  'help.convolution.result':
+    'El modelo, quién lo midió, y la fase y la frecuencia del impulso. Origen abre donde se publicó.',
+  'help.convolution.apply':
+    'Descarga el impulso a la frecuencia de tu salida y lo aplica. Aplicado marca el que suena.',
 
   'help.profiles.title': 'Dispositivos, perfiles y segunda salida',
   'help.profiles.intro':
@@ -401,6 +431,22 @@ const help: Record<keyof typeof en, string> = {
     'Los archivos de capas generados se reescriben al cambiar sus ajustes; pon las líneas manuales permanentes en el archivo personalizado de cada salida. El Motor FluidEQ lee sus líneas Filter, Preamp, GraphicEQ y Convolution; los demás comandos de APO y los plugins necesitan Equalizer APO.',
   'help.config.keywords':
     'hacer copia de seguridad, backup, restaurar, archivo de texto, config.txt, include, líneas personalizadas, configuración avanzada, migrar',
+  'help.config.statusName': 'Si se aplica',
+  'help.config.status':
+    'Si el motor está leyendo esta configuración, dicho antes que nada.',
+  'help.config.outputsName': 'Salidas',
+  'help.config.outputs':
+    'Cada salida de la configuración, con su perfil y cuántos filtros aplica; Sonando ahora marca la que oyes. Pulsa una para ver su cadena.',
+  'help.config.transferName': 'Exportar e importar',
+  'help.config.transfer':
+    'Exportar cadena guarda la cadena de esta salida como archivo .fluideq; Importar cadena trae una a la salida que estás escuchando.',
+  'help.config.treeName': 'Los archivos de la cadena',
+  'help.config.tree':
+    'El archivo de la salida y, debajo, el de cada capa, en el orden en que los lee el motor, con lo que dice cada uno.',
+  'help.config.customName': 'Tu propio archivo',
+  'help.config.custom':
+    'El único archivo que FluidEQ nunca reescribe: pon aquí con Editar tus propias líneas permanentes.',
+  'help.config.reload': 'Vuelve a leer la configuración del disco.',
 
   'help.dsp.title': 'Explora el rack DSP',
   'help.dsp.intro':
@@ -997,11 +1043,17 @@ const help: Record<keyof typeof en, string> = {
   'help.trouble.intro':
     'Empieza por la fuente y la salida, y después aísla la capa. Una gráfica, un preset guardado o un interruptor activado no demuestran por sí solos que el sonido llegue al dispositivo previsto. El menú Ayuda también lleva a la solución de problemas de audio, al informe de problemas y al Foro.',
   'help.trouble.steps':
-    'Sin sonido: comprueba reproducción, salida, volumen y conexión. La opción Un solo reproductor puede haber pausado otra fuente.\nSin cambio de EQ: confirma que EQ del sistema está activado y que la salida no muestra DESACT.; si lo muestra, pulsa Activar. Si un aviso dice que el motor no está funcionando, pulsa Reiniciar el audio de Windows.\nTodo parece correcto y el EQ sigue sin hacer nada: puede que Windows esté reproduciendo la música por fuera del motor. El aviso lo dice y ofrece moverlo de un toque a donde Windows sí lo use; cuesta un permiso y un segundo de silencio.\nDistorsión o graves excesivos: deja activado Normalizar automáticamente, reduce las ganancias y desactiva las capas de una en una. Si persiste, usa Informar de un problema y revisa el informe antes de enviarlo.',
+    'Sin sonido: comprueba que la reproducción está en marcha, la salida esperada está elegida, el volumen está alto y el dispositivo está conectado. Mira si Un solo reproductor pausó otra fuente.\nEl EQ no cambia nada: comprueba que el botón de encendido arriba del panel izquierdo está activado y que la salida no muestra la insignia DESACT.; si la muestra, pulsa Activar. Si el aviso del motor dice que no está en marcha, pulsa Reiniciar el audio de Windows.\nTodo parece correcto y el EQ sigue sin hacer nada: puede que Windows esté reproduciendo la música por fuera del motor. El aviso lo dice y ofrece, con una pulsación, mover el motor a donde Windows lo use; cuesta un aviso de permisos y un segundo de silencio.\nDistorsión o demasiados graves: deja Normalizar automáticamente activado, reduce los realces y desactiva capas una a una. Si sigue, usa Informar de un problema y revisa el informe antes de enviarlo.',
   'help.trouble.tip':
     'F1 abre esta guía. Esc cierra primero la captura ampliada y después la guía. Si la interfaz se ve demasiado grande, Ctrl + 0 restablece el zoom. Procesos, en el menú de acciones, muestra qué está haciendo cada parte de FluidEQ.',
   'help.trouble.keywords':
     'no se oye, no se escucha, no hay sonido, ecualizador no funciona, suena raro, error, fallo, bug, cortes, se corta, entrecortado, crujidos, chasquidos, distorsionado, saturación, clipping, volumen bajo, demasiado fuerte, arreglar, solucionar, soporte técnico, reportar, diagnóstico, atajos de teclado, ruidos raros',
+  'help.trouble.noticeName': 'El aviso del motor',
+  'help.trouble.notice':
+    'Dice qué salida no alcanza el motor y por qué, abajo a la derecha de la ventana, en cuanto se oye sonido en ella.',
+  'help.trouble.useApo': 'Cambia a Equalizer APO, desde el diálogo del motor.',
+  'help.trouble.restart':
+    'Reinicia el audio de Windows, lo que suele devolver el motor. Windows pide permiso.',
 
   'help.forum.title': 'Pregunta en el Foro',
   'help.forum.intro':

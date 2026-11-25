@@ -192,6 +192,8 @@ const help: Record<keyof typeof en, string> = {
   'help.engine.apo':
     '可运行 APO 自定义命令、Peace 和 VST 插件。DSP 机架只作用于媒体库播放。',
   'help.engine.apply': '切换引擎。Windows 会请求一次授权，音频会重启几秒钟。',
+  'help.engine.nowName': '当前引擎',
+  'help.engine.now': '当前播放你声音的引擎；在选择另一个之前，“应用”不可用。',
 
   'help.eq.title': '用 EQ 塑造声音',
   'help.eq.intro':
@@ -315,11 +317,25 @@ const help: Record<keyof typeof en, string> = {
   'help.headphones.intro':
     '耳机校正补偿已测量型号的响应。它是一个起点，可以和自己的频段及预设一起使用。应用结果前，请核对准确型号及测量作者。',
   'help.headphones.steps':
-    '打开“均衡器 → 耳机校正”，搜索你的耳机型号。查看可用的测量数据，并选择匹配的条目。\n对于来自其他工具的 EQ 文本，请使用操作菜单中的“导入均衡设置”。应用前先检查解析出的频段和曲线。\n对于 Squiglink，打开“我的曲线”并选择“从 Squiglink 导入”。粘贴导出内容并检查实时曲线预览。“保存到我的曲线”会保存供以后使用；“保存并应用”还会将其用作耳机校正。“改为应用到可编辑 EQ”会在确认后替换频段。\n“我的曲线”是 OPRA 曲线库旁边你自己的列表：“添加曲线”可以添加 Squiglink 导出、.txt 文件、当前的 EQ 或 OPRA 选择。每条曲线都有“作为曲线应用”和“作为 EQ 应用”，它的菜单可以重命名、编辑频段、复制一份、以文本复制或删除。“导出列表”和“导入列表”把整个列表带到另一台电脑。\n“作为 EQ 应用”旁边的“导入到”可以选择“双耳”“左耳”或“右耳”：只选一只耳朵时，只替换该耳的频段，另一只耳朵保持原样。',
+    '打开 均衡器 → 耳机校正。它会先打开你自己的列表“我的曲线”；旁边的“OPRA 曲线库”标签页收录了数千款耳机型号的实测校正。搜索你的确切型号并选择对应的条目。\n来自其他工具的均衡文本，请使用操作菜单中的“导入均衡设置”。应用前请检查读取到的频段和曲线。\n对于 Squiglink，在“我的曲线”上按“从 Squiglink 导入”，粘贴其导出内容并查看曲线的实时预览，然后把它作为曲线或可编辑的均衡使用。\n“添加曲线”可接受 Squiglink 导出、.txt 文件、你当前的均衡或从 OPRA 选的条目，并会询问用于哪只耳朵：双耳、左耳或右耳。每条曲线都有“作为曲线应用”和“作为 EQ 应用”；“作为 EQ 应用”会在询问后只替换这些耳朵的频段。\n曲线的菜单（≡）可以重命名、编辑频段、复制一份、复制为文本或删除。“导出列表”和“导入列表”可把整个列表带到另一台电脑。',
   'help.headphones.tip':
     '标记为“未应用”的预览不会改变声音。避免意外叠加同一耳机的两套完整校正。',
   'help.headphones.keywords':
     'AutoEq, 耳机均衡, 耳机EQ, 耳机补偿, 耳机预设, 哈曼曲线, Harman, 目标曲线, 频响曲线, IEM, 入耳式, 耳塞, Crinacle, oratory1990, 导入EQ, 左耳, 右耳, 单耳, 我的曲线, 已保存的曲线, 曲线列表, 导出列表, 导入列表',
+  'help.headphones.tabsName': '我的曲线与 OPRA',
+  'help.headphones.tabs':
+    '你自己的曲线（附数量），以及 OPRA 的实测耳机校正曲线库。',
+  'help.headphones.libraryName': 'OPRA 更新',
+  'help.headphones.library':
+    'OPRA 曲线库是否为最新以及收录的型号数量；有新版本时，“更新数据库”会获取它。',
+  'help.headphones.add':
+    'Squiglink 导出、.txt 文件、你当前的均衡或从 OPRA 选的条目，可用于双耳或单耳。旁边的“从 Squiglink 导入”可直接粘贴 Squiglink 的内容；“导入列表”和“导出列表”可带走整个列表。',
+  'help.headphones.searchName': '搜索与排序',
+  'help.headphones.search': '按名称查找曲线；旁边的“最近”和 A–Z 用于排序列表。',
+  'help.headphones.applyEq':
+    '“作为曲线应用”把它作为校正层播放并保留你的频段；“作为 EQ 应用”会在询问后改为写入你的频段（只用于保存时指定的耳朵）。',
+  'help.headphones.moreName': '曲线菜单',
+  'help.headphones.more': '重命名、编辑频段、复制一份、复制为文本或删除。',
 
   'help.convolution.title': '使用脉冲响应',
   'help.convolution.intro':
@@ -330,6 +346,15 @@ const help: Record<keyof typeof en, string> = {
     'FluidEQ 引擎会自行转换任何脉冲采样率。Equalizer APO 需要导入与输出采样率相同的 WAV。目录下载需要联网，指南本身不需要。',
   'help.convolution.keywords':
     'IR, IR文件, 冲激响应, 卷积器, FIR, REW, 校正文件',
+  'help.convolution.import':
+    '应用你已有的 WAV；使用 FluidEQ 引擎时可为任意采样率。',
+  'help.convolution.applied': '这个输出当前播放的脉冲。“移除”可将其去掉。',
+  'help.convolution.search': '按型号或测量作者搜索 AutoEq 的目录。',
+  'help.convolution.resultName': '一条结果',
+  'help.convolution.result':
+    '型号、测量者，以及脉冲的相位和采样率。“来源”会打开发布它的地方。',
+  'help.convolution.apply':
+    '按输出的采样率下载脉冲并应用。“已应用”标出正在播放的那个。',
 
   'help.profiles.title': '设备、配置与第二路输出',
   'help.profiles.intro':
@@ -368,6 +393,21 @@ const help: Record<keyof typeof en, string> = {
     '生成的层文件会在其设置改变时被重写；需要长期保留的手动配置行，请写入每个输出各自的自定义文件。FluidEQ 引擎会读取其中的 Filter、Preamp、GraphicEQ 和 Convolution 行；其他 APO 命令和插件需要 Equalizer APO。',
   'help.config.keywords':
     '配置文件, config.txt, APO配置, 文本文件, 导入导出, 还原, 换电脑, 重装系统, 高级设置, include',
+  'help.config.statusName': '是否已应用',
+  'help.config.status': '引擎是否正在读取这份配置，最先说明。',
+  'help.config.outputsName': '输出',
+  'help.config.outputs':
+    '配置中的每个输出，附其配置和所用滤波器数量；“正在播放”标出你正在听的那个。点击一个即可查看其链路。',
+  'help.config.transferName': '导出与导入',
+  'help.config.transfer':
+    '“导出链路”把这个输出的链路保存为 .fluideq 文件；“导入链路”把它带回你正在收听的输出。',
+  'help.config.treeName': '链路的文件',
+  'help.config.tree':
+    '输出的文件以及其下每一层的文件，按引擎读取的顺序排列，并显示各自的内容。',
+  'help.config.customName': '你自己的文件',
+  'help.config.custom':
+    'FluidEQ 永远不会改写的唯一文件：用“编辑”把你自己的长期内容写在这里。',
+  'help.config.reload': '重新从磁盘读取配置。',
 
   'help.dsp.title': '探索 DSP 机架',
   'help.dsp.intro':
@@ -901,11 +941,17 @@ const help: Record<keyof typeof en, string> = {
   'help.trouble.intro':
     '先查来源与输出，再逐层排除。图表、已保存的预设或已开启的开关，都不能单独证明声音到达了正确的设备。“帮助”菜单还提供音频排障、问题报告和论坛入口。',
   'help.trouble.steps':
-    '没有声音：确认正在播放、选中了预期的输出、音量已调高，并且设备已连接。检查“同时只播放一处”是否暂停了另一个来源。\nEQ 没变化：确认“系统均衡”已开启，并且输出没有显示“已关闭”标记；如果有，请按“启用”。如果提示说引擎没有运行，请按“重启 Windows 音频”。\n一切看起来都正常，均衡器却仍然没有作用：Windows 可能绕过引擎在播放音乐。提示会说明这一点，并提供一键把引擎移到 Windows 会使用的位置；这需要一次权限确认和一秒钟的静音。\n失真或低音过多：保持“自动归一化”开启，减小提升量，并逐层旁路。如果问题仍然存在，请使用“报告问题”，并在发送前检查报告内容。',
+    '没有声音：确认正在播放、选中了预期的输出、音量已调高且设备已连接。检查“同时只播放一处”是否暂停了其他来源。\n均衡没有效果：确认左侧栏顶部的电源键已开启，且输出没有显示“已关闭”标记；如有，请按“启用”。如果引擎通知说它没有运行，请按“重启 Windows 音频”。\n一切看起来都对但均衡仍然无效：Windows 可能绕过引擎播放音乐。通知会说明这一点，并提供一键把引擎移到 Windows 会使用的位置；这需要一次权限确认和一秒钟的静音。\n失真或低音过多：保持“自动归一化”开启，减少提升，并逐一旁路各层。如果仍然存在，请使用“报告问题”，并在发送前检查报告。',
   'help.trouble.tip':
     'F1 打开本指南。Esc 先关闭放大的截图，再关闭指南。如果界面太大，按 Ctrl + 0 可重置缩放。操作菜单中的“进程”会显示 FluidEQ 各部分正在做什么。',
   'help.trouble.keywords':
     '没声音, 无声, 没效果, 没有效果, 不起作用, 无效, 异常, 故障, 爆音, 破音, 杂音, 声音卡顿, 断断续续, 削波, 声音小, 声音太小, 声音太大, 重启音频, 快捷键, bug, 报错, 闪退, 崩溃, 没反应, 问题反馈',
+  'help.trouble.noticeName': '引擎通知',
+  'help.trouble.notice':
+    '一旦某个输出有声音，窗口右下角就会说明引擎没有作用到哪个输出以及原因。',
+  'help.trouble.useApo': '改为通过引擎对话框切换到 Equalizer APO。',
+  'help.trouble.restart':
+    '重启 Windows 音频，通常能让引擎恢复。Windows 会请求权限。',
 
   'help.forum.title': '在论坛提问',
   'help.forum.intro':

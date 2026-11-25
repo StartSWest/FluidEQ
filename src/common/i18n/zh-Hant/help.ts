@@ -189,6 +189,9 @@ const help = {
     '執行自訂 APO 命令、Peace 和 VST 外掛。 DSP 效果器機架 保持庫播放。',
   'help.engine.apply':
     '切換引擎。 Windows 詢問一次，然後音訊會重新啟動幾秒鐘。',
+  'help.engine.nowName': '目前引擎',
+  'help.engine.now':
+    '目前播放您聲音的引擎；在選擇另一個之前，「套用」無法使用。',
   'help.eq.title': '用 EQ 塑造您的聲音',
   'help.eq.intro':
     '「你的 EQ」是您自己調的頻段。頻率決定頻段作用在哪裡，增益決定提升或衰減多少，Q 決定寬度：Q 越高越窄。圖表下方有三個分頁共用這一頁：你的 EQ、預設組和音色，各自是獨立的一層。先從小幅、寬緩的調整開始，並經常比較。',
@@ -306,11 +309,26 @@ const help = {
   'help.headphones.intro':
     '耳機校正可補償測量的模型。這是您可以與自己的頻段和預設相結合的起點。在應用結果之前，請檢查確切的型號和測量作者。',
   'help.headphones.steps':
-    '開啟 EQ → EQ 預設並搜尋您的耳機型號。檢查可用的測量資料，選擇與型號相符的項目。\n如要使用其他工具匯出的 EQ 文字，請在操作選單中選擇「匯入 EQ 設定」。套用前先檢查解析出的頻段與曲線。\n如要使用 Squiglink，請開啟「我的曲線」並選擇「從 Squiglink 匯入」。貼上匯出內容，檢查即時曲線預覽。「儲存到我的曲線」會保留曲線供日後使用；「儲存並套用」也會將其用作耳機校正。「套用至可編輯的 EQ」則會在確認後取代您的頻段。\n「我的曲線」是 OPRA 媒體庫旁的個人清單：「新增曲線」可使用 Squiglink 匯出內容、.txt 檔案、目前的 EQ 或 OPRA 項目。每條曲線皆可「套用為曲線」或「套用為 EQ」，選單也可重新命名、編輯頻段、建立副本、複製為文字或刪除。「匯出清單」與「匯入清單」可將整份清單移至另一臺電腦。\n「套用為 EQ」旁的「匯入至」可選擇雙耳、左耳或右耳：選擇單耳時，只會取代該耳的頻段，另一耳維持原狀。',
+    '開啟 EQ → 耳機校正。它會先開啟您自己的清單「我的曲線」；旁邊的「OPRA媒體庫」分頁收錄了數千款耳機型號的實測校正。搜尋您的確切型號並選擇對應的項目。\n來自其他工具的 EQ 文字，請使用動作選單中的「匯入等化器設定」。套用前請檢查讀取到的頻段和曲線。\n對於 Squiglink，在「我的曲線」上按「從 Squiglink 匯入」，貼上其匯出內容並查看曲線的即時預覽，然後把它作為曲線或可編輯的 EQ 使用。\n「新增曲線」可接受 Squiglink 匯出、.txt 檔案、您目前的 EQ 或從 OPRA 選的項目，並會詢問用於哪隻耳朵：雙耳、左耳或右耳。每條曲線都有「套用為曲線」和「套用為 EQ」；後者會在詢問後只替換這些耳朵的頻段。\n曲線的選單（≡）可以重新命名、編輯頻段、複製一份、複製為文字或刪除。「匯出清單」和「匯入清單」可把整個清單帶到另一台電腦。',
   'help.headphones.tip':
     '標記為「未套用」的預覽不會改變您的聲音。避免對同一個耳機疊加兩個完整的校正，除非是故意的；與關閉耳機層進行比較。',
   'help.headphones.keywords':
     '耳機, 耳機麥克風, 入耳式耳機, 校正, 頻率響應, 測量, OPRA, AutoEQ, Squiglink',
+  'help.headphones.tabsName': '我的曲線與 OPRA',
+  'help.headphones.tabs':
+    '您自己的曲線（附數量），以及 OPRA 的實測耳機校正曲線庫。',
+  'help.headphones.libraryName': 'OPRA 更新',
+  'help.headphones.library':
+    'OPRA 曲線庫是否為最新以及收錄的型號數量；有新版本時，「更新資料庫」會取得它。',
+  'help.headphones.add':
+    'Squiglink 匯出、.txt 檔案、您目前的 EQ 或從 OPRA 選的項目，可用於雙耳或單耳。旁邊的「從 Squiglink 匯入」可直接貼上 Squiglink 的內容；「匯入清單」和「匯出清單」可帶走整個清單。',
+  'help.headphones.searchName': '搜尋與排序',
+  'help.headphones.search':
+    '按名稱尋找曲線；旁邊的「最近」和 A–Z 用於排序清單。',
+  'help.headphones.applyEq':
+    '「套用為曲線」把它作為校正層播放並保留您的頻段；「套用為 EQ」會在詢問後改為寫入您的頻段（只用於儲存時指定的耳朵）。',
+  'help.headphones.moreName': '曲線選單',
+  'help.headphones.more': '重新命名、編輯頻段、複製一份、複製為文字或刪除。',
   'help.convolution.title': '使用脈衝響應',
   'help.convolution.intro':
     '卷積會將 WAV 脈衝響應套用為另一層校正。FluidEQ 提供可搜尋的 AutoEq 目錄，也可匯入您自己的 WAV 檔案。它與可編輯的參數式 EQ 頻段分開運作。',
@@ -320,6 +338,15 @@ const help = {
     'FluidEQ Engine 會自行轉換脈衝響應的取樣率。Equalizer APO 則需要匯入與輸出取樣率相同的 WAV。下載目錄內容需要網路連線，閱讀指南則不需要。',
   'help.convolution.keywords':
     '脈衝響應、ir、wav、convolver、fir、房間校正、rew、autoeq 目錄、校正檔案',
+  'help.convolution.import':
+    '套用您已有的 WAV；使用 FluidEQ引擎時可為任意取樣率。',
+  'help.convolution.applied': '這個輸出目前播放的脈衝。「清除」可將其移除。',
+  'help.convolution.search': '按型號或測量作者搜尋 AutoEq 的目錄。',
+  'help.convolution.resultName': '一筆結果',
+  'help.convolution.result':
+    '型號、測量者，以及脈衝的相位和取樣率。「來源」會開啟發布它的地方。',
+  'help.convolution.apply':
+    '按輸出的取樣率下載脈衝並套用。「已套用」標出正在播放的那個。',
   'help.profiles.title': '裝置、設定檔和第二個輸出',
   'help.profiles.intro':
     '每個輸出都保留自己的聲音：EQ、預設、音調、剪下、DSP 效果器機架、房間和調平都會隨之儲存，並在您切換到它時返回。設定檔保留相同輸出的其他聲音。第二個輸出同時在另一個裝置上播放，並具有自己的聲音和電平。',
@@ -356,6 +383,21 @@ const help = {
     '產生的圖層檔案在設定變更時會被重寫；將持久的手動行放入每個輸出的自訂檔案中。 FluidEQ 引擎讀取其 Filter、前級增益、GraphicEQ 和 Convolution 行；其他 APO 命令和外掛需要 Equalizer APO。',
   'help.config.keywords':
     '備份、還原、匯出、匯入、配置、設定檔、apo 配置、文字檔案、fluideq 檔案、鏈檔案、包含、自訂行、高階',
+  'help.config.statusName': '是否已套用',
+  'help.config.status': '引擎是否正在讀取這份設定，最先說明。',
+  'help.config.outputsName': '輸出',
+  'help.config.outputs':
+    '設定中的每個輸出，附其設定檔和所用濾波器數量；「正在播放」標出您正在聽的那個。按一個即可查看其效果鏈。',
+  'help.config.transferName': '匯出與匯入',
+  'help.config.transfer':
+    '「匯出效果鏈」把這個輸出的效果鏈儲存為 .fluideq 檔案；「匯入效果鏈」把它帶回您正在收聽的輸出。',
+  'help.config.treeName': '效果鏈的檔案',
+  'help.config.tree':
+    '輸出的檔案以及其下每一層的檔案，按引擎讀取的順序排列，並顯示各自的內容。',
+  'help.config.customName': '您自己的檔案',
+  'help.config.custom':
+    'FluidEQ 永遠不會改寫的唯一檔案：用「編輯」把您自己的長期內容寫在這裡。',
+  'help.config.reload': '重新從磁碟讀取設定。',
   'help.dsp.title': '探討 DSP 效果器機架',
   'help.dsp.intro':
     'DSP 效果器機架 是一系列工作室舞臺。在 FluidEQ 引擎下，它處理 PC 播放的所有內容；在 Equalizer APO 下，它處理庫音軌。當 FluidEQ 關閉時，它會關閉。',
@@ -871,11 +913,17 @@ const help = {
   'help.trouble.intro':
     '從來源和輸出開始，然後隔離各層。圖表、已儲存的預設或啟用的開關本身無法證明聲音到達了預期的裝置。 「幫助」選單還提供音訊故障排除、問題報告和論壇。',
   'help.trouble.steps':
-    '無聲音：確認播放正在執行，已選擇預期輸出，音量已調高，且裝置已連線。檢查是否一次有一個播放器暫停了另一個來源。\n無 EQ 變更：確認系統 EQ 已開啟且輸出未顯示 OFF 標記；如果有，請按啟用。如果通知顯示引擎未執行，請按「重新啟動 Windows 音訊」。\n一切看起來都正常，但 EQ 仍然不起作用：Windows 可能正在透過引擎播放音樂。該通知是這麼說的，並提供一按即可將引擎移動到 Windows 將使用的地方；它需要一個許可提示和一秒鐘的沉默。\n失真或低音過多：將「自動標準化」保持開啟狀態，一次減少一個增強並旁通一層。如果問題仍然存在，請使用報告問題並在傳送前檢視報告。',
+    '沒有聲音：確認正在播放、選取了預期的輸出、音量已調高且裝置已連接。檢查「一次使用一個播放器」是否暫停了其他來源。\nEQ 沒有效果：確認左側欄頂端的電源鍵已開啟，且輸出沒有顯示「關閉」標記；如有，請按「啟用」。如果引擎通知說它沒有執行，請按「重新啟動 Windows 音訊」。\n一切看起來都對但 EQ 仍然無效：Windows 可能繞過引擎播放音樂。通知會說明這一點，並提供一鍵把引擎移到 Windows 會使用的位置；這需要一次權限確認和一秒鐘的靜音。\n失真或低音過多：保持「自動正規化」開啟，減少提升，並逐一旁路各層。如果仍然存在，請使用「報告問題」，並在送出前檢查報告。',
   'help.trouble.tip':
     'F1 開啟本指南。 Esc 關閉放大的捕獲，然後關閉指南。如果介面太大，Ctrl + 0 會重設縮放。操作選單中的程式顯示了 FluidEQ 的每個部分正在執行的操作。',
   'help.trouble.keywords':
     '沒有聲音, 沒聲音, 聽不到, 無聲, 音訊問題, 音效引擎, 靜音, 故障, 修復, 錯誤, 重新啟動',
+  'help.trouble.noticeName': '引擎通知',
+  'help.trouble.notice':
+    '一旦某個輸出有聲音，視窗右下角就會說明引擎沒有作用到哪個輸出以及原因。',
+  'help.trouble.useApo': '改為透過引擎對話框切換到 Equalizer APO。',
+  'help.trouble.restart':
+    '重新啟動 Windows 音訊，通常能讓引擎恢復。Windows 會要求權限。',
   'help.forum.title': '在論壇中提問',
   'help.forum.intro':
     '該論壇將 FluidEQ 的 GitHub 討論帶入應用程式中：人們引以為傲的公告、想法、問題和調整。任何人都可以閱讀；發文使用您的 GitHub 帳戶，而不是 FluidEQ 帳戶。',

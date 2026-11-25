@@ -210,6 +210,9 @@ const help = {
     'Runs custom APO commands, Peace and VST plugins. The DSP rack stays with Library playback.',
   'help.engine.apply':
     'Switches the engine. Windows asks once, and audio restarts for a few seconds.',
+  'help.engine.nowName': 'The engine now',
+  'help.engine.now':
+    'Which engine plays your sound now; Apply stays off until you choose the other.',
 
   'help.eq.title': 'Shape your sound with EQ',
   'help.eq.intro':
@@ -343,11 +346,27 @@ const help = {
   'help.headphones.intro':
     'A headphone correction compensates for a measured model. It is a starting point you can combine with your own bands and presets. Check the exact model and the measurement author before applying a result.',
   'help.headphones.steps':
-    'Open EQ → Headphone corrections and search for your headphone model. Review the available measurements and choose the matching entry.\nFor EQ text from another tool, use Import EQ settings in the actions menu. Review the parsed bands and curve before applying.\nFor Squiglink, open My curves and choose Import from Squiglink. Paste its export and review the live curve preview. Save to My curves keeps it for later; Save and apply also uses it as a headphone correction. Apply to editable EQ instead replaces your bands after confirmation.\nMy curves is your own list beside the OPRA library: Add curve takes a Squiglink export, a .txt file, your EQ as it is now or an OPRA pick. Each curve has Apply as curve and Apply as EQ, and its menu renames it, edits its bands, duplicates it, copies it as text or deletes it. Export list and Import list carry the whole list to another computer.\nImport into, beside Apply as EQ, picks Both ears, Left ear or Right ear: one ear replaces only that ear’s bands and leaves the other ear as it was.',
+    'Open EQ → Headphone corrections. It opens on My curves, your own list; the OPRA library tab beside it holds measured corrections for thousands of headphone models. Search for your exact model and choose the matching entry.\nFor EQ text from another tool, use Import EQ settings in the actions menu. Review the parsed bands and curve before applying.\nFor Squiglink, press Import from Squiglink on My curves, paste its export and review the live curve preview, then use it as a curve or as editable EQ.\nAdd curve takes a Squiglink export, a .txt file, your EQ as it is now or an OPRA pick, and asks which ears it is for: both, the left or the right. Each curve has Apply as curve and Apply as EQ; Apply as EQ replaces only those ears’ bands, after asking.\nA curve’s menu (≡) renames it, edits its bands, duplicates it, copies it as text or deletes it. Export list and Import list carry the whole list to another computer.',
   'help.headphones.tip':
     'A preview marked not applied is not changing your sound. Avoid stacking two full corrections for the same headphones unless that is deliberate; compare with the headphone layer switched off.',
   'help.headphones.keywords':
     'autoeq, headphone eq, headphone correction, headphone profile, harman, target curve, iem, iems, earphones, earbuds, in-ear, squiglink, crinacle, oratory1990, import eq, measurements, frequency response, left ear, right ear, one ear, my curves, saved curves, curve list, export list, import list',
+  'help.headphones.tabsName': 'My curves and OPRA',
+  'help.headphones.tabs':
+    'Your own curves, with how many you keep, and OPRA’s library of measured headphone corrections.',
+  'help.headphones.libraryName': 'OPRA updates',
+  'help.headphones.library':
+    'Whether OPRA’s library is up to date, with how many models it holds; when a newer one is out, Update database fetches it.',
+  'help.headphones.add':
+    'A Squiglink export, a .txt file, your EQ as it is now or an OPRA pick, for both ears or one. Import from Squiglink beside it pastes straight from Squiglink; Import list and Export list carry the whole list.',
+  'help.headphones.searchName': 'Search and order',
+  'help.headphones.search':
+    'Finds a curve by its name; Recent and A–Z beside it order the list.',
+  'help.headphones.applyEq':
+    'Apply as curve plays it as a correction layer and keeps your bands; Apply as EQ puts it in your bands instead (only the ears it was saved for), after asking.',
+  'help.headphones.moreName': 'A curve’s menu',
+  'help.headphones.more':
+    'Rename, edit its bands, duplicate, copy as text or delete.',
 
   'help.convolution.title': 'Use an impulse response',
   'help.convolution.intro':
@@ -358,6 +377,17 @@ const help = {
     'The FluidEQ Engine converts any impulse rate itself. Equalizer APO needs an imported WAV at the output’s own rate. Catalogue downloads need a connection; the guide does not.',
   'help.convolution.keywords':
     'impulse response, ir, wav, convolver, fir, room correction, rew, autoeq catalogue, correction file',
+  'help.convolution.import':
+    'Applies a WAV you already have, at any rate under the FluidEQ Engine.',
+  'help.convolution.applied':
+    'The impulse this output plays now. Clear takes it off.',
+  'help.convolution.search':
+    'Searches AutoEq’s catalogue by model or measurement author.',
+  'help.convolution.resultName': 'A result',
+  'help.convolution.result':
+    'The model, who measured it, and the impulse’s phase and rate. Source opens where it was published.',
+  'help.convolution.apply':
+    'Downloads the impulse at your output’s rate and applies it. Applied marks the one playing.',
 
   'help.profiles.title': 'Devices, profiles & second output',
   'help.profiles.intro':
@@ -396,6 +426,22 @@ const help = {
     'Generated layer files are rewritten when their settings change; put lasting manual lines in the per-output custom file. The FluidEQ Engine reads its Filter, Preamp, GraphicEQ and Convolution lines; other APO commands and plugins need Equalizer APO.',
   'help.config.keywords':
     'backup, restore, export, import, config, config file, apo config, text file, fluideq file, chain file, include, custom lines, advanced',
+  'help.config.statusName': 'Whether it is applied',
+  'help.config.status':
+    'Whether the engine is reading this config at all, said before anything else.',
+  'help.config.outputsName': 'Outputs',
+  'help.config.outputs':
+    'Each output in the config, with its profile and how many filters it applies; Playing now marks the one you hear. Press one to see its chain.',
+  'help.config.transferName': 'Export and import',
+  'help.config.transfer':
+    'Export chain saves this output’s chain as a .fluideq file; Import chain brings one back onto the output you are listening to.',
+  'help.config.treeName': 'The chain’s files',
+  'help.config.tree':
+    'The output’s file and each layer’s file under it, in the order the engine reads them, with what each one says.',
+  'help.config.customName': 'Your own file',
+  'help.config.custom':
+    'The one file FluidEQ never rewrites: put lasting lines of your own here with Edit.',
+  'help.config.reload': 'Reads the config from disk again.',
 
   'help.dsp.title': 'Explore the DSP rack',
   'help.dsp.intro':
@@ -977,11 +1023,18 @@ const help = {
   'help.trouble.intro':
     'Start with the source and output, then isolate the layer. A graph, a saved preset or an enabled switch alone cannot prove that sound reached the intended device. The Help menu also leads to audio troubleshooting, problem reporting and the Forum.',
   'help.trouble.steps':
-    'No sound: confirm playback is running, the expected output is selected, volume is up, and the device is connected. Check whether One player at a time paused another source.\nNo EQ change: confirm System EQ is on and the output shows no OFF badge; press Enable if it does. If a notice says the engine is not running, press Restart Windows audio.\nEverything looks right and the EQ still does nothing: Windows may be playing the music past the engine. The notice says so and offers one press to move the engine somewhere Windows will use; it costs a permission prompt and a second of silence.\nDistortion or excessive bass: leave Auto normalize on, reduce boosts and bypass layers one at a time. If it persists, use Report a problem and review the report before sending.',
+    'No sound: confirm playback is running, the expected output is selected, volume is up, and the device is connected. Check whether One player at a time paused another source.\nNo EQ change: confirm the power key at the top of the left rail is on and the output shows no OFF badge; press Enable if it does. If the engine’s notice says it is not running, press Restart Windows audio.\nEverything looks right and the EQ still does nothing: Windows may be playing the music past the engine. The notice says so and offers one press to move the engine somewhere Windows will use; it costs a permission prompt and a second of silence.\nDistortion or excessive bass: leave Auto normalize on, reduce boosts and bypass layers one at a time. If it persists, use Report a problem and review the report before sending.',
   'help.trouble.tip':
     'F1 opens this guide. Esc closes an enlarged capture, then the guide. If the interface is too large, Ctrl + 0 resets zoom. Processes in the actions menu shows what each part of FluidEQ is doing.',
   'help.trouble.keywords':
     "no sound, not working, doesn't work, silent, silence, problem, issue, bug, broken, crackling, crackle, popping, distortion, distorted, clipping, too loud, too quiet, quiet, fix, troubleshoot, troubleshooting, report a problem, support, shortcuts, keyboard shortcuts, hotkeys, f1, zoom, reset zoom",
+  'help.trouble.noticeName': 'The engine’s notice',
+  'help.trouble.notice':
+    'Says which output the engine is not reaching and why, at the bottom right of the window, once sound is heard there.',
+  'help.trouble.useApo':
+    'Switches to Equalizer APO instead, through the engine dialog.',
+  'help.trouble.restart':
+    'Restarts Windows audio, which usually brings the engine back. Windows asks for permission.',
 
   'help.forum.title': 'Ask in the Forum',
   'help.forum.intro':

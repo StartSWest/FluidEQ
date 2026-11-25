@@ -1,6 +1,7 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 import { type IHelpChapter } from './model';
+import ENGINE_CHAPTER from './engine';
 
 /** Getting started: the first session, the window, what a PC needs and the engine. */
 const START_CHAPTERS = [
@@ -478,34 +479,7 @@ const START_CHAPTERS = [
     group: 'start',
     figures: [],
   },
-  {
-    id: 'engine',
-    group: 'start',
-    figures: [
-      {
-        image: '15-engine-dialog.png',
-        width: 832,
-        height: 453,
-        controls: [
-          {
-            box: [309, 65, 478, 159],
-            name: 'engine.fluid.name',
-            text: 'help.engine.fluid',
-          },
-          {
-            box: [309, 232, 478, 119],
-            name: 'engine.apo.name',
-            text: 'help.engine.apo',
-          },
-          {
-            box: [743, 389, 54, 32],
-            name: 'engine.apply',
-            text: 'help.engine.apply',
-          },
-        ],
-      },
-    ],
-  },
+  ENGINE_CHAPTER,
 ] as const satisfies readonly IHelpChapter[];
 
 export default START_CHAPTERS;

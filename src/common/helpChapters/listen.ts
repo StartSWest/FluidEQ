@@ -795,7 +795,35 @@ const LISTEN_CHAPTERS = [
   {
     id: 'trouble',
     group: 'help',
-    figures: [{ image: '06-eq-equalizer-apo-config.png', ...WINDOW }],
+    // The engine's trouble notice, as it stands at the window's bottom right
+    // (help/live/troubleFigure).
+    figures: [
+      {
+        live: 'trouble-notice',
+        width: 476,
+        height: 200,
+        frame: '.compact-frame',
+        margin: 6,
+        still: '06-eq-equalizer-apo-config.png',
+        controls: [
+          {
+            target: '.compact-frame__title',
+            name: 'help.trouble.noticeName',
+            text: 'help.trouble.notice',
+          },
+          {
+            target: '.compact-frame__actions > :nth-child(2)',
+            name: 'engineHealth.useApo',
+            text: 'help.trouble.useApo',
+          },
+          {
+            target: '.compact-frame__actions > :nth-child(3)',
+            name: 'app.menu.restartAudio',
+            text: 'help.trouble.restart',
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'forum',

@@ -8,6 +8,8 @@ import {
   PlayerMenuDrawing,
 } from './playerFigures';
 import BandDesignsDrawing from './bandDesignsFigure';
+import ConfigDrawing from './configFigure';
+import ConvolutionDrawing from './convolutionFigure';
 import DesktopDialogDrawing from './desktopFigures';
 import {
   BandMenuDrawing,
@@ -16,6 +18,7 @@ import {
 } from './eqPageFigures';
 import { DynamicsDrawing, DeEsserDrawing } from './dspFigures';
 import DspOverviewDrawing from './dspOverviewFigure';
+import EngineDialogDrawing from './engineFigure';
 import { DenoiseDrawing, RoomDrawing } from './dspStageFigures';
 import ForumDrawing from './forumFigures';
 import GamingLabDrawing, { GamingPartsDrawing } from './gamingFigures';
@@ -45,6 +48,8 @@ import { SceneDrawing, VisualizersDrawing } from './plusFigures';
 import ShareDrawing from './shareFigures';
 import SoundPanelDrawing from './soundPanelFigures';
 import StudioDrawing from './studioFigures';
+import TroubleDrawing from './troubleFigure';
+import HeadphonesDrawing from './headphonesFigure';
 import WindowHeaderDrawing from './windowFigures';
 
 /**
@@ -62,12 +67,15 @@ import WindowHeaderDrawing from './windowFigures';
  * language and fails on a drawing that throws or a control it cannot find.
  */
 const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
+  'config-page': ConfigDrawing,
+  'convolution-page': ConvolutionDrawing,
   'desktop-dialog': DesktopDialogDrawing,
   'dsp-deesser': DeEsserDrawing,
   'dsp-denoise': DenoiseDrawing,
   'dsp-dynamics': DynamicsDrawing,
   'dsp-overview': DspOverviewDrawing,
   'dsp-room': RoomDrawing,
+  'engine-dialog': EngineDialogDrawing,
   'eq-band-menu': BandMenuDrawing,
   'eq-band-popover': EqBandPopoverDrawing,
   'eq-bands': EqPageDrawing,
@@ -85,6 +93,7 @@ const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
   'graph-view-menu': GraphViewMenuDrawing,
   'header-left': WindowHeaderDrawing,
   'header-right': WindowHeaderDrawing,
+  'headphones-page': HeadphonesDrawing,
   'karaoke-mic': KaraokeMicDrawing,
   'karaoke-mix': KaraokeMixDrawing,
   'karaoke-playlist': KaraokeDrawing,
@@ -114,6 +123,7 @@ const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
   'share-page': ShareDrawing,
   'sound-panel': SoundPanelDrawing,
   'studio-bench': StudioDrawing,
+  'trouble-notice': TroubleDrawing,
   'visualizers-gallery': VisualizersDrawing,
   'visualizers-rail': VisualizersDrawing,
 };

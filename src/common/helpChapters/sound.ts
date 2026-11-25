@@ -1,6 +1,7 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import { type IHelpChapter, WINDOW } from './model';
+import { type IHelpChapter } from './model';
+import CORRECTION_CHAPTERS from './corrections';
 
 /** Shaping the sound on the EQ page: bands, EQ mode, games, corrections, outputs and the config. */
 const SOUND_CHAPTERS = [
@@ -374,19 +375,7 @@ const SOUND_CHAPTERS = [
     ],
   },
   { id: 'gamefilter', group: 'sound', figures: [] },
-  {
-    id: 'headphones',
-    group: 'sound',
-    figures: [
-      { image: '04-eq-headphone-correction-and-import.png', ...WINDOW },
-    ],
-  },
-  { id: 'mycurves', group: 'sound', figures: [] },
-  {
-    id: 'convolution',
-    group: 'sound',
-    figures: [{ image: '05-eq-convolution-library.png', ...WINDOW }],
-  },
+  ...CORRECTION_CHAPTERS,
   {
     // The sound panel drawn by its own sections (help/live/soundPanelFigures),
     // from the Output card down: made-up outputs and profiles, a second
@@ -445,7 +434,48 @@ const SOUND_CHAPTERS = [
   {
     id: 'config',
     group: 'sound',
-    figures: [{ image: '06-eq-equalizer-apo-config.png', ...WINDOW }],
+    // The Config page under the FluidEQ Engine, the headphones' chain open
+    // (help/live/configFigure).
+    figures: [
+      {
+        live: 'config-page',
+        width: 1000,
+        height: 700,
+        still: '06-eq-equalizer-apo-config.png',
+        controls: [
+          {
+            target: '.config-status',
+            name: 'help.config.statusName',
+            text: 'help.config.status',
+          },
+          {
+            target: '.config-inspector__cards',
+            name: 'help.config.outputsName',
+            text: 'help.config.outputs',
+          },
+          {
+            target: '.config-device__transfer-actions',
+            name: 'help.config.transferName',
+            text: 'help.config.transfer',
+          },
+          {
+            target: '.config-device__tree > .config-node > .config-node__head',
+            name: 'help.config.treeName',
+            text: 'help.config.tree',
+          },
+          {
+            target: '.config-node--custom > .config-node__head',
+            name: 'help.config.customName',
+            text: 'help.config.custom',
+          },
+          {
+            target: '.config-inspector__reload',
+            name: 'config.reload',
+            text: 'help.config.reload',
+          },
+        ],
+      },
+    ],
   },
 ] as const satisfies readonly IHelpChapter[];
 
