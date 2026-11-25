@@ -29,6 +29,22 @@ export type TGalleryAnswer =
  */
 export type TPublishCall = 'quiet' | 'ready' | 'changes';
 
+/**
+ * What the bar's Publish says, from the line and the project's chat: the
+ * line's call only while the chat is at rest (`studioChatAtRest`), and quiet
+ * while the gallery is still being asked or while the AI is working, was
+ * stopped, or failed (Ivan, 2026-11-25: "only when there are new changes not
+ * in the gallery AND the chat is fully done"). A scene never published waits
+ * for the chat the same way: whatever the gallery has, a version the AI is
+ * still changing is not the one to recommend. Quiet is never off; Publish
+ * still publishes when pressed.
+ */
+export const benchPublishCall = (
+  line: IVersionLine | 'asking' | undefined,
+  chatAtRest: boolean,
+): TPublishCall =>
+  typeof line === 'object' && chatAtRest ? line.publish : 'quiet';
+
 /** The mark in front of the sentence: never the colour alone. */
 export type TVersionLineMark =
   'live' | 'changed' | 'off' | 'review' | 'refused' | 'none';

@@ -13,8 +13,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import '@testing-library/jest-dom';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { IStudioChat, TStudioChatEntry } from '../../../common/studioChat';
 import type { IStudioProject } from '../../../main/ipc/memberScenes';
 import { requestAccountPanel } from '../../../renderer/account/accountPanel';
 import StudioBench from '../../../renderer/studio/StudioBench';
@@ -173,6 +174,104 @@ it('wears no draft mark, and makes Publish the loud way out of a scene never pub
   expect(
     screen.getByRole('button', { name: 'studio.action.addToLooks' }),
   ).toHaveClass('subtle');
+});
+
+/**
+ * Publish asks only once the chat is done (Ivan, 2026-11-25, with Publish
+ * lit up beside "Thinking...": "only when ... the chat is fully done - not
+ * interrupted, not limit reached"). Every state, one by one, in
+ * `studioPublishWaitsForChat.test.tsx`; here the bench hears it from the
+ * chat as main tells it.
+ */
+/** What main tells the window as a reply grows (`onStudioChatEntry`). */
+interface IEntryChange {
+  projectId: string;
+  entry: TStudioChatEntry;
+  busy: boolean;
+}
+
+describe('Publish while the chat works', () => {
+  const thinking: IStudioChat = {
+    projectId: project.id,
+    entries: [
+      { kind: 'me', id: 'm1', text: 'make the bars taller' },
+      {
+        kind: 'claude',
+        id: 'c1',
+        text: '',
+        steps: [],
+        state: 'working',
+      },
+    ],
+    busy: true,
+  };
+  const neverPublished = () =>
+    Object.assign(window.electron.ipcRenderer, {
+      publishedStudioSettings: jest.fn(async () => ({ ok: true })),
+    });
+
+  it('stays quiet while a reply is written, and asks once it finishes', async () => {
+    neverPublished();
+    let tell: ((change: IEntryChange) => void) | undefined;
+    Object.assign(window.electron.ipcRenderer, {
+      studioChatLoad: jest.fn(async () => thinking),
+      onStudioChatEntry: jest.fn((listener: (change: IEntryChange) => void) => {
+        tell = listener;
+        return () => undefined;
+      }),
+    });
+    render(<StudioBench view={view()} onShowGraph={jest.fn()} />);
+    await screen.findByText('studioChat.thinking');
+    const publish = screen.getByRole('button', {
+      name: 'studio.action.publish',
+    });
+    // The gallery has answered (the line says so) and Publish is still quiet.
+    await screen.findByText('studio.line.unpublished');
+    expect(publish).toHaveClass('subtle');
+    expect(publish).toBeEnabled();
+
+    act(() => {
+      tell?.({
+        projectId: project.id,
+        entry: {
+          kind: 'claude',
+          id: 'c1',
+          text: 'Taller.',
+          steps: [],
+          state: 'done',
+        },
+        busy: false,
+      });
+    });
+    await waitFor(() => expect(publish).not.toHaveClass('subtle'));
+  });
+
+  it('stays quiet after a reply the plan limit stopped', async () => {
+    neverPublished();
+    Object.assign(window.electron.ipcRenderer, {
+      studioChatLoad: jest.fn(async (): Promise<IStudioChat> => ({
+        ...thinking,
+        busy: false,
+        entries: [
+          thinking.entries[0],
+          {
+            kind: 'claude',
+            id: 'c1',
+            text: '',
+            steps: [],
+            state: 'failed',
+            failure: 'limit',
+          },
+        ],
+      })),
+    });
+    render(<StudioBench view={view()} onShowGraph={jest.fn()} />);
+    await screen.findByText('studio.line.unpublished');
+    await screen.findByRole('textbox', { name: 'studioChat.label' });
+    expect(
+      screen.getByRole('button', { name: 'studio.action.publish' }),
+    ).toHaveClass('subtle');
+  });
 });
 
 it('leaves every action quiet while the gallery cannot be asked', async () => {

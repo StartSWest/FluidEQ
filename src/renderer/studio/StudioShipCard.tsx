@@ -26,9 +26,10 @@ interface IStudioShipCardProps {
   /** Brings the scene's problems under the stage into view. */
   onShowProblems: () => void;
   /**
-   * How loudly Publish asks to be pressed (`versionLine.ts`): loud while
+   * How loudly Publish asks to be pressed (`benchPublishCall`): loud while
    * there is something to publish, with a light running round it while the
-   * bench has changes people do not have.
+   * bench has changes people do not have - and quiet, whatever the bench
+   * holds, until the project's chat has finished a turn well.
    */
   publishCall: TPublishCall;
 }
@@ -46,7 +47,9 @@ interface IStudioShipCardProps {
  * have, or a scene never published - and a light runs round its edge while
  * those changes wait (`button.is-beckoning`); everything else here is
  * quiet. With nothing to publish no button is loud: emphasis follows a
- * recommendation, and there is none. One control per action: the line
+ * recommendation, and there is none. Nor is there while the AI is still
+ * working on the scene, or its last turn was stopped or failed: Publish is
+ * quiet then, and still presses. One control per action: the line
  * beside the project names the state and carries no Publish of its own.
  * The bench shows `StudioShipInspect` for one of FluidEQ's scenes opened
  * to look inside.

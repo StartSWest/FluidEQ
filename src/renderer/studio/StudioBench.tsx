@@ -17,6 +17,7 @@ import StudioChat from './chat/StudioChat';
 import StudioChatColumn from './chat/StudioChatColumn';
 import useStageCapture from './chat/useStageCapture';
 import { useStudioChat } from './chat/studioChatStore';
+import studioChatAtRest from './chat/chatAtRest';
 import usePublishMakesRoomForAsk from './usePublishMakesRoomForAsk';
 import StudioCode, { problemLinesOf } from './StudioCode';
 import { useCodeDraft } from './codeDraftStore';
@@ -54,7 +55,7 @@ import { useStarterLabelsShown } from './studioStarterGuide';
 import useStudioStarter from './useStudioStarter';
 import StudioTune from './StudioTune';
 import StudioVersionLine from './StudioVersionLine';
-import { studioVersionLine } from './versionLine';
+import { benchPublishCall, studioVersionLine } from './versionLine';
 import StudioWork, { type TStudioWorkTab } from './StudioWork';
 import useStudioBenchLayout from './useStudioBenchLayout';
 import useStudioAmbientTuning from './useStudioAmbientTuning';
@@ -265,7 +266,9 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
     playing && !pausedForPublish,
   );
 
-  const chatBusy = useStudioChat().chat?.busy === true;
+  const { chat, work: chatWork } = useStudioChat();
+  const chatBusy = chat?.busy === true;
+  const chatAtRest = studioChatAtRest(chat, chatWork, project?.id);
   usePublishMakesRoomForAsk(
     publishing.draft !== undefined,
     publishing.publishing,
@@ -333,9 +336,7 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
         settingDesktop={keeping.settingDesktop}
         unfitReason={unfitWords}
         onShowProblems={showProblems}
-        publishCall={
-          typeof versionLine === 'object' ? versionLine.publish : 'quiet'
-        }
+        publishCall={benchPublishCall(versionLine, chatAtRest)}
       />
     );
   }
