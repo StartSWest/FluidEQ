@@ -159,6 +159,16 @@ const LIMIT_WORDS =
   /usage limit|limit reached|out of (extra )?usage|\b(hit|reached) your\b.{0,40}\blimit\b/i;
 const SIGN_IN_WORDS =
   /\/login|\blog(ged)? ?in\b|sign ?in|oauth (token|session)|api key|authenticat/i;
+/**
+ * A model refused, in Claude Code 2.1.321's words: "There's an issue with
+ * the selected model (fable). It may not exist or you may not have access
+ * to it.", "The model … is not available on your … deployment", "… is not
+ * available to this account", and "Claude Opus is not available with the
+ * Claude Pro plan" - the last one with `invalid_request` as its kind and
+ * "/login" in its words, which read as signed out before this.
+ */
+const MODEL_WORDS =
+  /issue with the selected model|\bis not available (on your|to this account|with the Claude \w+ plan)\b/i;
 const NETWORK_WORDS =
   /connection (refused|lost|error|reset|timed out)|can't reach|unable to connect|ENOTFOUND|ECONN|ETIMEDOUT|EAI_AGAIN|fetch failed/i;
 
@@ -169,7 +179,8 @@ const NETWORK_WORDS =
  * compaction failed: You've hit your weekly limit", and the limit is the
  * cause), an account the subscription may not be used on before a lost
  * sign-in (its words offer "an Anthropic API key instead", which reads as
- * one), a lost connection before a failing server (it reports both as
+ * one), a model refused before both (its words for Opus on a Pro plan say
+ * "/login"), a lost connection before a failing server (it reports both as
  * `server_error`).
  */
 export const stopOf = (
@@ -196,6 +207,14 @@ export const stopOf = (
       failure: 'limit',
       ...(limit.window || limit.resetsAt ? { limit } : {}),
     };
+  }
+  if (
+    error === 'model_not_found' ||
+    apiError === 'model_not_found' ||
+    apiError === 'model_access_denied' ||
+    MODEL_WORDS.test(words)
+  ) {
+    return { failure: 'model' };
   }
   if (
     error === 'oauth_org_not_allowed' ||

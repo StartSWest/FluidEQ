@@ -79,12 +79,14 @@ const setUp = (
     held = [],
     skills,
     offered,
+    refuse,
     logger,
   }: {
     restarting?: boolean;
     held?: ((adopt: (adoption: IChatAdoption) => void) => void)[];
     skills?: () => { dir: string; digest: string } | undefined;
     offered?: (model: TStudioChatModel) => boolean;
+    refuse?: (model: TStudioChatModel) => void;
     logger?: { info(message: string): void; warn(message: string): void };
   } = {},
 ) => {
@@ -160,6 +162,7 @@ const setUp = (
     noteUsage: () => undefined,
     ...(skills ? { skills } : {}),
     ...(offered ? { offered } : {}),
+    ...(refuse ? { refuse } : {}),
     ...(logger ? { logger } : {}),
   });
   return {
@@ -213,6 +216,55 @@ describe('the model a chat is started on', () => {
         model: 'haiku',
       });
       expect(fluid.commands[1].args).not.toContain('--model');
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  // 2026-11-25: a Max account was told Fable was not on its plan because
+  // Claude Code's list did not name it. Only Claude Code refusing a model
+  // marks it, and the chat then starts again on Default.
+  it('marks a model Claude Code refused, and ends the process started on it', async () => {
+    const root = tmp();
+    try {
+      const refused = new Set<string>();
+      const fluid = setUp(root, {
+        offered: (model) => !refused.has(model),
+        refuse: (model) => refused.add(model),
+      });
+      const ended = (result: Record<string, unknown>, at: number) =>
+        fluid.attached[at].events.line(
+          say({
+            type: 'result',
+            subtype: 'success',
+            is_error: true,
+            terminal_reason: 'api_error',
+            ...result,
+          }),
+        );
+      const fable = await fluid.chat.sessionFor('lake', 'C:/Lake', {
+        ...message(''),
+        model: 'fable',
+      });
+      if (!fable) {
+        throw new Error('no session was started');
+      }
+      // The control: a stop that is not a refusal marks nothing.
+      fluid.turns.begin('lake', fable, [message('make it rain')]);
+      ended({ api_error_status: 529, result: 'API Error: 529 Overloaded.' }, 0);
+      expect(refused.size).toBe(0);
+      expect(fluid.started[0].end).not.toHaveBeenCalled();
+      fluid.turns.begin('lake', fable, [message('again')]);
+      ended(
+        {
+          api_error_status: 404,
+          result:
+            "There's an issue with the selected model (fable). It may not exist or you may not have access to it. Run /model to pick a different model.",
+        },
+        0,
+      );
+      expect([...refused]).toEqual(['fable']);
+      expect(fluid.started[0].end).toHaveBeenCalled();
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
     }

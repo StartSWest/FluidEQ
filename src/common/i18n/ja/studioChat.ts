@@ -81,6 +81,9 @@ const studioChat = {
   'studioChat.failed.tooLong':
     'このチャットは長くなりすぎて、Claude が読めません。圧縮するか、新しいチャットを始めてください。',
   'studioChat.failed.said': 'Claude Code の応答:「{words}」',
+  'studioChat.failed.model':
+    'Claude Code がこのモデルを拒否しました。ご利用の Claude プランまたはアカウントには含まれていません。別のモデルを選んでから、もう一度お試しください。',
+  'studioChat.modelOthers': 'その他のバージョン',
   'studioChat.placeholderFirst': 'シーンを説明してください…',
   'studioChat.placeholder':
     '変更を頼んでみましょう。例：「スネアに合わせてライトを光らせて」',

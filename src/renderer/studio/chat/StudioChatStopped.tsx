@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { TStudioChatEntry } from 'common/studioChat';
 import type {
@@ -20,6 +20,7 @@ import {
   signInToStudioChat,
   useStudioChat,
 } from './studioChatStore';
+import { refreshStudioChatModels } from './studioChatModels';
 
 type TReply = Extract<TStudioChatEntry, { kind: 'claude' }>;
 
@@ -31,6 +32,7 @@ const WORDS: Record<TStopped, TranslationKey> = {
   'signed-out': 'studioChat.failed.signedOut',
   limit: 'studioChat.failed.limit',
   subscription: 'studioChat.failed.subscription',
+  model: 'studioChat.failed.model',
   network: 'studioChat.failed.network',
   server: 'studioChat.failed.server',
   'too-long': 'studioChat.failed.tooLong',
@@ -70,6 +72,13 @@ export default function StudioChatStopped({
   const { t } = useTranslation();
   const { signingIn, limits } = useStudioChat();
   const times = useLimitTimes();
+  // Main marked the refused model for this run: the picker learns it here,
+  // where the refusal is shown.
+  useEffect(() => {
+    if (failure === 'model') {
+      refreshStudioChatModels();
+    }
+  }, [failure]);
   const hit = failure === 'limit' ? reply.limit?.window : undefined;
   // When the limit is back: as Claude Code said with the stop, else as the
   // plan's last reading has that window, where that is still ahead.
@@ -131,6 +140,7 @@ export default function StudioChatStopped({
         return tryAgain(true);
       case 'limit':
       case 'subscription':
+      case 'model':
         return tryAgain(false);
       case 'too-long':
         return (

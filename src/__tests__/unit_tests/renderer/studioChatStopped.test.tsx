@@ -56,6 +56,7 @@ let bridge: {
   studioChatLimits: jest.Mock;
   studioChatSignIn: jest.Mock;
   studioChatCompact: jest.Mock;
+  studioChatModels: jest.Mock;
 };
 const onRetry = jest.fn();
 
@@ -82,6 +83,7 @@ beforeEach(() => {
     studioChatLimits: jest.fn(async () => undefined),
     studioChatSignIn: jest.fn(async () => ({ state: 'ready' })),
     studioChatCompact: jest.fn(async () => undefined),
+    studioChatModels: jest.fn(async () => ({ checked: false, lines: [] })),
   };
   Object.defineProperty(window, 'electron', {
     configurable: true,
@@ -95,6 +97,7 @@ describe('the notice where a reply stopped', () => {
     'signed-out': 'studioChat.failed.signedOut',
     limit: 'studioChat.failed.limit',
     subscription: 'studioChat.failed.subscription',
+    model: 'studioChat.failed.model',
     network: 'studioChat.failed.network',
     server: 'studioChat.failed.server',
     'too-long': 'studioChat.failed.tooLong',
@@ -223,7 +226,17 @@ describe('what the member can do about it', () => {
     },
   );
 
-  it.each(['limit', 'subscription'] as const)(
+  // A refused model: main marked it for this run, and the picker learns it
+  // from main, asked again where the refusal is shown.
+  it('asks for the model list again where a model was refused, and nowhere else', () => {
+    const { unmount } = show(failed('server'));
+    expect(bridge.studioChatModels).not.toHaveBeenCalled();
+    unmount();
+    show(failed('model'));
+    expect(bridge.studioChatModels).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['limit', 'subscription', 'model'] as const)(
     'offers "Try again" quietly where it only works once something else is in order: %s',
     (failure) => {
       show(failed(failure));

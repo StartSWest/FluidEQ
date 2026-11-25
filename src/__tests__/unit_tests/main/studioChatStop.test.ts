@@ -230,6 +230,9 @@ describe('what Claude Code names beside its words', () => {
   it.each([
     ['limit', { api_error: 'usage_limit_reached' }, {}],
     ['subscription', {}, { error: 'oauth_org_not_allowed' }],
+    ['model', {}, { error: 'model_not_found' }],
+    ['model', { api_error: 'model_not_found' }, {}],
+    ['model', { api_error: 'model_access_denied' }, {}],
     ['signed-out', {}, { error: 'authentication_failed' }],
     ['signed-out', { api_error_status: 401 }, {}],
     ['too-long', { terminal_reason: 'prompt_too_long' }, {}],

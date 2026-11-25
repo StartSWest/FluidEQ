@@ -84,6 +84,9 @@ const studioChat = {
   'studioChat.failed.tooLong':
     '이 채팅이 너무 길어져 Claude가 읽을 수 없습니다. 압축하거나 새 채팅을 시작하세요.',
   'studioChat.failed.said': 'Claude Code의 응답: “{words}”',
+  'studioChat.failed.model':
+    'Claude Code가 이 모델을 거부했습니다. Claude 요금제나 계정에 포함되어 있지 않습니다. 다른 모델을 선택한 뒤 다시 시도하세요.',
+  'studioChat.modelOthers': '다른 버전',
   'studioChat.placeholderFirst': '당신의 장면을 묘사하세요…',
   'studioChat.placeholder':
     '"스네어에서 조명을 깜박이게 해 줘"와 같이 변경을 요청하세요.',

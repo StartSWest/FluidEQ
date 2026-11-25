@@ -20,18 +20,9 @@ import {
   knowStudioMakers,
   useStudioMakers,
 } from './studioMakersStore';
+import { useStudioChatModels } from './studioChatModels';
+import { planShown } from './studioChatPlan';
 import '../../styles/StudioChatAccounts.scss';
-
-/**
- * Plans by the names their makers sell them under. Claude Code reports a
- * plan as one lower-case word ("max", "prolite"); a plan this does
- * not know is shown with a capital, which is right for most of them.
- */
-const PLAN_NAMES: Record<string, string> = {
-  prolite: 'Pro Lite',
-};
-export const planName = (plan: string) =>
-  PLAN_NAMES[plan] ?? plan.charAt(0).toUpperCase() + plan.slice(1);
 
 /** One account: which service, whose it is, and what can be done about it. */
 function AccountCard({
@@ -257,16 +248,14 @@ export default function StudioChatAccounts({
 }) {
   const { t } = useTranslation();
   const { availability, signingIn } = useStudioChat();
+  const plan = planShown(availability, useStudioChatModels());
 
   useEffect(() => {
     checkStudioChat().catch(() => undefined);
   }, []);
 
   const claudeReady = availability.state === 'ready';
-  const claudeDetail =
-    claudeReady && availability.plan
-      ? t('studioChat.wherePlan', { plan: planName(availability.plan) })
-      : undefined;
+  const claudeDetail = plan ? t('studioChat.wherePlan', { plan }) : undefined;
 
   let claudeNote: string | undefined;
   let claudeAction: ReactNode;

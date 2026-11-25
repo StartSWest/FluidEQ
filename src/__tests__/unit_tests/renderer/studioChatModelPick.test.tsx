@@ -19,9 +19,12 @@ import { setup } from '../../utils/userEventUtils';
 /**
  * The Studio chat's model picker, named as Claude Code names its models in
  * this run of the app (Ivan, 2026-11-09: "make sure model list gets updated
- * when app is restarted"): a line the member's plan lacks is in the list,
- * said to be unavailable, and cannot be chosen; a saved choice of one falls
- * back to Default and says so.
+ * when app is restarted"), with the other versions it lists under their own
+ * heading. A model Claude Code refused is in the list, said to be
+ * unavailable, and cannot be chosen; a saved choice of one falls back to
+ * Default and says so. A line its list did not name is still offered: on a
+ * Max account the list named Fable only by its exact model, and the chat
+ * called Fable "not on your Claude plan" (2026-11-25).
  */
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
@@ -90,14 +93,44 @@ describe("the chat's model picker", () => {
     ).toBeInTheDocument();
   });
 
-  it('shows a line the plan lacks as unavailable, and never takes it', async () => {
+  it('offers a known line the list did not name, under its bare name, and takes it', async () => {
     const { user } = await open();
     const haiku = row('Haiku');
-    expect(haiku).toHaveAttribute('aria-disabled', 'true');
+    expect(haiku).not.toHaveAttribute('aria-disabled');
     expect(
-      within(haiku).getByText('studioChat.modelUnavailable'),
-    ).toBeInTheDocument();
+      within(haiku).queryByText('studioChat.modelUnavailable'),
+    ).not.toBeInTheDocument();
     await user.click(haiku);
+    expect(screen.getByRole('status')).toHaveTextContent('haiku');
+  });
+
+  it('names a line Claude Code listed by its exact model as that model, and starts it by its name', async () => {
+    answer = Promise.resolve({
+      checked: true,
+      lines: [
+        { id: 'opus', name: 'Opus 5.5' },
+        { id: 'fable', name: 'Fable 5.2' },
+      ],
+    });
+    const { user } = await open();
+    const fable = row('Fable 5.2');
+    expect(fable).not.toHaveAttribute('aria-disabled');
+    expect(
+      within(fable).getByText('studioChat.modelHintFable'),
+    ).toBeInTheDocument();
+    await user.click(fable);
+    expect(screen.getByRole('status')).toHaveTextContent('fable');
+  });
+
+  it('shows a model Claude Code refused as unavailable, and never takes it', async () => {
+    answer = Promise.resolve({ ...NO_HAIKU, refused: ['fable'] });
+    const { user } = await open();
+    const fable = row('Fable 5.2');
+    expect(fable).toHaveAttribute('aria-disabled', 'true');
+    expect(
+      within(fable).getByText('studioChat.modelUnavailable'),
+    ).toBeInTheDocument();
+    await user.click(fable);
     expect(screen.getByRole('status')).toHaveTextContent('default');
     // Nothing happened, so the list is still open. The control: an offered
     // line is taken.
@@ -105,13 +138,45 @@ describe("the chat's model picker", () => {
     expect(screen.getByRole('status')).toHaveTextContent('sonnet');
   });
 
-  it('falls back to Default for a saved line the plan lacks, and says so', async () => {
-    setChatModel(undefined, 'haiku');
+  it('falls back to Default for a saved model Claude Code refused, and says so', async () => {
+    answer = Promise.resolve({ ...NO_HAIKU, refused: ['fable'] });
+    setChatModel(undefined, 'fable');
     await open();
     expect(
-      within(row('Haiku')).getByText('studioChat.modelUnavailableChosen'),
+      within(row('Fable 5.2')).getByText('studioChat.modelUnavailableChosen'),
     ).toBeInTheDocument();
     expect(row('studioChat.modelDefault')).toHaveClass('selected');
+  });
+
+  it('keeps a saved line it did not refuse, though the list did not name it', async () => {
+    setChatModel(undefined, 'haiku');
+    await open();
+    expect(row('Haiku')).toHaveClass('selected');
+  });
+
+  // Ivan, 2026-11-25: "the other models ... in every version".
+  it('lists the other versions under their own heading, and takes one', async () => {
+    answer = Promise.resolve({
+      ...NO_HAIKU,
+      others: [
+        { id: 'claude-haiku-4-5-20251001', name: 'Haiku 4.5' },
+        { id: 'claude-opus-5-1', name: 'Opus 5.1' },
+      ],
+    });
+    const { user } = await open();
+    expect(screen.getByText('studioChat.modelOthers')).toBeInTheDocument();
+    const names = screen
+      .getAllByRole('menuitem')
+      .map((item) => item.textContent ?? '');
+    // Under the lines, in Claude Code's order.
+    expect(names.findIndex((name) => name.startsWith('Haiku 4.5'))).toBe(
+      names.length - 2,
+    );
+    expect(names[names.length - 1]).toMatch(/^Opus 5\.1/);
+    await user.click(row('Haiku 4.5'));
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'claude-haiku-4-5-20251001',
+    );
   });
 
   // Ivan, 2026-11-09: "claude can launch new models and we want to pick up

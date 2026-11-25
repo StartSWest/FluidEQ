@@ -13,7 +13,8 @@ import {
 /**
  * The models Claude Code offers, as main read them from it in this run of
  * the app (\`main/studioChat/claudeModels.ts\`): asked once by the first
- * picker shown, and the same answer for every picker after.
+ * picker shown, and the same answer for every picker after - asked again
+ * only when Claude Code refused a model (\`refreshStudioChatModels\`).
  */
 
 let models: IStudioChatModels = NO_STUDIO_CHAT_MODELS;
@@ -49,6 +50,16 @@ const ask = () => {
 export const useStudioChatModels = (): IStudioChatModels => {
   useEffect(ask, []);
   return useSyncExternalStore(subscribe, () => models);
+};
+
+/**
+ * Ask main again, for what Claude Code refused since the list was first
+ * asked: main keeps the run's one answer and adds the refusals to it, so
+ * Claude Code itself is not asked again.
+ */
+export const refreshStudioChatModels = () => {
+  asked = false;
+  ask();
 };
 
 /** For a test: nothing known, and nothing asked yet. */

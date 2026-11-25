@@ -28,9 +28,8 @@ const MODEL_HINTS: Record<TStudioChatFamily, TranslationKey> = {
 };
 
 /**
- * A known line's own name, before Claude Code has ever said which model it
- * is, or where the member's plan does not include it: a brand, the same in
- * every language.
+ * A known line's own name, where Claude Code has not said which model it
+ * is: a brand, the same in every language.
  */
 const LINE_NAMES: Record<TStudioChatFamily, string> = {
   fable: 'Fable',
@@ -46,29 +45,33 @@ interface IRow {
 }
 
 /**
- * The rows, in Claude Code's own order: every line it offered - a family
- * added after this app was built among them - and then each line this app
- * knows of that it did not offer, which this account cannot use. Before it
- * has ever answered, the known lines under their bare names.
+ * The main rows, in Claude Code's own order: every line it offered - a
+ * family added after this app was built among them - and then each line
+ * this app knows of that it did not name, under its bare name. Every one of
+ * them can be picked: Claude Code resolves a line's own name to its newest
+ * model, and only Claude Code refusing one (`refused`) marks it unavailable.
  */
-const rowsOf = ({ checked, lines }: IStudioChatModels): IRow[] => {
-  if (!checked) {
-    return STUDIO_CHAT_FAMILIES.map((id) => ({
-      line: { id, name: LINE_NAMES[id] },
-      offered: true,
-    }));
-  }
+const rowsOf = (models: IStudioChatModels): IRow[] => {
   const missing = STUDIO_CHAT_FAMILIES.filter(
-    (id) => !lines.some((line) => line.id === id),
+    (id) => !models.lines.some((line) => line.id === id),
   );
   return [
-    ...lines.map((line) => ({ line, offered: true })),
-    ...missing.map((id) => ({
-      line: { id, name: LINE_NAMES[id] },
-      offered: false,
-    })),
-  ];
+    ...models.lines,
+    ...missing.map((id) => ({ id, name: LINE_NAMES[id] })),
+  ].map((line) => ({
+    line,
+    offered: isStudioChatModelOffered(models, line.id),
+  }));
 };
+
+/** The other versions Claude Code listed, each once and apart from the rows. */
+const othersOf = (models: IStudioChatModels, rows: IRow[]): IRow[] =>
+  (models.others ?? [])
+    .filter(({ id }) => !rows.some((row) => row.line.id === id))
+    .map((line) => ({
+      line,
+      offered: isStudioChatModelOffered(models, line.id),
+    }));
 
 /**
  * Which Claude model a piece of work runs on: the Studio's chat (Ivan,
@@ -81,10 +84,14 @@ const rowsOf = ({ checked, lines }: IStudioChatModels): IRow[] => {
  * launch new models and we want to pick up smartly automatically"), "Default"
  * leaving it to whatever the member set in Claude Code. A line this app knew
  * of says what it is for in the member's language; one Anthropic added
- * since says it in Claude Code's own words. A known line the member's plan
- * does not include is in the list, said to be unavailable, and cannot be
- * chosen; a choice saved before its line became unavailable falls back to
- * Default, and its row says so. The app's dropdown: open, each model stands
+ * since says it in Claude Code's own words. The other versions Claude Code
+ * lists stand under their own heading below the lines (Ivan, 2026-11-25:
+ * "the other models ... in every version"). A model Claude Code refused in
+ * this run is in the list, said to be unavailable, and cannot be chosen; a
+ * choice of it falls back to Default, and its row says so. Nothing else
+ * makes a row unavailable: a line missing from Claude Code's answer was
+ * read as one the plan lacked, and a Max account was told Fable was not on
+ * its plan (2026-11-25). The app's dropdown: open, each model stands
  * over a line saying what it is for, and the closed trigger keeps the name
  * alone. Its owner keeps the pick.
  */
@@ -107,6 +114,7 @@ export default function ClaudeModelPick({
   const { t } = useTranslation();
   const models = useStudioChatModels();
   const rows = rowsOf(models);
+  const others = othersOf(models, rows);
   const shown: TStudioChatModel = isStudioChatModelOffered(models, model)
     ? model
     : 'default';
@@ -130,6 +138,7 @@ export default function ClaudeModelPick({
     label: string,
     hint: string | undefined,
     offered: boolean,
+    group = t('studioChat.model'),
   ) => ({
     value,
     label,
@@ -139,7 +148,7 @@ export default function ClaudeModelPick({
         {hint && <small>{hint}</small>}
       </span>
     ),
-    group: t('studioChat.model'),
+    group,
     isUnavailable: !offered,
   });
   return (
@@ -154,6 +163,15 @@ export default function ClaudeModelPick({
         option('default', t('studioChat.modelDefault'), defaultHint, true),
         ...rows.map((row) =>
           option(row.line.id, row.line.name, hintOf(row), row.offered),
+        ),
+        ...others.map((row) =>
+          option(
+            row.line.id,
+            row.line.name,
+            hintOf(row),
+            row.offered,
+            t('studioChat.modelOthers'),
+          ),
         ),
       ]}
       handleChange={(next) => {

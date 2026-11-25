@@ -223,6 +223,7 @@ export const createStudioChat = ({
     root,
     ...(mustAsk ? { mustAsk } : {}),
     offered: (model) => isStudioChatModelOffered(claudeModels.known(), model),
+    refuse: claudeModels.refuse,
     sessions,
     launcher,
     transcriptOf,

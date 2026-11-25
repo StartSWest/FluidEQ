@@ -82,6 +82,9 @@ const studioChat = {
   'studioChat.failed.tooLong':
     'Questa chat è diventata troppo lunga perché Claude la legga. Compattala, o inizia una nuova chat.',
   'studioChat.failed.said': 'Claude Code ha risposto: «{words}»',
+  'studioChat.failed.model':
+    'Claude Code ha rifiutato questo modello: il tuo piano o account Claude non lo include. Scegli un altro modello e riprova.',
+  'studioChat.modelOthers': 'Altre versioni',
   'studioChat.placeholderFirst': 'Descrivi la tua scena…',
   'studioChat.placeholder':
     'Chiedi una modifica, come «fai lampeggiare le luci sul rullante»',

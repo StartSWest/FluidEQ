@@ -22,6 +22,8 @@ export const STUDIO_CHAT_FAILURES = [
   'fable-limit',
   /** The sign-in is good and the subscription may not be used: unpaid, or the organisation turned it off. */
   'subscription',
+  /** Claude Code refused the model picked: the account or plan does not have it. */
+  'model',
   /** Claude could not be reached from this computer. */
   'network',
   /** Claude's side was overloaded, failed, or took no more requests for now. */

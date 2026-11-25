@@ -227,8 +227,14 @@ describe('the card where the reply stopped', () => {
     expect(screen.queryByText(/studioChat\.fable\.(checking|opus)/)).toBeNull();
     unmount();
 
+    // Opus is offered unless Claude Code refused it in this run: a list
+    // that does not name it is not a plan without it.
     bridge(ROOM, {
-      models: { checked: true, lines: [{ id: 'fable', name: 'Fable 5.2' }] },
+      models: {
+        checked: true,
+        lines: [{ id: 'fable', name: 'Fable 5.2' }],
+        refused: ['opus'],
+      },
     });
     render(<StudioChatFableLimit canRetry />);
     // The reading arrives, and the models; still no offer.

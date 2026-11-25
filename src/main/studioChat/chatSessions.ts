@@ -59,6 +59,8 @@ interface IChatSessionsDeps {
    * a line it does not is started as `default`, as the picker says.
    */
   offered?: (model: TStudioChatModel) => boolean;
+  /** Claude Code refused `model` for this account (`claudeModels.ts`). */
+  refuse?: (model: TStudioChatModel) => void;
   /**
    * Whether a project's chat must ask before every command: a folder
    * FluidEQ did not make, until the member trusts it (`projectOrigin.ts`).
@@ -86,6 +88,7 @@ const createChatSessions = ({
   noteUsage,
   skills,
   offered,
+  refuse,
   mustAsk,
   logger,
 }: IChatSessionsDeps) => {
@@ -164,6 +167,19 @@ const createChatSessions = ({
         // ends, and the next message starts one that reads the sign-in
         // afresh (the head said "Max plan" over a reply saying signed out).
         if (event.type === 'end' && event.failure === 'signed-out') {
+          session.process.end();
+        }
+        // The model it was started on was refused: the picker marks it, and
+        // the next message starts on Default. A model not offered when it
+        // started was started as `default` already, and is not the one
+        // refused.
+        if (
+          event.type === 'end' &&
+          event.failure === 'model' &&
+          session.model !== 'default' &&
+          (offered?.(session.model) ?? true)
+        ) {
+          refuse?.(session.model);
           session.process.end();
         }
         // A stop the chat has no notice for: what Claude Code named, kept

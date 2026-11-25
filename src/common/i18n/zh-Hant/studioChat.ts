@@ -81,6 +81,9 @@ const studioChat = {
   'studioChat.failed.tooLong':
     '這個聊天太長，Claude 已無法讀取。請壓縮它，或開始新聊天。',
   'studioChat.failed.said': 'Claude Code 的回覆：「{words}」',
+  'studioChat.failed.model':
+    'Claude Code 拒絕了這個模型：你的 Claude 方案或帳號不包含它。請選擇其他模型，然後再試一次。',
+  'studioChat.modelOthers': '其他版本',
   'studioChat.placeholderFirst': '描述一下你的場景…',
   'studioChat.placeholder': '要求改變，例如“讓軍鼓上的燈光閃爍”',
   'studioChat.attach': '安裝舞臺',

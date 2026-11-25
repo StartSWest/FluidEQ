@@ -116,6 +116,7 @@ const LIST = {
     { id: 'sonnet', name: 'Sonnet 5.5' },
     { id: 'haiku', name: 'Haiku 5.5' },
   ],
+  others: [{ id: 'claude-haiku-4-5-20251001', name: 'Haiku 4.5' }],
   defaultName: 'Opus 5.5',
 };
 
@@ -141,8 +142,91 @@ afterEach(() => {
 
 describe("Claude Code's answer", () => {
   it('names each line by the model it starts, and what Default starts', () => {
-    // Its own order, and none of the exact older models it lists beside them.
+    // Its own order, and the exact older models it lists beside them apart.
     expect(readModelsAnswer(JSON.stringify(ANSWER))).toEqual(LIST);
+  });
+
+  // 2026-11-25: on a Max account the answer named Fable only by its exact
+  // model, and the chat called Fable "not on your Claude plan".
+  it('names a known line Claude Code listed only by its exact model, as that model', () => {
+    const line = answered((models) =>
+      models.map((entry) =>
+        entry.value === 'fable'
+          ? { ...entry, value: 'claude-fable-5-2' }
+          : entry,
+      ),
+    );
+    const read = readModelsAnswer(line);
+    expect(read?.lines).toContainEqual({ id: 'fable', name: 'Fable 5.2' });
+    expect(read?.others?.map(({ id }) => id)).toEqual([
+      'claude-haiku-4-5-20251001',
+    ]);
+  });
+
+  it('names such a line by its newest exact model, and keeps the older ones as versions', () => {
+    const line = answered((models) => [
+      ...models.filter(({ value }) => value !== 'opus'),
+      { value: 'claude-opus-5-5', displayName: 'Opus 5.5' },
+      { value: 'claude-opus-5-6', displayName: 'Opus 5.6' },
+      { value: 'claude-3-opus-20240229', displayName: 'Opus 3' },
+    ]);
+    const read = readModelsAnswer(line);
+    expect(read?.lines).toContainEqual({ id: 'opus', name: 'Opus 5.6' });
+    expect(read?.others?.map(({ id }) => id)).toEqual([
+      'claude-haiku-4-5-20251001',
+      'claude-opus-5-5',
+      'claude-3-opus-20240229',
+    ]);
+  });
+
+  it('keeps a newer exact model beside its line as a version, and the line by its name', () => {
+    const line = answered((models) => [
+      ...models,
+      { value: 'claude-opus-5-6', displayName: 'Opus 5.6' },
+      { value: 'opus[1m]', displayName: 'Opus (1M context)' },
+    ]);
+    const read = readModelsAnswer(line);
+    expect(read?.lines.map(({ id }) => id)).toEqual(
+      LIST.lines.map(({ id }) => id),
+    );
+    expect(read?.others?.map(({ id }) => id)).toEqual([
+      'claude-haiku-4-5-20251001',
+      'claude-opus-5-6',
+      'opus[1m]',
+    ]);
+  });
+
+  it('keeps an unknown family listed only by exact models as versions, never by a name nobody gave', () => {
+    const line = answered((models) => [
+      ...models,
+      { value: 'claude-mythos-1-0', displayName: 'Mythos 1' },
+    ]);
+    expect(idsOf(line)).not.toContain('mythos');
+    expect(readModelsAnswer(line)?.others).toContainEqual({
+      id: 'claude-mythos-1-0',
+      name: 'Mythos 1',
+    });
+  });
+
+  it("names the plan as Claude Code does, Ultra or any other, and the account's email", () => {
+    const withAccount = (subscriptionType: unknown) => {
+      const answer = JSON.parse(JSON.stringify(ANSWER));
+      answer.response.response.account = {
+        email: 'member@example.com',
+        subscriptionType,
+      };
+      return readModelsAnswer(JSON.stringify(answer))?.account;
+    };
+    expect(withAccount('Claude Ultra')).toEqual({
+      email: 'member@example.com',
+      plan: 'Ultra',
+    });
+    expect(withAccount('Claude Max')?.plan).toBe('Max');
+    expect(withAccount('Claude Platinum 2x')?.plan).toBe('Platinum 2x');
+    // "Claude API" is what it says of an account with no plan.
+    expect(withAccount('Claude API')).toEqual({ email: 'member@example.com' });
+    expect(withAccount('<b>Max</b>')?.plan).toBeUndefined();
+    expect(readModelsAnswer(JSON.stringify(ANSWER))?.account).toBeUndefined();
   });
 
   // Ivan, 2026-11-09: "claude can launch new models and we want to pick up
@@ -170,8 +254,11 @@ describe("Claude Code's answer", () => {
       { value: '--dangerously-skip-permissions', displayName: 'Evil' },
       { value: 'Mythos', displayName: 'Upper case' },
       { value: 'a b', displayName: 'Spaced' },
+      { value: 'claude-opus 5" --x', displayName: 'Evil exact' },
+      { value: 'claude-', displayName: 'Empty exact' },
     ]);
     expect(idsOf(line)).toEqual(['opus', 'fable', 'sonnet', 'haiku']);
+    expect(readModelsAnswer(line)?.others).toEqual(LIST.others);
   });
 
   it('is nothing but the answer to its own request', () => {
@@ -232,6 +319,39 @@ describe('the list for a run of the app', () => {
     expect(models.known()).toEqual(LIST);
     // The next run of the app starts from it before it asks again.
     expect(createClaudeModels({ dir }).known()).toEqual(LIST);
+  });
+
+  it('marks what Claude Code refused for the rest of the run, and never keeps it', async () => {
+    const models = createClaudeModels({ dir });
+    await models.list();
+    models.refuse('fable');
+    models.refuse('default');
+    expect((await models.list()).refused).toEqual(['fable']);
+    expect(models.known().refused).toEqual(['fable']);
+    // The next run of the app has heard no refusal.
+    expect(createClaudeModels({ dir }).known()).toEqual(LIST);
+  });
+
+  it('keeps the list, never the account it came from', async () => {
+    const answer = JSON.parse(JSON.stringify(ANSWER));
+    answer.response.response.account = {
+      email: 'member@example.com',
+      subscriptionType: 'Claude Ultra',
+    };
+    const real = ANSWER.response.response;
+    ANSWER.response.response = answer.response.response;
+    try {
+      const models = createClaudeModels({ dir });
+      expect((await models.list()).account?.plan).toBe('Ultra');
+      const kept = fs.readFileSync(
+        path.join(dir, 'claude-models.json'),
+        'utf8',
+      );
+      expect(kept).not.toContain('member@example.com');
+      expect(createClaudeModels({ dir }).known()).toEqual(LIST);
+    } finally {
+      ANSWER.response.response = real;
+    }
   });
 
   it('keeps the last list when Claude Code answers nothing', async () => {

@@ -84,6 +84,9 @@ const studioChat = {
   'studioChat.failed.tooLong':
     'This chat has grown too long for Claude to read. Compact it, or start a new chat.',
   'studioChat.failed.said': 'Claude Code said: “{words}”',
+  'studioChat.failed.model':
+    'Claude Code refused this model: your Claude plan or account doesn’t include it. Pick another model, then try again.',
+  'studioChat.modelOthers': 'Other versions',
   'studioChat.placeholderFirst': 'Describe your scene…',
   'studioChat.placeholder':
     'Ask for a change, like “make the lights flash on the snare”',

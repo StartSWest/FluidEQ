@@ -18,7 +18,7 @@ import { useTranslation } from '../../utils/I18nContext';
 import StudioMaker from '../StudioMaker';
 import StudioStartHere from '../StudioStartHere';
 import { takeAskFocus, useSceneChatAsked } from './askSceneChat';
-import StudioChatAccounts, { planName } from './StudioChatAccounts';
+import StudioChatAccounts from './StudioChatAccounts';
 import StudioChatAsk from './StudioChatAsk';
 import StudioChatComposer from './StudioChatComposer';
 import StudioChatContext from './StudioChatContext';
@@ -48,6 +48,8 @@ import {
   useStudioChat,
 } from './studioChatStore';
 import { checkStudioMakers } from './studioMakersStore';
+import { useStudioChatModels } from './studioChatModels';
+import { planShown } from './studioChatPlan';
 import '../../styles/StudioChat.scss';
 
 interface IStudioChatProps {
@@ -77,6 +79,7 @@ export default function StudioChat({
 }: IStudioChatProps) {
   const { t, locale } = useTranslation();
   const { availability, chat, ask, zoom } = useStudioChat();
+  const models = useStudioChatModels();
   const pane = useRef<HTMLElement>(null);
   useChatZoomWheel(pane);
   // Asked from another tab (`askSceneChat`): the caret in the box, after
@@ -166,7 +169,7 @@ export default function StudioChat({
 
   const ready = availability.state === 'ready';
   const canChat = ready && project !== undefined && !project.official;
-  const plan = ready && availability.plan ? planName(availability.plan) : '';
+  const plan = planShown(availability, models);
   // A project that already holds a scene is named by it: its chat starts on
   // what to change, not on what to make.
   const sceneName = project?.names
