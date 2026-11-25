@@ -1,7 +1,6 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 import { PRODUCT_VERSION } from 'common/branding';
-import LiveFigure from '../../components/LiveFigure';
 import SignalBrandMark from '../../components/SignalBrandMark';
 import SignalBrandName from '../../components/SignalBrandName';
 import MenuIcon from '../../icons/MenuIcon';
@@ -12,10 +11,9 @@ import {
   WorkspaceTabsRight,
 } from '../../shell/WorkspaceTabStrips';
 import { useTranslation } from '../../utils/I18nContext';
+import WaveformVisualizer from '../../WaveformVisualizer';
+import HelpMusic from './HelpMusic';
 import runsOnMac from '../../utils/platform';
-import { PEAK_WIDEST } from '../../WaveformVisualizer';
-import { WAVEFORM_BLEED } from '../../waveformPaint';
-import signalStill from '../../../../assets/tour/signal-still.png';
 
 /**
  * The window chapter's title bar, drawn by the bar's own parts
@@ -25,10 +23,10 @@ import signalStill from '../../../../assets/tour/signal-still.png';
  * switch are the bar's own components, with the EQ tab lit; the buttons
  * whose components open menus, read the engine or listen to the music — the
  * actions and Help triggers, the creature's button, Windows' three — are
- * their markup, class for class, as `AppTitlebar` draws them. The signal is
- * a still of its drawing, laid where its canvas lies: the meter draws the
- * reader's own sound, and a second meter on the same capture was the bug
- * that put two creatures on one analyser (`AppTitlebar`).
+ * their markup, class for class, as `AppTitlebar` draws them. The signal is the
+ * meter itself, moving with made-up music (`HelpMusic`), which opens no
+ * capture of the reader's output, and without the preset plate over it,
+ * which would read the reader's own preset.
  *
  * The bar's window-width rules apply as they do in the window, so the
  * drawing shows the bar the reader has: names on the tabs on a wide window,
@@ -39,51 +37,6 @@ const nothing = () => undefined;
 
 /** The actions trigger's glyph, three lines, as `ActionsMenu` draws it. */
 const MENU_LINES = 'M4 7h16M4 12h16M4 17h16';
-
-/** The live signal, as a still of its canvas under its own labels. */
-const SignalStill = () => {
-  const { t } = useTranslation();
-  return (
-    <div className="waveform-visualizer-shell">
-      <button
-        type="button"
-        className="waveform-visualizer waveform-visualizer--fluid is-active"
-      >
-        <span className="waveform-visualizer__meta">
-          <span className="waveform-visualizer__signal">
-            <span className="waveform-visualizer__signal-dot" />
-            {t('waveform.live')}
-          </span>
-          <span className="waveform-visualizer__readout">
-            <LiveFigure
-              className="waveform-visualizer__peak"
-              widest={PEAK_WIDEST}
-            >
-              -0.9 dB
-            </LiveFigure>
-          </span>
-        </span>
-        <span className="waveform-visualizer__stage">
-          {/* The canvas's own bleed, so the still lies where the drawing
-              does; cropped rather than squeezed where the window makes the
-              meter narrower than the 420px it was taken at. */}
-          <img
-            className="waveform-visualizer__canvas"
-            src={signalStill}
-            alt=""
-            style={{
-              margin: -WAVEFORM_BLEED,
-              width: `calc(100% + ${WAVEFORM_BLEED * 2}px)`,
-              height: `calc(100% + ${WAVEFORM_BLEED * 2}px)`,
-              objectFit: 'cover',
-              objectPosition: 'left center',
-            }}
-          />
-        </span>
-      </button>
-    </div>
-  );
-};
 
 /** The whole title bar, on the EQ page. */
 const WindowHeaderDrawing = () => {
@@ -112,7 +65,11 @@ const WindowHeaderDrawing = () => {
         />
       </div>
       <div className="titlebar-nav">
-        <SignalStill />
+        {/* The meter itself, moving with made-up music: never the reader's
+            capture, and never the preset plate, which reads their preset. */}
+        <HelpMusic>
+          <WaveformVisualizer />
+        </HelpMusic>
       </div>
       <div className="window-titlebar__right">
         <WorkspaceTabsRight

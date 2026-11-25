@@ -32,6 +32,7 @@ import { useTranslation } from '../utils/I18nContext';
 import runsOnMac from '../utils/platform';
 import { useTitlebarRoom } from '../utils/useTitlebarRoom';
 import WaveformVisualizer from '../WaveformVisualizer';
+import WavePresetPlate from './wavePreset/WavePresetPlate';
 import {
   WorkspaceTabsLeft,
   WorkspaceTabsRight,
@@ -45,6 +46,11 @@ import {
  *
  * Defined once in `common/branding`, alongside the name it sits next to.
  */
+/** The playing preset, over the meter (`WaveformVisualizer`'s overlay). */
+const presetPlate = (isMeterOn: boolean) => (
+  <WavePresetPlate isMeterOn={isMeterOn} />
+);
+
 const APP_VERSION = PRODUCT_VERSION;
 
 export interface IAppTitlebarProps {
@@ -199,7 +205,7 @@ const AppTitlebar = ({
           its width gives way, to whatever the two ends leave over once the
           creature has gone. See `useTitlebarRoom`. */}
       <div className="titlebar-nav">
-        <WaveformVisualizer />
+        <WaveformVisualizer overlay={presetPlate} />
       </div>
       <div className="window-titlebar__right" ref={titlebarRightRef}>
         {/* First, so it stands against the meter with the elastic space

@@ -283,6 +283,51 @@ export const LiveAudioStandIn = ({
   );
 };
 
+/** A picture's claim: nothing is opened, so nothing is held. */
+const NO_RELEASE = () => undefined;
+const PICTURE_CLAIM = () => NO_RELEASE;
+
+/**
+ * A picture of the app moving with music it makes up (Help's figures): the
+ * frames come from `frames`, and the control is one that opens nothing — a
+ * drawing under it that claims the capture claims nothing, and the reader's
+ * output is never looped back for a picture. `LiveAudioStandIn` is the other
+ * case, a drawing beside the live capture that keeps the capture's claims.
+ *
+ * It works with no capture provider above it as well, which is how a figure
+ * is drawn in a test or a harness.
+ */
+export const LiveAudioPicture = ({
+  frames,
+  children,
+}: {
+  frames: ILiveFrameStore;
+  children: ReactNode;
+}) => {
+  const value = useMemo<TLiveAudioControl>(
+    () => ({
+      capture: undefined,
+      claim: PICTURE_CLAIM,
+      error: '',
+      isActive: true,
+      isPaused: false,
+      readFrame: () => undefined,
+      togglePaused: NO_RELEASE,
+      retry: async () => false,
+      readBackgroundFrame: async () => undefined,
+      setSharingAudio: NO_RELEASE,
+    }),
+    [],
+  );
+  return (
+    <LiveAudioControlContext.Provider value={value}>
+      <LiveAudioFrameContext.Provider value={frames}>
+        {children}
+      </LiveAudioFrameContext.Provider>
+    </LiveAudioControlContext.Provider>
+  );
+};
+
 /**
  * Hold the system capture open for as long as this component wants frames.
  *

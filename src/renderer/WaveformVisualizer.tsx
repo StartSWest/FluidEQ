@@ -45,6 +45,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {
   MouseEvent as ReactMouseEvent,
+  type ReactNode,
   useCallback,
   useEffect,
   useRef,
@@ -91,7 +92,6 @@ import paintFlatMeter from './waveformFlatPaint';
 import { BODY_TINT, LIGHT_BODY_TINT } from './waveformFlatKit';
 import { type IRecorderView, createRecorderView } from './waveformRecorderView';
 import { advanceFlatMeter, createFlatMeterState } from './waveformFlatState';
-import WavePresetPlate from './shell/wavePreset/WavePresetPlate';
 import './styles/WaveformVisualizer.scss';
 
 /** The spectrum's bands every style reads: as many as the pane can show. */
@@ -194,7 +194,17 @@ const nextHeldPeak = (
   return next === undefined ? undefined : Math.round(next * 10) / 10;
 };
 
-const WaveformVisualizer = () => {
+interface IWaveformVisualizerProps {
+  /**
+   * What stands over the meter's label row beside its own button, told
+   * whether the meter is drawing: the title bar's playing-preset plate
+   * (`WavePresetPlate`). Help's picture of the bar has none, because the
+   * plate reads the reader's own preset.
+   */
+  overlay?: (isMeterOn: boolean) => ReactNode;
+}
+
+const WaveformVisualizer = ({ overlay }: IWaveformVisualizerProps) => {
   const { t } = useTranslation();
   // The stops the pane is drawn in, so a new colour is drawn at once through
   // a quiet passage, when the loop is not running (below).
@@ -917,7 +927,7 @@ const WaveformVisualizer = () => {
       </button>
       {/* The playing preset, over the label row and beside the meter's own
           button for the reason above. */}
-      <WavePresetPlate isMeterOn={!isOff} />
+      {overlay?.(!isOff)}
     </div>
   );
 };
