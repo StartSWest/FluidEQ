@@ -101,6 +101,14 @@
   padding: 20px;
 }
 
+// A live figure is fitted to the room inside its padding (`lightboxRoom.ts`)
+// and never needs to scroll; the pixel or two its text can reflow by at a
+// new zoom falls inside that padding. A scrollbar it brought would take its
+// width out of the very room it was fitted to.
+.help-lightbox__image:has(> .help-lightbox__live) {
+  overflow: hidden;
+}
+
 // THE GAMING LAB, drawn in a figure (`help/live/gamingFigures`): in the window
 // the page runs to the window's foot, so the rail always shows its games and
 // Add a game under them. Drawn only as tall as the game's header, the rail
