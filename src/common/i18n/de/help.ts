@@ -342,7 +342,7 @@ const help: Record<keyof typeof en, string> = {
   'help.profiles.tip':
     'Unter der FluidEQ-Engine spielt eine zweite Ausgabe direkt aus der Engine, und der Hauptausgang wartet nie auf sie. Auto-EQ ist anfangs ausgeschaltet. Auf der EQ-Seite beginnt die Seitenleiste mit der Karte EQ-Modus; klappen Sie sie ein, um schneller zu Ihren Ausgängen zu kommen.',
   'help.profiles.keywords':
-    'lautsprecher, boxen, audiogerät, wiedergabegerät, standardgerät, gerätewechsel, gerät umschalten, Bluetooth, gleichzeitig, mehrere ausgänge, einstellungen speichern, synchronisieren, verzögerung, klangprofil, ausgang, ausgabe, zweite ausgabe, zwei ausgänge, je ausgang, pro gerät, eigener klang, akku, batterie, akkustand, klang bearbeiten, hauptausgabe bearbeiten, song, lied, titel, pro song, klang jedes songs merken, song merken, song vergessen',
+    'lautsprecher, boxen, audiogerät, wiedergabegerät, standardgerät, gerätewechsel, gerät umschalten, Bluetooth, gleichzeitig, mehrere ausgänge, einstellungen speichern, synchronisieren, verzögerung, klangprofil, ausgang, ausgabe, zweite ausgabe, zwei ausgänge, je ausgang, pro gerät, eigener klang, akku, batterie, akkustand, klang bearbeiten, hauptausgabe bearbeiten',
   'help.profiles.list':
     'Ihre gespeicherten Klänge. AKT markiert das Profil, das dieser Ausgang nutzt; drücken Sie ein anderes, um zu wechseln.',
   'help.profiles.update':

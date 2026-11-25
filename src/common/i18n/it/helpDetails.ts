@@ -56,7 +56,7 @@ const helpDetails = {
   'help.songs.tip':
     'I brani da Spotify, YouTube o dal browser si riconoscono dal titolo e dall’artista che il lettore comunica, e tengono i loro suoni separati da quelli della Libreria. Film e video non ricevono mai il suono di un brano. EQ automatico si fa da parte mentre il DSP è spento, è attiva una catena Gaming o un gioco riproduce il proprio suono.',
   'help.songs.keywords':
-    'auto eq, eq automatico, per brano, suono del brano, suono dell’album, ricorda brano, salva per questo brano, correzione intelligente, smart correction, smart eq, preset per brano, preset per album, dimentica, gestisci',
+    'auto eq, eq automatico, per brano, suono del brano, suono dell’album, ricorda brano, salva per questo brano, correzione intelligente, smart correction, smart eq, preset per brano, preset per album, dimentica, gestisci, canzone',
   'help.mycurves.title': 'Le mie curve: importare, modificare e condividere',
   'help.mycurves.intro':
     'La tua raccolta di curve affianca la libreria delle misurazioni. Controlla la risposta e scegli tra livello di correzione e bande EQ modificabili.',

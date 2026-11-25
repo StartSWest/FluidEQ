@@ -351,7 +351,7 @@ describe('what the DSP page says its scope is', () => {
       denoise: { ...DSP_DEFAULTS.denoise, enabled: true },
     });
     await waitFor(() => expect(chainsSent).toHaveLength(1));
-    fireEvent.click(screen.getByRole('button', { name: /Denoise/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Denoise$/i }));
     expect(
       screen.getByText(/Neural Voice is available for Library playback only/),
     ).toBeInTheDocument();
@@ -394,7 +394,7 @@ describe('the surround switch', () => {
       expect.objectContaining({ surround: { allChannels: false } }),
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /Master/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Master$/i }));
     expect(screen.getAllByRole('checkbox', { name: 'Surround' })).toHaveLength(
       1,
     );
@@ -432,7 +432,7 @@ describe('the rack under the engine with nothing playing at all', () => {
     // A stage's own rail tab, not only the master switch — the whole page
     // gates on the same flag.
     expect(
-      screen.getByRole('button', { name: /Equaliser/i }),
+      screen.getByRole('button', { name: /^Equaliser$/i }),
     ).not.toBeDisabled();
   });
 });
@@ -600,7 +600,7 @@ describe('the DSP page while the rack runs nowhere', () => {
       en['dspOff.switchedOff'],
     );
     expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /Equaliser/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /^Equaliser$/i })).toBeDisabled();
   });
 
   it('turns FluidEQ back on from the line that says it is off', async () => {

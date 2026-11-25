@@ -115,8 +115,9 @@ describe('the Plus tab arriving', () => {
 describe('the DSP page arriving', () => {
   it('staggers exactly as many filters as the rail lists', () => {
     // One short, and the last two filters flew in on the same beat — which
-    // is what happened when Bass Forge and Bass Punch joined the list.
-    expect(highestNthChild(dsp, '.dsp-rail-processors > .dsp-rail-tab')).toBe(
+    // is what happened when Bass Forge and Bass Punch joined the list. The
+    // rows stagger, each with its tab and its switch, not the tabs inside.
+    expect(highestNthChild(dsp, '.dsp-rail-processors > .dsp-rail-row')).toBe(
       DSP_SECTIONS.length,
     );
   });

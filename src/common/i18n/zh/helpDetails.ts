@@ -55,7 +55,7 @@ const helpDetails = {
   'help.songs.tip':
     '来自 Spotify、YouTube 或浏览器的歌曲按播放器报告的标题和歌手识别，它们的声音与媒体库的分开保存。电影和视频不会使用歌曲的声音。DSP 关闭、游戏链开启或游戏播放自己的声音时，自动均衡会暂时让开。',
   'help.songs.keywords':
-    'auto eq, 自动均衡, 每首歌, 歌曲声音, 专辑声音, 记住歌曲, 为这首歌保存, 智能校正, smart correction, smart eq, 单曲预设, 专辑预设, 忘记, 管理',
+    'auto eq, 自动均衡, 每首歌, 歌曲声音, 专辑声音, 记住歌曲, 为这首歌保存, 智能校正, smart correction, smart eq, 单曲预设, 专辑预设, 忘记, 管理, 歌曲',
   'help.mycurves.title': '我的曲线：导入、编辑与分享',
   'help.mycurves.intro':
     '这是测量库旁边的个人曲线集合。检查响应后，可将曲线作为校正层应用，或变成可编辑的 EQ 频段。',

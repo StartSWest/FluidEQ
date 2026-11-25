@@ -43,7 +43,10 @@ const renderPanel = () =>
 
 const openPage = (container: HTMLElement, name: string, id: string) => {
   const rail = screen.getByRole('navigation', { name: 'DSP' });
-  fireEvent.click(within(rail).getByRole('button', { name: new RegExp(name) }));
+  // The whole name: each rail row's switch says it too ("Turn Exciter off").
+  fireEvent.click(
+    within(rail).getByRole('button', { name: new RegExp(`^${name}$`) }),
+  );
   const header = container.querySelector(`#${id} .dsp-card-header`);
   if (!(header instanceof HTMLElement)) {
     throw new Error(`no header on the ${name} page`);

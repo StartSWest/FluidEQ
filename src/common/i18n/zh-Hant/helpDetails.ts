@@ -55,7 +55,7 @@ const helpDetails = {
   'help.songs.tip':
     '來自 Spotify、YouTube 或瀏覽器的歌曲依播放器回報的標題與演出者識別，它們的聲音與媒體庫的分開儲存。電影和影片不會套用歌曲的聲音。在 DSP 關閉、遊戲鏈開啟或遊戲播放自己的聲音時，Auto EQ 會暫時讓開。',
   'help.songs.keywords':
-    'auto eq, 自動 EQ, 單曲, 歌曲聲音, 專輯聲音, 記住歌曲, 為這首歌儲存, 智慧校正, smart correction, smart eq, 單曲預設, 專輯預設, 忘記, 管理',
+    'auto eq, 自動 EQ, 單曲, 歌曲聲音, 專輯聲音, 記住歌曲, 為這首歌儲存, 智慧校正, smart correction, smart eq, 單曲預設, 專輯預設, 忘記, 管理, 歌曲, 曲目',
   'help.mycurves.title': '我的曲線：匯入、編輯與分享',
   'help.mycurves.intro':
     '這是測量庫旁邊的個人曲線集合。檢查響應後，可將曲線套用為校正層，或變成可編輯的 EQ 頻段。',

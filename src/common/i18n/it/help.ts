@@ -338,7 +338,7 @@ const help: Record<keyof typeof en, string> = {
   'help.profiles.tip':
     'Con il motore FluidEQ una seconda uscita suona direttamente dal motore, e l’uscita principale non la aspetta mai. EQ automatico parte spento. Nella pagina EQ il pannello si apre con la scheda Modalità EQ; chiudila per arrivare prima alle tue uscite.',
   'help.profiles.keywords':
-    'casse, speaker, cambiare dispositivo, creare profilo, due uscite, uscite multiple, Bluetooth, sync, ritardo, sfasato, DAC, salvare impostazioni, uscita, dispositivo, seconda uscita, duplicare, latenza, per dispositivo, per uscita, ogni uscita, suono proprio, batteria, modifica suono, modifica uscita principale, brano, canzone, per brano, ricorda brano, suono del brano, dimentica brano, dimentica questo brano',
+    'casse, speaker, cambiare dispositivo, creare profilo, due uscite, uscite multiple, Bluetooth, sync, ritardo, sfasato, DAC, salvare impostazioni, uscita, dispositivo, seconda uscita, duplicare, latenza, per dispositivo, per uscita, ogni uscita, suono proprio, batteria, modifica suono, modifica uscita principale',
   'help.profiles.list':
     'I suoni che hai salvato. ATT indica quello usato da questa uscita; premine un altro per passarci.',
   'help.profiles.update':

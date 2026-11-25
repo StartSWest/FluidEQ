@@ -333,7 +333,7 @@ const help: Record<keyof typeof en, string> = {
   'help.profiles.tip':
     'Com o Motor FluidEQ, uma segunda saída toca direto do motor, e a saída principal nunca espera por ela. O EQ automático começa desligado. Na página EQ, o painel começa com o cartão Modo EQ; recolha-o para chegar mais rápido às suas saídas.',
   'help.profiles.keywords':
-    'caixas de som, alternar saída, salvar configurações, saída secundária, múltiplas saídas, dois fones, Bluetooth, delay, atraso, DAC, saída, dispositivo de saída, dispositivo, troca automática, perfil, perfis, segunda saída, espelhar, duas saídas, sincronia, latência, por dispositivo, por saída, cada saída, som próprio, bateria, editar som, editar saída principal, música, por música, lembrar música, som da música, esquecer música',
+    'caixas de som, alternar saída, salvar configurações, saída secundária, múltiplas saídas, dois fones, Bluetooth, delay, atraso, DAC, saída, dispositivo de saída, dispositivo, troca automática, perfil, perfis, segunda saída, espelhar, duas saídas, sincronia, latência, por dispositivo, por saída, cada saída, som próprio, bateria, editar som, editar saída principal',
   'help.profiles.list':
     'Os sons que você salvou. ATV indica o perfil que esta saída usa; pressione outro para trocar.',
   'help.profiles.update':

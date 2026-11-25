@@ -149,6 +149,8 @@ const NOT_STORED = [
   'fluideq-output-changed',
   'fluideq-output-signal',
   'fluideq-presets-changed',
+  // The scene canvas's picture settled into its box (`sceneCanvasHold.ts`).
+  'fluideq-scene-settled',
   'fluideq-video-ad-block-changed',
   'fluideq-video-ad-block-request',
   'fluideq-video-graph-fullscreen-request',

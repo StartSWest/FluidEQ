@@ -331,7 +331,7 @@ const help = {
   'help.profiles.tip':
     'Under the FluidEQ Engine a second output plays straight from the engine, and the main output never waits for it. Auto EQ starts switched off. On the EQ page the panel starts with the EQ mode card; fold it to reach your outputs sooner.',
   'help.profiles.keywords':
-    'output, output device, device, speakers, switch device, device switching, auto switch, profile, save settings, named profile, second output, mirror, multiple outputs, two outputs, bluetooth, sync, delay, latency, per device, per output, every output, own sound, battery, edit sound, edit main, song, per song, remember song, song sound, forget song',
+    'output, output device, device, speakers, switch device, device switching, auto switch, profile, save settings, named profile, second output, mirror, multiple outputs, two outputs, bluetooth, sync, delay, latency, per device, per output, every output, own sound, battery, edit sound, edit main',
   'help.profiles.list':
     'Sounds you saved. ON marks the one this output uses; press another to switch.',
   'help.profiles.update':

@@ -338,7 +338,7 @@ const help: Record<keyof typeof en, string> = {
   'help.profiles.tip':
     'Avec le moteur FluidEQ, une deuxième sortie joue directement depuis le moteur, et la sortie principale ne l’attend jamais. L’Égalisation auto est désactivée au départ. Dans la page Égaliseur, le panneau commence par la carte Mode EQ ; repliez-la pour atteindre vos sorties plus vite.',
   'help.profiles.keywords':
-    'enceintes, haut-parleurs, sortie audio, périphérique par défaut, plusieurs sorties, sorties multiples, miroir, simultanément, décalage, désynchronisation, délai, sauvegarder mes réglages, par appareil, Bluetooth, DAC, buffer, deuxième sortie, profil, par sortie, chaque sortie, son propre, batterie, niveau de batterie, modifier le son, modifier la sortie principale, chanson, morceau, par chanson, mémoriser la chanson, son de la chanson, oublier cette chanson',
+    'enceintes, haut-parleurs, sortie audio, périphérique par défaut, plusieurs sorties, sorties multiples, miroir, simultanément, décalage, désynchronisation, délai, sauvegarder mes réglages, par appareil, Bluetooth, DAC, buffer, deuxième sortie, profil, par sortie, chaque sortie, son propre, batterie, niveau de batterie, modifier le son, modifier la sortie principale',
   'help.profiles.list':
     'Les sons que vous avez enregistrés. ACT marque celui qu’utilise cette sortie ; appuyez sur un autre pour changer.',
   'help.profiles.update':

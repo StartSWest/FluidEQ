@@ -55,7 +55,7 @@ const helpDetails = {
   'help.songs.tip':
     'Les chansons de Spotify, YouTube ou du navigateur sont reconnues par le titre et l’artiste qu’annonce le lecteur, et gardent leurs sons à part de ceux de la Bibliothèque. Les films et les vidéos ne reçoivent jamais le son d’une chanson. L’Égalisation auto se met en retrait tant que le DSP est désactivé, qu’une chaîne Jeux est active ou qu’un jeu joue son propre son.',
   'help.songs.keywords':
-    'auto eq, égalisation auto, par chanson, son de chanson, son d’album, mémoriser chanson, enregistrer pour cette chanson, correction intelligente, smart correction, smart eq, préréglage par chanson, préréglage par album, oublier, gérer',
+    'auto eq, égalisation auto, par chanson, son de chanson, son d’album, mémoriser chanson, enregistrer pour cette chanson, correction intelligente, smart correction, smart eq, préréglage par chanson, préréglage par album, oublier, gérer, morceau',
   'help.mycurves.title': 'Mes courbes : importer, modifier et partager',
   'help.mycurves.intro':
     'Votre collection de courbes côtoie la bibliothèque de mesures. Vérifiez une réponse puis choisissez une couche de correction ou des bandes EQ modifiables.',

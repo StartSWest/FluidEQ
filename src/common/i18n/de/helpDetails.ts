@@ -55,7 +55,7 @@ const helpDetails = {
   'help.songs.tip':
     'Songs aus Spotify, YouTube oder dem Browser werden an Titel und Interpret erkannt, die der Player meldet, und halten ihre Klänge von denen der Bibliothek getrennt. Filme und Videos bekommen nie den Klang eines Songs. Auto-EQ hält sich zurück, solange DSP aus ist, eine Gaming-Kette läuft oder ein Spiel seinen eigenen Klang spielt.',
   'help.songs.keywords':
-    'auto eq, auto-eq, pro song, song-klang, album-klang, song merken, für diesen song speichern, smart-korrektur, smart correction, smart eq, preset pro song, preset pro album, vergessen, verwalten',
+    'auto eq, auto-eq, pro song, song-klang, album-klang, song merken, für diesen song speichern, smart-korrektur, smart correction, smart eq, preset pro song, preset pro album, vergessen, verwalten, lied, titel',
   'help.mycurves.title': 'Meine Kurven: importieren, bearbeiten und teilen',
   'help.mycurves.intro':
     'Ihre eigene Kurvensammlung liegt neben der Messbibliothek. Prüfen Sie die Antwort und entscheiden Sie zwischen Korrekturebene und bearbeitbaren EQ-Bändern.',

@@ -55,7 +55,7 @@ const helpDetails = {
   'help.songs.tip':
     'Spotify, YouTube 또는 브라우저의 노래는 플레이어가 알려 주는 제목과 아티스트로 식별되며, 라이브러리와 별도로 사운드를 보관합니다. 영화와 동영상에는 노래 사운드가 적용되지 않습니다. DSP가 꺼져 있거나 게임 체인이 켜져 있거나 게임이 자체 사운드를 재생하는 동안 Auto EQ는 잠시 물러납니다.',
   'help.songs.keywords':
-    'auto eq, 노래별, 노래 사운드, 앨범 사운드, 노래 기억, 이 노래에 저장, 스마트 보정, smart correction, smart eq, 노래별 프리셋, 앨범별 프리셋, 잊기, 관리',
+    'auto eq, 노래별, 노래 사운드, 앨범 사운드, 노래 기억, 이 노래에 저장, 스마트 보정, smart correction, smart eq, 노래별 프리셋, 앨범별 프리셋, 잊기, 관리, 곡',
   'help.mycurves.title': '내 곡선: 가져오기, 편집과 공유',
   'help.mycurves.intro':
     '측정 라이브러리 옆에 있는 나만의 곡선 모음입니다. 응답을 확인한 뒤 보정 레이어 또는 편집 가능한 EQ 밴드로 적용할 수 있습니다.',

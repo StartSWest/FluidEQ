@@ -337,7 +337,7 @@ const help: Record<keyof typeof en, string> = {
   'help.profiles.tip':
     'Con el Motor FluidEQ, una segunda salida suena directamente desde el motor, y la salida principal nunca la espera. EQ automático empieza desactivado. En la página EQ, el panel empieza con la tarjeta Modo EQ; pliégala para llegar antes a tus salidas.',
   'help.profiles.keywords':
-    'altavoces, bocinas, parlantes, audífonos, cascos, salida de audio, dispositivo de audio, Bluetooth, retraso, desfase, delay, eco, desincronizado, sincronizar audio, varias salidas, múltiples salidas, simultáneo, guardar configuración, salida, perfil, segunda salida, por dispositivo, por salida, cada salida, sonido propio, batería, editar sonido, editar principal, canción, por canción, recordar canción, sonido de la canción, olvidar canción',
+    'altavoces, bocinas, parlantes, audífonos, cascos, salida de audio, dispositivo de audio, Bluetooth, retraso, desfase, delay, eco, desincronizado, sincronizar audio, varias salidas, múltiples salidas, simultáneo, guardar configuración, salida, perfil, segunda salida, por dispositivo, por salida, cada salida, sonido propio, batería, editar sonido, editar principal',
   'help.profiles.list':
     'Los sonidos que has guardado. ACT marca el que usa esta salida; pulsa otro para cambiar.',
   'help.profiles.update':

@@ -330,7 +330,7 @@ const help: Record<keyof typeof en, string> = {
   'help.profiles.tip':
     'FluidEQ इंजन के साथ दूसरा आउटपुट सीधे इंजन से बजता है, और मुख्य आउटपुट कभी उसका इंतज़ार नहीं करता। ऑटो EQ बंद से शुरू होता है। EQ पेज पर पैनल EQ मोड कार्ड से शुरू होता है; अपने आउटपुट तक जल्दी पहुँचने के लिए उसे समेट दें।',
   'help.profiles.keywords':
-    'आउटपुट, output, स्पीकर, speakers, output device, डिवाइस, device, डिवाइस बदलें, switch device, device switching, auto switch, प्रोफ़ाइल, profile, सेटिंग सेव करें, save settings, named profile, दूसरा आउटपुट, second output, multiple outputs, two outputs, mirror, ब्लूटूथ, bluetooth, सिंक, sync, लेटेंसी, latency, ऑडियो डिले, delay, per device, per output, every output, own sound, बैटरी, battery, ध्वनि संपादित करें, edit sound, मुख्य आउटपुट संपादित करें, edit main, गाना, गीत, song, per song, हर गाना, remember song, गाने की आवाज़, song sound, गाना भुलाएँ, forget song',
+    'आउटपुट, output, स्पीकर, speakers, output device, डिवाइस, device, डिवाइस बदलें, switch device, device switching, auto switch, प्रोफ़ाइल, profile, सेटिंग सेव करें, save settings, named profile, दूसरा आउटपुट, second output, multiple outputs, two outputs, mirror, ब्लूटूथ, bluetooth, सिंक, sync, लेटेंसी, latency, ऑडियो डिले, delay, per device, per output, every output, own sound, बैटरी, battery, ध्वनि संपादित करें, edit sound, मुख्य आउटपुट संपादित करें, edit main',
   'help.profiles.list':
     'आपकी सहेजी हुई आवाज़ें। “चालू” उस प्रोफ़ाइल पर दिखता है जिसे यह आउटपुट इस्तेमाल करता है; बदलने के लिए कोई दूसरी दबाएँ।',
   'help.profiles.update':

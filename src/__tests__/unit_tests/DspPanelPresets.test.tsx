@@ -381,7 +381,7 @@ describe('DspPanel presets, isolates and monitors', () => {
 
   it('keeps the filter preset at the left of its header', () => {
     const { container } = renderPanel();
-    fireEvent.click(screen.getByRole('button', { name: /Denoise/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Denoise$/i }));
     const header = container.querySelector('#dsp-denoise .dsp-card-header');
     expect(header).not.toBeNull();
     const visible = Array.from(header?.children ?? []).filter(
@@ -393,7 +393,7 @@ describe('DspPanel presets, isolates and monitors', () => {
 
   it('toggles a processor without disturbing the others', () => {
     const { onChange } = renderPanel();
-    fireEvent.click(screen.getByRole('button', { name: /Exciter/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Exciter$/i }));
     fireEvent.click(screen.getByRole('checkbox', { name: 'Exciter' }));
     const next = onChange.mock.calls[0][0] as IDspSettings;
     expect(next.exciter.enabled).toBe(true);
@@ -407,7 +407,7 @@ describe('DspPanel presets, isolates and monitors', () => {
       eq: { ...DSP_DEFAULTS.eq, enabled: true, isolate: true },
     };
     const { onChange, onCommit } = renderPanel(active);
-    fireEvent.click(screen.getByRole('button', { name: /Equaliser/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Equaliser$/i }));
     fireEvent.click(screen.getByRole('checkbox', { name: 'Equaliser' }));
     const next = onChange.mock.calls[0][0] as IDspSettings;
     expect(next.eq.enabled).toBe(false);
@@ -421,7 +421,7 @@ describe('DspPanel presets, isolates and monitors', () => {
       exciter: { ...DSP_DEFAULTS.exciter, enabled: true, isolate: true },
     };
     const { onChange, onCommit } = renderPanel(active);
-    fireEvent.click(screen.getByRole('button', { name: /Exciter/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Exciter$/i }));
     fireEvent.click(screen.getByRole('checkbox', { name: 'Exciter' }));
     const next = onChange.mock.calls[0][0] as IDspSettings;
     expect(next.exciter.enabled).toBe(false);
@@ -435,7 +435,7 @@ describe('DspPanel presets, isolates and monitors', () => {
       denoise: { ...DSP_DEFAULTS.denoise, enabled: true, isolate: true },
     };
     const { onChange, onCommit } = renderPanel(active);
-    fireEvent.click(screen.getByRole('button', { name: /Denoise/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Denoise$/i }));
     fireEvent.click(screen.getByRole('checkbox', { name: 'Denoise' }));
     const next = onChange.mock.calls[0][0] as IDspSettings;
     expect(next.denoise.enabled).toBe(false);
@@ -449,8 +449,8 @@ describe('DspPanel presets, isolates and monitors', () => {
       eq: { ...DSP_DEFAULTS.eq, enabled: true, isolate: true },
     };
     const { onChange, onCommit } = renderPanel(active);
-    fireEvent.click(screen.getByRole('button', { name: /Equaliser/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Exciter/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Equaliser$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Exciter$/i }));
     const next = onChange.mock.calls[0][0] as IDspSettings;
     expect(next.eq.isolate).toBe(false);
     expect(onCommit).toHaveBeenCalled();
@@ -462,8 +462,8 @@ describe('DspPanel presets, isolates and monitors', () => {
       exciter: { ...DSP_DEFAULTS.exciter, enabled: true, isolate: true },
     };
     const { onChange, onCommit } = renderPanel(active);
-    fireEvent.click(screen.getByRole('button', { name: /Exciter/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Maximizer/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Exciter$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Maximizer$/i }));
     const next = onChange.mock.calls[0][0] as IDspSettings;
     expect(next.exciter.isolate).toBe(false);
     expect(onCommit).toHaveBeenCalled();
@@ -475,8 +475,8 @@ describe('DspPanel presets, isolates and monitors', () => {
       denoise: { ...DSP_DEFAULTS.denoise, enabled: true, isolate: true },
     };
     const { onChange, onCommit } = renderPanel(active);
-    fireEvent.click(screen.getByRole('button', { name: /Denoise/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Maximizer/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Denoise$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Maximizer$/i }));
     const next = onChange.mock.calls[0][0] as IDspSettings;
     expect(next.denoise.isolate).toBe(false);
     expect(onCommit).toHaveBeenCalled();
@@ -495,7 +495,7 @@ describe('DspPanel presets, isolates and monitors', () => {
       bassPunch: { ...DSP_DEFAULTS.bassPunch, enabled: true, isolate: true },
     };
     const { onChange, onCommit } = renderPanel(active);
-    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Bass Punch$/i }));
     fireEvent.click(screen.getByRole('checkbox', { name: 'Bass Punch' }));
     const next = onChange.mock.calls[0][0] as IDspSettings;
     expect(next.bassPunch.enabled).toBe(false);
@@ -509,7 +509,7 @@ describe('DspPanel presets, isolates and monitors', () => {
       bassForge: { ...DSP_DEFAULTS.bassForge, enabled: true, isolate: true },
     };
     const { onChange, onCommit } = renderPanel(active);
-    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Bass Forge$/i }));
     fireEvent.click(screen.getByRole('checkbox', { name: 'Bass Forge' }));
     const next = onChange.mock.calls[0][0] as IDspSettings;
     expect(next.bassForge.enabled).toBe(false);
@@ -523,8 +523,8 @@ describe('DspPanel presets, isolates and monitors', () => {
       bassPunch: { ...DSP_DEFAULTS.bassPunch, enabled: true, isolate: true },
     };
     const { onChange, onCommit } = renderPanel(active);
-    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Maximizer/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Bass Punch$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Maximizer$/i }));
     const next = onChange.mock.calls[0][0] as IDspSettings;
     expect(next.bassPunch.isolate).toBe(false);
     expect(onCommit).toHaveBeenCalled();
@@ -536,8 +536,8 @@ describe('DspPanel presets, isolates and monitors', () => {
       bassForge: { ...DSP_DEFAULTS.bassForge, enabled: true, isolate: true },
     };
     const { onChange, onCommit } = renderPanel(active);
-    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Maximizer/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Bass Forge$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Maximizer$/i }));
     const next = onChange.mock.calls[0][0] as IDspSettings;
     expect(next.bassForge.isolate).toBe(false);
     expect(onCommit).toHaveBeenCalled();
@@ -559,8 +559,8 @@ describe('DspPanel presets, isolates and monitors', () => {
       bassForge: { ...DSP_DEFAULTS.bassForge, enabled: true, isolate: true },
     };
     const { onChange } = renderPanel(active);
-    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Maximizer/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Bass Forge$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Maximizer$/i }));
     const next = onChange.mock.calls[0][0] as IDspSettings;
     expect(next.bassForge.isolate).toBe(false);
     expect(next.presetId).toBe('rock');
