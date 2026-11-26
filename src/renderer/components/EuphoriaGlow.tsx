@@ -145,8 +145,8 @@ const EuphoriaLevel = () => {
 
 /**
  * The look on the root, for good: `is-euphoric`, which the stylesheets and
- * the canvas painters key on, and the creature at full joy (`--pet-joy`,
- * `has-pet-joy`, `SupportPet.scss`). The look used to follow a switch and,
+ * the canvas painters key on, and full joy (`--pet-joy`), which lifts the
+ * Support dialog's hop (`SupportPet.scss`). The look used to follow a switch and,
  * before that, the rhythm game's streak; it has neither now
  * (`euphoriaMode.ts`), so the streak no longer reaches the window at all.
  * A layout effect, so the first frame is already drawn in it.
@@ -156,9 +156,9 @@ const EuphoriaGlow = () => {
     forgetColourfulModeSwitch();
     const root = document.documentElement;
     root.style.setProperty('--pet-joy', '1');
-    root.classList.add('has-pet-joy', 'is-euphoric');
+    root.classList.add('is-euphoric');
     return () => {
-      root.classList.remove('is-euphoric', 'has-pet-joy');
+      root.classList.remove('is-euphoric');
       root.style.removeProperty('--pet-joy');
     };
   }, []);

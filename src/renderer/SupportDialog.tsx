@@ -247,12 +247,12 @@ export default function SupportDialog({
                 }
               }}
             >
-              <SupportPetHero hasContributed={hasContributed} />
+              <SupportPetHero hasContributed={hasContributed} mood={mood} />
               {/* How long the face the tap earned stays: this mark's hold,
                   keyed on the tap so each one gets the whole of it, and its
                   end is what puts her resting face back. It was a timer,
                   which ran on behind a covered window. Draws nothing — the
-                  face is the classes on the button. */}
+                  face is the mood handed to her. */}
               {mood && (
                 <span
                   key={petTaps}

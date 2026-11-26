@@ -19,11 +19,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'color' as *;
 @use 'theme' as *;
 
-$pet-hop-duration: 520ms;
+// The pet is drawn on a canvas (`pet/PetCanvas.tsx`): every motion of hers
+// is the choreography's, in its own frames. What is left here is the button
+// she sits in, the box she is centred in, and the Support dialog's hop.
 
-// One unit of the 40-unit drawing as a length of the page, at any size the
-// creature is drawn: the square is a size container (`.support-pet__art`).
-$pet-unit: 2.5cqw;
+$pet-hop-duration: 520ms;
 
 // The hop grows with the streak. At rest the scale is 1 and the numbers in the
 // keyframes below are exactly what they read as; at x10 the creature clears
@@ -38,10 +38,7 @@ $pet-unit: 2.5cqw;
 //
 // The animation itself is declared `linear` and every segment brings its own
 // easing, because a hop is not one motion — it is a crouch, a launch, a fall
-// and a landing, and each obeys something different. A single curve across the
-// whole thing was what made the earlier attempts read as a bounce rather than a
-// jump: the creature rose and fell at the same rate, which nothing under
-// gravity does.
+// and a landing, and each obeys something different.
 @mixin pet-hop-keyframes {
   0% {
     translate: 0 0;
@@ -49,12 +46,10 @@ $pet-unit: 2.5cqw;
     animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
   }
 
-  // Anticipation. Brief and shallow — a deep crouch reads as effort, and this
-  // creature is meant to be delighted, not straining.
+  // Anticipation, brief and shallow: delighted, not straining.
   14% {
     translate: 0 calc(3px * var(--pet-hop-scale, 1));
     scale: 1.05 0.91;
-    // Launch: everything happens at once and then decelerates into the apex.
     animation-timing-function: cubic-bezier(0.12, 0.7, 0.3, 1);
   }
 
@@ -65,12 +60,10 @@ $pet-unit: 2.5cqw;
     animation-timing-function: cubic-bezier(0.25, 0.6, 0.5, 1);
   }
 
-  // The apex, where it hangs. Back to its resting shape: nothing is
-  // accelerating it, so there is nothing to stretch it.
+  // The apex, where it hangs, back to its resting shape.
   48% {
     translate: 0 calc(-16px * var(--pet-hop-scale, 1));
     scale: 1 1;
-    // Falling accelerates. This is the segment that sells the weight.
     animation-timing-function: cubic-bezier(0.6, 0, 0.85, 0.45);
   }
 
@@ -88,8 +81,7 @@ $pet-unit: 2.5cqw;
     animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1);
   }
 
-  // A small overshoot on the recovery, so it settles rather than stopping
-  // dead.
+  // A small overshoot on the recovery, so it settles rather than stopping.
   90% {
     translate: 0 calc(-2px * var(--pet-hop-scale, 1));
     scale: 0.98 1.03;
@@ -102,39 +94,7 @@ $pet-unit: 2.5cqw;
   }
 }
 
-// The press: the body squashes onto its base. Because it scales from the
-// bottom, its crown drops by 1.5 units of travel plus 8% of its own height —
-// so the ears have to come down by the sum or they float away from the head.
-//
-// Units of the drawing's 40-unit square throughout. The ears are a group
-// inside their drawing, where a px is one of those units; the body and the
-// star are layers (`PetArt.tsx`), where a px is a px of the page, so their
-// travel is a share of the layer's own box, which is the square: one unit is
-// 2.5%, and 1.5 and 3.4 units are 3.75% and 8.5%. That keeps the press the
-// same at 22, 36 and 126 px.
-//
-// A mixin because two things trigger it now: an actual pointer press, and the
-// space bar in the support dialog.
-@mixin pet-pressed {
-  .support-pet__body {
-    transform: translateY(3.75%) scaleY(0.92);
-  }
-
-  .support-pet__ears {
-    transform: translateY(3.4px) scaleY(0.94);
-  }
-
-  // The star rides the head down too. It uses `translate` rather than
-  // `transform` because the twinkle owns `transform` — the two individual
-  // properties compose instead of one clobbering the other.
-  .support-pet__star {
-    translate: 0 8.5%;
-  }
-}
-
 .support-pet {
-  --pet-level: 0;
-
   position: relative;
   display: grid;
   width: 40px;
@@ -148,14 +108,6 @@ $pet-unit: 2.5cqw;
   cursor: pointer;
   transition: $transition-control;
   -webkit-app-region: no-drag;
-  // A LAYER OF ITS OWN. Painted into the window's root layer, every frame of
-  // anything moving in her repainted the whole document: measured at 150
-  // full-window repaints a second, the GPU process busy 94% rasterising them,
-  // and the Karaoke Maker and the Library crawling (Ivan, 2026-11-16: "it is
-  // repainting thousands of times"). Her endless motion is the compositor's
-  // now (the layers below), but the ears still stretch to the music inside
-  // their drawing, and promoted, that repaints the 40px pet and no more.
-  will-change: transform;
 
   &:hover,
   &:focus-visible {
@@ -163,19 +115,10 @@ $pet-unit: 2.5cqw;
     background: color-mix(in srgb, $secondary-default 10%, transparent);
     outline: none;
   }
-
-  &:active {
-    @include pet-pressed;
-  }
 }
 
-// Space bar in the support dialog, which squashes the hero pet the same way a
-// click does. The wrapper carries the class because the pet renders its own,
-// and one mixin drives both so a press cannot come to mean two different
-// shapes depending on how it was triggered.
-//
-// A bare button so it adds a hit target and a focus ring and nothing else —
-// the creature inside is the entire visual.
+// The Support dialog's pet: tapped in time, she hops. A bare button, so it
+// adds a hit target and a focus ring and nothing else.
 .support-pet-tap {
   display: block;
   padding: 0;
@@ -194,8 +137,7 @@ $pet-unit: 2.5cqw;
 
   // Two identical animations, alternated tap by tap. Re-applying an
   // animation-name an element already carries does nothing at all, so a second
-  // tap during the first hop would be swallowed; swapping the name restarts it
-  // without remounting the pet and resetting its breathing.
+  // tap during the first hop would be swallowed; swapping the name restarts it.
   &.is-hopping-a {
     animation: pet-hop $pet-hop-duration linear;
   }
@@ -203,102 +145,33 @@ $pet-unit: 2.5cqw;
   &.is-hopping-b {
     animation: pet-hop-alt $pet-hop-duration linear;
   }
-
-  // How the creature takes the last tap.
-  //
-  // The mouth is a single quadratic and the base rule already transitions `d`,
-  // so an expression is one path swap — no second drawing to keep in step with
-  // the first, and it eases between them for free.
-  &.is-perfect {
-    .support-pet__mouth {
-      // Wider and deeper: a grin rather than the resting smile.
-      d: path('M15.6 27.6 Q20 33.8 24.4 27.6');
-    }
-
-    // Eyes squeeze up into it, the way a real smile takes the whole face. In
-    // place of the streak's squint, not on top of it.
-    .support-pet__eyes {
-      --pet-squint: 1;
-
-      animation: none;
-      scale: 1 0.55;
-    }
-
-    .support-pet__art {
-      animation: pet-delight 620ms ease-out;
-    }
-  }
-
-  &.is-miss {
-    .support-pet__mouth {
-      // The same mouth turned through the middle, so it reads as this creature
-      // disappointed rather than as a different face.
-      d: path('M16.6 30.8 Q20 27.4 23.4 30.8');
-    }
-
-    .support-pet__art {
-      animation: pet-dismay 520ms ease-out;
-    }
-  }
-
-  // The held press is switched off in here. Everywhere else the pet stays
-  // squashed for as long as the button is down, which is right for a control
-  // being pressed — but this one is a tap, and a tap that lasts as long as you
-  // happen to hold the mouse is no use for keeping time. `is-tapped` above
-  // gives it a fixed duration instead, identical to what the space bar does.
-  //
-  // `:not(.is-tapped)` is load-bearing, not decoration. Without it this rule
-  // carries four classes against the tap rule's three and wins the whole time
-  // the mouse is down — so a click cancelled the very squash it had just asked
-  // for, while space, which has no `:active`, worked. That was the entire
-  // difference between the two.
-  //
-  // Excluding the hopping state rather than reaching for more specificity
-  // means the two can never be in conflict at all: mid-hop they do not both
-  // match, and afterwards the hold is suppressed again, so holding the mouse
-  // still releases on time.
-  &:not(.is-hopping-a):not(.is-hopping-b) .support-pet:active {
-    .support-pet__body,
-    .support-pet__ears {
-      transform: none;
-    }
-
-    .support-pet__star {
-      translate: none;
-    }
-  }
 }
 
-// What the button, the hero and the bubble centre, in place of the drawing:
-// as the item of their grid the drawing was never laid out alone, and it is
-// laid out every frame it moves (`PetArt`). As wide and tall as the drawing,
-// which is a block in it, so it sits exactly where the drawing did.
+// Her square, which the button, the hero and the bubble centre; its size is
+// her drawing's (`PetCanvas`), so she sits exactly where she always did.
 .support-pet__frame {
+  position: relative;
   display: block;
 }
 
-// The titlebar's pet, drawn (`PetCanvas.tsx`): her 36px square with 46px of
-// room all round for her sway, centred on the button and taking
-// no pointer, so the button under it is still what is pressed and hovered.
+// The canvas: her square with room all round for a hop, the sway and her fur
+// standing up, centred on her square and taking no pointer, so the button
+// under it is still what is pressed and hovered. Its size is set beside it.
 .support-pet__canvas {
   position: absolute;
   top: 50%;
   left: 50%;
   display: block;
-  width: 128px;
-  height: 128px;
   pointer-events: none;
   translate: -50% -50%;
 }
 
-// Where her colour tokens are resolved to colours a canvas can paint with.
+// Where her colour token is resolved to a colour a canvas can paint with.
 // Rendered, at no size, rather than not displayed, and with a transition on
 // its colour that ends at once: the end of it is the signal that her token
 // changed, from wherever it changed - a scene's tint, the white window, a
-// stylesheet - so the canvas paints the new colour. She only re-read it on a
-// few of the root's attributes and stayed in an earlier scene's red under a
-// cyan accent (Ivan, 2026-11-19: "the pet colour looks burned"). Not a
-// wait: nothing waits on it but the event.
+// stylesheet - so the canvas paints the new colour (Ivan, 2026-11-19: "the
+// pet colour looks burned"). Not a wait: nothing waits on it but the event.
 .support-pet__probe {
   position: absolute;
   width: 0;
@@ -309,371 +182,12 @@ $pet-unit: 2.5cqw;
   transition: color 1ms linear;
 }
 
-// The square the layers stack in (`PetArt.tsx`).
-.support-pet__art {
-  position: relative;
-  display: block;
-  width: 36px;
-  height: 36px;
-  // What `$pet-unit` is measured against. Its size is always given and
-  // nothing in it is in the flow, so the containment changes no layout.
-  container-type: size;
-  transform-origin: 50% 88%;
-}
-
-// Each layer is the whole square, so every one of them draws the 40-unit
-// drawing at the same scale and in the same place, and together they paint
-// what one drawing did. What moves on a layer is the compositor's to move.
-//
-// A layer's pivot is where its group's used to be, in the group's own
-// `fill-box`, said as a share of the square: the body from the foot of its
-// circle (20, 36.5), the eyes from their middle (20, 22), the star from its
-// middle (31.5, 12.1).
-.support-pet__layer {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-// Motion is split across the individual `scale` / `translate` / `rotate`
-// properties rather than one `transform`, so the layers compose: the creature
-// can squash to the beat, bob, and sway from the hips all at once without any
-// one animation clobbering the others.
-
-// The creature's colour, flat: its own mint at rest, and the accent a Plus
-// scene lends the window while it lends it - with the rest of the chrome in
-// the scene's colours it was the one cyan thing left in the corner.
-.support-pet__tone {
-  fill: var(--pet-tone);
-}
-
-.support-pet__tone-stroke {
-  stroke: var(--pet-tone);
-}
-
-// Breathing when idle. The body's own layer, eyes and all, so the breath is
-// the compositor's: as a group inside the drawing it repainted the whole
-// creature on every frame of every breath, for everybody, for as long as the
-// window was open.
-.support-pet__body {
-  transform-origin: 50% 91.25%;
-  animation: pet-breathe 3.4s ease-in-out infinite;
-  // `transform` is in here for the space-bar press. A pointer press releases on
-  // its own, but a keystroke is instantaneous, so without a transition to
-  // spring back from the squash would never be seen at all.
-  transition:
-    scale 90ms ease-out,
-    transform 90ms ease-out;
-}
-
-// Everything that moves to the music is behind the contribution badge, squash
-// included. It used to run for everyone, on the theory that a pet reacting to
-// your music is a nicer default — but from the outside there is no telling a
-// bounce from a dance, so it just looked like the reward was leaking. Without
-// the badge the creature still breathes and blinks; it just does not hear the
-// music.
-.support-pet.is-celebrating.is-listening .support-pet__body {
-  // Squash and stretch with the music. Bounded so it never leaves its box.
-  scale: calc(1 - var(--pet-level) * 0.07) calc(1 + var(--pet-level) * 0.16);
-  animation: none;
-}
-
-// The ears' stretch with the music steps with each reading, in the titlebar.
-// It is a group inside the drawing - the only place a non-scaling stroke
-// keeps its width (`PetArt.tsx`) - and a transition there runs on the main
-// thread: --pet-level moves with every block of audio, so the ears were
-// always mid-transition, the drawing was laid out again on every frame and
-// its unbounded layer repainted the whole window with it. Measured in the
-// running window, 240 Hz, music playing (2026-11-16): 200 repaints of the
-// pet's drawing and 194 of the whole window a second; 13 and 63 without the
-// transition, and the window's compositor a quarter less busy. At 36 px the
-// whole stretch is 2.4 px, so its twelve steps (`LEVEL_STEPS`) are 0.2 px
-// each, which no eye follows; the hero keeps its ease below.
-.support-pet__ears {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  transition: transform 90ms ease-out;
-}
-
-.support-pet.is-celebrating .support-pet__ears {
-  scale: 1 calc(1 + var(--pet-level) * 0.45);
-}
-
-// The ears' sway and bob: a layer around their drawing (`PetArt.tsx`), so the
-// compositor turns them. It pivots where the group does, the foot of the
-// ears' own box, (20, 12) of the square; turned and shifted outside the
-// stretch rather than inside it, the ears land exactly where they did.
-.support-pet__ears-sway {
-  transform-origin: 50% 30%;
-}
-
-// A blink is a fast vertical squash, which is cheap and reads instantly even
-// at this size.
-// Sound running across the eye, brighter the longer the streak holds.
-//
-// A waveform scrolling sideways, not rings spreading outward — concentric
-// circles read as something rising up through the eye, which is not what sound
-// on a screen looks like anywhere else in this app.
-//
-// Scaled off `--pet-joy` on both opacity and stroke width, because either alone
-// is lost at this size: the creature is 132px in the dialog and this lives
-// inside a 3.4px pupil.
-//
-// Out of the page without a streak. At zero joy the waves are fully
-// transparent, and their scroll still ran every frame in the titlebar, for
-// everybody, for the life of the window: an SVG child's motion is laid out
-// and painted on the main thread, never handed to the compositor. So they are
-// drawn only under `has-pet-joy`, set beside `--pet-joy` (`EuphoriaGlow.tsx`),
-// and taken out only once the fade to nothing is over — `display` waits the
-// fade's 260ms — so a run that ends keeps scrolling while it fades, as it did.
-//
-// They are a layer of their own (`PetArt.tsx`) because hiding a group inside
-// a drawing did not stop them: Chromium goes on animating what is in a hidden
-// group of a drawing it shows, and the page was restyled and laid out sixty
-// times a second for waves nobody could see. A layer that is itself hidden
-// animates nothing. Hidden or shown, they move no pivot: the blink and the
-// breath turn about fixed points of their layers (`.support-pet__layer`).
-// The stroke is set here and inherited by both waves' drawings.
-.support-pet__eye-waves {
-  display: none;
-  fill: none;
-  stroke: $secondary-light;
-  stroke-width: calc(0.35px + var(--pet-joy, 0) * 0.55px);
-  stroke-linecap: round;
-  opacity: calc(var(--pet-joy, 0) * 0.95);
-  transition:
-    opacity 260ms ease-out,
-    stroke-width 260ms ease-out,
-    display 0s linear 260ms allow-discrete;
-}
-
-// A pupil, as a window of the page: the clip the wave used to scroll under,
-// now a box the compositor slides the wave inside. Placed in the drawing's
-// units (`--pupil-*`, from `PetArt.tsx`) and squinting with the eye
-// (`--pet-squint`), so it is the squinted circle the clip was. It and the
-// square inside it move by the same amount the other way, in the squint's
-// own time, so the drawing stays put while the window narrows.
-.support-pet__pupil,
-.support-pet__eye-wave {
-  position: absolute;
-  transition:
-    top 220ms ease-out,
-    height 220ms ease-out;
-}
-
-.support-pet__pupil {
-  top: calc(
-    (var(--pupil-y) - var(--pupil-r) * var(--pet-squint)) * #{$pet-unit}
-  );
-  left: calc((var(--pupil-x) - var(--pupil-r)) * #{$pet-unit});
-  width: calc(2 * var(--pupil-r) * #{$pet-unit});
-  height: calc(2 * var(--pupil-r) * var(--pet-squint) * #{$pet-unit});
-  overflow: hidden;
-  border-radius: 50%;
-}
-
-// The whole square laid back where the drawing is, sliding one period of
-// the wave and looping. Only `translate`, on an element of the page: the
-// compositor's to run. As a path scrolling under an SVG clip it was laid out
-// and painted on the main thread on every frame, 240 a second on Ivan's
-// display (2026-11-16: 465 layouts in two seconds, none with it paused).
-.support-pet__eye-wave {
-  top: calc(
-    (var(--pupil-r) * var(--pet-squint) - var(--pupil-y)) * #{$pet-unit}
-  );
-  left: calc((var(--pupil-r) - var(--pupil-x)) * #{$pet-unit});
-  width: 100cqw;
-  height: 100cqh;
-  // Exactly one period per iteration, so the loop point is invisible.
-  animation: pet-eye-scroll 900ms linear infinite;
-}
-
-:root.has-pet-joy .support-pet__eye-waves {
-  display: block;
-  // Shown at once. Coming back from `display: none` there is no earlier style
-  // to fade from, so where the fade starts is stated: the waves at zero joy,
-  // which is where it started when they were always drawn.
-  transition:
-    opacity 260ms ease-out,
-    stroke-width 260ms ease-out;
-
-  @starting-style {
-    opacity: 0;
-    stroke-width: 0.35px;
-  }
-}
-
-// One period of the wave, `EYE_WAVE_PERIOD`'s 3.2 units, as a share of the
-// 40-unit square that slides.
-@keyframes pet-eye-scroll {
-  from {
-    translate: 0 0;
-  }
-
-  to {
-    translate: -8% 0;
-  }
-}
-
-// A layer of its own riding the body's, so a blink is the compositor's and
-// the breath still carries the eyes with the face. The transition is for the
-// squeeze of a perfect tap (`.support-pet-tap.is-perfect`).
-//
-// `--pet-squint` is how far the eyes narrow: the drawings' own squint and the
-// pupils' windows both read it, so the two cannot disagree.
-.support-pet__eyes {
-  --pet-squint: calc(1 - var(--pet-joy, 0) * 0.3);
-
-  transform-origin: 50% 55%;
-  animation: pet-blink 5.2s ease-in-out infinite;
-  transition: scale 220ms ease-out;
-}
-
-// Narrowing with the smile, the way a real one takes the whole face. Only a
-// little: squeeze them much further and the creature reads as asleep rather
-// than delighted.
-//
-// Inside each of the eyes' drawings, about the eyes' middle in the
-// drawing's own units, rather than on their layer: a streak holds it for as
-// long as it lasts, and a layer's squeeze is its picture resampled, which
-// softened the pupils' edges and greyed the highlights at 36 px. Drawn, it is
-// as sharp as it was; the blink on top multiplies it as it always did.
-.support-pet__squint {
-  transform-box: view-box;
-  transform-origin: 20px 22px;
-  scale: 1 var(--pet-squint);
-  transition: scale 220ms ease-out;
-}
-
-.support-pet:hover .support-pet__eyes {
-  animation-duration: 1.9s;
-}
-
-// The smile deepens with the streak.
-//
-// Scaled rather than swapped between drawn paths, because the streak is a
-// continuous number and a face that jumps between four fixed expressions reads
-// as a state machine rather than as a creature enjoying itself. Anchored at the
-// top of the mouth, so stretching it downward deepens the curve into a grin
-// instead of sliding the whole thing down the face.
-//
-// `--pet-joy` runs 0 to 1 across the whole multiplier range and is set from the
-// same helper that produces the number on screen, so the face and the figure
-// cannot disagree.
-.support-pet__mouth {
-  transform-box: fill-box;
-  transform-origin: 50% 0;
-  scale: calc(1 + var(--pet-joy, 0) * 0.25) calc(1 + var(--pet-joy, 0) * 1.7);
-  transition:
-    d 150ms ease,
-    scale 220ms ease-out;
-}
-
-// Hidden until someone contributes; then it stays, permanently. A layer of
-// its own, above the body's, so it holds still while she breathes and its
-// twinkle is the compositor's too.
-.support-pet__star {
-  opacity: 0;
-  transform-origin: 78.75% 30.25%;
-  transform: scale(0.4);
-  transition:
-    opacity 240ms ease,
-    transform 240ms cubic-bezier(0.2, 1.6, 0.4, 1),
-    translate 90ms ease-out;
-}
-
-.support-pet.is-celebrating {
-  .support-pet__star {
-    opacity: 1;
-    transform: scale(1);
-    animation: pet-twinkle 2.6s ease-in-out infinite;
-  }
-}
-
-// Swaying to the music is the contribution reward, and it runs the whole time
-// something is playing, layered on top of the audio squash everyone gets.
-//
-// It used to be locked behind the occasional dance — a seven-second event that
-// fires roughly once every three minutes and only above a level threshold —
-// which meant the reward for contributing was something almost nobody ever
-// saw, and the two bug reports about it were really one bug.
-//
-// The cycles run at a 2:1 ratio so they lock together like beats rather than
-// drifting: a weight shift from side to side, a bob at double time, and the
-// ears trailing a little behind the body the way real secondary motion does.
-// Amplitudes stay small — this lives in a titlebar, so it should read as
-// swaying to the music, not vibrating. The pivot sits low, so the lean hinges
-// where a neck would rather than spinning the whole creature about its centre.
-.support-pet.is-celebrating.is-listening .support-pet__art {
-  // A comfortable head-nodding tempo is nearer 70 bpm than 90, and the holds
-  // need room to be felt.
-  animation: pet-sway 1800ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  transform-origin: 50% 88%;
-}
-
-.support-pet.is-celebrating.is-listening .support-pet__ears-sway {
-  animation: pet-ear-sway 1800ms cubic-bezier(0.4, 0, 0.2, 1) 140ms infinite;
-}
-
-// The dance is still the rare one, and now it has to be visibly more than the
-// sway or there is no point to it: same shape, half again as fast, with the
-// bob on top. It matches the sway's specificity and wins on source order —
-// dancing implies both other states, so naming them costs nothing.
-//
-// Six sways and done, 6.9 s: the end of this animation is the end of the
-// dance (`useOccasionalDance` in `SupportPet.tsx`, which listens for it by
-// name), so it ends on a whole sway, held there, which is exactly where the
-// ordinary sway starts again.
-.support-pet.is-celebrating.is-dancing .support-pet__art {
-  animation: pet-dance 1150ms cubic-bezier(0.4, 0, 0.2, 1) 6 forwards;
-  transform-origin: 50% 88%;
-}
-
-// The body, the ears and the star are layers, so they bob in shares of the
-// square (`pet-bob-layer`), the same travel and in step.
-.support-pet.is-celebrating.is-dancing .support-pet__body {
-  animation: pet-bob-layer 575ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
-}
-
-// The ears ride the bob in lockstep with the body — vertical travel is what
-// keeps them attached to the head — while the tilt trails 90ms behind it.
-// Secondary motion in the rotation reads as life; secondary motion in the
-// attachment just reads as broken.
-.support-pet.is-celebrating.is-dancing .support-pet__ears-sway {
-  animation:
-    pet-ear-sway 1150ms cubic-bezier(0.4, 0, 0.2, 1) 90ms infinite,
-    pet-bob-layer 575ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
-}
-
-// Same reason as the press: the star is pinned to the head, so it bobs with
-// it. Twinkle keeps `transform`, bob takes `translate`.
-.support-pet.is-celebrating.is-dancing .support-pet__star {
-  animation:
-    pet-twinkle 2.6s ease-in-out infinite,
-    pet-bob-layer 575ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
-}
-
 // Hero size inside the support dialog.
 .support-pet--hero {
   width: 132px;
   height: 132px;
   border: 0;
   cursor: default;
-
-  // Eased here, where the stretch is 9 px and a step of it is seen, and the
-  // dialog is open only while somebody looks at her.
-  .support-pet__ears {
-    transition:
-      scale 90ms ease-out,
-      transform 90ms ease-out;
-  }
-
-  .support-pet__art {
-    width: 126px;
-    height: 126px;
-  }
 
   &:hover,
   &:focus-visible {
@@ -682,244 +196,17 @@ $pet-unit: 2.5cqw;
   }
 }
 
-// At the ceiling the bloom takes Colourful mode's colours, and turns.
-//
-// The palette in use (`Rainbow.scss`) — the window's Tint, or the
-// visualizer's colours — wrapped back to the first stop so the ring closes
-// with no seam. It was five fixed colours drawn as a hard disc behind her
-// (Ivan, 2026-10-25: "remove all rainbow crap and colors"); faded out by a
-// mask from her middle, as the bloom at rest falls off, it is light coming
-// off her rather than a colour wheel sitting behind her.
-//
-// The spin is slow, because this is behind the one thing in the panel people
-// are meant to look at. `rotate` is composited, so a ring turning forever
-// costs nothing to keep on screen.
-.is-euphoric .support-pet--hero::before {
-  $bloom-falloff: radial-gradient(
-    circle,
-    $black 18%,
-    rgba($black, 0.55) 42%,
-    transparent 70%
-  );
-  width: calc(150px + var(--pet-joy, 0) * 22px);
-  height: calc(150px + var(--pet-joy, 0) * 22px);
-  background: conic-gradient(
-    from 0deg,
-    var(--rainbow-1),
-    var(--rainbow-2),
-    var(--rainbow-3),
-    var(--rainbow-4),
-    var(--rainbow-5),
-    var(--rainbow-6),
-    var(--rainbow-7),
-    var(--rainbow-1)
-  );
-  opacity: 0.75;
-  mask: $bloom-falloff;
-  animation: pet-aura-spin 8s linear infinite;
-}
-
-@keyframes pet-aura-spin {
-  to {
-    rotate: 360deg;
-  }
-}
-
-// A head keeping time, not a metronome.
-//
-// Someone listening to music does not swing evenly from side to side: they
-// lean, hold there for a beat, and come back. So the extremes are held for a
-// fifth of the cycle each (30-45% and 80-95%) and the travel between them is
-// eased. Without the hold it reads as a wobble; with it, it reads as weight
-// being put on one side and taken off again.
-//
-// The lean is bigger than the slide because that is how a neck works — the
-// head tips much further than it moves.
-//
-// A mixin because the dance runs the same shape under a name of its own
-// (`pet-dance`), so that its end can be told from anything else's.
-@mixin pet-sway-keyframes {
-  0% {
-    translate: -3px 0;
-    rotate: -9deg;
-  }
-
-  30%,
-  45% {
-    translate: 3px 0;
-    rotate: 9deg;
-  }
-
-  80%,
-  95% {
-    translate: -3px 0;
-    rotate: -9deg;
-  }
-
-  100% {
-    translate: -3px 0;
-    rotate: -9deg;
-  }
-}
-
-@keyframes pet-sway {
-  @include pet-sway-keyframes;
-}
-
-@keyframes pet-dance {
-  @include pet-sway-keyframes;
-}
-
-// The bob of a layer, in shares of its square: 0.6 and -1.4 units.
-@keyframes pet-bob-layer {
-  0%,
-  100% {
-    translate: 0 1.5%;
-  }
-
-  50% {
-    translate: 0 -3.5%;
-  }
-}
-
-// The same held shape as the body, so the ears settle when the head settles
-// instead of drifting on through the pause. They lag by 140ms and swing
-// against the lean, which is what secondary motion actually does.
-@keyframes pet-ear-sway {
-  0% {
-    rotate: 8deg;
-  }
-
-  30%,
-  45% {
-    rotate: -8deg;
-  }
-
-  80%,
-  95% {
-    rotate: 8deg;
-  }
-
-  100% {
-    rotate: 8deg;
-  }
-}
-
-@keyframes pet-breathe {
-  0%,
-  100% {
-    scale: 1 1;
-  }
-
-  50% {
-    scale: 0.985 1.045;
-  }
-}
-
-@keyframes pet-blink {
-  0%,
-  92%,
-  100% {
-    transform: scaleY(1);
-  }
-
-  95% {
-    transform: scaleY(0.08);
-  }
-}
-
-@keyframes pet-twinkle {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1) rotate(0deg);
-  }
-
-  50% {
-    opacity: 0.75;
-    transform: scale(1.14) rotate(12deg);
-  }
-}
-
-// A perfect hit. Bright, brief, and on the whole creature rather than a badge
-// pinned to it — the pet is what the player is looking at when they land one.
-@keyframes pet-delight {
-  0% {
-    scale: 1.1;
-  }
-
-  60% {
-    scale: 1.02;
-  }
-
-  100% {
-    scale: 1;
-  }
-}
-
-// A miss. A flinch rather than a flash: the same idea inverted, so the two
-// never get confused for each other at a glance.
-@keyframes pet-dismay {
-  0% {
-    filter: drop-shadow(0 0 10px rgba(#ff5a6e, 0.7));
-    scale: 0.94;
-  }
-
-  100% {
-    filter: none;
-    scale: 1;
-  }
-}
-
 @keyframes pet-hop {
   @include pet-hop-keyframes;
 }
 
-// Identical to pet-hop. It exists only so consecutive taps have a different
-// animation-name to switch to — see .support-pet-tap above.
 @keyframes pet-hop-alt {
   @include pet-hop-keyframes;
 }
 
-// A creature bobbing in the titlebar is exactly the kind of thing that has to
-// stop when the user asks for less motion.
 @media (prefers-reduced-motion: reduce) {
-  .support-pet__art,
-  .support-pet__body,
-  .support-pet__eyes,
-  .support-pet__squint,
-  .support-pet__ears,
-  .support-pet--hero .support-pet__ears,
-  .support-pet.is-celebrating.is-dancing .support-pet__art,
-  .support-pet.is-celebrating.is-dancing .support-pet__body,
-  .support-pet.is-celebrating.is-dancing .support-pet__ears,
-  .support-pet.is-celebrating.is-dancing .support-pet__ears-sway,
-  .support-pet.is-celebrating.is-listening .support-pet__art,
-  .support-pet.is-celebrating.is-listening .support-pet__ears,
-  .support-pet.is-celebrating.is-listening .support-pet__ears-sway,
-  .support-pet.is-celebrating .support-pet__star,
-  // Named as well, because it outranks the line above: without it a dancing
-  // star went on twinkling and bobbing here.
-  .support-pet.is-celebrating.is-dancing .support-pet__star,
   .support-pet-tap.is-hopping-a,
   .support-pet-tap.is-hopping-b {
-    animation: none;
-    scale: none;
-    rotate: none;
-    translate: none;
-    transform: none;
-    transition: none;
-  }
-
-  // The drawings' squint is cleared above; the pupils' windows go with it.
-  .support-pet__eyes {
-    --pet-squint: 1;
-  }
-
-  // The rainbow stays, only its turning stops. Someone who asked for less
-  // motion did not ask for a duller creature. Kept out of the list above
-  // because that one also clears `translate`, and this bloom is centred by it.
-  .is-euphoric .support-pet--hero::before {
     animation: none;
   }
 }

@@ -6,273 +6,231 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { type RefObject, useEffect, useRef } from 'react';
 import { getEaseFactor } from 'common/smoothing';
-import {
-  displayTickMs,
-  isFrameDue,
-  WINDOW_DRAWING_PACE_MS,
-} from '../utils/framePace';
+import { displayTickMs, isFrameDue } from '../utils/framePace';
 import observeShown from '../utils/observeShown';
-import { readAccentLight, subscribeRoot } from '../utils/theme';
+import { readAccentLightChannels, subscribeRoot } from '../utils/theme';
 import {
-  BOB,
-  BREATHE,
-  DANCE_SWAYS,
-  EYE_SCROLL,
-  TWINKLE,
-  blink,
-  earSway,
-  earSwayDelayMs,
-  sample,
-  sway,
-} from './petMotion';
-import { type IPetFrame, paintPet } from './petPaint';
+  createPetMotion,
+  type IPetMusic,
+  type IPetPose,
+  SILENT_PET_MUSIC,
+  stepPetMotion,
+} from './petChoreography';
+import { furPalette, type IFurPalette, paintFurPet } from './furPaint';
+import type { TRgb } from './furFace';
 
-/** The square she is drawn in, as `.support-pet__art` sizes it. */
-const SIZE = 36;
 /**
- * Room around the square for what reaches past it: the sway's shift and
- * lean. She is drawn flat, with no glow (Ivan, 2026-11-17: "remove glow from
- * pet", "all needs to look flat and modern").
+ * The room around her square for what reaches past it: a hop, the sway, her
+ * fur standing up. A share of her size plus a little, so the 22 px bubble
+ * still has her ears' tips.
  */
-const PAD = 46;
-/** The steps `--pet-level` was held to (`SupportPet.tsx`), kept here too. */
-const LEVEL_STEPS = 12;
-/**
- * The 90 ms ease-out transitions the stylesheet gave the squash, the ears'
- * stretch and the press, and the 220 ms of the squint and the grin, as
- * half-lives for `getEaseFactor`: an ease-out covers about 90% of its way in
- * its duration, which an exponential does in a little over three half-lives.
- */
-const LEVEL_HALF_LIFE_MS = 28;
+const padFor = (art: number) => Math.round(art * 0.3 + 6);
+/** The press's ease, the stylesheet's old 90 ms ease-out as a half-life. */
 const PRESS_HALF_LIFE_MS = 28;
-const JOY_HALF_LIFE_MS = 70;
 const STAR_HALF_LIFE_MS = 75;
+/**
+ * Her pace while she hears nothing: breathing and blinking read the same at
+ * thirty frames, and she is in the titlebar for the life of the window.
+ */
+const RESTING_PACE_MS = 1000 / 30;
+/**
+ * Her pace while she dances. A frame of her costs 0.1-0.25 ms (measured in
+ * the pet harness, 2026-11-26), and at the window's 165 a second that was a
+ * few percent of a core for a 36 px creature; sixty is smooth at her size.
+ */
+const DANCING_PACE_MS = 1000 / 60;
 
 interface IPetCanvasProps {
-  /** The element the pointer presses and hovers: the button around her. */
-  host: RefObject<HTMLElement | null>;
-  /** The music's level as the pump hears it, 0 to 1. */
-  level: RefObject<number>;
+  /** Her square's side in CSS px: 36 in the titlebar, 126 in the dialog. */
+  art: number;
+  /** What the pointer presses: the button around her. None in a figure. */
+  host?: RefObject<HTMLElement | null>;
+  /** The music, read on her clock; absent where she never hears it. */
+  readMusic?: (elapsedMs: number) => IPetMusic;
+  /** A supporter's pet: the star, and the music. */
   isCelebrating: boolean;
-  isListening: boolean;
-  isDancing: boolean;
-  /** Said once the dance's last sway is over. */
-  onDanceEnd: () => void;
+  /** The sound has not let go (`hasLetGo`); a figure is always awake. */
+  isListening?: boolean;
+  isPaused?: boolean;
+  /** The face a tap in the Support dialog earned. */
+  mood?: '' | 'perfect' | 'miss';
 }
 
-/** A colour custom property resolved to a colour a canvas can read. */
-const resolveColour = (probe: HTMLElement, name: string, fallback: string) => {
-  probe.style.color = `var(${name}, ${fallback})`;
-  return getComputedStyle(probe).color || fallback;
+/**
+ * Her colour token, as the channels a canvas mixes from. Any colour the page
+ * can name - a scene's accent comes as `oklch(from ...)` - said in channels:
+ * painted on a one-pixel swatch and read back.
+ */
+const toneOf = (
+  probe: HTMLElement,
+  context: CanvasRenderingContext2D | null,
+  fallback: TRgb,
+): TRgb => {
+  probe.style.color = 'var(--pet-tone, #4ad3dc)';
+  const css = getComputedStyle(probe).color;
+  if (!context || !css) {
+    return fallback;
+  }
+  context.clearRect(0, 0, 1, 1);
+  context.fillStyle = css;
+  context.fillRect(0, 0, 1, 1);
+  const [r, g, b] = context.getImageData(0, 0, 1, 1).data;
+  return [r, g, b];
 };
 
 /**
- * The titlebar's pet, drawn on one canvas at the window's drawing pace.
+ * The pet, drawn on one canvas at the window's drawing pace: the titlebar's,
+ * the Support dialog's, and the small figures in the Auto EQ bubble and the
+ * Help pages. Every motion is the choreography's (`petChoreography.ts`), fed
+ * the music on this canvas's own frames; the drawing is `furPaint.ts`.
  *
- * She was eight layers of page, each animated by the stylesheet, under a
- * drop shadow that swayed with her: measured in the running window at 240 Hz
- * with music (2026-11-16), hiding her took the graphics process from 67% of
- * a core to 49%, and her ears' stretch, a transition on a group inside an SVG,
- * had the whole window repainted with every frame. Drawn here, every one of
- * her motions is one paint of one small canvas, at most every other frame on
- * that display (`WINDOW_DRAWING_PACE_MS`), and nothing else in the window is
- * touched. The motions are the stylesheet's own (`petMotion.ts`); the
- * drawing is `PetArt`'s (`petPaint.ts`), which the support dialog's hero and
- * the EQ bubble still draw as SVG.
+ * Only shown, she is drawn (`observeShown`); hearing nothing, at thirty
+ * frames; for somebody who asked for less motion she holds still and is
+ * drawn only while her expression is still easing to where it is told.
  */
 export default function PetCanvas({
+  art,
   host,
-  level,
+  readMusic,
   isCelebrating,
-  isListening,
-  isDancing,
-  onDanceEnd,
+  isListening = true,
+  isPaused = false,
+  mood = '',
 }: IPetCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const probeRef = useRef<HTMLSpanElement>(null);
-  const stateRef = useRef({ isCelebrating, isListening, isDancing });
-  stateRef.current = { isCelebrating, isListening, isDancing };
-  const onDanceEndRef = useRef(onDanceEnd);
-  onDanceEndRef.current = onDanceEnd;
-  // When each motion started: a CSS animation starts when its rule starts to
-  // apply, and restarts from its first keyframe when its name changes.
-  const startsRef = useRef({ sway: 0, dance: 0, twinkle: 0 });
+  const propsRef = useRef({
+    readMusic,
+    isCelebrating,
+    isListening,
+    isPaused,
+    mood,
+  });
+  propsRef.current = { readMusic, isCelebrating, isListening, isPaused, mood };
   const kickRef = useRef<() => void>(() => undefined);
+  const pad = padFor(art);
+  const side = art + pad * 2;
 
   useEffect(() => {
-    const now = performance.now();
-    startsRef.current.twinkle = now;
-  }, [isCelebrating]);
-  useEffect(() => {
-    startsRef.current.sway = performance.now();
-  }, [isListening, isDancing]);
-  useEffect(() => {
-    if (isDancing) {
-      startsRef.current.dance = performance.now();
-    }
-  }, [isDancing]);
-  useEffect(() => {
     kickRef.current();
-  }, [isCelebrating, isListening, isDancing]);
+  }, [isCelebrating, isListening, isPaused, mood, readMusic]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const probe = probeRef.current;
     const context = canvas?.getContext('2d');
-    const hostElement = host.current;
-    if (!canvas || !probe || !context || !hostElement) {
+    if (!canvas || !probe || !context) {
       return undefined;
     }
+    const hostElement = host?.current ?? undefined;
     const motionQuery =
       typeof window.matchMedia === 'function'
         ? window.matchMedia('(prefers-reduced-motion: reduce)')
         : undefined;
     const born = performance.now();
+    const motion = createPetMotion();
+    const swatch = document.createElement('canvas');
+    swatch.width = 1;
+    swatch.height = 1;
+    const swatchContext = swatch.getContext('2d', { willReadFrequently: true });
     let ratio = 1;
-    let tone = '#4ad3dc';
-    let joyTarget = 0;
-    let isHovered = false;
+    let palette: IFurPalette = furPalette([74, 211, 220], [126, 245, 232]);
     let isPressed = false;
-    // The eased values the stylesheet's transitions used to carry.
-    let shownLevel = 0;
     let shownPress = 0;
-    let shownJoy = 0;
-    let shownStar = stateRef.current.isCelebrating ? 1 : 0;
+    let shownStar = propsRef.current.isCelebrating ? 1 : 0;
     let lastAt: number | undefined;
     let lastTickAt: number | undefined;
     let tickMs = 1000 / 60;
     let frame: number | undefined;
     let isShown = false;
-    let danceEnded = false;
+    let lastPose: IPetPose | undefined;
 
     const fit = () => {
       ratio = window.devicePixelRatio || 1;
-      const side = Math.round((SIZE + PAD * 2) * ratio);
-      if (canvas.width !== side) {
-        canvas.width = side;
-        canvas.height = side;
+      const px = Math.round(side * ratio);
+      if (canvas.width !== px) {
+        canvas.width = px;
+        canvas.height = px;
       }
     };
     const readRoot = () => {
-      tone = resolveColour(probe, '--pet-tone', '#4ad3dc');
-      const joy = Number.parseFloat(
-        getComputedStyle(document.documentElement).getPropertyValue(
-          '--pet-joy',
-        ),
+      palette = furPalette(
+        toneOf(probe, swatchContext, palette.tone),
+        readAccentLightChannels([126, 245, 232]),
       );
-      joyTarget = Number.isFinite(joy) ? Math.max(0, Math.min(1, joy)) : 0;
     };
 
-    const build = (now: number, elapsed: number): [IPetFrame, boolean] => {
-      const state = stateRef.current;
-      const reduced = motionQuery?.matches === true;
-      const starts = startsRef.current;
-      const listening = state.isCelebrating && state.isListening;
-      const dancing = state.isCelebrating && state.isDancing;
-      const levelTarget = listening
-        ? Math.round((level.current ?? 0) * LEVEL_STEPS) / LEVEL_STEPS
-        : 0;
-      const pressTarget = isPressed && !reduced ? 1 : 0;
-      shownLevel +=
-        (levelTarget - shownLevel) * getEaseFactor(elapsed, LEVEL_HALF_LIFE_MS);
-      shownPress +=
-        (pressTarget - shownPress) * getEaseFactor(elapsed, PRESS_HALF_LIFE_MS);
-      shownJoy +=
-        (joyTarget - shownJoy) * getEaseFactor(elapsed, JOY_HALF_LIFE_MS);
-      shownStar +=
-        ((state.isCelebrating ? 1 : 0) - shownStar) *
-        getEaseFactor(elapsed, STAR_HALF_LIFE_MS);
-
-      let swayX = 0;
-      let swayDeg = 0;
-      let earDeg = 0;
-      let bob = 0;
-      if (!reduced && (listening || dancing)) {
-        const since = now - (dancing ? starts.dance : starts.sway);
-        const swayMs = sway(dancing).durationMs;
-        if (dancing && since >= swayMs * DANCE_SWAYS) {
-          // The dance holds its last pose until it is taken off, as
-          // `forwards` does; the end is said once.
-          [swayX, swayDeg] = sample(sway(true), swayMs * DANCE_SWAYS - 1);
-          if (!danceEnded) {
-            danceEnded = true;
-            onDanceEndRef.current();
-          }
-        } else {
-          [swayX, swayDeg] = sample(sway(dancing), since);
-        }
-        const earSince = since - earSwayDelayMs(dancing);
-        earDeg = earSince > 0 ? sample(earSway(dancing), earSince)[0] : 0;
-        bob = dancing ? sample(BOB, now - starts.dance)[0] : 0;
-      }
-      if (!dancing) {
-        danceEnded = false;
-      }
-      // Breathing at rest, squashed by the music while she listens, and
-      // neither for somebody who asked for less motion.
-      let bodyScaleX = 1;
-      let bodyScaleY = 1;
-      if (!reduced && listening) {
-        bodyScaleX = 1 - shownLevel * 0.07;
-        bodyScaleY = 1 + shownLevel * 0.16;
-      } else if (!reduced) {
-        [bodyScaleX, bodyScaleY] = sample(BREATHE, now - born);
-      }
-      const [twinkleOpacity, twinkleScale, twinkleDeg] =
-        reduced || !state.isCelebrating
-          ? [1, 1, 0]
-          : sample(TWINKLE, now - starts.twinkle);
-      const joy = reduced ? joyTarget : shownJoy;
-      const pet: IPetFrame = {
-        size: SIZE,
-        pad: PAD,
-        swayX,
-        swayDeg,
-        earDeg,
-        earBob: bob,
-        earStretch: reduced || !state.isCelebrating ? 1 : 1 + shownLevel * 0.45,
-        bodyScaleX,
-        bodyScaleY,
-        bodyBob: bob,
-        press: shownPress,
-        blink: reduced ? 1 : sample(blink(isHovered), now - born)[0],
-        squint: reduced ? 1 : 1 - joy * 0.3,
-        joy,
-        waveTravel: reduced ? 0 : sample(EYE_SCROLL, now - born)[0],
-        waveInk: readAccentLight(1, '#7ef5e8'),
-        star: shownStar,
-        starOpacity: twinkleOpacity,
-        starScale: (0.4 + 0.6 * shownStar) * twinkleScale,
-        starDeg: twinkleDeg,
-        starBob: bob,
-        tone,
-      };
-      // Still moving: always, but for somebody who asked for less motion,
-      // whose pet only eases to where she is told to be.
-      const settling =
-        Math.abs(levelTarget - shownLevel) > 0.002 ||
-        Math.abs(pressTarget - shownPress) > 0.002 ||
-        Math.abs(joyTarget - shownJoy) > 0.002 ||
-        Math.abs((state.isCelebrating ? 1 : 0) - shownStar) > 0.002;
-      return [pet, !reduced || settling];
-    };
+    // Whether anything she shows is still on its way somewhere, for somebody
+    // who asked for less motion and so is drawn only while it is.
+    const settling = (pose: IPetPose, before: IPetPose | undefined) =>
+      before === undefined ||
+      Math.abs(pose.lid - before.lid) > 0.002 ||
+      Math.abs(pose.smile - before.smile) > 0.002 ||
+      Math.abs(pose.pupil - before.pupil) > 0.002 ||
+      Math.abs(pose.eyeWide - before.eyeWide) > 0.002 ||
+      Math.abs(pose.joy - before.joy) > 0.002;
 
     const draw = (now: number) => {
       const elapsed = lastAt === undefined ? 16 : now - lastAt;
       lastAt = now;
-      const [pet, moving] = build(now, elapsed);
-      paintPet(context, pet, ratio);
-      return moving;
+      const state = propsRef.current;
+      const reduced = motionQuery?.matches === true;
+      const hearsMusic = Boolean(state.readMusic) && state.isCelebrating;
+      const music =
+        hearsMusic && state.readMusic && state.isListening
+          ? state.readMusic(elapsed)
+          : SILENT_PET_MUSIC;
+      const pose = stepPetMotion(
+        motion,
+        music,
+        {
+          hearsMusic,
+          isListening: state.isListening,
+          isPaused: state.isPaused,
+          isReducedMotion: reduced,
+        },
+        elapsed,
+      );
+      const pressTarget = isPressed && !reduced ? 1 : 0;
+      shownPress +=
+        (pressTarget - shownPress) * getEaseFactor(elapsed, PRESS_HALF_LIFE_MS);
+      shownStar +=
+        ((state.isCelebrating ? 1 : 0) - shownStar) *
+        getEaseFactor(elapsed, STAR_HALF_LIFE_MS);
+      const sinceBirth = (now - born) / 1000;
+      paintFurPet(context, {
+        art,
+        pad,
+        ratio,
+        palette,
+        pose,
+        joy: pose.joy,
+        waveTravel: reduced ? 0 : (sinceBirth / 0.9) % 1,
+        star: shownStar,
+        starScale: reduced ? 1 : 1 + 0.07 * Math.sin(sinceBirth * 2.4),
+        starTurn: reduced ? 0 : Math.sin(sinceBirth * 1.2) * 0.2,
+        press: shownPress,
+        mood: state.mood,
+      });
+      const easing =
+        Math.abs(pressTarget - shownPress) > 0.002 ||
+        Math.abs((state.isCelebrating ? 1 : 0) - shownStar) > 0.002;
+      const keepGoing = !reduced || easing || settling(pose, lastPose);
+      lastPose = pose;
+      return keepGoing;
     };
 
     const loop = (now: number) => {
       frame = undefined;
       tickMs = displayTickMs(now, lastTickAt, tickMs);
       lastTickAt = now;
-      if (
-        lastAt !== undefined &&
-        !isFrameDue(now - lastAt, WINDOW_DRAWING_PACE_MS, tickMs)
-      ) {
+      const resting =
+        !propsRef.current.isListening ||
+        !propsRef.current.readMusic ||
+        !propsRef.current.isCelebrating;
+      const pace =
+        resting && shownPress < 0.002 ? RESTING_PACE_MS : DANCING_PACE_MS;
+      if (lastAt !== undefined && !isFrameDue(now - lastAt, pace, tickMs)) {
         frame = requestAnimationFrame(loop);
         return;
       }
@@ -303,11 +261,7 @@ export default function PetCanvas({
       kick();
     };
     probe.addEventListener('transitionend', onToneChanged);
-    const onEnter = () => {
-      isHovered = true;
-    };
     const onLeave = () => {
-      isHovered = false;
       isPressed = false;
       kick();
     };
@@ -325,19 +279,19 @@ export default function PetCanvas({
         kick();
       }
     };
-    hostElement.addEventListener('pointerenter', onEnter);
-    hostElement.addEventListener('pointerleave', onLeave);
-    hostElement.addEventListener('pointerdown', onDown);
-    hostElement.addEventListener('pointerup', onUp);
-    hostElement.addEventListener('pointercancel', onUp);
-    hostElement.addEventListener('keydown', onKey);
-    hostElement.addEventListener('keyup', onKey);
+    hostElement?.addEventListener('pointerleave', onLeave);
+    hostElement?.addEventListener('pointerdown', onDown);
+    hostElement?.addEventListener('pointerup', onUp);
+    hostElement?.addEventListener('pointercancel', onUp);
+    hostElement?.addEventListener('keydown', onKey);
+    hostElement?.addEventListener('keyup', onKey);
     motionQuery?.addEventListener('change', kick);
     window.addEventListener('resize', fit);
     const stopWatching = observeShown(canvas, (shown) => {
       isShown = shown;
       if (shown) {
         lastAt = undefined;
+        lastPose = undefined;
         kick();
       } else if (frame !== undefined) {
         cancelAnimationFrame(frame);
@@ -352,23 +306,23 @@ export default function PetCanvas({
       if (frame !== undefined) {
         cancelAnimationFrame(frame);
       }
-      hostElement.removeEventListener('pointerenter', onEnter);
-      hostElement.removeEventListener('pointerleave', onLeave);
-      hostElement.removeEventListener('pointerdown', onDown);
-      hostElement.removeEventListener('pointerup', onUp);
-      hostElement.removeEventListener('pointercancel', onUp);
-      hostElement.removeEventListener('keydown', onKey);
-      hostElement.removeEventListener('keyup', onKey);
+      hostElement?.removeEventListener('pointerleave', onLeave);
+      hostElement?.removeEventListener('pointerdown', onDown);
+      hostElement?.removeEventListener('pointerup', onUp);
+      hostElement?.removeEventListener('pointercancel', onUp);
+      hostElement?.removeEventListener('keydown', onKey);
+      hostElement?.removeEventListener('keyup', onKey);
       motionQuery?.removeEventListener('change', kick);
       window.removeEventListener('resize', fit);
     };
-  }, [host, level]);
+  }, [art, host, pad, side]);
 
   return (
-    <span className="support-pet__frame">
+    <span className="support-pet__frame" style={{ width: art, height: art }}>
       <canvas
         ref={canvasRef}
         className="support-pet__canvas"
+        style={{ width: side, height: side }}
         aria-hidden="true"
       />
       <span ref={probeRef} className="support-pet__probe" aria-hidden="true" />

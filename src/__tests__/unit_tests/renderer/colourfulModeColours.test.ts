@@ -70,26 +70,6 @@ const tokensIn = (value: string) =>
 // the mode is always on), and with it the burst and its blades.
 
 describe('the Support card in Colourful mode', () => {
-  it('blooms behind the creature in all seven stops, closed into a ring', () => {
-    const bloom = valueOf(
-      'SupportPet.scss',
-      '.is-euphoric .support-pet--hero::before',
-      'background',
-    );
-    expect(bloom).not.toMatch(FIXED_COLOUR);
-    expect(tokensIn(bloom)).toEqual([1, 2, 3, 4, 5, 6, 7, 1]);
-  });
-
-  it('fades the bloom out from her middle rather than drawing a disc', () => {
-    expect(
-      valueOf(
-        'SupportPet.scss',
-        '.is-euphoric .support-pet--hero::before',
-        'mask',
-      ),
-    ).toMatch(/^radial-gradient\(.*transparent 70%\)$/);
-  });
-
   it('lights a good tap in the palette instead of the game’s lime', () => {
     expect(
       valueOf('Euphoria.scss', '.is-euphoric .rhythm-game', '--game-ink'),

@@ -10,7 +10,7 @@ import MenuIcon from '../../icons/MenuIcon';
 import Chevron from '../../icons/Chevron';
 import AnchoredMenu from '../../widgets/AnchoredMenu';
 import AnimatedHeight from '../../widgets/AnimatedHeight';
-import { PetArt } from '../../SupportPet';
+import PetCanvas from '../../pet/PetCanvas';
 import isOwnAnimationEnd from '../../utils/ownAnimationEnd';
 import { endCorrectionFlash } from '../../utils/correctionFlash';
 import { useTranslation } from '../../utils/I18nContext';
@@ -156,7 +156,7 @@ const AutoEqButton = () => {
           }
         >
           <span className="eq-mode__bubble-pet" aria-hidden>
-            <PetArt />
+            <PetCanvas art={22} isCelebrating={false} />
           </span>
           {/* Keyed on the landing, so a second correction arriving while the
             first is still green holds the colour for its own full moment. */}

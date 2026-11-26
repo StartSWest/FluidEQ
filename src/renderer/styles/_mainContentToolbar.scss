@@ -326,15 +326,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   place-items: center;
   animation: eq-bubble-listen 1800ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
   transform-origin: 50% 85%;
-
-  // The pet's frame (`PetArt`) takes the bubble's size, and the drawing the
-  // frame's: a share of a frame sized by its own contents has nothing to be
-  // a share of. Her layers fill the drawing's square by themselves.
-  .support-pet__frame,
-  .support-pet__art {
-    width: 100%;
-    height: 100%;
-  }
 }
 
 // A head tipped one way, then the other, with a hold at each end — the shape of

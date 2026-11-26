@@ -5,17 +5,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * What the pet hears decides when she stops listening and when she dances,
- * never a clock (`SupportPet.tsx`). She let go of a song 1.2 s after a timer
- * started, considered a dance on a one-minute interval that ran through
- * silence, and stopped dancing on a 7 s timer. Now the meters' held peak lets
- * her go, the frames she hears loud count towards a dance, and the dance's
- * own last sway ends it.
+ * What the pet hears decides when she stops listening, never a clock
+ * (`SupportPet.tsx`): she let go of a song 1.2 s after a timer started. Now
+ * the meters' held peak lets her go.
  */
 
 import { act, render } from '@testing-library/react';
-import { DANCE_SWAYS, sway } from '../../../renderer/pet/petMotion';
-import SupportPet, { DANCE_LOUD_FRAMES } from '../../../renderer/SupportPet';
+import SupportPet from '../../../renderer/SupportPet';
 
 interface IFrame {
   waveform: number[];
@@ -40,7 +36,11 @@ jest.mock('renderer/audio/LiveAudioContext', () => {
   };
   const frames = { read: () => mockFrame, subscribe };
   return {
-    useLiveAudioControl: () => ({ isActive: true, isPaused: false }),
+    useLiveAudioControl: () => ({
+      isActive: true,
+      isPaused: false,
+      readFrame: () => undefined,
+    }),
     useLiveAudioFrames: () => frames,
     useLiveAudioFrame: () => useSyncExternalStore(subscribe, frames.read),
     useLiveAudioFrameSelector: <S,>(select: (frame: IFrame) => S) =>
@@ -72,17 +72,9 @@ const pet = (container: HTMLElement) => {
   return button;
 };
 
-const endAnimation = (target: Element, animationName: string) =>
-  act(() => {
-    const event = new Event('animationend', { bubbles: true });
-    Object.defineProperty(event, 'animationName', { value: animationName });
-    target.dispatchEvent(event);
-  });
-
 beforeEach(() => {
   jest.useFakeTimers();
   mockFrame = { waveform: [], outputLevels: [] };
-  document.documentElement.removeAttribute('data-motion');
 });
 
 afterEach(() => {
@@ -122,113 +114,5 @@ describe('listening', () => {
     publish(0, -60);
     expect(pet(container).classList.contains('is-listening')).toBe(false);
     expect(jest.getTimerCount()).toBe(0);
-  });
-});
-
-describe('the dance', () => {
-  const hearLoud = (frames: number) => {
-    for (let frame = 0; frame < frames; frame += 1) {
-      publish(LOUD, -3);
-    }
-  };
-  // The frame she starts listening on is heard before she is listening, so
-  // it is not one she counts.
-  const startListening = () => publish(LOUD, -3);
-
-  it('is considered after a minute of loud frames, not of clock', () => {
-    jest.spyOn(Math, 'random').mockReturnValue(0);
-    const { container } = render(
-      <SupportPet hasContributed onOpen={() => undefined} />,
-    );
-    startListening();
-
-    hearLoud(DANCE_LOUD_FRAMES - 1);
-    // A minute of wall clock with no music counts for nothing.
-    act(() => {
-      jest.advanceTimersByTime(120000);
-    });
-    expect(pet(container).classList.contains('is-dancing')).toBe(false);
-
-    // The control: the next loud frame completes the minute.
-    hearLoud(1);
-    expect(pet(container).classList.contains('is-dancing')).toBe(true);
-    expect(jest.getTimerCount()).toBe(0);
-  });
-
-  it('counts only frames loud enough to dance to', () => {
-    jest.spyOn(Math, 'random').mockReturnValue(0);
-    const { container } = render(
-      <SupportPet hasContributed onOpen={() => undefined} />,
-    );
-    startListening();
-    hearLoud(DANCE_LOUD_FRAMES - 1);
-    // Heard, but quiet: listening, and not a step nearer the dance.
-    publish(0.1, -10);
-    expect(pet(container).classList.contains('is-listening')).toBe(true);
-    expect(pet(container).classList.contains('is-dancing')).toBe(false);
-    hearLoud(1);
-    expect(pet(container).classList.contains('is-dancing')).toBe(true);
-  });
-
-  // The titlebar pet is drawn on a canvas (2026-11-16), so there is no CSS
-  // animation to end: the canvas says the dance is over once it has drawn
-  // its sixth sway (`PetCanvas`, `DANCE_SWAYS`).
-  it('ends with its own last sway, and nothing else’s', () => {
-    jest.spyOn(Math, 'random').mockReturnValue(0);
-    const drawing: Record<string | symbol, unknown> = {};
-    const context = new Proxy(drawing, {
-      get: (target, property) =>
-        property in target ? target[property] : () => undefined,
-      set: (target, property, value) => Reflect.set(target, property, value),
-    });
-    jest
-      .spyOn(HTMLCanvasElement.prototype, 'getContext')
-      .mockReturnValue(context as unknown as CanvasRenderingContext2D);
-    Object.assign(globalThis, { Path2D: jest.fn(() => ({})) });
-    try {
-      const { container } = render(
-        <SupportPet hasContributed onOpen={() => undefined} />,
-      );
-      startListening();
-      hearLoud(DANCE_LOUD_FRAMES);
-      expect(pet(container).classList.contains('is-dancing')).toBe(true);
-
-      // The control: five sways and a half in, and another animation (the
-      // blink's, the twinkle's) ending on the pet, are not it.
-      act(() => {
-        jest.advanceTimersByTime(sway(true).durationMs * (DANCE_SWAYS - 0.5));
-      });
-      endAnimation(pet(container), 'pet-twinkle');
-      expect(pet(container).classList.contains('is-dancing')).toBe(true);
-
-      act(() => {
-        jest.advanceTimersByTime(sway(true).durationMs);
-      });
-      expect(pet(container).classList.contains('is-dancing')).toBe(false);
-    } finally {
-      Reflect.deleteProperty(globalThis, 'Path2D');
-    }
-  });
-
-  it('never starts for somebody who asked for less motion', () => {
-    jest.spyOn(Math, 'random').mockReturnValue(0);
-    document.documentElement.setAttribute('data-motion', 'reduced');
-    const { container } = render(
-      <SupportPet hasContributed onOpen={() => undefined} />,
-    );
-    startListening();
-    hearLoud(DANCE_LOUD_FRAMES);
-    expect(pet(container).classList.contains('is-listening')).toBe(true);
-    expect(pet(container).classList.contains('is-dancing')).toBe(false);
-  });
-
-  it('is only ever a supporter’s', () => {
-    jest.spyOn(Math, 'random').mockReturnValue(0);
-    const { container } = render(
-      <SupportPet hasContributed={false} onOpen={() => undefined} />,
-    );
-    startListening();
-    hearLoud(DANCE_LOUD_FRAMES);
-    expect(pet(container).classList.contains('is-dancing')).toBe(false);
   });
 });

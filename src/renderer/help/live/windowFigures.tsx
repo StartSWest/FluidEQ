@@ -4,7 +4,7 @@ import { PRODUCT_VERSION } from 'common/branding';
 import SignalBrandMark from '../../components/SignalBrandMark';
 import SignalBrandName from '../../components/SignalBrandName';
 import MenuIcon from '../../icons/MenuIcon';
-import { PetArt } from '../../PetArt';
+import PetCanvas from '../../pet/PetCanvas';
 import WindowModeSwitch from '../../player/WindowModeSwitch';
 import {
   WorkspaceTabsLeft,
@@ -82,7 +82,7 @@ const WindowHeaderDrawing = () => {
           className="support-pet"
           aria-label={t('support.pet.title')}
         >
-          <PetArt />
+          <PetCanvas art={36} isCelebrating={false} />
         </button>
         <div className="titlebar-instrument">
           <div className="workspace-header__tools actions-menu">

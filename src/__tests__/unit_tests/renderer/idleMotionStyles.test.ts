@@ -41,18 +41,6 @@ const bodyOf = (css: string, selector: string, from = 0): string => {
   return css.slice(open + 1, close);
 };
 
-/** The bodies of every rule that `selector` opens, joined. */
-const bodiesOf = (css: string, selector: string): string => {
-  const bodies: string[] = [];
-  let at = css.indexOf(`${selector} {`);
-  while (at >= 0) {
-    const open = css.indexOf('{', at);
-    bodies.push(css.slice(open + 1, css.indexOf('}', open)));
-    at = css.indexOf(`${selector} {`, open);
-  }
-  return bodies.join('\n');
-};
-
 /** Everything between `@keyframes name {` and the brace that closes it. */
 const keyframesOf = (css: string, name: string): string => {
   const at = css.indexOf(`@keyframes ${name} {`);
@@ -72,38 +60,6 @@ const keyframesOf = (css: string, name: string): string => {
   }
   return '';
 };
-
-describe('the titlebar pet', () => {
-  const css = cssOf('SupportPet.scss');
-
-  it('draws the waves in its eyes only while there is a streak to show', () => {
-    const waves = bodyOf(css, '.support-pet__eye-waves');
-    expect(waves).toContain('display: none');
-    // Taken out only once the fade to nothing is over, so a run that ends
-    // keeps scrolling while it fades.
-    expect(waves).toContain('display 0s linear 260ms allow-discrete');
-    // The control: under a streak they are drawn, and they still scroll.
-    expect(bodyOf(css, ':root.has-pet-joy .support-pet__eye-waves')).toContain(
-      'display: block',
-    );
-    // On a layer of the page (2026-11-16), so the compositor scrolls it.
-    expect(bodiesOf(css, '\n.support-pet__eye-wave')).toContain(
-      'animation: pet-eye-scroll 900ms linear infinite',
-    );
-  });
-
-  it('fades them in from nothing, as it did when they were always drawn', () => {
-    const starting = css.indexOf('@starting-style');
-    expect(starting).toBeGreaterThan(-1);
-    const from = bodyOf(
-      css,
-      ':root.has-pet-joy .support-pet__eye-waves',
-      starting,
-    );
-    expect(from).toContain('opacity: 0');
-    expect(from).toContain('stroke-width: 0.35px');
-  });
-});
 
 describe('the engine’s name over the EQ', () => {
   const css = cssOf('MainContent.scss');

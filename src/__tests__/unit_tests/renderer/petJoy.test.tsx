@@ -5,12 +5,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The waves in the pet's eyes are drawn only while there is joy to show them
- * (`SupportPet.scss`), and `has-pet-joy` on the document is what says so. At
- * zero they were fully transparent and scrolled every frame anyway, in the
- * titlebar, for everybody who had never played. Colourful mode is always on
- * since 2026-11-18, so there is always joy, and the class is still what the
- * stylesheet asks.
+ * Colourful mode is always on since 2026-11-18, so the root carries full joy
+ * for good (`--pet-joy`, which lifts the Support dialog's hop). The waves in
+ * the pet's eyes no longer read it: they follow a loud chorus
+ * (`petChoreography.ts`).
  */
 
 import { act, render } from '@testing-library/react';
@@ -37,7 +35,7 @@ jest.mock('renderer/utils/FluidEqContext', () => ({
 }));
 
 const root = document.documentElement;
-const hasJoy = () => root.classList.contains('has-pet-joy');
+const hasJoy = () => root.style.getPropertyValue('--pet-joy') === '1';
 
 // Reset before rather than after, for the reason `euphoriaGlow.test.tsx`
 // gives: Testing Library unmounts last, and a store torn down under a mounted
@@ -45,14 +43,14 @@ const hasJoy = () => root.classList.contains('has-pet-joy');
 beforeEach(() => {
   window.localStorage.clear();
   resetRhythmRun();
-  root.classList.remove('has-pet-joy', 'is-euphoric');
+  root.classList.remove('is-euphoric');
   root.style.removeProperty('--pet-joy');
 });
 
-it('draws them from the first frame, with no streak', () => {
+it('carries full joy from the first frame, with no streak', () => {
   render(<EuphoriaGlow />);
-  expect(root.style.getPropertyValue('--pet-joy')).toBe('1');
   expect(hasJoy()).toBe(true);
+  expect(root.classList.contains('is-euphoric')).toBe(true);
 });
 
 it('keeps them when a run ends', () => {
@@ -62,7 +60,7 @@ it('keeps them when a run ends', () => {
   expect(hasJoy()).toBe(true);
 });
 
-it('takes the class with it when the shell unmounts', () => {
+it('takes the joy with it when the shell unmounts', () => {
   const view = render(<EuphoriaGlow />);
   expect(hasJoy()).toBe(true);
 

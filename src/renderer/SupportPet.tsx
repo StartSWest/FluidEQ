@@ -16,13 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type RefObject,
-} from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   useLiveAudioControl,
   useLiveAudioFrameListener,
@@ -30,27 +24,16 @@ import {
 } from './audio/LiveAudioContext';
 import type { ILiveAudioFrame } from './audio/liveFrameStore';
 import { amplitudeToDb, type IOutputLevel } from './graph/outputLevel';
-import { prefersReducedMotion } from './utils/bandReveal';
-import { PetArt } from './PetArt';
 import PetCanvas from './pet/PetCanvas';
+import usePetMusic from './pet/usePetMusic';
 import { useTranslation } from './utils/I18nContext';
 import './styles/SupportPet.scss';
-
-// The drawing has a file of its own; the EQ bubble and the share card have
-// always found it here.
-export { PetArt, EYE_WAVE_AMPLITUDE, EYE_WAVE_PERIOD } from './PetArt';
 
 /** A waveform peak of 0.625, about -4 dBFS, is the pet at full stretch. */
 const PET_LEVEL_GAIN = 1.6;
 
-/**
- * One scalar is all the animation needs, so the whole waveform is reduced
- * rather than rendered.
- */
+/** The loudest sample, as a share of what she calls loud. */
 const getPetLevel = (waveform: number[]) => {
-  if (waveform.length === 0) {
-    return 0;
-  }
   let peak = 0;
   for (let index = 0; index < waveform.length; index += 1) {
     if (waveform[index] > peak) {
@@ -59,16 +42,6 @@ const getPetLevel = (waveform: number[]) => {
   }
   return Math.min(1, peak * PET_LEVEL_GAIN);
 };
-
-/**
- * How many values `--pet-level` is allowed to take.
- *
- * Every write invalidates the style of the creature's whole subtree, and a
- * continuous value changes on literally every frame for differences nobody can
- * see. Twelve steps means a handful of writes a second instead of twenty-two,
- * and the squash is not visibly steppier for it.
- */
-const LEVEL_STEPS = 12;
 
 /**
  * Above the noise floor. Digital silence reads as 0 and a single least
@@ -86,338 +59,136 @@ const HEARING_PEAK_DB = amplitudeToDb(HEARING_LEVEL / PET_LEVEL_GAIN);
  * The held peak is the meters' slow reading — it holds a second and then falls
  * at 12 dB/s (`outputLevel.ts`) — so the rest of a bar, a breath, or the
  * second of silence between two tracks never gets there, and a song that has
- * really ended does in about three and a half seconds. A quiet source that
- * never reaches her threshold lets go the same way. The frame the capture
- * publishes when everything has come to rest (`isMeterAtRest`), after which it
- * publishes nothing until sound returns, has every peak on the floor, so it
- * always answers yes: the last frame she is sent is never one she is left
- * listening to. So does no frame at all — no channels, no capture.
+ * really ended does in about three and a half seconds. The frame the capture
+ * publishes when everything has come to rest, after which it publishes
+ * nothing until sound returns, has every peak on the floor, so it always
+ * answers yes. So does no frame at all — no channels, no capture.
  */
 export const hasLetGo = (levels: readonly IOutputLevel[]) =>
   levels.every((level) => level.peakDb < HEARING_PEAK_DB);
 
 /**
- * Whether something is actually playing.
+ * Whether she can hear anything: instant on, and off once the meters let go.
  *
- * `isActive` from the analyser means the capture stream is running, not that
- * there is any sound in it: it goes true when the stream opens and false only
- * on teardown. The squash rides `--pet-level` so it settles by itself in
- * silence, but the sway is a keyframe animation and does not — left on
- * `isActive` the pet leans back and forth in a silent room.
- *
- * Instant attack, slow release. Music has gaps — between tracks, between beats,
- * in a rest — and a bare threshold would strobe the class on and off through
- * every one of them, restarting the sway from its first keyframe each time.
- *
- * The release used to be a 1.2 s timer started when the level dipped, which
- * guessed how long a gap lasts and was cancelled and restarted through every
- * one. It is the meters' own held peak now (`hasLetGo`): the frames say when
- * the sound has gone, and the last frame of a silence always says so.
+ * It decides when she is listening, when she grows drowsy and, after a
+ * while of it, when she falls asleep (`petChoreography.ts`). The release is
+ * the meters' own held peak, never a timer: the frames say when the sound
+ * has gone, and the last frame of a silence always says so.
  */
-const useHearingGate = (
-  isCapturing: boolean,
-  onChange: (isHearing: boolean) => void,
-) => {
+const PetHearing = ({
+  isCapturing,
+  onHearingChange,
+}: {
+  isCapturing: boolean;
+  onHearingChange: (isHearing: boolean) => void;
+}) => {
+  const frames = useLiveAudioFrames();
   const isHearingRef = useRef(false);
-
   const setHearing = useCallback(
     (next: boolean) => {
-      if (isHearingRef.current === next) {
-        return;
+      if (isHearingRef.current !== next) {
+        isHearingRef.current = next;
+        onHearingChange(next);
       }
-      isHearingRef.current = next;
-      onChange(next);
     },
-    [onChange],
+    [onHearingChange],
   );
-
-  const feed = useCallback(
-    (level: number, levels: readonly IOutputLevel[]) => {
+  // Each frame handed straight here, never through a render: this renders
+  // nothing, and only whether she hears escapes into React, a few times a
+  // minute.
+  const hear = useCallback(
+    ({ waveform, outputLevels }: ILiveAudioFrame) => {
       if (!isCapturing) {
         setHearing(false);
-      } else if (level >= HEARING_LEVEL) {
+      } else if (getPetLevel(waveform) >= HEARING_LEVEL) {
         setHearing(true);
-      } else if (hasLetGo(levels)) {
+      } else if (hasLetGo(outputLevels)) {
         setHearing(false);
       }
     },
     [isCapturing, setHearing],
   );
-
-  useEffect(() => {
-    if (!isCapturing) {
-      setHearing(false);
-    }
-  }, [isCapturing, setHearing]);
-
-  return feed;
-};
-
-/**
- * The only thing in the creature that watches the audio, and it renders
- * nothing.
- *
- * That separation is the entire point. Subscribing to the frame from the pet
- * itself re-rendered her — and the whole of her SVG — around twenty-two times a
- * second for the life of the app, purely to set one custom property. She lives
- * in the titlebar, so it never stopped: not when the window was idle, not when
- * nothing was playing, not ever.
- *
- * Here the level is written straight to her element as a style, quantised so
- * most frames write nothing at all, and the only thing that escapes into React
- * is whether she can hear anything — which flips a few times a minute rather
- * than twenty-two times a second.
- */
-const PetLevelPump = ({
-  target,
-  isCapturing,
-  isPaused,
-  onLevel,
-  onHearingChange,
-}: {
-  target: RefObject<HTMLElement | null>;
-  isCapturing: boolean;
-  isPaused: boolean;
-  onLevel: (level: number) => void;
-  onHearingChange: (isHearing: boolean) => void;
-}) => {
-  const frames = useLiveAudioFrames();
-  const publishedRef = useRef(-1);
-  const heardRef = useRef<number[] | undefined>(undefined);
-  const feed = useHearingGate(isCapturing && !isPaused, onHearingChange);
-
-  // Each frame handed straight here, never through a render: the pump renders
-  // nothing, and as a frame's subscriber it was rendered thirty times a
-  // second to write one quantised style.
-  const hear = useCallback(
-    ({ waveform, outputLevels }: ILiveAudioFrame) => {
-      // Pausing freezes the analyser mid-frame, so the last waveform sits there
-      // reading as music. Paused is zero, or the ears stay stretched on a frame
-      // that stopped being true.
-      const level = isPaused ? 0 : getPetLevel(waveform);
-      feed(level, outputLevels);
-      // Once per frame: the dance counts frames, and this runs again with the
-      // same one whenever anything else it reads changes.
-      if (heardRef.current !== waveform) {
-        heardRef.current = waveform;
-        onLevel(level);
-      }
-
-      const stepped = Math.round(level * LEVEL_STEPS) / LEVEL_STEPS;
-      if (stepped === publishedRef.current || !target.current) {
-        return;
-      }
-      publishedRef.current = stepped;
-      target.current.style.setProperty('--pet-level', String(stepped));
-    },
-    [feed, isPaused, onLevel, target],
-  );
   useLiveAudioFrameListener(hear);
-  // And again with the frame there is now whenever anything else it reads
-  // changes - pausing reads as zero at once, not at the next frame.
   useEffect(() => {
     hear(frames.read());
   }, [frames, hear]);
-
   return null;
 };
 
-/** Loud enough that it is clearly music rather than a notification blip. */
-export const DANCE_LEVEL = 0.32;
 /**
- * Frames heard at `DANCE_LEVEL` or above between one chance to dance and the
- * next: at the capture's thirty frames a second, a minute of loud music.
+ * What both of her copies share: whether she hears anything, whether the
+ * music is paused, and the music itself, read on her clock.
  */
-export const DANCE_LOUD_FRAMES = 1800;
-/** Roughly one dance every three or four minutes of it. */
-const DANCE_CHANCE = 0.3;
-/**
- * The dance's sway (`SupportPet.scss`), which runs a whole number of times
- * and stops: its end is the end of the dance.
- */
-export const DANCE_ANIMATION = 'pet-dance';
-
-/**
- * Occasionally the pet gets up and dances.
- *
- * Two gates. It only dances for a supporter — dancing is part of the reward,
- * alongside the star — and even then only sometimes: a creature that dances
- * non-stop in a titlebar the user stares at for hours stops being charming
- * within a minute. The delight is in catching it.
- *
- * A user who never contributes still has a pet that breathes and blinks; it
- * just does not hear the music.
- *
- * The music decides, not a clock. A minute's interval used to look at whatever
- * the level was at that instant, and ran through silence and a quiet film
- * alike; now every frame she hears loud counts, and every `DANCE_LOUD_FRAMES`
- * of them she considers it. Silence sends no frames and a quiet passage counts
- * none, so the minute is a minute of music she could dance to. The dance ends
- * with its own last sway (`animationend`) — it was stopped by a 7 s timer
- * that knew nothing of where the sway had got to — or as soon as it is taken
- * off the page (`animationcancel`: the titlebar hides her, motion is turned
- * down). Not at all for someone who asked for less motion, whose pet would
- * stand still through it and then never hear it end.
- *
- * The count lives in a ref and the level arrives by call, never through
- * render, because it changes every frame and the pet must not re-render on
- * the frame clock — which is the one thing the pump above exists to prevent.
- */
-const useOccasionalDance = (
-  target: RefObject<HTMLElement | null>,
-  isUnlocked: boolean,
-  isListening: boolean,
-) => {
-  const [isDancing, setIsDancing] = useState(false);
-  const isDancingRef = useRef(false);
-  const loudFramesRef = useRef(0);
-  const canDance = isUnlocked && isListening;
-
-  const setDancing = useCallback((next: boolean) => {
-    isDancingRef.current = next;
-    setIsDancing(next);
-  }, []);
-
-  const hear = useCallback(
-    (level: number) => {
-      if (!canDance || isDancingRef.current || level < DANCE_LEVEL) {
-        return;
-      }
-      loudFramesRef.current += 1;
-      if (loudFramesRef.current < DANCE_LOUD_FRAMES) {
-        return;
-      }
-      loudFramesRef.current = 0;
-      if (Math.random() <= DANCE_CHANCE && !prefersReducedMotion()) {
-        setDancing(true);
-      }
-    },
-    [canDance, setDancing],
-  );
-
-  useEffect(() => {
-    if (!canDance) {
-      setDancing(false);
-    }
-  }, [canDance, setDancing]);
-
-  useEffect(() => {
-    const element = target.current;
-    if (!element) {
-      return undefined;
-    }
-    const end = (event: AnimationEvent) => {
-      if (event.animationName === DANCE_ANIMATION) {
-        setDancing(false);
-      }
-    };
-    element.addEventListener('animationend', end);
-    element.addEventListener('animationcancel', end);
-    return () => {
-      element.removeEventListener('animationend', end);
-      element.removeEventListener('animationcancel', end);
-    };
-  }, [setDancing, target]);
-
-  // The titlebar's pet is drawn on a canvas, with no animation to end: it
-  // says when its last sway is over (`PetCanvas`).
-  const endDance = useCallback(() => setDancing(false), [setDancing]);
-
-  return { isDancing, hear, endDance };
-};
-
-/**
- * Everything the two pets share: the pump, the hearing gate and the dance.
- *
- * Returns the pump as an element for the caller to render, because it has to
- * sit inside the component that owns the element it writes to.
- */
-const usePetAudio = (
-  target: RefObject<HTMLElement | null>,
-  hasContributed: boolean,
-) => {
+const usePetAudio = () => {
   const { isActive, isPaused } = useLiveAudioControl();
   const [isListening, setIsListening] = useState(false);
-  const { isDancing, hear, endDance } = useOccasionalDance(
-    target,
-    hasContributed,
-    isListening,
-  );
-  // The level as it arrives, for a pet drawn on a canvas, which reads it in
-  // its own frames rather than from `--pet-level`.
-  const levelRef = useRef(0);
-  const onLevel = useCallback(
-    (level: number) => {
-      levelRef.current = level;
-      hear(level);
-    },
-    [hear],
-  );
-
-  const pump = (
-    <PetLevelPump
-      target={target}
-      isCapturing={isActive}
-      isPaused={isPaused}
-      onLevel={onLevel}
+  const readMusic = usePetMusic(isPaused);
+  // Pausing freezes the analyser mid-frame, so the last waveform sits there
+  // reading as music: paused is not hearing.
+  const hearing = (
+    <PetHearing
+      isCapturing={isActive && !isPaused}
       onHearingChange={setIsListening}
     />
   );
-
-  return { pump, isListening, isDancing, levelRef, endDance };
+  return { hearing, isListening, isPaused, readMusic };
 };
+
+/**
+ * The same creature at hero size inside the support dialog. Decorative: the
+ * dialog it lives in is already the interactive thing, and the face a tap
+ * earned is the dialog's (`mood`).
+ */
+export function SupportPetHero({
+  hasContributed,
+  mood = '',
+}: {
+  hasContributed: boolean;
+  mood?: '' | 'perfect' | 'miss';
+}) {
+  const { hearing, isListening, isPaused, readMusic } = usePetAudio();
+  // No press: a tap here is a hop of a fixed length (`.support-pet-tap`),
+  // never a squash held for as long as the mouse is down, or a tap could not
+  // keep time.
+  return (
+    <div
+      className={`support-pet support-pet--hero${isListening ? ' is-listening' : ''}`}
+      aria-hidden="true"
+    >
+      {hearing}
+      <PetCanvas
+        art={126}
+        readMusic={readMusic}
+        isCelebrating={hasContributed}
+        isListening={isListening}
+        isPaused={isPaused}
+        mood={mood}
+      />
+    </div>
+  );
+}
 
 interface ISupportPetProps {
   hasContributed: boolean;
   onOpen: () => void;
 }
 
-/** The same creature at hero size inside the support dialog. Decorative: the
- * dialog it lives in is already the interactive thing. */
-export function SupportPetHero({
-  hasContributed,
-}: {
-  hasContributed: boolean;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const { pump, isListening, isDancing } = usePetAudio(ref, hasContributed);
-
-  return (
-    <div
-      ref={ref}
-      className={`support-pet support-pet--hero${
-        isListening ? ' is-listening' : ''
-      }${isDancing ? ' is-dancing' : ''}${
-        hasContributed ? ' is-celebrating' : ''
-      }`}
-      aria-hidden="true"
-    >
-      {pump}
-      <PetArt />
-    </div>
-  );
-}
-
 /**
  * The app's mascot, and the way in to the support dialog.
  *
- * It breathes and blinks on its own. Contributing unlocks the star and every
- * response to the music: the squash, the sway, and the occasional dance.
+ * She breathes, blinks, looks around and falls asleep in silence for
+ * everyone. Contributing unlocks the star and every response to the music.
  *
- * It is never sad and it never nags. Everything tied to contributing is
+ * She is never sad and never nags. Everything tied to contributing is
  * additive — someone who ignores it forever still has a happy creature in
- * their titlebar, it simply does not hear what they are listening to.
+ * their titlebar, she simply does not hear what they are listening to.
  */
 export default function SupportPet({
   hasContributed,
   onOpen,
 }: ISupportPetProps) {
   const ref = useRef<HTMLButtonElement>(null);
-  const { pump, isListening, isDancing, levelRef, endDance } = usePetAudio(
-    ref,
-    hasContributed,
-  );
-
+  const { hearing, isListening, isPaused, readMusic } = usePetAudio();
   const { t } = useTranslation();
   const title = hasContributed
     ? t('support.pet.thanks')
@@ -427,21 +198,20 @@ export default function SupportPet({
     <button
       ref={ref}
       type="button"
-      className={`support-pet${isListening ? ' is-listening' : ''}${
-        isDancing ? ' is-dancing' : ''
-      }${hasContributed ? ' is-celebrating' : ''}`}
+      // Whether she hears anything, said on her button for anybody looking.
+      className={`support-pet${isListening ? ' is-listening' : ''}`}
       aria-label={title}
       title={title}
       onClick={onOpen}
     >
-      {pump}
+      {hearing}
       <PetCanvas
+        art={36}
         host={ref}
-        level={levelRef}
+        readMusic={readMusic}
         isCelebrating={hasContributed}
         isListening={isListening}
-        isDancing={isDancing}
-        onDanceEnd={endDance}
+        isPaused={isPaused}
       />
     </button>
   );

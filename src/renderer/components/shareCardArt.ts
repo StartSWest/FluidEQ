@@ -6,7 +6,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { PRODUCT_NAME } from 'common/branding';
 import backdropUrl from '../../../assets/brand/share-card-backdrop.jpg';
-import { EYE_WAVE_AMPLITUDE, EYE_WAVE_PERIOD } from '../SupportPet';
+import type { TRgb } from '../pet/furFace';
+import { drawFurPet, furPalette } from '../pet/furPaint';
+import { REST_POSE } from '../pet/petChoreography';
 import { parseCssColour } from '../utils/oklab';
 import { getRainbowStops } from '../utils/rainbowPalette';
 import { readAccent, readAccentLight } from '../utils/theme';
@@ -48,6 +50,8 @@ const FONT_STACK =
 const INK = '#e6f2f9';
 const INK_MUTED = '#9fb8c8';
 const PET_INK = '#06131d';
+/** Her own mint (`--pet-tone` on an untinted window). */
+const PET_TONE: TRgb = [74, 211, 220];
 
 /**
  * The accent the artwork was painted for (`share-card-backdrop.jpg`, made
@@ -153,11 +157,10 @@ const setFittedFont = (
 };
 
 /**
- * The creature, drawn from the same coordinates her SVG uses: a 40×40
- * viewBox of plain circles and arcs, transcribed rather than redesigned, so
- * she cannot look like a different animal on the card than in the app.
- * Rasterising the live element was the alternative and it is a trap: her
- * look leans on the stylesheet for the glow, the hop and the eye waves.
+ * The creature, drawn by the same painter the app draws her with
+ * (`furPaint.ts`), standing still with her eyes open, so she cannot look
+ * like a different animal on the card than in the app. Rasterising the live
+ * canvas was the alternative, and would have caught her mid-blink.
  */
 const drawPet = (
   context: CanvasRenderingContext2D,
@@ -167,92 +170,27 @@ const drawPet = (
   euphoric: boolean,
   eyeInk: string,
 ) => {
-  const scale = size / 40;
+  const ink = parseCssColour(eyeInk);
+  const speaker: TRgb = ink
+    ? [ink.rgb[0] * 255, ink.rgb[1] * 255, ink.rgb[2] * 255]
+    : [126, 245, 232];
+  const pad = size * 0.3;
   context.save();
-  context.translate(centreX - size / 2, centreY - size / 2);
-  context.scale(scale, scale);
-
-  const body = context.createLinearGradient(0, 11, 0, 37);
-  body.addColorStop(0, '#7ef7e6');
-  body.addColorStop(1, '#17a5c4');
-
-  // The ears are a little EQ curve — she is made of the thing the app does.
-  context.strokeStyle = body;
-  context.lineWidth = 3;
-  context.lineCap = 'round';
-  context.lineJoin = 'round';
-  context.beginPath();
-  context.moveTo(11, 12);
-  context.lineTo(14, 6);
-  context.lineTo(17, 12);
-  context.moveTo(23, 12);
-  context.lineTo(26, 8);
-  context.lineTo(29, 12);
-  context.stroke();
-
-  context.fillStyle = body;
-  context.beginPath();
-  context.arc(20, 24, 12.5, 0, Math.PI * 2);
-  context.fill();
-
-  context.fillStyle = PET_INK;
-  [15.4, 24.6].forEach((x) => {
-    context.beginPath();
-    context.arc(x, 22, 3.4, 0, Math.PI * 2);
-    context.fill();
+  context.translate(centreX - size / 2 - pad, centreY - size / 2 - pad);
+  drawFurPet(context, {
+    art: size,
+    pad,
+    ratio: 1,
+    palette: furPalette(PET_TONE, speaker),
+    pose: REST_POSE,
+    joy: euphoric ? 1 : 0,
+    waveTravel: 0.25,
+    star: 0,
+    starScale: 1,
+    starTurn: 0,
+    press: 0,
+    mood: '',
   });
-
-  // Sound reflected in the eye with Colourful mode on, as the live creature
-  // runs it at the ceiling: clipped to the pupil, from the SVG's own period
-  // and amplitude, frozen mid-scroll.
-  if (euphoric) {
-    [15.4, 24.6].forEach((eyeX) => {
-      context.save();
-      context.beginPath();
-      context.arc(eyeX, 22, 3.4, 0, Math.PI * 2);
-      context.clip();
-      const quarter = EYE_WAVE_PERIOD / 4;
-      const start = eyeX - EYE_WAVE_PERIOD * 1.5;
-      context.beginPath();
-      context.moveTo(start, 22);
-      for (let cycle = 0; cycle < 3; cycle += 1) {
-        const x = start + cycle * EYE_WAVE_PERIOD;
-        context.quadraticCurveTo(
-          x + quarter,
-          22 - EYE_WAVE_AMPLITUDE,
-          x + quarter * 2,
-          22,
-        );
-        context.quadraticCurveTo(
-          x + quarter * 3,
-          22 + EYE_WAVE_AMPLITUDE,
-          x + quarter * 4,
-          22,
-        );
-      }
-      context.strokeStyle = eyeInk;
-      context.lineWidth = 0.9;
-      context.lineCap = 'round';
-      context.globalAlpha = 0.95;
-      context.stroke();
-      context.restore();
-    });
-  }
-
-  context.fillStyle = '#ffffff';
-  [16.4, 25.6].forEach((x) => {
-    context.beginPath();
-    context.arc(x, 21, 1.15, 0, Math.PI * 2);
-    context.fill();
-  });
-
-  context.strokeStyle = PET_INK;
-  context.lineWidth = 1.8;
-  context.beginPath();
-  context.moveTo(16.6, 28.4);
-  context.quadraticCurveTo(20, euphoric ? 32.6 : 32.2, 23.4, 28.4);
-  context.stroke();
-
   context.restore();
 };
 
