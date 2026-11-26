@@ -10,7 +10,7 @@ import { useAddonCapabilities } from '../addons';
 import Chevron from '../icons/Chevron';
 import LookIcon from '../icons/LookIcon';
 import SceneLookIcon from '../icons/SceneLookIcon';
-import { findGalleryScene } from '../plus/galleryStore';
+import { useGalleryFinder } from '../plus/galleryStore';
 import { useFluidEqHelpers } from '../plus/sceneStore';
 import { useCustomLooks } from '../utils/customLooks';
 import { useHoldGraphAutoCycle } from '../utils/graphAutoCycle';
@@ -120,6 +120,7 @@ const LookPicker = ({
   const members = useUsableMemberScenes();
   const lockedMembers = useLockedMemberScenes();
   const fluidEqHelpers = useFluidEqHelpers();
+  const findInGallery = useGalleryFinder();
   // FluidEQ's own scenes are this account's too when it publishes them.
   const { ownsOfficialScenes } = useAddonCapabilities();
   // Read for its changes: a look played at a new version loses its mark.
@@ -149,8 +150,9 @@ const LookPicker = ({
       ),
     [customLooks, palette, usable, members, t],
   );
-  // Rebuilt on every opening as well: the gallery's filing is read, not
-  // subscribed to, and a scene browsed in the gallery since should file there.
+  // Rebuilt whenever a gallery list changes, open or not: the marks, sorts
+  // and categories are the gallery's word, and the Scenes tab and this
+  // window read the same lists (`useGalleryFinder`).
   const plusRows = useMemo(
     () =>
       buildPlusRows({
@@ -160,11 +162,19 @@ const LookPicker = ({
         lockedMembers,
         locale,
         t,
-        findInGallery: findGalleryScene,
+        findInGallery,
         fluidEqHelpers,
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- isOpen re-reads the gallery store
-    [usable, locked, members, lockedMembers, locale, t, isOpen, fluidEqHelpers],
+    [
+      usable,
+      locked,
+      members,
+      lockedMembers,
+      locale,
+      t,
+      findInGallery,
+      fluidEqHelpers,
+    ],
   );
 
   const close = useCallback((refocus: boolean) => {

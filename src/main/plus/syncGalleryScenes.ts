@@ -17,7 +17,8 @@ interface IDependencies {
   logger?: { warn(message: string): void };
 }
 
-/** Event-driven: only installed scenes, once per published revision per session.
+/** Event-driven: installed scenes and the account's own published ones (an
+ * own scene not here is fetched), once per published revision per session.
  * Removal during a download wins. Missing publications keep their local copies.
  * Every download is verified against its own signing key and expected author/id.
  */
@@ -58,7 +59,18 @@ export const createGallerySceneSync = ({
         ? officialStore?.newest(scene.sceneId)
         : store.newest(scene.authorId, scene.sceneId);
     const current = load();
-    if (!current || store.isBlocked(scene.authorId, scene.sceneId)) {
+    // THE MAKER'S OWN SCENE IS IN THEIR LOOKS WHETHER OR NOT IT WAS ADDED
+    // (Ivan, 2026-11-25: authoring counts as added). It reached them only
+    // from the computer it was published on (`keepPublished`), so on any
+    // other computer, or once the looks were cleared, their own scene stood
+    // in the gallery as somebody else's would, kept out of their looks and
+    // of the graph until Add was pressed. Only a member's scene: FluidEQ's
+    // own reach their publisher through the pack listing.
+    const ownMissing = !current && !official && scene.authorId === me;
+    if (
+      (!current && !ownMissing) ||
+      store.isBlocked(scene.authorId, scene.sceneId)
+    ) {
       return;
     }
     // Another account's own editable copies are never part of this account.
@@ -82,7 +94,7 @@ export const createGallerySceneSync = ({
     // a session sees, a same-version one included (`ipc/scenePacks.ts`), and
     // without this each one pulled the whole pack — 11 MB for Alpine — to
     // find it unchanged.
-    if (!isLaterSceneVersion(scene.version, current.version)) {
+    if (!isLaterSceneVersion(scene.version, current?.version)) {
       checked.set(scene.lookId, stamp);
       return;
     }
@@ -91,7 +103,9 @@ export const createGallerySceneSync = ({
       return;
     }
     const stillEligible = () =>
-      mayKeep() && !!load() && !store.isBlocked(scene.authorId, scene.sceneId);
+      mayKeep() &&
+      (ownMissing || !!load()) &&
+      !store.isBlocked(scene.authorId, scene.sceneId);
     // The listing is the server's word for what the file holds; the file is
     // what gets adopted. Both are held to the rule, against the copy on disk
     // read again rather than the one read before the download — publishing

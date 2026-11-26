@@ -133,7 +133,18 @@ let serverViews = false;
 
 export const galleryServerViews = (): boolean => serverViews;
 
-const notify = () => listeners.forEach((listener) => listener());
+type TGalleryFinder = (lookId: string) => IGalleryScene | undefined;
+
+/**
+ * `findGalleryScene` as a value that is new after every change to any list
+ * (`useGalleryFinder`); made again on first ask after a change.
+ */
+let finder: TGalleryFinder | undefined;
+
+const notify = () => {
+  finder = undefined;
+  listeners.forEach((listener) => listener());
+};
 
 const bindAccount = () => {
   const next = ownerNow();
@@ -373,6 +384,23 @@ export const findGalleryScene = (lookId: string): IGalleryScene | undefined =>
       undefined,
     );
 
+const currentFinder = (): TGalleryFinder => {
+  finder ??= (lookId) => findGalleryScene(lookId);
+  return finder;
+};
+
+/**
+ * `findGalleryScene` for a component that must draw again whenever a list
+ * brings something new: the look picker, whose new and updated marks, sorts
+ * and categories are the gallery's word on each scene. It read the store as
+ * it opened and never again, so the newest page the picker itself asks for
+ * as it opens (`LookPickerMore`) landed after its rows were built, and a
+ * scene published or republished that day was marked nowhere until the
+ * picker was closed and opened once more.
+ */
+export const useGalleryFinder = (): TGalleryFinder =>
+  useSyncExternalStore(subscribe, currentFinder, currentFinder);
+
 export const useGalleryServerViews = (): boolean =>
   useSyncExternalStore(subscribe, galleryServerViews, galleryServerViews);
 
@@ -389,6 +417,7 @@ export const resetGalleryStore = () => {
   stopAccount = () => {};
   lists.clear();
   listeners.clear();
+  finder = undefined;
   owner = ownerNow();
   serverViews = false;
 };

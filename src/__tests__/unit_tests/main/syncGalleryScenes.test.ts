@@ -222,3 +222,100 @@ describe('a member scene already installed', () => {
     expect(saveImported).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * Ivan, 2026-11-25: authoring counts as added. A maker's own scene reached
+ * their looks only from the computer it was published on, so anywhere else
+ * it stood in the gallery like a stranger's, out of the looks and the graph
+ * until Add was pressed.
+ */
+describe('a scene this account made that is not on this computer', () => {
+  const access: IGalleryAccess = {
+    accountId: () => 'me',
+    entitled: () => false,
+    // Owning nothing bought: only authorship can bring a scene in here.
+    owns: () => false,
+    auth: async () => ({}) as Awaited<ReturnType<IGalleryAccess['auth']>>,
+  };
+
+  const listed = (authorId: string) =>
+    ({
+      authorId,
+      sceneId: 'koi',
+      lookId: `member:${authorId}:koi`,
+      version: 3,
+      updatedAt: '2026-11-25T09:00:00Z',
+    }) as unknown as IGalleryScene;
+
+  const emptyStore = () => {
+    const save = jest.fn();
+    const saveImported = jest.fn();
+    return {
+      save,
+      saveImported,
+      store: {
+        isBlocked: () => false,
+        list: () => [],
+        newest: () => undefined,
+        save,
+        saveImported,
+      } as unknown as IMemberSceneStore,
+    };
+  };
+
+  beforeEach(() => {
+    fetchEnvelope.mockReset();
+    openMemberEnvelope.mockReset();
+  });
+
+  it('is brought into the looks as the maker’s own', async () => {
+    const { store, save } = emptyStore();
+    const announce = jest.fn();
+    fetchEnvelope.mockResolvedValue({ envelope: true });
+    const pack = { id: 'koi', version: 3 };
+    openMemberEnvelope.mockReturnValue({ author: { id: 'me' }, pack });
+    const sync = createGallerySceneSync({ access, store, announce });
+
+    await sync([listed('me')]);
+
+    expect(fetchEnvelope).toHaveBeenCalledWith({}, 'me', 'koi', 3);
+    expect(save).toHaveBeenCalledWith('me', pack);
+    expect(announce).toHaveBeenCalledTimes(1);
+  });
+
+  // The control: somebody else's scene this account owns but never added
+  // stays out of its looks; the gallery's Add is the only way in.
+  it('leaves another member’s scene that was never added where it is', async () => {
+    const { store, save, saveImported } = emptyStore();
+    fetchEnvelope.mockResolvedValue({ envelope: true });
+    openMemberEnvelope.mockReturnValue({
+      author: { id: 'maker' },
+      pack: { id: 'koi', version: 3 },
+    });
+    const sync = createGallerySceneSync({
+      access: { ...access, owns: () => true },
+      store,
+      announce: () => {},
+    });
+
+    await sync([listed('maker')]);
+
+    expect(fetchEnvelope).not.toHaveBeenCalled();
+    expect(save).not.toHaveBeenCalled();
+    expect(saveImported).not.toHaveBeenCalled();
+  });
+
+  it('is never fetched once this computer blocked it', async () => {
+    const { store, save } = emptyStore();
+    const sync = createGallerySceneSync({
+      access,
+      store: { ...store, isBlocked: () => true } as IMemberSceneStore,
+      announce: () => {},
+    });
+
+    await sync([listed('me')]);
+
+    expect(fetchEnvelope).not.toHaveBeenCalled();
+    expect(save).not.toHaveBeenCalled();
+  });
+});

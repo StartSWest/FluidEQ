@@ -677,6 +677,9 @@ export const registerPlusGalleryIpc = ({
     refreshIfDue: createGalleryRefresh(access, syncInstalled, () => {
       const me = access.accountId();
       return [
+        // The account's own page always: an own scene not on this computer
+        // yet is brought into the looks by the sync (`syncGalleryScenes`).
+        ...(me ? [me] : []),
         ...store
           .list()
           .filter((scene) => scene.authorId === me || access.owns(scene.lookId))
