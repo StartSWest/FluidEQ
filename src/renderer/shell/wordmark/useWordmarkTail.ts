@@ -27,8 +27,6 @@ export interface ITailGeometry {
   length: number;
   /** The pen's width where the tail leaves the Q, px. */
   startWidth: number;
-  /** Whether a song sits on the tail, which calms it under the text. */
-  carriesSong: boolean;
 }
 
 /**
@@ -57,11 +55,10 @@ const useWordmarkTail = (
     if (!path) {
       return;
     }
-    const { length, startWidth, carriesSong } = geometryRef.current;
+    const { length, startWidth } = geometryRef.current;
     // A short flourish sways in proportion to its length: its full sway
     // across 22px read as a scribble in the window.
-    const sway =
-      Math.min(TAIL_SWAY_PX, length * 0.12) * (carriesSong ? 0.75 : 1);
+    const sway = Math.min(TAIL_SWAY_PX, length * 0.12);
     path.setAttribute(
       'd',
       tailOutline(
@@ -103,21 +100,15 @@ const useWordmarkTail = (
     kick();
   });
 
-  // A new length, a song arriving or leaving, motion turned down: the tail
-  // is drawn again where it is, at rest when motion is down.
+  // A new size, motion turned down: the tail is drawn again where it is, at
+  // rest when motion is down.
   useEffect(() => {
     if (isStill) {
       currentRef.current.fill(0);
       targetRef.current.fill(0);
     }
     draw();
-  }, [
-    draw,
-    isStill,
-    geometry.length,
-    geometry.startWidth,
-    geometry.carriesSong,
-  ]);
+  }, [draw, isStill, geometry.length, geometry.startWidth]);
 };
 
 export default useWordmarkTail;

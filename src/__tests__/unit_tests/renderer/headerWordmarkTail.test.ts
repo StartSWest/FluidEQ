@@ -21,6 +21,7 @@ import {
   tailOutline,
   tailRest,
   tailSignal,
+  tailWidthShare,
 } from 'renderer/shell/wordmark/wordmarkTail';
 
 // Every point of a block at its own size scribbled — worst on the 22px
@@ -124,14 +125,14 @@ describe('the tail’s shape', () => {
     expect(moved[Math.round(TAIL_POINTS / 4)]).toBeGreaterThan(
       rest[Math.round(TAIL_POINTS / 4)] + TAIL_SWAY_PX * 0.7,
     );
-    // Calmer where a title sits on it.
+    // Calmer with a smaller sway, as a short flourish is given.
     const calm = tailOffsets(music, TAIL_SWAY_PX * 0.75);
     expect(calm[Math.round(TAIL_POINTS / 4)]).toBeLessThan(
       moved[Math.round(TAIL_POINTS / 4)],
     );
   });
 
-  it('is drawn as an outline that leaves the Q at the pen’s width and thins out', () => {
+  it('is drawn as an outline that leaves the Q at the pen’s width and ends in a point', () => {
     const outline = tailOutline(new Array(5).fill(0), 100, 12, 4);
     const points = outline
       .replace(/^M|Z$/g, '')
@@ -143,6 +144,38 @@ describe('the tail’s shape', () => {
     expect(startTop[0]).toBe(0);
     expect(endTop[0]).toBe(100);
     expect(startBottom[1] - startTop[1]).toBeCloseTo(4, 5);
-    expect(endBottom[1] - endTop[1]).toBeCloseTo(1.5, 5);
+    // It used to stop at a 1.5px square end, which read as sliced off.
+    expect(endBottom[1] - endTop[1]).toBeCloseTo(0, 5);
+  });
+});
+
+describe('the tail’s width', () => {
+  const pen = 6;
+
+  it('is the pen’s whole width at the Q', () => {
+    expect(tailWidthShare(0, pen)).toBeCloseTo(1, 5);
+  });
+
+  it('thins to a fine line of about 1.2px as it becomes sound', () => {
+    expect(tailWidthShare(0.7, pen) * pen).toBeCloseTo(1.2, 5);
+  });
+
+  it('closes to nothing at its end, and only over the last fifth', () => {
+    expect(tailWidthShare(1, pen)).toBeCloseTo(0, 5);
+    expect(tailWidthShare(0.9, pen) * pen).toBeGreaterThan(0.5);
+    expect(tailWidthShare(0.9, pen)).toBeLessThan(tailWidthShare(0.8, pen));
+  });
+
+  it('never grows on its way out', () => {
+    const widths = Array.from({ length: 51 }, (_, i) =>
+      tailWidthShare(i / 50, pen),
+    );
+    widths.slice(1).forEach((width, i) => {
+      expect(width).toBeLessThanOrEqual(widths[i] + 1e-9);
+    });
+  });
+
+  it('keeps a pen already finer than the line at its own width until the end', () => {
+    expect(tailWidthShare(0.5, 1)).toBeCloseTo(1, 5);
   });
 });

@@ -132,7 +132,7 @@ export const tailRest = (u: number): number => {
 /**
  * Where each point of the tail sits, px below its line (negative is above):
  * the still flourish plus the music, shaped by the envelope. `sway` is how far
- * the music may move it — less where a title sits on the tail.
+ * the music may move it.
  */
 export const tailOffsets = (
   signal: readonly number[],
@@ -146,25 +146,40 @@ export const tailOffsets = (
 };
 
 /**
- * The tail as a filled outline, tapering from `startWidth` at the Q to a fine
- * line: what the pen leaves on a level stroke, thinning as it becomes sound.
- * `offsets` are px below the line at `y`, spread evenly over `length` px.
+ * The tail's width at `u` (0 at the Q, 1 at its end), as a share of the pen's
+ * width at the Q: thinning to a fine line as it becomes sound, then running
+ * out to a point, as a broad pen's stroke ends when it lifts off.
+ *
+ * It used to stop at a fine line 1.5px wide, a square end that read as the
+ * tail sliced off in the window (Ivan, 2026-11-26: "its tail, it slices");
+ * the last fifth now closes to nothing.
+ */
+export const tailWidthShare = (u: number, startWidth: number): number => {
+  const clamped = Math.min(1, Math.max(0, u));
+  const fine = Math.min(1, 1.2 / Math.max(startWidth, 1.2));
+  const thinned = 1 + (fine - 1) * Math.min(1, (clamped * 1.6) ** 0.8);
+  const lift =
+    clamped < 0.8 ? 1 : Math.cos(((clamped - 0.8) / 0.2) * (Math.PI / 2));
+  return thinned * lift;
+};
+
+/**
+ * The tail as a filled outline, tapering from `startWidth` at the Q to a
+ * point at its end (`tailWidthShare`). `offsets` are px below the line at
+ * `y`, spread evenly over `length` px.
  */
 export const tailOutline = (
   offsets: readonly number[],
   length: number,
   y: number,
   startWidth: number,
-  endWidth = 1.5,
 ): string => {
   const last = Math.max(1, offsets.length - 1);
   const top: string[] = [];
   const bottom: string[] = [];
   offsets.forEach((offset, i) => {
     const u = i / last;
-    const half =
-      (startWidth + (endWidth - startWidth) * Math.min(1, (u * 1.6) ** 0.8)) /
-      2;
+    const half = (startWidth * tailWidthShare(u, startWidth)) / 2;
     const x = (u * length).toFixed(1);
     top.push(`${x} ${(y + offset - half).toFixed(2)}`);
     bottom.push(`${x} ${(y + offset + half).toFixed(2)}`);

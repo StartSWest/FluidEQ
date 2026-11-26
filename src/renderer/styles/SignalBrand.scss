@@ -252,11 +252,11 @@ $pulse-edge: 0.0004;
   overflow: visible;
 }
 
-// One width in the flow whatever plays: the word and the version past the
-// Q. The tail is laid over what is beside it — its short flourish hangs into
-// the gap before the first tab, which is air either way, and its long run and
-// the song only where the bar already has room (`wordmarkRoom.ts`). Every
-// pixel this end takes costs the meter two.
+// One width in the flow: the word and the version past the Q. The tail's
+// short flourish is laid over the gap before the first tab, which is air
+// either way (`wordmarkRoom.ts`). Every pixel this end takes costs the meter
+// two. No song here (Ivan, 2026-11-26: "don't put the song name in the
+// title").
 .header-wordmark {
   position: relative;
   display: flex;
@@ -292,44 +292,6 @@ $pulse-edge: 0.0004;
   pointer-events: none;
 }
 
-// The song on the tail: the title over the artist, each line fading out at
-// its end when it runs long (`isLineClipped`).
-.header-wordmark__song {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  color: $text-primary;
-  transition: opacity 200ms ease;
-
-  &.is-paused {
-    opacity: 0.55;
-  }
-}
-
-.header-wordmark__line {
-  display: block;
-  overflow: hidden;
-  white-space: nowrap;
-
-  &.is-clipped {
-    mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent);
-  }
-}
-
-.header-wordmark__title {
-  font-size: 13.5px;
-  font-weight: $weight-semibold;
-  line-height: 18px;
-}
-
-.header-wordmark__artist {
-  font-size: 12.5px;
-  font-weight: $weight-regular;
-  line-height: 17px;
-  color: $text-muted;
-}
-
 // *** Still *******************************************************************
 
 // Drawn and quiet: the logo as it stands once the opening is over, with no
@@ -347,9 +309,5 @@ $pulse-edge: 0.0004;
 
   .brand-mark--signal .brand-mark__pulse {
     display: none;
-  }
-
-  .header-wordmark__song {
-    transition: none;
   }
 }

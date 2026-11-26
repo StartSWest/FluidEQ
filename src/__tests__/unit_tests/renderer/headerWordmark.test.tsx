@@ -6,25 +6,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * The header's name in the broad pen (Ivan, 2026-11-26): one outline swept
- * by a flat nib, the version as two numbers over the Q, and the song laid on
- * the tail only where the bar already has the room — never under the word,
- * and never by taking width from the meter.
+ * by a flat nib, the version as two numbers over the Q, and no song (Ivan
+ * took it off the same day: "don't put the song name in the title").
  */
 
 import { render } from '@testing-library/react';
+import HeaderWordmark from 'renderer/shell/wordmark/HeaderWordmark';
 import WordmarkStill from 'renderer/shell/wordmark/WordmarkStill';
 import {
   buildWordmark,
   sampleStroke,
 } from 'renderer/shell/wordmark/wordmarkPen';
-import {
-  SONG_MAX_PX,
-  SONG_MIN_PX,
-  TAIL_FLOURISH_PX,
-  isLineClipped,
-  shortVersion,
-  wordmarkRoom,
-} from 'renderer/shell/wordmark/wordmarkRoom';
+import { shortVersion } from 'renderer/shell/wordmark/wordmarkRoom';
+
+// The tail listens to the frames the header's meter receives; nothing plays
+// here, so it rests on its still curve.
+jest.mock('renderer/audio/LiveAudioContext', () => ({
+  useLiveAudioFrameListener: () => undefined,
+}));
 
 /** Twice the signed area of a closed polygon given as "x y" pairs. */
 const signedArea = (piece: string) => {
@@ -81,43 +80,6 @@ describe('the pen', () => {
   });
 });
 
-describe('the song on the tail', () => {
-  const input = { tailStart: 140, versionRight: 168 };
-
-  it('rides the tail where the bar has room, never wider than its cap', () => {
-    const room = wordmarkRoom({ ...input, tabsLeft: 900 });
-    expect(room.songLeft).toBe(178);
-    expect(room.songWidth).toBe(SONG_MAX_PX);
-    // The tail runs on under the whole of it.
-    expect(input.tailStart + room.tailLength).toBe(
-      (room.songLeft ?? 0) + SONG_MAX_PX,
-    );
-  });
-
-  it('takes only the room there is before the first tab', () => {
-    const room = wordmarkRoom({ ...input, tabsLeft: 178 + 16 + 200 });
-    expect(room.songWidth).toBe(200);
-  });
-
-  it('is not shown, under the word or anywhere, without that room', () => {
-    const tight = wordmarkRoom({
-      ...input,
-      tabsLeft: 178 + 16 + SONG_MIN_PX - 1,
-    });
-    expect(tight).toEqual({ tailLength: TAIL_FLOURISH_PX });
-    expect(wordmarkRoom({ ...input, tabsLeft: Number.NaN })).toEqual({
-      tailLength: TAIL_FLOURISH_PX,
-    });
-  });
-
-  it('fades a line out only when it truly runs past its box', () => {
-    expect(isLineClipped(200, 200)).toBe(false);
-    // A pixel of rounding is not a clipped line.
-    expect(isLineClipped(201, 200)).toBe(false);
-    expect(isLineClipped(240, 200)).toBe(true);
-  });
-});
-
 describe('the version', () => {
   it('is always two numbers', () => {
     expect(shortVersion('2.6.0')).toBe('v2.6');
@@ -137,5 +99,20 @@ describe('the name as a picture', () => {
     expect(getByRole('img', { name: 'FluidEQ' })).toBeTruthy();
     const tail = container.querySelector('.header-wordmark__tail path');
     expect(tail?.getAttribute('d')).toMatch(/^M0\.0 /);
+  });
+});
+
+describe('the name in the header', () => {
+  it('says the product and nothing about what plays', () => {
+    const { container } = render(<HeaderWordmark />);
+    const header = container.querySelector('.header-wordmark');
+    expect(header).toBeTruthy();
+    // The song rode the tail once; nothing of it is left to render.
+    expect(container.querySelector('.header-wordmark__song')).toBeNull();
+    expect(header?.textContent?.replace(/v\d+\.\d+/, '')).toBe('');
+    // The control: the tail it carried is still drawn.
+    expect(
+      container.querySelector('.header-wordmark__tail path')?.getAttribute('d'),
+    ).toMatch(/^M0\.0 /);
   });
 });
