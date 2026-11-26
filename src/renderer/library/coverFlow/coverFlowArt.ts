@@ -27,6 +27,7 @@ import {
   libraryMediaUrl,
   librarySizedArtUrl,
 } from '../../../common/library/mediaUrl';
+import readableContext from './coverFlowCanvas';
 import drawTile from './coverFlowTile';
 
 /** The picture sizes the row uses. */
@@ -96,7 +97,7 @@ const canvasOf = (
   const canvas = document.createElement('canvas');
   canvas.width = edge;
   canvas.height = edge;
-  const context = canvas.getContext('2d');
+  const context = readableContext(canvas);
   if (!context) {
     throw new Error('A 2D canvas could not be made for a cover');
   }
@@ -270,7 +271,7 @@ const folderBitmap = async (
   groundContext.scale(edge / 100, edge / 100);
   groundContext.fillStyle = folderGradient(groundContext, colours);
   groundContext.fillRect(0, 0, 100, 100);
-  const folderContext = folder.getContext('2d');
+  const folderContext = readableContext(folder);
   if (!folderContext) {
     throw new Error('A folder cover could not be read back');
   }
@@ -349,7 +350,7 @@ export const loadCoverFlowArt = async (
     upright.width = 0;
   }
   if (request.isPending) {
-    const badgeContext = art.getContext('2d');
+    const badgeContext = readableContext(art);
     if (badgeContext) {
       paintPendingBadge(badgeContext, edge);
     }

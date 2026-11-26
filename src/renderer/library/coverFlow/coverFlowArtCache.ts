@@ -170,6 +170,12 @@ export const createCoverFlowArtCache = (options: {
       // On the graphics card the pixels are no longer needed here; a lost
       // context builds the scene again from the start.
       texture.onUpdate = () => releaseCoverFlowArt(picture);
+      // three puts a texture on the card the first time its cover is drawn,
+      // so a cover got ready ahead of the row and left before it came into
+      // view was never uploaded: without this its decoded picture stayed in
+      // memory until the garbage collector found it. Shutting a picture
+      // twice is harmless.
+      texture.addEventListener('dispose', () => releaseCoverFlowArt(picture));
       entry.texture?.dispose();
       entry.texture = texture;
       entry.size = ready.size;

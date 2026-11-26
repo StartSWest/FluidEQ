@@ -13,12 +13,13 @@ import {
   libraryTileHue,
   libraryTileInitials,
 } from '../../../common/library/artwork';
+import readableContext from './coverFlowCanvas';
 
 const drawTile = (label: string, edge: number): HTMLCanvasElement => {
   const canvas = document.createElement('canvas');
   canvas.width = edge;
   canvas.height = edge;
-  const context = canvas.getContext('2d');
+  const context = readableContext(canvas);
   if (!context) {
     return canvas;
   }

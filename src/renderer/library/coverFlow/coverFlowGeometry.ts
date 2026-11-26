@@ -22,6 +22,52 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * texture while it is inside this window, and gives it back as it leaves. */
 export const COVER_FLOW_WINDOW = 10;
 
+/** Covers past the drawn window that keep their picture ready on the side
+ * the row is heading for, so the cover that comes in next arrives wearing
+ * it rather than as an empty sleeve. */
+export const COVER_FLOW_AHEAD = 6;
+/** The same on the side the row is leaving: a cover stepping out and back
+ * in is not decoded twice. */
+export const COVER_FLOW_BEHIND = 2;
+
+/** A run of the row's indices, both ends included; empty when `last` is
+ * under `first`. */
+export interface ICoverFlowSpan {
+  first: number;
+  last: number;
+}
+
+/**
+ * Which covers are drawn and which hold a picture, with the row standing
+ * at `position` and last moving towards `heading` (+1 along the row, -1
+ * back, 0 never moved, which keeps the short margin on both sides).
+ *
+ * Bounded whatever the library's length: never more than
+ * `2 * COVER_FLOW_WINDOW + 1` drawn and `COVER_FLOW_AHEAD + COVER_FLOW_BEHIND`
+ * more kept, so the pictures on the graphics card and in memory are the same
+ * for 30 albums as for 5,000.
+ */
+export const coverFlowSpans = (
+  position: number,
+  heading: number,
+  count: number,
+): { drawn: ICoverFlowSpan; kept: ICoverFlowSpan } => {
+  const centre = Math.round(position);
+  const drawn = {
+    first: Math.max(0, centre - COVER_FLOW_WINDOW),
+    last: Math.min(count - 1, centre + COVER_FLOW_WINDOW),
+  };
+  const before = heading < 0 ? COVER_FLOW_AHEAD : COVER_FLOW_BEHIND;
+  const after = heading > 0 ? COVER_FLOW_AHEAD : COVER_FLOW_BEHIND;
+  return {
+    drawn,
+    kept: {
+      first: Math.max(0, centre - COVER_FLOW_WINDOW - before),
+      last: Math.min(count - 1, centre + COVER_FLOW_WINDOW + after),
+    },
+  };
+};
+
 /** A cover's edge, in world units. */
 export const COVER_EDGE = 1.6;
 /** The floor the covers stand on: just under the bottom edge. */

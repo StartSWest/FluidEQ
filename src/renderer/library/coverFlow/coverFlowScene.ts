@@ -19,15 +19,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * Frames come from `requestAnimationFrame` and only while something moves —
  * the row gliding, a drag, the light blending, a picture arriving. At rest
  * nothing runs. Only the covers within `COVER_FLOW_WINDOW` of where the row
- * stands hold a texture, and each is given back as it leaves; `dispose`
- * gives back everything, the WebGL context included.
+ * stands, and a few more ahead of it (`coverFlowSpans`), hold a texture, and
+ * each is given back as it leaves; `dispose` gives back everything, the
+ * WebGL context included.
  */
 import * as THREE from 'three';
 import {
   CAMERA_FOV,
   CENTRE_Z,
-  COVER_FLOW_WINDOW,
   coverFlowLayout,
+  coverFlowSpans,
   coverPlacement,
   glideToward,
   travelStart,
@@ -100,9 +101,6 @@ export interface ICoverFlowSceneOptions {
 /** New textures shown per frame, nearest first, so a flick through covers
  * nobody has seen yet never puts a whole window of uploads in one frame. */
 const UPLOADS_PER_FRAME = 3;
-/** Kept a little past the drawn window, so a cover stepping out and back in
- * is not decoded twice. */
-const KEEP_MARGIN = 2;
 
 export const createCoverFlowScene = (
   options: ICoverFlowSceneOptions,
@@ -148,6 +146,10 @@ export const createCoverFlowScene = (
     playingId: undefined,
   };
   let position = 0;
+  /** Which way the row last moved: the covers ahead of it are got ready
+   * (`coverFlowSpans`). Kept while it rests, as the next turn is most often
+   * the same way. */
+  let heading = 0;
   let target = 0;
   let hasCentre = false;
   let drag: number | undefined;
@@ -186,9 +188,12 @@ export const createCoverFlowScene = (
   });
 
   const place = () => {
-    const centre = Math.round(position);
-    const first = Math.max(0, centre - COVER_FLOW_WINDOW);
-    const last = Math.min(source.count - 1, centre + COVER_FLOW_WINDOW);
+    const { drawn, kept: ready } = coverFlowSpans(
+      position,
+      heading,
+      source.count,
+    );
+    const { first, last } = drawn;
     cards.forEach((card, index) => {
       if (index < first || index > last) {
         card.group.visible = false;
@@ -198,11 +203,7 @@ export const createCoverFlowScene = (
     });
     const kept = new Set<string>();
     const slots: { index: number; slot: ICoverFlowSlot }[] = [];
-    for (
-      let index = Math.max(0, first - KEEP_MARGIN);
-      index <= Math.min(source.count - 1, last + KEEP_MARGIN);
-      index += 1
-    ) {
+    for (let index = ready.first; index <= ready.last; index += 1) {
       const slot = source.itemAt(index);
       if (slot) {
         kept.add(artKeyOf(slot));
@@ -266,6 +267,7 @@ export const createCoverFlowScene = (
   };
 
   const render = (seconds: number): boolean => {
+    const before = position;
     if (spinning) {
       // Timed from its first drawn frame, so the covers it starts on have had
       // that frame to be asked for.
@@ -291,6 +293,9 @@ export const createCoverFlowScene = (
       position = target;
     } else {
       position = glideToward(position, target, seconds);
+    }
+    if (position !== before) {
+      heading = Math.sign(position - before);
     }
     const strength = isExpanded ? 0 : 1;
     reflectionStrength.value = isReduced

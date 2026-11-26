@@ -23,7 +23,10 @@ import type { TLibraryBrowseMode } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import { prefersReducedMotion } from '../utils/bandReveal';
 import MenuIcon from '../icons/MenuIcon';
-import { COVER_FLOW_WINDOW } from './coverFlow/coverFlowGeometry';
+import {
+  COVER_FLOW_AHEAD,
+  COVER_FLOW_WINDOW,
+} from './coverFlow/coverFlowGeometry';
 import type { ICoverFlowSource } from './coverFlow/coverFlowScene';
 import useCoverFlowScene from './coverFlow/useCoverFlowScene';
 import useCoverFlowSurprise from './coverFlow/useCoverFlowSurprise';
@@ -298,12 +301,12 @@ const LibraryCoverFlow = ({
     setCurrentIndex(clamped);
   };
 
-  // The covers either side of the centre, asked for as the centre moves.
+  // The covers either side of the centre, asked for as the centre moves,
+  // with the ones the scene gets ready ahead of the row in whichever
+  // direction it turns (`coverFlowSpans`).
   useEffect(() => {
-    list?.want(
-      Math.max(0, currentIndex - COVER_FLOW_NEIGHBOURS),
-      currentIndex + COVER_FLOW_NEIGHBOURS + 1,
-    );
+    const reach = COVER_FLOW_NEIGHBOURS + COVER_FLOW_AHEAD;
+    list?.want(Math.max(0, currentIndex - reach), currentIndex + reach + 1);
   }, [list, currentIndex]);
 
   /**
