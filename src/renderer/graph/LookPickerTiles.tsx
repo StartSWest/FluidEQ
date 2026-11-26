@@ -4,11 +4,11 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useState } from 'react';
 import { BRAND_MARK } from 'common/branding';
 import { useAccount } from '../account/accountStore';
 import LibraryPlayingBars from '../library/LibraryPlayingBars';
 import { useTranslation } from '../utils/I18nContext';
+import { useOnePlaying, useTileAttention } from '../utils/onePlaying';
 import GraphSceneRemove from './GraphSceneRemove';
 import GraphSceneReport from './GraphSceneReport';
 import { originOf, type TFreshness } from './lookPickerFilter';
@@ -182,28 +182,19 @@ export function LookPickerSceneTile({
 }: ISceneTileProps) {
   const { t } = useTranslation();
   const caption = useSceneCaption(row, fresh);
-  // The scene's published clip over its picture while the tile is in the
-  // picker's scroller, or the pointer or the focus is on it
-  // (`lookTileClips.tsx`); the picture stays under it until a frame is
-  // painted. The whole item answers, its report and remove buttons included:
-  // a hand resting on them is still on the tile.
-  const [element, setElement] = useState<HTMLDivElement | null>(null);
-  const [hovered, setHovered] = useState(false);
-  const [focused, setFocused] = useState(false);
-  const clip = useTileClip(row.thumbnail, element, hovered || focused);
+  // The scene's published clip over its picture while this is the one tile
+  // that plays - the pointer or the keyboard on it (`lookTileClips.tsx`);
+  // the picture stays under it until a frame is painted. The whole item
+  // answers, its report and remove buttons included.
+  const { attention, handlers } = useTileAttention();
+  const clip = useTileClip(row.thumbnail, attention);
   return (
     <div
-      ref={setElement}
       className="look-picker__item"
-      onPointerEnter={() => setHovered(true)}
-      onPointerLeave={() => setHovered(false)}
-      onFocus={() => setFocused(true)}
-      onBlur={(event) => {
-        const next = event.relatedTarget;
-        if (!(next instanceof Node && event.currentTarget.contains(next))) {
-          setFocused(false);
-        }
-      }}
+      onPointerEnter={handlers.onPointerEnter}
+      onPointerLeave={handlers.onPointerLeave}
+      onFocus={handlers.onFocus}
+      onBlur={handlers.onBlur}
     >
       <button
         type="button"
@@ -266,8 +257,9 @@ interface IStyleTileProps {
 }
 
 /**
- * A standard style or one the member saved: the look itself, live, on its
- * plate (`LookTileArt`).
+ * A standard style or one the member saved: the look itself on its plate
+ * (`LookTileArt`), live while it is the one tile that plays - the pointer or
+ * the keyboard on it (`onePlaying.ts`) - and its still otherwise.
  */
 export function LookPickerStyleTile({
   row,
@@ -276,8 +268,14 @@ export function LookPickerStyleTile({
   onChoose,
 }: IStyleTileProps) {
   const { t } = useTranslation();
+  const { attention, handlers } = useTileAttention();
+  const playing = useOnePlaying(attention);
   return (
     <button
+      onPointerEnter={handlers.onPointerEnter}
+      onPointerLeave={handlers.onPointerLeave}
+      onFocus={handlers.onFocus}
+      onBlur={handlers.onBlur}
       type="button"
       className={`look-picker__pick look-picker__tile look-picker__tile--style${
         selected ? ' is-selected' : ''
@@ -288,7 +286,7 @@ export function LookPickerStyleTile({
       onClick={() => onChoose(row.id)}
     >
       <span className="look-picker__art look-picker__art--style">
-        <LookTileArt look={row.look} />
+        <LookTileArt look={row.look} playing={playing} />
         {selected && <PlayingChip />}
       </span>
       <span

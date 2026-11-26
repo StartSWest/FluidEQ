@@ -5,11 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The look picker's Details list does what the grid does (Ivan,
- * 2026-11-24): each standard look's small picture is drawn live on the
- * tiles' one loop, from its still and out of view not at all; and a scene's
- * row plays its published clip while it is in the list's view, or the
- * pointer or the focus is on it. Each "nothing" case stands beside its control.
+ * The look picker's Details list does what the grid does: every row shows
+ * its picture, and only the one row the pointer or the keyboard is on plays
+ * (Ivan, 2026-11-26: "only play the one hovering"; `onePlaying.ts`) - a
+ * standard look drawn live on the tiles' one loop, a scene its published
+ * clip. Each "nothing" case stands beside its control.
  */
 
 interface IDriverProps {
@@ -211,60 +211,70 @@ beforeEach(() => {
   reduced = false;
 });
 
-it("draws every standard look's picture live, on one loop", () => {
-  list();
-  expect(screen.getAllByTestId('live-drawing')).toHaveLength(2);
-  expect(frames).toHaveLength(1);
-  runFrame(1000);
-  expect(drawnFrames).toEqual(STYLES.map((each) => each.look));
-});
+/** The row of the look or scene called `name`. */
+const rowOf = (name: string) => {
+  const row = screen.getByTitle(name).closest('.look-picker__item');
+  if (!row) {
+    throw new Error(`${name} has a row`);
+  }
+  return row;
+};
 
-it('stops drawing a row scrolled out of the list', () => {
+it('draws no standard look at rest, and the hovered row alone, on every frame', () => {
   list();
-  const [plate] = document.querySelectorAll('.look-tile-art');
-  scrollOut(plate);
+  expect(screen.queryByTestId('live-drawing')).not.toBeInTheDocument();
+  expect(frames).toHaveLength(0);
+  fireEvent.pointerEnter(rowOf('spectrogram'));
   expect(screen.getAllByTestId('live-drawing')).toHaveLength(1);
   runFrame(1000);
-  expect(drawnFrames).toEqual([STYLES[1].look]);
+  runFrame(1007);
+  expect(drawnFrames).toEqual([STYLES[1].look, STYLES[1].look]);
+  fireEvent.pointerLeave(rowOf('spectrogram'));
+  expect(screen.queryByTestId('live-drawing')).not.toBeInTheDocument();
+  expect(frames).toHaveLength(0);
 });
 
-it('keeps the stills under reduced motion', () => {
+it('stops drawing a hovered row scrolled out of the list', () => {
+  list();
+  fireEvent.pointerEnter(rowOf('analyzer'));
+  const [plate] = document.querySelectorAll('.look-tile-art');
+  scrollOut(plate);
+  expect(screen.queryByTestId('live-drawing')).not.toBeInTheDocument();
+});
+
+it('keeps the stills under reduced motion, the hovered row too', () => {
   reduced = true;
   list();
+  fireEvent.pointerEnter(rowOf('analyzer'));
   expect(screen.queryByTestId('live-drawing')).not.toBeInTheDocument();
   expect(document.querySelectorAll('.look-tile-art__still')).toHaveLength(2);
   expect(frames).toHaveLength(0);
 });
 
-it("plays a scene row's clip while it is in the list's view, and not once scrolled out", () => {
-  const { container } = list();
+it("plays a scene row's clip only under the pointer or with the keyboard", () => {
+  list();
   expect(screen.getByTestId('picture')).toBeInTheDocument();
-  expect(screen.getByTestId('clip')).toBeInTheDocument();
-  const item = container.querySelector('.look-picker__item');
-  if (!item) {
-    throw new Error('the list has the scene row');
-  }
-  scrollOut(item);
   expect(screen.queryByTestId('clip')).not.toBeInTheDocument();
-  expect(asked[asked.length - 1]).toBe(false);
-  // Its picture stays.
-  expect(screen.getByTestId('picture')).toBeInTheDocument();
-});
-
-it("plays a scrolled-out scene row's clip under the pointer and with the keyboard", () => {
-  const { container } = list();
-  const item = container.querySelector('.look-picker__item');
-  if (!item) {
-    throw new Error('the list has the scene row');
-  }
-  scrollOut(item);
+  expect(asked.some(Boolean)).toBe(false);
+  const item = rowOf('Koi Pond');
   fireEvent.pointerEnter(item);
   expect(screen.getByTestId('clip')).toBeInTheDocument();
   fireEvent.pointerLeave(item);
   expect(screen.queryByTestId('clip')).not.toBeInTheDocument();
-  const row = screen.getByRole('button', { name: /Koi Pond/ });
-  fireEvent.focus(row);
+  const row = screen.getByTitle('Koi Pond');
+  act(() => row.focus());
   expect(screen.getByTestId('clip')).toBeInTheDocument();
-  fireEvent.blur(row);
+  act(() => row.blur());
   expect(screen.queryByTestId('clip')).not.toBeInTheDocument();
+  // Its picture stays throughout.
+  expect(screen.getByTestId('picture')).toBeInTheDocument();
+});
+
+it('plays one row at a time: the scene stops when a standard look is hovered', () => {
+  list();
+  act(() => screen.getByTitle('Koi Pond').focus());
+  expect(screen.getByTestId('clip')).toBeInTheDocument();
+  fireEvent.pointerEnter(rowOf('analyzer'));
+  expect(screen.queryByTestId('clip')).not.toBeInTheDocument();
+  expect(screen.getAllByTestId('live-drawing')).toHaveLength(1);
 });

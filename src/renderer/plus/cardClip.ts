@@ -7,7 +7,8 @@ import useReducedMotion from '../utils/useReducedMotion';
  * recorded when the scene was published (Ivan, 2026-11-13: "add hover and
  * play the video only not the scene") - never the scene itself, so a
  * playing card or tile starts no scene worker and no GL context. Which of
- * them play is `clipSlots.tsx`'s: those in view, within a bound.
+ * them plays is `onePlaying.ts`'s: the one the pointer or the keyboard is
+ * on, and no other.
  *
  * Cheap by construction, because a grid can hold sixty cards:
  * - nothing is asked for until a tile may play, and the answer is used only
@@ -17,7 +18,7 @@ import useReducedMotion from '../utils/useReducedMotion';
  *   long grid never holds a decoder per card;
  * - a scene that has no clip (published before clips, or an official one
  *   without) is remembered as such for this account and session, so it is
- *   not asked again and takes no slot.
+ *   not asked again and never takes the turn to play.
  * Main keeps every clip it fetched on disk by version, so a clip seen twice
  * downloads once.
  */
@@ -43,8 +44,8 @@ const clipKey = (
 
 /**
  * Whether the scene was asked for and found to have no clip, as a value that
- * changes when the answer lands: a tile holding one of the few clip slots
- * gives it up for one with something to play (`clipSlots.tsx`).
+ * changes when the answer lands: a tile with nothing to play gives the turn
+ * back to one that has (`onePlaying.ts`).
  */
 export const useKnownWithoutClip = (
   scene: Pick<ISceneClipRef, 'authorId' | 'sceneId' | 'version'> | undefined,

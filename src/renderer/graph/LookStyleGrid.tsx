@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -19,14 +20,12 @@ import { createTileWatcher, type TWatchTile } from './lookTileWatcher';
 import { LookTileSoundScope } from './lookTileSound';
 
 /**
- * The look picker's grid of standard looks, every one of them drawn live
- * (Ivan, 2026-11-23: "the animated version of the standard looks like the
- * real ones but very cheap instead of those fixed icons"; and then, "since
- * they are small, I want all of them to animate in this view"). Each tile
- * that is in the picker's scroller draws its look on the music, or on the
- * demo song while nothing plays (`LookTileArt`); a tile scrolled out of it
- * draws nothing and keeps its still. One loop draws them all
- * (`lookTileLoop.ts`) and one sound feeds them all (`lookTileSound.tsx`).
+ * The look picker's grid of standard looks, each one its still picture
+ * until the pointer or the keyboard is on it, and then the look itself,
+ * live, at the display's full rate (Ivan, 2026-11-26: "only play the one
+ * hovering, and play it full, no fps drop"; `onePlaying.ts`). One loop draws
+ * it (`lookTileLoop.ts`) and one sound feeds it (`lookTileSound.tsx`), on
+ * the music or on the demo song while nothing plays (`LookTileArt`).
  */
 
 interface ITileGrid {
@@ -35,6 +34,13 @@ interface ITileGrid {
   watch: TWatchTile;
   /** The window's colours, as part of what names a still. */
   paintKey: string;
+  /**
+   * A tile is about to play: the sound is opened from now until the grid
+   * closes. Never before - a grid nobody points at holds no capture and runs
+   * no demo song - and not closed between two tiles, or a pointer moving
+   * across the grid would start the demo song again at every tile.
+   */
+  wantSound: () => void;
 }
 
 const TileGridContext = createContext<ITileGrid | undefined>(undefined);
@@ -44,6 +50,7 @@ const RESTING: ITileGrid = {
   loop: undefined,
   watch: () => () => undefined,
   paintKey: '',
+  wantSound: () => undefined,
 };
 
 export const useTileGrid = (): ITileGrid =>
@@ -68,7 +75,9 @@ const usePaintKey = () => {
  */
 export const LookTileScope = ({ children }: { children: ReactNode }) => {
   const [loop] = useState(createLookTileLoop);
-  const [watcher] = useState(createTileWatcher);
+  const [watcher] = useState(() => createTileWatcher());
+  const [listening, setListening] = useState(false);
+  const wantSound = useCallback(() => setListening(true), []);
   useEffect(
     () => () => {
       loop.dispose();
@@ -78,12 +87,12 @@ export const LookTileScope = ({ children }: { children: ReactNode }) => {
   );
   const paintKey = usePaintKey();
   const value = useMemo<ITileGrid>(
-    () => ({ loop, watch: watcher.watch, paintKey }),
-    [loop, watcher, paintKey],
+    () => ({ loop, watch: watcher.watch, paintKey, wantSound }),
+    [loop, watcher, paintKey, wantSound],
   );
   return (
     <TileGridContext.Provider value={value}>
-      <LookTileSoundScope>{children}</LookTileSoundScope>
+      <LookTileSoundScope listening={listening}>{children}</LookTileSoundScope>
     </TileGridContext.Provider>
   );
 };

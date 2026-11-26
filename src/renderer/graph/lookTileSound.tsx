@@ -188,13 +188,22 @@ const TileSoundReader = ({
   return null;
 };
 
-/** The sound of the styles grid, for as long as the grid is open. */
-export const LookTileSoundScope = ({ children }: { children: ReactNode }) => {
+/**
+ * The sound of the styles grid, from the first tile that plays (`listening`)
+ * for as long as the grid is open.
+ */
+export const LookTileSoundScope = ({
+  listening,
+  children,
+}: {
+  listening: boolean;
+  children: ReactNode;
+}) => {
   const [sound, setSound] = useState<IAudioStandIn>();
   const hasCapture = useIsLiveAudioProvided();
   return (
     <TileSoundContext.Provider value={sound}>
-      {hasCapture && <TileSoundReader onSound={setSound} />}
+      {hasCapture && listening && <TileSoundReader onSound={setSound} />}
       {children}
     </TileSoundContext.Provider>
   );

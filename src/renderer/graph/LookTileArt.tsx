@@ -225,9 +225,11 @@ const usePlate = () => {
 
 /**
  * A standard look's picture in the look picker: the look itself, live, while
- * its tile is in the picker's scroller (`LookStyleGrid`), and a still of it
- * otherwise - under reduced motion, before the sound is there, in a picture
- * of the picker with no capture behind it.
+ * its tile is the one that plays (`playing`: the pointer or the keyboard on
+ * it, `onePlaying.ts`), and a still of it otherwise - every other tile, under
+ * reduced motion (the pointed one too, as before), before the sound is
+ * there, in a picture of the picker with no capture behind it. Stills are
+ * painted, one at a time, for the tiles in the picker's scroller.
  *
  * NOTHING BLINKS (Ivan's standing rule: nothing in the UI moves or flickers
  * as data arrives). The plate holds its size from the first frame. A tile
@@ -240,9 +242,15 @@ const usePlate = () => {
  * kept is there from the first frame. The icon stands only where no still
  * can be had at all (no demo song, no offline audio) and nothing is live.
  */
-const LookTileArt = ({ look }: { look: IResolvedLook }) => {
+const LookTileArt = ({
+  look,
+  playing,
+}: {
+  look: IResolvedLook;
+  playing: boolean;
+}) => {
   const { ref, box, inView } = usePlate();
-  const { loop, paintKey } = useTileGrid();
+  const { loop, paintKey, wantSound } = useTileGrid();
   const sound = useTileSound();
   // Followed, not read once: Animations off stills every tile at once.
   const reduced = useReducedMotion();
@@ -276,20 +284,28 @@ const LookTileArt = ({ look }: { look: IResolvedLook }) => {
   // single frame, until the first live frame hid it: sixteen tiles took
   // about 2.8 s to start moving on a fast machine, every look a wait for
   // a picture nobody saw.
+  const wanted = playing && !reduced;
+  // The grid's sound opens on the first tile that plays, not before.
+  useEffect(() => {
+    if (wanted) {
+      wantSound();
+    }
+  }, [wanted, wantSound]);
   const drawable =
     inView && sound !== undefined && loop !== undefined && box.width > 0;
-  const live = drawable && !reduced;
-  // Animations off while the look is drawn: the drawing stops where it
-  // stands and stays on the plate until a still that fits is in - its own,
-  // kept as it stops if it heard enough music, or one painted - so the plate
-  // never stands empty while a still is painted (Ivan's rule: nothing in
-  // the UI flickers). Measured in the tiles harness: unmounted at once, a
-  // Details list of eleven looks stood blank for up to 3 s.
+  const live = drawable && wanted;
+  // Let go - the pointer moved on, or Animations off - before a still that
+  // fits is in: the drawing stops where it stands and stays on the plate
+  // until one is - its own, kept as it stops if it heard enough music, or
+  // one painted - so the plate never stands empty while a still is painted
+  // (Ivan's rule: nothing in the UI flickers). Measured in the tiles
+  // harness: unmounted at once, a Details list of eleven looks stood blank
+  // for up to 3 s.
   const [drawnOnce, setDrawnOnce] = useState(false);
   if (drawnOnce && !drawable) {
     setDrawnOnce(false);
   }
-  const held = drawable && reduced && drawnOnce && !fits;
+  const held = drawable && !live && drawnOnce && !fits;
   const shown = live || held;
   // A still is painted only for a tile in view that cannot be drawn live -
   // under reduced motion, or while the sound is not there yet - and has

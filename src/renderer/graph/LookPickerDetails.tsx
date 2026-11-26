@@ -4,9 +4,9 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useState } from 'react';
 import SceneClip from '../plus/SceneClip';
 import { useTranslation } from '../utils/I18nContext';
+import { useOnePlaying, useTileAttention } from '../utils/onePlaying';
 import GraphSceneRemove from './GraphSceneRemove';
 import GraphSceneReport from './GraphSceneReport';
 import type { TFreshness } from './lookPickerFilter';
@@ -20,7 +20,7 @@ import { LockBadge, SceneThumbnail } from './lookPickerParts';
 import { OriginMark, SceneMaker, useSceneCaption } from './LookPickerTiles';
 import { LookTileScope } from './LookStyleGrid';
 import LookTileArt from './LookTileArt';
-import useTileClip, { SceneClipScope } from './lookTileClips';
+import useTileClip from './lookTileClips';
 
 interface ILookPickerDetailsProps {
   value: string;
@@ -70,20 +70,17 @@ export default function LookPickerDetails({
         </span>
         <span>{t('graph.picker.colVersion')}</span>
       </div>
-      {/* The scenes' clips in view share their slots (`lookTileClips.tsx`). */}
-      <SceneClipScope>
-        {scenes.map((row) => (
-          <SceneRow
-            key={row.id}
-            row={row}
-            fresh={freshness.get(row.id)}
-            selected={row.id === value}
-            tabbable={row.id === stop}
-            onChoose={onChoose}
-            onLeave={onLeave}
-          />
-        ))}
-      </SceneClipScope>
+      {scenes.map((row) => (
+        <SceneRow
+          key={row.id}
+          row={row}
+          fresh={freshness.get(row.id)}
+          selected={row.id === value}
+          tabbable={row.id === stop}
+          onChoose={onChoose}
+          onLeave={onLeave}
+        />
+      ))}
       {/* Each standard look's small picture drawn live, as the grid's are
           (`LookStyleGrid`): one loop and one sound for the whole list. */}
       <LookTileScope>
@@ -113,8 +110,18 @@ function StyleRow({
   onChoose: (lookId: string) => void;
 }) {
   const { t } = useTranslation();
+  // Live while it is the one tile that plays (`onePlaying.ts`).
+  const { attention, handlers } = useTileAttention();
+  const playing = useOnePlaying(attention);
   return (
-    <div className="look-picker__item" role="listitem">
+    <div
+      className="look-picker__item"
+      role="listitem"
+      onPointerEnter={handlers.onPointerEnter}
+      onPointerLeave={handlers.onPointerLeave}
+      onFocus={handlers.onFocus}
+      onBlur={handlers.onBlur}
+    >
       <button
         type="button"
         className={`look-picker__pick look-picker__row${
@@ -126,7 +133,7 @@ function StyleRow({
         onClick={() => onChoose(row.id)}
       >
         <span className="look-picker__row-art look-picker__art--style">
-          <LookTileArt look={row.look} />
+          <LookTileArt look={row.look} playing={playing} />
         </span>
         <span className="look-picker__name">{row.name}</span>
         <span className="look-picker__flags" />
@@ -166,28 +173,19 @@ function SceneRow({
   // The maker in its own column; the caption's version, or its note.
   const { text, version } = useSceneCaption(row, undefined);
   const note = useSceneCaption(row, fresh);
-  // The scene's published clip over its picture while the row is in the
-  // picker's scroller, or the pointer or the focus is on it, as on a grid
-  // tile (`lookTileClips.tsx`): the whole item answers, its report and
-  // remove buttons included.
-  const [element, setElement] = useState<HTMLDivElement | null>(null);
-  const [hovered, setHovered] = useState(false);
-  const [focused, setFocused] = useState(false);
-  const clip = useTileClip(row.thumbnail, element, hovered || focused);
+  // The scene's published clip over its picture while this is the one tile
+  // that plays, as on a grid tile (`lookTileClips.tsx`): the whole item
+  // answers, its report and remove buttons included.
+  const { attention, handlers } = useTileAttention();
+  const clip = useTileClip(row.thumbnail, attention);
   return (
     <div
-      ref={setElement}
       className="look-picker__item"
       role="listitem"
-      onPointerEnter={() => setHovered(true)}
-      onPointerLeave={() => setHovered(false)}
-      onFocus={() => setFocused(true)}
-      onBlur={(event) => {
-        const next = event.relatedTarget;
-        if (!(next instanceof Node && event.currentTarget.contains(next))) {
-          setFocused(false);
-        }
-      }}
+      onPointerEnter={handlers.onPointerEnter}
+      onPointerLeave={handlers.onPointerLeave}
+      onFocus={handlers.onFocus}
+      onBlur={handlers.onBlur}
     >
       <button
         type="button"

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { IGalleryScene } from 'common/plusGallery';
 import { resolveSceneName } from 'common/scenePacks';
 import { isNewScene, isNewSceneVersion } from 'common/sceneVersionNote';
@@ -15,8 +14,8 @@ import {
   SceneHeart,
   ScenePicture,
 } from './GalleryParts';
+import { useOnePlaying, useTileAttention } from '../utils/onePlaying';
 import { useKnownWithoutClip, useSceneClip } from './cardClip';
-import { useClipSlot } from './clipSlots';
 import SceneClip from './SceneClip';
 import GalleryMoveTag from './GalleryMoveTag';
 import { FLUIDEQ_MAKER, type IMakerRef } from './plusNavigation';
@@ -42,11 +41,9 @@ interface IGalleryCardProps {
  * how many members added it, the heart, and Add.
  *
  * The picture and the name both open the scene's page, where it plays. The
- * card itself never runs the scene: in the Gallery's view, or hovered or
- * focused, its picture plays the scene's published clip instead (Ivan,
- * 2026-11-24: "in the gallery too I want to show all animating ... but
- * always only the ones in the view"), fetched only then and within a bound
- * (`clipSlots.tsx`).
+ * card itself never runs the scene: hovered or focused, its picture plays
+ * the scene's published clip instead, fetched only then, and only the one
+ * card the pointer or the keyboard is on plays (`onePlaying.ts`).
  * Add — or Get, for a scene this account does not own yet — is the quiet
  * style here, since a grid of sixty loud buttons says nothing, and the loud
  * one on the scene's page.
@@ -76,17 +73,15 @@ export default function GalleryCard({
   const addsLine = scene.official
     ? officialLabel
     : t('plus.card.adds', { count: adds });
-  // The scene's published clip over its picture while the card is in the
-  // Gallery's view (within the bound every list of scenes shares,
-  // `clipSlots.tsx`) or the pointer or the keyboard is on it. The picture
-  // holds the card's size from the first frame and stays under the clip
-  // until its first frame is painted (`SceneClip`); a scene with no clip
-  // keeps its picture and takes no slot.
-  const [element, setElement] = useState<HTMLElement | null>(null);
-  const [hovered, setHovered] = useState(false);
-  const [focused, setFocused] = useState(false);
+  // The scene's published clip over its picture while this is the one card
+  // in the window that plays - the pointer or the keyboard on it
+  // (`onePlaying.ts`). The picture holds the card's size from the first
+  // frame and stays under the clip until its first frame is painted
+  // (`SceneClip`); a scene with no clip keeps its picture and does not take
+  // the turn from one that has.
+  const { attention, handlers } = useTileAttention();
   const withoutClip = useKnownWithoutClip(scene, me);
-  const playing = useClipSlot(element, hovered || focused, !withoutClip);
+  const playing = useOnePlaying(attention && !withoutClip);
   const clip = useSceneClip(scene, me, playing);
   // A scene its viewer can turn says so on its card, and how.
   const camera = galleryCameraOf(scene, local);
@@ -111,17 +106,11 @@ export default function GalleryCard({
     // alone: a hand resting on the name or the heart is still on the card.
     // Focus moving between the card's own controls is not leaving it.
     <article
-      ref={setElement}
       className="gallery-card"
-      onPointerEnter={() => setHovered(true)}
-      onPointerLeave={() => setHovered(false)}
-      onFocus={() => setFocused(true)}
-      onBlur={(event) => {
-        const next = event.relatedTarget;
-        if (!(next instanceof Node && event.currentTarget.contains(next))) {
-          setFocused(false);
-        }
-      }}
+      onPointerEnter={handlers.onPointerEnter}
+      onPointerLeave={handlers.onPointerLeave}
+      onFocus={handlers.onFocus}
+      onBlur={handlers.onBlur}
     >
       <button
         type="button"

@@ -20,7 +20,6 @@ import {
   usePlusNavigation,
   type TGalleryPage,
 } from './plusNavigation';
-import { ClipSlotsScope } from './clipSlots';
 import ScenePage from './ScenePage';
 import YourScenes from './YourScenes';
 import '../styles/Gallery.scss';
@@ -157,11 +156,7 @@ export default function VisualizersView({
           rememberGalleryScroll(pageKey, event.currentTarget.scrollTop)
         }
       >
-        {/* Every card in this scroller plays its clip while in view, within
-            one bound for the page (`clipSlots.tsx`). */}
-        <ClipSlotsScope scroller=".gallery-visualizers">
-          {content}
-        </ClipSlotsScope>
+        {content}
       </div>
     </>
   );

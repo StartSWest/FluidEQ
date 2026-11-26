@@ -6,10 +6,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * A gallery card plays its scene's published clip, never the scene (Ivan,
- * 2026-11-13: "add hover and play the video only not the scene"): in the
- * Gallery while it is in view, within the bound every list of scenes shares
- * (2026-11-24: "in the gallery too I want to show all animating ... but
- * always only the ones in the view"), and anywhere while hovered or focused.
+ * 2026-11-13: "add hover and play the video only not the scene"), and only
+ * the one card the pointer or the keyboard is on (2026-11-26: "only play
+ * the one hovering"; `onePlaying.ts`), never every card in view.
  * What is held: a card drawn alone asks for nothing before a hover, the
  * scene itself is never asked for, the clip shows only once it plays, a
  * pointer that left before the clip landed leaves nothing playing, a scene
@@ -26,10 +25,6 @@ import {
 } from '@testing-library/react';
 import type { IGalleryScene } from '../../../common/plusGallery';
 import { resetCardClips } from '../../../renderer/plus/cardClip';
-import {
-  ClipSlotsScope,
-  forgetClipDecoder,
-} from '../../../renderer/plus/clipSlots';
 import GalleryCard from '../../../renderer/plus/GalleryCard';
 import { resetGalleryActions } from '../../../renderer/plus/galleryActions';
 import { resetScenePictures } from '../../../renderer/plus/scenePictures';
@@ -217,69 +212,24 @@ it('leaves nothing playing when the pointer left before the clip landed', async 
 });
 
 describe('in the Gallery', () => {
-  // The Gallery's scroller: every card in it unless a test scrolls one out.
-  const observed = new Map<Element, IntersectionObserverCallback>();
-  // Each observer forgets only its own elements: the pictures watch the same
-  // cards for their own loading and let go once loaded.
-  const ScrollerObserver = jest.fn((report: IntersectionObserverCallback) => {
-    const mine = new Set<Element>();
-    return {
-      observe: (element: Element) => {
-        mine.add(element);
-        observed.set(element, report);
-        report(
-          [
-            {
-              target: element,
-              isIntersecting: true,
-              intersectionRatio: 1,
-            } as IntersectionObserverEntry,
-          ],
-          {} as IntersectionObserver,
-        );
-      },
-      unobserve: (element: Element) => {
-        mine.delete(element);
-        if (observed.get(element) === report) {
-          observed.delete(element);
-        }
-      },
-      disconnect: () =>
-        mine.forEach((element) => {
-          if (observed.get(element) === report) {
-            observed.delete(element);
-          }
-        }),
-    };
-  });
+  const NAMES = ['Laser', 'Lantern Lake', 'Kaleidoscope', 'Jellyfish'];
 
-  const NAMES = [
-    'Laser',
-    'Lantern Lake',
-    'Kaleidoscope',
-    'Jellyfish',
-    'Koi',
-    'Aurora',
-  ];
-
-  const gallery = (count: number) =>
+  const gallery = () =>
     render(
       <div className="gallery-visualizers">
-        <ClipSlotsScope scroller=".gallery-visualizers">
-          {NAMES.slice(0, count).map((name, index) => (
-            <GalleryCard
-              key={name}
-              scene={scene({
-                lookId: `member:${SOMEONE}:scene-${index}`,
-                sceneId: `scene-${index}`,
-                names: { en: name },
-              })}
-              local={undefined}
-              me="me"
-              onOpen={jest.fn()}
-            />
-          ))}
-        </ClipSlotsScope>
+        {NAMES.map((name, index) => (
+          <GalleryCard
+            key={name}
+            scene={scene({
+              lookId: `member:${SOMEONE}:scene-${index}`,
+              sceneId: `scene-${index}`,
+              names: { en: name },
+            })}
+            local={undefined}
+            me="me"
+            onOpen={jest.fn()}
+          />
+        ))}
       </div>,
     );
 
@@ -294,84 +244,48 @@ describe('in the Gallery', () => {
   };
 
   const playingIn = (container: HTMLElement) =>
-    NAMES.filter((name) => {
-      const card = [...container.querySelectorAll('.gallery-card')].find(
-        (each) =>
-          each.querySelector('.gallery-card__name')?.textContent === name,
-      );
-      return card?.querySelector('video.gallery-card__clip');
-    });
-
-  const scrollOut = (card: Element) => {
-    const report = observed.get(card);
-    if (!report) {
-      throw new Error('the card is watched');
-    }
-    act(() =>
-      report(
-        [{ target: card, isIntersecting: false } as IntersectionObserverEntry],
-        {} as IntersectionObserver,
-      ),
+    NAMES.filter((name) =>
+      cardOf(container, name).querySelector('video.gallery-card__clip'),
     );
-  };
 
-  beforeAll(() => {
-    window.IntersectionObserver =
-      ScrollerObserver as unknown as typeof IntersectionObserver;
-  });
-
-  afterAll(() => {
-    // The cards drawn alone above have no scroller to be in.
-    delete (window as { IntersectionObserver?: unknown }).IntersectionObserver;
-  });
-
-  beforeEach(() => {
-    observed.clear();
-    forgetClipDecoder();
-  });
-
-  it('plays every card in view with no hover, its picture first, and stops one scrolled out', async () => {
-    const { container } = gallery(3);
-    // The pictures are there from the first frame, before any clip.
-    expect(container.querySelectorAll('.gallery-card__thumb')).toHaveLength(3);
-    await waitFor(() =>
-      expect(playingIn(container)).toEqual([
-        'Laser',
-        'Lantern Lake',
-        'Kaleidoscope',
-      ]),
-    );
-    expect(bridge.previewGalleryScene).not.toHaveBeenCalled();
-    scrollOut(cardOf(container, 'Lantern Lake'));
-    expect(playingIn(container)).toEqual(['Laser', 'Kaleidoscope']);
+  it('plays no card at rest, the hovered one alone, and none once the pointer leaves', async () => {
+    const { container } = gallery();
+    // The pictures are there from the first frame, and nothing is asked.
+    expect(container.querySelectorAll('.gallery-card__thumb')).toHaveLength(4);
+    await act(async () => undefined);
+    expect(bridge.galleryClip).not.toHaveBeenCalled();
+    fireEvent.pointerEnter(cardOf(container, 'Kaleidoscope'));
+    await waitFor(() => expect(playingIn(container)).toEqual(['Kaleidoscope']));
+    // Moving to the next card: the first lets its clip go, the next plays.
+    fireEvent.pointerLeave(cardOf(container, 'Kaleidoscope'));
+    fireEvent.pointerEnter(cardOf(container, 'Jellyfish'));
+    await waitFor(() => expect(playingIn(container)).toEqual(['Jellyfish']));
     expect(revokeUrl).toHaveBeenCalledTimes(1);
+    fireEvent.pointerLeave(cardOf(container, 'Jellyfish'));
+    expect(playingIn(container)).toEqual([]);
+    expect(bridge.galleryClip).toHaveBeenCalledTimes(2);
+    expect(bridge.previewGalleryScene).not.toHaveBeenCalled();
   });
 
-  it('gives no slot to a scene that has no clip, and keeps its picture', async () => {
+  it('keeps the card the keyboard is on playing under a pointer on a scene with no clip', async () => {
     bridge.galleryClip.mockImplementation(async (_author, sceneId: string) =>
       sceneId === 'scene-1' ? undefined : CLIP,
     );
-    const { container } = gallery(6);
-    await waitFor(() =>
-      expect(playingIn(container)).toEqual([
-        'Laser',
-        'Kaleidoscope',
-        'Jellyfish',
-        'Koi',
-      ]),
+    const { container } = gallery();
+    act(() =>
+      cardOf(container, 'Laser')
+        .querySelector<HTMLElement>('.gallery-card__thumb')
+        ?.focus(),
     );
+    await waitFor(() => expect(playingIn(container)).toEqual(['Laser']));
+    fireEvent.pointerEnter(cardOf(container, 'Lantern Lake'));
+    await act(async () => undefined);
+    // Lantern Lake has nothing to play: it keeps its picture and the turn
+    // stays with Laser.
+    expect(playingIn(container)).toEqual(['Laser']);
     expect(
       cardOf(container, 'Lantern Lake').querySelector('.gallery-picture'),
     ).not.toBeNull();
-  });
-
-  it('plays at most four where the clips decode in software, and the hovered one past them', async () => {
-    const { container } = gallery(6);
-    await waitFor(() => expect(playingIn(container)).toHaveLength(4));
-    expect(playingIn(container)).toEqual(NAMES.slice(0, 4));
-    fireEvent.pointerEnter(cardOf(container, 'Aurora'));
-    await waitFor(() => expect(playingIn(container)).toContain('Aurora'));
-    expect(playingIn(container)).toHaveLength(5);
   });
 });
 
@@ -427,13 +341,12 @@ it('plays for a hand anywhere on the card, and keeps playing while focus moves i
   fireEvent.pointerLeave(name);
   expect(clipIn(container)).toBeNull();
 
-  fireEvent.focus(thumbOf('Neon City'));
+  act(() => thumbOf('Neon City').focus());
   await waitFor(() => expect(clipIn(container)).not.toBeNull());
   // From the picture to the card's own name: still on the card.
-  fireEvent.blur(thumbOf('Neon City'), { relatedTarget: name });
-  fireEvent.focus(name);
+  act(() => name.focus());
   expect(clipIn(container)).not.toBeNull();
   // The control: focus leaving the card stops it.
-  fireEvent.blur(name, { relatedTarget: document.body });
+  act(() => name.blur());
   expect(clipIn(container)).toBeNull();
 });

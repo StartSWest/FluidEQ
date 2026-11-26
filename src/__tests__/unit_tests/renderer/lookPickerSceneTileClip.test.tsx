@@ -11,7 +11,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * viz; if the viz doesn't have a video we show the thumbnail picture that
  * comes with scenes"), Animations off takes the clips away while the picker
  * is open and on brings them back ("if user selects animation off in the app
- * we don't show the videos"), and closing the picker lets every clip go.
+ * we don't show the videos"), and closing the picker lets every clip go. A
+ * tile plays only while the pointer or the keyboard is on it
+ * (`onePlaying.ts`).
  */
 
 let mockReduced = false;
@@ -44,11 +46,9 @@ jest.mock('../../../renderer/graph/GraphSceneRemove', () => () => null);
 
 /* eslint-disable import/first -- the mocks must be installed first */
 import '@testing-library/jest-dom';
-import { act, render, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, waitFor } from '@testing-library/react';
 import { LookPickerSceneTile } from '../../../renderer/graph/LookPickerTiles';
 import type { IPlusRow } from '../../../renderer/graph/lookPickerRows';
-import { SceneClipScope } from '../../../renderer/graph/lookTileClips';
-import { forgetClipDecoder } from '../../../renderer/plus/clipSlots';
 import { resetLookThumbnails } from '../../../renderer/graph/lookThumbnails';
 import { resetCardClips } from '../../../renderer/plus/cardClip';
 import { applyMotionPreference } from '../../../renderer/utils/motionPreference';
@@ -105,18 +105,16 @@ const InView = jest.fn((report: IntersectionObserverCallback) => ({
 const picker = (ids: string[]) =>
   render(
     <div data-look-picker-scroll>
-      <SceneClipScope>
-        {ids.map((id) => (
-          <LookPickerSceneTile
-            key={id}
-            row={scene(id)}
-            fresh={undefined}
-            selected={false}
-            tabbable={false}
-            onChoose={jest.fn()}
-          />
-        ))}
-      </SceneClipScope>
+      {ids.map((id) => (
+        <LookPickerSceneTile
+          key={id}
+          row={scene(id)}
+          fresh={undefined}
+          selected={false}
+          tabbable={false}
+          onChoose={jest.fn()}
+        />
+      ))}
     </div>,
   );
 
@@ -133,6 +131,11 @@ const tile = (container: HTMLElement, id: string) => {
 const clipOf = (container: HTMLElement, id: string) =>
   tile(container, id).querySelector('video.look-picker__clip');
 
+const point = (container: HTMLElement, id: string) =>
+  fireEvent.pointerEnter(tile(container, id));
+const leave = (container: HTMLElement, id: string) =>
+  fireEvent.pointerLeave(tile(container, id));
+
 const pictureOf = (container: HTMLElement, id: string) =>
   tile(container, id).querySelector('.look-picker__thumb img');
 
@@ -147,7 +150,6 @@ beforeEach(() => {
   drawn.length = 0;
   resetCardClips();
   resetLookThumbnails();
-  forgetClipDecoder();
   let made = 0;
   bridge.galleryClip.mockImplementation(async (_author, sceneId: string) =>
     sceneId === 'no-clip' ? undefined : CLIP,
@@ -181,7 +183,10 @@ beforeEach(() => {
 it('shows the picture of a scene with no clip and starts no rendering of it', async () => {
   const { container } = picker(['with-clip', 'no-clip']);
   // The control: the scene with a clip plays it, over its picture.
+  point(container, 'with-clip');
   await waitFor(() => expect(clipOf(container, 'with-clip')).not.toBeNull());
+  leave(container, 'with-clip');
+  point(container, 'no-clip');
   await waitFor(() =>
     expect(pictureOf(container, 'no-clip')).toHaveAttribute(
       'src',
@@ -200,26 +205,28 @@ it('shows the picture of a scene with no clip and starts no rendering of it', as
 
 it('takes the clips away while Animations are off, keeps the pictures, and plays again when on', async () => {
   const { container } = picker(['koi', 'aurora']);
+  point(container, 'aurora');
   await waitFor(() => expect(clipOf(container, 'aurora')).not.toBeNull());
-  expect(clipOf(container, 'koi')).not.toBeNull();
+  expect(clipOf(container, 'koi')).toBeNull();
   mockReduced = true;
   act(() => applyMotionPreference('reduced'));
   expect(container.querySelectorAll('video')).toHaveLength(0);
-  expect(revokeUrl).toHaveBeenCalledTimes(2);
+  expect(revokeUrl).toHaveBeenCalledTimes(1);
   expect(pictureOf(container, 'koi')).not.toBeNull();
   expect(pictureOf(container, 'aurora')).not.toBeNull();
   mockReduced = false;
   act(() => applyMotionPreference('full'));
   await waitFor(() =>
-    expect(container.querySelectorAll('video')).toHaveLength(2),
+    expect(container.querySelectorAll('video')).toHaveLength(1),
   );
 });
 
 it('lets every clip go when the picker closes', async () => {
   const { container, unmount } = picker(['koi', 'aurora']);
+  point(container, 'koi');
   await waitFor(() =>
-    expect(container.querySelectorAll('video')).toHaveLength(2),
+    expect(container.querySelectorAll('video')).toHaveLength(1),
   );
   unmount();
-  expect(revokeUrl).toHaveBeenCalledTimes(2);
+  expect(revokeUrl).toHaveBeenCalledTimes(1);
 });
