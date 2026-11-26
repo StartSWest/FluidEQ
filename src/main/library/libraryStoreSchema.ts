@@ -15,8 +15,9 @@ export const STORE_FILENAME = 'library.sqlite';
  *
  * 2: album keys joined with U+001F, not NUL (`albumKey`).
  * 3: every song's artist credits (`track_credits`), for the artist page.
+ * 4: which files are second copies of a song on their album (`album_copy`).
  */
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 export const SCHEMA = `
   CREATE TABLE IF NOT EXISTS meta (
@@ -75,7 +76,11 @@ export const SCHEMA = `
     sort_artist TEXT NOT NULL,
     sort_album TEXT NOT NULL,
     sort_shelf_artist TEXT NOT NULL,
-    scan_mark INTEGER NOT NULL DEFAULT 0
+    scan_mark INTEGER NOT NULL DEFAULT 0,
+    -- A second file of a song its album already has (\`markAlbumCopies\`):
+    -- worked out from the other columns whenever the album's summary is,
+    -- never written by a scan.
+    album_copy INTEGER NOT NULL DEFAULT 0
   );
   CREATE INDEX IF NOT EXISTS tracks_root ON tracks (root_id);
   CREATE INDEX IF NOT EXISTS tracks_path ON tracks (path);
@@ -195,6 +200,10 @@ export const TRACK_UPSERT = `
     sort_artist = excluded.sort_artist,
     sort_album = excluded.sort_album,
     sort_shelf_artist = excluded.sort_shelf_artist,
+    -- Worked out again for the album it is now on, in the same transaction
+    -- (\`markAlbumCopies\`); cleared here so a song that left its album for
+    -- an untagged bucket, which is never re-marked, takes no mark with it.
+    album_copy = 0,
     -- A row published before it is confirmed (discovery's provisional rows,
     -- a dropped file) must not un-confirm one a scan already confirmed.
     scan_mark = MAX(tracks.scan_mark, excluded.scan_mark)

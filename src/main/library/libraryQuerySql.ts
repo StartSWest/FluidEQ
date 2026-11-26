@@ -57,7 +57,12 @@ export const scopeConditions = (
     conditions.push(`t.folder = ${bind(scope.folder)}`);
   }
   if (scope.album !== undefined) {
-    conditions.push(`t.album_key = ${bind(scope.album)}`);
+    // Its own songs, never a second file of one of them (`markAlbumCopies`):
+    // "Why?" listed Focus twice and Play started on the copy in a folder of
+    // everything, where the folder tree then put the playing mark.
+    conditions.push(
+      `(t.album_key = ${bind(scope.album)} AND t.album_copy = 0)`,
+    );
   }
   if (scope.artist !== undefined) {
     conditions.push(`t.artist_key = ${bind(scope.artist)}`);

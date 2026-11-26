@@ -23,6 +23,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import type { DatabaseSync } from 'node:sqlite';
+import markAlbumCopies from './libraryAlbumCopies';
 
 export const GROUP_SCHEMA = `
   CREATE TABLE IF NOT EXISTS album_groups (
@@ -144,6 +145,8 @@ interface IGroupTable {
   /** The members' key column, and any join that brings it. */
   key: string;
   join?: string;
+  /** Which of the rows under a key count as members, where not all do. */
+  members?: string;
   /** Sorts a group's members; the least is its "first" track. */
   orderKey: string;
   /** The first track's columns, as the table names them. */
@@ -160,6 +163,9 @@ const TABLES: Record<keyof IGroupKeys, IGroupTable> = {
   albums: {
     table: 'album_groups',
     key: 't.album_key',
+    // A second file of a song the album already has is not one more song of
+    // the record (`markAlbumCopies`).
+    members: 't.album_copy = 0',
     orderKey: ALBUM_KEY,
     firstColumns: `COALESCE(t.album, '') AS list_title,
       COALESCE(t.album_artist, t.artist, '') AS artist_name,
@@ -227,7 +233,9 @@ const refreshTable = (
     )
     .run(json);
   const from = `FROM tracks t ${shape.join ?? ''}
-    WHERE ${shape.key} IN (SELECT value FROM json_each($keys))`;
+    WHERE ${shape.key} IN (SELECT value FROM json_each($keys))${
+      shape.members === undefined ? '' : ` AND ${shape.members}`
+    }`;
   // One MIN() per SELECT, so the columns beside it are that row's — SQLite's
   // own rule for a bare column in an aggregate.
   database
@@ -287,8 +295,24 @@ export const refreshGroups = (
   database: DatabaseSync,
   keys: IGroupKeys,
 ): void => {
+  // Which file of a song stands for it on its album depends on how much of
+  // each folder the album is, so a write to a folder re-marks every album
+  // with a song in it — before the album summaries, which count an album's
+  // own songs only.
+  const albums = new Set(keys.albums);
+  if (keys.folders.size > 0) {
+    database
+      .prepare(
+        `SELECT DISTINCT album_key FROM tracks
+         WHERE folder IN (SELECT value FROM json_each(?))`,
+      )
+      .all(JSON.stringify([...keys.folders]))
+      .forEach((row) => albums.add(String(row.album_key)));
+  }
+  markAlbumCopies(database, albums);
+  const touched: IGroupKeys = { ...keys, albums };
   (Object.keys(TABLES) as (keyof IGroupKeys)[]).forEach((kind) => {
-    refreshTable(database, TABLES[kind], keys[kind]);
+    refreshTable(database, TABLES[kind], touched[kind]);
   });
 };
 

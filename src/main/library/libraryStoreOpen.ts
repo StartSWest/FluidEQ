@@ -77,6 +77,17 @@ const migrateStore = (database: DatabaseSync): void => {
     return;
   }
   inTransaction(database, () => {
+    // First, because every rebuild below marks copies (`refreshGroups`).
+    // Added in the same transaction as the rest, so a move that fails leaves
+    // the file as the earlier build wrote it.
+    const hasAlbumCopy = database
+      .prepare("SELECT 1 FROM pragma_table_info('tracks') WHERE name = ?")
+      .get('album_copy');
+    if (hasAlbumCopy === undefined) {
+      database.exec(
+        'ALTER TABLE tracks ADD COLUMN album_copy INTEGER NOT NULL DEFAULT 0',
+      );
+    }
     if (version < 2) {
       const rewrite = database.prepare(
         'UPDATE tracks SET album_key = ? WHERE seq = ?',
@@ -114,6 +125,13 @@ const migrateStore = (database: DatabaseSync): void => {
           insert.run(trackId, id, name, onAlbum ? 1 : 0);
         });
       }
+    }
+    // 3 → 4: every album's copies marked and its summary counted without
+    // them — SQL over the rows already stored, no file read again, and
+    // nothing a listener made (plays, loudness, playlists, tags) touched. A
+    // store from before 2 had this done by its own rebuild above.
+    if (version >= 2 && version < 4) {
+      rebuildGroups(database);
     }
     writeSchemaVersion(database);
   });
