@@ -778,6 +778,7 @@ const eq: Partial<Dictionary> = {
   'eq.preset.empty': '没有这个名字的预设。',
   'eq.preset.search': '搜索预设',
   'eq.preset.rack': '效果架的作用',
+  'eq.preset.factoryAbout': 'FluidEQ 内置预设。编辑副本即可做成你自己的预设。',
   'eq.tone': '音色',
   'eq.tone.lowCut': '低切',
   'eq.tone.highCut': '高切',

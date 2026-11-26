@@ -34,6 +34,7 @@ export default {
   'autoEq.now.album': 'звук альбома «{album}»',
   'autoEq.now.albumUnnamed': 'звук её альбома',
   'autoEq.now.albumWhy': 'Задан в Библиотеке для всего альбома.',
+  'autoEq.now.showPreset': 'Показать {preset} на вкладке «Пресет»',
   'autoEq.songs.title': 'Звук песен',
   'autoEq.songs.hint':
     'Песня с сохранённым звуком играет с ним. Измените его и нажмите «Сохранить изменения», чтобы оставить. Остальные песни играют с вашим.',

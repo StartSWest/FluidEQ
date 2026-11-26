@@ -34,6 +34,7 @@ export default {
   'autoEq.now.album': 'le son de {album}',
   'autoEq.now.albumUnnamed': 'le son de son album',
   'autoEq.now.albumWhy': 'Défini dans la Bibliothèque pour tout l’album.',
+  'autoEq.now.showPreset': 'Afficher {preset} dans l’onglet Préréglage',
   'autoEq.songs.title': 'Sons des chansons',
   'autoEq.songs.hint':
     'Une chanson avec un son enregistré le joue. Modifiez-le et appuyez sur Enregistrer les modifications pour le garder. Les autres chansons jouent le vôtre.',

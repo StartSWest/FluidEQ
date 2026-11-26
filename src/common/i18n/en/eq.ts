@@ -837,6 +837,8 @@ const eq = {
   'eq.preset.empty': 'No preset has that name.',
   'eq.preset.search': 'Search presets',
   'eq.preset.rack': 'What the rack does',
+  'eq.preset.factoryAbout':
+    'Built into FluidEQ. Edit a copy to make one of your own from it.',
   'eq.tone': 'Tone',
   'eq.tone.lowCut': 'Low cut',
   'eq.tone.highCut': 'High cut',

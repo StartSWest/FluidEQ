@@ -34,6 +34,7 @@ export default {
   'autoEq.now.album': 'o som de {album}',
   'autoEq.now.albumUnnamed': 'o som do álbum dela',
   'autoEq.now.albumWhy': 'Definido na Biblioteca para o álbum inteiro.',
+  'autoEq.now.showPreset': 'Mostrar {preset} na aba Preset',
   'autoEq.songs.title': 'Sons das músicas',
   'autoEq.songs.hint':
     'Uma música com um som salvo toca com ele. Mude-o e toque em Salvar alterações para guardá-lo. As outras músicas tocam com o seu.',

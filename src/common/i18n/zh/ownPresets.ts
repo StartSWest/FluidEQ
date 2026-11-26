@@ -32,6 +32,8 @@ export default {
   'eq.own.addBand': '添加频段',
   'eq.own.curveBands': '“{name}”曲线的频段',
   'eq.own.edit': '编辑',
+  'eq.own.editCopy': '编辑副本',
+  'eq.own.copyName': '{name}（副本）',
   'eq.own.more': '“{name}”的更多操作',
   'eq.own.renameLabel': '“{name}”的新名称',
   'eq.own.about': '你自己的预设。曲线在主均衡中播放，效果架在 DSP 页面中播放。',

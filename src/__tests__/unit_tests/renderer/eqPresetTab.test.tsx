@@ -51,8 +51,6 @@ jest.mock('renderer/utils/useTrebleDesigns', () => ({
   useTrebleDesigns: () => undefined,
 }));
 jest.mock('renderer/utils/useOutputRate', () => () => undefined);
-// The notes' own contents are not what is held here.
-jest.mock('renderer/dsp/GenreNotesPreview', () => () => null);
 
 const tiles = () =>
   Array.from(

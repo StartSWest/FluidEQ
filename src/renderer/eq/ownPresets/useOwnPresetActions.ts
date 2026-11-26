@@ -16,6 +16,9 @@ import {
   renameUserDspPreset,
 } from '../../dsp/userDspPresets';
 import { useFluidEqLayers } from '../../utils/FluidEqContext';
+import { useTranslation } from '../../utils/I18nContext';
+import { showEqPreset } from '../eqLayerTab';
+import addFactoryPresetCopy from './factoryPresetCopy';
 import { isOwnPresetPlaying, removeOwnPreset } from './ownPresetRemoval';
 import usePresetEditActions from './usePresetEditActions';
 
@@ -34,6 +37,7 @@ const useOwnPresetActions = () => {
     true,
   );
   const { beginExisting } = usePresetEditActions();
+  const { t } = useTranslation();
 
   const report = (pending: Promise<unknown>) => {
     pending.catch((error) => setGlobalError(error as ErrorDescription));
@@ -41,6 +45,22 @@ const useOwnPresetActions = () => {
 
   return {
     edit: beginExisting,
+    /**
+     * A factory preset copied into Yours and opened to edit, as Edit opens
+     * one of theirs: the copy is kept before the editor opens, so it is
+     * theirs whether its edits are saved or discarded.
+     */
+    editCopy: (presetId: string) =>
+      report(
+        addFactoryPresetCopy(presetId, t).then((copy) => {
+          if (copy) {
+            // In Yours, where it now is, when the Preset tab is seen next.
+            showEqPreset(copy.id);
+            beginExisting(copy.id);
+          }
+          return copy;
+        }),
+      ),
     rename: (id: string, name: string) => report(renameUserDspPreset(id, name)),
     duplicate: (id: string) => report(duplicateUserDspPreset(id)),
     remove: (id: string) =>

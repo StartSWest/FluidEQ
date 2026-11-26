@@ -34,6 +34,7 @@ export default {
   'autoEq.now.album': 'Klang von {album}',
   'autoEq.now.albumUnnamed': 'Klang seines Albums',
   'autoEq.now.albumWhy': 'In der Bibliothek für das ganze Album festgelegt.',
+  'autoEq.now.showPreset': '{preset} im Preset-Tab zeigen',
   'autoEq.songs.title': 'Song-Klänge',
   'autoEq.songs.hint':
     'Ein Song mit gespeichertem Klang spielt ihn. Ändern Sie ihn und drücken Sie Änderungen speichern, um ihn zu behalten. Andere Songs spielen Ihren.',

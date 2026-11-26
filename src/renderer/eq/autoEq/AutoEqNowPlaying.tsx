@@ -5,6 +5,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { ReactNode } from 'react';
+import { DSP_PRESETS } from '../../../common/dsp/presets';
+import { findUserDspPreset } from '../../dsp/userDspPresets';
 import MenuIcon from '../../icons/MenuIcon';
 import { useTranslation } from '../../utils/I18nContext';
 import type { ISongSoundNow } from '../../audio/songSoundSession';
@@ -39,6 +41,16 @@ const NowCard = ({
 );
 
 /**
+ * Whether the Preset tab can show this preset: a factory one, or one of the
+ * listener's own still in Yours. None is no preset, and one deleted since it
+ * was saved for the song is in no list to show.
+ */
+const isShownOnPresetTab = (presetId: string): boolean =>
+  presetId !== 'none' &&
+  (findUserDspPreset(presetId) !== undefined ||
+    DSP_PRESETS.some((preset) => preset.id === presetId));
+
+/**
  * The song that plays, at the top of Auto EQ's panel, and what decides its
  * sound: its own saved sound, its album's, or the listener's own — the
  * answer of the ladder the mockup drew, in one line. A saved EQ that plays
@@ -50,16 +62,28 @@ const NowCard = ({
  * buttons, should we have Restore or something that works for both cases,
  * and on top instead?"). It used to name the pick as the album's sound, and
  * Song sounds and Album sounds each carried a Back of their own.
+ *
+ * The chip naming the preset is a press that shows that preset on the EQ
+ * page's Preset tab, notes and all (Ivan, 2026-11-26: "when clicking there I
+ * want to open the preset tab with that preset selected") — whichever sound
+ * put it on, the song's, the album's or the last pick. Not for a saved EQ,
+ * which is more than its preset, nor for None.
  */
 const AutoEqNowPlaying = ({
   now,
   eqName,
   back,
+  onShowPreset,
 }: {
   now: ISongSoundNow;
   eqName?: string;
   /** The saved sound under a change made by hand (`backToSaved`). */
   back?: ISongCardSound['back'];
+  /**
+   * Shows a preset on the Preset tab, Auto EQ's panel closing for it. The
+   * feature tour's copy of the card, a picture of the panel, has none.
+   */
+  onShowPreset?: (presetId: string) => void;
 }) => {
   const { t } = useTranslation();
   const { identity } = now;
@@ -128,17 +152,38 @@ const AutoEqNowPlaying = ({
       : t('autoEq.now.albumUnnamed');
     why = t('autoEq.now.albumWhy');
   }
+  const chip = (
+    <>
+      <span className="eq-auto-now__dot" aria-hidden="true" />
+      <strong>{eqName ?? playing}</strong>
+      <span>{from}</span>
+    </>
+  );
+  const { presetId } = now;
+  const canShow =
+    onShowPreset !== undefined &&
+    eqName === undefined &&
+    presetId !== undefined &&
+    isShownOnPresetTab(presetId);
   return (
     <NowCard
       owner={now.owner ?? 'yours'}
       title={identity.title}
       artist={identity.artist}
     >
-      <span className="eq-auto-now__plays">
-        <span className="eq-auto-now__dot" aria-hidden="true" />
-        <strong>{eqName ?? playing}</strong>
-        <span>{from}</span>
-      </span>
+      {canShow ? (
+        <button
+          type="button"
+          className="eq-auto-now__plays"
+          title={t('autoEq.now.showPreset', { preset: playing })}
+          onClick={() => onShowPreset(presetId)}
+        >
+          {chip}
+          <MenuIcon name="arrowOut" className="eq-auto-now__go" />
+        </button>
+      ) : (
+        <span className="eq-auto-now__plays">{chip}</span>
+      )}
       <span className="eq-auto-now__why">{why}</span>
     </NowCard>
   );

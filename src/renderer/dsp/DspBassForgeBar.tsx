@@ -5,16 +5,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { IBassForgeSettings } from '../../common/dsp/chain';
-import {
-  BASS_FORGE_PRESET_GROUPS,
-  IBassForgePreset,
-} from '../../common/dsp/bassForgePresets';
+import { BASS_FORGE_PRESET_GROUPS } from '../../common/dsp/bassForgePresets';
 import { BASS_FORGE_CATALOGUE } from '../../common/dsp/stageCatalogues';
 import { TranslationKey } from '../../common/i18n/en';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import DspBarIcon from './DspBarIcon';
+import { bassForgeFigures } from './stageFigures';
 import useStagePresets from './useStagePresets';
 import { scopedGroups, useDspPresetScope } from './presetScope';
 
@@ -23,35 +21,6 @@ interface IDspBassForgeBarProps {
   onChange: (next: IBassForgeSettings) => void;
   onCommit: () => void;
 }
-
-/**
- * The five figures that separate one profile from another.
- *
- * Derived rather than written out, for the reason every hint in this rack is:
- * a sentence describing a profile survives somebody changing the profile, and
- * the menu lies from then on.
- *
- * `splitHz` is deliberately absent — the whole catalogue sits at 80, 90 or 100
- * and a column that says the same thing eighteen times would push the parts
- * that actually differ off the end of the line. Texture is NOT absent, even
- * though it looks like a variant of drive: it picks the recipe the presence
- * harmonics are built from, drive pushes whatever that recipe produced into
- * the saturator, and `hot` against `round` is exactly the pair that cannot be
- * told apart without both numbers.
- */
-const profileHint = (preset: IBassForgePreset): string =>
-  [
-    // Sub and Presence are plain numbers rather than percentages, and Mix
-    // stays a percentage, because that is what each one is: the two amounts
-    // reach 2 and say how much content the generators make relative to the
-    // band, while Mix is a fraction of what they made. Rendering `1.85` as
-    // "185%" both reads as a mistake and disagrees with the dial beneath it.
-    preset.settings.subAmount.toFixed(2),
-    preset.settings.presenceAmount.toFixed(2),
-    preset.settings.texture.toFixed(2),
-    `+${preset.settings.driveDb.toFixed(1)} dB`,
-    `${Math.round(preset.settings.mix * 100)}%`,
-  ].join(' · ');
 
 /**
  * Processor-local profiles, presented with the same picker as the EQ, the
@@ -78,7 +47,7 @@ const DspBassForgeBar = ({
       .map((preset) => ({
         id: preset.id,
         name: t(preset.labelKey as TranslationKey),
-        hint: profileHint(preset),
+        hint: bassForgeFigures(preset.settings),
         group,
         icon: (
           <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />

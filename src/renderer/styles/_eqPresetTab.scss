@@ -197,16 +197,17 @@ $card-reserve: $card-rise + $card-curve + $card-foot;
   }
 }
 
-// A tile and its star: the star at the tile's right end, shown while the
-// pointer or the focus is on the tile and always once given, as the preset
-// picks' menus show theirs (`.rich-pick__star`).
+// A tile, its star and its ⋯: the ⋯ at the tile's right end, always there as
+// an own preset's is (`.own-preset-tile__more`), and the star before it,
+// shown while the pointer or the focus is on the tile and always once given,
+// as the preset picks' menus show theirs (`.rich-pick__star`).
 .eq-preset-tab__cell {
   position: relative;
   display: grid;
   min-width: 0;
 
   > .eq-preset-tab__tile {
-    padding-right: 40px;
+    padding-right: 72px;
   }
 
   &:hover .eq-preset-tab__star,
@@ -223,13 +224,22 @@ $card-reserve: $card-rise + $card-curve + $card-foot;
 
 // Centred on the words, not the card: held between the card's top inset and
 // the curve's room with its own height, so it stays on the name's row
-// whatever height the grid's row gives the card.
-.eq-preset-tab__star {
+// whatever height the grid's row gives the card. The ⋯ wears an own card's (`.own-preset-tile__more`), placed as the star
+// is: named under the cell so its placing wins over the own card's in-row one
+// whichever sheet comes later.
+.eq-preset-tab__cell > :is(.eq-preset-tab__star, .eq-preset-tab__more) {
   position: absolute;
   top: $card-pad-y;
-  right: 6px;
   bottom: $card-reserve;
   margin: auto 0;
+}
+
+.eq-preset-tab__cell > .eq-preset-tab__star {
+  right: 36px;
+}
+
+.eq-preset-tab__cell > .eq-preset-tab__more {
+  right: 6px;
 }
 
 // The curve: inset as the words are, its ink set by its tone and lifted to
@@ -449,6 +459,65 @@ $eq-preset-scrollbar: 8px;
     border-radius: $radius-xs;
     font-size: $text-small;
   }
+}
+
+// --- What a preset is made of (`PresetNotes`), for every preset: a genre's
+// curve with its numbered pins, then what the rack runs, a stage to a row -
+// its name, the figures its picker prints, a genre's line for it - on a
+// rule down the left, the way a signal runs through the rack. What a genre
+// left off hangs from the same rule, dashed.
+.preset-notes__genre-curve {
+  display: grid;
+  gap: 8px;
+}
+
+.preset-notes__rack,
+.preset-notes__listen {
+  display: grid;
+  gap: 7px;
+}
+
+.preset-notes__stages {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: grid;
+    gap: 2px;
+    padding: 6px 0 6px 10px;
+    border-left: 2px solid $border-subtle;
+    line-height: 1.35;
+  }
+
+  strong {
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+  }
+
+  .is-off {
+    border-left-style: dashed;
+
+    strong {
+      color: $text-muted;
+    }
+  }
+}
+
+.preset-notes__figures {
+  color: $text-accent;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.preset-notes__line {
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
 }
 
 .eq-preset-tab__eyebrow {

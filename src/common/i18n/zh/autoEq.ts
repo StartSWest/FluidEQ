@@ -33,6 +33,7 @@ export default {
   'autoEq.now.album': '{album} 的声音',
   'autoEq.now.albumUnnamed': '所在专辑的声音',
   'autoEq.now.albumWhy': '已在媒体库中为整张专辑设置。',
+  'autoEq.now.showPreset': '在预设选项卡中显示 {preset}',
   'autoEq.songs.title': '歌曲声音',
   'autoEq.songs.hint':
     '保存了声音的歌曲会用它播放。更改后按“保存更改”才会保留。其他歌曲用你的声音播放。',

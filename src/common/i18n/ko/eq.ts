@@ -788,6 +788,8 @@ const eq = {
   'eq.preset.empty': '그 이름의 프리셋이 없습니다.',
   'eq.preset.search': '프리셋 검색',
   'eq.preset.rack': '랙이 하는 일',
+  'eq.preset.factoryAbout':
+    'FluidEQ에 기본 포함된 프리셋입니다. 사본을 편집하면 나만의 프리셋으로 만들 수 있습니다.',
   'eq.tone': '톤',
   'eq.tone.lowCut': '로우 컷',
   'eq.tone.highCut': '하이컷',

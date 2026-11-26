@@ -4,10 +4,9 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { IDeEsserSettings, TDeEsserMode } from '../../common/dsp/deEsser';
+import { IDeEsserSettings } from '../../common/dsp/deEsser';
 import {
   DE_ESSER_PRESET_GROUPS,
-  IDeEsserPreset,
   TDeEsserPresetGroup,
 } from '../../common/dsp/deEsserPresets';
 import { DE_ESSER_CATALOGUE } from '../../common/dsp/stageCatalogues';
@@ -16,6 +15,7 @@ import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import DspBarIcon from './DspBarIcon';
+import { deEsserFigures } from './stageFigures';
 import useStagePresets from './useStagePresets';
 import { scopedGroups, useDspPresetScope } from './presetScope';
 
@@ -32,12 +32,6 @@ const GROUP_KEYS: Record<TDeEsserPresetGroup, TranslationKey> = {
   genre: 'dsp.eqPresetGroup.genre',
   gaming: 'dsp.deEsserPresetGroup.gaming',
   mic: 'dsp.eqPresetGroup.mic',
-};
-
-export const DE_ESSER_MODE_KEYS: Record<TDeEsserMode, TranslationKey> = {
-  spectral: 'dsp.deEsser.mode.spectral',
-  treble: 'dsp.deEsser.mode.treble',
-  whole: 'dsp.deEsser.mode.whole',
 };
 
 const isGroup = (group: string | undefined): group is TDeEsserPresetGroup =>
@@ -57,23 +51,6 @@ const DspDeEsserBar = ({
   const { t } = useTranslation();
   const saved = useStagePresets('deEsser', deEsser, onChange, onCommit);
 
-  /**
-   * The three things that tell one profile from another, derived rather than
-   * written as a sentence, so the menu cannot go on describing a profile
-   * after somebody retunes it: how deep it may cut (the figure each is known
-   * by), how, and where it listens.
-   */
-  const profileHint = (preset: IDeEsserPreset): string =>
-    [
-      t('dsp.deEsser.upTo', {
-        db: `−${Number(preset.settings.rangeDb.toFixed(1)).toString()} dB`,
-      }),
-      t(DE_ESSER_MODE_KEYS[preset.settings.mode]),
-      preset.settings.centreOnly
-        ? t('dsp.deEsser.where.centre')
-        : t('dsp.deEsser.where.all'),
-    ].join(' · ');
-
   const scope = useDspPresetScope();
   const factoryEntries: IRichPickEntry[] = scopedGroups(
     DE_ESSER_PRESET_GROUPS,
@@ -84,7 +61,7 @@ const DspDeEsserBar = ({
       .map((preset) => ({
         id: preset.id,
         name: t(preset.labelKey as TranslationKey),
-        hint: profileHint(preset),
+        hint: deEsserFigures(preset.settings, t),
         group,
         icon: <VoicingIcon className="rich-pick__glyph" />,
       })),

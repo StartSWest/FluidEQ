@@ -161,14 +161,14 @@ $auto-eq-step: color-mix(in srgb, $edge-tint 8%, transparent);
     font-weight: $weight-semibold;
   }
 
-  span:last-child {
+  span:last-of-type {
     color: $secondary-light;
   }
 
   .is-song & {
     background: color-mix(in srgb, $sound-own 14%, transparent);
 
-    span:last-child {
+    span:last-of-type {
       color: $sound-own;
     }
   }
@@ -176,10 +176,44 @@ $auto-eq-step: color-mix(in srgb, $edge-tint 8%, transparent);
   .is-album & {
     background: color-mix(in srgb, $sound-album 14%, transparent);
 
-    span:last-child {
+    span:last-of-type {
       color: $sound-album;
     }
   }
+}
+
+// The chip as a press that shows its preset on the Preset tab: the same chip,
+// a little more of its tint under the pointer, and the way out at its end.
+button.eq-auto-now__plays {
+  color: inherit;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover {
+    background: color-mix(in srgb, $secondary-default 24%, transparent);
+  }
+
+  .is-song &:hover {
+    background: color-mix(in srgb, $sound-own 24%, transparent);
+  }
+
+  .is-album &:hover {
+    background: color-mix(in srgb, $sound-album 24%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.eq-auto-now__go {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  color: $text-muted;
 }
 
 // Whose sound plays, in the colour Auto EQ gives it everywhere: the song's

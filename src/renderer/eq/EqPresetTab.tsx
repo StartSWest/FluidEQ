@@ -4,14 +4,13 @@ Copyright (C) <2026> <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import type { TranslationKey } from '../../common/i18n/en';
 import {
   NONE_CHAIN_ID,
   QUICK_DSP_PRESETS,
   activeDspPresetId,
   dspPresetRowHint,
-  dspPresetStages,
   useDspPresetCatalog,
   type IDspCatalogEntry,
 } from '../dsp/dspPresetCatalog';
@@ -23,15 +22,18 @@ import {
 import { useDspPresetSelection } from '../dsp/useDspPresetSelection';
 import { toggleFavouriteDspPreset } from '../dsp/favouriteDspPresets';
 import MenuIcon from '../icons/MenuIcon';
-import GenreNotesPreview from '../dsp/GenreNotesPreview';
-import { genreNotesFor } from '../dsp/genreNotesModel';
 import GameSoundPresetButton from '../games/GameSoundPresetButton';
 import { useSoundingGame } from '../games/useGameSound';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useFluidEqLayers } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { useKnownAudioEngineStatus } from '../utils/useAudioEngineStatus';
-import { setEqPresetQuery, useEqPresetQuery } from './eqLayerTab';
+import {
+  setEqPresetQuery,
+  takeEqPresetToShow,
+  useEqPresetQuery,
+  useEqPresetToShow,
+} from './eqLayerTab';
 import NewPresetTile from './ownPresets/NewPresetTile';
 import OwnPresetTile from './ownPresets/OwnPresetTile';
 import {
@@ -39,6 +41,7 @@ import {
   OwnPresetsEmptyNotes,
 } from './ownPresets/OwnPresetNotes';
 import useOwnPresetActions from './ownPresets/useOwnPresetActions';
+import { FactoryPresetNotes } from './presetCard/PresetNotes';
 import PresetTile from './presetCard/PresetTile';
 import usePresetCurveDesign from './presetCard/usePresetCurveDesign';
 import OwnPresetExportDialog from './ownPresets/share/OwnPresetExportDialog';
@@ -69,9 +72,6 @@ const GROUPS: readonly TPresetGroup[] = [
   'classic',
   'genre',
 ];
-
-/** The press does nothing to close: the notes beside the grid are no menu. */
-const keepOpen = () => undefined;
 
 /**
  * The Preset tab: every preset the toolbar's pick offers, laid out to be
@@ -120,7 +120,29 @@ const EqPresetTab = () => {
     members[group].some((preset) => preset.id === activeId),
   );
   const [picked, setPicked] = useState<TPresetGroup | undefined>(undefined);
-  const group: TPresetGroup = picked ?? playingGroup ?? 'genre';
+  // A preset the tab was asked to show (`showEqPreset`): asked, then held
+  // once taken, until the listener plays one here, another starts playing
+  // from anywhere (the titlebar's plate, a song's sound), or the tab is asked
+  // for another — so the notes never go on describing a shown preset after
+  // the sound has moved on. Its group is the one open from the render the
+  // ask arrives in, so the tab is never drawn on the group it was left on
+  // first.
+  const toShow = useEqPresetToShow();
+  const [held, setHeld] = useState<
+    { id: string; whilePlaying: string } | undefined
+  >(undefined);
+  const heldId =
+    held !== undefined && held.whilePlaying === activeId ? held.id : undefined;
+  const shownId = toShow ?? heldId;
+  const shownGroup =
+    shownId === undefined
+      ? undefined
+      : groups.find((one) => members[one].some((p) => p.id === shownId));
+  const group: TPresetGroup =
+    (toShow === undefined ? picked : undefined) ??
+    shownGroup ??
+    playingGroup ??
+    'genre';
   const [pointedAt, setPointedAt] = useState<string | undefined>(undefined);
   const [renamingId, setRenamingId] = useState<string | undefined>(undefined);
   const [askingId, setAskingId] = useState<string | undefined>(undefined);
@@ -130,6 +152,28 @@ const EqPresetTab = () => {
   const [isImporting, setImporting] = useState(false);
   const own = useOwnPresetActions();
   const curveDesign = usePresetCurveDesign();
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  // The ask taken: held from now on, the group the listener had picked let
+  // go of, and its tile brought into view in the grid that now holds it.
+  useLayoutEffect(() => {
+    if (toShow === undefined) {
+      return;
+    }
+    setHeld({ id: toShow, whilePlaying: activeId });
+    setPicked(undefined);
+    setPointedAt(undefined);
+    takeEqPresetToShow();
+    gridRef.current
+      ?.querySelector(`[data-preset-id="${CSS.escape(toShow)}"]`)
+      ?.scrollIntoView({ block: 'nearest' });
+  }, [toShow, activeId]);
+
+  // A preset played is the one the notes follow, not one shown before it.
+  const play = (presetId: string) => {
+    setHeld(undefined);
+    apply(presetId).catch(() => undefined);
+  };
 
   // A search looks in every group at once, each preset once.
   const searched = Array.from(
@@ -150,7 +194,7 @@ const EqPresetTab = () => {
 
   // A preset whose deletion is being asked holds the notes until answered.
   const focused = catalog.find(
-    (preset) => preset.id === (askingId ?? pointedAt ?? activeId),
+    (preset) => preset.id === (askingId ?? pointedAt ?? shownId ?? activeId),
   );
   const isOwnFocused = focused?.group === 'saved';
   const showsEmptyYours =
@@ -158,18 +202,9 @@ const EqPresetTab = () => {
     group === 'saved' &&
     members.saved.length === 0 &&
     pointedAt === undefined;
-  const stages = focused ? dspPresetStages(focused, t) : [];
   // Nothing in the catalogue: no preset at all, or a curve that is none of
   // them, which the tab's chip calls Custom (`EqLayerTabs`) and so does this.
-  let aboutName = t('voicing.none');
-  let aboutHint: string | undefined = t('voicing.none.hint');
-  if (focused) {
-    aboutName = focused.name;
-    aboutHint = dspPresetRowHint(focused, t);
-  } else if (activeId !== 'none') {
-    aboutName = t('dsp.eqPreset.custom');
-    aboutHint = undefined;
-  }
+  const isCustom = activeId !== 'none';
 
   // A game's own sound loaded: the game is the preset, changed only in the
   // Gaming Lab, which the button's place opens.
@@ -224,6 +259,7 @@ const EqPresetTab = () => {
             className={`eq-preset-tab__grid${
               isYours ? ' eq-preset-tab__grid--own' : ''
             }`}
+            ref={gridRef}
             onPointerLeave={() => setPointedAt(undefined)}
           >
             {isYours && <NewPresetTile isDisabled={isDisabled} />}
@@ -236,7 +272,7 @@ const EqPresetTab = () => {
                 aria-pressed={activeId === 'none'}
                 disabled={isDisabled}
                 onClick={() => {
-                  apply('none').catch(() => undefined);
+                  play('none');
                 }}
               >
                 <VoicingIcon className="eq-preset-tab__glyph" />
@@ -274,7 +310,7 @@ const EqPresetTab = () => {
                     starLabel={starLabel}
                     onToggleStar={toggleStar}
                     onApply={() => {
-                      apply(preset.id).catch(() => undefined);
+                      play(preset.id);
                     }}
                     onPoint={() => setPointedAt(preset.id)}
                     onEdit={() => own.edit(preset.id)}
@@ -311,9 +347,10 @@ const EqPresetTab = () => {
                   design={curveDesign}
                   onToggleStar={toggleStar}
                   onApply={() => {
-                    apply(preset.id).catch(() => undefined);
+                    play(preset.id);
                   }}
                   onPoint={() => setPointedAt(preset.id)}
+                  onEditCopy={() => own.editCopy(preset.id)}
                 />
               );
             })}
@@ -344,7 +381,6 @@ const EqPresetTab = () => {
           {!showsEmptyYours && isOwnFocused && focused && (
             <OwnPresetNotes
               preset={focused}
-              stages={stages}
               isAskingDelete={askingId === focused.id}
               isDisabled={isDisabled}
               onEdit={() => own.edit(focused.id)}
@@ -365,26 +401,19 @@ const EqPresetTab = () => {
               }}
             />
           )}
-          {!showsEmptyYours &&
-            !isOwnFocused &&
-            (focused && genreNotesFor(focused.id) ? (
-              <GenreNotesPreview chainId={focused.id} closeMenu={keepOpen} />
-            ) : (
-              <div className="eq-preset-tab__about">
-                <strong>{aboutName}</strong>
-                {aboutHint && <span>{aboutHint}</span>}
-              </div>
-            ))}
-          {!showsEmptyYours && !isOwnFocused && stages.length > 0 && (
-            <div className="eq-preset-tab__stages">
-              <span className="eq-preset-tab__eyebrow">
-                {t('eq.preset.rack')}
-              </span>
-              <ul>
-                {stages.map((stage) => (
-                  <li key={stage}>{stage}</li>
-                ))}
-              </ul>
+          {!showsEmptyYours && !isOwnFocused && focused && (
+            <FactoryPresetNotes
+              preset={focused}
+              isDisabled={isDisabled}
+              onEditCopy={() => own.editCopy(focused.id)}
+            />
+          )}
+          {!showsEmptyYours && !focused && (
+            <div className="eq-preset-tab__about">
+              <strong>
+                {isCustom ? t('dsp.eqPreset.custom') : t('voicing.none')}
+              </strong>
+              {!isCustom && <span>{t('voicing.none.hint')}</span>}
             </div>
           )}
         </div>

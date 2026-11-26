@@ -84,3 +84,45 @@ const serverQuery = () => '';
 
 export const useEqPresetQuery = () =>
   useSyncExternalStore(subscribeQuery, readQueryNow, serverQuery);
+
+/**
+ * A preset the Preset tab is asked to show: its group open, its tile in
+ * view and its notes beside the grid, whether or not it is the one playing
+ * (Auto EQ's song card, 2026-11-26: "when clicking there I want to open the
+ * preset tab with that preset selected"). Held here until the tab takes it,
+ * because the tab may not be mounted when it is asked — the EQ page opens
+ * on the same press — and taken once, so coming back to the tab later
+ * shows what the listener left there rather than the old ask.
+ */
+let presetToShow: string | undefined;
+const showListeners = new Set<() => void>();
+
+const subscribeShow = (listener: () => void) => {
+  showListeners.add(listener);
+  return () => {
+    showListeners.delete(listener);
+  };
+};
+
+const setPresetToShow = (next: string | undefined) => {
+  if (next === presetToShow) {
+    return;
+  }
+  presetToShow = next;
+  showListeners.forEach((listener) => listener());
+};
+
+/** Ask the Preset tab to show this preset, with no search narrowing it. */
+export const showEqPreset = (presetId: string) => {
+  setEqPresetQuery('');
+  setPresetToShow(presetId);
+};
+
+/** The tab has the preset it was asked for; the ask is spent. */
+export const takeEqPresetToShow = () => setPresetToShow(undefined);
+
+const readShowNow = () => presetToShow;
+const serverShow = (): string | undefined => undefined;
+
+export const useEqPresetToShow = () =>
+  useSyncExternalStore(subscribeShow, readShowNow, serverShow);

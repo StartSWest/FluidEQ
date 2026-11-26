@@ -817,6 +817,8 @@ const eq: Partial<Dictionary> = {
   'eq.preset.empty': 'इस नाम का कोई प्रीसेट नहीं है।',
   'eq.preset.search': 'प्रीसेट खोजें',
   'eq.preset.rack': 'रैक क्या करता है',
+  'eq.preset.factoryAbout':
+    'FluidEQ में शामिल। इससे अपना बनाने के लिए इसकी कॉपी संपादित करें।',
   'eq.tone': 'टोन',
   'eq.tone.lowCut': 'लो कट',
   'eq.tone.highCut': 'हाई कट',

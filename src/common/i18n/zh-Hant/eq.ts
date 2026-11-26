@@ -755,6 +755,8 @@ const eq = {
   'eq.preset.empty': '沒有這個名稱的預設組。',
   'eq.preset.search': '搜尋預設組',
   'eq.preset.rack': '效果架的作用',
+  'eq.preset.factoryAbout':
+    'FluidEQ 內建預設組。編輯副本即可做成你自己的預設組。',
   'eq.tone': '音色',
   'eq.tone.lowCut': '低切',
   'eq.tone.highCut': '高切',

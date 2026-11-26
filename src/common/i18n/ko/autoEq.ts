@@ -33,6 +33,7 @@ const autoEq = {
   'autoEq.now.album': '{album}의 사운드',
   'autoEq.now.albumUnnamed': '앨범의 사운드',
   'autoEq.now.albumWhy': '라이브러리에서 앨범 전체에 설정했습니다.',
+  'autoEq.now.showPreset': '프리셋 탭에서 {preset} 보기',
   'autoEq.songs.title': '노래 사운드',
   'autoEq.songs.hint':
     '사운드가 저장된 곡은 그 사운드로 재생됩니다. 바꾼 뒤 변경 사항 저장을 눌러야 유지됩니다. 다른 곡은 내 사운드로 재생됩니다.',

@@ -10,7 +10,7 @@ import LiveFigure from '../components/LiveFigure';
 import { useTranslation } from '../utils/I18nContext';
 import writeLiveText from '../utils/liveText';
 import { readTextInk } from '../utils/theme';
-import { DE_ESSER_MODE_KEYS } from './DspDeEsserBar';
+import { DE_ESSER_MODE_KEYS } from './stageFigures';
 import { drawLens, ILensLabels, lensShows, TDeEsserTune } from './deEsserLens';
 import {
   eased,

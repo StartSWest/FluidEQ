@@ -32,6 +32,8 @@ export default {
   'eq.own.addBand': 'बैंड जोड़ें',
   'eq.own.curveBands': '“{name}” के कर्व के बैंड',
   'eq.own.edit': 'संपादित करें',
+  'eq.own.editCopy': 'कॉपी संपादित करें',
+  'eq.own.copyName': '{name} (कॉपी)',
   'eq.own.more': '“{name}” के लिए और',
   'eq.own.renameLabel': '“{name}” का नया नाम',
   'eq.own.about':

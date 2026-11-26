@@ -4,14 +4,17 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { Fragment, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { USER_DSP_PRESET_NAME_MAX } from '../../../common/userPresetsFile';
 import type { IDspCatalogEntry } from '../../dsp/dspPresetCatalog';
 import MenuIcon from '../../icons/MenuIcon';
 import VoicingIcon from '../../icons/VoicingIcon';
 import { useTranslation } from '../../utils/I18nContext';
-import AnchoredMenu, { isInsideAnchoredMenu } from '../../widgets/AnchoredMenu';
 import PresetCardCurve from '../presetCard/PresetCardCurve';
+import PresetMenu, {
+  type IPresetMenuItem,
+  usePresetMenu,
+} from '../presetCard/PresetMenu';
 import type { IPresetCurveDesign } from '../presetCard/presetCardDrawing';
 import type { TCopyLinkResult } from './share/presetShareActions';
 import PRESET_LINKS_OPEN from './share/presetLinksRelease';
@@ -59,30 +62,14 @@ interface IOwnPresetTileProps {
   onExport: () => void;
 }
 
-type TMenuItem = {
-  key: string;
-  icon:
-    | 'eqBars'
-    | 'pencil'
-    | 'duplicate'
-    | 'forum'
-    | 'copyText'
-    | 'upload'
-    | 'trash';
-  label: string;
-  run: () => void;
-  isDanger?: boolean;
-  /** The first of a group of its own, set apart by a rule. */
-  startsGroup?: boolean;
-};
-
 /**
  * One of the listener's presets on the Preset tab: pressed, it plays, as
  * every tile there does; its curve along its foot in the Preset layer's
- * violet, as every card draws its own in its ink; and a menu of its own —
- * Edit, Rename (in place), Duplicate, its three ways out (Share to the
- * community, Copy share link, Export) and Delete — which a factory
- * preset does not have. Delete asks first, in the notes beside the grid.
+ * violet, as every card draws its own in its ink; and its menu, off its ⋯
+ * or a right-click — Edit, Rename (in place), Duplicate, its star, its three
+ * ways out (Share to the community, Copy share link, Export) and Delete,
+ * where a factory preset's offers Edit a copy instead (`PresetTile`). Delete
+ * asks first, in the notes beside the grid.
  */
 const OwnPresetTile = ({
   preset,
@@ -106,8 +93,7 @@ const OwnPresetTile = ({
   onExport,
 }: IOwnPresetTileProps) => {
   const { t } = useTranslation();
-  const [isMenuOpen, setMenuOpen] = useState(false);
-  const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
+  const menu = usePresetMenu();
   const [draft, setDraft] = useState(preset.name);
   // "Making the link…", then "Link copied" or why not, in place of the hint
   // until the pointer leaves the tile: said where the press was, and gone
@@ -132,35 +118,7 @@ const OwnPresetTile = ({
     return () => tile.removeEventListener('pointerleave', onLeave);
   }, [tile]);
 
-  // A press anywhere but the menu and its button closes it, as every menu
-  // here closes; Escape too, and the focus goes back to the button.
-  useEffect(() => {
-    if (!isMenuOpen) {
-      return undefined;
-    }
-    const onPointerDown = (event: MouseEvent) => {
-      if (
-        !isInsideAnchoredMenu(event.target) &&
-        !anchor?.contains(event.target as Node)
-      ) {
-        setMenuOpen(false);
-      }
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setMenuOpen(false);
-        anchor?.focus();
-      }
-    };
-    window.addEventListener('mousedown', onPointerDown);
-    window.addEventListener('keydown', onKeyDown);
-    return () => {
-      window.removeEventListener('mousedown', onPointerDown);
-      window.removeEventListener('keydown', onKeyDown);
-    };
-  }, [anchor, isMenuOpen]);
-
-  const allItems: TMenuItem[] = [
+  const allItems: IPresetMenuItem[] = [
     { key: 'edit', icon: 'eqBars', label: t('eq.own.edit'), run: onEdit },
     {
       key: 'rename',
@@ -177,6 +135,7 @@ const OwnPresetTile = ({
       label: t('myCurves.duplicate'),
       run: onDuplicate,
     },
+    { key: 'star', icon: 'star', label: starLabel, run: onToggleStar },
     {
       key: 'share',
       icon: 'forum',
@@ -241,6 +200,8 @@ const OwnPresetTile = ({
     <div
       ref={setTile}
       className={`own-preset-tile${isPlaying ? ' is-playing' : ''}`}
+      data-preset-id={preset.id}
+      onContextMenu={menu.onContextMenu}
     >
       {isRenaming ? (
         <div className="own-preset-tile__main">
@@ -325,48 +286,15 @@ const OwnPresetTile = ({
       >
         <MenuIcon name="upload" />
       </button>
-      <button
-        ref={setAnchor}
-        type="button"
-        className="own-preset-tile__more"
-        aria-label={t('eq.own.more', { name: preset.name })}
-        title={t('eq.own.more', { name: preset.name })}
-        aria-haspopup="menu"
-        aria-expanded={isMenuOpen}
-        onPointerEnter={onPoint}
-        onClick={() => setMenuOpen((open) => !open)}
-      >
-        <MenuIcon name="menu" />
-      </button>
-      <AnchoredMenu
-        anchor={anchor}
-        isOpen={isMenuOpen}
-        className="band-menu own-preset-menu"
-        ariaLabel={t('eq.own.more', { name: preset.name })}
-      >
-        <p className="band-menu__subject">{preset.name}</p>
-        {items.map((item) => (
-          <Fragment key={item.key}>
-            {/* Sharing, and Delete, stand apart from what keeps the
-                preset. */}
-            {item.startsGroup && (
-              <span className="band-menu__rule" role="separator" />
-            )}
-            <button
-              type="button"
-              role="menuitem"
-              className={item.isDanger ? 'is-danger' : undefined}
-              onClick={() => {
-                setMenuOpen(false);
-                item.run();
-              }}
-            >
-              <MenuIcon name={item.icon} className="band-menu__icon" />
-              <span>{item.label}</span>
-            </button>
-          </Fragment>
-        ))}
-      </AnchoredMenu>
+      <PresetMenu
+        subject={preset.name}
+        label={t('eq.own.more', { name: preset.name })}
+        items={items}
+        isOpen={menu.isOpen}
+        onOpenChange={menu.setOpen}
+        buttonClassName="own-preset-tile__more"
+        onPoint={onPoint}
+      />
     </div>
   );
 };

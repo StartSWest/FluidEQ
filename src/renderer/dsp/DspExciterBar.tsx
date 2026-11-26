@@ -20,6 +20,7 @@ import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import SegmentedControl from '../widgets/SegmentedControl';
+import { exciterFigures } from './stageFigures';
 import useStagePresets from './useStagePresets';
 import { scopedGroups, useDspPresetScope } from './presetScope';
 
@@ -28,12 +29,6 @@ interface IDspExciterBarProps {
   onChange: (next: IExciterSettings) => void;
   onCommit: () => void;
 }
-
-const BAND_LABELS: readonly TranslationKey[] = [
-  'dsp.exciter.band.low',
-  'dsp.exciter.band.mid',
-  'dsp.exciter.band.high',
-];
 
 /** Lightest to cleanest, which is not the wire's order. */
 const OVERSAMPLING_OPTIONS: readonly {
@@ -58,30 +53,14 @@ const OVERSAMPLING_OPTIONS: readonly {
   },
 ];
 
-/** A preset's audible sections, derived from the settings that are applied. */
+/** A preset's audible sections; Reset's, what it is. */
 const profileHint = (
   preset: IExciterPreset,
   t: ReturnType<typeof useTranslation>['t'],
-): string => {
-  if (preset.id === 'none') {
-    return t('dsp.eqPreset.reset');
-  }
-  const parts = preset.settings.bands.flatMap((band, index) =>
-    band.enabled && BAND_LABELS[index] ? [t(BAND_LABELS[index])] : [],
-  );
-  if (preset.settings.stereo !== 'stereo') {
-    parts.unshift(
-      t(`dsp.eqStereo.${preset.settings.stereo}` as TranslationKey),
-    );
-  }
-  if (preset.settings.organic.enabled) {
-    parts.push(t('dsp.exciter.organic'));
-  }
-  if (preset.settings.align.enabled) {
-    parts.push(t('dsp.exciter.align'));
-  }
-  return parts.join(' · ');
-};
+): string =>
+  preset.id === 'none'
+    ? t('dsp.eqPreset.reset')
+    : exciterFigures(preset.settings, t);
 
 /**
  * Processor-local profiles, presented with the same picker as the EQ.

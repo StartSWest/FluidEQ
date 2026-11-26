@@ -35,6 +35,7 @@ export default {
   'autoEq.now.album': '{album} のサウンド',
   'autoEq.now.albumUnnamed': 'アルバムのサウンド',
   'autoEq.now.albumWhy': 'ライブラリでアルバム全体に設定されています。',
+  'autoEq.now.showPreset': '{preset} をプリセットタブで表示',
   'autoEq.songs.title': '曲のサウンド',
   'autoEq.songs.hint':
     'サウンドを保存した曲はそれで再生されます。変更したら「変更を保存」を押すと保持されます。ほかの曲はあなたのサウンドで再生されます。',

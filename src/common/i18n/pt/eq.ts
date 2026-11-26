@@ -831,6 +831,8 @@ const eq: Partial<Dictionary> = {
   'eq.preset.empty': 'Nenhum preset tem esse nome.',
   'eq.preset.search': 'Buscar presets',
   'eq.preset.rack': 'O que o rack faz',
+  'eq.preset.factoryAbout':
+    'Incluído no FluidEQ. Edite uma cópia para fazer um seu a partir dele.',
   'eq.tone': 'Tom',
   'eq.tone.lowCut': 'Corte graves',
   'eq.tone.highCut': 'Corte agudos',

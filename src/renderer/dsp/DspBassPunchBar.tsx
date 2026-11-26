@@ -5,16 +5,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { IBassPunchSettings } from '../../common/dsp/chain';
-import {
-  BASS_PUNCH_PRESET_GROUPS,
-  IBassPunchPreset,
-} from '../../common/dsp/bassPunchPresets';
+import { BASS_PUNCH_PRESET_GROUPS } from '../../common/dsp/bassPunchPresets';
 import { BASS_PUNCH_CATALOGUE } from '../../common/dsp/stageCatalogues';
 import { TranslationKey } from '../../common/i18n/en';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import DspBarIcon from './DspBarIcon';
+import { bassPunchFigures } from './stageFigures';
 import useStagePresets from './useStagePresets';
 import { scopedGroups, useDspPresetScope } from './presetScope';
 
@@ -23,44 +21,6 @@ interface IDspBassPunchBarProps {
   onChange: (next: IBassPunchSettings) => void;
   onCommit: () => void;
 }
-
-/**
- * A bipolar figure with its sign always shown, so `0` reads as a centre.
- *
- * `+0.60` and `-0.15` are two directions from one rest position; `0.60` and
- * `-0.15` read as an amount next to a correction. Two decimals because the
- * catalogue uses them — `rock` sits at -0.15 and `dnb` at 0.9, and one decimal
- * would round the first into the second's neighbourhood.
- */
-const signed = (value: number): string =>
-  `${value > 0 ? '+' : ''}${value.toFixed(2)}`;
-
-/**
- * The four figures that separate one profile from another.
- *
- * Derived rather than written out, for the reason every hint in this rack is:
- * a sentence describing a profile survives somebody changing the profile, and
- * the menu lies from then on.
- *
- * Attack and sustain carry an explicit sign, which is the one thing a reader
- * has to see here. Every other figure on the line is an amount that starts at
- * nothing, so unsigned they would read as two more of those: `+0.60 · -0.15`
- * says at a glance that `rock` hits harder and decays shorter, where
- * `0.60 · 0.15` says only that it does more of two things.
- *
- * `splitHz` is absent for the same reason Forge's is — the whole catalogue
- * sits at 90, 100 or 110, and a column that says the same thing fourteen times
- * would push the parts that actually differ off the end of the line. Bloom's
- * decay is absent too, but for a different reason: it is inert wherever the
- * amount is 0, and four of these profiles set exactly that.
- */
-const profileHint = (preset: IBassPunchPreset): string =>
-  [
-    signed(preset.settings.attack),
-    signed(preset.settings.sustain),
-    `${Math.round(preset.settings.bloomAmount * 100)}%`,
-    `${Math.round(preset.settings.duck * 100)}%`,
-  ].join(' · ');
 
 /**
  * Processor-local profiles, presented with the same picker as the EQ, the
@@ -87,7 +47,7 @@ const DspBassPunchBar = ({
       .map((preset) => ({
         id: preset.id,
         name: t(preset.labelKey as TranslationKey),
-        hint: profileHint(preset),
+        hint: bassPunchFigures(preset.settings),
         group,
         icon: (
           <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />

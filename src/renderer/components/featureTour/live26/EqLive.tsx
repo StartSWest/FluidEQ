@@ -140,6 +140,7 @@ export default function EqLive() {
                 onToggleStar={nothing}
                 onApply={nothing}
                 onPoint={nothing}
+                onEditCopy={nothing}
               />
             ))}
           </div>

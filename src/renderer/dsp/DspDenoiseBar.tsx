@@ -8,16 +8,15 @@ import { IDenoiseSettings } from '../../common/dsp/chain';
 import {
   DENOISE_PRESETS,
   DENOISE_PRESET_GROUPS,
-  IDenoisePreset,
   denoisePresetSettings,
   isDenoisePresetId,
 } from '../../common/dsp/denoisePresets';
-import { Translate } from '../../common/i18n';
 import { TranslationKey } from '../../common/i18n/en';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import DspBarIcon from './DspBarIcon';
+import { denoiseFigures } from './stageFigures';
 import useStagePresets from './useStagePresets';
 import { scopedGroups, useDspPresetScope } from './presetScope';
 
@@ -26,21 +25,6 @@ interface IDspDenoiseBarProps {
   onChange: (next: IDenoiseSettings) => void;
   onCommit: () => void;
 }
-
-/** The modules a profile actually starts, derived from the applied settings. */
-const profileHint = (preset: IDenoisePreset, t: Translate): string => {
-  const modules = [
-    preset.settings.hiss.enabled ? t('dsp.denoise.hiss') : '',
-    preset.settings.hum.enabled ? t('dsp.denoise.hum') : '',
-    preset.settings.click.enabled ? t('dsp.denoise.click') : '',
-  ].filter(Boolean);
-  const source = t(
-    preset.settings.profileSource === 'adaptive'
-      ? 'dsp.denoise.adaptive'
-      : 'dsp.denoise.scanned',
-  );
-  return [source, ...modules].join(' · ');
-};
 
 const DspDenoiseBar = ({
   denoise,
@@ -58,7 +42,7 @@ const DspDenoiseBar = ({
       (preset) => ({
         id: preset.id,
         name: t(preset.labelKey as TranslationKey),
-        hint: profileHint(preset, t),
+        hint: denoiseFigures(preset.settings, t),
         group,
         icon: (
           <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />

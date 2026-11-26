@@ -237,6 +237,13 @@ $own-edge: color-mix(in srgb, var(--ink-preset) 55%, transparent);
 
 // The tile's menu: the band menu's surface and rows, Delete in the red every
 // answer that deletes wears.
+// The items' own box inside the menu's frame (`PresetMenu`), where the
+// arrows are heard: it keeps the frame's rows and their 1px gap.
+.preset-menu__items {
+  display: grid;
+  gap: 1px;
+}
+
 .band-menu.own-preset-menu {
   button.is-danger:not(.button) {
     color: $ink-removed;

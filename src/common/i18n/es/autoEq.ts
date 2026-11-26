@@ -34,6 +34,7 @@ export default {
   'autoEq.now.album': 'el sonido de {album}',
   'autoEq.now.albumUnnamed': 'el sonido de su álbum',
   'autoEq.now.albumWhy': 'Fijado en la Biblioteca para todo el álbum.',
+  'autoEq.now.showPreset': 'Mostrar {preset} en la pestaña Preset',
   'autoEq.songs.title': 'Sonidos de canciones',
   'autoEq.songs.hint':
     'Una canción con un sonido guardado lo reproduce. Cámbialo y pulsa Guardar cambios para conservarlo. Las demás canciones suenan con el tuyo.',

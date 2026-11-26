@@ -34,6 +34,7 @@ export default {
   'autoEq.now.album': 'il suono di {album}',
   'autoEq.now.albumUnnamed': 'il suono del suo album',
   'autoEq.now.albumWhy': 'Impostato nella Libreria per tutto l’album.',
+  'autoEq.now.showPreset': 'Mostra {preset} nella scheda Preset',
   'autoEq.songs.title': 'Suoni dei brani',
   'autoEq.songs.hint':
     'Un brano con un suono salvato lo riproduce. Cambialo e premi Salva modifiche per tenerlo. Gli altri brani suonano con il tuo.',

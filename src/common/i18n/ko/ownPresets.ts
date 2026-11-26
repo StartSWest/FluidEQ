@@ -32,6 +32,8 @@ export default {
   'eq.own.addBand': '밴드 추가',
   'eq.own.curveBands': "'{name}' 커브의 밴드",
   'eq.own.edit': '편집',
+  'eq.own.editCopy': '사본 편집',
+  'eq.own.copyName': '{name} (사본)',
   'eq.own.more': "'{name}' 더 보기",
   'eq.own.renameLabel': "'{name}'의 새 이름",
   'eq.own.about':

@@ -8,12 +8,10 @@ import { useEffect, useId, useRef } from 'react';
 import type { IDspCatalogEntry } from '../../dsp/dspPresetCatalog';
 import MenuIcon from '../../icons/MenuIcon';
 import { useTranslation } from '../../utils/I18nContext';
-import PresetCurveSpark from './PresetCurveSpark';
+import { PresetNotesBody } from '../presetCard/PresetNotes';
 
 interface IOwnPresetNotesProps {
   preset: IDspCatalogEntry;
-  /** Its rack's stages, as chips. */
-  stages: readonly string[];
   isAskingDelete: boolean;
   isDisabled: boolean;
   onEdit: () => void;
@@ -27,14 +25,14 @@ interface IOwnPresetNotesProps {
 /**
  * Beside the grid, for one of the listener's presets: its name, what can be
  * done to it — Edit, the loud one, and Duplicate, Rename and Delete quietly
- * beside it — then its curve drawn wide and what its rack runs. The actions
+ * beside it — then what every preset's notes show: its curve drawn wide and
+ * what its rack runs, stage by stage (`PresetNotesBody`). The actions
  * stand under the name, not at the foot, so a short pane never scrolls them
  * away. Delete asks in their place, naming the preset and what stops if it
  * is playing, before anything is gone.
  */
 export const OwnPresetNotes = ({
   preset,
-  stages,
   isAskingDelete,
   isDisabled,
   onEdit,
@@ -136,19 +134,7 @@ export const OwnPresetNotes = ({
           </button>
         </div>
       )}
-      <div className="own-preset-notes__curve">
-        <PresetCurveSpark curve={preset.curve} size="wide" />
-      </div>
-      {stages.length > 0 && (
-        <div className="eq-preset-tab__stages">
-          <span className="eq-preset-tab__eyebrow">{t('eq.preset.rack')}</span>
-          <ul>
-            {stages.map((stage) => (
-              <li key={stage}>{stage}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <PresetNotesBody preset={preset} />
     </>
   );
 };

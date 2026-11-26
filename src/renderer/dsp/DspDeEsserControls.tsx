@@ -15,7 +15,7 @@ import {
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
 import { Dial } from './DspControls';
-import { DE_ESSER_MODE_KEYS } from './DspDeEsserBar';
+import { DE_ESSER_MODE_KEYS } from './stageFigures';
 import { TDeEsserTune } from './deEsserLens';
 
 interface IDspDeEsserControlsProps {

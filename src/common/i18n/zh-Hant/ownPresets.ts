@@ -32,6 +32,8 @@ export default {
   'eq.own.addBand': '新增頻段',
   'eq.own.curveBands': '「{name}」曲線的頻段',
   'eq.own.edit': '編輯',
+  'eq.own.editCopy': '編輯副本',
+  'eq.own.copyName': '{name}（副本）',
   'eq.own.more': '「{name}」的更多操作',
   'eq.own.renameLabel': '「{name}」的新名稱',
   'eq.own.about':

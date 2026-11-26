@@ -32,6 +32,8 @@ export default {
   'eq.own.addBand': 'バンドを追加',
   'eq.own.curveBands': '「{name}」のカーブのバンド',
   'eq.own.edit': '編集',
+  'eq.own.editCopy': 'コピーを編集',
+  'eq.own.copyName': '{name}（コピー）',
   'eq.own.more': '「{name}」のその他の操作',
   'eq.own.renameLabel': '「{name}」の新しい名前',
   'eq.own.about':

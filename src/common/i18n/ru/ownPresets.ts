@@ -32,6 +32,8 @@ export default {
   'eq.own.addBand': 'Добавить полосу',
   'eq.own.curveBands': 'Полосы кривой «{name}»',
   'eq.own.edit': 'Изменить',
+  'eq.own.editCopy': 'Изменить копию',
+  'eq.own.copyName': '{name} (копия)',
   'eq.own.more': 'Ещё для «{name}»',
   'eq.own.renameLabel': 'Новое название для «{name}»',
   'eq.own.about':

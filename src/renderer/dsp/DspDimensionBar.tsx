@@ -5,16 +5,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { IDimensionSettings } from '../../common/dsp/chain';
-import {
-  DIMENSION_PRESET_GROUPS,
-  IDimensionPreset,
-} from '../../common/dsp/dimensionPresets';
+import { DIMENSION_PRESET_GROUPS } from '../../common/dsp/dimensionPresets';
 import { DIMENSION_CATALOGUE } from '../../common/dsp/stageCatalogues';
 import { TranslationKey } from '../../common/i18n/en';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import DspBarIcon from './DspBarIcon';
+import { dimensionFigures } from './stageFigures';
 import useStagePresets from './useStagePresets';
 import { scopedGroups, useDspPresetScope } from './presetScope';
 
@@ -23,23 +21,6 @@ interface IDspDimensionBarProps {
   onChange: (next: IDimensionSettings) => void;
   onCommit: () => void;
 }
-
-/**
- * The three widths and the spread, in the order the dials sit on the page.
- *
- * Derived rather than written out, for the reason every hint in this rack is:
- * a sentence describing a profile survives somebody changing the profile, and
- * the menu lies from then on. The crossover corners are deliberately left out —
- * they are the same in almost every profile and would push the part that
- * actually differs off the end of the line.
- */
-const profileHint = (preset: IDimensionPreset): string =>
-  [
-    `${preset.settings.lowWidth.toFixed(2)}x`,
-    `${preset.settings.midWidth.toFixed(2)}x`,
-    `${preset.settings.highWidth.toFixed(2)}x`,
-    `${Math.round(preset.settings.decorrelation * 100)}%`,
-  ].join(' · ');
 
 /**
  * Processor-local profiles, presented with the same picker as the EQ, the
@@ -66,7 +47,7 @@ const DspDimensionBar = ({
       .map((preset) => ({
         id: preset.id,
         name: t(preset.labelKey as TranslationKey),
-        hint: profileHint(preset),
+        hint: dimensionFigures(preset.settings),
         group,
         icon: (
           <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />

@@ -34,6 +34,7 @@ export default {
   'autoEq.now.album': '{album} की आवाज़',
   'autoEq.now.albumUnnamed': 'इसके एल्बम की आवाज़',
   'autoEq.now.albumWhy': 'पूरे एल्बम के लिए लाइब्रेरी में सेट की गई।',
+  'autoEq.now.showPreset': '{preset} को प्रीसेट टैब में दिखाएँ',
   'autoEq.songs.title': 'गानों की आवाज़ें',
   'autoEq.songs.hint':
     'जिस गाने की ध्वनि सहेजी है, वह उसी से बजता है। बदलें और रखने के लिए बदलाव सहेजें दबाएँ। बाकी गाने आपकी ध्वनि से बजते हैं।',

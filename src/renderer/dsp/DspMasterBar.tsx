@@ -6,7 +6,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { IMasterSettings } from '../../common/dsp/chain';
 import {
-  IMasterPreset,
   MASTER_PRESETS,
   MASTER_PRESET_GROUPS,
   isMasterPresetId,
@@ -17,6 +16,7 @@ import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import DspBarIcon from './DspBarIcon';
+import { masterFigures } from './stageFigures';
 import { useScopedGroups } from './presetScope';
 import useStagePresets from './useStagePresets';
 
@@ -25,21 +25,6 @@ interface IDspMasterBarProps {
   onChange: (next: IMasterSettings) => void;
   onCommit: () => void;
 }
-
-/**
- * The three figures a destination is, derived rather than written out.
- *
- * The same rule as the Maximizer's picker beside it: a sentence describing a
- * profile survives somebody changing the profile, and the menu lies from then
- * on. These cannot be wrong unless the profile is — and here the numbers ARE
- * the difference, because a delivery target has no curve to look at.
- */
-const destinationHint = (preset: IMasterPreset): string =>
-  [
-    `${preset.settings.loudnessTargetLufs.toFixed(1)} LUFS`,
-    `${preset.settings.ceilingDb.toFixed(1)} dBTP`,
-    `${preset.settings.peakLimitingDb.toFixed(0)} dB`,
-  ].join(' · ');
 
 /**
  * Where the finished record is going, picked the way every other profile is.
@@ -56,7 +41,7 @@ const DspMasterBar = ({ master, onChange, onCommit }: IDspMasterBarProps) => {
   ).map((preset) => ({
     id: preset.id,
     name: t(preset.labelKey as TranslationKey),
-    hint: destinationHint(preset),
+    hint: masterFigures(preset.settings),
     group: preset.group,
     icon: <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />,
   }));

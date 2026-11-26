@@ -36,6 +36,8 @@ export default {
   'eq.own.addBand': 'Add band',
   'eq.own.curveBands': 'Bands of the curve of “{name}”',
   'eq.own.edit': 'Edit',
+  'eq.own.editCopy': 'Edit a copy',
+  'eq.own.copyName': '{name} (copy)',
   'eq.own.more': 'More for “{name}”',
   'eq.own.renameLabel': 'New name for “{name}”',
   'eq.own.about':

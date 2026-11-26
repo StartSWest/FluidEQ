@@ -840,6 +840,8 @@ const eq: Partial<Dictionary> = {
   'eq.preset.empty': 'Aucun préréglage ne porte ce nom.',
   'eq.preset.search': 'Rechercher un préréglage',
   'eq.preset.rack': 'Ce que fait le rack',
+  'eq.preset.factoryAbout':
+    'Intégré à FluidEQ. Modifiez une copie pour en faire l’un des vôtres.',
   'eq.tone': 'Tonalité',
   'eq.tone.lowCut': 'Coupe-bas',
   'eq.tone.highCut': 'Coupe-haut',

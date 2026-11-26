@@ -5,16 +5,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { IMaximizerSettings } from '../../common/dsp/chain';
-import {
-  IMaximizerPreset,
-  MAXIMIZER_PRESET_GROUPS,
-} from '../../common/dsp/maximizerPresets';
+import { MAXIMIZER_PRESET_GROUPS } from '../../common/dsp/maximizerPresets';
 import { MAXIMIZER_CATALOGUE } from '../../common/dsp/stageCatalogues';
 import { TranslationKey } from '../../common/i18n/en';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import DspBarIcon from './DspBarIcon';
+import { maximizerFigures } from './stageFigures';
 import useStagePresets from './useStagePresets';
 import { scopedGroups, useDspPresetScope } from './presetScope';
 
@@ -23,23 +21,6 @@ interface IDspMaximizerBarProps {
   onChange: (next: IMaximizerSettings) => void;
   onCommit: () => void;
 }
-
-/**
- * The four figures, in the order the dials sit on the page.
- *
- * Derived rather than written out, for the reason every hint in this rack is:
- * a sentence describing a profile survives somebody changing the profile, and
- * the menu simply lies from then on. These cannot be wrong unless the profile
- * is. They are also what actually separates two entries here — a limiter has
- * no curve to look at, so the numbers ARE the difference.
- */
-const profileHint = (preset: IMaximizerPreset): string =>
-  [
-    `${preset.settings.driveDb > 0 ? '+' : ''}${preset.settings.driveDb.toFixed(1)} dB`,
-    `${preset.settings.ceilingDb.toFixed(1)} dBTP`,
-    `${preset.settings.lookAheadMs} ms`,
-    `${preset.settings.releaseMs} ms`,
-  ].join(' · ');
 
 /**
  * Processor-local profiles, presented with the same picker as the EQ and the
@@ -66,7 +47,7 @@ const DspMaximizerBar = ({
       .map((preset) => ({
         id: preset.id,
         name: t(preset.labelKey as TranslationKey),
-        hint: profileHint(preset),
+        hint: maximizerFigures(preset.settings),
         group,
         icon: (
           <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />

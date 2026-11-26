@@ -34,6 +34,7 @@ export default {
   'autoEq.now.album': '{album}’s sound',
   'autoEq.now.albumUnnamed': 'its album’s sound',
   'autoEq.now.albumWhy': 'Set in the Library for the whole album.',
+  'autoEq.now.showPreset': 'Show {preset} on the Preset tab',
   'autoEq.songs.title': 'Song sounds',
   'autoEq.songs.hint':
     'A song with a saved sound plays it. Change it and press Save changes to keep it. Other songs play yours.',

@@ -818,6 +818,8 @@ const eq: Partial<Dictionary> = {
   'eq.preset.empty': 'その名前のプリセットはありません。',
   'eq.preset.search': 'プリセットを検索',
   'eq.preset.rack': 'ラックの働き',
+  'eq.preset.factoryAbout':
+    'FluidEQ に組み込まれたプリセットです。コピーを編集すると自分のプリセットにできます。',
   'eq.tone': 'トーン',
   'eq.tone.lowCut': 'ローカット',
   'eq.tone.highCut': 'ハイカット',

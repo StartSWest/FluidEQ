@@ -31,6 +31,7 @@ const autoEq = {
   'autoEq.now.album': '{album} 的聲音',
   'autoEq.now.albumUnnamed': '所屬專輯的聲音',
   'autoEq.now.albumWhy': '已在媒體庫中為整張專輯設定。',
+  'autoEq.now.showPreset': '在預設組分頁中顯示 {preset}',
   'autoEq.songs.title': '歌曲聲音',
   'autoEq.songs.hint':
     '儲存了聲音的歌曲會用它播放。變更後按「儲存變更」才會保留。其他歌曲用你的聲音播放。',

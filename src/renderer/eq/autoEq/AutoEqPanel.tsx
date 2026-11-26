@@ -21,6 +21,7 @@ import { useSongSoundIndex } from '../../audio/songSoundIndex';
 import songSoundPresetName from '../../components/songSoundPresetName';
 import { countText } from '../../library/libraryFormat';
 import type { TAutoEqButton } from './useAutoEqButton';
+import openEqPresetTab from '../openEqPresetTab';
 import AutoEqNowPlaying from './AutoEqNowPlaying';
 import AutoEqSmartPart from './AutoEqSmartPart';
 import AutoEqManage, { type TManageTab } from './AutoEqManage';
@@ -168,7 +169,15 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
           <span>{t('autoEq.aside')}</span>
         </p>
       )}
-      <AutoEqNowPlaying now={now} eqName={songEq?.name} back={backTo} />
+      <AutoEqNowPlaying
+        now={now}
+        eqName={songEq?.name}
+        back={backTo}
+        onShowPreset={(presetId) => {
+          button.setIsOpen(false);
+          openEqPresetTab(presetId);
+        }}
+      />
       <AutoEqPart
         id="eq-auto-songs"
         title={t('autoEq.songs.title')}
