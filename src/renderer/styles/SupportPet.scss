@@ -154,6 +154,16 @@ $pet-hop-duration: 520ms;
   display: block;
 }
 
+// In her button the square is larger than the button (`TITLEBAR_PET_ART`),
+// and as a grid item it grew the row and stood from the top, 6 px low.
+// Taken out of the flow and centred, it takes no room at all.
+.support-pet > .support-pet__frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+}
+
 // The canvas: her square with room all round for a hop, the sway and her fur
 // standing up, centred on her square and taking no pointer, so the button
 // under it is still what is pressed and hovered. Its size is set beside it.
