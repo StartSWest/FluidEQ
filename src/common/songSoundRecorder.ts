@@ -13,13 +13,13 @@ import {
 import {
   advance,
   close,
-  deviceChanged,
   giveBack,
   giveEverythingBack,
   matched,
   nowPlaying,
   TStep,
 } from './songSoundSteps';
+import deviceChanged from './songSoundOutputs';
 import { withWorking, withoutWorking } from './songSoundWorking';
 import {
   picked,

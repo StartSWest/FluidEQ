@@ -87,7 +87,7 @@ const handBackTo = (state: ISongSoundState, sound: ISongSound): TStep => [
  * with sounds costs a write each, and an answer about a song skipped past is
  * turned away by its key (`matched`).
  */
-const open = (
+export const open = (
   state: ISongSoundState,
   identity: ISongIdentity,
 ): ISongSoundSession => ({
@@ -111,8 +111,8 @@ const open = (
  * with nothing saved, and from there into the next saved song's hand-back.
  * Something that really puts a sound on between songs — a profile loaded, a
  * game's sound — gives everything back before it does (`yield`), and an
- * output switch drops the hand-back (`deviceChanged`), so nothing is left
- * here to tell apart.
+ * output switch parks the hand-back with that output (`deviceChanged` in
+ * `songSoundOutputs.ts`), so nothing is left here to tell apart.
  */
 const settleOwed = (state: ISongSoundState, owed: ISongSoundOwed): TStep =>
   handBackTo({ ...state, owed: undefined }, owed.sound);
@@ -440,86 +440,4 @@ export const nowPlaying = (
     session: isPlaying ? open(closed, identity) : undefined,
   };
   return [opened, [...effects, ...lookupOpen(opened)]];
-};
-
-export const deviceChanged = (
-  state: ISongSoundState,
-  deviceId: string,
-): TStep => {
-  if (deviceId === state.deviceId) {
-    return [state, []];
-  }
-  if (state.deviceId === '') {
-    // The window learning which output it starts on is not a switch: the song
-    // playing at launch is the listener's like any other, and is looked up
-    // now if it opened before the output was known.
-    const known: ISongSoundState = { ...state, deviceId };
-    return [known, lookupOpen(known)];
-  }
-  // Nothing handed back here: the new output brings its own Tone and EQ, and
-  // the lent one never reached the old output's profile. Main keeps the old
-  // output's state with its loan and puts both back when the window returns
-  // there, so the loan is parked with it — left to nobody, it was never
-  // handed back, the song's sound played on into every later song, and no
-  // change reached the listener's own EQ again.
-  const [closed, effects] = close(state, { nextSong: false, handBack: false });
-  const { session, owed } = state;
-  const held = session?.handBack ?? owed?.sound;
-  const { [deviceId]: back, ...others } = {
-    ...state.parked,
-    ...(held
-      ? {
-          [state.deviceId]: {
-            handBack: held,
-            ...(session?.handBack ? { session } : {}),
-          },
-        }
-      : {}),
-  };
-  const moved: ISongSoundState = {
-    ...closed,
-    deviceId,
-    pending: undefined,
-    owed: undefined,
-    parked: others,
-  };
-  const { playing } = moved;
-  if (back) {
-    const resumed = back.session;
-    if (
-      resumed &&
-      playing?.isPlaying &&
-      playing.identity.key === resumed.identity.key
-    ) {
-      // The same song still plays there: its sound and its loan go on.
-      return [
-        {
-          ...moved,
-          session: { ...resumed, phase: 'playing', suspendedSince: undefined },
-        },
-        [...effects, { kind: 'release' }],
-      ];
-    }
-    // Its song is over: the listener's own goes back on there.
-    return [
-      {
-        ...moved,
-        session: playing?.isPlaying
-          ? { ...open(moved, playing.identity), isLoaded: true }
-          : undefined,
-      },
-      [...effects, { kind: 'release' }, { kind: 'return' }],
-    ];
-  }
-  return [
-    {
-      ...moved,
-      // The song carries on there, reached by the switch: nothing it ends
-      // with is the listener's choice, and nothing is lent to it this play.
-      session: playing?.isPlaying
-        ? { ...open(moved, playing.identity), isLoaded: true }
-        : undefined,
-    },
-    [...effects, { kind: 'release' }],
-  ];
 };
