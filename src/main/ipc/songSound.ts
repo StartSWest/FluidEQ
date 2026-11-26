@@ -23,6 +23,7 @@ import {
 } from '../../common/songSoundMemory';
 import { isEqLink } from '../../common/savedEq';
 import {
+  type TSongSoundScope,
   keepSongSound,
   lendOwnSound,
   putSongSoundOn,
@@ -63,6 +64,40 @@ export interface ISongSoundIpcDeps {
  * rather than band by band. Whether it is lent, and what that keeps out of
  * the output's profile, is `songSoundLoan.ts`.
  */
+/**
+ * How a sound is lent, as the window asks (`applySongSound`): as the
+ * listener's own, lent as it is (`asOwn`), and covering a preset alone
+ * (`presetOnly`). Nothing for an ask that is not one: either is only ever a
+ * loan.
+ */
+const toLending = (
+  value: unknown,
+  isLent: boolean,
+): { asOwn: boolean; scope: TSongSoundScope } | undefined => {
+  if (value === undefined) {
+    return { asOwn: false, scope: 'whole' };
+  }
+  if (
+    !isLent ||
+    typeof value !== 'object' ||
+    value === null ||
+    Array.isArray(value)
+  ) {
+    return undefined;
+  }
+  const { asOwn, presetOnly } = value as Record<string, unknown>;
+  if (
+    (asOwn !== undefined && asOwn !== true) ||
+    (presetOnly !== undefined && presetOnly !== true)
+  ) {
+    return undefined;
+  }
+  return {
+    asOwn: asOwn === true,
+    scope: presetOnly === true ? 'preset' : 'whole',
+  };
+};
+
 const registerSongSoundIpc = ({
   state,
   holder,
@@ -190,13 +225,13 @@ const registerSongSoundIpc = ({
     // The preset's curve as the window's catalogue gives it; none for None,
     // a preset without one, or a hand-back that puts back what a loan took.
     const curve: unknown = arg?.[2];
-    // The song's sound is the listener's own: theirs, lent as it is.
-    const asOwn: unknown = arg?.[4];
+    const lending =
+      typeof isLent === 'boolean' ? toLending(arg?.[4], isLent) : undefined;
     if (
       !sound ||
       typeof isLent !== 'boolean' ||
+      !lending ||
       !matchesEditor(arg?.[3]) ||
-      (asOwn !== undefined && (asOwn !== true || !isLent)) ||
       (curve !== undefined &&
         curve !== null &&
         (typeof curve !== 'object' || Array.isArray(curve)))
@@ -208,10 +243,10 @@ const registerSongSoundIpc = ({
     // song's and handing theirs back leave it as it was, so neither writes
     // the output's profile: every song change used to save it again.
     const isOwnChange = !isLent && !state.songSoundLoan;
-    if (asOwn === true) {
-      lendOwnSound(state);
+    if (lending.asOwn) {
+      lendOwnSound(state, lending.scope);
     } else {
-      putSongSoundOn(state, sound, isLent, curve);
+      putSongSoundOn(state, sound, isLent, curve, lending.scope);
     }
     // What landed, so the window can tell an apply that finished from one
     // still on its way without waiting for its own copy of the state.

@@ -25,7 +25,7 @@ import {
   resolveDspPreset,
   resolveDspPresetCurve,
 } from '../dsp/dspPresetCatalog';
-import { applySongSound } from '../utils/songSoundApi';
+import { type ISongSoundLending, applySongSound } from '../utils/songSoundApi';
 import songSoundOf from './songSoundOf';
 
 /**
@@ -91,12 +91,18 @@ export const putSongSoundOn = async (
   isLent: boolean,
   target: IOutputEditor,
   { isCurrent, isApo, refresh }: ISongSoundPutOnHost,
-  /** The song's sound is the listener's own: theirs back exactly as they
-   * left it, rack included, and lent as it is (`lendAsOwn`). */
-  asOwn = false,
+  /** Lent as the listener's own (`lendAsOwn`: theirs back exactly as they
+   * left it, rack included), or covering a preset alone. */
+  lending: ISongSoundLending = {},
 ): Promise<ISongSound | undefined> => {
-  if (asOwn) {
-    const landed = await applySongSound(sound, true, undefined, target, true);
+  if (lending.asOwn) {
+    const landed = await applySongSound(
+      sound,
+      true,
+      undefined,
+      target,
+      lending,
+    );
     if (!isCurrent(target)) {
       return undefined;
     }
@@ -117,7 +123,13 @@ export const putSongSoundOn = async (
   const curve = rack
     ? (resolveDspPresetCurve(sound.presetId) ?? null)
     : undefined;
-  const landed = await applySongSound(sound, isLent, curve, target);
+  const landed = await applySongSound(
+    sound,
+    isLent,
+    curve,
+    target,
+    isLent && lending.presetOnly ? { presetOnly: true } : {},
+  );
   if (!isCurrent(target)) {
     return undefined;
   }

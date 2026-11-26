@@ -41,6 +41,14 @@ export interface ISongSoundSession {
    */
   owner?: TSongSoundOwner;
   /**
+   * The saved sound playing is a preset alone, picked in the Library
+   * (`IPresetPick`): it covers the preset, and the bands and Tone under it
+   * stay the listener's own — a band moved then is their EQ, saved as theirs
+   * and never called a change to the song's sound (Ivan, 2026-11-26: "I am
+   * not modifying the album song preset ... I am just updating the main eq").
+   */
+  isPresetOnly?: boolean;
+  /**
    * Something other than the listener's hand reached it — a profile loaded or
    * saved, a game's sound, an output switch: nothing is saved for it and
    * nothing lent to it for the rest of this play.
@@ -60,7 +68,7 @@ export interface ISongSoundOwed {
    * hand-back waits: a change made in that moment is that song's working
    * version (`ISongSoundWorking`), never the listener's own.
    */
-  from?: { key: string; over: ISongSound };
+  from?: { key: string; over: ISongSound; isPresetOnly?: boolean };
 }
 
 /**
@@ -199,7 +207,14 @@ export type TSongSoundEffect =
    * kept included — and is lent to the song as it is. Nothing is heard to
    * change, and every change made from here is the song's, never theirs.
    */
-  | { kind: 'apply'; sound: ISongSound; isLent: boolean; asOwn?: true }
+  | {
+      kind: 'apply';
+      sound: ISongSound;
+      isLent: boolean;
+      asOwn?: true;
+      /** Lent for a preset alone: only its curve and rack are the song's. */
+      presetOnly?: true;
+    }
   /**
    * Hand back whatever main still holds lent on this output, with no sound
    * named: a loan parked with an output the window left, met again there.

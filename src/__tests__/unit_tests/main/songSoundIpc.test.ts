@@ -567,7 +567,7 @@ describe('SongSound IPC ownership and profile persistence', () => {
       true,
       undefined,
       expectedEditor(),
-      true,
+      { asOwn: true },
     ]);
     expect(reply).toHaveBeenCalledWith(ChannelEnum.APPLY_SONG_SOUND, {
       result: expect.objectContaining({ filters: own(1).filters }),
@@ -590,7 +590,7 @@ describe('SongSound IPC ownership and profile persistence', () => {
       false,
       undefined,
       expectedEditor(),
-      true,
+      { asOwn: true },
     ]);
     expect(refused).toHaveBeenCalledWith(ChannelEnum.APPLY_SONG_SOUND, {
       errorCode: ErrorCode.INVALID_PARAMETER,

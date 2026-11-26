@@ -114,7 +114,20 @@ const byHand = (
     !session.isLoaded &&
     session.baseline
   ) {
-    return withWorking(state, session.identity.key, session.baseline, sound);
+    if (!session.isPresetOnly) {
+      return withWorking(state, session.identity.key, session.baseline, sound);
+    }
+    // Under a preset alone the bands and Tone are the listener's own EQ, as
+    // main keeps them (the loan holds the curve alone): their sound, and the
+    // saved one, follow them, and only a preset picked over it is the song's.
+    const handBack = { ...sound, presetId: session.handBack.presetId };
+    const baseline = { ...sound, presetId: session.baseline.presetId };
+    return withWorking(
+      { ...state, session: { ...session, handBack, baseline } },
+      session.identity.key,
+      baseline,
+      sound,
+    );
   }
   // Between songs, the next one's answer not in yet, the last song's saved
   // sound still plays: a change then is that song's. Only a sound that moved
@@ -126,7 +139,22 @@ const byHand = (
     !session?.owner &&
     !(heard && sameSongSound(heard, sound))
   ) {
-    return withWorking(state, owed.from.key, owed.from.over, sound);
+    if (!owed.from.isPresetOnly) {
+      return withWorking(state, owed.from.key, owed.from.over, sound);
+    }
+    const over = { ...sound, presetId: owed.from.over.presetId };
+    return withWorking(
+      {
+        ...state,
+        owed: {
+          sound: { ...sound, presetId: owed.sound.presetId },
+          from: { ...owed.from, over },
+        },
+      },
+      owed.from.key,
+      over,
+      sound,
+    );
   }
   return state;
 };

@@ -74,14 +74,29 @@ export const saveNow = (state: ISongSoundState): TStep => {
   // waits for this song's answer: the loan goes on, now this song's.
   const held = session.handBack ?? state.owed?.sound;
   if (held) {
-    return [
-      {
-        ...saved,
-        owed: undefined,
-        session: { ...session, owner: 'song', baseline: live, handBack: held },
+    const next: ISongSoundState = {
+      ...saved,
+      owed: undefined,
+      session: {
+        ...session,
+        owner: 'song',
+        baseline: live,
+        handBack: held,
+        isPresetOnly: false,
       },
-      [save],
-    ];
+    };
+    // A loan held for a preset alone kept the curve and nothing else: the
+    // whole sound saved now is lent whole, so the bands under it are the
+    // song's from here and the listener's own are kept aside.
+    const isPartial = session.handBack
+      ? session.isPresetOnly === true
+      : state.owed?.from?.isPresetOnly === true;
+    return isPartial
+      ? [
+          { ...next, pending: live },
+          [save, { kind: 'apply', sound: live, isLent: true }],
+        ]
+      : [next, [save]];
   }
   // Saved over the listener's own sound: the song's sound is theirs, and it
   // is lent to the song from here like any song's, so what is changed while
@@ -126,9 +141,16 @@ export const revert = (state: ISongSoundState): TStep => {
 export const putOn = (state: ISongSoundState, sound: ISongSound): TStep => {
   const { session } = state;
   const isLent = session?.handBack !== undefined;
+  // A saved EQ is a whole sound: over a preset alone it changes the bands
+  // too, and the song plays it whole from here.
   const changed =
     session?.owner && isLent && !session.isLoaded && session.baseline
-      ? withWorking(state, session.identity.key, session.baseline, sound)
+      ? withWorking(
+          { ...state, session: { ...session, isPresetOnly: false } },
+          session.identity.key,
+          session.baseline,
+          sound,
+        )
       : state;
   return [{ ...changed, pending: sound }, [{ kind: 'apply', sound, isLent }]];
 };

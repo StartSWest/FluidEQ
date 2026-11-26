@@ -8,6 +8,7 @@ import { ISongIdentity } from './songIdentity';
 import {
   ISongSound,
   TSavedSound,
+  isWholeSound,
   sameSongSound,
   soundToPlay,
 } from './songSound';
@@ -21,7 +22,7 @@ import {
   TSongSoundOwner,
 } from './songSoundEvents';
 import { SONG_EQ_SUSPEND_GRACE_MS } from './songEqTiming';
-import { withoutWorking, workingOf } from './songSoundWorking';
+import { withoutWorking, workingToPlay } from './songSoundWorking';
 
 /**
  * Each thing that can happen to Auto EQ's song and album sounds, as a step
@@ -33,20 +34,30 @@ import { withoutWorking, workingOf } from './songSoundWorking';
 
 export type TStep = [ISongSoundState, TSongSoundEffect[]];
 
+/** What a loan covers, said on the apply only where it is a preset alone. */
+const scopeOf = (isPresetOnly: boolean): { presetOnly?: true } =>
+  isPresetOnly ? { presetOnly: true } : {};
+
 /**
  * Ask for a song's own sound, unless it is the one already playing under a
- * loan already held (`isHeld`). Without a loan it is asked for all the same,
- * whatever plays: what is not lent is the listener's own, and every change
- * made over it would be saved into their EQ.
+ * loan already held (`isHeld`) for a whole sound. Without a loan it is asked
+ * for all the same, whatever plays: what is not lent is the listener's own,
+ * and every change made over it would be saved into their EQ. A preset alone
+ * is always asked for: the loan held may be a whole song's, which has to give
+ * the listener their bands back under it.
  */
 const lend = (
   state: ISongSoundState,
   sound: ISongSound,
   isHeld: boolean,
+  isPresetOnly: boolean,
 ): TStep =>
-  isHeld && state.live && sameSongSound(state.live, sound)
+  isHeld && !isPresetOnly && state.live && sameSongSound(state.live, sound)
     ? [{ ...state, pending: undefined }, []]
-    : [{ ...state, pending: sound }, [{ kind: 'apply', sound, isLent: true }]];
+    : [
+        { ...state, pending: sound },
+        [{ kind: 'apply', sound, isLent: true, ...scopeOf(isPresetOnly) }],
+      ];
 
 /**
  * Lend the listener's own sound to the song as it is: the song's saved sound
@@ -56,9 +67,21 @@ const lend = (
  * 2026-11-26). It used to be put on as theirs, with no loan, and every edit
  * made during such a song was saved straight into the listener's own EQ.
  */
-export const lendAsOwn = (state: ISongSoundState, own: ISongSound): TStep => [
+export const lendAsOwn = (
+  state: ISongSoundState,
+  own: ISongSound,
+  isPresetOnly = false,
+): TStep => [
   { ...state, pending: own },
-  [{ kind: 'apply', sound: own, isLent: true, asOwn: true }],
+  [
+    {
+      kind: 'apply',
+      sound: own,
+      isLent: true,
+      asOwn: true,
+      ...scopeOf(isPresetOnly),
+    },
+  ],
 ];
 
 /**
@@ -156,7 +179,13 @@ export const close = (
             sound: session.handBack,
             // Its saved sound plays on until the next song's answer is in.
             ...(session.owner && session.baseline && !session.isLoaded
-              ? { from: { key: session.identity.key, over: session.baseline } }
+              ? {
+                  from: {
+                    key: session.identity.key,
+                    over: session.baseline,
+                    ...(session.isPresetOnly ? { isPresetOnly: true } : {}),
+                  },
+                }
               : {}),
           },
         };
@@ -294,9 +323,14 @@ export const matched = (
   // sound changed since is dropped with it.
   const saved = soundToPlay(chosen.saved, before);
   const { key } = session.identity;
-  const working = isPick ? undefined : workingOf(state, key, saved);
+  const working = isPick
+    ? undefined
+    : workingToPlay(state, key, saved, !isWholeSound(chosen.saved));
   const base = working ? state : withoutWorking(state, key);
-  const sound = working ?? saved;
+  const sound = working?.sound ?? saved;
+  // A preset alone covers the preset, and the bands under it stay the
+  // listener's — unless its working version changed them too.
+  const isPresetOnly = !isWholeSound(chosen.saved) && !working?.isWhole;
   if (
     session.handBack &&
     session.owner === chosen.owner &&
@@ -331,18 +365,20 @@ export const matched = (
       owner: chosen.owner,
       baseline: saved,
       handBack: before,
+      isPresetOnly,
     },
   });
   if (sameSongSound(before, sound)) {
     // The song's sound is the listener's own: it goes on as theirs is, lent
     // all the same (`lendAsOwn`), with nothing to announce.
-    const [lent, effects] = lendAsOwn(cleared, before);
+    const [lent, effects] = lendAsOwn(cleared, before, isPresetOnly);
     return [lentTo(lent), effects];
   }
   const [lent, effects] = lend(
     cleared,
     sound,
     session.handBack !== undefined || owed !== undefined,
+    isPresetOnly,
   );
   const isNews =
     session.owner !== chosen.owner ||

@@ -35,6 +35,16 @@ import { ISongSound } from '../common/songSound';
  * without is a song's sound waiting for a crash to keep it.
  */
 
+/**
+ * What a sound saved for a song or an album covers: the whole of it, or a
+ * preset alone (`IPresetPick`, picked in the Library), which plays over the
+ * listener's own bands and Tone and lends nothing but its curve — a band
+ * moved while it plays is the listener's own EQ, saved as theirs (Ivan,
+ * 2026-11-26: "I am not modifying the album song preset ... I am just
+ * updating the main eq").
+ */
+export type TSongSoundScope = 'whole' | 'preset';
+
 /** The listener's own values, taken when a song's sound first goes on. */
 const takeLoan = (state: IState): TSongSoundLoan => ({
   filters: state.filters,
@@ -48,8 +58,9 @@ const takeLoan = (state: IState): TSongSoundLoan => ({
 
 /**
  * The state as the listener owns it: their values in place of a lent song's,
- * and no loan. Every key of the loan is set, `undefined` included, so a
- * song's Tone never survives over a listener who had none.
+ * and no loan. Every key a loan holds is set, `undefined` included, so a
+ * song's Tone never survives over a listener who had none; a key it does not
+ * hold — the bands under a preset alone — is theirs already.
  */
 export const ownState = (state: IState): IState => {
   const { songSoundLoan, ...rest } = state;
@@ -121,12 +132,24 @@ export const putSongSoundOn = (
   sound: ISongSound,
   isLent: boolean,
   curve: unknown,
+  scope: TSongSoundScope = 'whole',
 ): void => {
   if (!isLent && returnSongSound(state)) {
     return;
   }
-  if (isLent && !state.songSoundLoan) {
-    state.songSoundLoan = takeLoan(state);
+  if (isLent && scope === 'preset') {
+    // The preset alone is the song's: the listener's own back under it,
+    // exactly — a whole song's bands lent before it included — and only the
+    // curve lent from there.
+    returnSongSound(state);
+    state.songSoundLoan = { voicing: state.voicing };
+    state.voicing = voicingFor(state.voicing, sound.presetId, curve);
+    return;
+  }
+  if (isLent) {
+    // A loan held for a preset alone took only the curve: the bands it left
+    // were the listener's, and are kept aside now with the rest.
+    state.songSoundLoan = { ...takeLoan(state), ...state.songSoundLoan };
   }
   state.filters = sound.filters;
   state.isFlat = false;
@@ -145,9 +168,13 @@ export const putSongSoundOn = (
  * as the loan with nothing changed. A change made while the song plays is
  * the song's from here; without a loan it was saved into the listener's EQ.
  */
-export const lendOwnSound = (state: IState): void => {
+export const lendOwnSound = (
+  state: IState,
+  scope: TSongSoundScope = 'whole',
+): void => {
   returnSongSound(state);
-  state.songSoundLoan = takeLoan(state);
+  state.songSoundLoan =
+    scope === 'preset' ? { voicing: state.voicing } : takeLoan(state);
 };
 
 /** End a loan with what plays: it is the listener's own from here. */

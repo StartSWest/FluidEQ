@@ -200,7 +200,10 @@ const performEffects = (effects: TSongSoundEffect[]): Promise<void> => {
               isLent,
               target,
               { isCurrent: isCurrentEditor, isApo, refresh },
-              effect.asOwn === true,
+              {
+                ...(effect.asOwn ? { asOwn: true } : {}),
+                ...(effect.presetOnly ? { presetOnly: true } : {}),
+              },
             );
             if (isCurrentEditor(target)) {
               dispatchSongSound({ kind: 'applied', asked: sound, landed });

@@ -34,6 +34,37 @@ export const workingOf = (
   return entry && sameSongSound(entry.over, over) ? entry.sound : undefined;
 };
 
+/**
+ * What a song plays from its working version, for a saved sound that is a
+ * preset alone (`isPresetOnly`): its bands and Tone are the listener's own as
+ * they are now, so a working version that changed only the preset plays that
+ * preset over them, matched by the preset it was made over. One that changed
+ * the bands too — a saved EQ put on over the preset — plays whole, and is the
+ * song's whole sound from there (`isWhole`).
+ */
+export const workingToPlay = (
+  state: ISongSoundState,
+  key: string,
+  saved: ISongSound,
+  isPresetOnly: boolean,
+): { sound: ISongSound; isWhole: boolean } | undefined => {
+  if (!isPresetOnly) {
+    const sound = workingOf(state, key, saved);
+    return sound && { sound, isWhole: true };
+  }
+  const entry = state.working?.[key];
+  if (!entry || entry.over.presetId !== saved.presetId) {
+    return undefined;
+  }
+  const isPresetChange = sameSongSound(
+    { ...entry.sound, presetId: entry.over.presetId },
+    entry.over,
+  );
+  return isPresetChange
+    ? { sound: { ...saved, presetId: entry.sound.presetId }, isWhole: false }
+    : { sound: entry.sound, isWhole: true };
+};
+
 /** The song's working version dropped: saved, taken back, or replaced. */
 export const withoutWorking = (
   state: ISongSoundState,

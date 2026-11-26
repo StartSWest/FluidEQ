@@ -123,6 +123,16 @@ export const deleteEq = (id: string): Promise<void> =>
   sendRequest(ChannelEnum.DELETE_EQ, [id], setterResponseHandler);
 
 /**
+ * How a song's sound is lent (`main/songSoundLoan.ts`): as the listener's
+ * own, exactly as their loan keeps it (`asOwn`), and covering a preset alone,
+ * the bands and Tone under it left the listener's (`presetOnly`).
+ */
+export interface ISongSoundLending {
+  asOwn?: true;
+  presetOnly?: true;
+}
+
+/**
  * Put a sound's bands, Tone and preset curve on in one write.
  * @param curve - the preset's curve; `null` takes a preset's curve away,
  *   `undefined` leaves the voicing as it is
@@ -133,9 +143,7 @@ export const applySongSound = (
   isLent: boolean,
   curve: IEqSettings | null | undefined,
   target: IOutputEditor,
-  /** The listener's own sound, exactly as their loan keeps it, lent to the
-   * song as it is (`lendOwnSound` in `main/songSoundLoan.ts`). */
-  asOwn = false,
+  lending: ISongSoundLending = {},
 ): Promise<TSongSoundLanded> =>
   sendRequest(
     ChannelEnum.APPLY_SONG_SOUND,
@@ -144,7 +152,7 @@ export const applySongSound = (
       isLent,
       curve,
       { deviceId: target.device.id, generation: target.generation },
-      ...(asOwn ? [true] : []),
+      ...(lending.asOwn || lending.presetOnly ? [lending] : []),
     ],
     simpleResponseHandler<TSongSoundLanded>(),
   );

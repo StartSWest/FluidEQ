@@ -552,16 +552,20 @@ export interface IState extends IOutputSound {
 /**
  * What a song's own sound replaces while it is lent: the bands and what
  * putting bands on changes beside them, the Tone, and the preset's curve.
+ * A preset alone saved for a song or an album lends the curve and nothing
+ * else (`main/songSoundLoan.ts`): a key left out is still the listener's.
  */
-export type TSongSoundLoan = Pick<
-  IState,
-  | 'filters'
-  | 'isFlat'
-  | 'eqFormat'
-  | 'graphicEq'
-  | 'eqImport'
-  | 'tone'
-  | 'voicing'
+export type TSongSoundLoan = Partial<
+  Pick<
+    IState,
+    | 'filters'
+    | 'isFlat'
+    | 'eqFormat'
+    | 'graphicEq'
+    | 'eqImport'
+    | 'tone'
+    | 'voicing'
+  >
 >;
 
 /**
