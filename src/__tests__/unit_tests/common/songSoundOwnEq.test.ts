@@ -140,6 +140,7 @@ describe('Auto EQ song sounds: the listener’s own EQ and each song’s working
         kind: 'apply',
         sound: { ...original, presetId: 'vocal' },
         isLent: true,
+        presetOnly: true,
       },
     ]);
   });

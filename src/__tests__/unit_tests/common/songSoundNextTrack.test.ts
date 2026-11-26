@@ -101,10 +101,16 @@ describe('Auto EQ song sounds: the next song of an album set to a sound', () => 
 
   it('plays song B’s album Pop, with no moment of another sound before it', () => {
     const result = nextTrack(musicOverAlbum().state, girlsAlbum);
-    // Over his own bands: Music, picked during song A, is song A's change
-    // (Ivan, 2026-11-26), never what the next song's preset plays over.
+    // The album's Pop is a preset alone: the band moved with Music is his
+    // own EQ and plays under song B's Pop, and the Music preset is song A's
+    // change, never song B's (Ivan, 2026-11-26).
     expect(kinds(result.effects, 'apply')).toEqual([
-      { kind: 'apply', sound: { ...kPop, presetId: 'pop' }, isLent: true },
+      {
+        kind: 'apply',
+        sound: { ...music, presetId: 'pop' },
+        isLent: true,
+        presetOnly: true,
+      },
     ]);
     expect(result.state.session?.owner).toBe('album');
   });
@@ -116,10 +122,10 @@ describe('Auto EQ song sounds: the next song of an album set to a sound', () => 
     expect(kinds(named.effects, 'apply')).toEqual([]);
   });
 
-  it('a song B with nothing saved plays K-pop, his own as he left it, and Music stays with song A', () => {
+  it('a song B with nothing saved plays K-pop over his bands as he left them, and Music stays with song A', () => {
     const result = nextTrack(musicOverAlbum().state);
     expect(kinds(result.effects, 'apply')).toEqual([
-      { kind: 'apply', sound: kPop, isLent: false },
+      { kind: 'apply', sound: { ...music, presetId: 'kPop' }, isLent: false },
     ]);
     expect(result.state.working?.[trackA.key]?.sound).toEqual(music);
   });
@@ -252,10 +258,19 @@ describe('Auto EQ song sounds: an album sound after the last one, its sound read
 
   it('control: a sound picked between the songs is song A’s change, and the album’s plays over his own', () => {
     const result = toSongB(music);
+    // The band moved between the songs is his own EQ, under a preset alone.
     expect(kinds(result.effects, 'apply')).toEqual([
-      { kind: 'apply', sound: { ...kPop, presetId: 'ballad' }, isLent: true },
+      {
+        kind: 'apply',
+        sound: { ...music, presetId: 'ballad' },
+        isLent: true,
+        presetOnly: true,
+      },
     ]);
-    expect(result.state.session?.handBack).toEqual(kPop);
+    expect(result.state.session?.handBack).toEqual({
+      ...music,
+      presetId: 'kPop',
+    });
     expect(result.state.working?.[songA.key]?.sound).toEqual(music);
   });
 });

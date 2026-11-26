@@ -597,6 +597,34 @@ describe('SongSound IPC ownership and profile persistence', () => {
     });
   });
 
+  it('lends a preset alone as its curve only: the bands moved under it are the listener’s', async () => {
+    await apply();
+    const presetAlone = () =>
+      fire(ChannelEnum.APPLY_SONG_SOUND, [
+        { ...song, filters: own(1).filters },
+        true,
+        null,
+        expectedEditor(),
+        { presetOnly: true },
+      ]);
+    await presetAlone();
+    // The whole song's bands handed back under it, and only the curve lent.
+    expect(state.filters).toEqual(own(1).filters);
+    expect(state.eqFormat).toBe(AutoEqFormat.GRAPHIC);
+    expect(Object.keys(state.songSoundLoan ?? {})).toEqual(['voicing']);
+    state.filters = song.filters;
+    await fire(ChannelEnum.RETURN_SONG_SOUND, [expectedEditor()]);
+    expect(state.filters).toEqual(song.filters);
+    expect(state.voicing).toEqual(own(1).voicing);
+    // The control: a whole song after it keeps the listener's bands aside.
+    state.filters = own(1).filters;
+    await presetAlone();
+    await apply();
+    expect(state.songSoundLoan?.filters).toEqual(own(1).filters);
+    await fire(ChannelEnum.RETURN_SONG_SOUND, [expectedEditor()]);
+    expect(state.filters).toEqual(own(1).filters);
+  });
+
   it('persists the lent sound only after an explicit Keep from its current editor', async () => {
     await apply();
     await fire(ChannelEnum.KEEP_SONG_SOUND, [expectedEditor()]);

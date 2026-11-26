@@ -265,6 +265,7 @@ describe('Auto EQ song sounds: a song’s own sound', () => {
         kind: 'apply',
         sound: { ...original, presetId: 'cinema' },
         isLent: true,
+        presetOnly: true,
       },
     ]);
   });

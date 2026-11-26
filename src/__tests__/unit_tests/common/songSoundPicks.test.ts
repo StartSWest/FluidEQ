@@ -118,7 +118,7 @@ describe('Auto EQ song sounds: a pick made here', () => {
       ],
     ]);
     expect(applies(answered.effects)).toEqual([
-      { kind: 'apply', sound: albumPop, isLent: true },
+      { kind: 'apply', sound: albumPop, isLent: true, presetOnly: true },
     ]);
   });
 

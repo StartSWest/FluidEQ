@@ -298,7 +298,12 @@ describe('Auto EQ on the listener while a shared song plays', () => {
     const { asked, answered } = albumPlaying();
     expect(asked.effects).toContainEqual({ kind: 'lookup', identity: shared });
     expect(applies(answered.effects)).toEqual([
-      { kind: 'apply', sound: { ...own, presetId: 'jazz' }, isLent: true },
+      {
+        kind: 'apply',
+        sound: { ...own, presetId: 'jazz' },
+        isLent: true,
+        presetOnly: true,
+      },
     ]);
     expect(answered.state.session?.owner).toBe('album');
   });
