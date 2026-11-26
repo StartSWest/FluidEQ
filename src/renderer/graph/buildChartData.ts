@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { shapeEqFilters, smoothEqCurve } from 'common/eqShape';
+import { smoothEqCurve } from 'common/eqShape';
 import {
   convolutionResponse,
   eqModeGainScale,
@@ -201,7 +201,7 @@ export const buildChartData = ({
   );
   const { strength, curveStrength, mainShape, curveShape } = lines;
   const eqMatched = lines.matchedFor('eq');
-  const bandLines = drawBandLines(filters, eqMatched, sampleRate, {
+  const bandLines = drawBandLines(filters, mainShape, eqMatched, sampleRate, {
     prevFilters,
     prevFilterLines,
   });
@@ -302,7 +302,9 @@ export const buildChartData = ({
   // since the cyan eq line now doesn't get affected by tone so cuts
   // neither").
   // What the output curve sums for the EQ: the bands as the EQ mode plays
-  // them, where the EQ curve above shows them as tuned.
+  // them. Both curves draw the bands at the width Band Q gives them; only
+  // the strength (Studio's gain, Double's second pass) is the output's alone,
+  // because the EQ curve's handles sit at the gains the bands were given.
   const allEnabledBands = Object.values(filters).filter(isBandEnabled);
   // Two ears drawn only while a band is actually kept to one: with every
   // band on both, the two curves are one curve. A GraphicEQ import has no
@@ -339,9 +341,8 @@ export const buildChartData = ({
         }
       : drawBands(getStudioEqFilters(enabledBands, mainShape));
   } else if (hasEq) {
-    const shaped = nativeEqGraphic
-      ? eqLines
-      : drawBands(shapeEqFilters(enabledBands, mainShape));
+    // The band lines are already drawn at Band Q's width (`drawBandLines`).
+    const shaped = isTwoEared ? earLines('left') : eqLines;
     appliedEqLines =
       strength === 'double'
         ? { ...shaped, 'eq-second-pass': getCombinedLineData(0, shaped) }
@@ -378,9 +379,10 @@ export const buildChartData = ({
   // bypassed layer is an empty set of lines by now, EQ included, so the sum
   // is the chain as the engine has it and nothing more. A preamp counts on
   // its own: with a plain EQ this is the only curve showing the headroom
-  // reserved, and at 0 dB it would be the EQ curve traced twice.
+  // reserved, and at 0 dB it would be the EQ curve traced twice. Band Q alone
+  // does not count either: the EQ curve already draws the bands at its width.
   const hasExtraLayers = Boolean(
-    ((strength !== 'normal' || mainShape !== 'off') && hasEq) ||
+    (strength !== 'normal' && hasEq) ||
     convolution ||
     hasPreAmp ||
     getVoicingFilters(voicing).length ||

@@ -29,7 +29,7 @@ import {
   TApoLayer,
 } from 'common/constants';
 import { SelectionMode } from 'common/bandSelection';
-import { getEqMode, getMainBandQ } from 'common/eqMode';
+import { getEqMode } from 'common/eqMode';
 import { ErrorDescription } from 'common/errors';
 import { GRAPH_PALETTES, GraphPalette } from 'common/graphStyles';
 import { TranslationKey } from 'common/i18n';
@@ -622,10 +622,6 @@ const FrequencyResponseChart = ({
     isAutoPreAmpOn,
     isEqDoubleOn,
     eqMode,
-    curveEqMode,
-    mainBandQ,
-    eqBandQ,
-    curveBandQ,
     eqCuts,
 
     convolution,
@@ -745,16 +741,7 @@ const FrequencyResponseChart = ({
     // follows that rule rather than the others, or the line would be on the
     // plot with nothing naming it.
     if (
-      ((getEqMode({ eqMode, isEqDoubleOn }) !== 'normal' ||
-        getMainBandQ({
-          eqMode,
-          curveEqMode,
-          isEqDoubleOn,
-          mainBandQ,
-          eqBandQ,
-          curveBandQ,
-        }) !== 'off') &&
-        !isEqQuiet) ||
+      (getEqMode({ eqMode, isEqDoubleOn }) !== 'normal' && !isEqQuiet) ||
       convolution ||
       hasPreAmp ||
       voicing?.profileId ||

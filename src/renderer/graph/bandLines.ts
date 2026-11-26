@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { MutableRefObject } from 'react';
 import { IFilter, IFiltersMap, isBandEnabled } from 'common/constants';
+import { shapeEqFilters, type TBandQ } from 'common/eqShape';
 import type { IChartLineDataPointsById } from './ChartController';
 import { getDesignedFilterLineData } from './utils';
 
@@ -51,8 +52,17 @@ export interface IBandLineCache {
 }
 
 /**
- * Each band's own line, as the engine playing builds it — matched or on the
- * cookbook, at the output's rate — redrawing only the bands that moved.
+ * Each band's own line, as the engine playing builds it — at the width Your
+ * EQ's Band Q gives it, matched or on the cookbook, at the output's rate —
+ * redrawing only the bands that moved.
+ *
+ * The width is the one the writer puts in the file (`shapeEqFilters` with
+ * `getMainBandQ`, `apoRender.ts`). The line used to be drawn at the band's
+ * stored Q while the output curve and the engine widened it, so changing
+ * Band Q moved the output curve and left this one where it was (Ivan,
+ * 2026-11-26). Band Q changes a bell's width and never its peak, so the line
+ * still passes through every handle; the group's strength (Studio, Double)
+ * scales the gain and stays the output curve's alone.
  *
  * A band switched off gets no line at all, not a flat one. The EQ curve is
  * the sum over this map, so leaving the band out is what makes the drawing
@@ -62,15 +72,16 @@ export interface IBandLineCache {
  */
 export const drawBandLines = (
   filters: IFiltersMap,
+  shape: TBandQ,
   matched: boolean,
   sampleRate: number | undefined,
   { prevFilters, prevFilterLines }: IBandLineCache,
 ): IChartLineDataPointsById => {
   const lines: IChartLineDataPointsById = {};
-  // The cached lines were drawn for one engine's design at one rate:
-  // switching engines or outputs redraws every band rather than reusing a
-  // line of another shape.
-  const design = `${matched ? 'matched' : 'cookbook'}@${sampleRate ?? '-'}`;
+  // The cached lines were drawn for one width rule and one engine's design
+  // at one rate: changing Band Q, engines or outputs redraws every band
+  // rather than reusing a line of another shape.
+  const design = `${shape}:${matched ? 'matched' : 'cookbook'}@${sampleRate ?? '-'}`;
   const redrawAll = drawnDesign.get(prevFilters) !== design;
   drawnDesign.set(prevFilters, design);
 
@@ -83,7 +94,11 @@ export const drawBandLines = (
       filter.id in prevFilters.current &&
       isFilterEqual(filter, prevFilters.current[filter.id])
         ? prevFilterLines.current[filter.id]
-        : getDesignedFilterLineData(filter, matched, sampleRate);
+        : getDesignedFilterLineData(
+            shapeEqFilters([filter], shape)[0],
+            matched,
+            sampleRate,
+          );
   });
 
   prevFilterLines.current = lines;
