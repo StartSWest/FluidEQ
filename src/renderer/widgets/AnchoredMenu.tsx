@@ -287,9 +287,18 @@ const AnchoredMenu = ({
     // above a list that scrolls under it.
     window.addEventListener('scroll', place, true);
     window.addEventListener('resize', place);
+    // And anything that moved it by animating: a trigger inside a panel that
+    // is still growing in was measured mid-growth, and the menu stayed where
+    // the trigger had been — 38px above a gradient point in the look editor,
+    // opened while the editor slid in. Its end is the signal that the
+    // trigger has arrived; nothing else fires when a transform settles.
+    window.addEventListener('animationend', place, true);
+    window.addEventListener('transitionend', place, true);
     return () => {
       window.removeEventListener('scroll', place, true);
       window.removeEventListener('resize', place);
+      window.removeEventListener('animationend', place, true);
+      window.removeEventListener('transitionend', place, true);
     };
   }, [
     anchor,

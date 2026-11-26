@@ -20,6 +20,23 @@ const readHex = (colour: string): Rgb => {
   ];
 };
 
+/**
+ * Each ramp parsed once. A look with gradient points hands the drawing up to
+ * sixty-one colours (`lookRampFromStops`), and these are read per bar per
+ * frame; the arrays are the look's own and stay the same object while the
+ * look does, so they key the parse.
+ */
+const parsed = new WeakMap<readonly string[], readonly Rgb[]>();
+const readRamp = (colours: readonly string[]): readonly Rgb[] => {
+  const known = parsed.get(colours);
+  if (known) {
+    return known;
+  }
+  const ramp = colours.map(readHex);
+  parsed.set(colours, ramp);
+  return ramp;
+};
+
 const sampleRamp = (ramp: readonly Rgb[], level: number): Rgb => {
   const at = Math.max(0, Math.min(1, level)) * (ramp.length - 1);
   const from = ramp[Math.floor(at)];
@@ -40,7 +57,7 @@ const sampleRamp = (ramp: readonly Rgb[], level: number): Rgb => {
  * to parse the string this file just built.
  */
 export const rampAt = (colours: readonly string[], level: number): Rgb =>
-  sampleRamp((colours.length ? colours : windowColours()).map(readHex), level);
+  sampleRamp(readRamp(colours.length ? colours : windowColours()), level);
 
 export const heatColour = (
   colours: readonly string[],
@@ -48,7 +65,7 @@ export const heatColour = (
 ): string => {
   // Nearest-stop selection made Heat jump between swatches on small level
   // changes. Interpolate the user's colours for both whole figures and bars.
-  const ramp = (colours.length ? colours : windowColours()).map(readHex);
+  const ramp = readRamp(colours.length ? colours : windowColours());
   return `rgb(${sampleRamp(ramp, level).join(', ')})`;
 };
 
@@ -59,9 +76,7 @@ export const createFluidBarPaint = (
   top: number,
   bottom: number,
 ): SpectrumBarPaint => {
-  const ramp = (colours.length ? colours : windowLookColours(palette)).map(
-    readHex,
-  );
+  const ramp = readRamp(colours.length ? colours : windowLookColours(palette));
   return (across, energy, y, height, topAlpha) => {
     const gradient = context.createLinearGradient(0, y, 0, y + height);
     // Combining colour and alpha in this bar's gradient avoids erasing a

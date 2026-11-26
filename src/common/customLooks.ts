@@ -45,6 +45,12 @@ import {
 } from './graphTextures';
 import { type TGraphChannels, isGraphChannels } from './graphChannels';
 import { PRODUCT_NAME } from './branding';
+import {
+  type ILookStop,
+  legacyColoursFromStops,
+  lookRampFromStops,
+  normalizeLookStops,
+} from './lookGradient';
 
 /**
  * A look the user made, rather than one of the seventy-two that ship.
@@ -165,8 +171,17 @@ export interface ICustomLook {
   style: GraphStyle;
   palette: GraphPalette;
   tuning: ILookTuning;
-  /** Gradient stops. Empty means the window's colours (`windowInk.ts`). */
+  /**
+   * Gradient stops, evenly spaced. Empty means the window's colours
+   * (`windowInk.ts`). With `stops`, the same gradient as at most seven
+   * colours, for the versions that read nothing else (`lookGradient.ts`).
+   */
   colours: string[];
+  /**
+   * The gradient's points, where somebody put them; absent on every look
+   * saved before points existed, which draws from `colours` as it always did.
+   */
+  stops?: ILookStop[];
 }
 
 /**
@@ -558,6 +573,20 @@ export const normalizeCustomLook = (raw: unknown): ICustomLook | null => {
   const name =
     typeof source.name === 'string' ? normalizeLookName(source.name) : '';
   const palette = isGraphPalette(source.palette) ? source.palette : 'signal';
+  const stops = normalizeLookStops(source.stops, palette);
+  if (stops.length) {
+    return {
+      id,
+      name: name || GRAPH_STYLE_LABELS[style],
+      style,
+      palette,
+      tuning: normalizeTuning(source.tuning, style),
+      // Worked out again rather than trusted: the points are the gradient,
+      // and `colours` is only what an older version is shown of it.
+      colours: legacyColoursFromStops(stops),
+      stops,
+    };
+  }
   return {
     id,
     // A look with no name is still a look; naming it after the form it came
@@ -662,7 +691,21 @@ export const recolourDraftLook = (
   draft: ICustomLook,
   palette: GraphPalette,
 ): ICustomLook =>
-  draft.palette === palette ? draft : { ...draft, palette, colours: [] };
+  draft.palette === palette
+    ? draft
+    : { ...draft, palette, colours: [], stops: undefined };
+
+/**
+ * The look with these points as its gradient, and `colours` worked out from
+ * them for older versions. No points is back to the window's colours.
+ */
+export const withLookStops = (
+  look: ICustomLook,
+  stops: readonly ILookStop[],
+): ICustomLook =>
+  stops.length
+    ? { ...look, stops: [...stops], colours: legacyColoursFromStops(stops) }
+    : { ...look, stops: undefined, colours: [] };
 
 /**
  * The version of the look file format.
@@ -770,6 +813,8 @@ export const resolveCustomLook = (look: ICustomLook): IResolvedLook => ({
   style: look.style,
   palette: look.palette,
   tuning: look.tuning,
-  colours: look.colours,
+  // The drawing reads an evenly spaced ramp everywhere; with points it is
+  // the ramp that retraces them exactly (`lookRampFromStops`).
+  colours: look.stops?.length ? lookRampFromStops(look.stops) : look.colours,
   isCustom: true,
 });

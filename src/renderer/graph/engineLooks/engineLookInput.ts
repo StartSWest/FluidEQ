@@ -4,6 +4,8 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { LOOK_GRADIENT_STEPS } from 'common/lookGradient';
+
 /**
  * What one of FluidEQ's own looks hands the engine each frame, beside the
  * music every scene is given (`sceneGl.ts`).
@@ -19,8 +21,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /** `uLook[]`: the look's own vectors, whose meaning each look states. */
 export const LOOK_VECTORS = 16;
-/** `uInk[]`: the colour stops a look is painted in, at most. */
-export const LOOK_INKS = 8;
+/**
+ * `uInk[]`: the colour stops a look is painted in, at most. A look with
+ * gradient points is handed its ramp at every step of the grid they stand on
+ * (`lookRampFromStops`), up to the whole grid, and a shorter array would cut
+ * the ramp off at its eighth stop: the shader would paint a different gradient
+ * from the 2D drawing and the editor. 61 vec3s, against the 224 uniform
+ * vectors WebGL 2 promises a fragment shader at least.
+ */
+export const LOOK_INKS = LOOK_GRADIENT_STEPS + 1;
 
 export interface IEngineLookInput {
   /**

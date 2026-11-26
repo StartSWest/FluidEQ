@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { TranslationKey } from 'common/i18n';
 import {
   MAX_GRAPH_COLUMNS,
@@ -28,6 +28,7 @@ import {
   isDiscreteGraphStyle,
   resolveGraphPalette,
 } from 'common/graphStyles';
+import { type ILookStop, lookStopsFromColours } from 'common/lookGradient';
 import { GRAPH_CHANNELS } from 'common/graphChannels';
 import {
   ICustomLook,
@@ -45,26 +46,21 @@ import {
   MAX_BAR_GAP,
   MIN_FILL_OPACITY,
   MIN_GLOW,
-  MIN_LOOK_COLOURS,
   MIN_RELEASE_MS,
   MIN_STROKE_WIDTH,
   createDraftLook,
   getDefaultTuning,
-  getMaxLookColours,
   normalizeLookName,
   parseLookFile,
   serializeLookFile,
   toLookFileName,
   rebaseDraftLook,
   recolourDraftLook,
+  withLookStops,
 } from 'common/customLooks';
 import DialogClose from './DialogClose';
 import LookTextureRow from './LookTextureRow';
-import {
-  useWindowColours,
-  windowColours,
-  windowPrimary,
-} from '../utils/windowInk';
+import { useWindowColours, windowPrimary } from '../utils/windowInk';
 import { useTranslation } from '../utils/I18nContext';
 
 import Switch from '../widgets/Switch';
@@ -89,9 +85,14 @@ import {
   PALETTE_CHOICES,
   SettingRow,
   SettingSlider,
-  StopPicker,
   seedLookColours,
 } from './LookDesignerParts';
+import {
+  LookFlatColour,
+  LookGradientBar,
+  LookGradientChips,
+  type TLookGradientAxis,
+} from './LookGradient';
 
 interface ILookDesignerProps {
   onClose: () => void;
@@ -179,8 +180,8 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
        * panel repainted the graph before anything had been touched, which is
        * the one thing this whole origin block exists to prevent.
        *
-       * The swatches show the seed instead — see `shownColours` — and it is
-       * only written into the draft when somebody actually edits a stop.
+       * The colours row shows the window's set instead — see `windowStops` —
+       * and it is only written into the draft when somebody edits a point.
        */
       look,
       isEditing,
@@ -228,53 +229,27 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
   }, []);
 
   /**
-   * The stops as edited, which is not always the stops as stored.
-   *
-   * A look with no colours of its own is drawn in whatever is already on
-   * screen, and that is a real state worth keeping — so the draft holds the
-   * empty list and these three write the seeded ramp in the moment somebody
-   * changes one. Editing a stop is the act that turns "the ones on screen"
-   * into a set of colours; opening the panel is not.
+   * The gradient's points as edited. A look following the window's colours
+   * holds none, and the bar shows the window's set in their place; the first
+   * point somebody adds, moves or recolours writes that set in as the look's
+   * own — opening the panel never does (see `origin`).
    */
-  const editableColours = useCallback(
-    (current: ICustomLook) =>
-      current.colours.length
-        ? current.colours
-        : seedLookColours(windowColours(), current.style, current.palette),
-    [],
-  );
+  const setStops = useCallback((stops: ILookStop[]) => {
+    setDraft((current) => withLookStops(current, stops));
+  }, []);
 
-  const setColourAt = useCallback(
-    (index: number, colour: string) => {
-      setDraft((current) => {
-        const colours = editableColours(current).slice();
-        colours[index] = colour;
-        return { ...current, colours };
-      });
-    },
-    [editableColours],
-  );
+  /** A flat figure's one colour. */
+  const setFlatColour = useCallback((colour: string) => {
+    setDraft((current) => ({
+      ...current,
+      colours: [colour],
+      stops: undefined,
+    }));
+  }, []);
 
-  const removeColourAt = useCallback(
-    (index: number) => {
-      setDraft((current) => ({
-        ...current,
-        colours: editableColours(current).filter((_colour, at) => at !== index),
-      }));
-    },
-    [editableColours],
-  );
-
-  /** Repeats the last colour, so a new stop starts where the ramp ended. */
-  const addColour = useCallback(() => {
-    setDraft((current) => {
-      const colours = editableColours(current);
-      return {
-        ...current,
-        colours: [...colours, colours[colours.length - 1] ?? windowPrimary()],
-      };
-    });
-  }, [editableColours]);
+  const followWindow = useCallback(() => {
+    setDraft((current) => withLookStops(current, []));
+  }, []);
 
   const { tuning, style } = draft;
   const isDiscrete = isDiscreteGraphStyle(style);
@@ -290,8 +265,8 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
   const fallbackName = t(`graph.styleName.${style}` as TranslationKey);
   const isFull = !origin.isEditing && isCustomLookListFull();
   /**
-   * What the swatches draw: the draft's own stops, or the seed standing in
-   * for "the ones already on screen". Only the first is ever saved.
+   * What the colours show: the draft's own, or the window's standing in for
+   * "the ones already on screen". Only the first is ever saved.
    */
   const windowSet = useWindowColours();
   const followsWindow = draft.colours.length === 0;
@@ -304,26 +279,24 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
   )?.hint;
   const paletteHint = paletteHintKey ? t(paletteHintKey) : '';
 
-  /**
-   * The ramp as a CSS gradient, running the way the graph will run it.
-   *
-   * A single colour is not a gradient and CSS will not accept one stop, so it
-   * is repeated — which paints the flat colour the figure will actually be.
-   */
-  const rampPreview = useMemo(() => {
-    if (!shownColours.length) {
-      return 'none';
-    }
-    const stops =
-      shownColours.length === 1
-        ? [shownColours[0], shownColours[0]]
-        : shownColours;
-    const direction =
-      resolveGraphPalette(draft.style, draft.palette) === 'level'
-        ? 'to top'
-        : 'to right';
-    return `linear-gradient(${direction}, ${stops.join(', ')})`;
-  }, [shownColours, draft.palette, draft.style]);
+  const resolvedPalette = resolveGraphPalette(draft.style, draft.palette);
+  const isFlat = resolvedPalette === 'signal';
+  // The bar always runs left to right; under it, what its ends mean on the
+  // graph — across the frequencies, or up from quiet to loud. Auto paints
+  // each form its own way, so its ends mean nothing in particular.
+  let axis: TLookGradientAxis;
+  if (draft.palette === 'rainbow') {
+    axis = 'frequency';
+  } else if (draft.palette === 'level' || draft.palette === 'heat') {
+    axis = 'loudness';
+  }
+  const windowStops = lookStopsFromColours(
+    seedLookColours(windowSet, draft.style, draft.palette),
+  );
+  // Points saved before points existed are their evenly spaced colours.
+  const ownStops = followsWindow
+    ? undefined
+    : (draft.stops ?? lookStopsFromColours(draft.colours));
 
   const handleSave = () => {
     // A blank name is not an error — the placeholder has been showing what it
@@ -461,58 +434,35 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
           <span className="look-designer__hint">{paletteHint}</span>
         </div>
 
-        <div className="look-designer__row">
+        <div className="look-designer__row look-designer__row--colours">
           <span className="look-designer__caption">
             <span>{t('look.colours')}</span>
-            <button
-              type="button"
-              className="look-designer__reset"
-              // Back to following the window's colours.
-              onClick={() =>
-                setDraft((current) => ({ ...current, colours: [] }))
-              }
-            >
-              {t('look.reset')}
-            </button>
           </span>
-          <div className="look-designer__swatches">
-            {shownColours.map((colour, index) => (
-              <StopPicker
-                // Keyed by position, which is what a stop actually is: the list
-                // is a ramp read from one end to the other, the same colour may
-                // legitimately appear twice, and nothing here ever reorders.
-                // Identity IS the index.
-                // eslint-disable-next-line react/no-array-index-key
-                key={index}
-                colour={colour}
-                index={index}
-                canRemove={shownColours.length > MIN_LOOK_COLOURS}
-                onChange={(next) => setColourAt(index, next)}
-                onRemove={() => removeColourAt(index)}
+          {isFlat ? (
+            <LookFlatColour
+              colour={shownColours[0] ?? windowPrimary()}
+              onChange={setFlatColour}
+            />
+          ) : (
+            <>
+              <LookGradientChips
+                windowStops={windowStops}
+                stops={ownStops}
+                onFollowWindow={followWindow}
+                onPick={setStops}
               />
-            ))}
-            {shownColours.length < getMaxLookColours(draft.palette) && (
-              <button
-                type="button"
-                className="look-designer__swatch-add"
-                aria-label={t('look.addColour')}
-                title={t('look.addColourHint')}
-                onClick={addColour}
-              >
-                +
-              </button>
-            )}
-          </div>
-          {/* The ramp, drawn the way the graph will run it — up for level,
-              across for the others — so the preview answers the same question
-              the palette does. */}
-          <span
-            className="look-designer__ramp"
-            style={{ backgroundImage: rampPreview }}
-          />
-          {followsWindow && (
+              <LookGradientBar
+                stops={ownStops ?? windowStops}
+                axis={axis}
+                onChange={setStops}
+              />
+            </>
+          )}
+          {(followsWindow || !isFlat) && (
             <span className="look-designer__hint">
-              {t('look.coloursFollowWindow')}
+              {followsWindow
+                ? t('look.coloursFollowWindow')
+                : t('look.gradientHint')}
             </span>
           )}
         </div>

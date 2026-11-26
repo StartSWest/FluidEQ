@@ -23,13 +23,11 @@ import {
 } from 'common/graphStyles';
 import { TranslationKey } from 'common/i18n';
 import { getMaxLookColours } from 'common/customLooks';
-import { ReactNode, useEffect, useRef, useState } from 'react';
-import { useTranslation } from '../utils/I18nContext';
-import useExitAnimation from '../utils/useExitAnimation';
+import { ReactNode } from 'react';
 import rangeFill from '../utils/rangeFill';
 
-// What the look designer is built from: the palettes and swatches it
-// offers, a gradient stop's picker, and a setting's row and slider.
+// What the look designer is built from: the palettes it offers, and a
+// setting's row and slider. Its colours are `LookGradient.tsx`.
 
 /**
  * Written out rather than taken from `GRAPH_PALETTE_LABELS`.
@@ -93,142 +91,6 @@ export const seedLookColours = (
 ): string[] => {
   const palette = resolveGraphPalette(style, choice);
   return set.slice(0, getMaxLookColours(palette));
-};
-
-/**
- * The colours a stop can be set to without leaving the panel.
- *
- * The native colour input opens Chromium's own picker, which is a saturation
- * square, a hue strip and three numeric fields — about three hundred pixels of
- * chrome dropped over a two-hundred-and-fifty pixel panel, covering the very
- * graph the colour is being chosen against. It is a fine tool for specifying a
- * colour and a poor one for picking one while watching a wave.
- *
- * This is the other half of that trade: a fixed set, one click, nothing
- * covered. Two rows — the app's own accents first, then a spread around the
- * wheel — which is enough to build any ramp anybody has asked for. The native
- * picker is still there behind "custom" for the case this cannot serve.
- */
-const SWATCH_CHOICES = [
-  '#00e5cf',
-  '#54ff8a',
-  '#ffcc4d',
-  '#ff8a3d',
-  '#ff4f4f',
-  '#ff4f9a',
-  '#c86bff',
-  '#6b8aff',
-  '#00b3ff',
-  '#ffffff',
-  '#9aa7b8',
-  '#0d1420',
-];
-
-interface IStopPickerProps {
-  colour: string;
-  index: number;
-  canRemove: boolean;
-  onChange: (colour: string) => void;
-  onRemove: () => void;
-}
-
-/**
- * One stop: a swatch that opens a small grid, and a corner control to drop it.
- */
-export const StopPicker = ({
-  colour,
-  index,
-  canRemove,
-  onChange,
-  onRemove,
-}: IStopPickerProps) => {
-  const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
-  // Folds back into the swatch when it closes, as every other menu does,
-  // rather than blinking out (`menu-out`).
-  const gridRef = useRef<HTMLDivElement>(null);
-  const exit = useExitAnimation(isOpen, 'menu-out', gridRef);
-
-  // Anywhere else closes it. Pointer-down rather than click, so the grid is
-  // gone by the time whatever was pressed reacts.
-  useEffect(() => {
-    if (!isOpen) {
-      return undefined;
-    }
-    const close = () => setIsOpen(false);
-    window.addEventListener('pointerdown', close);
-    return () => window.removeEventListener('pointerdown', close);
-  }, [isOpen]);
-
-  return (
-    <span
-      className="look-designer__swatch"
-      // The listener above is on the window, so a press inside must not reach
-      // it or the grid would close on the way to the colour being chosen.
-      onPointerDown={(event) => event.stopPropagation()}
-    >
-      <button
-        type="button"
-        className="look-designer__swatch-face"
-        style={{ background: colour }}
-        aria-label={t('look.colourValue', { number: index + 1, colour })}
-        aria-expanded={isOpen}
-        title={colour}
-        onClick={() => setIsOpen((open) => !open)}
-      />
-      {canRemove && (
-        <button
-          type="button"
-          className="look-designer__swatch-drop"
-          aria-label={t('look.removeColour', { number: index + 1 })}
-          onClick={onRemove}
-        >
-          ✕
-        </button>
-      )}
-      {exit.present && (
-        <div
-          ref={gridRef}
-          className="look-designer__swatch-grid"
-          role="group"
-          data-closing={exit.closing ? '' : undefined}
-          inert={exit.closing}
-          onAnimationEnd={exit.onAnimationEnd}
-        >
-          {SWATCH_CHOICES.map((choice) => (
-            <button
-              key={choice}
-              type="button"
-              className={`look-designer__swatch-choice${
-                choice === colour ? ' is-on' : ''
-              }`}
-              style={{ background: choice }}
-              aria-label={choice}
-              title={choice}
-              onClick={() => {
-                onChange(choice);
-                setIsOpen(false);
-              }}
-            />
-          ))}
-          <label
-            className="look-designer__swatch-custom"
-            htmlFor={`look-designer-custom-${index}`}
-            title={t('look.customColour')}
-          >
-            {t('look.custom')}
-            <input
-              id={`look-designer-custom-${index}`}
-              type="color"
-              value={colour}
-              aria-label={t('look.customColour')}
-              onChange={(event) => onChange(event.target.value)}
-            />
-          </label>
-        </div>
-      )}
-    </span>
-  );
 };
 
 interface ISettingRowProps {
