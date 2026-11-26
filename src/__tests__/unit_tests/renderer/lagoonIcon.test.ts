@@ -81,29 +81,34 @@ describe('Lagoon, everywhere it is written', () => {
   // colours — the accent's smooth run, in Rainbow mode as well, where the
   // palette taken whole ran the edge through seven colours (2026-09-27:
   // "make logo and title rainbow color more smooth").
+  // Since 2026-11-26 the logo is the first stretch of the one gradient the
+  // header's name continues ("one logo ... the text color ... needs to match
+  // that updated logo fluidly"): from the accent's greener end toward the
+  // accent, never Lagoon's fixed stops.
   it('is not what the header’s logo is drawn in', () => {
     const sheet = css('SignalBrand.scss');
     const header = ruleBody(sheet, '.brand-mark.brand-mark--signal');
-    expect(header).toContain('--logo-3: var(--accent)');
-    expect(header).toContain('var(--logo-1)');
+    expect(header).toContain('--logo-1: var(--accent-start)');
+    expect(header).toContain(
+      '--logo-5: color-mix(in oklab, var(--accent-start), var(--accent)',
+    );
     expect(header).not.toContain(LAGOON[0]);
     expect(sheet).not.toContain(
       'html.is-euphoric .brand-mark.brand-mark--signal',
     );
   });
 
-  // The name's "EQ" is in the window's colours (Ivan, 2026-09-26: "when plus
-  // viz is on it should also use the viz theme"): the last stretch of the
-  // name's one sweep, from the accent to the window's bluer end (2026-10-25,
-  // "2 · One sweep"), which a visualizer or Colourful mode leans toward its
-  // own colours.
-  it('is what the header name’s “EQ” is drawn in only through the palette', () => {
+  // The name runs the window's colours as one ramp — the accent's greener
+  // end, the accent, the window's second colour (Ivan, 2026-11-26) — which a
+  // visualizer or Colourful mode leans toward its own colours.
+  it('is not what the header’s name is drawn in', () => {
     const sheet = css('SignalBrand.scss');
-    expect(ruleBody(sheet, '.signal-name__suffix')).toContain(
-      'linear-gradient(90deg, var(--accent), var(--accent-end))',
-    );
-    expect(sheet).not.toContain('html.is-euphoric .signal-name__suffix');
-    expect(ruleBody(sheet, '.signal-name__suffix')).not.toContain(LAGOON[0]);
+    const name = ruleBody(sheet, '.wordmark-letters,\n.header-wordmark');
+    expect(name).toContain('--wordmark-from: var(--accent-start)');
+    expect(name).toContain('--wordmark-mid: var(--accent)');
+    expect(name).toContain('--wordmark-to: var(--active)');
+    expect(name).not.toContain(LAGOON[0]);
+    expect(sheet).not.toContain('html.is-euphoric .header-wordmark');
   });
 
   it('is the icon file’s edge', () => {

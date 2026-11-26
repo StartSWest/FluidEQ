@@ -94,14 +94,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 .player-fold__mark {
   @include strip-mark(34px, 23px);
 
-  .brand-mark.brand-mark--signal {
-    box-shadow: inset 0 1px 0 color-mix(in srgb, #{$white} 8%, transparent);
-  }
-
+  // The face's own light is drawn in the logo (`SignalBrandMark`); the ring
+  // under the pointer follows its squircle closely enough at this size.
   &:hover .brand-mark.brand-mark--signal {
-    box-shadow:
-      inset 0 1px 0 color-mix(in srgb, #{$white} 12%, transparent),
-      0 0 0 1px color-mix(in srgb, var(--logo-3) 40%, transparent);
+    border-radius: 9px;
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--logo-3) 40%, transparent);
   }
 }
 

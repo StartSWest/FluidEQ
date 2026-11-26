@@ -10,67 +10,110 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'theme' as *;
 @use 'signalPulsePath' as pulse;
 
-// The header's logo and name, "Signal" (`SignalBrandMark`, `SignalBrandName`;
-// Ivan chose it on 2026-09-25). One clock for both: the wave draws itself in
-// 0.9s from 0.15s, the name rises letter by letter from 0.7s, and from 1.2s a
-// pulse runs along the wave every 5.5s, reaching its end at 22% of the cycle
-// — the moment "EQ" glows. Change one of these and change the others with it.
+// The header's logo and name (`SignalBrandMark`, `HeaderWordmark`). The logo
+// is "Signal" (Ivan chose it on 2026-09-25): the wave draws itself in 0.9s
+// from 0.15s, its highlight arrives at 1s, and from 1.2s a pulse runs along
+// it every 5.5s. The name is the broad pen (2026-11-26).
 
 // *** The logo ****************************************************************
 
-// The wave's weight is the app icon's (`App.scss`); the tile, the edge, the
-// wave and the glow under it are the window's colours, as the name's "EQ"
-// beside it is (Ivan, 2026-09-26: "the app icon on the top needs to follow
-// theme too"). `--logo-1` to `--logo-5` are read by the wave's own gradient
-// (`ThemeWaveGradient`) and by the edge here: the accent across its greener
-// and bluer ends — the theme's cyan, or a visualizer's first colour. Every
-// other mark, in the dialogs, keeps the app icon's Lagoon. Both classes, so
-// the order the two sheets land in never decides which edge is drawn.
+// The app icon, in the window's colours (Ivan, 2026-11-26: "make the logo
+// match the app icon with stronger borders"): its squircle, the colour rising
+// from its depth, the light across its top, the thick wave with its
+// highlight, and an edge about twice the icon file's. The face is the
+// window's own, a step over the pane at its top and down to the floor: near
+// black at Black, the light blue at the light end, where a black tile stood
+// out like a hole (2026-09-27). `--logo-face-*` are read by the face and by
+// the taskbar icon's colours (`taskbarIconArt.ts`).
+//
+// ONE GRADIENT FOR THE LOGO AND THE NAME ("one logo ... the text color and
+// things needs to match that updated logo fluidly"). The name beside it runs
+// from the accent's greener end through the accent to the window's second
+// colour (`HeaderWordmark`), starting at the logo's left edge; the logo is the
+// first stretch of that run, so the first letter picks up the colour where
+// the logo leaves off. `--logo-1` to `--logo-5` are that stretch, read by the
+// wave (`ThemeWaveGradient`), the edge and the depth. Measured in the window
+// at 1920: the run starts at the logo's left edge (x 17) and ends where the
+// tail leaves the Q (x 220), so the logo's right edge (x 62) is 22% along it,
+// 44% of the way from the greener end to the accent — and the first letter,
+// past the gap, picks up at 52% (`WORDMARK_LOGO_LEAD`). Both classes, so the
+// order the two sheets land in never decides which edge is drawn.
 .brand-mark.brand-mark--signal {
   // A layer of its own: the wave draws itself at launch, and that draw
   // repaints the tile alone rather than the window's root (`SupportPet.scss`).
   will-change: transform;
+  position: relative;
   --logo-1: var(--accent-start);
-  --logo-2: color-mix(in oklab, var(--accent-start), var(--accent));
-  --logo-3: var(--accent);
-  --logo-4: color-mix(in oklab, var(--accent), var(--accent-end));
-  --logo-5: var(--accent-end);
+  --logo-2: color-mix(in oklab, var(--accent-start), var(--accent) 11%);
+  --logo-3: color-mix(in oklab, var(--accent-start), var(--accent) 22%);
+  --logo-4: color-mix(in oklab, var(--accent-start), var(--accent) 33%);
+  --logo-5: color-mix(in oklab, var(--accent-start), var(--accent) 44%);
+  --logo-face-1: oklch(from var(--surface-panel) calc(l + 0.05) c h);
+  --logo-face-2: var(--surface-panel);
+  --logo-face-3: var(--surface-base);
 
-  // The tile in the window's own colours, a step over the pane at its top
-  // and down to the floor: near black at Black, the light blue at the light
-  // end, where a black tile stood out like a hole (Ivan, 2026-09-27: "fix the
-  // logo to match light and adapt toward dark").
-  background:
-    linear-gradient(
-        160deg,
-        oklch(from var(--surface-panel) calc(l + 0.05) c h),
-        var(--surface-panel) 50%,
-        var(--surface-base)
-      )
-      padding-box,
-    linear-gradient(
-        135deg,
-        var(--logo-1),
-        var(--logo-2),
-        var(--logo-3),
-        var(--logo-4),
-        var(--logo-5)
-      )
-      border-box;
-  // No glow outside the tile (Ivan, 2026-11-18); the face's top light stays.
-  box-shadow: inset 0 1px 0 color-mix(in srgb, $white 8%, transparent);
+  // The face is drawn by the squircle under the wave; the tile's own box,
+  // edge and corner light are the dialogs' logo, not this one.
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
 
-  path {
+  .brand-mark__face {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+
+    // `.brand-mark path` strokes every path in a tile with the wave
+    // (`App.scss`); the face's are filled shapes and one edge.
+    path {
+      filter: none;
+    }
+  }
+
+  .brand-mark__body {
+    stroke: none;
+  }
+
+  .brand-mark__edge {
+    fill: none;
+    stroke-width: 1.9;
+  }
+
+  .brand-mark__drawing {
+    z-index: 1;
+  }
+
+  // The icon's wave weight: 48 of its 512, as the header draws it.
+  .brand-mark__wave {
+    stroke-width: 6.4;
+    stroke-dasharray: 60;
+    stroke-dashoffset: 60;
     filter: drop-shadow(
       0 0 2px color-mix(in srgb, var(--logo-3) 70%, transparent)
     );
+    animation: signal-draw 900ms cubic-bezier(0.3, 0.7, 0, 1) 150ms forwards;
   }
 
-  // `.brand-mark path` gives the wave its stroke; this is its drawing-on.
-  .brand-mark__wave {
-    stroke-dasharray: 60;
-    stroke-dashoffset: 60;
-    animation: signal-draw 900ms cubic-bezier(0.3, 0.7, 0, 1) 150ms forwards;
+  // The icon's highlight: a thin light over the wave's first swing, lifted
+  // to its upper side, arriving once the wave has drawn itself.
+  .brand-mark__glint {
+    stroke: $white;
+    stroke-width: 1.3;
+    stroke-opacity: 0.45;
+    stroke-dasharray: 0 5 22 60;
+    filter: none;
+    transform: translateY(-1.6px);
+    opacity: 0;
+    animation: signal-glint 400ms ease 1000ms forwards;
+  }
+}
+
+@keyframes signal-glint {
+  to {
+    opacity: 1;
   }
 }
 
@@ -98,7 +141,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // THE PULSE, ON THE COMPOSITOR. A short light, seven of the wave's sixty
 // units with round ends, white with a 3-unit glow, run along the wave from
 // just before its start to just past its end in the first 22% of every
-// 5.5 s, the moment "EQ" glows. It was a dash of the drawing sliding along
+// 5.5 s. It was a dash of the drawing sliding along
 // its path (`stroke-dashoffset`), which the main thread restyled, laid out
 // and painted on every frame, the 78% it was hidden included: 240 times a
 // second on Ivan's display (2026-11-16, the main thread 82% busy with it,
@@ -132,12 +175,6 @@ $pulse-glow: 3 * $pulse-unit;
   opacity: 0;
   animation: signal-pulse 5.5s linear 1.2s infinite;
 }
-
-// The same smooth run of the accent in Rainbow mode too, where the mode's
-// own ends lean it toward the palette a little (`Rainbow.scss`). Taken whole,
-// the palette ran the tile's edge and the wave through seven colours (Ivan,
-// 2026-09-27: "make logo and title rainbow color more smooth ... EQ just
-// normal smooth and the icon too").
 
 @keyframes signal-draw {
   to {
@@ -195,299 +232,124 @@ $pulse-edge: 0.0004;
 
 // *** The name ****************************************************************
 
-// Letters in a row, each its own box so it can rise on its own.
-.signal-name {
-  display: inline-flex;
-  min-width: 0;
+// "FluidEQ" in the broad pen (`HeaderWordmark`, `WordmarkLetters`). The
+// gradient's three stops: the accent's greener end at the logo's left edge,
+// the accent, and the window's second colour at the Q — the whole word in one
+// run that the logo begins (Ivan, 2026-11-26: "white to primary to sec in the
+// hole word", then the logo's colour in place of white). The tail runs on in
+// the second colour.
+.wordmark-letters,
+.header-wordmark {
+  --wordmark-from: var(--accent-start);
+  --wordmark-mid: var(--accent);
+  --wordmark-to: var(--active);
 }
 
-.signal-name__letter {
-  display: inline-block;
-  opacity: 0;
-  transform: translateY(5px);
-  animation: signal-rise 520ms cubic-bezier(0.3, 0.7, 0, 1) forwards;
-  animation-delay: calc(700ms + var(--letter-index) * 45ms);
+.wordmark-letters {
+  display: block;
+  height: 100%;
+  width: auto;
+  overflow: visible;
 }
 
-// "EQ": the accent's pale colour, and a glow each time the pulse arrives.
-.signal-name__letter--glow {
-  color: $secondary-light;
-  animation:
-    signal-rise 520ms cubic-bezier(0.3, 0.7, 0, 1) forwards,
-    signal-glow 5.5s ease-in-out infinite;
-  animation-delay: calc(700ms + var(--letter-index) * 45ms), 1.2s;
-}
-
-@keyframes signal-rise {
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes signal-glow {
-  0%,
-  16% {
-    text-shadow: none;
-  }
-
-  22% {
-    text-shadow: 0 0 14px
-      color-mix(in srgb, $secondary-default 80%, transparent);
-  }
-
-  40%,
-  100% {
-    text-shadow: none;
-  }
-}
-
-// *** "EQ" in the window's colours ********************************************
-
-// "FLUID" IN WHITE, "EQ" IN THE WINDOW'S COLOURS (Ivan, 2026-09-26: "improve
-// the fluid title color, perhaps add some white to word and EQ in rainbow",
-// then, with a Plus visualizer lending the window its colours, "when plus
-// viz is on it should also use the viz theme"). The first part keeps the
-// white the titles use and rises letter by letter; "EQ" is in whatever the
-// window is drawn in: the filled controls' own fill (`--accent-fill`), the
-// accent between its greener and bluer ends — the theme's cyan, or the
-// visualizer's first colour — in Rainbow mode as well, where those ends lean
-// toward the palette. The whole palette swept through two letters was a run
-// of hard colours, not a gradient ("EQ just normal smooth").
-
-// One box for the two letters, so the colour runs through them as one and
-// they rise together after the first part. The letters inside are plain text,
-// not boxes of their own: a letter that is its own box, or still rising, is
-// painted apart from its parent and the clip misses it — the whole name
-// vanished that way in the mockup.
-//
-// The glow of a clipped word: a text shadow would be drawn through its
-// transparent letters and tint them, so the light is a drop shadow round the
-// painted word instead.
-$eq-glow: drop-shadow(
-  0 0 6px color-mix(in srgb, $secondary-default 55%, transparent)
-);
-$eq-glow-peak: drop-shadow(
-  0 0 9px color-mix(in srgb, $secondary-default 85%, transparent)
-);
-
-// The letters themselves only hold the box; the word is drawn twice over them
-// (`data-text`, read by the two pseudo-elements), once with the steady glow
-// and once with the brighter one, and the pulse's arrival cross-fades the
-// two (`signal-glow-rest`, `signal-glow-peak`). Adding light (`plus-lighter`)
-// rather than laying one over the other, a copy at a share of its opacity
-// plus the other at the rest is exactly that share of the way between the
-// two pictures, and the letters, the same in both, stay exactly as bright.
-// Only `opacity`, so the compositor runs it: the glow was a `filter`
-// animated forever, which the main thread repainted on every frame.
-.signal-name__suffix {
-  // The sweep's last stretch (below): from the accent, where "d" ends, to
-  // the bluer end of the window's span. Read by the two copies.
-  --eq-sweep: linear-gradient(90deg, var(--accent), var(--accent-end));
-
+// One width in the flow whatever plays: the word and the version past the
+// Q. The tail is laid over what is beside it — its short flourish hangs into
+// the gap before the first tab, which is air either way, and its long run and
+// the song only where the bar already has room (`wordmarkRoom.ts`). Every
+// pixel this end takes costs the meter two.
+.header-wordmark {
   position: relative;
-  display: inline-block;
-  // The copies add their light to each other, never to the bar behind.
-  isolation: isolate;
-  color: transparent;
-  opacity: 0;
-  transform: translateY(5px);
-  animation: signal-rise 520ms cubic-bezier(0.3, 0.7, 0, 1) forwards;
-  animation-delay: calc(700ms + var(--letter-index) * 45ms);
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  padding-right: 12px;
+}
 
-  &::before,
-  &::after {
-    position: absolute;
-    inset: 0;
-    color: transparent;
-    background: $secondary-default var(--eq-sweep);
-    background-clip: text;
-    // The word again, and nothing for a screen reader to read twice.
-    content: attr(data-text) / '';
-    white-space: nowrap;
-    mix-blend-mode: plus-lighter;
-    pointer-events: none;
-  }
+.header-wordmark__word {
+  position: relative;
+  display: block;
+  height: var(--wordmark-height, 36px);
+}
 
-  // Steady, so "EQ" always reads as lit.
-  &::before {
-    filter: $eq-glow;
-    animation: signal-glow-rest 5.5s ease-in-out 1.2s infinite;
-  }
+// The version over the Q's shoulder, always two numbers, in the window's
+// text colour (Ivan, 2026-11-26: "show the version 2.6 always 2 numbers ...
+// in white perhaps").
+.header-wordmark__version {
+  position: absolute;
+  font-size: 10.5px;
+  font-weight: $weight-semibold;
+  line-height: 1;
+  @include tracking(0.02em);
+  color: $text-primary;
+  white-space: nowrap;
+  pointer-events: none;
+}
 
-  // Brighter each time the pulse arrives, on the pulse's clock.
-  &::after {
-    filter: $eq-glow-peak;
-    opacity: 0;
-    animation: signal-glow-peak 5.5s ease-in-out 1.2s infinite;
-  }
+.header-wordmark__tail {
+  position: absolute;
+  height: 24px;
+  overflow: visible;
+  pointer-events: none;
+}
 
-  .signal-name__letter,
-  .signal-name__letter--glow {
-    display: inline;
-    color: transparent;
-    opacity: 1;
-    transform: none;
-    animation: none;
+// The song on the tail: the title over the artist, each line fading out at
+// its end when it runs long (`isLineClipped`).
+.header-wordmark__song {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  color: $text-primary;
+  transition: opacity 200ms ease;
+
+  &.is-paused {
+    opacity: 0.55;
   }
 }
 
-// ONE SWEEP (Ivan, 2026-10-25, picking "2 · One sweep" with "glow on EQ"):
-// the whole name is one light, the theme's white on the left melting through
-// a pale accent into the accent by the end of "Fluid", and "EQ" carrying it
-// on to the window's bluer end. Each letter is its own box, for its rise, and
-// a clip paints only the box it is on, so each takes its own stretch of the
-// sweep: its left and right edges at the sweep's colour there, sevenths of
-// the name apart. White to pale over the first four tenths, pale to the
-// accent by the end of "d".
-$sweep-pale: color-mix(in oklab, $secondary-light 60%, $text-primary);
+.header-wordmark__line {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
 
-@mixin sweep-stretch($from, $to) {
-  color: transparent;
-  background: linear-gradient(90deg, $from, $to);
-  background-clip: text;
-}
-
-.signal-name > .signal-name__letter {
-  &:nth-child(1) {
-    @include sweep-stretch(
-      $text-primary,
-      color-mix(in oklab, $sweep-pale 36%, $text-primary)
-    );
-  }
-
-  &:nth-child(2) {
-    @include sweep-stretch(
-      color-mix(in oklab, $sweep-pale 36%, $text-primary),
-      color-mix(in oklab, $sweep-pale 71%, $text-primary)
-    );
-  }
-
-  &:nth-child(3) {
-    @include sweep-stretch(
-      color-mix(in oklab, $sweep-pale 71%, $text-primary),
-      color-mix(in oklab, var(--accent) 9%, $sweep-pale)
-    );
-  }
-
-  &:nth-child(4) {
-    @include sweep-stretch(
-      color-mix(in oklab, var(--accent) 9%, $sweep-pale),
-      color-mix(in oklab, var(--accent) 55%, $sweep-pale)
-    );
-  }
-
-  &:nth-child(5) {
-    @include sweep-stretch(
-      color-mix(in oklab, var(--accent) 55%, $sweep-pale),
-      var(--accent)
-    );
+  &.is-clipped {
+    mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent);
   }
 }
 
-// The pulse's arrival, as the share of the brighter copy: none until 16% of
-// the cycle, all of it at 22%, none again from 40%. The steady copy gives way
-// by exactly as much, so the two always add up to one word.
-@keyframes signal-glow-peak {
-  0%,
-  16% {
-    opacity: 0;
-  }
-
-  22% {
-    opacity: 1;
-  }
-
-  40%,
-  100% {
-    opacity: 0;
-  }
+.header-wordmark__title {
+  font-size: 13.5px;
+  font-weight: $weight-semibold;
+  line-height: 18px;
 }
 
-@keyframes signal-glow-rest {
-  0%,
-  16% {
-    opacity: 1;
-  }
-
-  22% {
-    opacity: 0;
-  }
-
-  40%,
-  100% {
-    opacity: 1;
-  }
+.header-wordmark__artist {
+  font-size: 12.5px;
+  font-weight: $weight-regular;
+  line-height: 17px;
+  color: $text-muted;
 }
 
 // *** Still *******************************************************************
 
-// Drawn, risen and quiet: the logo and the name as they stand once the
-// opening is over, with no pulse and nothing turning.
+// Drawn and quiet: the logo as it stands once the opening is over, with no
+// pulse. The tail rests on its still curve (`useWordmarkTail`).
 @media (prefers-reduced-motion: reduce) {
   .brand-mark--signal .brand-mark__wave {
     animation: none;
     stroke-dashoffset: 0;
   }
 
+  .brand-mark--signal .brand-mark__glint {
+    animation: none;
+    opacity: 1;
+  }
+
   .brand-mark--signal .brand-mark__pulse {
     display: none;
   }
 
-  .signal-name__letter,
-  .signal-name__letter--glow {
-    animation: none;
-    opacity: 1;
-    transform: none;
+  .header-wordmark__song {
+    transition: none;
   }
-
-  .signal-name__suffix {
-    animation: none;
-    opacity: 1;
-    transform: none;
-  }
-
-  // Lit all the same, by the steady copy alone, without the pulse.
-  .signal-name__suffix::before,
-  .signal-name__suffix::after {
-    animation: none;
-  }
-}
-
-// *** Flat, on every window ************************************************
-//
-// The name is flat (Ivan, 2026-11-18: "it needs to look awesome and flat",
-// then "fix the title for dark too, no flows or crap"): the text's own ink
-// with "EQ" in the accent, still. On white the sweep ran from near-black
-// into a pale accent and "EQ"'s glowing copies (plus-lighter) added nothing;
-// on the dark window the same sweep and the glow were the flows. The
-// letters still rise at launch: an arrival, not a loop. The icon beside it
-// is the app's icon and stays exactly as it is ("don't modify my icon,
-// keep the same icon").
-// `:nth-child(n)` to outrank the sweep's per-letter stretches above.
-.signal-name > .signal-name__letter:nth-child(n) {
-  color: $text-primary;
-  background: none;
-}
-
-.signal-name__suffix {
-  color: $secondary-default;
-
-  &::before,
-  &::after {
-    display: none;
-  }
-
-  // Its letters are clear so the copies above showed through; with the
-  // copies gone they carry the colour themselves, and do not glow.
-  .signal-name__letter,
-  .signal-name__letter--glow {
-    color: $secondary-default;
-    filter: none;
-  }
-}
-
-.signal-name__letter--glow {
-  animation: signal-rise 520ms cubic-bezier(0.3, 0.7, 0, 1) forwards;
-  animation-delay: calc(700ms + var(--letter-index) * 45ms);
 }

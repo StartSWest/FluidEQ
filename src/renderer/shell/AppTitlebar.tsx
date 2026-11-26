@@ -18,11 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useRef, type ComponentProps, type MouseEvent } from 'react';
-import { PRODUCT_VERSION } from 'common/branding';
 import { TITLEBAR_DOUBLE_CLICK_CHANNEL } from 'common/windowMode';
 import ActionsMenu from '../components/ActionsMenu';
 import SignalBrandMark from '../components/SignalBrandMark';
-import SignalBrandName from '../components/SignalBrandName';
 import TrafficLightSlot from '../components/TrafficLightSlot';
 import HelpMenu from '../help/HelpMenu';
 import type { IHelpHandlers } from '../help/helpMenuActions';
@@ -33,25 +31,17 @@ import runsOnMac from '../utils/platform';
 import { useTitlebarRoom } from '../utils/useTitlebarRoom';
 import WaveformVisualizer from '../WaveformVisualizer';
 import WavePresetPlate from './wavePreset/WavePresetPlate';
+import HeaderWordmark from './wordmark/HeaderWordmark';
 import {
   WorkspaceTabsLeft,
   WorkspaceTabsRight,
   type IWorkspaceTabsProps,
 } from './WorkspaceTabStrips';
 
-/**
- * Shipped build version, substituted by webpack at compile time. Empty in any
- * context that does not go through the bundler (a bare unit-test import), so
- * the badge is rendered conditionally rather than showing "vundefined".
- *
- * Defined once in `common/branding`, alongside the name it sits next to.
- */
 /** The playing preset, over the meter (`WaveformVisualizer`'s overlay). */
 const presetPlate = (isMeterOn: boolean) => (
   <WavePresetPlate isMeterOn={isMeterOn} />
 );
-
-const APP_VERSION = PRODUCT_VERSION;
 
 export interface IAppTitlebarProps {
   tabs: IWorkspaceTabsProps;
@@ -157,26 +147,14 @@ const AppTitlebar = ({
         <TrafficLightSlot />
         <div className="workspace-header__identity">
           {/* Alive in the header ("Signal", Ivan 2026-09-25): the wave
-              draws itself and a pulse runs along it; still everywhere
-              else the app shows its logo. */}
+              draws itself and a pulse runs along it. Drawn as the app icon
+              (2026-11-26). */}
           <SignalBrandMark />
-          {/* Named, because a narrow window hides this and leaves the mark
-              alone — see `.workspace-header__identity-text`. */}
-          <div className="workspace-header__identity-text">
-            <div className="workspace-header__name">
-              <SignalBrandName />
-              {/* Inlined at build time from the same package.json
-                  electron-builder versions the installer with, so a bug
-                  report quoting this is quoting the real build. */}
-              {APP_VERSION && (
-                <span className="workspace-header__version">
-                  v{APP_VERSION}
-                </span>
-              )}
-            </div>
-            {/* No slogan under it: one confident line (Ivan, 2026-10-25,
-                trying "C · Clean wordmark"). The slogan stays in About. */}
-          </div>
+          {/* The name in the broad pen, its version over the Q and the Q's
+              tail running on as the live sound, with the song on it when the
+              bar has room (Ivan, 2026-11-26). No slogan under it: one
+              confident line (2026-10-25). */}
+          <HeaderWordmark />
         </div>
         <WorkspaceTabsLeft
           activeTab={tabs.activeTab}

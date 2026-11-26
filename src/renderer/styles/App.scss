@@ -981,73 +981,9 @@ select option {
   }
 }
 
-// Narrow: the mark alone, and the name on hover.
-//
-// The titlebar carries the analyser, the transport, the pet and the window
-// controls, and below this width the product's own name is the first thing
-// that can go — everyone looking at it already knows what they opened. It is
-// not deleted, though: it comes back beside the mark when the mark is pointed
-// at, which is where a version number is wanted anyway, and lifted out of the
-// flow so revealing it cannot push the bar's other contents around.
-//
-// Later than the words, and at the width the spectrum actually asks for them.
-//
-// The tab labels go at 1800 because the drawing starves without that room. The
-// name and the creature are not in that class: with the tabs down to glyphs the
-// meter is still at its full 420 to about 1300, so taking them out any earlier
-// spends what the bar was not short of.
-//
-// 1300 and not 1080, because 1080 was late enough to put a step in the wrong
-// direction: the meter fell to 308 at 1100 and then JUMPED BACK to 400 at 1000
-// as these two vanished. A drawing that gets bigger as the window gets smaller
-// is the inconsistency; matching the threshold to the width where the meter
-// first gives ground is what removes it.
-//
-// Nothing is deleted: the name comes back beside the mark when the mark is
-// pointed at, lifted out of the flow so revealing it cannot push the bar's
-// other contents around.
-@media (max-width: $bp-two-column) {
-  // Hover cannot reach the mark while it is part of the window's drag
-  // handle: `.window-titlebar` is `-webkit-app-region: drag`, so Windows
-  // takes the pointer over it and the renderer is never told the mouse is
-  // there — the reveal below simply never fired. Only at this width, and
-  // only over the 44px mark, because that is the only place the reveal
-  // exists; the rest of the bar stays a drag handle.
-  .workspace-header__identity {
-    -webkit-app-region: no-drag;
-  }
-
-  .workspace-header__identity-text {
-    position: absolute;
-    z-index: 40;
-    top: 50%;
-    left: calc(100% + #{$spacing-xs});
-    padding: 6px $spacing-s;
-    border: 1px solid $border-field;
-    border-radius: $radius-s;
-    background: color-mix(in srgb, $surface-menu-top 96%, transparent);
-    box-shadow: none;
-    opacity: 0;
-    visibility: hidden;
-    white-space: nowrap;
-    // Its own `translate`, so the transition composes with the centring
-    // rather than replacing it — the same reason `.library-coverflow__arrow`
-    // uses one.
-    translate: 0 -50%;
-    // No blur: at 96% opaque there was nothing behind this to soften, and it is
-    // a line of text.
-    pointer-events: none;
-    transition:
-      opacity 160ms $ease-out,
-      visibility 160ms $ease-out;
-  }
-
-  .workspace-header__identity:hover .workspace-header__identity-text,
-  .workspace-header__identity:focus-within .workspace-header__identity-text {
-    opacity: 1;
-    visibility: visible;
-  }
-}
+// The name beside the mark has no width of its own to go at: it goes when the
+// bar runs out of room, before the meter, wherever that is in the reader's
+// language (`data-shed-name`, `useTitlebarRoom`).
 
 // THE CREATURE GOES FIRST, the moment keeping her would cost the wave any of
 // its width (Ivan, 2026-09-22: "the moment the wave starts narrowing remove
@@ -1070,7 +1006,14 @@ select option {
 
 // AND THEN THE BAR ITSELF, at a window zoomed past what its ends and the
 // meter's floor fit in (Ivan, 2026-09-28: "shed small things"), measured by
-// the same hook. The meter goes first, its track with it — two ends, one gap,
+// the same hook. The name beside the logo goes first: in a window that narrow
+// the logo already says what it is, and the name kept there cost the meter
+// its place from 1000px down.
+.window-titlebar[data-shed-name] .header-wordmark {
+  display: none;
+}
+
+// The meter goes next, its track with it — two ends, one gap,
 // so the right end keeps the last column and nothing is placed by accident
 // into the middle one; the meter draws nothing with no box to draw in.
 .window-titlebar[data-shed-meter] {
@@ -1230,48 +1173,6 @@ select option {
     stroke-width: 5.6;
     stroke-linecap: round;
     filter: drop-shadow(0 0 2px color-mix(in srgb, #00ccf5 70%, transparent));
-  }
-}
-
-.workspace-header__name {
-  @include truncate;
-  display: flex;
-  align-items: baseline;
-  gap: 5px;
-  // A touch larger now that it stands alone on the line, centred on the mark.
-  font-size: 1.35rem;
-  font-weight: $weight-bold;
-  letter-spacing: -0.02em;
-}
-
-// Quiet by design: useful in a bug report, not something to read every day —
-// a small suffix to the name rather than a badge beside it (Ivan, 2026-10-25,
-// trying "C · Clean wordmark").
-.workspace-header__version {
-  flex: 0 0 auto;
-  align-self: flex-start;
-  margin-top: 1px;
-  // Last, once the name has risen (`SignalBrand.scss`): its seven letters
-  // start 700ms in, 45ms apart, so this comes in as "Q" settles rather than
-  // standing alone beside an empty name (Ivan, 2026-10-25: "the version
-  // shows at the end of the animation").
-  opacity: 0;
-  transform: translateY(5px);
-  animation: signal-rise 520ms cubic-bezier(0.3, 0.7, 0, 1) forwards;
-  animation-delay: calc(700ms + 8 * 45ms);
-  color: $text-faint;
-  font-size: $text-eyebrow;
-  font-variant-numeric: tabular-nums;
-  font-weight: $weight-bold;
-  @include tracking(0.02em);
-}
-
-// Still with the name, which stands risen at once here (`SignalBrand.scss`).
-@media (prefers-reduced-motion: reduce) {
-  .workspace-header__version {
-    opacity: 1;
-    transform: none;
-    animation: none;
   }
 }
 
@@ -5047,22 +4948,18 @@ button.graph-legend {
 // tools button and the right-hand gap a second time on the way down, and every
 // one of those is a width the spectrum beside them jumps at. They happen at 900
 // with everything else the bar gives up, so the titlebar has three widths in
-// total: 1800 for the words, 1300 for the name and the creature, 900 for the
-// last squeeze.
+// total: 1800 for the words and 900 for the last squeeze; the name beside the
+// logo goes when the bar is measured to run out (`data-shed-name`).
 
 @media (max-width: 760px) {
   // No titlebar rules here any more. The grid, the gap and the padding were a
   // fourth sizing of the same bar; it has three now — 1800, 1300 and 900 — and
   // nothing between them.
 
-  // No shrunken brand mark here either. At this width the name and the
-  // version are already hidden and the mark is the only identity left on the
-  // bar, so making it smaller took away the one thing that was still saying
-  // what this window is. It keeps its 44px.
-
-  .workspace-header__name {
-    font-size: 1rem;
-  }
+  // No shrunken brand mark here. The name beside it has gone by now
+  // (`data-shed-name`, measured), so the mark is the only identity left on
+  // the bar, and making it smaller took away the one thing still saying what
+  // this window is. It keeps its 44px.
 
   .window-titlebar__controls,
   .window-titlebar__transport {
@@ -5143,6 +5040,11 @@ button.graph-legend {
       width: 26px;
       height: 26px;
     }
+  }
+
+  // The name comes down with the mark, in the same proportion.
+  .window-titlebar {
+    --wordmark-height: 30px;
   }
 }
 

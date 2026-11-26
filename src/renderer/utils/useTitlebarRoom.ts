@@ -45,6 +45,10 @@ import { RefObject, useLayoutEffect, useSyncExternalStore } from 'react';
  * order Ivan chose (2026-09-28, "shed small things"), the meter goes
  * (`data-shed-meter`), then Help and the compact-player switch
  * (`data-shed-tools`), and the tabs and the window's buttons always stay.
+ * Before all of them goes the name beside the logo (`data-shed-name`): the
+ * broad-pen wordmark (2026-11-26) is about four times the old name's width
+ * in a narrow window, and with it in place the meter went from 1000px down —
+ * where the logo alone already says what the window is.
  * Neither of the two is lost: the actions menu beside them takes both in
  * while they are away (`useTitlebarToolsShed`). Each goes when the bar runs
  * past its edge and comes back when the ends have room for what it takes
@@ -93,6 +97,32 @@ export const isShedFromTitlebar = (
   { overrun, spare, takesBack }: ITitlebarFit,
 ): boolean =>
   wasShed ? spare < takesBack + COMEBACK_MARGIN_PX : overrun > NO_ROOM_PX;
+
+/**
+ * Narrowest the meter is left for the name beside the logo, px. Below it the
+ * name goes: measured in the harness, keeping it held the meter at 144px at
+ * 1100 and 154px at 1280, a drawing too short to read, while the logo alone
+ * still says what the window is.
+ */
+export const NAME_METER_FLOOR_PX = 300;
+
+export interface ITitlebarNameRoom {
+  /** The meter's width now, px; with the name out, as it stands without it. */
+  meter: number;
+  /** What the meter would give up for the name to come back, px. */
+  cost: number;
+  /** How far the bar's contents run past its padding box, px. */
+  overrun: number;
+}
+
+/** Whether the name beside the logo is out, given the meter's room. */
+export const isNameShedFromTitlebar = (
+  wasShed: boolean,
+  { meter, cost, overrun }: ITitlebarNameRoom,
+): boolean =>
+  wasShed
+    ? meter - cost < NAME_METER_FLOOR_PX + COMEBACK_MARGIN_PX
+    : overrun > NO_ROOM_PX || meter < NAME_METER_FLOOR_PX;
 
 // Whether Help and the compact-player switch are out of the bar, for the
 // actions menu to take them in. A store and not a prop: the bar decides it
@@ -183,6 +213,10 @@ export const watchTitlebarRoom = (
   const comeback = () => (pet() && petWidth > 0 ? petWidth + gapOf(right) : 0);
 
   // The bar's own parts, in the order they go.
+  const name = () =>
+    left.querySelector<HTMLElement>(
+      '.workspace-header__identity > .header-wordmark',
+    );
   const meter = () => bar.querySelector<HTMLElement>(':scope > .titlebar-nav');
   const tools = () =>
     Array.from(
@@ -190,8 +224,10 @@ export const watchTitlebarRoom = (
         '.titlebar-instrument > :is(.help-menu, .window-mode-switch)',
       ),
     );
-  // What each would take back, measured the moment it went: the meter at its
-  // floor and the gap its track stood in, the two tools and their gaps.
+  // What each would take back, measured the moment it went: the name and the
+  // gap beside it, the meter at its floor and the gap its track stood in, the
+  // two tools and their gaps.
+  let nameBack = 0;
   let meterBack = 0;
   let toolsBack = 0;
 
@@ -241,10 +277,42 @@ export const watchTitlebarRoom = (
       setToolsShed(true);
       return true;
     }
-    if (bar.hasAttribute('data-crowded') && isShedFromTitlebar(false, fit(0))) {
+    const shedMeter = () => {
       meterBack = (meter()?.getBoundingClientRect().width ?? 0) + gapOf(bar);
       bar.setAttribute('data-shed-meter', '');
       return true;
+    };
+    const meterWidth = () => meter()?.getBoundingClientRect().width ?? 0;
+    if (bar.hasAttribute('data-shed-name')) {
+      // The tracks are equal, so the name costs the meter twice whatever of
+      // it the left end's spare room cannot hold.
+      const back = {
+        meter: meterWidth(),
+        cost: 2 * Math.max(0, nameBack - spareIn(left)),
+        overrun: overrun(),
+      };
+      if (!isNameShedFromTitlebar(true, back)) {
+        bar.removeAttribute('data-shed-name');
+        return true;
+      }
+      return isShedFromTitlebar(false, fit(0)) ? shedMeter() : false;
+    }
+    const named = name();
+    const room = { meter: meterWidth(), cost: 0, overrun: overrun() };
+    if (
+      bar.hasAttribute('data-crowded') &&
+      named &&
+      named.offsetWidth > 0 &&
+      isNameShedFromTitlebar(false, room)
+    ) {
+      const identity = named.parentElement;
+      nameBack =
+        named.getBoundingClientRect().width + (identity ? gapOf(identity) : 0);
+      bar.setAttribute('data-shed-name', '');
+      return true;
+    }
+    if (bar.hasAttribute('data-crowded') && isShedFromTitlebar(false, fit(0))) {
+      return shedMeter();
     }
     return undefined;
   };
@@ -306,6 +374,7 @@ export const watchTitlebarRoom = (
     size.disconnect();
     contents.disconnect();
     bar.removeAttribute('data-crowded');
+    bar.removeAttribute('data-shed-name');
     bar.removeAttribute('data-shed-meter');
     bar.removeAttribute('data-shed-tools');
     setToolsShed(false);

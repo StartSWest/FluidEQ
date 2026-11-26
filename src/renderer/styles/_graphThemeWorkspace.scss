@@ -585,13 +585,6 @@ it under the terms of the GNU General Public License version 3 or later.
   .now-playing-bar.is-floating {
     @include window-ink-halo;
   }
-
-  // Not the wordmark: its letters are painted by a gradient through a clear
-  // fill, so a shadow under them shows through and greys "FluidEQ" out. Its
-  // own pulse glow is an animation, which this does not touch.
-  .window-titlebar .signal-name {
-    text-shadow: none;
-  }
 }
 
 // And the row arrives and leaves on the header's and the transport's time,

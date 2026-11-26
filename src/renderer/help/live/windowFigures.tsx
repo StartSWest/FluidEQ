@@ -1,8 +1,6 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import { PRODUCT_VERSION } from 'common/branding';
 import SignalBrandMark from '../../components/SignalBrandMark';
-import SignalBrandName from '../../components/SignalBrandName';
 import MenuIcon from '../../icons/MenuIcon';
 import PetCanvas, { TITLEBAR_PET_ART } from '../../pet/PetCanvas';
 import WindowModeSwitch from '../../player/WindowModeSwitch';
@@ -12,6 +10,7 @@ import {
 } from '../../shell/WorkspaceTabStrips';
 import { useTranslation } from '../../utils/I18nContext';
 import WaveformVisualizer from '../../WaveformVisualizer';
+import WordmarkStill from '../../shell/wordmark/WordmarkStill';
 import HelpMusic from './HelpMusic';
 import runsOnMac from '../../utils/platform';
 
@@ -46,16 +45,7 @@ const WindowHeaderDrawing = () => {
       <div className="window-titlebar__left">
         <div className="workspace-header__identity">
           <SignalBrandMark />
-          <div className="workspace-header__identity-text">
-            <div className="workspace-header__name">
-              <SignalBrandName />
-              {PRODUCT_VERSION && (
-                <span className="workspace-header__version">
-                  v{PRODUCT_VERSION}
-                </span>
-              )}
-            </div>
-          </div>
+          <WordmarkStill />
         </div>
         <WorkspaceTabsLeft
           activeTab="eq"

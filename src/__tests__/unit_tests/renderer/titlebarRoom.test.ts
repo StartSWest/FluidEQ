@@ -18,11 +18,58 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { act, renderHook } from '@testing-library/react';
 import {
+  NAME_METER_FLOOR_PX,
+  isNameShedFromTitlebar,
   isShedFromTitlebar,
   isTitlebarCrowded,
   useTitlebarToolsShed,
   watchTitlebarRoom,
 } from '../../../renderer/utils/useTitlebarRoom';
+
+// The broad-pen name beside the logo (2026-11-26) goes before the meter
+// starves: kept at 1100px it held the meter at 144px.
+describe('the name beside the logo giving way to the meter', () => {
+  it('stays while the meter keeps its floor and the bar fits', () => {
+    expect(
+      isNameShedFromTitlebar(false, { meter: 342, cost: 0, overrun: 0 }),
+    ).toBe(false);
+  });
+
+  it('goes when it would leave the meter under its floor', () => {
+    expect(
+      isNameShedFromTitlebar(false, {
+        meter: NAME_METER_FLOOR_PX - 1,
+        cost: 0,
+        overrun: 0,
+      }),
+    ).toBe(true);
+  });
+
+  it('goes when the bar runs past its edge, before the meter does', () => {
+    expect(
+      isNameShedFromTitlebar(false, { meter: 400, cost: 0, overrun: 3 }),
+    ).toBe(true);
+  });
+
+  it('comes back only when the meter keeps its floor with the name in', () => {
+    // At 1000px without it: 293px of meter, and the name would cost 360.
+    expect(
+      isNameShedFromTitlebar(true, { meter: 293, cost: 360, overrun: 0 }),
+    ).toBe(true);
+    // A wide window: the meter at its 420 and room to spare for the name.
+    expect(
+      isNameShedFromTitlebar(true, { meter: 420, cost: 60, overrun: 0 }),
+    ).toBe(false);
+    // On the boundary it stays out rather than flip between two layouts.
+    expect(
+      isNameShedFromTitlebar(true, {
+        meter: NAME_METER_FLOOR_PX + 100,
+        cost: 100,
+        overrun: 0,
+      }),
+    ).toBe(true);
+  });
+});
 
 describe('the titlebar giving ground before the wave does', () => {
   it('keeps her while either end has room beside its content', () => {
