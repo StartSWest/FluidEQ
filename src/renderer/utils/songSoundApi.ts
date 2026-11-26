@@ -133,6 +133,9 @@ export const applySongSound = (
   isLent: boolean,
   curve: IEqSettings | null | undefined,
   target: IOutputEditor,
+  /** The listener's own sound, exactly as their loan keeps it, lent to the
+   * song as it is (`lendOwnSound` in `main/songSoundLoan.ts`). */
+  asOwn = false,
 ): Promise<TSongSoundLanded> =>
   sendRequest(
     ChannelEnum.APPLY_SONG_SOUND,
@@ -141,6 +144,7 @@ export const applySongSound = (
       isLent,
       curve,
       { deviceId: target.device.id, generation: target.generation },
+      ...(asOwn ? [true] : []),
     ],
     simpleResponseHandler<TSongSoundLanded>(),
   );

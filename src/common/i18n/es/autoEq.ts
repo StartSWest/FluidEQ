@@ -28,7 +28,7 @@ export default {
   'autoEq.now.nothing': 'Nada sonando',
   'autoEq.now.yours': 'tu sonido',
   'autoEq.now.yoursWhy':
-    'No hay nada guardado para esta canción: suena el último sonido que elegiste.',
+    'No hay nada guardado para esta canción: suena tu propio sonido, tal como lo dejaste.',
   'autoEq.now.song': 'el sonido de esta canción',
   'autoEq.now.songWhy': 'Vuelve cada vez que suena esta canción.',
   'autoEq.now.album': 'el sonido de {album}',
@@ -37,7 +37,7 @@ export default {
   'autoEq.now.showPreset': 'Mostrar {preset} en la pestaña Preset',
   'autoEq.songs.title': 'Sonidos de canciones',
   'autoEq.songs.hint':
-    'Una canción con un sonido guardado lo reproduce. Cámbialo y pulsa Guardar cambios para conservarlo. Las demás canciones suenan con el tuyo.',
+    'Una canción con un sonido guardado lo reproduce. Tus cambios se quedan con esa canción hasta que los guardes. Las demás canciones suenan con el tuyo.',
   'autoEq.songs.nothing': 'Reproduce una canción para guardar su sonido',
   'autoEq.songs.saved': 'Guardado para esta canción',
   'autoEq.songs.none': 'No hay nada guardado para esta canción',

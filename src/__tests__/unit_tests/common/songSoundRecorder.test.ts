@@ -12,6 +12,7 @@ import {
   TSongSoundEffect,
   TSongSoundEvent,
 } from 'common/songSoundRecorder';
+import { SONG_SOUND_WORKING_MAX } from 'common/songSoundWorking';
 
 // Auto EQ's song and album sounds (Ivan, 2026-11-19/20): in the Library a
 // song's own sound, then its album's, then the listener's own; a change made
@@ -106,6 +107,7 @@ describe('Auto EQ song sounds: what is looked up', () => {
     expect(desktop.effects).toEqual([
       { kind: 'lookup', identity: onDesktop },
       { kind: 'save', identity: onDesktop, sound: original },
+      { kind: 'apply', sound: original, isLent: true, asOwn: true },
     ]);
   });
 
@@ -114,6 +116,7 @@ describe('Auto EQ song sounds: what is looked up', () => {
     expect(startedAlone(songA).effects).toEqual([
       { kind: 'lookup', identity: songA },
       { kind: 'save', identity: songA, sound: original },
+      { kind: 'apply', sound: original, isLent: true, asOwn: true },
     ]);
   });
 
@@ -163,22 +166,30 @@ describe('Auto EQ song sounds: the listener’s own sound', () => {
   });
 
   it('"Save for this song" files what plays at once, and a later change only when saved again', () => {
-    const saved = run(playing().state, [
+    const asked = run(playing().state, [
       [later + 1, { kind: 'matched', identity: songA }],
       [later + 2, { kind: 'saveNow' }],
     ]);
-    expect(saved.effects).toEqual([
+    // Filed, and the listener's own sound lent to the song as it is, so a
+    // change made from here is the song's and never theirs.
+    expect(asked.effects).toEqual([
       { kind: 'save', identity: songA, sound: original },
+      { kind: 'apply', sound: original, isLent: true, asOwn: true },
     ]);
-    expect(saved.state.session?.owner).toBe('song');
+    expect(asked.state.session?.owner).toBe('song');
+    const saved = run(asked.state, [
+      [later + 2, { kind: 'applied', asked: original, landed: original }],
+    ]);
     const changed = run(saved.state, [
       [later + 3, { kind: 'soundChanged', sound: edited }],
     ]);
     expect(isSongSoundChanged(changed.state)).toBe(true);
     const ended = run(changed.state, [[later + 4, { kind: 'closing' }]]);
     expect(kinds(ended.effects, 'save')).toEqual([]);
-    // It was the listener's own sound already: nothing to hand back.
-    expect(kinds(ended.effects, 'apply')).toEqual([]);
+    // The listener's own sound comes back exactly as it was saved over.
+    expect(kinds(ended.effects, 'apply')).toEqual([
+      { kind: 'apply', sound: original, isLent: false },
+    ]);
     const resaved = run(changed.state, [[later + 4, { kind: 'saveNow' }]]);
     expect(resaved.effects).toEqual([
       { kind: 'save', identity: songA, sound: edited },
@@ -229,15 +240,14 @@ describe('Auto EQ song sounds: a song’s own sound', () => {
     // The control: unchanged, nothing is offered.
     expect(isSongSoundChanged(borrowed().state)).toBe(false);
     expect(isSongSoundChanged(changed.state)).toBe(true);
-    // Left unsaved, nothing is filed, and the change — picked by hand — is the
-    // listener's own sound from now on: the song's end keeps it, its loan
-    // ended.
+    // Left unsaved, nothing is filed, and the change is the song's alone: the
+    // listener's own sound comes back at its end exactly as they left it.
     const ended = run(changed.state, [[later + 4, { kind: 'closing' }]]);
     expect(kinds(ended.effects, 'save')).toEqual([]);
     expect(kinds(ended.effects, 'apply')).toEqual([
-      { kind: 'apply', sound: edited, isLent: false },
+      { kind: 'apply', sound: original, isLent: false },
     ]);
-    // Saved, the song keeps it too.
+    // Saved, the song keeps it, and the listener's own still comes back.
     const saved = run(changed.state, [
       [later + 4, { kind: 'saveNow' }],
       [later + 5, { kind: 'closing' }],
@@ -246,7 +256,7 @@ describe('Auto EQ song sounds: a song’s own sound', () => {
       { kind: 'save', identity: songA, sound: edited },
     ]);
     expect(kinds(saved.effects, 'apply')).toEqual([
-      { kind: 'apply', sound: edited, isLent: false },
+      { kind: 'apply', sound: original, isLent: false },
     ]);
   });
 
@@ -276,14 +286,27 @@ describe('Auto EQ song sounds: a song’s own sound', () => {
       [later + 5, { kind: 'matched', identity: songB }],
       [later + 6, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
       [later + 7, { kind: 'matched', identity: songA, song: remembered }],
+      [later + 8, { kind: 'applied', asked: flat, landed: flat }],
     ]);
     expect(kinds(result.effects, 'save')).toEqual([]);
-    // Song A comes back with its saved sound, lent over the listener's own.
+    // Song B, with nothing saved, plays the listener's own, never the flat.
+    expect(kinds(result.effects, 'apply')[0]).toEqual({
+      kind: 'apply',
+      sound: original,
+      isLent: false,
+    });
+    // Song A comes back with its working version, lent and shown as changed
+    // over the saved sound, which Back to saved puts on again.
     expect(result.effects).toContainEqual({
       kind: 'apply',
-      sound: remembered,
+      sound: flat,
       isLent: true,
     });
+    expect(result.state.session?.baseline).toEqual(remembered);
+    expect(isSongSoundChanged(result.state)).toBe(true);
+    expect(
+      run(result.state, [[later + 9, { kind: 'revert' }]]).effects,
+    ).toEqual([{ kind: 'apply', sound: remembered, isLent: true }]);
   });
 
   it('plays a preset picked in the Library over the listener’s own Tone and bands', () => {
@@ -427,10 +450,12 @@ describe('Auto EQ song sounds: an album’s sound', () => {
       [later + 4, { kind: 'closing' }],
     ]);
     expect(kinds(result.effects, 'save')).toEqual([]);
-    // The change stays as the listener's own sound, the album's loan ended.
+    // The change is the song's working version, never the listener's own,
+    // which comes back as they left it.
     expect(kinds(result.effects, 'apply')).toEqual([
-      { kind: 'apply', sound: edited, isLent: false },
+      { kind: 'apply', sound: original, isLent: false },
     ]);
+    expect(result.state.working?.[songA.key]?.sound).toEqual(edited);
   });
 
   it('turning Album sounds off gives the listener’s sound back once the song is asked again', () => {
@@ -448,13 +473,13 @@ describe('Auto EQ song sounds: an album’s sound', () => {
   });
 });
 
-describe('Auto EQ song sounds: the listener’s own sound is the last picked by hand', () => {
-  // Ivan, 2026-11-20: "It needs to always load the song's or album's own
-  // preset when playing a song that has one; otherwise it should be playing
-  // Music, the last preset manually selected during any playing or no
-  // playing." This replaced the morning's rule that the next song with
-  // nothing saved plays the sound from before the first saved song, whatever
-  // was picked during it.
+describe('Auto EQ song sounds: the listener’s own EQ and each song’s working version', () => {
+  // Ivan, 2026-11-26, confirmed word for word: the listener's own EQ and each
+  // song's sound each have a saved and a working version; the own EQ is kept
+  // once, when it is left for a song's sound, and never overwritten by a
+  // song; an edit while a song's sound plays goes into that song's working
+  // version only. This replaced the 2026-11-20 rule that a change made during
+  // a saved song became the listener's own.
   const songC = identity('library', 'c', 'Song C', 'Artist');
   /** The apply that puts the listener's own sound from before back. */
   const handedBack = { kind: 'apply', sound: original, isLent: false };
@@ -468,52 +493,69 @@ describe('Auto EQ song sounds: the listener’s own sound is the last picked by 
       [from, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
       [from + 1, { kind: 'matched', identity: songB }],
     ]);
+  /** Song A changed by hand while its saved sound plays, then song B. */
+  const changedThenB = (change: ISongSound = edited) =>
+    toUnsaved(
+      run(borrowed().state, [
+        [later + 3, { kind: 'soundChanged', sound: change }],
+      ]).state,
+      later + 4,
+    );
+  /** Back to song A after `changedThenB`, its sound landed. */
+  const backToA = (state: ISongSoundState, from: number) =>
+    run(state, [
+      [from, { kind: 'applied', asked: original, landed: original }],
+      [from + 1, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
+      [from + 2, { kind: 'matched', identity: songA, song: remembered }],
+    ]);
 
-  it('gives the sound from before back after a saved song nobody touched', () => {
-    // The control for the cases below: no hand, no new own sound.
+  it('gives the listener’s own back unchanged after a saved song nobody touched', () => {
+    // The control for every case below.
     expect(toUnsaved(borrowed().state, later + 3).effects).toContainEqual(
       handedBack,
     );
   });
 
-  it('plays the pick made during a saved song for the next song with nothing saved', () => {
-    const result = run(borrowed().state, [
-      [later + 3, { kind: 'soundChanged', sound: edited }],
-      [later + 4, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
-      [later + 5, { kind: 'matched', identity: songB }],
-    ]);
-    expect(kinds(result.effects, 'apply')).toEqual([
-      { kind: 'apply', sound: edited, isLent: false },
-    ]);
+  it('a change made during song A’s sound never reaches the listener’s own', () => {
+    const result = changedThenB();
+    expect(kinds(result.effects, 'apply')).toEqual([handedBack]);
     expect(kinds(result.effects, 'keep')).toEqual([]);
+    // It is song A's working version instead.
+    expect(result.state.working?.[songA.key]).toEqual({
+      over: remembered,
+      sound: edited,
+    });
   });
 
-  it('takes a drag’s last step, landing after the next song is named, as the pick', () => {
+  it('a preset picked during song A’s sound (the titlebar’s plate) is song A’s change', () => {
+    const pop = { ...remembered, presetId: 'pop' };
+    const result = changedThenB(pop);
+    expect(kinds(result.effects, 'apply')).toEqual([handedBack]);
+    expect(result.state.working?.[songA.key]?.sound).toEqual(pop);
+  });
+
+  it('a drag’s last step, landing after the next song is named, is song A’s too', () => {
     const result = run(borrowed().state, [
       [later + 3, { kind: 'soundChanged', sound: edited }],
       [later + 4, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
       [later + 5, { kind: 'soundChanged', sound: sound('rock', 6) }],
       [later + 6, { kind: 'matched', identity: songB }],
     ]);
-    expect(kinds(result.effects, 'apply')).toEqual([
-      { kind: 'apply', sound: sound('rock', 6), isLent: false },
-    ]);
-    expect(kinds(result.effects, 'keep')).toEqual([]);
+    expect(kinds(result.effects, 'apply')).toEqual([handedBack]);
+    expect(result.state.working?.[songA.key]?.sound).toEqual(sound('rock', 6));
   });
 
-  it('gives the sound from before back when the saved song is skipped before its sound lands', () => {
-    // Song A's sound landing late is nobody's hand.
-    const result = run(playing().state, [
-      [later + 1, { kind: 'matched', identity: songA, song: remembered }],
-      [later + 2, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
-      [later + 3, { kind: 'applied', asked: remembered, landed: remembered }],
-      [later + 4, { kind: 'matched', identity: songB }],
+  it('a change made between two songs stays with the song whose sound still played', () => {
+    const result = run(borrowed().state, [
+      [later + 3, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
+      [later + 4, { kind: 'soundChanged', sound: edited }],
+      [later + 5, { kind: 'matched', identity: songB }],
     ]);
-    expect(result.effects).toContainEqual(handedBack);
-    expect(kinds(result.effects, 'keep')).toEqual([]);
+    expect(kinds(result.effects, 'apply')).toEqual([handedBack]);
+    expect(result.state.working?.[songA.key]?.sound).toEqual(edited);
   });
 
-  it('carries the pick across a second saved song to the song after it', () => {
+  it('a change made during song A never reaches song B’s sound, nor the song after', () => {
     const result = run(borrowed().state, [
       [later + 3, { kind: 'soundChanged', sound: edited }],
       [later + 4, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
@@ -525,30 +567,19 @@ describe('Auto EQ song sounds: the listener’s own sound is the last picked by 
       [later + 8, { kind: 'nowPlaying', identity: songC, isPlaying: true }],
       [later + 9, { kind: 'matched', identity: songC }],
     ]);
-    // Song B is lent with nothing between, never a moment of the pick...
+    // Song B is lent its own, with nothing between...
     expect(lentEffects(result.effects)).toEqual([
       { kind: 'apply', sound: nextRemembered, isLent: true },
     ]);
-    // ...and song C, with nothing saved, plays the pick.
+    // ...and song C, with nothing saved, plays the listener's own.
     expect(kinds(result.effects, 'apply')).toEqual([
       { kind: 'apply', sound: nextRemembered, isLent: true },
-      { kind: 'apply', sound: edited, isLent: false },
+      handedBack,
     ]);
+    expect(result.state.working?.[songB.key]).toBeUndefined();
   });
 
-  it('a pick made between two songs is the one the next unsaved song plays', () => {
-    const result = run(borrowed().state, [
-      [later + 3, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
-      // His hand on the preset before song B's answer is in.
-      [later + 4, { kind: 'soundChanged', sound: edited }],
-      [later + 5, { kind: 'matched', identity: songB }],
-    ]);
-    expect(kinds(result.effects, 'apply')).toEqual([
-      { kind: 'apply', sound: edited, isLent: false },
-    ]);
-  });
-
-  it('a song’s preset alone plays over the bands of the last pick', () => {
+  it('a song’s preset alone plays over the listener’s own bands, never song A’s changed ones', () => {
     const result = run(borrowed().state, [
       [later + 3, { kind: 'soundChanged', sound: edited }],
       [later + 4, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
@@ -560,10 +591,215 @@ describe('Auto EQ song sounds: the listener’s own sound is the last picked by 
     expect(lentEffects(result.effects)).toEqual([
       {
         kind: 'apply',
-        sound: { ...edited, presetId: 'vocal' },
+        sound: { ...original, presetId: 'vocal' },
         isLent: true,
       },
     ]);
+  });
+
+  it('a song whose saved sound is the listener’s own is lent all the same, so its changes stay its own', () => {
+    const lent = run(playing().state, [
+      [later + 1, { kind: 'matched', identity: songA, song: original }],
+    ]);
+    expect(lent.effects).toEqual([
+      { kind: 'apply', sound: original, isLent: true, asOwn: true },
+    ]);
+    expect(lent.state.session?.owner).toBe('song');
+    const ended = run(lent.state, [
+      [later + 2, { kind: 'applied', asked: original, landed: original }],
+      [later + 3, { kind: 'soundChanged', sound: edited }],
+      [later + 4, { kind: 'closing' }],
+    ]);
+    expect(kinds(ended.effects, 'apply')).toEqual([handedBack]);
+    expect(ended.state.working?.[songA.key]?.sound).toEqual(edited);
+  });
+
+  it('a later song whose sound is the listener’s own puts theirs back exactly, lent', () => {
+    const result = run(borrowed().state, [
+      [later + 3, { kind: 'soundChanged', sound: edited }],
+      [later + 4, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
+      [later + 5, { kind: 'matched', identity: songB, song: original }],
+    ]);
+    expect(kinds(result.effects, 'apply')).toEqual([
+      { kind: 'apply', sound: original, isLent: true, asOwn: true },
+    ]);
+    expect(result.state.session?.handBack).toEqual(original);
+  });
+
+  it('song A comes back with its working version, shown as changed over its saved sound', () => {
+    const result = backToA(changedThenB().state, later + 6);
+    expect(lentEffects(result.effects)).toEqual([
+      { kind: 'apply', sound: edited, isLent: true },
+    ]);
+    const landed = run(result.state, [
+      [later + 9, { kind: 'applied', asked: edited, landed: edited }],
+    ]);
+    expect(landed.state.session?.baseline).toEqual(remembered);
+    expect(isSongSoundChanged(landed.state)).toBe(true);
+    // The control: untouched, it comes back saved and unchanged.
+    const untouched = backToA(
+      toUnsaved(borrowed().state, later + 3).state,
+      later + 6,
+    );
+    expect(lentEffects(untouched.effects)).toEqual([
+      { kind: 'apply', sound: remembered, isLent: true },
+    ]);
+  });
+
+  it('Save makes the working version the song’s saved one', () => {
+    const back = backToA(changedThenB().state, later + 6);
+    const saved = run(back.state, [
+      [later + 9, { kind: 'applied', asked: edited, landed: edited }],
+      [later + 10, { kind: 'saveNow' }],
+    ]);
+    expect(kinds(saved.effects, 'save')).toEqual([
+      { kind: 'save', identity: songA, sound: edited },
+    ]);
+    expect(saved.state.working?.[songA.key]).toBeUndefined();
+    expect(isSongSoundChanged(saved.state)).toBe(false);
+    // And the listener's own still comes back after it.
+    expect(
+      kinds(
+        run(saved.state, [[later + 11, { kind: 'closing' }]]).effects,
+        'apply',
+      ),
+    ).toEqual([handedBack]);
+  });
+
+  it('Back to saved puts the saved sound on and drops the working version', () => {
+    const back = backToA(changedThenB().state, later + 6);
+    const reverted = run(back.state, [
+      [later + 9, { kind: 'applied', asked: edited, landed: edited }],
+      [later + 10, { kind: 'revert' }],
+    ]);
+    expect(reverted.effects).toEqual([
+      { kind: 'apply', sound: remembered, isLent: true },
+    ]);
+    expect(reverted.state.working?.[songA.key]).toBeUndefined();
+    // Played again, it is its saved sound.
+    const again = backToA(
+      toUnsaved(
+        run(reverted.state, [
+          [
+            later + 11,
+            { kind: 'applied', asked: remembered, landed: remembered },
+          ],
+        ]).state,
+        later + 12,
+      ).state,
+      later + 14,
+    );
+    expect(lentEffects(again.effects)).toEqual([
+      { kind: 'apply', sound: remembered, isLent: true },
+    ]);
+  });
+
+  it('a sound picked for the song replaces its working version', () => {
+    const back = backToA(changedThenB().state, later + 6);
+    const picked = run(back.state, [
+      [later + 9, { kind: 'applied', asked: edited, landed: edited }],
+      [later + 10, { kind: 'picked' }],
+      [
+        later + 11,
+        { kind: 'matched', identity: songA, song: remembered, isPick: true },
+      ],
+    ]);
+    expect(kinds(picked.effects, 'apply')).toEqual([
+      { kind: 'apply', sound: remembered, isLent: true },
+    ]);
+    expect(picked.state.working?.[songA.key]).toBeUndefined();
+  });
+
+  it('a working version made over a saved sound changed since is dropped', () => {
+    const result = run(changedThenB().state, [
+      [later + 6, { kind: 'applied', asked: original, landed: original }],
+      [later + 7, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
+      [later + 8, { kind: 'matched', identity: songA, song: nextRemembered }],
+    ]);
+    expect(lentEffects(result.effects)).toEqual([
+      { kind: 'apply', sound: nextRemembered, isLent: true },
+    ]);
+    expect(result.state.working?.[songA.key]).toBeUndefined();
+  });
+
+  it('a saved EQ put on during a song’s sound is that song’s change, never the listener’s own', () => {
+    const eq = sound('studio', 2);
+    const result = run(borrowed().state, [
+      [later + 3, { kind: 'putOn', sound: eq }],
+      [later + 4, { kind: 'applied', asked: eq, landed: eq }],
+      [later + 5, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
+      [later + 6, { kind: 'matched', identity: songB }],
+    ]);
+    expect(kinds(result.effects, 'apply')).toEqual([
+      { kind: 'apply', sound: eq, isLent: true },
+      handedBack,
+    ]);
+    expect(result.state.working?.[songA.key]?.sound).toEqual(eq);
+    // The control: over the listener's own sound it is simply theirs.
+    const own = run(playing().state, [
+      [later + 1, { kind: 'matched', identity: songA }],
+      [later + 2, { kind: 'putOn', sound: eq }],
+    ]);
+    expect(kinds(own.effects, 'apply')).toEqual([
+      { kind: 'apply', sound: eq, isLent: false },
+    ]);
+  });
+
+  it('switching song sounds off brings the listener’s own back at once, the change left with its song', () => {
+    const result = run(borrowed().state, [
+      [later + 3, { kind: 'soundChanged', sound: edited }],
+      [later + 4, { kind: 'switched', parts: { songs: false, albums: false } }],
+    ]);
+    expect(result.effects).toEqual([handedBack]);
+    expect(result.state.working?.[songA.key]?.sound).toEqual(edited);
+  });
+
+  it('writes nothing over the listener’s own on plain song changes', () => {
+    const result = run(playing().state, [
+      [later + 1, { kind: 'matched', identity: songA }],
+      // An edit over their own sound is theirs: main keeps it, nothing here.
+      [later + 2, { kind: 'soundChanged', sound: edited }],
+      [later + 3, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
+      [later + 4, { kind: 'matched', identity: songB }],
+      [later + 5, { kind: 'nowPlaying', identity: songC, isPlaying: true }],
+      [later + 6, { kind: 'matched', identity: songC }],
+    ]);
+    expect(result.effects.filter((effect) => effect.kind !== 'lookup')).toEqual(
+      [],
+    );
+    expect(result.state.working).toBeUndefined();
+  });
+
+  it('keeps a bounded number of working versions, dropping the oldest', () => {
+    let { state } = borrowed();
+    const songs = Array.from({ length: SONG_SOUND_WORKING_MAX + 1 }, (_, i) =>
+      identity('library', `w${i}`, `Song ${i}`, 'Artist'),
+    );
+    songs.forEach((song, i) => {
+      state = run(state, [
+        [
+          later + 10 * i,
+          { kind: 'nowPlaying', identity: song, isPlaying: true },
+        ],
+        [
+          later + 10 * i + 1,
+          { kind: 'matched', identity: song, song: remembered },
+        ],
+        [
+          later + 10 * i + 2,
+          { kind: 'applied', asked: remembered, landed: remembered },
+        ],
+        [
+          later + 10 * i + 3,
+          { kind: 'soundChanged', sound: sound('rock', i % 9) },
+        ],
+      ]).state;
+    });
+    expect(Object.keys(state.working ?? {})).toHaveLength(
+      SONG_SOUND_WORKING_MAX,
+    );
+    expect(state.working?.[songs[0].key]).toBeUndefined();
+    expect(state.working?.[songs[SONG_SOUND_WORKING_MAX].key]).toBeDefined();
   });
 });
 
@@ -590,6 +826,45 @@ describe('Auto EQ song sounds: switches, outputs and other hands', () => {
     ]);
     expect(changed.effects).toEqual([{ kind: 'release' }]);
     expect(changed.state.deviceId).toBe('second');
+  });
+
+  it('takes a loan left on another output up again when the same song still plays there', () => {
+    const back = run(borrowed().state, [
+      [later + 3, { kind: 'deviceChanged', deviceId: 'second' }],
+      [later + 4, { kind: 'deviceChanged', deviceId: 'main' }],
+    ]);
+    expect(back.effects).toEqual([{ kind: 'release' }, { kind: 'release' }]);
+    expect(back.state.session?.owner).toBe('song');
+    expect(back.state.session?.isLoaded).toBe(false);
+    // Its end hands the listener's own back on that output.
+    const ended = run(back.state, [[later + 5, { kind: 'closing' }]]);
+    expect(ended.effects).toEqual([
+      { kind: 'apply', sound: original, isLent: false },
+    ]);
+    // The control: on the other output nothing is lent, nothing handed back.
+    const there = run(borrowed().state, [
+      [later + 3, { kind: 'deviceChanged', deviceId: 'second' }],
+      [later + 4, { kind: 'closing' }],
+    ]);
+    expect(there.effects).toEqual([{ kind: 'release' }]);
+  });
+
+  it('hands a loan left on another output back on the way in once its song is over', () => {
+    const back = run(borrowed().state, [
+      [later + 3, { kind: 'deviceChanged', deviceId: 'second' }],
+      [later + 4, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
+      [later + 5, { kind: 'deviceChanged', deviceId: 'main' }],
+    ]);
+    expect(back.effects).toContainEqual({ kind: 'return' });
+    expect(back.state.parked?.main).toBeUndefined();
+    // An output left with nothing lent brings nothing back.
+    const plain = run(playing().state, [
+      [later + 1, { kind: 'matched', identity: songA }],
+      [later + 3, { kind: 'deviceChanged', deviceId: 'second' }],
+      [later + 4, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
+      [later + 5, { kind: 'deviceChanged', deviceId: 'main' }],
+    ]);
+    expect(kinds(plain.effects, 'return')).toEqual([]);
   });
 
   it('ignores the answer about a song no longer open, and an apply nobody waits for', () => {

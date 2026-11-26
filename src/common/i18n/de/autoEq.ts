@@ -28,7 +28,7 @@ export default {
   'autoEq.now.nothing': 'Nichts läuft',
   'autoEq.now.yours': 'Ihr Klang',
   'autoEq.now.yoursWhy':
-    'Für diesen Song ist nichts gespeichert: Er spielt den zuletzt gewählten Klang.',
+    'Für diesen Song ist nichts gespeichert: Er spielt Ihren eigenen Klang, so wie Sie ihn gelassen haben.',
   'autoEq.now.song': 'Klang dieses Songs',
   'autoEq.now.songWhy': 'Kommt jedes Mal zurück, wenn dieser Song läuft.',
   'autoEq.now.album': 'Klang von {album}',
@@ -37,7 +37,7 @@ export default {
   'autoEq.now.showPreset': '{preset} im Preset-Tab zeigen',
   'autoEq.songs.title': 'Song-Klänge',
   'autoEq.songs.hint':
-    'Ein Song mit gespeichertem Klang spielt ihn. Ändern Sie ihn und drücken Sie Änderungen speichern, um ihn zu behalten. Andere Songs spielen Ihren.',
+    'Ein Song mit gespeichertem Klang spielt ihn. Ihre Änderungen bleiben bei diesem Song, bis Sie sie speichern. Andere Songs spielen Ihren.',
   'autoEq.songs.nothing':
     'Spielen Sie einen Song ab, um seinen Klang zu speichern',
   'autoEq.songs.saved': 'Für diesen Song gespeichert',

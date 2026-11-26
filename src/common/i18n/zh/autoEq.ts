@@ -27,7 +27,8 @@ export default {
     '游戏正在播放自己的声音，歌曲和专辑声音暂时等待，游戏停止后恢复。',
   'autoEq.now.nothing': '没有播放',
   'autoEq.now.yours': '你的声音',
-  'autoEq.now.yoursWhy': '这首歌没有保存任何声音：播放你最后选择的声音。',
+  'autoEq.now.yoursWhy':
+    '这首歌没有保存任何声音：按你离开时的样子播放你自己的声音。',
   'autoEq.now.song': '这首歌的声音',
   'autoEq.now.songWhy': '每次播放这首歌时都会恢复。',
   'autoEq.now.album': '{album} 的声音',
@@ -36,7 +37,7 @@ export default {
   'autoEq.now.showPreset': '在预设选项卡中显示 {preset}',
   'autoEq.songs.title': '歌曲声音',
   'autoEq.songs.hint':
-    '保存了声音的歌曲会用它播放。更改后按“保存更改”才会保留。其他歌曲用你的声音播放。',
+    '保存了声音的歌曲会用它播放。你的更改会留在这首歌上，直到你保存。其他歌曲用你的声音播放。',
   'autoEq.songs.nothing': '播放一首歌即可保存它的声音',
   'autoEq.songs.saved': '已为这首歌保存',
   'autoEq.songs.none': '这首歌没有保存任何声音',

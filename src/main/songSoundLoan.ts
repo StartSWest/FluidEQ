@@ -138,6 +138,18 @@ export const putSongSoundOn = (
   state.voicing = voicingFor(state.voicing, sound.presetId, curve);
 };
 
+/**
+ * Lend the listener's own sound to a song whose saved sound is theirs: a
+ * held loan put back first, so what is lent is their own exactly as they
+ * left it — never another song's that happened to play — and then kept aside
+ * as the loan with nothing changed. A change made while the song plays is
+ * the song's from here; without a loan it was saved into the listener's EQ.
+ */
+export const lendOwnSound = (state: IState): void => {
+  returnSongSound(state);
+  state.songSoundLoan = takeLoan(state);
+};
+
 /** End a loan with what plays: it is the listener's own from here. */
 export const keepSongSound = (state: IState): void => {
   state.songSoundLoan = undefined;

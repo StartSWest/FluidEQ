@@ -27,7 +27,7 @@ const autoEq = {
   'autoEq.now.nothing': '재생 중인 항목 없음',
   'autoEq.now.yours': '내 사운드',
   'autoEq.now.yoursWhy':
-    '이 노래에 저장된 것이 없어 마지막으로 고른 사운드로 재생합니다.',
+    '이 노래에 저장된 것이 없어 내 사운드를 마지막으로 둔 그대로 재생합니다.',
   'autoEq.now.song': '이 노래의 사운드',
   'autoEq.now.songWhy': '이 노래가 재생될 때마다 돌아옵니다.',
   'autoEq.now.album': '{album}의 사운드',
@@ -36,7 +36,7 @@ const autoEq = {
   'autoEq.now.showPreset': '프리셋 탭에서 {preset} 보기',
   'autoEq.songs.title': '노래 사운드',
   'autoEq.songs.hint':
-    '사운드가 저장된 곡은 그 사운드로 재생됩니다. 바꾼 뒤 변경 사항 저장을 눌러야 유지됩니다. 다른 곡은 내 사운드로 재생됩니다.',
+    '사운드가 저장된 곡은 그 사운드로 재생됩니다. 변경 사항은 저장할 때까지 그 곡에만 남습니다. 다른 곡은 내 사운드로 재생됩니다.',
   'autoEq.songs.nothing': '노래를 재생하면 그 사운드를 저장할 수 있습니다',
   'autoEq.songs.saved': '이 노래에 저장됨',
   'autoEq.songs.none': '이 노래에 저장된 것 없음',

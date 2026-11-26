@@ -18,7 +18,7 @@ const tour26 = {
   'tour.v26.autoEq.kicker': 'EQ · EQ AUTOMÁTICO',
   'tour.v26.autoEq.title': 'Cada canción suena como debe sonar',
   'tour.v26.autoEq.lead':
-    'Un solo panel decide el sonido de cada canción: una canción con un sonido guardado lo reproduce, un álbum con un sonido asignado lo reproduce en todas sus canciones, y todo lo demás suena con el último sonido que elegiste.',
+    'Un solo panel decide el sonido de cada canción: una canción con un sonido guardado lo reproduce, un álbum con un sonido asignado lo reproduce en todas sus canciones, y todo lo demás suena con tu propio sonido, tal como lo dejaste.',
   'tour.v26.autoEq.point1':
     'La canción que suena y de quién es su sonido: suyo, de su álbum o tuyo.',
   'tour.v26.autoEq.point2':

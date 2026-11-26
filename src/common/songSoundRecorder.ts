@@ -20,8 +20,8 @@ import {
   nowPlaying,
   TStep,
 } from './songSoundSteps';
+import { withWorking, withoutWorking } from './songSoundWorking';
 import {
-  isSongSoundChanged,
   picked,
   putOn,
   reconsider,
@@ -59,37 +59,43 @@ export type {
  * song's end (Ivan approved explicit saving, 2026-11-20: "ok with auto eq
  * song save"). A change made while a saved sound plays is heard at once and
  * shown as "Changed, not saved", with Back to saved (`revert`); left unsaved,
- * the song plays its saved sound next time, and the change, picked by hand,
- * is what the next song with nothing saved plays (`byHand`). Over its album's
+ * it stays the song's working version and plays, still shown as changed,
+ * the next time the song does (`songSoundWorking.ts`). Over its album's
  * sound a save is the song's alone; an album changes in
  * the Library only (Ivan, 2026-11-19). It used to be filed by itself at the
  * song's end: nothing on screen said so, and Clear EQ pressed during a saved
  * song saved it flat.
  *
  * WHAT IS LENT: a remembered song's sound goes on as its lookup answers and
- * is the song's while it plays, and the listener's own sound — the last they
- * picked by hand (`byHand`) — is handed back at its end, so a song with no
- * memory plays with what the listener chose, not with the last remembered
- * song's. The hand-back waits for the next song's answer when one follows:
+ * is the song's while it plays — lent even when it is the listener's own, so
+ * nothing changed while it plays reaches their EQ (`lendAsOwn`) — and the
+ * listener's own sound, exactly as they left it, is handed back at its end,
+ * so a song with no memory plays with what the listener chose, not with the
+ * last remembered song's. The hand-back waits for the next song's answer when one follows:
  * handed back at once and replaced a moment later by the next song's own,
  * two remembered songs in a row would play a moment of a third sound between
  * them. Main keeps a lent sound out of the output's profile until the loan
- * ends, which only an `apply` that is not lent, a `keep` or an output switch
- * does — so every path here that ends a loan says so, even where the sound
+ * ends, which only an `apply` that is not lent, a `return` or a `keep` does — so every path here that ends a loan says so, even where the sound
  * would not change.
  */
 /**
- * THE LISTENER'S OWN SOUND IS THE LAST ONE THEY PICKED BY HAND, whenever they
- * picked it (Ivan, 2026-11-20: "otherwise it should be playing Music, the last
- * preset manually selected during any playing or no playing"). A change made
- * over a saved song's sound is still that song's "Changed, not saved", with
- * Save changes and Back to saved; it is also, from now on, what every song
- * with nothing saved plays — so it becomes what the song hands back at its
- * end, and what a hand-back held for the next song puts on. What a saved song
- * loads never counts: a sound on its way, or arriving, is nobody's hand.
- * It used to be the sound from before the first saved song, kept whatever was
- * picked during it, and after a saved song with Music picked by hand the next
- * song with nothing saved played the K-pop from before.
+ * THE LISTENER'S OWN SOUND IS NEVER A SONG'S (Ivan, 2026-11-26: "The
+ * listener's own EQ is never overwritten by a song: it is kept once, at the
+ * moment it is left for a song's sound"). It is what main's loan took when
+ * the first song's sound went on (`songSoundLoan.ts`), handed back exactly
+ * at the end, and nothing here ever replaces it. A change made while a
+ * song's or an album's sound plays goes into that song's working version and
+ * nowhere else ("never into the listener's EQ, never into the previous
+ * song's sound").
+ *
+ * It used to be the last sound picked by hand (2026-11-20): a change made
+ * over a saved song's sound became the hand-back, the next song's preset
+ * alone then played over the bands changed on the song before, and a pick
+ * made between two songs was taken as the listener's while main, which
+ * hands back what its loan took, put their own back over it and lost it.
+ *
+ * What a saved song loads never counts: a sound on its way, or arriving, is
+ * nobody's hand.
  */
 const byHand = (
   state: ISongSoundState,
@@ -102,24 +108,25 @@ const byHand = (
     return state;
   }
   const { session, owed } = state;
-  if (session?.handBack && isSongSoundChanged(state)) {
-    return { ...state, session: { ...session, handBack: sound } };
-  }
-  // Between songs, the next one's answer not in yet: only a sound that moved
-  // is a pick. The window reports the same sound again whenever what it is
-  // read from is rebuilt — a change of track does it — and taking that as a
-  // pick made the album's Ballad, still playing from the last song, the
-  // listener's own: the next song of the album then found its sound equal to
-  // "his", handed it back instead of lending it, and a hand-back puts back
-  // the rack and curve held for him, K-pop, while the card said the album's
-  // sound played (Ivan, 2026-11-20: "kpop? what the heck").
   if (
-    owed &&
-    !session?.handBack &&
+    session?.owner &&
+    session.handBack &&
+    !session.isLoaded &&
+    session.baseline
+  ) {
+    return withWorking(state, session.identity.key, session.baseline, sound);
+  }
+  // Between songs, the next one's answer not in yet, the last song's saved
+  // sound still plays: a change then is that song's. Only a sound that moved
+  // is a change — the window reports the same sound again whenever what it
+  // is read from is rebuilt, and a change of track does it (Ivan,
+  // 2026-11-20: "kpop? what the heck").
+  if (
+    owed?.from &&
     !session?.owner &&
     !(heard && sameSongSound(heard, sound))
   ) {
-    return { ...state, owed: { sound } };
+    return withWorking(state, owed.from.key, owed.from.over, sound);
   }
   return state;
 };
@@ -229,12 +236,14 @@ export const reduceSongSound = (
         return [state, timed];
       }
       const forget: TSongSoundEffect = { kind: 'forget', identity: target };
+      // Forgotten, it has no saved sound for a working version to be over.
+      const forgotten = withoutWorking(state, target.key);
       // Only the open song's own forgetting hands its sound back; a notice
       // that outlived its song forgets the entry and nothing more.
       if (!session || session.identity.key !== target.key) {
-        return [state, [...timed, forget]];
+        return [forgotten, [...timed, forget]];
       }
-      const [next, effects] = giveBack(state, session, {});
+      const [next, effects] = giveBack(forgotten, session, {});
       return [next, [...timed, forget, ...effects]];
     }
 

@@ -18,7 +18,7 @@ const tour26 = {
   'tour.v26.autoEq.kicker': 'EQ · AUTO-EQ',
   'tour.v26.autoEq.title': 'Jeder Song klingt, wie er klingen soll',
   'tour.v26.autoEq.lead':
-    'Ein Bereich entscheidet über den Klang jedes Songs: Ein Song mit gespeichertem Klang spielt ihn, ein Album mit einem Klang spielt ihn bei jedem Song, und alles andere spielt den Klang, den Sie zuletzt gewählt haben.',
+    'Ein Bereich entscheidet über den Klang jedes Songs: Ein Song mit gespeichertem Klang spielt ihn, ein Album mit einem Klang spielt ihn bei jedem Song, und alles andere spielt Ihren eigenen Klang, so wie Sie ihn gelassen haben.',
   'tour.v26.autoEq.point1':
     'Der Song, der läuft, und wessen Klang es ist: sein eigener, der seines Albums oder Ihrer.',
   'tour.v26.autoEq.point2':

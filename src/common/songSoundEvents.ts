@@ -55,6 +55,41 @@ export interface ISongSoundSession {
  */
 export interface ISongSoundOwed {
   sound: ISongSound;
+  /**
+   * The song that just ended, whose saved sound still plays while the
+   * hand-back waits: a change made in that moment is that song's working
+   * version (`ISongSoundWorking`), never the listener's own.
+   */
+  from?: { key: string; over: ISongSound };
+}
+
+/**
+ * A song's working version: what the listener changed its saved sound to
+ * (song's own or its album's) and has not saved or taken back (Ivan,
+ * 2026-11-26: "two copies of everything ... a SAVED version and a WORKING
+ * version"). It plays the next time the song does, shown as changed, with
+ * Save changes and Back to saved. Kept for the session only: a change left
+ * unsaved overnight is not one to bring back unasked.
+ */
+export interface ISongSoundWorking {
+  /** The saved sound it was made over: a working version over a saved sound
+   * changed since (a pick in the Library) is about a sound that is gone. */
+  over: ISongSound;
+  sound: ISongSound;
+}
+
+/**
+ * A song's sound still lent on an output the window left (another output's
+ * editor opened, the playback output switched): main keeps that output's
+ * state, its loan included, and puts it back on the way in. Kept so the
+ * window can take the loan up again there — resumed for the same song, or
+ * handed back — instead of leaving it held with nobody to end it.
+ */
+export interface ISongSoundParked {
+  /** The listener's own sound the loan keeps. */
+  handBack: ISongSound;
+  /** The session it was lent to, when one was open. */
+  session?: ISongSoundSession;
 }
 
 /** Auto EQ's two switches for saved sounds (Smart correction is apart). */
@@ -79,6 +114,10 @@ export interface ISongSoundState {
   /** What is playing, so a switch of output can open the song again there. */
   playing?: { identity: ISongIdentity; isPlaying: boolean };
   session?: ISongSoundSession;
+  /** Each song's working version, by its key (`ISongSoundWorking`). */
+  working?: Readonly<Record<string, ISongSoundWorking>>;
+  /** Outputs left with a song's sound lent, by device id. */
+  parked?: Readonly<Record<string, ISongSoundParked>>;
 }
 
 /** An album's sound as a lookup answers it: the sound and the album's name. */
@@ -154,8 +193,18 @@ export type TSongSoundEffect =
   /**
    * Put a sound on: lent while it is a song's own, which keeps it out of the
    * output's profile, and handed back when not, which ends the loan.
+   *
+   * `asOwn`: the song's sound is the listener's own, so their own goes back
+   * on exactly as they left it — a held loan ended, the rack and curve it
+   * kept included — and is lent to the song as it is. Nothing is heard to
+   * change, and every change made from here is the song's, never theirs.
    */
-  | { kind: 'apply'; sound: ISongSound; isLent: boolean }
+  | { kind: 'apply'; sound: ISongSound; isLent: boolean; asOwn?: true }
+  /**
+   * Hand back whatever main still holds lent on this output, with no sound
+   * named: a loan parked with an output the window left, met again there.
+   */
+  | { kind: 'return' }
   /** End the loan with what plays: it is the listener's own from here. */
   | { kind: 'keep' }
   /**

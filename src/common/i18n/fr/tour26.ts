@@ -18,7 +18,7 @@ const tour26 = {
   'tour.v26.autoEq.kicker': 'ÉGALISEUR · ÉGALISATION AUTO',
   'tour.v26.autoEq.title': 'Chaque chanson joue le son qu’il lui faut',
   'tour.v26.autoEq.lead':
-    'Un seul panneau décide du son de chaque chanson : une chanson avec un son enregistré le joue, un album réglé sur un son le joue sur chaque chanson, et tout le reste joue le dernier son que vous avez choisi.',
+    'Un seul panneau décide du son de chaque chanson : une chanson avec un son enregistré le joue, un album réglé sur un son le joue sur chaque chanson, et tout le reste joue votre propre son, tel que vous l’avez laissé.',
   'tour.v26.autoEq.point1':
     'La chanson en cours et à qui est son son : le sien, celui de son album ou le vôtre.',
   'tour.v26.autoEq.point2':

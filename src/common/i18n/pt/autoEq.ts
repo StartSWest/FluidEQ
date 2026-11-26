@@ -28,7 +28,7 @@ export default {
   'autoEq.now.nothing': 'Nada tocando',
   'autoEq.now.yours': 'o seu som',
   'autoEq.now.yoursWhy':
-    'Nada salvo para esta música: ela toca o último som que você escolheu.',
+    'Nada salvo para esta música: ela toca o seu próprio som, do jeito que você deixou.',
   'autoEq.now.song': 'o som desta música',
   'autoEq.now.songWhy': 'Volta toda vez que esta música toca.',
   'autoEq.now.album': 'o som de {album}',
@@ -37,7 +37,7 @@ export default {
   'autoEq.now.showPreset': 'Mostrar {preset} na aba Preset',
   'autoEq.songs.title': 'Sons das músicas',
   'autoEq.songs.hint':
-    'Uma música com um som salvo toca com ele. Mude-o e toque em Salvar alterações para guardá-lo. As outras músicas tocam com o seu.',
+    'Uma música com um som salvo toca com ele. Suas alterações ficam com essa música até você salvá-las. As outras músicas tocam com o seu.',
   'autoEq.songs.nothing': 'Toque uma música para salvar o som dela',
   'autoEq.songs.saved': 'Salvo para esta música',
   'autoEq.songs.none': 'Nada salvo para esta música',

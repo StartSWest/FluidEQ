@@ -21,6 +21,7 @@ import {
   TSongSoundOwner,
 } from './songSoundEvents';
 import { SONG_EQ_SUSPEND_GRACE_MS } from './songEqTiming';
+import { withoutWorking, workingOf } from './songSoundWorking';
 
 /**
  * Each thing that can happen to Auto EQ's song and album sounds, as a step
@@ -32,11 +33,33 @@ import { SONG_EQ_SUSPEND_GRACE_MS } from './songEqTiming';
 
 export type TStep = [ISongSoundState, TSongSoundEffect[]];
 
-/** Ask for a song's own sound, unless it is the one already playing. */
-const lend = (state: ISongSoundState, sound: ISongSound): TStep =>
-  state.live && sameSongSound(state.live, sound)
+/**
+ * Ask for a song's own sound, unless it is the one already playing under a
+ * loan already held (`isHeld`). Without a loan it is asked for all the same,
+ * whatever plays: what is not lent is the listener's own, and every change
+ * made over it would be saved into their EQ.
+ */
+const lend = (
+  state: ISongSoundState,
+  sound: ISongSound,
+  isHeld: boolean,
+): TStep =>
+  isHeld && state.live && sameSongSound(state.live, sound)
     ? [{ ...state, pending: undefined }, []]
     : [{ ...state, pending: sound }, [{ kind: 'apply', sound, isLent: true }]];
+
+/**
+ * Lend the listener's own sound to the song as it is: the song's saved sound
+ * is theirs. Their own goes back on exactly as they left it where a loan is
+ * held (another song's sound playing), and is lent from there, so a change
+ * made while the song plays is the song's and never reaches their EQ (Ivan,
+ * 2026-11-26). It used to be put on as theirs, with no loan, and every edit
+ * made during such a song was saved straight into the listener's own EQ.
+ */
+export const lendAsOwn = (state: ISongSoundState, own: ISongSound): TStep => [
+  { ...state, pending: own },
+  [{ kind: 'apply', sound: own, isLent: true, asOwn: true }],
+];
 
 /**
  * Put the listener's own sound back, which ends the loan — always as an
@@ -127,7 +150,16 @@ export const close = (
   if (session) {
     if (handBack && session.handBack) {
       if (nextSong && state.isOn) {
-        next = { ...next, owed: { sound: session.handBack } };
+        next = {
+          ...next,
+          owed: {
+            sound: session.handBack,
+            // Its saved sound plays on until the next song's answer is in.
+            ...(session.owner && session.baseline && !session.isLoaded
+              ? { from: { key: session.identity.key, over: session.baseline } }
+              : {}),
+          },
+        };
       } else {
         const [handed, handedEffects] = handBackTo(next, session.handBack);
         next = handed;
@@ -256,7 +288,15 @@ export const matched = (
       effects,
     ];
   }
-  const sound = soundToPlay(chosen.saved, before);
+  // The saved sound, and what plays: the song's working version where the
+  // listener changed it and kept neither, shown as changed over the saved
+  // one. A pick replaces both, and a working version made over a saved
+  // sound changed since is dropped with it.
+  const saved = soundToPlay(chosen.saved, before);
+  const { key } = session.identity;
+  const working = isPick ? undefined : workingOf(state, key, saved);
+  const base = working ? state : withoutWorking(state, key);
+  const sound = working ?? saved;
   if (
     session.handBack &&
     session.owner === chosen.owner &&
@@ -267,56 +307,49 @@ export const matched = (
     // Asked again and the answer is what already plays — a saved EQ the song
     // follows, updated with what plays: that is the saved sound now. Nothing
     // to put on, and no notice for a sound that did not change.
-    return [{ ...state, session: { ...session, baseline: sound } }, []];
+    return [{ ...base, session: { ...session, baseline: saved } }, []];
   }
   if (
     !isPick &&
     session.handBack &&
     session.owner === chosen.owner &&
     session.baseline &&
-    sameSongSound(session.baseline, sound)
+    sameSongSound(session.baseline, saved)
   ) {
     // Asked again (`reconsider`: something else was saved while it plays) and
     // the answer is the sound it already holds: nothing to put on. Lending it
     // again would undo a change the listener made over it since, which stays
     // offered for Save changes. Never for a pick: the listener just chose
     // this sound for this song or its album, over the change (`picked`).
-    return [state, []];
+    return [base, []];
   }
-  const cleared: ISongSoundState = { ...state, owed: undefined };
+  const cleared: ISongSoundState = { ...base, owed: undefined };
+  const lentTo = (next: ISongSoundState): ISongSoundState => ({
+    ...next,
+    session: {
+      ...session,
+      owner: chosen.owner,
+      baseline: saved,
+      handBack: before,
+    },
+  });
   if (sameSongSound(before, sound)) {
-    // The song's own sound is the listener's own: nothing to lend, and a loan
-    // held over from the last song, or held by this one, ends on it.
-    const [handed, effects] =
-      owed || session.handBack ? handBackTo(cleared, sound) : [cleared, []];
-    return [
-      {
-        ...handed,
-        session: {
-          ...session,
-          owner: chosen.owner,
-          baseline: sound,
-          handBack: undefined,
-        },
-      },
-      effects,
-    ];
+    // The song's sound is the listener's own: it goes on as theirs is, lent
+    // all the same (`lendAsOwn`), with nothing to announce.
+    const [lent, effects] = lendAsOwn(cleared, before);
+    return [lentTo(lent), effects];
   }
-  const [lent, effects] = lend(cleared, sound);
+  const [lent, effects] = lend(
+    cleared,
+    sound,
+    session.handBack !== undefined || owed !== undefined,
+  );
   const isNews =
     session.owner !== chosen.owner ||
     !session.baseline ||
-    !sameSongSound(session.baseline, sound);
+    !sameSongSound(session.baseline, saved);
   return [
-    {
-      ...lent,
-      session: {
-        ...session,
-        owner: chosen.owner,
-        baseline: sound,
-        handBack: before,
-      },
-    },
+    lentTo(lent),
     isNews
       ? [
           ...effects,
@@ -423,17 +456,61 @@ export const deviceChanged = (
     const known: ISongSoundState = { ...state, deviceId };
     return [known, lookupOpen(known)];
   }
-  // Filed as it was played, and nothing handed back: the new output brings its
-  // own Tone and EQ, and main carried the listener's own preset across — the
-  // lent one never reached the old output's profile.
+  // Nothing handed back here: the new output brings its own Tone and EQ, and
+  // the lent one never reached the old output's profile. Main keeps the old
+  // output's state with its loan and puts both back when the window returns
+  // there, so the loan is parked with it — left to nobody, it was never
+  // handed back, the song's sound played on into every later song, and no
+  // change reached the listener's own EQ again.
   const [closed, effects] = close(state, { nextSong: false, handBack: false });
+  const { session, owed } = state;
+  const held = session?.handBack ?? owed?.sound;
+  const { [deviceId]: back, ...others } = {
+    ...state.parked,
+    ...(held
+      ? {
+          [state.deviceId]: {
+            handBack: held,
+            ...(session?.handBack ? { session } : {}),
+          },
+        }
+      : {}),
+  };
   const moved: ISongSoundState = {
     ...closed,
     deviceId,
     pending: undefined,
     owed: undefined,
+    parked: others,
   };
   const { playing } = moved;
+  if (back) {
+    const resumed = back.session;
+    if (
+      resumed &&
+      playing?.isPlaying &&
+      playing.identity.key === resumed.identity.key
+    ) {
+      // The same song still plays there: its sound and its loan go on.
+      return [
+        {
+          ...moved,
+          session: { ...resumed, phase: 'playing', suspendedSince: undefined },
+        },
+        [...effects, { kind: 'release' }],
+      ];
+    }
+    // Its song is over: the listener's own goes back on there.
+    return [
+      {
+        ...moved,
+        session: playing?.isPlaying
+          ? { ...open(moved, playing.identity), isLoaded: true }
+          : undefined,
+      },
+      [...effects, { kind: 'release' }, { kind: 'return' }],
+    ];
+  }
   return [
     {
       ...moved,

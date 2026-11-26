@@ -123,6 +123,22 @@ const enqueue = (task: () => Promise<void> | void): Promise<void> => {
   return queue;
 };
 
+/**
+ * Whatever main and the rack still hold lent on this editor, put back: the
+ * listener's own, exactly as the loan kept it. Run inside the queue.
+ */
+const returnHeldSongSound = async (target: IOutputEditor | undefined) => {
+  if (!isCurrentEditor(target)) {
+    return;
+  }
+  await returnSongSound(target);
+  if (!isCurrentEditor(target)) {
+    return;
+  }
+  endDspLoan(true);
+  await refresh();
+};
+
 const performEffects = (effects: TSongSoundEffect[]): Promise<void> => {
   // Capture when requested, before the queue waits for another sound. Reading
   // the editor inside a queued task would address an old request to a new output.
@@ -179,11 +195,13 @@ const performEffects = (effects: TSongSoundEffect[]): Promise<void> => {
             return;
           }
           try {
-            const landed = await putSongSoundOn(sound, isLent, target, {
-              isCurrent: isCurrentEditor,
-              isApo,
-              refresh,
-            });
+            const landed = await putSongSoundOn(
+              sound,
+              isLent,
+              target,
+              { isCurrent: isCurrentEditor, isApo, refresh },
+              effect.asOwn === true,
+            );
             if (isCurrentEditor(target)) {
               dispatchSongSound({ kind: 'applied', asked: sound, landed });
             }
@@ -211,6 +229,11 @@ const performEffects = (effects: TSongSoundEffect[]): Promise<void> => {
       case 'release':
         // Output adoption owns the new editor's rack and loan. Restoring here
         // would put the outgoing output's loan onto it, or end its own loan.
+        break;
+      case 'return':
+        // A loan parked with this output when the window left it, its song
+        // over since: main and the rack put the listener's own back.
+        last = enqueue(() => returnHeldSongSound(target));
         break;
       case 'save':
         saveSongSound(effect.identity, effect.sound).catch((error: unknown) => {
@@ -366,17 +389,7 @@ export const returnLeftoverSongSound = (): void => {
     return;
   }
   hasReturned = true;
-  enqueue(async () => {
-    if (!isCurrentEditor(target)) {
-      return;
-    }
-    await returnSongSound(target);
-    if (!isCurrentEditor(target)) {
-      return;
-    }
-    endDspLoan(true);
-    await refresh();
-  }).catch(() => {
+  enqueue(() => returnHeldSongSound(target)).catch(() => {
     // Reported by `enqueue`.
   });
 };

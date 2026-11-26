@@ -91,7 +91,22 @@ export const putSongSoundOn = async (
   isLent: boolean,
   target: IOutputEditor,
   { isCurrent, isApo, refresh }: ISongSoundPutOnHost,
+  /** The song's sound is the listener's own: theirs back exactly as they
+   * left it, rack included, and lent as it is (`lendAsOwn`). */
+  asOwn = false,
 ): Promise<ISongSound | undefined> => {
+  if (asOwn) {
+    const landed = await applySongSound(sound, true, undefined, target, true);
+    if (!isCurrent(target)) {
+      return undefined;
+    }
+    endDspLoan(true);
+    lendDspSettings(readDspSettings());
+    await refresh();
+    return isCurrent(target)
+      ? songSoundOf(landed, readDspSettings())
+      : undefined;
+  }
   const isRestoring = !isLent && isDspLent();
   const rack = isRestoring
     ? undefined

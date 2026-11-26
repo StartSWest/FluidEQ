@@ -28,7 +28,7 @@ export default {
   'autoEq.now.nothing': 'Rien en lecture',
   'autoEq.now.yours': 'votre son',
   'autoEq.now.yoursWhy':
-    'Rien d’enregistré pour cette chanson : elle joue le dernier son que vous avez choisi.',
+    'Rien d’enregistré pour cette chanson : elle joue votre propre son, tel que vous l’avez laissé.',
   'autoEq.now.song': 'le son de cette chanson',
   'autoEq.now.songWhy': 'Revient chaque fois que cette chanson joue.',
   'autoEq.now.album': 'le son de {album}',
@@ -37,7 +37,7 @@ export default {
   'autoEq.now.showPreset': 'Afficher {preset} dans l’onglet Préréglage',
   'autoEq.songs.title': 'Sons des chansons',
   'autoEq.songs.hint':
-    'Une chanson avec un son enregistré le joue. Modifiez-le et appuyez sur Enregistrer les modifications pour le garder. Les autres chansons jouent le vôtre.',
+    'Une chanson avec un son enregistré le joue. Vos modifications restent avec cette chanson jusqu’à ce que vous les enregistriez. Les autres chansons jouent le vôtre.',
   'autoEq.songs.nothing': 'Lancez une chanson pour enregistrer son son',
   'autoEq.songs.saved': 'Enregistré pour cette chanson',
   'autoEq.songs.none': 'Rien d’enregistré pour cette chanson',

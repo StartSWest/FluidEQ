@@ -25,7 +25,8 @@ const autoEq = {
     '遊戲正在播放自己的聲音，歌曲與專輯聲音暫時等待，遊戲停止後恢復。',
   'autoEq.now.nothing': '沒有播放',
   'autoEq.now.yours': '您的聲音',
-  'autoEq.now.yoursWhy': '這首歌沒有儲存任何聲音：播放您最後選擇的聲音。',
+  'autoEq.now.yoursWhy':
+    '這首歌沒有儲存任何聲音：按您離開時的樣子播放您自己的聲音。',
   'autoEq.now.song': '這首歌的聲音',
   'autoEq.now.songWhy': '每次播放這首歌時都會恢復。',
   'autoEq.now.album': '{album} 的聲音',
@@ -34,7 +35,7 @@ const autoEq = {
   'autoEq.now.showPreset': '在預設組分頁中顯示 {preset}',
   'autoEq.songs.title': '歌曲聲音',
   'autoEq.songs.hint':
-    '儲存了聲音的歌曲會用它播放。變更後按「儲存變更」才會保留。其他歌曲用你的聲音播放。',
+    '儲存了聲音的歌曲會用它播放。你的變更會留在這首歌上，直到你儲存。其他歌曲用你的聲音播放。',
   'autoEq.songs.nothing': '播放一首歌即可儲存它的聲音',
   'autoEq.songs.saved': '已為這首歌儲存',
   'autoEq.songs.none': '這首歌沒有儲存任何聲音',

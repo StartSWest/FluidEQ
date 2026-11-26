@@ -534,6 +534,69 @@ describe('SongSound IPC ownership and profile persistence', () => {
     expect(read('main').filters).toEqual(own(1).filters);
   });
 
+  it('never writes the listener’s profile when a song’s sound goes on or comes off', async () => {
+    // A mark only a write of the profile would remove.
+    await savePreset(
+      'Shared',
+      { ...own(1), preAmp: -9 },
+      profiles.presetDirForDevice('main'),
+    );
+    await flushPendingWrites();
+    await apply();
+    await fire(ChannelEnum.RETURN_SONG_SOUND, [expectedEditor()]);
+    await flushPendingWrites();
+    expect(state.filters).toEqual(own(1).filters);
+    expect(read('main').preAmp).toBe(-9);
+    // The control: a sound put on as the listener's own is theirs, and saved.
+    await fire(ChannelEnum.APPLY_SONG_SOUND, [
+      song,
+      false,
+      null,
+      expectedEditor(),
+    ]);
+    await flushPendingWrites();
+    expect(read('main').filters).toEqual(song.filters);
+    expect(read('main').preAmp).toBe(-3);
+  });
+
+  it('lends the listener’s own exactly as they left it to a song whose sound is theirs', async () => {
+    await apply();
+    const theirs = { ...song, filters: own(1).filters };
+    const reply = await fire(ChannelEnum.APPLY_SONG_SOUND, [
+      theirs,
+      true,
+      undefined,
+      expectedEditor(),
+      true,
+    ]);
+    expect(reply).toHaveBeenCalledWith(ChannelEnum.APPLY_SONG_SOUND, {
+      result: expect.objectContaining({ filters: own(1).filters }),
+    });
+    // Their own, the imported curve and the preset's layer included, and
+    // lent: what is changed while the song plays stays the song's.
+    expect(state.eqFormat).toBe(AutoEqFormat.GRAPHIC);
+    expect(state.graphicEq).toEqual(own(1).graphicEq);
+    expect(state.voicing).toEqual(own(1).voicing);
+    expect(state.tone).toBeUndefined();
+    expect(state.songSoundLoan?.filters).toEqual(own(1).filters);
+    state.filters = song.filters;
+    await fire(ChannelEnum.RETURN_SONG_SOUND, [expectedEditor()]);
+    await flushPendingWrites();
+    expect(state.filters).toEqual(own(1).filters);
+    expect(read('main').filters).toEqual(own(1).filters);
+    // Lending as their own is only ever a loan.
+    const refused = await fire(ChannelEnum.APPLY_SONG_SOUND, [
+      theirs,
+      false,
+      undefined,
+      expectedEditor(),
+      true,
+    ]);
+    expect(refused).toHaveBeenCalledWith(ChannelEnum.APPLY_SONG_SOUND, {
+      errorCode: ErrorCode.INVALID_PARAMETER,
+    });
+  });
+
   it('persists the lent sound only after an explicit Keep from its current editor', async () => {
     await apply();
     await fire(ChannelEnum.KEEP_SONG_SOUND, [expectedEditor()]);

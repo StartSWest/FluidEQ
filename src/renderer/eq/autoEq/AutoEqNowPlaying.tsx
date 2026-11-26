@@ -66,7 +66,7 @@ const isShownOnPresetTab = (presetId: string): boolean =>
  * The chip naming the preset is a press that shows that preset on the EQ
  * page's Preset tab, notes and all (Ivan, 2026-11-26: "when clicking there I
  * want to open the preset tab with that preset selected") — whichever sound
- * put it on, the song's, the album's or the last pick. Not for a saved EQ,
+ * put it on, the song's, the album's or the listener's own. Not for a saved EQ,
  * which is more than its preset, nor for None.
  */
 const AutoEqNowPlaying = ({
@@ -126,9 +126,9 @@ const AutoEqNowPlaying = ({
           <span className="eq-auto-now__why">
             {t('autoEq.now.playingNow', { preset: playing })}
           </span>
-          {/* Going back is not a pick of the listener's own: what they
-            picked stays the sound a song with nothing saved plays (`revert`
-            in `songSoundChoices.ts`). */}
+          {/* Back to saved drops the song's working version; the
+            listener's own sound is untouched either way (`revert` in
+            `songSoundChoices.ts`). */}
           <button
             type="button"
             className="button small subtle"

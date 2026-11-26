@@ -29,7 +29,7 @@ export default {
   'autoEq.now.nothing': '再生していません',
   'autoEq.now.yours': 'あなたのサウンド',
   'autoEq.now.yoursWhy':
-    'この曲には何も保存されていません。最後に選んだサウンドで再生します。',
+    'この曲には何も保存されていません。あなたのサウンドを、残したままの状態で再生します。',
   'autoEq.now.song': 'この曲のサウンド',
   'autoEq.now.songWhy': 'この曲を再生するたびに戻ってきます。',
   'autoEq.now.album': '{album} のサウンド',
@@ -38,7 +38,7 @@ export default {
   'autoEq.now.showPreset': '{preset} をプリセットタブで表示',
   'autoEq.songs.title': '曲のサウンド',
   'autoEq.songs.hint':
-    'サウンドを保存した曲はそれで再生されます。変更したら「変更を保存」を押すと保持されます。ほかの曲はあなたのサウンドで再生されます。',
+    'サウンドを保存した曲はそれで再生されます。変更は保存するまでその曲だけに残ります。ほかの曲はあなたのサウンドで再生されます。',
   'autoEq.songs.nothing': '曲を再生すると、そのサウンドを保存できます',
   'autoEq.songs.saved': 'この曲用に保存済み',
   'autoEq.songs.none': 'この曲には何も保存されていません',

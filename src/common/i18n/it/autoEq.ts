@@ -28,7 +28,7 @@ export default {
   'autoEq.now.nothing': 'Nessuna riproduzione',
   'autoEq.now.yours': 'il tuo suono',
   'autoEq.now.yoursWhy':
-    'Niente di salvato per questo brano: suona l’ultimo suono che hai scelto.',
+    'Niente di salvato per questo brano: suona il tuo suono, come l’hai lasciato.',
   'autoEq.now.song': 'il suono di questo brano',
   'autoEq.now.songWhy': 'Torna ogni volta che suona questo brano.',
   'autoEq.now.album': 'il suono di {album}',
@@ -37,7 +37,7 @@ export default {
   'autoEq.now.showPreset': 'Mostra {preset} nella scheda Preset',
   'autoEq.songs.title': 'Suoni dei brani',
   'autoEq.songs.hint':
-    'Un brano con un suono salvato lo riproduce. Cambialo e premi Salva modifiche per tenerlo. Gli altri brani suonano con il tuo.',
+    'Un brano con un suono salvato lo riproduce. Le tue modifiche restano a quel brano finché non le salvi. Gli altri brani suonano con il tuo.',
   'autoEq.songs.nothing': 'Riproduci un brano per salvarne il suono',
   'autoEq.songs.saved': 'Salvato per questo brano',
   'autoEq.songs.none': 'Niente di salvato per questo brano',

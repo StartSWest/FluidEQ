@@ -24,6 +24,7 @@ import {
 import { isEqLink } from '../../common/savedEq';
 import {
   keepSongSound,
+  lendOwnSound,
   putSongSoundOn,
   returnSongSound,
 } from '../songSoundLoan';
@@ -189,10 +190,13 @@ const registerSongSoundIpc = ({
     // The preset's curve as the window's catalogue gives it; none for None,
     // a preset without one, or a hand-back that puts back what a loan took.
     const curve: unknown = arg?.[2];
+    // The song's sound is the listener's own: theirs, lent as it is.
+    const asOwn: unknown = arg?.[4];
     if (
       !sound ||
       typeof isLent !== 'boolean' ||
       !matchesEditor(arg?.[3]) ||
+      (asOwn !== undefined && (asOwn !== true || !isLent)) ||
       (curve !== undefined &&
         curve !== null &&
         (typeof curve !== 'object' || Array.isArray(curve)))
@@ -200,7 +204,15 @@ const registerSongSoundIpc = ({
       replyInvalidParameter(event, channel);
       return;
     }
-    putSongSoundOn(state, sound, isLent, curve);
+    // Only a sound put on as the listener's own changes their EQ. Lending a
+    // song's and handing theirs back leave it as it was, so neither writes
+    // the output's profile: every song change used to save it again.
+    const isOwnChange = !isLent && !state.songSoundLoan;
+    if (asOwn === true) {
+      lendOwnSound(state);
+    } else {
+      putSongSoundOn(state, sound, isLent, curve);
+    }
     // What landed, so the window can tell an apply that finished from one
     // still on its way without waiting for its own copy of the state.
     const landed: TSongSoundLanded = {
@@ -209,7 +221,7 @@ const registerSongSoundIpc = ({
       voicing: state.voicing,
       eqFormat: state.eqFormat,
     };
-    await handleUpdateHelper(event, channel, landed, false, true);
+    await handleUpdateHelper(event, channel, landed, false, isOwnChange);
   });
 
   onWindowMessage(ChannelEnum.KEEP_SONG_SOUND, async (event, arg) => {
@@ -237,7 +249,8 @@ const registerSongSoundIpc = ({
       replySuccess(event, channel, undefined);
       return;
     }
-    await handleUpdateHelper(event, channel, undefined, false, true);
+    // The listener's own back as the profile already holds it: no save.
+    await handleUpdateHelper(event, channel, undefined, false, false);
   });
 };
 

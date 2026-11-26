@@ -6,8 +6,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { ISongSound, sameSongSound } from './songSound';
 import type { ISongIdentity } from './songIdentity';
-import { ISongSoundParts, ISongSoundState } from './songSoundEvents';
-import { TStep, giveEverythingBack, lookupOpen } from './songSoundSteps';
+import {
+  ISongSoundParts,
+  ISongSoundState,
+  TSongSoundEffect,
+} from './songSoundEvents';
+import {
+  TStep,
+  giveEverythingBack,
+  lendAsOwn,
+  lookupOpen,
+} from './songSoundSteps';
+import { withWorking, withoutWorking } from './songSoundWorking';
 
 /**
  * What the listener chooses about Auto EQ's song and album sounds while a
@@ -53,12 +63,36 @@ export const saveNow = (state: ISongSoundState): TStep => {
   ) {
     return [state, []];
   }
+  // The working version is the saved one now.
+  const saved = withoutWorking(state, session.identity.key);
+  const save: TSongSoundEffect = {
+    kind: 'save',
+    identity: session.identity,
+    sound: live,
+  };
+  // Already lent — to this song, or still to the last one, whose hand-back
+  // waits for this song's answer: the loan goes on, now this song's.
+  const held = session.handBack ?? state.owed?.sound;
+  if (held) {
+    return [
+      {
+        ...saved,
+        owed: undefined,
+        session: { ...session, owner: 'song', baseline: live, handBack: held },
+      },
+      [save],
+    ];
+  }
+  // Saved over the listener's own sound: the song's sound is theirs, and it
+  // is lent to the song from here like any song's, so what is changed while
+  // it plays stays the song's (`lendAsOwn`).
+  const [lent, effects] = lendAsOwn(saved, live);
   return [
     {
-      ...state,
-      session: { ...session, owner: 'song', baseline: live },
+      ...lent,
+      session: { ...session, owner: 'song', baseline: live, handBack: live },
     },
-    [{ kind: 'save', identity: session.identity, sound: live }],
+    [save, ...effects],
   ];
 };
 
@@ -74,31 +108,29 @@ export const revert = (state: ISongSoundState): TStep => {
   }
   const sound = session.baseline;
   return [
-    { ...state, pending: sound },
+    { ...withoutWorking(state, session.identity.key), pending: sound },
     [{ kind: 'apply', sound, isLent: session.handBack !== undefined }],
   ];
 };
 
 /**
  * A saved EQ put on by the listener. While a song plays a sound it borrowed,
- * the EQ is lent too, as an edit made over that sound is kept out of the
- * output's profile; over the listener's own sound it simply is their sound
- * now. Either way it is picked by hand, so it is also what the song hands
- * back at its end (`byHand` in `songSoundRecorder.ts`) — decided here, at the
- * pick, because the window may hear the sound before main's answer or after
- * it, and a sound heard while it is still on its way counts as nobody's hand.
+ * the EQ is lent too and is a change to that song's sound: its working
+ * version, decided here at the pick because a sound heard while it is on its
+ * way counts as nobody's hand — and never the listener's own sound, which is
+ * still what the song hands back at its end (Ivan, 2026-11-26: "Picking a
+ * preset never overwrites the listener's main EQ"). Over the listener's own
+ * sound it simply is their sound now. It used to replace what the song hands
+ * back while lent, which made a song's change the listener's.
  */
 export const putOn = (state: ISongSoundState, sound: ISongSound): TStep => {
   const { session } = state;
   const isLent = session?.handBack !== undefined;
-  return [
-    {
-      ...state,
-      pending: sound,
-      session: session && isLent ? { ...session, handBack: sound } : session,
-    },
-    [{ kind: 'apply', sound, isLent }],
-  ];
+  const changed =
+    session?.owner && isLent && !session.isLoaded && session.baseline
+      ? withWorking(state, session.identity.key, session.baseline, sound)
+      : state;
+  return [{ ...changed, pending: sound }, [{ kind: 'apply', sound, isLent }]];
 };
 
 /** Look the playing song up again, for an answer changed elsewhere. */

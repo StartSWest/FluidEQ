@@ -101,8 +101,10 @@ describe('Auto EQ song sounds: the next song of an album set to a sound', () => 
 
   it('plays song B’s album Pop, with no moment of another sound before it', () => {
     const result = nextTrack(musicOverAlbum().state, girlsAlbum);
+    // Over his own bands: Music, picked during song A, is song A's change
+    // (Ivan, 2026-11-26), never what the next song's preset plays over.
     expect(kinds(result.effects, 'apply')).toEqual([
-      { kind: 'apply', sound: { ...music, presetId: 'pop' }, isLent: true },
+      { kind: 'apply', sound: { ...kPop, presetId: 'pop' }, isLent: true },
     ]);
     expect(result.state.session?.owner).toBe('album');
   });
@@ -114,11 +116,12 @@ describe('Auto EQ song sounds: the next song of an album set to a sound', () => 
     expect(kinds(named.effects, 'apply')).toEqual([]);
   });
 
-  it('control: a song B with nothing saved plays Music, the last pick, never K-pop', () => {
+  it('a song B with nothing saved plays K-pop, his own as he left it, and Music stays with song A', () => {
     const result = nextTrack(musicOverAlbum().state);
     expect(kinds(result.effects, 'apply')).toEqual([
-      { kind: 'apply', sound: music, isLent: false },
+      { kind: 'apply', sound: kPop, isLent: false },
     ]);
+    expect(result.state.working?.[trackA.key]?.sound).toEqual(music);
   });
 
   it('control: with no pick during song A, a song B with nothing saved plays K-pop again', () => {
@@ -247,11 +250,12 @@ describe('Auto EQ song sounds: an album sound after the last one, its sound read
     expect(result.state.live?.presetId).toBe('ballad');
   });
 
-  it('control: a sound picked by hand between the songs is his, and the album’s plays over it', () => {
+  it('control: a sound picked between the songs is song A’s change, and the album’s plays over his own', () => {
     const result = toSongB(music);
     expect(kinds(result.effects, 'apply')).toEqual([
-      { kind: 'apply', sound: { ...music, presetId: 'ballad' }, isLent: true },
+      { kind: 'apply', sound: { ...kPop, presetId: 'ballad' }, isLent: true },
     ]);
-    expect(result.state.session?.handBack).toEqual(music);
+    expect(result.state.session?.handBack).toEqual(kPop);
+    expect(result.state.working?.[songA.key]?.sound).toEqual(music);
   });
 });

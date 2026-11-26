@@ -22,7 +22,7 @@ const tour26 = {
   'tour.v26.autoEq.kicker': 'EQ · AUTO EQ',
   'tour.v26.autoEq.title': 'Every song plays the sound it should',
   'tour.v26.autoEq.lead':
-    'One panel decides each song’s sound: a song with a saved sound plays it, an album set to a sound plays it on every song, and anything else plays the sound you picked last.',
+    'One panel decides each song’s sound: a song with a saved sound plays it, an album set to a sound plays it on every song, and anything else plays your own sound, as you left it.',
   'tour.v26.autoEq.point1':
     'The song that plays and whose sound it is: its own, its album’s or yours.',
   'tour.v26.autoEq.point2':

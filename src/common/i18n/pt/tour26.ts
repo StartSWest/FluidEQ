@@ -18,7 +18,7 @@ const tour26 = {
   'tour.v26.autoEq.kicker': 'EQ · EQ AUTOMÁTICO',
   'tour.v26.autoEq.title': 'Cada música toca o som que deve',
   'tour.v26.autoEq.lead':
-    'Um painel decide o som de cada música: uma música com som salvo toca esse som, um álbum com um som o toca em todas as faixas, e todo o resto toca o último som que você escolheu.',
+    'Um painel decide o som de cada música: uma música com som salvo toca esse som, um álbum com um som o toca em todas as faixas, e todo o resto toca o seu próprio som, do jeito que você deixou.',
   'tour.v26.autoEq.point1':
     'A música que está tocando e de quem é o som: dela, do álbum ou seu.',
   'tour.v26.autoEq.point2':

@@ -28,7 +28,7 @@ export default {
   'autoEq.now.nothing': 'Nothing playing',
   'autoEq.now.yours': 'your sound',
   'autoEq.now.yoursWhy':
-    'Nothing saved for this song: it plays the last sound you picked.',
+    'Nothing saved for this song: it plays your own sound, as you left it.',
   'autoEq.now.song': 'this song’s sound',
   'autoEq.now.songWhy': 'Comes back every time this song plays.',
   'autoEq.now.album': '{album}’s sound',
@@ -37,7 +37,7 @@ export default {
   'autoEq.now.showPreset': 'Show {preset} on the Preset tab',
   'autoEq.songs.title': 'Song sounds',
   'autoEq.songs.hint':
-    'A song with a saved sound plays it. Change it and press Save changes to keep it. Other songs play yours.',
+    'A song with a saved sound plays it. Your changes stay with that song until you save them. Other songs play yours.',
   'autoEq.songs.nothing': 'Play a song to save its sound',
   'autoEq.songs.saved': 'Saved for this song',
   'autoEq.songs.none': 'Nothing saved for this song',
