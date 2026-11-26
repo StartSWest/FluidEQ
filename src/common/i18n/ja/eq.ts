@@ -55,7 +55,7 @@ const eq: Partial<Dictionary> = {
   'eq.sliders.rect': '角型',
   'eq.layouts.clearTitle': 'EQをクリアしますか？',
   'eq.layouts.clearWarning':
-    '各バンドのゲインと、低音・中音・高音のノブを0 dBにし、ローカットとハイカットをオフにします。現在のバンド数、周波数、Q、EQモード、プリアンプは維持されます。',
+    '各バンドのゲインを0 dBにします。現在のバンド数、周波数、Q、EQモード、プリアンプ、そしてトーンタブはそのままです。低音・中音・高音とカットは「トーンをリセット」で戻せます。',
   'eq.layouts.deleteNamed': '「{name}」を削除',
   'eq.layouts.deleteWarning':
     '保存済みレイアウトから「{name}」を削除しますか？現在のEQは変わりません。',

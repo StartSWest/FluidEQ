@@ -1,13 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { EQ_CUTS } from 'common/eqCuts';
-import { useFluidEqLayers, useFluidEqShell } from '../utils/FluidEqContext';
+import { useFluidEqShell } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
-import {
-  clearGains,
-  setEqCut,
-  setTone as setToneApi,
-} from '../utils/equalizerApi';
+import { clearGains } from '../utils/equalizerApi';
 import { reportError } from '../utils/logger';
 import useModalKeys from '../utils/useModalKeys';
 import MenuIcon from '../icons/MenuIcon';
@@ -17,7 +12,6 @@ import '../styles/RestartAudioDialog.scss';
 function ClearEqConfirmation({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
   const { refreshState, activeDeviceId } = useFluidEqShell();
-  const { eqCuts } = useFluidEqLayers();
   const surface = useRef<HTMLDivElement>(null);
   const cancel = useRef<HTMLButtonElement>(null);
   const pending = useRef(false);
@@ -38,18 +32,12 @@ function ClearEqConfirmation({ onClose }: { onClose: () => void }) {
     setBusy(true);
     setFailed(false);
     try {
-      // Clear EQ clears what the EQ page sets, and the Tone panel is on it:
-      // Bass, Mid and Treble, and the two cuts either side of them (Ivan,
-      // 2026-09-29: "when resetting the EQ it reset the tones but not the low
-      // cut and high cut"). The EQ chip's × clears the bands alone: the Tone
-      // is a layer with a chip of its own (`tone.ts`). Only a cut that is on
-      // is written: each write saves the profile and reloads the engine.
+      // The bands alone (Ivan, 2026-11-26: "Clear EQ cannot reset the tone,
+      // for that we have Reset Tone"). The Tone tab — Bass, Mid, Treble and
+      // the two cuts either side of them — is a layer of its own with its own
+      // reset (`resetToneTab`) and its own chip; it used to be cleared here
+      // too, from 2026-09-29.
       await clearGains();
-      await setToneApi(null);
-      await EQ_CUTS.filter((cut) => (eqCuts?.[cut] ?? 0) > 0).reduce(
-        (written, cut) => written.then(() => setEqCut(cut, 0)),
-        Promise.resolve(),
-      );
       await refreshState();
       onClose();
     } catch (error) {
@@ -72,8 +60,8 @@ function ClearEqConfirmation({ onClose }: { onClose: () => void }) {
     >
       <CompactFrame
         ref={surface}
-        // Red: it sets every band and the Tone back to nothing, the kind of
-        // answer every confirmation in the app now says in red.
+        // Red: it sets every band back to nothing, the kind of answer every
+        // confirmation in the app now says in red.
         tone="danger"
         icon={<MenuIcon name="reset" />}
         title={t('eq.layouts.clearTitle')}

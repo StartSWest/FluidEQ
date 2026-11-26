@@ -744,7 +744,9 @@ Everything worth knowing about them is available through commands:
   by hand. Saved with the profile (`getCurrentPreset`, and restored by
   `getStateForAudioDevice`), drawn as its own chartreuse line at full
   strength, with a chip in Also applied whose × clears it alone; Clear EQ
-  clears it with the bands, the EQ chip's × does not. The shapes are
+  clears the bands only and never the Tone tab (its dials and the cuts),
+  which Reset Tone clears (Ivan, 2026-11-26: "Clear EQ cannot reset the
+  tone, for that we have Reset Tone"). The shapes are
   Butterworth shelves at 100 Hz and 10 kHz and a 1 kHz bell at Q 0.7 —
   Butterworth because that is the only shelf the engine builds
   analog-matched, so Your EQ's Precise/Classic moves all three dials (a Q of

@@ -37,7 +37,7 @@ const eq = {
   'eq.sliders.rect': '직사각형',
   'eq.layouts.clearTitle': 'EQ를 비울까요?',
   'eq.layouts.clearWarning':
-    '모든 밴드와 저음·중음·고음 다이얼을 0 dB로 되돌리고 로우 컷과 하이 컷을 끕니다. 현재 밴드 수, 주파수, Q, EQ 모드와 프리앰프는 유지합니다.',
+    '모든 밴드의 게인을 0 dB로 되돌립니다. 현재 밴드 수, 주파수, Q, EQ 모드, 프리앰프와 톤 탭은 그대로 둡니다. 저음·중음·고음과 컷은 톤 초기화로 지웁니다.',
   'eq.layouts.deleteNamed': '"{name}" 삭제',
   'eq.layouts.deleteWarning':
     "저장된 디자인에서 '{name}'를 삭제하시겠습니까? 현재 EQ는 변경되지 않습니다.",

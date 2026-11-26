@@ -54,7 +54,7 @@ const eq: Partial<Dictionary> = {
   'eq.sliders.rect': 'Retangulares',
   'eq.layouts.clearTitle': 'Limpar EQ?',
   'eq.layouts.clearWarning':
-    'Definir o ganho de cada banda e os controles Graves, Médios e Agudos em 0 dB e desligar Corte graves e Corte agudos. Manter a quantidade de bandas, frequências, Q, modo EQ e pré-amplificação atuais.',
+    'Definir o ganho de cada banda em 0 dB. Manter a quantidade de bandas, frequências, Q, modo EQ e pré-amplificação atuais, e a aba Tom como está: Redefinir tom zera Graves, Médios, Agudos e os cortes.',
   'eq.layouts.deleteNamed': 'Excluir “{name}”',
   'eq.layouts.deleteWarning':
     'Excluir “{name}” dos designs salvos? Seu EQ atual permanece igual.',

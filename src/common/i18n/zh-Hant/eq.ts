@@ -35,7 +35,7 @@ const eq = {
   'eq.sliders.rect': '長方形',
   'eq.layouts.clearTitle': '清空 EQ？',
   'eq.layouts.clearWarning':
-    '將每個頻段增益和低音、中音和高音旋鈕設為 0 dB，然後關閉低切和高切。保留目前頻段數、頻率、Q、EQ 模式和 前級增益。',
+    '將每個頻段增益設為 0 dB。保留目前頻段數、頻率、Q、EQ 模式和前級增益，音色分頁也維持不變：「重設音色」會清除低音、中音、高音和切除。',
   'eq.layouts.deleteNamed': '刪除“{name}”',
   'eq.layouts.deleteWarning':
     '從已儲存的設計中刪除“{name}”？您目前的EQ保持不變。',

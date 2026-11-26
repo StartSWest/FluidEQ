@@ -233,45 +233,25 @@ describe('Empty EQ confirmation', () => {
       fireEvent.click(button);
     });
     expect(clearGains).toHaveBeenCalledTimes(1);
-    // Clear EQ takes the Tone's dials back to zero with the bands.
-    expect(setTone).toHaveBeenCalledTimes(1);
-    expect(setTone).toHaveBeenCalledWith(null);
-    // No cut is on, so neither is written: each write reloads every output.
+    // The bands alone (Ivan, 2026-11-26): the Tone has Reset Tone.
+    expect(setTone).not.toHaveBeenCalled();
     expect(setEqCut).not.toHaveBeenCalled();
     expect(refreshState).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     expect(applyBandDesign).not.toHaveBeenCalled();
   });
 
-  it('turns both cuts off with the bands and the Tone, then reads the state back', async () => {
+  it('leaves the Tone tab as it is, cuts on included, and reads the state back', async () => {
+    // The Tone tab - its dials and the cuts either side - is reset by Reset
+    // Tone alone (Ivan, 2026-11-26: "Clear EQ cannot reset the tone").
     mount({ ...context, eqCuts: { low: 24, high: 12 } });
     await confirmClear();
-    expect(setEqCut).toHaveBeenCalledTimes(2);
-    expect(setEqCut).toHaveBeenNthCalledWith(1, 'low', 0);
-    expect(setEqCut).toHaveBeenNthCalledWith(2, 'high', 0);
-    expect(jest.mocked(setTone).mock.invocationCallOrder[0]).toBeLessThan(
-      jest.mocked(setEqCut).mock.invocationCallOrder[0],
-    );
-    expect(jest.mocked(setEqCut).mock.invocationCallOrder[1]).toBeLessThan(
-      refreshState.mock.invocationCallOrder[0],
-    );
+    // POSITIVE CONTROL: Clear EQ ran - the bands were cleared and read back.
+    expect(clearGains).toHaveBeenCalledTimes(1);
+    expect(refreshState).toHaveBeenCalledTimes(1);
+    expect(setTone).not.toHaveBeenCalled();
+    expect(setEqCut).not.toHaveBeenCalled();
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
-  });
-
-  it('writes only the cut that is on', async () => {
-    mount({ ...context, eqCuts: { low: 0, high: 24 } });
-    await confirmClear();
-    expect(setEqCut).toHaveBeenCalledTimes(1);
-    expect(setEqCut).toHaveBeenCalledWith('high', 0);
-  });
-
-  it('keeps the dialog and its error when a cut cannot be written', async () => {
-    jest.mocked(setEqCut).mockRejectedValueOnce(new Error('write failed'));
-    mount({ ...context, eqCuts: { low: 12, high: 0 } });
-    await confirmClear();
-    expect(screen.getByRole('alert')).toBeInTheDocument();
-    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
-    expect(refreshState).not.toHaveBeenCalled();
   });
 
   it('keeps errors visible for retry and closes when the output changes', async () => {

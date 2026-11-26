@@ -56,7 +56,7 @@ const eq: Partial<Dictionary> = {
   'eq.sliders.rect': 'Rechteckig',
   'eq.layouts.clearTitle': 'EQ leeren?',
   'eq.layouts.clearWarning':
-    'Jede Bandverstärkung und die Regler Bass, Mitten und Höhen auf 0 dB setzen und Tiefensperre und Höhensperre ausschalten. Aktuelle Bandanzahl, Frequenzen, Q, EQ-Modus und Vorverstärkung bleiben erhalten.',
+    'Jede Bandverstärkung auf 0 dB setzen. Aktuelle Bandanzahl, Frequenzen, Q, EQ-Modus und Vorverstärkung bleiben erhalten, ebenso der Klang-Tab: „Klang zurücksetzen“ setzt Bass, Mitten, Höhen und die Sperren zurück.',
   'eq.layouts.deleteNamed': '„{name}“ löschen',
   'eq.layouts.deleteWarning':
     '„{name}“ aus Ihren gespeicherten Designs löschen? Ihr aktueller EQ bleibt unverändert.',
