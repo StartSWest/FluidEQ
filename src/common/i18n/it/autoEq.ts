@@ -71,8 +71,6 @@ export default {
     'Misura ogni brano dalla sorgente e conserva la sua correzione per quel brano. Sopra qualsiasi preset.',
   'autoEq.smart.modes': 'Come corregge',
   'autoEq.smart.waiting': 'In attesa di un brano',
-  'autoEq.smart.willSave': 'Salvata per questo brano quando finisce',
-  'autoEq.smart.savesIn': 'Salvata per questo brano tra {remaining}',
   'autoEq.smart.onceHint':
     'Una misurazione di ciò che suona, applicata in una volta',
   'autoEq.smart.once': 'Misura una volta',

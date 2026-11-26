@@ -26,7 +26,6 @@ import {
   getInitialRecorderState,
 } from './songEqEvents';
 import {
-  SONG_EQ_MIN_LISTENED_MS,
   SONG_EQ_SETTLE_MS,
   SONG_EQ_SUSPEND_GRACE_MS,
   advance,
@@ -39,7 +38,7 @@ import {
 // the tests import all of it from here — even though the passage-of-time rules
 // live in `songEqTiming.ts` and the vocabulary in `songEqEvents.ts`, both
 // split out to keep this file under its line ceiling.
-export { SONG_EQ_MIN_LISTENED_MS, SONG_EQ_SETTLE_MS, SONG_EQ_SUSPEND_GRACE_MS };
+export { SONG_EQ_SETTLE_MS, SONG_EQ_SUSPEND_GRACE_MS };
 export { getInitialRecorderState };
 export type {
   ISongEqRecorderState,
@@ -73,7 +72,6 @@ const open = (identity: ISongIdentity, now: number): ISongEqSession => ({
   listenedMs: 0,
   playingSince: now,
   settlingSince: now,
-  hasCheckpointed: false,
   hasLoan: false,
 });
 
@@ -168,9 +166,54 @@ export const reduceSongEq = (
       // mode refines, and with no mode running the two minutes would count
       // themselves out and commit nothing at the end.
       return [
-        { ...state, isSaveOn: event.isSaveOn && state.isAutoEqRunning },
+        {
+          ...state,
+          isSaveOn: event.isSaveOn && state.isAutoEqRunning && state.isSongsOn,
+        },
         timed,
       ];
+
+    case 'songsChanged':
+      // Song sounds is where a song keeps a sound: off, nothing is saved
+      // into a song, however much Smart correction measures (Ivan,
+      // 2026-11-26).
+      return [
+        {
+          ...state,
+          isSongsOn: event.isOn,
+          isSaveOn: event.isOn && state.isAutoEqRunning,
+        },
+        timed,
+      ];
+
+    case 'held': {
+      if (!session || session.forgotten) {
+        return [{ ...state, liveLayer: event.layer }, timed];
+      }
+      const measured: ISongEqSession = { ...session, isMeasured: true };
+      if (!state.isSaveOn) {
+        return [{ ...state, liveLayer: event.layer, session: measured }, timed];
+      }
+      // Saved now, the moment it is done. The first save of a play counts
+      // the play; a new measurement of the same play replaces what was saved
+      // without counting it again.
+      return [
+        {
+          ...state,
+          liveLayer: event.layer,
+          session: { ...measured, savedLayer: event.layer },
+        },
+        [
+          ...timed,
+          {
+            kind: session.savedLayer === undefined ? 'commit' : 'checkpoint',
+            identity: session.identity,
+            deviceId: state.deviceId,
+            layer: event.layer,
+          },
+        ],
+      ];
+    }
 
     case 'autoEqChanged':
       // Saving follows the measurement (Auto EQ, 2026-11-20): Smart correction
@@ -202,7 +245,7 @@ export const reduceSongEq = (
         {
           ...state,
           isAutoEqRunning: true,
-          isSaveOn: true,
+          isSaveOn: state.isSongsOn,
           session: session
             ? {
                 ...session,
@@ -260,12 +303,28 @@ export const reduceSongEq = (
         !state.isAutoEqRunning ||
         !session ||
         session.phase !== 'recording' ||
-        !event.entry ||
         // The lookup is a store read the shell answers later. Skip tracks in
         // between and the answer arrives for a song that is no longer playing.
         event.identity.key !== session.identity.key
       ) {
         return [state, timed];
+      }
+      if (!event.entry) {
+        // Nothing kept for this song: it starts flat, never on the last
+        // song's curve (Ivan, 2026-11-26: "smart correction curve is only for
+        // that song is carrying to all other songs"), unless this play has
+        // measured it already.
+        if (!state.liveLayer || session.isMeasured) {
+          return [state, timed];
+        }
+        return [
+          {
+            ...state,
+            liveLayer: undefined,
+            session: { ...session, written: undefined },
+          },
+          [...timed, { kind: 'applyLayer', settings: undefined }],
+        ];
       }
       return [
         {
@@ -274,7 +333,8 @@ export const reduceSongEq = (
           session: {
             ...session,
             hasLoan: true,
-            loanLayer: state.liveLayer,
+            // Handed back to flat: the curve before it was another song's.
+            loanLayer: undefined,
             written: event.entry.settings,
           },
         },
@@ -346,12 +406,7 @@ export const reduceSongEq = (
       // Committed under the OLD device: the curve was learned on that
       // transducer and belongs to it. The new id is merged on AFTER closing,
       // so the close reads and reports the device the session was on.
-      const [closed, closedEffects] = closeSession(
-        state,
-        session,
-        now,
-        state.deviceId,
-      );
+      const [closed, closedEffects] = closeSession(state, session);
       return [
         { ...closed, deviceId: event.deviceId },
         [...timed, ...closedEffects],
@@ -362,12 +417,7 @@ export const reduceSongEq = (
       if (!session) {
         return [state, timed];
       }
-      const [closed, closedEffects] = closeSession(
-        state,
-        session,
-        now,
-        state.deviceId,
-      );
+      const [closed, closedEffects] = closeSession(state, session);
       return [closed, [...timed, ...closedEffects]];
     }
 
@@ -381,12 +431,7 @@ export const reduceSongEq = (
         if (session.phase === 'settling') {
           return [{ ...state, session: undefined }, timed];
         }
-        const [closed, closedEffects] = closeSession(
-          state,
-          session,
-          now,
-          state.deviceId,
-        );
+        const [closed, closedEffects] = closeSession(state, session);
         return [closed, [...timed, ...closedEffects]];
       }
 
@@ -432,12 +477,7 @@ export const reduceSongEq = (
           [...timed, ...openedEffects(state, opened)],
         ];
       }
-      const [closed, closedEffects] = closeSession(
-        state,
-        session,
-        now,
-        state.deviceId,
-      );
+      const [closed, closedEffects] = closeSession(state, session);
       const opened = isPlaying ? open(identity, now) : undefined;
       return [
         { ...closed, session: opened },

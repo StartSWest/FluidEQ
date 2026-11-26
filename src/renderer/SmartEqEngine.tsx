@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useEffect, useRef, useState } from 'react';
+import type { ISmartEqSettings } from 'common/constants';
 import {
   describeSmartEqLayer,
   getSmartEqBands,
@@ -31,7 +32,7 @@ import {
 import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import { setSmartEq as setSmartEqApi } from './utils/equalizerApi';
-import { noteSmartEqWrite } from './audio/songEqSession';
+import { noteSmartEqHeld, noteSmartEqWrite } from './audio/songEqSession';
 import { useNowPlayingIdentity } from './audio/nowPlayingIdentity';
 import { usePlaybackOwner } from './audio/playbackOwner';
 import { useLastPlayingOwner } from './audio/transportSource';
@@ -463,6 +464,10 @@ const SmartEqEngine = () => {
         describeSmartEqLayer(measured) === describeSmartEqLayer(layer);
       showHeld(result, isUnchanged ? 'unchanged' : 'written', gains);
       if (isUnchanged) {
+        // What plays is this song's measurement: the song's, for this play.
+        if (measured) {
+          noteSmartEqHeld(measured);
+        }
         setSmartEqStatus(tRef.current('eq.smart.status.alreadyBalanced'));
         return;
       }
@@ -491,6 +496,11 @@ const SmartEqEngine = () => {
 
       if (!isCurrent()) {
         return;
+      }
+      // Measure once is of the song playing: saved for it where saving is
+      // on, and taken off at its end either way.
+      if (measured) {
+        noteSmartEqHeld(measured);
       }
 
       if (plan && measured) {
@@ -582,7 +592,12 @@ const SmartEqEngine = () => {
    */
   const writeHeld = (
     report: IBalanceReport,
-  ): { outcome: TSmartEqHeldOutcome; gains?: Record<string, number> } => {
+  ): {
+    outcome: TSmartEqHeldOutcome;
+    gains?: Record<string, number>;
+    /** What the song measures to, written now or already playing. */
+    layer?: ISmartEqSettings;
+  } => {
     const ready = report.regions.filter((region) => region.isCovered);
     const gains = ready.length > 0 ? solve(report) : undefined;
     if (!gains) {
@@ -599,7 +614,7 @@ const SmartEqEngine = () => {
       isApplyingRef.current ||
       describeSmartEqLayer(measured) === describeSmartEqLayer(layer)
     ) {
-      return { outcome: 'unchanged', gains };
+      return { outcome: 'unchanged', gains, layer: measured };
     }
     // The ranges that actually moved, for the graph to light and the bubble
     // to name — not every range the write happened to carry.
@@ -633,7 +648,7 @@ const SmartEqEngine = () => {
         moved,
       ),
     );
-    return { outcome: 'written', gains };
+    return { outcome: 'written', gains, layer: measured };
   };
 
   /**
@@ -660,12 +675,16 @@ const SmartEqEngine = () => {
       return;
     }
     isHeldRef.current = true;
-    const { outcome, gains } = writeHeld(report);
+    const { outcome, gains, layer } = writeHeld(report);
     heldSongsRef.current.set(previousSongRef.current, {
       report,
       outcome,
       gains,
     });
+    // Done with this song: saved for it now, and its alone.
+    if (layer) {
+      noteSmartEqHeld(layer);
+    }
     showHeld(report, outcome, gains);
     listeningForRef.current = '';
     setSmartEqListening('');
@@ -691,13 +710,17 @@ const SmartEqEngine = () => {
     if (!isHeldRef.current || !held || !isContinuousMode(smartEqMode)) {
       return;
     }
-    const { outcome, gains } = writeHeld(held.report);
+    const { outcome, gains, layer } = writeHeld(held.report);
     heldSongsRef.current.set(previousSongRef.current, {
       ...held,
       outcome,
       gains,
     });
     showHeld(held.report, outcome, gains);
+    // A new answer for the song: saved for it again.
+    if (layer && outcome === 'written') {
+      noteSmartEqHeld(layer);
+    }
     // Only the mode: everything else the write reads is current through refs.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- see above
   }, [smartEqMode]);

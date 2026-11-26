@@ -145,7 +145,9 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
   // EQ's are in two groups under captions — BANDS: how many, add one, clear
   // them; VIEW: the curves the graph draws, the EQ mode — and Auto EQ alone
   // at the end, the one filled button, the action the page recommends. Clear
-  // EQ undoes every tab's work and stands at the end of the other two.
+  // EQ clears the bands, so it is Your EQ's alone (Ivan, 2026-11-26: "remove
+  // clear EQ on tone page and on preset page"): the Tone has Reset Tone, and
+  // a preset is taken off by picking None.
   const rule = <span className="eq-layer-tabs__rule" aria-hidden="true" />;
   const tools: Record<TEqLayerTab, ReactElement> = {
     bands: (
@@ -183,29 +185,21 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
       <>
         <EqPresetSearch />
         <NewPresetButton />
-        {rule}
-        <ClearEqButton label={t('eq.clear')} />
       </>
     ),
     tone: (
-      <>
-        <Button
-          ariaLabel={t('eq.tone.reset')}
-          title={t('eq.tone.reset')}
-          isDisabled={isToneDisabled || !isToneTabInUse}
-          className="small subtle"
-          handleChange={() => {
-            resetToneTab().catch(() => undefined);
-          }}
-        >
-          <MenuIcon name="reset" className="eq-toolbar__icon" />
-          {/* Its word kept at every width: Clear EQ beside it is the same
-            glyph, and two bare arrows side by side say nothing apart. */}
-          <span>{t('eq.tone.reset')}</span>
-        </Button>
-        {rule}
-        <ClearEqButton label={t('eq.clear')} />
-      </>
+      <Button
+        ariaLabel={t('eq.tone.reset')}
+        title={t('eq.tone.reset')}
+        isDisabled={isToneDisabled || !isToneTabInUse}
+        className="small subtle"
+        handleChange={() => {
+          resetToneTab().catch(() => undefined);
+        }}
+      >
+        <MenuIcon name="reset" className="eq-toolbar__icon" />
+        <span>{t('eq.tone.reset')}</span>
+      </Button>
     ),
   };
   const row = isEditingPreset ? (

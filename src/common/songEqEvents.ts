@@ -48,8 +48,22 @@ export interface ISongEqSession {
   settlingSince: number;
   /** When `suspended` began. */
   suspendedSince?: number;
-  /** Whether the two-minute checkpoint has already been written. */
-  hasCheckpointed: boolean;
+  /**
+   * Smart correction is done with this song for this play — its hold, a
+   * Measure again, or Measure once — and what it wrote is the song's alone:
+   * taken off at the song's end, so the next song starts flat or with its
+   * own (Ivan, 2026-11-26: "measure is for single song and needs to restore
+   * to flat to other songs that doesn't bring one").
+   */
+  isMeasured?: boolean;
+  /**
+   * What was saved for the song this play, at its hold. Saved the moment the
+   * correction is done, and again whenever a new measurement of the same
+   * song is done (Ivan, 2026-11-26: "save that smart eq immediately after is
+   * fully defined ... and saving it if changes"); it used to wait for two
+   * minutes listened, a countdown on screen.
+   */
+  savedLayer?: ISmartEqSettings;
   /**
    * Set by a 'forget' event. The session keeps timing — the badge stays
    * honest about a song still playing — but `close` in `songEqTiming.ts`
@@ -86,6 +100,12 @@ export interface ISongEqRecorderState {
    * there is no measurement to file, and `saveToggled` refuses to go on.
    */
   isAutoEqRunning: boolean;
+  /**
+   * Auto EQ's Song sounds switch: a correction is saved into a song only
+   * while it is on (Ivan, 2026-11-26: "if song sounds is off even if smart
+   * eq is doing things it won't be saved into the song").
+   */
+  isSongsOn: boolean;
   /** The Smart EQ layer as it currently stands. */
   liveLayer?: ISmartEqSettings;
 }
@@ -123,6 +143,14 @@ export type TSongEqEvent =
    * event carries the new state rather than an instruction.
    */
   | { kind: 'autoEqChanged'; isRunning: boolean }
+  /** Auto EQ's Song sounds switch moved (`isSongsOn`). */
+  | { kind: 'songsChanged'; isOn: boolean }
+  /**
+   * Smart correction is done with the playing song: the layer it wrote for
+   * it (a running mode's hold, Measure again's, or Measure once). Saved
+   * for the song at once where saving is on.
+   */
+  | { kind: 'held'; layer: ISmartEqSettings }
   | { kind: 'matched'; identity: ISongIdentity; entry?: ISongEqEntry }
   | { kind: 'undo' }
   | { kind: 'closing' }
@@ -170,4 +198,5 @@ export const getInitialRecorderState = (): ISongEqRecorderState => ({
   deviceId: '',
   isSaveOn: false,
   isAutoEqRunning: false,
+  isSongsOn: false,
 });

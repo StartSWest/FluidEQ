@@ -72,8 +72,6 @@ export default {
     'Mesure chaque chanson à la source et garde sa correction pour cette chanson. Par-dessus n’importe quel préréglage.',
   'autoEq.smart.modes': 'Façon de corriger',
   'autoEq.smart.waiting': 'En attente d’une chanson',
-  'autoEq.smart.willSave': 'Enregistrée pour cette chanson à la fin',
-  'autoEq.smart.savesIn': 'Enregistrée pour cette chanson dans {remaining}',
   'autoEq.smart.onceHint': 'Une mesure de ce qui joue, appliquée en une fois',
   'autoEq.smart.once': 'Mesurer une fois',
   'autoEq.smart.phase.listening': 'Écoute',

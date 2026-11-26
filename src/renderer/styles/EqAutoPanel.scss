@@ -434,21 +434,6 @@ button.eq-auto-now__plays {
   color: $text-faint;
 }
 
-.eq-auto-smart__track {
-  position: relative;
-  flex: 1 1 60px;
-  height: 3px;
-  overflow: hidden;
-  border-radius: 2px;
-  background: color-mix(in srgb, $edge-tint 14%, transparent);
-}
-
-.eq-auto-smart__fill {
-  position: absolute;
-  inset: 0 auto 0 0;
-  background: $secondary-default;
-}
-
 // Held on the panel's bottom edge while the rest scrolls under it: where the
 // panel is capped to the room above its button (1100 by 800 on the white
 // window's taller rows), Manage and Measure once fell below the fold and the
@@ -621,6 +606,22 @@ button.eq-auto-now__plays {
   font-weight: $weight-semibold;
 }
 
+// How long Saved stays on Auto EQ's button after a save is pressed.
+$eq-auto-saved-hold: 5s;
+
+// Changes nothing that can be seen, only how long Saved stays; its end takes
+// Saved down. Reduced motion's 1ms (`App.scss`) must not cut it short.
+@keyframes eq-auto-saved-hold {
+  from,
+  to {
+    visibility: visible;
+  }
+}
+
+:root[data-motion='reduced'] .eq-auto__save.is-saved {
+  animation: eq-auto-saved-hold $eq-auto-saved-hold linear !important;
+}
+
 // The Save half of Auto EQ's button on the EQ page (`AutoEqSaveHalf`): a
 // segment sharing the button's edge, as the caret of the row's other split
 // controls does (`_mainContentToolbar.scss`), so the pair reads as one pill
@@ -656,15 +657,17 @@ button.eq-auto-now__plays {
     outline-offset: 1px;
   }
 
-  // Saved: nothing to press, said in the colour a song's own sound has.
+  // Saved: nothing to press, in the same face as the half beside it (Ivan,
+  // 2026-11-26: "the style need to be same as the rest of the buttons
+  // there") — it was a grey outline with green words against the lit half,
+  // two pills where there is one. Shown for a moment after the press and
+  // then taken away: the hold's end is what ends it (`AutoEqSaveHalf`).
   &.is-saved {
-    @include button-line;
-    color: $sound-own;
     cursor: default;
+    animation: eq-auto-saved-hold $eq-auto-saved-hold linear;
 
     &:hover {
-      @include button-line;
-      color: $sound-own;
+      @include button-lit;
     }
   }
 

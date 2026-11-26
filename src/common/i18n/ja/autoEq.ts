@@ -73,8 +73,6 @@ export default {
     '曲ごとにソースから測定し、その補正を曲ごとに保存します。どのプリセットにも上乗せされます。',
   'autoEq.smart.modes': '補正の方法',
   'autoEq.smart.waiting': '曲を待っています',
-  'autoEq.smart.willSave': '曲が終わるとこの曲用に保存されます',
-  'autoEq.smart.savesIn': 'あと {remaining} でこの曲用に保存されます',
   'autoEq.smart.onceHint': '再生中の音を 1 回測定して、すぐに適用',
   'autoEq.smart.once': '1 回測定',
   'autoEq.smart.phase.listening': '聴取中',

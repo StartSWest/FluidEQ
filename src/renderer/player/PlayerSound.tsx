@@ -6,7 +6,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useId, useMemo, useRef } from 'react';
 import { NO_GAIN_FILTER_TYPES } from 'common/constants';
-import { SONG_EQ_MIN_LISTENED_MS } from 'common/songEqRecorder';
 import {
   setSongEqSaveOn,
   useSongEqRecording,
@@ -80,10 +79,6 @@ const PlayerSound = () => {
       ).length,
     [filters],
   );
-  const songProgress = Math.min(
-    1,
-    recording.listenedMs / SONG_EQ_MIN_LISTENED_MS,
-  );
 
   const face = (value: TPlayerSoundFace, label: string) => (
     <button
@@ -155,7 +150,7 @@ const PlayerSound = () => {
               <button
                 type="button"
                 className={`button small subtle player-led${
-                  recording.willSave ? ' is-saving' : ''
+                  recording.isSaved ? ' is-saving' : ''
                 }`}
                 aria-pressed={isSaveOn}
                 title={t('songEq.saveAria')}
@@ -164,7 +159,9 @@ const PlayerSound = () => {
                 <span className="player-led__lamp" aria-hidden="true" />
                 {t('player.eq.song')}
                 <span className="player-led__meter" aria-hidden="true">
-                  <span style={{ width: `${songProgress * 100}%` }} />
+                  {/* Full once the song's correction is saved: it is saved
+                    the moment Smart correction is done with it. */}
+                  <span style={{ width: recording.isSaved ? '100%' : '0%' }} />
                 </span>
               </button>
             )}

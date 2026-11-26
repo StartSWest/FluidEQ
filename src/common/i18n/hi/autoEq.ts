@@ -71,8 +71,6 @@ export default {
     'हर गाने को स्रोत से मापता है और उसका सुधार उसी गाने के लिए रखता है। किसी भी प्रीसेट के ऊपर।',
   'autoEq.smart.modes': 'यह कैसे सुधारता है',
   'autoEq.smart.waiting': 'गाने का इंतज़ार',
-  'autoEq.smart.willSave': 'गाना खत्म होने पर इस गाने के लिए सहेजा जाएगा',
-  'autoEq.smart.savesIn': '{remaining} में इस गाने के लिए सहेजा जाएगा',
   'autoEq.smart.onceHint': 'जो बज रहा है उसका एक माप, एक ही बार में लागू',
   'autoEq.smart.once': 'एक बार मापें',
   'autoEq.smart.phase.listening': 'सुन रहा है',

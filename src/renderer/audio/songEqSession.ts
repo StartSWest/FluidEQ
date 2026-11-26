@@ -27,7 +27,6 @@ import {
   getInitialRecorderState,
   reduceSongEq,
 } from 'common/songEqRecorder';
-import { willSongEqSave } from 'common/songEqTiming';
 import {
   checkpointSongEq,
   commitSongEq,
@@ -39,6 +38,7 @@ import { useFluidEqLayers } from 'renderer/utils/FluidEqContext';
 import useIsAutoEqRunning from 'renderer/utils/autoEqRunning';
 import { useNowPlayingIdentity } from './nowPlayingIdentity';
 import { useTransportSources } from './transportSource';
+import { useSongSoundParts } from './songSoundSession';
 
 /**
  * Drives Task 3's reducer from the real world, and decides nothing.
@@ -86,10 +86,9 @@ export interface ISongEqRecordingStatus {
    * progress. Zero with nothing open. */
   listenedMs: number;
   title?: string;
-  /** Whether continuing to listen, exactly as things stand, ends in a saved
-   * entry — `willSongEqSave` itself, so a song with saving on but no Smart
-   * EQ layer at all reports honestly that nothing here can ever be saved. */
-  willSave: boolean;
+  /** Whether the song's correction has been saved for it this play: the
+   * moment Smart correction was done with it (`held` in the reducer). */
+  isSaved: boolean;
 }
 
 /**
@@ -156,7 +155,7 @@ let liveSmartEqSetter:
 const DEFAULT_RECORDING_STATUS: ISongEqRecordingStatus = {
   isSaveOn: false,
   listenedMs: 0,
-  willSave: false,
+  isSaved: false,
 };
 
 const computeRecording = (
@@ -171,7 +170,8 @@ const computeRecording = (
         (session.playingSince === undefined ? 0 : at - session.playingSince)
       : 0,
     title: session?.identity.title,
-    willSave: session ? willSongEqSave(recorderState, session, at) : false,
+    // Forgotten, what was saved is gone: it is no longer saved.
+    isSaved: session?.savedLayer !== undefined && session.forgotten !== true,
   };
 };
 
@@ -196,7 +196,7 @@ const drawsTheSame = (
 ): boolean =>
   a.isSaveOn === b.isSaveOn &&
   a.title === b.title &&
-  a.willSave === b.willSave &&
+  a.isSaved === b.isSaved &&
   Math.floor(a.listenedMs / 1000) === Math.floor(b.listenedMs / 1000);
 
 const showNotice = (identity: ISongIdentity, entry: ISongEqEntry): void => {
@@ -246,8 +246,8 @@ const performEffects = (effects: TSongEqEffect[]): void => {
       case 'checkpoint':
         checkpointSongEq(effect.deviceId, effect.identity, effect.layer).catch(
           () => {
-            // Best-effort: the commit that follows when the song ends makes
-            // the same write again, with the same or better information.
+            // Best-effort, as the commit is: the next measurement of the song
+            // saves again.
           },
         );
         break;
@@ -319,6 +319,17 @@ const dispatchSongEq = (event: TSongEqEvent, at: number): void => {
  */
 export const noteSmartEqWrite = (layer?: ISmartEqSettings): void => {
   dispatchSongEq({ kind: 'ownWrite', layer }, Date.now());
+};
+
+/**
+ * Smart correction is done with the playing song, and `layer` is what it
+ * wrote for it: a running mode's hold, Measure again's, or Measure once. Called
+ * by `SmartEqEngine.tsx` at that moment and by nothing else; the reducer
+ * saves it for the song at once where saving is on, and takes it off at the
+ * song's end either way.
+ */
+export const noteSmartEqHeld = (layer: ISmartEqSettings): void => {
+  dispatchSongEq({ kind: 'held', layer }, Date.now());
 };
 
 /* --- the notice toast --- */
@@ -473,14 +484,19 @@ export const useSongEqSessionHost = (): void => {
     );
   }, [isAutoEqRunning]);
 
+  // Song sounds is where a song keeps a sound: off, Smart correction saves
+  // nothing into a song (`songsChanged`).
+  const { songs: isSongsOn } = useSongSoundParts();
+  useEffect(() => {
+    dispatchSongEq({ kind: 'songsChanged', isOn: isSongsOn }, Date.now());
+  }, [isSongsOn]);
+
   useEffect(() => {
     // This fires as the window is already on its way out. Nothing here waits
     // for the dispatch to finish, and nothing downstream may assume it does:
-    // the promises a 'closing' checkpoint or hand-back kicks off have no time
-    // left to settle before the process is gone. The two-minute checkpoint
-    // already on disk is the actual guarantee that a song is not lost — this
-    // is a best-effort top-up for whatever was learned since, not a save this
-    // shell can be relied on to complete.
+    // the promises a 'closing' hand-back kicks off have no time left to
+    // settle before the process is gone. A song's correction is on disk from
+    // the moment it was done, which is the actual guarantee.
     const onBeforeUnload = () => {
       dispatchSongEq({ kind: 'closing' }, Date.now());
     };

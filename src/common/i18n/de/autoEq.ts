@@ -72,8 +72,6 @@ export default {
     'Misst jeden Song an der Quelle und behält seine Korrektur für diesen Song. Zusätzlich zu jedem Preset.',
   'autoEq.smart.modes': 'Wie sie korrigiert',
   'autoEq.smart.waiting': 'Wartet auf einen Song',
-  'autoEq.smart.willSave': 'Wird am Ende für diesen Song gespeichert',
-  'autoEq.smart.savesIn': 'Wird in {remaining} für diesen Song gespeichert',
   'autoEq.smart.onceHint':
     'Eine Messung dessen, was läuft, auf einmal angewendet',
   'autoEq.smart.once': 'Einmal messen',

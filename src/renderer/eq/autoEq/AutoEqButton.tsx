@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { type CSSProperties } from 'react';
+import { type CSSProperties, useState } from 'react';
 import { endSmartEqStatus } from '../../utils/smartEqRun';
 import MenuIcon from '../../icons/MenuIcon';
 import Chevron from '../../icons/Chevron';
@@ -15,17 +15,16 @@ import isOwnAnimationEnd from '../../utils/ownAnimationEnd';
 import { endCorrectionFlash } from '../../utils/correctionFlash';
 import { useTranslation } from '../../utils/I18nContext';
 import {
-  saveSongSoundNow,
-  type ISongSoundNow,
   useSongSoundHeld,
   useSongSoundNow,
   useSongSoundParts,
+  useSongSoundSaveTick,
 } from '../../audio/songSoundSession';
 import { useContinuousEq } from '../../utils/continuousEq';
-import useHasChanged from '../../utils/useHasChanged';
 import { useSmartEqPhase } from '../../utils/smartEqPreview';
 import useAutoEqButton from './useAutoEqButton';
 import AutoEqPanel from './AutoEqPanel';
+import AutoEqSaveHalf, { saveHalfOf } from './AutoEqSaveHalf';
 import '../../styles/EqAutoPanel.scss';
 
 /**
@@ -38,80 +37,6 @@ import '../../styles/EqAutoPanel.scss';
  * The pet's bubble beside it is Smart correction's voice while it measures,
  * as it was Smart EQ's.
  */
-type TSaveHalf = 'save' | 'saveChanges' | 'saved';
-
-/**
- * What the button's Save half offers, the same press as the panel's (Ivan
- * approved, 2026-11-20): Save changes over a saved sound changed while it
- * plays, Saved for one that plays as saved, and "Save to this song" over the
- * listener's own sound — nothing while nothing plays, Song sounds is off or
- * Auto EQ steps aside.
- */
-const saveHalfOf = (
-  now: ISongSoundNow,
-  isSongsOn: boolean,
-  isHeld: boolean,
-): TSaveHalf | undefined => {
-  if (isHeld || !isSongsOn || !now.identity) {
-    return undefined;
-  }
-  if (now.isChanged) {
-    return 'saveChanges';
-  }
-  if (now.owner === 'song') {
-    return 'saved';
-  }
-  return now.canSave ? 'save' : undefined;
-};
-
-/** The Save half itself: a segment sharing the button's edge, as the caret of
- * the row's other split controls does (`_mainContentToolbar.scss`). */
-const AutoEqSaveHalf = ({
-  save,
-  title,
-}: {
-  save: TSaveHalf | undefined;
-  title: string | undefined;
-}) => {
-  const { t } = useTranslation();
-  // Save and Saved swap in when they swap, never as the page opens.
-  const swap = useHasChanged(save ?? 'none') ? ' is-swap' : '';
-  if (!save) {
-    return null;
-  }
-  if (save === 'saved') {
-    return (
-      <span className={`eq-auto__save is-saved${swap}`} role="status">
-        <MenuIcon name="check" className="eq-toolbar__icon" />
-        <span className="eq-auto__save-word eq-toolbar__word">
-          {t('autoEq.button.saved')}
-        </span>
-      </span>
-    );
-  }
-  // The panel's own words for a screen reader; on the row one short word,
-  // the main half already saying Changed or Yours. "Save changes" there
-  // pushed the row into its narrower fit at full width, and the Preset and
-  // Tone tabs gave up what they hold to make room.
-  const name =
-    save === 'saveChanges'
-      ? t('autoEq.songs.saveChanges')
-      : t('autoEq.songs.save');
-  return (
-    <button
-      type="button"
-      className={`eq-auto__save${swap}`}
-      aria-label={name}
-      title={title ? t('autoEq.button.saveFor', { title }) : name}
-      onClick={saveSongSoundNow}
-    >
-      <MenuIcon name="save" className="eq-toolbar__icon" />
-      <span className="eq-auto__save-word eq-toolbar__word" aria-hidden="true">
-        {t('autoEq.button.save')}
-      </span>
-    </button>
-  );
-};
 
 const AutoEqButton = () => {
   const { t } = useTranslation();
@@ -132,6 +57,10 @@ const AutoEqButton = () => {
   const parts = useSongSoundParts();
   const isHeld = useSongSoundHeld();
   const now = useSongSoundNow();
+  // The last save whose Saved has been shown; one pressed since is shown now.
+  // Taken at mount, so opening the page never shows an old save.
+  const saveTick = useSongSoundSaveTick();
+  const [shownTick, setShownTick] = useState(saveTick);
   const isSmartOn = useContinuousEq();
   const isAnyOn = parts.songs || parts.albums || isSmartOn;
   // A held song is measured no further (`smartEqHold.ts`): the button says
@@ -183,8 +112,10 @@ const AutoEqButton = () => {
         <Chevron />
       </button>
       <AutoEqSaveHalf
-        save={saveHalfOf(now, parts.songs, isHeld)}
+        save={saveHalfOf(now, parts.songs, isHeld, saveTick !== shownTick)}
         title={now.identity?.title}
+        moment={saveTick}
+        onSavedShown={() => setShownTick(saveTick)}
       />
       <AnchoredMenu
         anchor={holder.current}

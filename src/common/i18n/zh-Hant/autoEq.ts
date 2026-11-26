@@ -68,8 +68,6 @@ const autoEq = {
     '從音源測量每首歌，並為這首歌保留其校正。疊加在任何預設之上。',
   'autoEq.smart.modes': '校正方式',
   'autoEq.smart.waiting': '等待歌曲',
-  'autoEq.smart.willSave': '歌曲結束時為這首歌儲存',
-  'autoEq.smart.savesIn': '{remaining} 後為這首歌儲存',
   'autoEq.smart.onceHint': '對正在播放的內容測量一次，立即套用',
   'autoEq.smart.once': '測量一次',
   'autoEq.smart.phase.listening': '正在聆聽',

@@ -30,12 +30,12 @@ import '../styles/SongEqBadge.scss';
  * "a session is actually open" signal (`computeRecording` in
  * `songEqSession.ts` sets it only while a session is open; `listenedMs`
  * alone would misread a session that just started as nothing playing), and
- * `willSave` is taken as-is. A second opinion on either is the exact mistake
+ * `isSaved` is taken as-is. A second opinion on either is the exact mistake
  * this feature has already shipped twice.
  */
 const SongEqBadge = () => {
   const { t } = useTranslation();
-  const { isSaveOn, title, willSave } = useSongEqRecording();
+  const { isSaveOn, title, isSaved } = useSongEqRecording();
 
   // Off, or nothing open to record: the switch itself says as much on the EQ
   // tab, and a bar on every other tab claiming otherwise would be the lie
@@ -46,7 +46,7 @@ const SongEqBadge = () => {
 
   return (
     <span
-      className={`song-eq-badge${willSave ? ' song-eq-badge--will-save' : ''}`}
+      className={`song-eq-badge${isSaved ? ' song-eq-badge--will-save' : ''}`}
       role="status"
       aria-label={t('songEq.badgeAria')}
       title={t('songEq.badgeAria')}

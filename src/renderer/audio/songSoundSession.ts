@@ -86,6 +86,8 @@ let lastAlbum: { key: string; title: string } | undefined;
  * about: the song's own, and its album's. */
 let lastEqs: { key: string; song?: string; album?: string } | undefined;
 let queue: Promise<void> = Promise.resolve();
+/** Saves pressed this session (`useSongSoundSaveTick`). */
+let saveTick = 0;
 let stateEditor: IOutputEditor | undefined;
 
 /** The host supplies engine choice and readback after an acknowledged edit. */
@@ -455,7 +457,20 @@ export const useSongSoundNow = (): ISongSoundNow =>
   );
 
 /** "Save for this song", or Save changes: what plays is the song's own. */
-export const saveSongSoundNow = (): void => feedSongSound({ kind: 'saveNow' });
+export const saveSongSoundNow = (): void => {
+  saveTick += 1;
+  feedSongSound({ kind: 'saveNow' });
+  emit();
+};
+
+/** How many saves were pressed, for the button's Saved: it says so for a
+ * moment after each one (`AutoEqSaveHalf`), never all the time. */
+export const useSongSoundSaveTick = (): number =>
+  useSyncExternalStore(
+    subscribe,
+    () => saveTick,
+    () => saveTick,
+  );
 
 /**
  * A sound was picked here for songs or an album (`covers` says which): the

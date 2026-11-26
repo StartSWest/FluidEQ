@@ -70,8 +70,6 @@ export default {
     'Измеряет каждую песню по исходному сигналу и сохраняет её коррекцию для этой песни. Поверх любого пресета.',
   'autoEq.smart.modes': 'Как корректирует',
   'autoEq.smart.waiting': 'Ожидание песни',
-  'autoEq.smart.willSave': 'Сохранится для этой песни, когда она закончится',
-  'autoEq.smart.savesIn': 'Сохранится для этой песни через {remaining}',
   'autoEq.smart.onceHint': 'Одно измерение того, что играет, применяется сразу',
   'autoEq.smart.once': 'Измерить один раз',
   'autoEq.smart.phase.listening': 'Слушаем',

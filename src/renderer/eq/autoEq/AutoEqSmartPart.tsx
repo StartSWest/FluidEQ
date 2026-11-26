@@ -4,7 +4,6 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { SONG_EQ_MIN_LISTENED_MS } from 'common/songEqRecorder';
 import Switch from '../../widgets/Switch';
 import SegmentedControl from '../../widgets/SegmentedControl';
 import { useTranslation } from '../../utils/I18nContext';
@@ -20,7 +19,6 @@ import {
   useSmartEqMode,
 } from '../../utils/smartEqMode';
 import { useSongEqRecording } from '../../audio/songEqSession';
-import { formatDuration } from '../../library/player/NowPlayingBar';
 import type { TAutoEqButton } from './useAutoEqButton';
 import AutoEqSmartStatus from './AutoEqSmartStatus';
 
@@ -59,17 +57,11 @@ const AutoEqSmartPart = ({ button }: { button: TAutoEqButton }) => {
       cancelSmartEq();
     }
   };
-  let saving = '';
-  if (isContinuousRunning && recording.title !== undefined) {
-    saving = recording.willSave
-      ? t('autoEq.smart.willSave')
-      : t('autoEq.smart.savesIn', {
-          remaining: formatDuration(
-            Math.max(0, SONG_EQ_MIN_LISTENED_MS - recording.listenedMs),
-          ),
-        });
-  }
-  const progress = Math.min(1, recording.listenedMs / SONG_EQ_MIN_LISTENED_MS);
+  // Said once it is so: a song's correction is saved the moment Smart
+  // correction is done with it, with nothing to count down to (Ivan,
+  // 2026-11-26: "remove the concept of saved for this song in x secs").
+  const isSaved =
+    isContinuousRunning && recording.title !== undefined && recording.isSaved;
 
   return (
     <section className="eq-auto-part" aria-labelledby="eq-auto-smart-title">
@@ -99,15 +91,9 @@ const AutoEqSmartPart = ({ button }: { button: TAutoEqButton }) => {
             onChange={(next) => setSmartEqMode(next as TSmartEqMode)}
           />
           {isContinuousRunning && <AutoEqSmartStatus />}
-          {isContinuousRunning && saving && (
+          {isSaved && (
             <div className="eq-auto-part__line eq-auto-smart__saving">
-              <span className="eq-auto-smart__track" aria-hidden="true">
-                <span
-                  className="eq-auto-smart__fill"
-                  style={{ width: `${progress * 100}%` }}
-                />
-              </span>
-              <span>{saving}</span>
+              <span>{t('autoEq.songs.saved')}</span>
             </div>
           )}
         </>

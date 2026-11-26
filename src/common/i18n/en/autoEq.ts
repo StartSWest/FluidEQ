@@ -70,8 +70,6 @@ export default {
     'Measures each song from the source and keeps its correction for that song. On top of any preset.',
   'autoEq.smart.modes': 'How it corrects',
   'autoEq.smart.waiting': 'Waiting for a song',
-  'autoEq.smart.willSave': 'Saved for this song when it ends',
-  'autoEq.smart.savesIn': 'Saved for this song in {remaining}',
   'autoEq.smart.onceHint': 'One measurement of what plays, applied at once',
   'autoEq.smart.once': 'Measure once',
   'autoEq.smart.phase.listening': 'Listening',

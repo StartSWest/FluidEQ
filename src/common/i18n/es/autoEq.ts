@@ -73,8 +73,6 @@ export default {
     'Mide cada canción desde la fuente y guarda su corrección para esa canción. Por encima de cualquier preset.',
   'autoEq.smart.modes': 'Cómo corrige',
   'autoEq.smart.waiting': 'Esperando una canción',
-  'autoEq.smart.willSave': 'Se guardará para esta canción cuando termine',
-  'autoEq.smart.savesIn': 'Se guardará para esta canción en {remaining}',
   'autoEq.smart.onceHint': 'Una medición de lo que suena, aplicada de una vez',
   'autoEq.smart.once': 'Medir una vez',
   'autoEq.smart.phase.listening': 'Escuchando',

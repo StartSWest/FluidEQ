@@ -33,10 +33,7 @@ import type { ReactNode } from 'react';
 import { FilterTypeEnum, ISmartEqSettings } from 'common/constants';
 import type { ISongEqEntry } from 'common/songEq';
 import { buildSongIdentity } from 'common/songIdentity';
-import {
-  SONG_EQ_MIN_LISTENED_MS,
-  SONG_EQ_SETTLE_MS,
-} from 'common/songEqRecorder';
+import { SONG_EQ_SETTLE_MS } from 'common/songEqRecorder';
 import * as api from 'renderer/utils/equalizerApi';
 import { useNowPlayingIdentity } from 'renderer/audio/nowPlayingIdentity';
 import {
@@ -49,6 +46,7 @@ import {
   endSongEqNotice,
   forgetCurrentSongEq,
   getSongEqSaveOn,
+  noteSmartEqHeld,
   noteSmartEqWrite,
   resetSongEqSession,
   setSongEqSaveOn,
@@ -63,6 +61,7 @@ import {
   setTransportSource,
 } from 'renderer/audio/transportSource';
 import { setSmartEqMode } from 'renderer/utils/smartEqMode';
+import { setSongSoundParts } from 'renderer/audio/songSoundSession';
 
 jest.mock('renderer/utils/equalizerApi');
 jest.mock('renderer/audio/nowPlayingIdentity');
@@ -135,6 +134,9 @@ describe('songEqSession', () => {
     // an automatic mode running would hand the next one a save switch the
     // reducer accepts, which is precisely the condition under test.
     setSmartEqMode('smart');
+    // Song sounds on: a song keeps a correction only while it is
+    // (`songsChanged`), and every save below is about a song that may.
+    setSongSoundParts({ songs: true, albums: false });
     // Module state outlives a render — see `resetSongEqSession`'s own
     // comment — so every test starts from a session-free, notice-free,
     // save-off module rather than whatever the previous test left behind.
@@ -160,6 +162,21 @@ describe('songEqSession', () => {
   afterEach(() => {
     jest.useRealTimers();
     act(() => setSmartEqMode('smart'));
+    act(() => setSongSoundParts({ songs: false, albums: false }));
+  });
+
+  /**
+   * Song sounds is where a song keeps a sound: off, Smart correction saves
+   * nothing into a song however much it measures (Ivan, 2026-11-26).
+   */
+  it('saves nothing while Song sounds is off, with a mode running', () => {
+    setSongSoundParts({ songs: false, albums: false });
+    startAutoEq();
+    renderHook(() => useSongEqSessionHost(), { wrapper });
+    expect(getSongEqSaveOn()).toBe(false);
+    // The control: Song sounds on, saving is on with the mode.
+    act(() => setSongSoundParts({ songs: true, albums: false }));
+    expect(getSongEqSaveOn()).toBe(true);
   });
 
   /**
@@ -211,14 +228,12 @@ describe('songEqSession', () => {
   });
 
   /**
-   * The end-to-end the whole report was about: with an automatic mode running
-   * and the switch on, a song past the two-minute floor is checkpointed while
-   * it plays and committed when it ends.
-   *
-   * Fails on any break in the chain — the switch being refused, the layer
-   * never reaching `liveLayer`, or the commit at close being skipped.
+   * The end-to-end: with an automatic mode running, a song is saved the
+   * moment Smart correction is done with it (Ivan, 2026-11-26: "save that
+   * smart eq immediately after is fully defined"), and its correction is
+   * taken off when it ends, so the next song starts flat.
    */
-  it('checkpoints and commits a song once saving is on behind a running mode', async () => {
+  it('saves a song the moment Smart correction holds it, and takes it off at its end', async () => {
     const song = buildSongIdentity('library', 'saved-song', 'Saved', 'Artist');
     const nextSong = buildSongIdentity(
       'library',
@@ -229,9 +244,6 @@ describe('songEqSession', () => {
     if (!song || !nextSong) {
       throw new Error('test fixture produced no identity');
     }
-    // A live layer to record — without one, `willSongEqSave` never reaches
-    // true regardless of the save switch.
-    contextSmartEq = layerOf(2);
     (api.lookupSongEq as jest.Mock).mockResolvedValue(undefined);
     mockUseNowPlayingIdentity.mockReturnValue({
       identity: song,
@@ -240,16 +252,14 @@ describe('songEqSession', () => {
 
     startAutoEq();
     const { rerender } = renderHook(() => useSongEqSessionHost(), { wrapper });
+    await playFor(SONG_EQ_SETTLE_MS + 1000);
+    expect(api.commitSongEq).not.toHaveBeenCalled();
+
     act(() => {
-      setSongEqSaveOn(true);
+      noteSmartEqHeld(layerOf(4));
     });
+    expect(api.commitSongEq).toHaveBeenCalledWith('device-a', song, layerOf(4));
 
-    await playFor(SONG_EQ_MIN_LISTENED_MS + SONG_EQ_SETTLE_MS + 2000);
-
-    expect(api.checkpointSongEq).toHaveBeenCalled();
-
-    // A different song closes the first, which is when the commit that
-    // counts the play fires.
     mockUseNowPlayingIdentity.mockReturnValue({
       identity: nextSong,
       isPlaying: true,
@@ -257,9 +267,10 @@ describe('songEqSession', () => {
     act(() => {
       rerender();
     });
-    expect(api.commitSongEq).toHaveBeenCalled();
+    // Saved once, and the song's correction taken off as it ended.
+    expect(api.commitSongEq).toHaveBeenCalledTimes(1);
+    expect(api.setSmartEq).toHaveBeenLastCalledWith(undefined);
   });
-
   it('raises no notice for a song nothing is remembered about', async () => {
     const song = buildSongIdentity(
       'library',
@@ -478,9 +489,8 @@ describe('songEqSession', () => {
     if (!song) {
       throw new Error('test fixture produced no identity');
     }
-    // Distinguishable from "cleared": Undo restoring `layerOf(1)` proves it
-    // restored what was actually there before the match, not merely that it
-    // called `setSmartEq` with something.
+    // Another song's curve before the match: Undo takes the match off to
+    // flat, never back to it (Ivan, 2026-11-26).
     contextSmartEq = layerOf(1);
     const entry = entryOf('Echo Song', layerOf(3));
     (api.lookupSongEq as jest.Mock).mockResolvedValue(entry);
@@ -505,11 +515,10 @@ describe('songEqSession', () => {
       undoSongEqLoan();
     });
 
-    // Undo only ever produces a write when a loan is still on record, and it
-    // restores the exact pre-match layer — proof the reducer's `isSameLayer`
-    // recognised the mirrored write as this session's own rather than
-    // dropping the loan on it.
-    expect(api.setSmartEq).toHaveBeenLastCalledWith(layerOf(1));
+    // Undo only ever produces a write when a loan is still on record — proof
+    // the reducer's `isSameLayer` recognised the mirrored write as this
+    // session's own rather than dropping the loan on it.
+    expect(api.setSmartEq).toHaveBeenLastCalledWith(undefined);
   });
 
   /** The positive control beside the test above: a layer change that is NOT
@@ -582,8 +591,7 @@ describe('songEqSession', () => {
     if (!song) {
       throw new Error('test fixture produced no identity');
     }
-    // Distinguishable from every other layer in this test, so the final
-    // assertion can only pass by restoring the actual pre-match value.
+    // Another song's curve: the hand-back is to flat, never to it.
     contextSmartEq = layerOf(1);
     const entry = entryOf('Refined Song', layerOf(3));
     (api.lookupSongEq as jest.Mock).mockResolvedValue(entry);
@@ -615,7 +623,7 @@ describe('songEqSession', () => {
       rerender();
     });
 
-    expect(api.setSmartEq).toHaveBeenLastCalledWith(layerOf(1));
+    expect(api.setSmartEq).toHaveBeenLastCalledWith(undefined);
   });
 
   it('forgets the notice-named song over IPC and clears the notice', async () => {
@@ -661,13 +669,8 @@ describe('songEqSession', () => {
     expect(result.current).toBeUndefined();
   });
 
-  /**
-   * `willSongEqSave` folds `forgotten` in, rather than leaving it as a
-   * separate check `close` and `advance` each restated — the exact drift
-   * finding 3 (`willSave` reimplementing the rule) warned about, recreated
-   * by finding 6 (`forget`) the moment the two lived apart again.
-   */
-  it('stops promising a save once the current song has been forgotten', async () => {
+  /** Forgotten, what was saved is gone, and the panel stops saying it is. */
+  it('stops saying the song is saved once it has been forgotten', async () => {
     const song = buildSongIdentity(
       'library',
       'forgotten-badge-song',
@@ -677,9 +680,6 @@ describe('songEqSession', () => {
     if (!song) {
       throw new Error('test fixture produced no identity');
     }
-    // A live layer past the floor, saving on — `willSave` has every reason
-    // to answer true, until forgetting is asked to override it.
-    contextSmartEq = layerOf(2);
     (api.lookupSongEq as jest.Mock).mockResolvedValue(undefined);
     mockUseNowPlayingIdentity.mockReturnValue({
       identity: song,
@@ -694,21 +694,18 @@ describe('songEqSession', () => {
       },
       { wrapper },
     );
-    // After the host is mounted, not before: the reducer only accepts saving
-    // once the host has reported the mode running.
+    await playFor(SONG_EQ_SETTLE_MS + 1000);
     act(() => {
-      setSongEqSaveOn(true);
+      noteSmartEqHeld(layerOf(2));
     });
 
-    await playFor(SONG_EQ_MIN_LISTENED_MS + SONG_EQ_SETTLE_MS + 2000);
-
-    // Positive control: this is what the bug would have kept showing.
-    expect(result.current.willSave).toBe(true);
+    // Positive control: saved the moment it was held.
+    expect(result.current.isSaved).toBe(true);
 
     act(() => {
       forgetCurrentSongEq();
     });
 
-    expect(result.current.willSave).toBe(false);
+    expect(result.current.isSaved).toBe(false);
   });
 });

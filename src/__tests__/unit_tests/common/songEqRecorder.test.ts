@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { FilterTypeEnum, ISmartEqSettings } from 'common/constants';
 import { buildSongIdentity, ISongIdentity } from 'common/songIdentity';
 import {
-  SONG_EQ_MIN_LISTENED_MS,
   SONG_EQ_SETTLE_MS,
   SONG_EQ_SUSPEND_GRACE_MS,
   ISongEqRecorderState,
@@ -91,8 +90,17 @@ const armed = (): ISongEqRecorderState => ({
   deviceId: 'device-a',
   isSaveOn: true,
   isAutoEqRunning: true,
+  isSongsOn: true,
   liveLayer: layerOf(2),
 });
+
+/** Smart correction done with the playing song, holding `layer` for it. */
+const heldAt = (
+  at: number,
+  layer: ISmartEqSettings = layerOf(3),
+): [number, TSongEqEvent] => [at, { kind: 'held', layer }];
+const kindsOf = (effects: TSongEqEffect[], kind: TSongEqEffect['kind']) =>
+  effects.filter((effect) => effect.kind === kind);
 
 /** Play `identity` for `ms`, ticking once a second, then stop. */
 const play = (
@@ -129,14 +137,19 @@ describe('another program’s song, which reports nothing as it plays', () => {
     expect(state.session?.phase).toBe('recording');
   });
 
-  it('is filed at its end from the time that passed, though nothing ticked', () => {
+  it('is saved the moment Smart correction is done with it, though nothing ticked', () => {
     const { effects } = run(armed(), [
       [0, { kind: 'nowPlaying', identity: onDesktop, isPlaying: true }],
-      [130_000, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
+      heldAt(40_000),
     ]);
-    expect(effects.filter((effect) => effect.kind === 'commit')).toHaveLength(
-      1,
-    );
+    expect(kindsOf(effects, 'commit')).toEqual([
+      {
+        kind: 'commit',
+        identity: onDesktop,
+        deviceId: 'device-a',
+        layer: layerOf(3),
+      },
+    ]);
   });
 
   it('is looked up as it starts after a song that played, too', () => {
@@ -161,7 +174,7 @@ describe('another program’s song, which reports nothing as it plays', () => {
 });
 
 describe('songEqRecorder', () => {
-  it('saves nothing for a song skipped after ninety seconds', () => {
+  it('saves nothing for a song skipped before Smart correction was done with it', () => {
     const { effects } = run(armed(), [
       ...play(songA, 90_000),
       [90_001, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
@@ -174,25 +187,39 @@ describe('songEqRecorder', () => {
     ).toHaveLength(0);
   });
 
-  it('saves a song played for over two minutes', () => {
+  it('saves a song the moment Smart correction is done with it', () => {
     // THE POSITIVE CONTROL. Without it the test above passes against a reducer
     // that never saves anything, which is precisely how the separation packing
-    // bug got through a perfect-looking null test.
+    // bug got through a perfect-looking null test. No two minutes to wait for
+    // (Ivan, 2026-11-26: "remove the concept of saved for this song in x
+    // secs").
     const { effects } = run(armed(), [
-      ...play(songA, 130_000),
-      [130_001, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
+      ...play(songA, 30_000),
+      heldAt(30_001),
+      [30_002, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
     ]);
-    const commits = effects.filter((effect) => effect.kind === 'commit');
+    const commits = kindsOf(effects, 'commit');
     expect(commits).toHaveLength(1);
-    expect(commits[0]).toMatchObject({ deviceId: 'device-a' });
+    expect(commits[0]).toMatchObject({ deviceId: 'device-a', identity: songA });
   });
 
-  it('checkpoints the moment two minutes are reached, before the song ends', () => {
-    const { effects } = run(armed(), play(songA, 125_000));
-    const checkpoints = effects.filter(
-      (effect) => effect.kind === 'checkpoint',
-    );
-    expect(checkpoints).toHaveLength(1);
+  it('saves a new measurement of the same play again, counting the play once', () => {
+    // "continue to fixing it and saving it if changes" (Ivan, 2026-11-26).
+    const { effects } = run(armed(), [
+      ...play(songA, 30_000),
+      heldAt(30_001, layerOf(3)),
+      heldAt(60_000, layerOf(5)),
+    ]);
+    expect(
+      effects
+        .filter(
+          (effect) => effect.kind === 'commit' || effect.kind === 'checkpoint',
+        )
+        .map((effect) => effect.kind),
+    ).toEqual(['commit', 'checkpoint']);
+    expect(kindsOf(effects, 'checkpoint')[0]).toMatchObject({
+      layer: layerOf(5),
+    });
   });
 
   it('ignores a track that never settles', () => {
@@ -252,7 +279,7 @@ describe('songEqRecorder', () => {
     expect(state.session).toBeUndefined();
   });
 
-  it('applies a match and restores the previous layer at the end', () => {
+  it('applies a match and takes it off to flat at the end', () => {
     const entry = {
       settings: layerOf(9),
       title: 'Song A',
@@ -269,10 +296,11 @@ describe('songEqRecorder', () => {
       ],
     ]);
     const applied = effects.filter((effect) => effect.kind === 'applyLayer');
-    // Once to lend the saved curve, once to hand back what was there before.
+    // Once to lend the saved curve, once to take it off: to flat, never to
+    // the curve before it, which was another song's (Ivan, 2026-11-26).
     expect(applied).toHaveLength(2);
     expect(applied[0]).toMatchObject({ settings: entry.settings });
-    expect(applied[1]).toMatchObject({ settings: layerOf(2) });
+    expect(applied[1]).toEqual({ kind: 'applyLayer', settings: undefined });
   });
 
   it('raises the notice on a match', () => {
@@ -346,10 +374,9 @@ describe('songEqRecorder', () => {
       ],
     ]);
     const applied = effects.filter((effect) => effect.kind === 'applyLayer');
-    // The lend, then the hand-back — of what was live before the match, not
-    // of the refinement.
+    // The lend, then the hand-back to flat — never the refinement.
     expect(applied).toHaveLength(2);
-    expect(applied[1]).toMatchObject({ settings: layerOf(2) });
+    expect(applied[1]).toEqual({ kind: 'applyLayer', settings: undefined });
   });
 
   it('keeps the loan when the engine announces clearing the layer entirely', () => {
@@ -374,7 +401,7 @@ describe('songEqRecorder', () => {
     ]);
     const applied = effects.filter((effect) => effect.kind === 'applyLayer');
     expect(applied).toHaveLength(2);
-    expect(applied[1]).toMatchObject({ settings: layerOf(2) });
+    expect(applied[1]).toEqual({ kind: 'applyLayer', settings: undefined });
   });
 
   it('survives a stored entry that carries no filters at all', () => {
@@ -402,17 +429,33 @@ describe('songEqRecorder', () => {
     expect(run(armed(), steps).state.session?.hasLoan).toBe(false);
   });
 
-  it('still saves a session whose loan was dropped', () => {
-    // Dropping the loan stops the restore, not the save. A curve measured by
-    // hand over a playing track is a better answer for that song.
-    const { effects } = run(armed(), [
-      ...play(songA, 130_000),
-      [130_001, { kind: 'layerChanged', layer: layerOf(-4) }],
-      [130_002, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
+  it('starts a song with nothing kept flat, never on the last song’s curve', () => {
+    // Ivan, 2026-11-26: "smart correction curve is only for that song is
+    // carrying to all other songs".
+    const settled = run(armed(), [
+      [0, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
+      [SONG_EQ_SETTLE_MS + 1, { kind: 'tick' }],
     ]);
-    expect(effects.filter((effect) => effect.kind === 'commit')).toHaveLength(
-      1,
-    );
+    const nothingKept = run(settled.state, [
+      [SONG_EQ_SETTLE_MS + 2, { kind: 'matched', identity: songA }],
+    ]);
+    expect(nothingKept.effects).toEqual([
+      { kind: 'applyLayer', settings: undefined },
+    ]);
+    expect(nothingKept.state.liveLayer).toBeUndefined();
+    // The control: a song with a correction of its own gets it.
+    const entry = {
+      settings: layerOf(9),
+      title: 'Song A',
+      plays: 1,
+      updatedAt: 1,
+    };
+    const kept = run(settled.state, [
+      [SONG_EQ_SETTLE_MS + 2, { kind: 'matched', identity: songA, entry }],
+    ]);
+    expect(kindsOf(kept.effects, 'applyLayer')).toEqual([
+      { kind: 'applyLayer', settings: entry.settings },
+    ]);
   });
 
   /**
@@ -436,6 +479,7 @@ describe('songEqRecorder', () => {
    * missing mode, not about `saveToggled` having stopped working. */
   it('turns saving on when an automatic mode is running', () => {
     const { state } = run(getInitialRecorderState(), [
+      [0, { kind: 'songsChanged', isOn: true }],
       [0, { kind: 'autoEqChanged', isRunning: true }],
       [1, { kind: 'saveToggled', isSaveOn: true }],
     ]);
@@ -449,6 +493,7 @@ describe('songEqRecorder', () => {
    */
   it('saves whenever an automatic mode runs, and stops when it stops', () => {
     const on = run(getInitialRecorderState(), [
+      [0, { kind: 'songsChanged', isOn: true }],
       [0, { kind: 'autoEqChanged', isRunning: true }],
     ]);
     expect(on.state.isSaveOn).toBe(true);
@@ -464,68 +509,61 @@ describe('songEqRecorder', () => {
   });
 
   /**
-   * A mode that has just started has measured nothing yet: the song already
-   * playing starts its two minutes again from then, or the curve left in the
-   * chain, refined for a few seconds, would be filed under it.
+   * Song sounds is where a song keeps a sound: off, Smart correction saves
+   * nothing into a song however much it measures (Ivan, 2026-11-26).
    */
-  it('gives a song already playing its two minutes again from when the mode starts', () => {
-    const idle: ISongEqRecorderState = {
-      ...armed(),
-      isAutoEqRunning: false,
-      isSaveOn: false,
-    };
-    // Paused and played on before the mode starts, so part of its time is
-    // banked as well as running: both have to start again.
-    const started = (listenAfter: number) =>
-      run(idle, [
-        ...play(songA, 60_000),
-        [60_001, { kind: 'nowPlaying', identity: songA, isPlaying: false }],
-        [61_000, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
-        ...ticksFrom(62_000, 100_000),
-        [100_001, { kind: 'autoEqChanged', isRunning: true }],
-        ...ticksFrom(101_000, 100_000 + listenAfter),
-        [
-          100_001 + listenAfter,
-          { kind: 'nowPlaying', identity: songB, isPlaying: true },
-        ],
-      ]);
-    // Ninety seconds of measuring, though the song has played for over three
-    // minutes: nothing filed.
-    expect(
-      started(90_000).effects.filter((effect) => effect.kind === 'commit'),
-    ).toHaveLength(0);
-    // The control: two minutes of measuring files it.
-    expect(
-      started(125_000).effects.filter((effect) => effect.kind === 'commit'),
-    ).toHaveLength(1);
+  it('saves nothing into a song while Song sounds is off', () => {
+    const off = run(armed(), [
+      [0, { kind: 'songsChanged', isOn: false }],
+      ...play(songA, 30_000),
+      heldAt(30_001),
+    ]);
+    expect(off.state.isSaveOn).toBe(false);
+    expect(kindsOf(off.effects, 'commit')).toEqual([]);
+    // Still the song's alone: taken off at its end.
+    const ended = run(off.state, [
+      [30_002, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
+    ]);
+    expect(kindsOf(ended.effects, 'applyLayer')).toEqual([
+      { kind: 'applyLayer', settings: undefined },
+    ]);
+    // Smart correction switched on while Song sounds is off saves nothing.
+    const started = run(getInitialRecorderState(), [
+      [0, { kind: 'songsChanged', isOn: false }],
+      [1, { kind: 'autoEqChanged', isRunning: true }],
+    ]);
+    expect(started.state.isSaveOn).toBe(false);
+    // The control: on again, the next hold is saved.
+    const on = run(off.state, [
+      [30_002, { kind: 'songsChanged', isOn: true }],
+      heldAt(40_000),
+    ]);
+    expect(kindsOf(on.effects, 'commit')).toHaveLength(1);
   });
 
   /**
-   * And switching one OFF takes saving with it: nothing refines the layer any
-   * more, so an on switch would go on promising a save behind a control that
-   * is no longer on screen — and commit a layer nothing has touched since.
+   * And switching one OFF takes saving with it: nothing measures any more.
    */
   it('stops saving when the automatic mode is switched off mid-song', () => {
     const { effects } = run(armed(), [
-      ...play(songA, 130_000),
-      [130_001, { kind: 'autoEqChanged', isRunning: false }],
-      [130_002, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
+      ...play(songA, 30_000),
+      heldAt(30_001),
+      [30_002, { kind: 'autoEqChanged', isRunning: false }],
+      heldAt(40_000, layerOf(6)),
     ]);
-    // The checkpoint at two minutes already went out while the mode was
-    // running, and that is right — it was measured. The commit at the end of
-    // the song is the one that must not.
+    // The hold while it ran was saved; nothing after it.
     expect(
-      effects.filter((effect) => effect.kind === 'checkpoint'),
+      effects.filter(
+        (effect) => effect.kind === 'commit' || effect.kind === 'checkpoint',
+      ),
     ).toHaveLength(1);
-    expect(effects.filter((effect) => effect.kind === 'commit')).toHaveLength(
-      0,
-    );
   });
 
   it('records nothing while the tick is off', () => {
     const { effects } = run({ ...armed(), isSaveOn: false }, [
-      ...play(songA, 130_000),
-      [130_001, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
+      ...play(songA, 30_000),
+      heldAt(30_001),
+      [30_002, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
     ]);
     expect(effects.filter((effect) => effect.kind === 'commit')).toHaveLength(
       0,
@@ -544,69 +582,74 @@ describe('songEqRecorder', () => {
     );
   });
 
-  it('commits under the output it was learned on when the device changes', () => {
+  it('saves under the output it was learned on, before a change of output', () => {
     const { effects } = run(armed(), [
-      ...play(songA, 130_000),
-      [130_001, { kind: 'deviceChanged', deviceId: 'device-b' }],
+      ...play(songA, 30_000),
+      heldAt(30_001),
+      [30_002, { kind: 'deviceChanged', deviceId: 'device-b' }],
     ]);
-    const commits = effects.filter((effect) => effect.kind === 'commit');
+    const commits = kindsOf(effects, 'commit');
     expect(commits).toHaveLength(1);
     expect(commits[0]).toMatchObject({ deviceId: 'device-a' });
   });
 
-  it('commits on the way out', () => {
-    const { effects } = run(armed(), [
-      ...play(songA, 130_000),
-      [130_001, { kind: 'closing' }],
+  it('takes a correction measured for the song off at its end, to flat', () => {
+    const measured = run(armed(), [
+      ...play(songA, 30_000),
+      heldAt(30_001),
+      [30_002, { kind: 'closing' }],
     ]);
-    expect(effects.filter((effect) => effect.kind === 'commit')).toHaveLength(
-      1,
-    );
+    expect(kindsOf(measured.effects, 'applyLayer')).toEqual([
+      { kind: 'applyLayer', settings: undefined },
+    ]);
+    expect(measured.state.liveLayer).toBeUndefined();
+    // The control: nothing measured for it, nothing taken off.
+    const unmeasured = run(armed(), [
+      ...play(songA, 30_000),
+      [30_002, { kind: 'closing' }],
+    ]);
+    expect(kindsOf(unmeasured.effects, 'applyLayer')).toEqual([]);
   });
 
-  it('saves at the threshold and not one millisecond under it', () => {
-    // The rule is `listened >= SONG_EQ_MIN_LISTENED_MS`, so exactly the
-    // threshold saves. Both sides are pinned because an off-by-one here is a
-    // feature that silently never fires.
-    const under = run(armed(), [
-      ...play(songA, SONG_EQ_MIN_LISTENED_MS - 2000),
-      [SONG_EQ_MIN_LISTENED_MS - 1, { kind: 'closing' }],
+  it('writes nothing twice: a song taken off to flat leaves the next song nothing to clear', () => {
+    const { effects } = run(armed(), [
+      ...play(songA, 30_000),
+      heldAt(30_001),
+      [30_002, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
+      [30_003 + SONG_EQ_SETTLE_MS, { kind: 'tick' }],
+      [30_004 + SONG_EQ_SETTLE_MS, { kind: 'matched', identity: songB }],
     ]);
-    expect(
-      under.effects.filter((effect) => effect.kind === 'commit'),
-    ).toHaveLength(0);
-
-    const at = run(armed(), [
-      ...play(songA, SONG_EQ_MIN_LISTENED_MS - 2000),
-      [SONG_EQ_MIN_LISTENED_MS, { kind: 'closing' }],
+    expect(kindsOf(effects, 'applyLayer')).toEqual([
+      { kind: 'applyLayer', settings: undefined },
     ]);
-    expect(
-      at.effects.filter((effect) => effect.kind === 'commit'),
-    ).toHaveLength(1);
   });
 
   it("does not carry one song's curve into the next after a pause", () => {
     // The grace close hands the loan back as an EFFECT. Anything that forgets
-    // to move `liveLayer` with it commits song A's borrowed curve under song
-    // B's key — and a minute's pause is all it takes to get there.
+    // to move `liveLayer` with it would save song A's borrowed curve under
+    // song B's key — and a minute's pause is all it takes to get there.
     const entry = {
       settings: layerOf(9),
       title: 'Song A',
       plays: 1,
       updatedAt: 1,
     };
-    const { effects } = run(armed(), [
+    const { effects, state } = run(armed(), [
       [0, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
       [SONG_EQ_SETTLE_MS + 1, { kind: 'tick' }],
       [SONG_EQ_SETTLE_MS + 2, { kind: 'matched', identity: songA, entry }],
       [3000, { kind: 'nowPlaying', identity: songA, isPlaying: false }],
       [3001 + SONG_EQ_SUSPEND_GRACE_MS, { kind: 'tick' }],
-      ...play(songB, 130_000, 70_000),
-      [210_000, { kind: 'closing' }],
+      ...play(songB, 30_000, 70_000),
+      [110_000, { kind: 'closing' }],
     ]);
-    const commits = effects.filter((effect) => effect.kind === 'commit');
-    expect(commits).toHaveLength(1);
-    expect(commits[0]).toMatchObject({ layer: layerOf(2) });
+    expect(kindsOf(effects, 'commit')).toEqual([]);
+    const applied = kindsOf(effects, 'applyLayer');
+    expect(applied[applied.length - 1]).toEqual({
+      kind: 'applyLayer',
+      settings: undefined,
+    });
+    expect(state.liveLayer).toBeUndefined();
   });
 
   it('ignores a lookup that answers after the track has changed', () => {
@@ -689,7 +732,7 @@ describe('songEqRecorder', () => {
     // the echo rather than dropped as a foreign write.
     expect(applied).toHaveLength(2);
     expect(applied[0]).toMatchObject({ settings: appliedLayer });
-    expect(applied[1]).toMatchObject({ settings: layerOf(2) });
+    expect(applied[1]).toEqual({ kind: 'applyLayer', settings: undefined });
   });
 
   it('recognises its own write even when the entry carried a field the sanitiser discards', () => {
@@ -726,7 +769,7 @@ describe('songEqRecorder', () => {
     const applied = effects.filter((effect) => effect.kind === 'applyLayer');
     // The lend, and the hand-back once the loan survives the stripped echo.
     expect(applied).toHaveLength(2);
-    expect(applied[1]).toMatchObject({ settings: layerOf(2) });
+    expect(applied[1]).toEqual({ kind: 'applyLayer', settings: undefined });
   });
 
   it('does not recommit a song after it has been forgotten mid-play, however long it continues', () => {
@@ -737,6 +780,7 @@ describe('songEqRecorder', () => {
       [SONG_EQ_SETTLE_MS + 1, { kind: 'tick' }],
       [60_000, { kind: 'forget' }],
       ...ticksFrom(61_000, 130_000),
+      heldAt(130_000),
       [130_001, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
     ]);
     expect(
@@ -773,6 +817,7 @@ describe('songEqRecorder', () => {
       [0, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
       [1, { kind: 'forget', identity: songB }],
       ...ticksFrom(1000, 130_000),
+      heldAt(130_000),
       [130_001, { kind: 'nowPlaying', identity: undefined, isPlaying: false }],
     ]);
     expect(effects.filter((effect) => effect.kind === 'commit')).toHaveLength(

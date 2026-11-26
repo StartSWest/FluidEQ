@@ -27,7 +27,7 @@ import type {
 import type { ISongIdentity } from './songIdentity';
 
 /**
- * When a session settles, checkpoints, times out on the suspend grace, and
+ * When a session settles, times out on the suspend grace, and
  * what "closing" one means — the passage of time, independent of which event
  * carried the clock forward.
  *
@@ -72,10 +72,6 @@ export const SONG_EQ_SETTLE_MS = 2_000;
 export const settlesAtOnce = (identity: ISongIdentity): boolean =>
   identity.source === 'system';
 
-/** How much has to have been *listened to* before a song is worth keeping.
- * Below this the user was browsing, and browsing should leave no trace. */
-export const SONG_EQ_MIN_LISTENED_MS = 120_000;
-
 /**
  * How long a stopped session waits before it is really over.
  *
@@ -92,83 +88,47 @@ export const listenedAt = (session: ISongEqSession, now: number) =>
   (session.playingSince === undefined ? 0 : now - session.playingSince);
 
 /**
- * Whether continuing to listen, exactly as things stand, ends in a saved
- * entry. The one gate both `close` (does this song get committed) and
- * `advance` (has it earned its two-minute checkpoint) write under — pulled
- * out once so nothing outside this file, including the shell's own "will
- * this be saved" badge, can restate it and quietly drift from it the moment
- * one of the two changes without the other noticing.
+ * End a session: hand back the loan if it is still ours, and take off a
+ * correction measured for the song this play, and produce the effects.
+ * Nothing is saved here: a song's correction is saved the moment it is done
+ * (`held` in `songEqRecorder.ts`).
  *
- * `forgotten` lives here rather than beside each call site for the same
- * reason: a badge that asked this without it would go on promising a save
- * for a song `close` has already been told never to commit again.
+ * The two are one: a correction measured for this song (`isMeasured`) is
+ * taken off as the loan is, to flat. Left on, a song with nothing kept for it
+ * played the last song's curve until it had been measured itself, a minute
+ * later or never.
  */
-export const willSongEqSave = (
-  state: ISongEqRecorderState,
-  session: ISongEqSession,
-  now: number,
-): boolean =>
-  !session.forgotten &&
-  state.isSaveOn &&
-  listenedAt(session, now) >= SONG_EQ_MIN_LISTENED_MS &&
-  Boolean(state.liveLayer);
-
-/**
- * End a session: save it if it earned that, hand back the loan if it is still
- * ours, and produce the effects for both.
- *
- * The order is deliberate and load-bearing. Reversed, the refinement would be
- * read off a layer already put back to what preceded the song, and every
- * remembered curve would decay towards whatever was in the chain before it.
- *
- * `forgotten` skips the commit outright, however long the song played: a
- * 'forget' event exists precisely so continuing to listen after it does not
- * quietly re-file the thing just asked to be dropped.
- */
-const close = (
-  state: ISongEqRecorderState,
-  session: ISongEqSession,
-  now: number,
-  deviceId: string,
-): TSongEqEffect[] => {
-  const effects: TSongEqEffect[] = [];
-  if (willSongEqSave(state, session, now) && state.liveLayer) {
-    effects.push({
-      kind: 'commit',
-      identity: session.identity,
-      deviceId,
-      layer: state.liveLayer,
-    });
-  }
-  if (session.hasLoan) {
-    effects.push({ kind: 'applyLayer', settings: session.loanLayer });
-  }
-  return effects;
-};
+const close = (session: ISongEqSession): TSongEqEffect[] =>
+  session.hasLoan || session.isMeasured
+    ? [
+        {
+          kind: 'applyLayer',
+          settings: session.hasLoan ? session.loanLayer : undefined,
+        },
+      ]
+    : [];
 
 /**
  * End a session and put the chain back where it was.
  *
  * State AND effects together, because those two must not be able to disagree:
- * `close` hands the loan back as an effect, so anything that forgets to move
- * `liveLayer` with it goes on believing the borrowed curve is the live one —
- * and commits it under the NEXT song's key.
+ * `close` hands the layer back as an effect, so anything that forgets to move
+ * `liveLayer` with it goes on believing the borrowed curve is the live one.
  */
 export const closeSession = (
   state: ISongEqRecorderState,
   session: ISongEqSession,
-  now: number,
-  deviceId: string,
-): [ISongEqRecorderState, TSongEqEffect[]] => [
-  {
-    ...state,
-    session: undefined,
-    liveLayer: session.hasLoan ? session.loanLayer : state.liveLayer,
-  },
-  close(state, session, now, deviceId),
-];
+): [ISongEqRecorderState, TSongEqEffect[]] => {
+  let { liveLayer } = state;
+  if (session.hasLoan) {
+    liveLayer = session.loanLayer;
+  } else if (session.isMeasured) {
+    liveLayer = undefined;
+  }
+  return [{ ...state, session: undefined, liveLayer }, close(session)];
+};
 
-/** Settle, checkpoint and grace, all of which are time passing rather than
+/** Settle and grace, both of which are time passing rather than
  * anything happening. Shared by `tick` and by every event, because an event
  * arriving is also a moment at which time has passed. */
 export const advance = (
@@ -203,26 +163,7 @@ export const advance = (
     session.suspendedSince !== undefined &&
     now - session.suspendedSince >= SONG_EQ_SUSPEND_GRACE_MS
   ) {
-    return closeSession(state, session, now, state.deviceId);
-  }
-
-  if (
-    session.phase === 'recording' &&
-    !session.hasCheckpointed &&
-    willSongEqSave(state, session, now) &&
-    state.liveLayer
-  ) {
-    return [
-      { ...state, session: { ...session, hasCheckpointed: true } },
-      [
-        {
-          kind: 'checkpoint',
-          identity: session.identity,
-          deviceId: state.deviceId,
-          layer: state.liveLayer,
-        },
-      ],
-    ];
+    return closeSession(state, session);
   }
 
   return [state, []];
