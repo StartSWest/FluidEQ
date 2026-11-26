@@ -350,6 +350,9 @@ const NOT_SETTING_FILES = [
   // (`claudeModels.ts`): a cache and a launch file, not a choice.
   'claude-models.json',
   'claude-models-settings.json',
+  // Whether the member's Higgsfield is connected, as Claude Code last
+  // answered (`higgsfieldWatch.ts`): a cache asked again on every ask.
+  'higgsfield.json',
   // Another program's sign-in, read where it keeps it.
   '.credentials.json',
   // Exports and project files the listener saves where they choose.
