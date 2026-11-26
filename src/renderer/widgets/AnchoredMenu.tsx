@@ -16,7 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CSSProperties, ReactNode, useLayoutEffect, useState } from 'react';
+import {
+  CSSProperties,
+  ReactNode,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { createPortal } from 'react-dom';
 import bottomInset from '../utils/shellInset';
 import useExitAnimation from '../utils/useExitAnimation';
@@ -66,6 +72,17 @@ import {
  * neither side can hold it, it takes the larger side and scrolls — because a
  * menu that is a little awkward to use is still usable, and one whose last three
  * items are off-screen is not.
+ *
+ * That choice is made once, when the menu opens, and kept while it stays open
+ * (`ISideDecision`). The side used to be chosen again from the menu's own
+ * height at every scroll, resize, animation end and transition end — and a
+ * panel whose height animates between its views (Auto EQ's Manage, a section
+ * opening) ends a transition of its own at every change, so it jumped above
+ * its button as it grew and back below as it shrank (Ivan, 2026-11-26: "this
+ * menu grows and swaps top/bottom ... annoying"). Content that outgrows its
+ * side now scrolls inside the menu, which the surface already allows
+ * (`menu-surface`). Only the window being resized or the trigger moving
+ * decides again, because then the room on each side really is different.
  */
 
 const OFFSET = MENU_GAP;
@@ -103,13 +120,38 @@ const horizontalFrom = (
       };
 };
 
+/**
+ * The side an open menu chose, and what it was chosen against: the trigger's
+ * top and bottom and the window's size. While all four are what they were,
+ * the side is kept, whatever the menu's content does.
+ */
+interface ISideDecision {
+  side: TMenuSide;
+  top: number;
+  bottom: number;
+  width: number;
+  height: number;
+}
+
+/** The side still stands: nothing that decides the room on each side moved. */
+const keptSide = (decision: ISideDecision | undefined, rect: DOMRect) =>
+  decision &&
+  decision.top === rect.top &&
+  decision.bottom === rect.bottom &&
+  decision.width === window.innerWidth &&
+  decision.height === window.innerHeight
+    ? decision.side
+    : undefined;
+
 const positionFrom = (
   rect: DOMRect,
   menuHeight: number,
   menuWidth: number,
-  heightLimit = Infinity,
-  align: 'left' | 'right' = 'right',
+  heightLimit: number | undefined,
+  align: 'left' | 'right',
+  kept: TMenuSide | undefined,
 ) => {
+  const limit = heightLimit ?? Infinity;
   const roomAbove = rect.top - OFFSET - MARGIN;
   // The now-playing bar is not room. Without this the menu opened downward
   // into space the bar is standing in and its last rows sat behind the
@@ -120,8 +162,13 @@ const positionFrom = (
   // Unmeasured on the first pass — height 0 fits anywhere, so this takes the
   // preferred side and the measured pass corrects it before the frame is
   // painted.
-  const wanted = Math.min(menuHeight, heightLimit);
-  const openUpward = wanted > roomBelow && roomAbove > roomBelow;
+  const wanted = Math.min(menuHeight, limit);
+  // A side already chosen while open stays, even with too little room for
+  // the content: it scrolls rather than jumps (`ISideDecision`).
+  const openUpward =
+    kept === undefined
+      ? wanted > roomBelow && roomAbove > roomBelow
+      : kept === 'up';
   const style = {
     position: 'fixed' as const,
     // Anchored by the edge nearest the trigger in both directions, so the menu
@@ -135,10 +182,7 @@ const positionFrom = (
     '--menu-origin': `${openUpward ? 'bottom' : 'top'} ${align}`,
     '--menu-travel': openUpward ? '6px' : '-6px',
     '--menu-fold': openUpward ? '1' : '-1',
-    maxHeight: Math.max(
-      0,
-      Math.min(heightLimit, openUpward ? roomAbove : roomBelow),
-    ),
+    maxHeight: Math.max(0, Math.min(limit, openUpward ? roomAbove : roomBelow)),
     ...horizontalFrom(rect, menuWidth, align, 0),
   };
   const side: TMenuSide = openUpward ? 'up' : 'down';
@@ -239,6 +283,8 @@ const AnchoredMenu = ({
   // Still drawn while it leaves, so it goes back into its control instead of
   // blinking out.
   const exit = useExitAnimation(isOpen, 'menu-out', menu);
+  // The side chosen when it opened, kept while it stays open.
+  const decision = useRef<ISideDecision | undefined>(undefined);
   // Read apart, so a new object with the same numbers places nothing again.
   const frameWidth = frame?.width;
   const frameNudge = frame?.nudge;
@@ -247,6 +293,9 @@ const AnchoredMenu = ({
 
   useLayoutEffect(() => {
     if (!isOpen || !anchor) {
+      // Closed, the choice goes with it: the next opening chooses afresh
+      // from the room there is then.
+      decision.current = undefined;
       return undefined;
     }
     const sized =
@@ -263,21 +312,34 @@ const AnchoredMenu = ({
         : undefined;
     const place = () => {
       const rect = anchor.getBoundingClientRect();
-      const placed = sized
-        ? framedFrom(rect, sized, align, minFrameHeight)
-        : positionFrom(
-            rect,
-            // Not `offsetHeight`, which would report the cap, which would
-            // then look like a perfect fit and never flip back. See
-            // `wantedHeight`.
-            menu ? wantedHeight(menu) : 0,
-            // Width is the opposite case: `offsetWidth` is what it occupies,
-            // and what has to be kept inside the window. Zero on the first
-            // pass, so the clamp is inert until the measured pass corrects it.
-            menu?.offsetWidth ?? 0,
-            maxHeight,
-            align,
-          );
+      if (sized) {
+        setPlacement(framedFrom(rect, sized, align, minFrameHeight));
+        return;
+      }
+      const placed = positionFrom(
+        rect,
+        // Not `offsetHeight`, which would report the cap, which would then
+        // look like a perfect fit when the side is chosen. See `wantedHeight`.
+        menu ? wantedHeight(menu) : 0,
+        // Width is the opposite case: `offsetWidth` is what it occupies, and
+        // what has to be kept inside the window. Zero on the first pass, so
+        // the clamp is inert until the measured pass corrects it.
+        menu?.offsetWidth ?? 0,
+        maxHeight,
+        align,
+        keptSide(decision.current, rect),
+      );
+      // Chosen only from a measured menu: the first pass has no height yet,
+      // and a side taken from it would be a guess kept for the menu's life.
+      if (menu) {
+        decision.current = {
+          side: placed.side,
+          top: rect.top,
+          bottom: rect.bottom,
+          width: window.innerWidth,
+          height: window.innerHeight,
+        };
+      }
       setPlacement(placed);
     };
     place();
