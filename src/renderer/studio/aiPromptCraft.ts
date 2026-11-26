@@ -212,6 +212,52 @@ measured on my own scenes, not guessed, and they matter far more than length:
 - Ask yourself, before you finish: which of my functions is the biggest, and
   how many places call it? If the answer is more than one, change it.
 
+On Windows every scene goes through Direct3D's compiler, whose time grows
+faster than the code and explodes on three shapes. Two of my scenes took 38
+and 14 seconds to load because of them; rewritten, the same picture pixel for
+pixel, they took less than half. Write it this way from the start:
+
+- WORK THAT IS THE SAME ON EVERY TURN GOES BEFORE THE LOOP. Anything that
+  depends only on time, the music, the sliders or the camera - a clock, a
+  colour mixed by the day, a sway's phase, a light's strength - is worked out
+  once, before the loop, never inside it: in a loop it cost seven times as
+  much to compile as the same work that changes with the turn. That includes
+  what the helpers called in the loop work out. For many such values, one
+  function fills globals once per pixel, before anything is traced:
+    before: for (int i = 0; i < 24; i++) {
+              float sway = sin(TAU * uTime / 60.0) * (0.3 + uWind);
+              col += tree(i, p, sway); }
+    after:  float sway = sin(TAU * uTime / 60.0) * (0.3 + uWind);
+            for (int i = 0; i < 24; i++) { col += tree(i, p, sway); }
+- A LIST OF THE N NEAREST IS FILLED FROM ONE PLACE. Keeping the three nearest
+  things a ray meets is fine; offering to that list from six separate places
+  (the boats, then the whales, then the pier...) is what made one scene twice
+  as slow to build. Work out each candidate in ONE loop over every kind, and
+  offer once, at the end of the turn:
+    before: if (hitBoat(...)) offer(boatCard);   // six offers like this,
+            if (hitWhale(...)) offer(whaleCard); // each a copy of offer()
+    after:  for (int k = 0; k < 17; k++) {
+              Card c; bool found = candidate(k, ray, c); // a cheap switch on k
+              if (found) offer(c); }                     // the only offer
+- A REFLECTION RUNS THE SAME CODE, NOT A COPY OF IT. A pond, a mirror or a
+  wet street that traces and shades the whole scene again for its mirrored
+  ray builds the whole scene twice. Send the eye ray and the mirrored ray
+  through one loop of two turns instead, and mix the two results after it:
+    before: vec3 col = shadeAll(ro, rd);
+            if (onWater) col = mix(col, shadeAll(p, reflect(rd, n)), k);
+    after:  vec3 seen[2]; vec3 o = ro, d = rd;
+            for (int pass = 0; pass < 2; pass++) {
+              seen[pass] = shadeAll(o, d);
+              if (!onWater) break;
+              o = p; d = reflect(rd, n); }
+            col = onWater ? mix(seen[0], seen[1], k) : seen[0];
+- These were measured not to matter, so do not spend effort on them: how
+  && and ?: are written, early returns, [loop] hints, how many small loops
+  there are, indexing a vector with a variable.
+- FluidEQ checks for all three: look_at_scene says "Slow to load on Windows"
+  with the line, and the member sees it under the stage. Fix it before you
+  finish.
+
 `;
 
 /** Hash, value noise and an eased spectrum read, so none is reinvented. */

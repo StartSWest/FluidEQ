@@ -23,6 +23,7 @@ import { createViewsTool } from './viewsTool';
 import { createSongTool } from './songTool';
 import { createWatchTool, type IWatchPictures } from './watchTool';
 import windowColourLines from './windowColourLines';
+import compileNoteLines from './compileNoteLines';
 
 /**
  * The two tools the Studio's agent door offers: look at the scene, and hear
@@ -340,6 +341,7 @@ const describe = (
     momentLine(answer.moment),
     cameraLine(pack, camera, request),
     costLine(answer.drawMs, answer.renderWidth, answer.renderHeight),
+    ...compileNoteLines(pack.source),
     ...(level
       ? darknessLines(level, {
           // Own keys only, as `withSliders` reads them.

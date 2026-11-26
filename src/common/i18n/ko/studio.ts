@@ -827,6 +827,15 @@ const studio = {
     '모델 “{model}”를 읽을 수 없습니다: {detail}',
   'studio.compile.heading': '셰이더가 컴파일되지 않았습니다.',
   'studio.compile.hint': '문제를 수정하고 AI에 오류를 저장하거나 붙여넣으세요.',
+  'studio.compileNote.heading': '이 버전은 Windows에서 느리게 로드됩니다',
+  'studio.compileNote.repeated-subsystem':
+    '“{name}”이(가) {sites}곳의 호출마다 다시 만들어집니다. 필요한 작업을 하나의 루프로 모으고 한 번만 호출하세요.',
+  'studio.compileNote.nearest-offers':
+    '“{name}”이(가) 유지하는 가장 가까운 것들의 목록이 {sites}곳에서 채워집니다. 모든 후보를 하나의 루프에 모아 한 번만 삽입하세요.',
+  'studio.compileNote.loop-invariant':
+    '이 루프는 매번 똑같은 작업을 다시 합니다. 루프 전에 한 번만 계산하세요.',
+  'studio.compileNote.hint':
+    '재생은 됩니다. AI에게 더 빨리 빌드되게 만들어 달라고 요청하세요.',
   'studio.heavy.body':
     '크기가 8분의 1이 되어도 부드러운 동작을 유지할 수 없어서 FluidEQ는 화면이 정지되기 전에 이를 중지했습니다. 더 적은 수의 루프 단계, 더 적은 수의 텍스처 읽기 또는 더 적은 수의 레이어를 사용해 보십시오.',
   'studio.code.title': '코드',

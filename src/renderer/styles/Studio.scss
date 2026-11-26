@@ -758,6 +758,18 @@ $studio-stage-floor: 148px;
   background: color-mix(in srgb, $red 7%, transparent);
 }
 
+// A warning rather than a fault: the version plays, and only loads slowly on
+// Windows (`StudioCompileNotes`). The caution ink, which the white window
+// deepens to a readable amber on its own tint (App.scss).
+.studio-problems--advice {
+  border-color: color-mix(in srgb, $ink-caution 30%, transparent);
+  background: color-mix(in srgb, $ink-caution 8%, transparent);
+
+  .studio-problem__where {
+    color: $ink-caution;
+  }
+}
+
 .studio-problems__title {
   color: $text-primary;
   font-size: $text-body;

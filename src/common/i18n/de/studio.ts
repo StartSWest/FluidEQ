@@ -878,6 +878,15 @@ const studio = {
   'studio.compile.heading': 'Der Shader ließ sich nicht kompilieren',
   'studio.compile.hint':
     'Korrigieren Sie ihn und speichern Sie, oder fügen Sie den Fehler in Ihre KI ein.',
+  'studio.compileNote.heading': 'Diese Version lädt unter Windows langsam',
+  'studio.compileNote.repeated-subsystem':
+    '„{name}“ wird bei jedem seiner {sites} Aufrufe neu gebaut. Führen Sie alles, was es braucht, durch eine Schleife und rufen Sie es einmal auf.',
+  'studio.compileNote.nearest-offers':
+    'Die Liste der nächsten Dinge, die „{name}“ führt, wird von {sites} Stellen aus gefüllt. Sammeln Sie alle Kandidaten in einer Schleife mit einem einzigen Einfügen.',
+  'studio.compileNote.loop-invariant':
+    'Diese Schleife wiederholt Arbeit, die in jedem Durchlauf gleich ist. Berechnen Sie sie einmal vor der Schleife.',
+  'studio.compileNote.hint':
+    'Sie spielt trotzdem. Bitten Sie Ihre KI, sie schneller baubar zu machen.',
   'studio.heavy.body':
     'Sie lief selbst in einem Achtel ihrer Größe nicht flüssig, deshalb hat FluidEQ sie angehalten, bevor sie den Bildschirm einfrieren konnte. Versuchen Sie weniger Schleifendurchläufe, weniger Texturzugriffe oder weniger Ebenen.',
 

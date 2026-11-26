@@ -20,6 +20,7 @@ import { useStudioChat } from './chat/studioChatStore';
 import studioChatAtRest from './chat/chatAtRest';
 import usePublishMakesRoomForAsk from './usePublishMakesRoomForAsk';
 import StudioCode, { problemLinesOf } from './StudioCode';
+import StudioCompileNotes from './StudioCompileNotes';
 import { useCodeDraft } from './codeDraftStore';
 import StudioMeters from './StudioMeters';
 import StudioNewProjectDialog from './StudioNewProjectDialog';
@@ -601,6 +602,13 @@ export default function StudioBench({ view, onShowGraph }: IStudioBenchProps) {
             resizable={project !== undefined && !isScreenFull}
           >
             <StudioProblems problems={problems} trouble={trouble} />
+            <StudioCompileNotes
+              source={
+                problems || trouble?.kind === 'compile'
+                  ? undefined
+                  : (codeDraft?.pack ?? pack)?.source
+              }
+            />
           </StudioStageArea>
           <StudioWork
             panels={panels}

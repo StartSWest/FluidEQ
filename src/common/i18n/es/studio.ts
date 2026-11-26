@@ -863,6 +863,15 @@ const studio = {
     'No se pudo leer el modelo «{model}»: {detail}',
   'studio.compile.heading': 'El shader no compiló',
   'studio.compile.hint': 'Corrígelo y guarda, o pega el error en tu IA.',
+  'studio.compileNote.heading': 'Esta versión tarda en cargar en Windows',
+  'studio.compileNote.repeated-subsystem':
+    '«{name}» se vuelve a construir en cada una de sus {sites} llamadas. Pasa todo lo que lo necesita por un solo bucle y llámalo una vez.',
+  'studio.compileNote.nearest-offers':
+    'La lista de cosas más cercanas que guarda «{name}» se llena desde {sites} sitios. Reúne todos los candidatos en un bucle con una sola inserción.',
+  'studio.compileNote.loop-invariant':
+    'Este bucle rehace trabajo que es igual en cada vuelta. Calcúlalo una vez, antes del bucle.',
+  'studio.compileNote.hint':
+    'Se sigue reproduciendo. Pide a tu IA que la haga más rápida de construir.',
   'studio.heavy.body':
     'No pudo mantener un movimiento fluido ni a un octavo de su tamaño, así que FluidEQ la detuvo antes de que congelara la pantalla. Prueba con menos pasos en los bucles, menos lecturas de textura o menos capas.',
 

@@ -762,6 +762,14 @@ const studio = {
   'studio.worldNote.model-unreadable': '无法读取模型“{model}”：{detail}',
   'studio.compile.heading': '着色器编译失败',
   'studio.compile.hint': '修正后保存，或把错误粘贴给你的 AI。',
+  'studio.compileNote.heading': '此版本在 Windows 上加载较慢',
+  'studio.compileNote.repeated-subsystem':
+    '“{name}”在它的 {sites} 处调用中每处都会重新构建一次。把所有需要它的内容放进同一个循环，只调用它一次。',
+  'studio.compileNote.nearest-offers':
+    '“{name}”维护的最近物体列表从 {sites} 处被填入。请在一个循环里收集所有候选，只保留一处插入。',
+  'studio.compileNote.loop-invariant':
+    '这个循环每一轮都在重复相同的工作。请在循环之前只计算一次。',
+  'studio.compileNote.hint': '它仍可播放。请让你的 AI 把它改得更快构建。',
   'studio.heavy.body':
     '即使缩小到八分之一尺寸，它也无法保持流畅，所以 FluidEQ 在它冻结屏幕之前停止了它。试试减少循环次数、纹理读取或图层。',
 

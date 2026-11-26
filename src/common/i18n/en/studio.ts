@@ -869,6 +869,15 @@ const studio = {
     'Model “{model}” could not be read: {detail}',
   'studio.compile.heading': 'The shader did not compile',
   'studio.compile.hint': 'Fix it and save, or paste the error into your AI.',
+  'studio.compileNote.heading': 'This version is slow to load on Windows',
+  'studio.compileNote.repeated-subsystem':
+    '“{name}” is built again at each of its {sites} calls. Send everything that needs it through one loop and call it once.',
+  'studio.compileNote.nearest-offers':
+    'The list of nearest things “{name}” keeps is filled from {sites} places. Gather every candidate in one loop with a single insertion.',
+  'studio.compileNote.loop-invariant':
+    'This loop redoes work that is the same on every turn. Work it out once, before the loop.',
+  'studio.compileNote.hint':
+    'It still plays. Ask your AI to make it quicker to build.',
   'studio.heavy.body':
     "It couldn't keep smooth motion even at an eighth of its size, so FluidEQ stopped it before it could freeze the screen. Try fewer loop steps, fewer texture reads, or fewer layers.",
 

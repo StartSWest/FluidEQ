@@ -870,6 +870,16 @@ const studio = {
   'studio.compile.heading': 'Le shader ne s’est pas compilé',
   'studio.compile.hint':
     'Corrigez-le et enregistrez, ou collez l’erreur dans votre IA.',
+  'studio.compileNote.heading':
+    'Cette version est lente à charger sous Windows',
+  'studio.compileNote.repeated-subsystem':
+    '« {name} » est reconstruit à chacun de ses {sites} appels. Faites passer tout ce qui en a besoin par une seule boucle et appelez-le une fois.',
+  'studio.compileNote.nearest-offers':
+    'La liste des éléments les plus proches que tient « {name} » est remplie depuis {sites} endroits. Rassemblez tous les candidats dans une boucle avec une seule insertion.',
+  'studio.compileNote.loop-invariant':
+    'Cette boucle refait un travail identique à chaque tour. Calculez-le une fois, avant la boucle.',
+  'studio.compileNote.hint':
+    'Elle se lit quand même. Demandez à votre IA de la rendre plus rapide à construire.',
   'studio.heavy.body':
     'Elle n’a pas pu garder un mouvement fluide, même à un huitième de sa taille, alors FluidEQ l’a arrêtée avant qu’elle ne fige l’écran. Essayez moins de tours de boucle, moins de lectures de texture ou moins de couches.',
 

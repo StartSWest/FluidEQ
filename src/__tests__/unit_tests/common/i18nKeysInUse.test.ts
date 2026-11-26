@@ -251,6 +251,7 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
     'studio.signal.*',
     'studio.signalHint.*',
   ],
+  'src/renderer/studio/StudioCompileNotes.tsx': ['studio.compileNote.*'],
   'src/renderer/studio/StudioProblems.tsx': ['studio.problem.*'],
 };
 

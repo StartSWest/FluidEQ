@@ -745,6 +745,14 @@ const studio = {
   'studio.worldNote.model-unreadable': '無法讀取型號“{model}”：{detail}',
   'studio.compile.heading': '著色器未編譯',
   'studio.compile.hint': '修復並儲存，或將錯誤貼到您的 AI 中。',
+  'studio.compileNote.heading': '此版本在 Windows 上載入較慢',
+  'studio.compileNote.repeated-subsystem':
+    '「{name}」在它的 {sites} 處呼叫中每處都會重新建構一次。把所有需要它的內容放進同一個迴圈，只呼叫它一次。',
+  'studio.compileNote.nearest-offers':
+    '「{name}」維護的最近物件清單從 {sites} 處被填入。請在一個迴圈裡收集所有候選，只保留一處插入。',
+  'studio.compileNote.loop-invariant':
+    '這個迴圈每一輪都在重複相同的工作。請在迴圈之前只計算一次。',
+  'studio.compileNote.hint': '它仍可播放。請讓您的 AI 把它改得更快建構。',
   'studio.heavy.body':
     '即使是其大小的八分之一，它也無法保持平滑的運動，因此 FluidEQ 在凍結螢幕之前停止了它。嘗試減少迴圈步驟、減少紋理讀取或減少層數。',
   'studio.code.title': '程式碼',

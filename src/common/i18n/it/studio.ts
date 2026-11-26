@@ -865,6 +865,16 @@ const studio = {
   'studio.compile.heading': 'Lo shader non si è compilato',
   'studio.compile.hint':
     'Correggilo e salva, oppure incolla l’errore nella tua IA.',
+  'studio.compileNote.heading':
+    'Questa versione si carica lentamente su Windows',
+  'studio.compileNote.repeated-subsystem':
+    '«{name}» viene ricostruita a ognuna delle sue {sites} chiamate. Fai passare tutto ciò che la usa in un solo ciclo e chiamala una volta.',
+  'studio.compileNote.nearest-offers':
+    'La lista delle cose più vicine tenuta da «{name}» viene riempita da {sites} punti. Raccogli tutti i candidati in un ciclo con un solo inserimento.',
+  'studio.compileNote.loop-invariant':
+    'Questo ciclo rifà un lavoro che è uguale a ogni giro. Calcolalo una volta, prima del ciclo.',
+  'studio.compileNote.hint':
+    'Si riproduce comunque. Chiedi alla tua IA di renderla più veloce da compilare.',
   'studio.heavy.body':
     'Non riusciva a mantenere un movimento fluido nemmeno a un ottavo della sua dimensione, quindi FluidEQ l’ha fermata prima che bloccasse lo schermo. Prova con meno giri nei cicli, meno letture di texture o meno livelli.',
 

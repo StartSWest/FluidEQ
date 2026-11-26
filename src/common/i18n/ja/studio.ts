@@ -856,6 +856,16 @@ const studio = {
     'モデル「{model}」を読み込めませんでした: {detail}',
   'studio.compile.heading': 'シェーダーをコンパイルできませんでした',
   'studio.compile.hint': '直して保存するか、エラーを AI に貼り付けてください。',
+  'studio.compileNote.heading':
+    'このバージョンは Windows での読み込みが遅くなります',
+  'studio.compileNote.repeated-subsystem':
+    '「{name}」は {sites} か所の呼び出しごとに作り直されます。必要とする処理を 1 つのループにまとめ、1 回だけ呼び出してください。',
+  'studio.compileNote.nearest-offers':
+    '「{name}」が保持する近いもののリストが {sites} か所から追加されています。すべての候補を 1 つのループに集め、挿入は 1 か所にしてください。',
+  'studio.compileNote.loop-invariant':
+    'このループは毎回同じ処理をやり直しています。ループの前に 1 回だけ計算してください。',
+  'studio.compileNote.hint':
+    '再生はできます。AI に、もっと速くビルドできるようにしてと頼んでください。',
   'studio.heavy.body':
     '8 分の 1 のサイズでもなめらかに動かせなかったため、画面が固まる前に FluidEQ が止めました。ループの回数、テクスチャの読み込み、レイヤーを減らしてみてください。',
 
