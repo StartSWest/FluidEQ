@@ -4,7 +4,15 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import { useAddonCapabilities } from '../addons';
 import Chevron from '../icons/Chevron';
@@ -50,7 +58,8 @@ import {
   type IPlusRow,
   type IStyleRow,
 } from './lookPickerRows';
-import { PICK, walkPicker } from './lookPickerParts';
+import { followPlaying } from './lookPickerFollow';
+import { walkPicker } from './lookPickerParts';
 import '../styles/LookPicker.scss';
 
 /**
@@ -138,6 +147,11 @@ const LookPicker = ({
   const [view, setView] = useState(lastView);
   // What counts as new is decided as the picker opens, not while it is open.
   const [openedAt, setOpenedAt] = useState<number | undefined>(undefined);
+  // Whether the window still shows the playing look, from the opening until
+  // the reader looks elsewhere (`followPlaying`).
+  const [follow, setFollow] = useState(false);
+  const following = isOpen && follow;
+  const [body, setBody] = useState<HTMLDivElement | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -202,9 +216,23 @@ const LookPicker = ({
         return;
       }
       const menu = searchRef.current?.closest('[data-anchored-menu]');
-      if (menu?.contains(document.activeElement)) {
-        walkPicker(event, menu);
+      if (!menu?.contains(document.activeElement)) {
+        return;
       }
+      // The window opens with the keyboard on the playing tile, and a
+      // letter typed there is still a search: the caret moves to the box
+      // before the key's character lands, so the character lands in it.
+      const typed =
+        event.key.length === 1 &&
+        event.key !== ' ' &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.altKey;
+      if (typed && !(document.activeElement instanceof HTMLInputElement)) {
+        searchRef.current?.focus();
+        return;
+      }
+      walkPicker(event, menu);
     };
     document.addEventListener('pointerdown', onPointer);
     document.addEventListener('keydown', onKey);
@@ -214,24 +242,17 @@ const LookPicker = ({
     };
   }, [isOpen, close]);
 
-  /**
-   * On arrival: the caret in the search and each column scrolled to its chosen
-   * row. A ref rather than an effect on `isOpen`, because AnchoredMenu draws
-   * nothing until it has placed the window, so on the render that opens it
-   * none of this exists yet.
-   */
-  const arrive = useCallback((body: HTMLDivElement | null) => {
-    if (!body) {
-      return;
+  // On arrival, and through every change to the list while the window is
+  // open, the playing look's tile is kept centred and focused until the
+  // reader takes over (`followPlaying`). The body is state, not a ref read
+  // on `isOpen`, because AnchoredMenu draws nothing until it has placed the
+  // window, so on the render that opens it none of this exists yet.
+  useLayoutEffect(() => {
+    if (!following || !body) {
+      return undefined;
     }
-    searchRef.current?.focus();
-    const chosen = body.querySelector<HTMLElement>(
-      `${PICK}[aria-pressed="true"]`,
-    );
-    if (chosen && typeof chosen.scrollIntoView === 'function') {
-      chosen.scrollIntoView({ block: 'center' });
-    }
-  }, []);
+    return followPlaying(body, () => setFollow(false));
+  }, [following, body]);
 
   const choose = (lookId: string) => {
     onChoose(lookId);
@@ -241,31 +262,8 @@ const LookPicker = ({
   const toggle = () => {
     if (!isOpen) {
       setQuery('');
-      const now = Date.now();
-      setOpenedAt(now);
-      // THE WINDOW OPENS ON THE LOOK THAT IS PLAYING (Ivan, 2026-11-24: "when
-      // I open the window and I have a current visualizer displaying, I want
-      // the window to reflect that, and that one should be selected and in
-      // view"). It opened on the place left last time, so a scene playing
-      // while the window was last on Analysis was in no column to scroll to.
-      // The place and the maker tab left last time are kept when they hold
-      // it; otherwise the window opens on the look's own place, every maker.
-      if (current) {
-        const shows =
-          'look' in current
-            ? keepStyleIn(current, place)
-            : keepSceneIn(current, place, freshnessOf(current, now));
-        if (!shows) {
-          const own: TPickerPlace =
-            'look' in current ? current.family : 'all-scenes';
-          lastPlace = own;
-          setPlace(own);
-        }
-        if (!keepFrom(current, from, ownsOfficialScenes)) {
-          lastFrom = 'all';
-          setFrom('all');
-        }
-      }
+      setOpenedAt(Date.now());
+      setFollow(true);
       // Opening the looks is when a newer version of one is worth having.
       // The list opens from what is held; whatever changed arrives through
       // the stores' own announcements, marked "New".
@@ -278,7 +276,11 @@ const LookPicker = ({
   // family of styles leaves the From tab too: From is not offered there, so
   // its counts in the rail are every maker's, and the tab must not come
   // back to narrow the next place the rail just counted unnarrowed.
+  // A place, a maker tab or a search is the reader looking somewhere else:
+  // the playing look stops being followed. A new order or view is the same
+  // looks laid out again, and the playing one is still what is shown.
   const choosePlace = (next: TPickerPlace) => {
+    setFollow(false);
     lastPlace = next;
     setPlace(next);
     setQuery('');
@@ -287,7 +289,12 @@ const LookPicker = ({
       setFrom('all');
     }
   };
+  const search = (next: string) => {
+    setFollow(false);
+    setQuery(next);
+  };
   const chooseFrom = (next: TPickerFrom) => {
+    setFollow(false);
     lastFrom = next;
     setFrom(next);
   };
@@ -307,6 +314,29 @@ const LookPicker = ({
   const current: IStyleRow | IPlusRow | undefined =
     styleRows.find((row) => row.id === shown) ??
     plusRows.find((row) => row.id === shown);
+
+  // THE WINDOW OPENS ON THE LOOK THAT IS PLAYING (Ivan, 2026-11-24 and
+  // 11-26). The place and maker tab left last time are kept when they hold
+  // it; otherwise the window stands on the look's own place, every maker.
+  // Decided in the render while the look is followed, not once as the
+  // window opens: the rows are rebuilt from the gallery while it is open,
+  // and a look whose row arrived after the press was decided without.
+  if (following && current) {
+    const shows =
+      'look' in current
+        ? keepStyleIn(current, place)
+        : keepSceneIn(current, place, freshnessOf(current, openedAt));
+    if (!shows) {
+      const own: TPickerPlace =
+        'look' in current ? current.family : 'all-scenes';
+      lastPlace = own;
+      setPlace(own);
+    }
+    if (!keepFrom(current, from, ownsOfficialScenes)) {
+      lastFrom = 'all';
+      setFrom('all');
+    }
+  }
 
   return (
     <div
@@ -390,14 +420,14 @@ const LookPicker = ({
           view={view}
           openedAt={openedAt}
           ownsOfficialScenes={ownsOfficialScenes}
-          onQuery={setQuery}
+          onQuery={search}
           onPlace={choosePlace}
           onFrom={chooseFrom}
           onSort={chooseSort}
           onView={chooseView}
           onChoose={choose}
           searchRef={searchRef}
-          bodyRef={arrive}
+          bodyRef={setBody}
           onLeave={() => close(false)}
         />
       </LookPickerWindow>
