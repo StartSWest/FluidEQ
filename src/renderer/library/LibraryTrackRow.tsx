@@ -38,7 +38,6 @@ interface ILibraryTrackRowProps {
    * rows mounted: those shift as the window scrolls. */
   isEven: boolean;
   isOffline: boolean;
-  isFolderOnly: boolean;
   /** The toolbar's search named this row, in a panel it did not name. */
   isSearchMatch?: boolean;
   /** The row the reader last clicked, or one of the rows lit for a menu.
@@ -96,7 +95,6 @@ const LibraryTrackRow = ({
   columns,
   isEven,
   isOffline,
-  isFolderOnly,
   isSearchMatch = false,
   isSelected,
   onPick,
@@ -132,7 +130,6 @@ const LibraryTrackRow = ({
     track.isPending ? 'library-list__row--pending' : '',
     isSelected ? 'library-list__row--selected' : '',
     isPlaying ? 'library-list__row--playing' : '',
-    isFolderOnly ? 'library-list__row--folder-only' : '',
     isSearchMatch ? 'library-list__row--matched' : '',
   ]
     .filter(Boolean)
@@ -285,16 +282,6 @@ const LibraryTrackRow = ({
               title={t('library.pending')}
             >
               <MenuIcon name="pending" className="library-list__badge-icon" />
-            </span>
-          )}
-          {/* Shares the open album's folder without being on the album:
-              marked rather than separated, so the list stays one list. */}
-          {isFolderOnly && (
-            <span
-              className="library-list__badge library-list__badge--folder"
-              title={t('library.alsoInFolder')}
-            >
-              <MenuIcon name="folder" className="library-list__badge-icon" />
             </span>
           )}
         </span>

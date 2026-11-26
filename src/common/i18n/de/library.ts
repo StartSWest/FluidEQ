@@ -337,7 +337,6 @@ const library: Partial<Dictionary> = {
     'In Ihrer Bibliothek lässt sich gerade nichts abspielen.',
   'library.queueAdd': 'Zur Warteschlange',
 
-  'library.alsoInFolder': 'In diesem Ordner, nicht in diesem Album',
   'library.play': 'Wiedergeben',
   'library.pause': 'Pause',
   'library.stop': 'Stopp',

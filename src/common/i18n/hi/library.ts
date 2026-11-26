@@ -326,7 +326,6 @@ const library: Partial<Dictionary> = {
     'अभी आपकी लाइब्रेरी में बजाने लायक कुछ नहीं है।',
   'library.queueAdd': 'कतार में जोड़ें',
 
-  'library.alsoInFolder': 'इसी फ़ोल्डर में है, इस एल्बम में नहीं',
   'library.play': 'चलाएँ',
   'library.pause': 'रोकें',
   'library.stop': 'बंद करें',

@@ -284,7 +284,6 @@ const library = {
   'library.upNext.surpriseNext': '這首歌結束後，「給我驚喜」會挑下一首。',
   'library.upNext.surpriseNothing': '你的媒體庫目前沒有可以播放的內容。',
   'library.queueAdd': '新增到下一個',
-  'library.alsoInFolder': '在此資料夾中，不在該相簿中',
   'library.play': '播放',
   'library.pause': '暫停',
   'library.stop': '停止',

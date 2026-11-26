@@ -296,7 +296,6 @@ const library = {
   'library.upNext.surpriseNothing':
     '지금은 라이브러리에 재생할 수 있는 곡이 없습니다.',
   'library.queueAdd': '다음 항목에 추가',
-  'library.alsoInFolder': '이 앨범이 아닌 이 폴더에',
   'library.play': '재생',
   'library.pause': '일시 정지',
   'library.stop': '정지',

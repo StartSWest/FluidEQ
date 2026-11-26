@@ -824,38 +824,37 @@ describe('the other questions', () => {
     ).toEqual(ids);
   });
 
-  it('lists an album as pressed, its folder-mates after by title, and lights what the toolbar searched', () => {
+  it('lists an album as pressed and nothing else, and lights what the toolbar searched', () => {
     const album = albumKey(TRACKS[0]);
     const items = all({
       shelf: 'tracks',
-      scope: { album, withFolderMates: true },
+      scope: { album },
       natural: 'disc',
       direction: 'asc',
     });
-    const own =
+    const own = (
       groupIntoAlbums(TRACKS).find((entry) => entry.id === album)?.trackIds ??
-      [];
-    const folders = new Set(
-      own.map((id) => trackFolderPath((byId.get(id) as ILibraryTrack).path)),
+      []
+    ).map((id) => byId.get(id) as ILibraryTrack);
+    const pressed = [...own].sort(
+      (left, right) =>
+        (left.discNo ?? 1) - (right.discNo ?? 1) ||
+        (left.trackNo ?? 0) - (right.trackNo ?? 0),
     );
-    const mates = sortTracks(
-      TRACKS.filter(
-        (track) =>
-          !own.includes(track.id) && folders.has(trackFolderPath(track.path)),
-      ),
-      'title',
-    );
-    expect(trackIdsOf(items)).toEqual([
-      ...own,
-      ...mates.map((track) => track.id),
-    ]);
+    expect(trackIdsOf(items)).toEqual(pressed.map((track) => track.id));
+    // The control: the album's folders hold songs that are not on it, which
+    // its page once listed after it.
+    const folders = new Set(own.map((track) => trackFolderPath(track.path)));
     expect(
-      items.filter((item) => item.kind === 'track' && item.folderOnly).length,
-    ).toBe(mates.length);
+      TRACKS.some(
+        (track) =>
+          !own.includes(track) && folders.has(trackFolderPath(track.path)),
+      ),
+    ).toBe(true);
 
     const marked = all({
       shelf: 'tracks',
-      scope: { album, withFolderMates: true },
+      scope: { album },
       natural: 'disc',
       mark: 'leo',
       direction: 'asc',
@@ -977,7 +976,7 @@ describe('the questions a queue and a panel ask', () => {
     const album = albumKey(TRACKS[0]);
     const query: ILibraryListQuery = {
       shelf: 'tracks',
-      scope: { album, withFolderMates: true },
+      scope: { album },
       natural: 'disc',
       mark: 'leo',
       direction: 'asc',

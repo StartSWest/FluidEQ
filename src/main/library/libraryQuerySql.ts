@@ -57,12 +57,7 @@ export const scopeConditions = (
     conditions.push(`t.folder = ${bind(scope.folder)}`);
   }
   if (scope.album !== undefined) {
-    const album = bind(scope.album);
-    conditions.push(
-      scope.withFolderMates
-        ? `(t.album_key = ${album} OR t.folder IN (SELECT folder FROM tracks WHERE album_key = ${album}))`
-        : `t.album_key = ${album}`,
-    );
+    conditions.push(`t.album_key = ${bind(scope.album)}`);
   }
   if (scope.artist !== undefined) {
     conditions.push(`t.artist_key = ${bind(scope.artist)}`);

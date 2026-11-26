@@ -838,40 +838,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// The tag on a row that shares the open album's folder without being part of
-// the album. Same quiet treatment as the pending badge — information, not a
-// problem.
-.library-list__badge--folder {
-  color: rgba($neon-yellow, 0.85);
-}
-
-// The yellow is a light, 1.2:1 on a white window: there the badge and the
-// title below are the same warm hue held under the light window's ink
-// ceiling (`readable-ink`). A dark window keeps the yellow.
-:root[data-window-ink='dark'] .library-list__badge--folder,
-:root[data-window-ink='dark']
-  .library-list__row--folder-only
-  .library-list__title-label {
-  color: readable-ink($neon-yellow);
-}
-
-// In this folder, not on this record.
-//
-// The badge beside the title has always said so, and one glyph among fifteen
-// rows is something a reader finds after wondering why the count looks wrong.
-// A colour on the title separates the two groups before anything is read —
-// and the badge, kept, is what names the difference once they look.
-//
-// A warm one, and not the app's cyan: cyan is what a row uses to say "this is
-// playing", and a second cyan meaning "this is a different sort of row" would
-// be two answers in one colour. Not a red or a pink either — those read as
-// something being wrong, and there is nothing wrong with a file sitting in a
-// folder. The title alone carries it; the artist and the length stay as they
-// are, because the row is not disabled and dimming it would say it was.
-.library-list__row--folder-only .library-list__title-label {
-  color: rgba($neon-yellow, 0.85);
-}
-
 // The tail of a list that has more to show. Not a spinner: nothing is being
 // fetched — the rows are already in memory and the next page mounts as the
 // scroll reaches here. It says how many are left, which is the only thing

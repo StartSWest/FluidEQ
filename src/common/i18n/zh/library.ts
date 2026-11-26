@@ -314,7 +314,6 @@ const library: Partial<Dictionary> = {
   'library.upNext.surpriseNothing': '你的媒体库里现在没有可以播放的内容。',
   'library.queueAdd': '加入播放队列',
 
-  'library.alsoInFolder': '在此文件夹中，但不属于此专辑',
   'library.play': '播放',
   'library.pause': '暂停',
   'library.stop': '停止',

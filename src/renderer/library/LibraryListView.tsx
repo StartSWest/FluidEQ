@@ -749,7 +749,6 @@ const LibraryListView = ({
           columns={shownColumns}
           isEven={row % 2 === 1}
           isOffline={offlineRootIds.has(track.rootId)}
-          isFolderOnly={item.folderOnly === true}
           isSearchMatch={item.matched === true}
           isSelected={activeId === track.id || selectedIds.has(track.id)}
           isPlaying={playingTrackId === track.id}

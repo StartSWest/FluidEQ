@@ -331,7 +331,6 @@ const library: Partial<Dictionary> = {
     'Сейчас в вашей библиотеке нечего воспроизвести.',
   'library.queueAdd': 'Добавить в очередь',
 
-  'library.alsoInFolder': 'В этой папке, но не в этом альбоме',
   'library.play': 'Воспроизвести',
   'library.pause': 'Пауза',
   'library.stop': 'Стоп',

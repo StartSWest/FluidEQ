@@ -96,14 +96,8 @@ const trackSortTerms = (sort: TLibrarySort): string[] => {
 const NATURAL_TERMS: Record<string, string[]> = {
   library: ['seq'],
   album: ['sort_album', 'sort_title', 'seq'],
-  // The record as pressed, and its folder-mates after it by title.
-  disc: [
-    'folder_only',
-    'CASE WHEN folder_only = 0 THEN COALESCE(disc_no, 1) END',
-    'CASE WHEN folder_only = 0 THEN COALESCE(track_no, 0) END',
-    'sort_title',
-    'seq',
-  ],
+  // The record as pressed.
+  disc: ['COALESCE(disc_no, 1)', 'COALESCE(track_no, 0)', 'sort_title', 'seq'],
   path: ['sort_path', 'seq'],
   ids: ['ids_order'],
   // Each record newest first, in the albums shelf's own order by year
@@ -146,22 +140,17 @@ const tracksPlan = (query: ILibraryListQuery): ILibraryQueryPlan => {
   if (searching) {
     conditions.push(`${score} > 0`);
   }
-  const { ids, album } = query.scope;
+  const { ids } = query.scope;
   const join =
     ids === undefined
       ? ''
       : `JOIN json_each(${bind(JSON.stringify(ids))}) AS listed ON listed.value = t.id`;
-  const folderOnly =
-    album !== undefined && query.scope.withFolderMates
-      ? `(t.album_key <> ${bind(album)})`
-      : '0';
   const body = `
     SELECT ${TRACK_COLUMNS},
       t.title AS list_title,
       ${score} AS score,
       ${near === undefined ? '0' : beneathSql('t.folder', near, bind)} AS near,
       ${markNeedle === '' ? '0' : `(${scoreSql(bind(markNeedle))} > 0)`} AS matched,
-      ${folderOnly} AS folder_only,
       ${query.natural === 'path' ? 'sort_key(t.path)' : "''"} AS sort_path,
       ${recordColumns(query.natural)},
       ${ids === undefined ? '0' : 'CAST(listed.key AS INTEGER)'} AS ids_order

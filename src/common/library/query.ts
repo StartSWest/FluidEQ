@@ -46,12 +46,6 @@ export interface ILibraryScope {
   albumCredit?: string;
   /** One genre, by `genreKey`. */
   genre?: string;
-  /**
-   * With `album`: the files sharing its folders without being on it too —
-   * the loose singles and bonus discs an album panel lists after the record,
-   * each flagged `folderOnly`.
-   */
-  withFolderMates?: boolean;
   /** Only these tracks (a playlist): the order they are given in is theirs. */
   ids?: readonly string[];
   kind?: 'audio' | 'video';
@@ -60,7 +54,7 @@ export interface ILibraryScope {
 /**
  * A track list's order when no column is chosen and nothing is searched: the
  * order the library learned them in, by record then title, a record as it was
- * pressed (its folder-mates after, by title), by file path, the order the
+ * pressed (disc, then track), by file path, the order the
  * `ids` scope gave, or record by record newest first, each as pressed — an
  * artist's songs in the order of the covers over them (`records`).
  */
@@ -179,8 +173,6 @@ export interface ILibraryTrackItem {
   near?: boolean;
   /** Matched by the query's `mark`. */
   matched?: boolean;
-  /** In one of an album's folders without being on it (`withFolderMates`). */
-  folderOnly?: boolean;
 }
 
 /** A folder's name over the run of its tracks (`folderHeadings`). */

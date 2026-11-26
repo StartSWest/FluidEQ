@@ -108,7 +108,6 @@ const itemOf = (
       track: trackFromRow(row),
       ...near,
       ...(row.matched === 1 ? { matched: true } : {}),
-      ...(row.folder_only === 1 ? { folderOnly: true } : {}),
     };
   }
   return {

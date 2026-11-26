@@ -77,16 +77,6 @@ describe('words in a state light worn with an alpha, on a white window', () => {
   it.each([
     ['Dsp.scss', '.dsp-de-esser-status .is-cut', 'var(--ink-caution'],
     ['ErrorBoundary.scss', '.crash-screen__detail', 'var(--ink-removed'],
-    [
-      'Library.scss',
-      '.library-list__badge--folder',
-      'min(l, var(--ink-ceiling',
-    ],
-    [
-      'Library.scss',
-      '.library-list__row--folder-only .library-list__title-label',
-      'min(l, var(--ink-ceiling',
-    ],
   ])('%s %s takes a readable ink', (sheet, selector, ink) => {
     // Positive control: the dark window's rule is the light with an alpha.
     expect(colourOf(sheet, selector).join(' ')).toMatch(/rgba\(/);

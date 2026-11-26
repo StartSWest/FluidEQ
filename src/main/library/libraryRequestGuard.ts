@@ -113,8 +113,6 @@ const isScope = (value: unknown): value is ILibraryScope =>
   isOptionalText(value.credit, MAX_TEXT) &&
   isOptionalText(value.albumCredit, MAX_TEXT) &&
   isOptionalText(value.genre, MAX_TEXT) &&
-  (value.withFolderMates === undefined ||
-    typeof value.withFolderMates === 'boolean') &&
   (value.ids === undefined || isIdList(value.ids)) &&
   (value.kind === undefined ||
     value.kind === 'audio' ||

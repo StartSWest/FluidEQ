@@ -324,7 +324,6 @@ const library = {
     'Nothing in your library can be played right now.',
   'library.queueAdd': 'Add to up next',
 
-  'library.alsoInFolder': 'In this folder, not in this album',
   'library.play': 'Play',
   'library.pause': 'Pause',
   'library.stop': 'Stop',

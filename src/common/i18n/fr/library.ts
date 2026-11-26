@@ -339,7 +339,6 @@ const library: Partial<Dictionary> = {
     'Rien dans votre bibliothèque ne peut être lu pour le moment.',
   'library.queueAdd': 'Ajouter à la file',
 
-  'library.alsoInFolder': 'Dans ce dossier, pas dans cet album',
   'library.play': 'Lire',
   'library.pause': 'Pause',
   'library.stop': 'Arrêter',

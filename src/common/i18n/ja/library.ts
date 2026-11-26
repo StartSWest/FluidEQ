@@ -331,8 +331,6 @@ const library: Partial<Dictionary> = {
     '今はライブラリに再生できる曲がありません。',
   'library.queueAdd': 'キューに追加',
 
-  'library.alsoInFolder':
-    'このフォルダー内にありますが、このアルバムには含まれません',
   'library.play': '再生',
   'library.pause': '一時停止',
   'library.stop': '停止',

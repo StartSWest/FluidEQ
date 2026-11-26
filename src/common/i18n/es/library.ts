@@ -335,7 +335,6 @@ const library: Partial<Dictionary> = {
     'Ahora mismo no hay nada en tu biblioteca que se pueda reproducir.',
   'library.queueAdd': 'Añadir a la cola',
 
-  'library.alsoInFolder': 'En esta carpeta, no en este álbum',
   'library.play': 'Reproducir',
   'library.pause': 'Pausar',
   'library.stop': 'Detener',

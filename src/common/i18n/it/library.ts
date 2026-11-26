@@ -330,7 +330,6 @@ const library: Partial<Dictionary> = {
     'Al momento nella tua libreria non c’è niente da riprodurre.',
   'library.queueAdd': 'Aggiungi alla coda',
 
-  'library.alsoInFolder': 'In questa cartella, non in questo album',
   'library.play': 'Riproduci',
   'library.pause': 'Pausa',
   'library.stop': 'Ferma',

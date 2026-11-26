@@ -115,14 +115,14 @@ const recordOf = ({
   playlistTrackIds?: readonly string[];
 }): { scope: ILibraryScope; natural: TLibraryNaturalOrder } | undefined => {
   if (albumId) {
-    // The record as pressed, then the files sharing its folders without
-    // being on it: a bonus disc, loose singles, a take tagged differently.
-    // One list, those rows marked — a table of their own was tried first and
-    // read as two unrelated screens.
-    return {
-      scope: { album: albumId, withFolderMates: true },
-      natural: 'disc',
-    };
+    // The record as pressed, and nothing else. It used to add every file in
+    // any folder one of its songs sat in, so an album filed in a folder of
+    // loose downloads listed dozens of other people's songs under its own
+    // and counted them in its header, while the status line counted the
+    // album alone (Ivan, 2026-11-26: "Why?" showed 48 songs for 16). The
+    // rest of a folder is the folder's page, one press on the folder line
+    // under the title.
+    return { scope: { album: albumId }, natural: 'disc' };
   }
   if (genreId) {
     // By album, so a genre reads as records rather than a thousand songs.
