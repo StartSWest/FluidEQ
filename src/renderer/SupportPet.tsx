@@ -24,7 +24,7 @@ import {
 } from './audio/LiveAudioContext';
 import type { ILiveAudioFrame } from './audio/liveFrameStore';
 import { amplitudeToDb, type IOutputLevel } from './graph/outputLevel';
-import PetCanvas from './pet/PetCanvas';
+import PetCanvas, { TITLEBAR_PET_ART } from './pet/PetCanvas';
 import usePetMusic from './pet/usePetMusic';
 import { useTranslation } from './utils/I18nContext';
 import './styles/SupportPet.scss';
@@ -206,7 +206,7 @@ export default function SupportPet({
     >
       {hearing}
       <PetCanvas
-        art={36}
+        art={TITLEBAR_PET_ART}
         host={ref}
         readMusic={readMusic}
         isCelebrating={hasContributed}

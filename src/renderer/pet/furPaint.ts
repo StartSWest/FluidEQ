@@ -300,6 +300,14 @@ const paintLimbs = (
  * top left of her square's room and one unit a CSS px: the share card puts
  * her into its own picture this way.
  */
+/**
+ * Where her feet stand below her square's middle, as a share of it: from her
+ * ear tips (0.365 above) to her feet (0.365 below) she is centred in it, and
+ * fills it top to bottom but for a quarter on either side. At 0.44 her top
+ * third was empty, and in the titlebar she looked small in her button.
+ */
+const GROUND = 0.345;
+
 export const drawFurPet = (
   context: CanvasRenderingContext2D,
   frame: IFurFrame,
@@ -320,7 +328,7 @@ export const drawFurPet = (
   context.save();
   context.translate(
     side / 2 + pose.swayX * radius,
-    side / 2 + art * 0.44 - pose.hop * radius,
+    side / 2 + art * GROUND - pose.hop * radius,
   );
   context.rotate(pose.lean);
   context.scale(

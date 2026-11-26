@@ -25,6 +25,15 @@ import type { TRgb } from './furFace';
  * still has her ears' tips.
  */
 const padFor = (art: number) => Math.round(art * 0.3 + 6);
+
+/**
+ * Her size in the titlebar: from ear tips to feet she covers her 40 px
+ * button (Ivan, 2026-11-26: "make it bigger inside its button to cover the
+ * whole button"), about 38 px tall and 36 wide with her headphones. Her
+ * canvas takes no room and no pointer, so the button, the bar and
+ * everything beside them keep their sizes.
+ */
+export const TITLEBAR_PET_ART = 52;
 /** The press's ease, the stylesheet's old 90 ms ease-out as a half-life. */
 const PRESS_HALF_LIFE_MS = 28;
 const STAR_HALF_LIFE_MS = 75;
@@ -36,12 +45,12 @@ const RESTING_PACE_MS = 1000 / 30;
 /**
  * Her pace while she dances. A frame of her costs 0.1-0.25 ms (measured in
  * the pet harness, 2026-11-26), and at the window's 165 a second that was a
- * few percent of a core for a 36 px creature; sixty is smooth at her size.
+ * few percent of a core for a titlebar creature; sixty is smooth at her size.
  */
 const DANCING_PACE_MS = 1000 / 60;
 
 interface IPetCanvasProps {
-  /** Her square's side in CSS px: 36 in the titlebar, 126 in the dialog. */
+  /** Her square's side in CSS px: 52 in the titlebar, 126 in the dialog. */
   art: number;
   /** What the pointer presses: the button around her. None in a figure. */
   host?: RefObject<HTMLElement | null>;
