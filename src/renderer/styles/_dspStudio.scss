@@ -78,7 +78,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 0;
 }
 
-.dsp-studio :is(.dsp-rail-level, .dsp-rail-processors, .dsp-rail-playback) {
+.dsp-studio
+  :is(
+    .dsp-rail-level,
+    .dsp-rail-processors,
+    .dsp-rail-output,
+    .dsp-rail-playback
+  ) {
   gap: 1px;
   margin: 0;
   padding: 0;

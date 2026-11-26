@@ -66,6 +66,9 @@ export const portableDspChainSettings = (
     // The listener's level, not the chain's: a saved or shared chain carries
     // none, and applying one keeps whatever Normalizer is on now.
     normalizer: DSP_DEFAULTS.normalizer,
+    // And the Master, the listener's output level and ceiling: applying a
+    // saved or shared chain keeps whatever Master is on now.
+    master: DSP_DEFAULTS.master,
     denoise: { ...settings.denoise, isolate: false },
     deEsser: { ...settings.deEsser, isolate: false },
     eq: { ...settings.eq, isolate: false },

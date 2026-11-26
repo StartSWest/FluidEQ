@@ -111,6 +111,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .dsp-rail-level,
   .dsp-rail-processors,
+  .dsp-rail-output,
   .dsp-rail-playback {
     flex-direction: row;
     gap: 2px;
@@ -131,6 +132,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border-right: 1px solid color-mix(in srgb, $edge-tint 9%, transparent);
   }
 
+  .dsp-rail-output,
   .dsp-rail-playback {
     flex: 0 0 auto;
     margin-top: 0;

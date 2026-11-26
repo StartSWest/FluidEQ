@@ -9,6 +9,7 @@ import DspRailRow from './DspRailRow';
 import DspSectionIcon from './DspSectionIcon';
 import {
   DSP_LEVEL_SECTIONS,
+  DSP_OUTPUT_SECTIONS,
   DSP_PLAYBACK_SECTIONS,
   DSP_SECTIONS,
   TDspSection,
@@ -29,8 +30,9 @@ interface IDspSideTabsProps {
 
 /**
  * The rail down the side of the DSP page: the source level in a group of its
- * own, the filters in signal order, then the player transition in its own
- * group. The two groups are what no preset sets.
+ * own, the filters in signal order, the output level in a group of its own,
+ * then the player transition in its own group. Those three groups are what no
+ * preset sets.
  *
  * Stacking every processor on one scrolling page put four cards and forty-one
  * knobs in front of someone who wanted to move one — the EQ alone was eighteen
@@ -113,6 +115,12 @@ const DspSideTabs = ({
         {t('dsp.rail.filtersGroup')}
       </span>
       <div className="dsp-rail-processors">{DSP_SECTIONS.map(renderTab)}</div>
+      <div className="dsp-rail-output">
+        <span className="dsp-rail-group-label">
+          {t('dsp.rail.outputGroup')}
+        </span>
+        {DSP_OUTPUT_SECTIONS.map(renderTab)}
+      </div>
       <div className="dsp-rail-playback">
         <span className="dsp-rail-group-label">
           {t('library.playbackOptions')}

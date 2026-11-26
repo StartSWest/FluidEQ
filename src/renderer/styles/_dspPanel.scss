@@ -87,12 +87,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // this group, where the label is child one: the Crossfade tab came in second,
 // ahead of seven filters above it, while its label and the rule over it had no
 // entrance at all and stood on an otherwise empty rail from the first frame.
-.dsp-rail-playback {
+.dsp-rail-output {
   @include animate(
     rise-in,
     $motion-base,
     $ease-out,
     $dsp-rail-offset + ($dsp-rail-filters + 1) * $dsp-rail-step
+  );
+}
+
+// And the playback group on the beat after the output group.
+.dsp-rail-playback {
+  @include animate(
+    rise-in,
+    $motion-base,
+    $ease-out,
+    $dsp-rail-offset + ($dsp-rail-filters + 2) * $dsp-rail-step
   );
 }
 

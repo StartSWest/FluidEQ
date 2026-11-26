@@ -66,10 +66,9 @@ describe('the shareable complete DSP chain file', () => {
     expect(read.settings.dimension.highWidth).toBe(1.2);
     expect(read.settings.maximizer.ceilingDb).toBe(-1.2);
     expect(read.settings.maximizer.driveDb).toBe(-2.75);
-    expect(read.settings.master.matchedBypass).toBe(true);
   });
 
-  it('leaves Crossfade, the Normalizer and temporary monitor state out', () => {
+  it('leaves Crossfade, the Normalizer, the Master and temporary monitor state out', () => {
     const read = fromDspChainPresetFile(
       toDspChainPresetFile('Portable', fullChain()),
     );
@@ -81,6 +80,10 @@ describe('the shareable complete DSP chain file', () => {
     // POSITIVE CONTROL: the chain written had it on, at -16 LUFS.
     expect(fullChain().normalizer.mode).toBe('loudness');
     expect(read?.settings.normalizer).toEqual(DSP_DEFAULTS.normalizer);
+    // The Master likewise (Ivan, 2026-11-26). POSITIVE CONTROL: the chain
+    // written had it on.
+    expect(fullChain().master.enabled).toBe(true);
+    expect(read?.settings.master).toEqual(DSP_DEFAULTS.master);
     expect(read?.settings.denoise.isolate).toBe(false);
     expect(read?.settings.eq.isolate).toBe(false);
     expect(read?.settings.exciter.isolate).toBe(false);

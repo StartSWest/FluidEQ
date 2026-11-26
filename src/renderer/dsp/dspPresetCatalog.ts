@@ -182,6 +182,7 @@ export const resolveDspPreset = (
         crossfade: current.crossfade,
         // Kept out of a saved chain like the crossfade (`presets.ts`).
         normalizer: current.normalizer,
+        master: current.master,
         surround: current.surround,
         eq: { ...saved.settings.eq, treble: current.eq.treble },
         // Its oversampling as it was saved: the listener chose it.

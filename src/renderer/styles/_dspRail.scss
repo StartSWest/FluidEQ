@@ -42,6 +42,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-rail-level,
 .dsp-rail-processors,
+.dsp-rail-output,
 .dsp-rail-playback {
   display: flex;
   flex-direction: column;
@@ -57,6 +58,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin-bottom: 11px;
   padding-bottom: 10px;
   border-bottom: 1px solid $menu-rule;
+}
+
+// The Master, last as it is last in the audio, set apart under the filters as
+// the Normalizer is over them (Ivan, 2026-11-26): the listener's output level,
+// which no preset switches or carries. The playback group's rule and spacing.
+.dsp-rail-output {
+  gap: 5px;
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px solid $menu-rule;
 }
 
 // Crossfade schedules the player; it is not a filter in the signal chain.

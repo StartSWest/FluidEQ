@@ -145,9 +145,12 @@ const dsp = {
   'dsp.normalizer.mode': 'नॉर्मलाइज़ेशन मोड',
   'dsp.rail.levelGroup': 'स्रोत का स्तर',
   'dsp.rail.filtersGroup': 'फ़िल्टर',
+  'dsp.rail.outputGroup': 'आउटपुट स्तर',
   'dsp.rail.turnOff': '{name} बंद करें',
   'dsp.rail.turnOn': '{name} चालू करें',
   'dsp.normalizer.independent':
+    'प्रीसेट से अलग: कोई प्रीसेट चुनने से यह कभी नहीं बदलता, और इसे बदलने पर आपका प्रीसेट बना रहता है।',
+  'dsp.master.independent':
     'प्रीसेट से अलग: कोई प्रीसेट चुनने से यह कभी नहीं बदलता, और इसे बदलने पर आपका प्रीसेट बना रहता है।',
   'dsp.normalizer.off': 'बंद',
   'dsp.normalizer.truePeak': 'ट्रू पीक',

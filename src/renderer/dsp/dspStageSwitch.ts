@@ -119,8 +119,13 @@ export const dspStageSwitch = (
       return plain({ dynamics: { ...rack.dynamics, enabled: !on } });
     case 'maximizer':
       return plain({ maximizer: { ...rack.maximizer, enabled: !on } });
+    // The listener's output level, beside the presets like the Normalizer
+    // (Ivan, 2026-11-26): switching it keeps the preset's name.
     case 'master':
-      return plain({ master: { ...rack.master, enabled: !on } });
+      return {
+        patch: { master: { ...rack.master, enabled: !on } },
+        preservePreset: true,
+      };
     default: {
       const unknown: never = section;
       throw new Error(`No switch for the stage ${String(unknown)}.`);

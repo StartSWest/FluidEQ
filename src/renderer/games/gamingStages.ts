@@ -9,7 +9,12 @@ import type { TGameSoundPart } from '../../common/gameSoundParts';
 import type { TranslationKey } from '../../common/i18n/en';
 import type { ITone } from '../../common/tone';
 import { dspStageIsOn } from '../dsp/dspStageSwitch';
-import { DSP_LEVEL_SECTIONS, DSP_SECTIONS, TDspSection } from '../dsp/sections';
+import {
+  DSP_LEVEL_SECTIONS,
+  DSP_OUTPUT_SECTIONS,
+  DSP_SECTIONS,
+  TDspSection,
+} from '../dsp/sections';
 
 /**
  * Every part of a game's sound, as the Gaming Lab's rail lists them: the
@@ -45,9 +50,10 @@ export const GAMING_STAGES: readonly IGamingStageDef[] = [
   { id: 'footsteps', group: 'game', labelKey: SOUND_LABEL_KEYS.footsteps },
   { id: 'mainEq', group: 'sound', labelKey: SOUND_LABEL_KEYS.mainEq },
   { id: 'curve', group: 'sound', labelKey: SOUND_LABEL_KEYS.curve },
-  // The Normalizer leads the music rail in a group of its own; a game's
-  // sound lists it with the rest of its rack, as it always did.
-  ...[...DSP_LEVEL_SECTIONS, ...DSP_SECTIONS]
+  // The Normalizer and the Master stand in groups of their own on the music
+  // rail; a game's sound lists them with the rest of its rack, as it always
+  // did.
+  ...[...DSP_LEVEL_SECTIONS, ...DSP_SECTIONS, ...DSP_OUTPUT_SECTIONS]
     .filter((section) => isRackPart(section.id))
     .map((section) => ({
       id: section.id as TGamingStage,

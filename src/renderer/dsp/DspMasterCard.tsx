@@ -63,6 +63,7 @@ const DspMasterCard = ({
       }
     >
       <DspMasterGraph master={master} loudnessGainDb={loudnessGainDb} />
+      <p className="dsp-band-hint">{t('dsp.master.independent')}</p>
       <div className="dsp-crossovers">
         <Dial
           labelKey="dsp.master.outputTrim"

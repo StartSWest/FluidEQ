@@ -124,11 +124,12 @@ it('keeps the listener’s Treble choice when a saved chain is picked', async ()
   );
 });
 
-it('retains a saved chain’s Master but keeps the listener’s Normalizer', async () => {
+it('keeps the listener’s Normalizer and Master when a saved chain is applied', async () => {
   const settings = {
     ...DSP_DEFAULTS,
     normalizer: { ...DSP_DEFAULTS.normalizer, mode: 'loudness' as const },
     master: { ...DSP_DEFAULTS.master, enabled: true, loudnessMaximize: true },
+    dimension: { ...DSP_DEFAULTS.dimension, enabled: true },
   };
   const { store, catalog } = await fresh();
   const saved = await store.saveUserDspPreset('My levelled chain', settings);
@@ -147,6 +148,22 @@ it('retains a saved chain’s Master but keeps the listener’s Normalizer', asy
   expect(catalog.resolveDspPreset(saved.id, levelled)?.normalizer).toEqual(
     levelled.normalizer,
   );
+  // The Master too, at the other end (Ivan, 2026-11-26): the chain was saved
+  // with it on, and applying it keeps the listener's, off here...
+  expect(selected?.master).toEqual(DSP_DEFAULTS.master);
+  // ...and on, with its own target, when the listener has it on.
+  const mastered = {
+    ...DSP_DEFAULTS,
+    master: {
+      ...DSP_DEFAULTS.master,
+      enabled: true,
+      loudnessMaximize: true,
+      loudnessTargetLufs: -18,
+    },
+  };
+  expect(catalog.resolveDspPreset(saved.id, mastered)?.master).toEqual(
+    mastered.master,
+  );
   // POSITIVE CONTROL: the chain's own stages still come back with it.
-  expect(selected?.master).toEqual(settings.master);
+  expect(selected?.dimension.enabled).toBe(true);
 });

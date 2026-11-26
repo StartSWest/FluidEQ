@@ -276,7 +276,9 @@ const DspStageCards = ({
             normalizer,
             inputAnalysis.analysis,
           )}
-          onPatch={(next) => onPatch({ master: next })}
+          // Independent of the preset, like the Normalizer: switching it, its
+          // profile or a dial never turns the chain's name into Custom.
+          onPatch={(next) => onPatch({ master: next }, true)}
           onCommit={onCommit}
           onToggle={toggle}
         />

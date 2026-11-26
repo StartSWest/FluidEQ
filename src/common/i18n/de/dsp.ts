@@ -145,9 +145,12 @@ const dsp = {
   'dsp.normalizer.mode': 'Normalisierungsmodus',
   'dsp.rail.levelGroup': 'Quellpegel',
   'dsp.rail.filtersGroup': 'Filter',
+  'dsp.rail.outputGroup': 'Ausgangspegel',
   'dsp.rail.turnOff': '{name} ausschalten',
   'dsp.rail.turnOn': '{name} einschalten',
   'dsp.normalizer.independent':
+    'Unabhängig von Presets: Ein Preset ändert ihn nie, und wenn Sie ihn ändern, bleibt Ihr Preset erhalten.',
+  'dsp.master.independent':
     'Unabhängig von Presets: Ein Preset ändert ihn nie, und wenn Sie ihn ändern, bleibt Ihr Preset erhalten.',
   'dsp.normalizer.off': 'Aus',
   'dsp.normalizer.truePeak': 'True Peak',

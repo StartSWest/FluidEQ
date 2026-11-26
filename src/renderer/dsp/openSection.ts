@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
   DSP_LEVEL_SECTIONS,
+  DSP_OUTPUT_SECTIONS,
   DSP_PLAYBACK_SECTIONS,
   DSP_SECTIONS,
   TDspSection,
@@ -39,6 +40,7 @@ export const DSP_RAIL_PINNED_KEY = 'fluideq.dsp.railPinned';
 const KNOWN: readonly TDspSection[] = [
   ...DSP_LEVEL_SECTIONS.map((section) => section.id),
   ...DSP_SECTIONS.map((section) => section.id),
+  ...DSP_OUTPUT_SECTIONS.map((section) => section.id),
   ...DSP_PLAYBACK_SECTIONS.map((section) => section.id),
 ];
 

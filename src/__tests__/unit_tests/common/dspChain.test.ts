@@ -515,6 +515,44 @@ describe('dsp chain settings', () => {
     );
   });
 
+  /**
+   * The Master is the listener's too, at the other end of the rack (Ivan,
+   * 2026-11-26: "users can have it enabled for all presets"): no factory
+   * chain switches it on, and a pick keeps the output level somebody set.
+   */
+  it('switches the Master on in no factory preset', () => {
+    // POSITIVE CONTROL: a rack can hold it on, so "off" below is a reading.
+    expect(
+      clampDspSettings({
+        ...DSP_DEFAULTS,
+        master: { ...DSP_DEFAULTS.master, enabled: true },
+      }).master.enabled,
+    ).toBe(true);
+    expect(DSP_PRESETS.length).toBeGreaterThan(100);
+    expect(
+      DSP_PRESETS.filter((preset) => preset.settings.master.enabled).map(
+        (preset) => preset.id,
+      ),
+    ).toEqual([]);
+  });
+
+  it('keeps the Master as the listener set it when a whole-chain preset is applied', () => {
+    const current: IDspSettings = {
+      ...DSP_DEFAULTS,
+      master: {
+        ...DSP_DEFAULTS.master,
+        enabled: true,
+        loudnessMaximize: true,
+        loudnessTargetLufs: -16,
+        ceilingDb: -2,
+      },
+    };
+    expect(dspPresetSettings('rock', current)?.master).toEqual(current.master);
+    expect(dspPresetSettings('music', current)?.master).toEqual(current.master);
+    // And one set off stays off whatever the chain is.
+    expect(dspPresetSettings('rock', DSP_DEFAULTS)?.master.enabled).toBe(false);
+  });
+
   it('keeps Crossfade independent when a whole-chain preset is applied', () => {
     const current: IDspSettings = {
       ...DSP_DEFAULTS,

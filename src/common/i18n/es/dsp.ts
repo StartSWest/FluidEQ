@@ -145,9 +145,12 @@ const dsp = {
   'dsp.normalizer.mode': 'Modo de normalización',
   'dsp.rail.levelGroup': 'Nivel de la fuente',
   'dsp.rail.filtersGroup': 'Filtros',
+  'dsp.rail.outputGroup': 'Nivel de salida',
   'dsp.rail.turnOff': 'Desactivar {name}',
   'dsp.rail.turnOn': 'Activar {name}',
   'dsp.normalizer.independent':
+    'Independiente de los presets: elegir uno nunca lo cambia, y cambiarlo mantiene tu preset.',
+  'dsp.master.independent':
     'Independiente de los presets: elegir uno nunca lo cambia, y cambiarlo mantiene tu preset.',
   'dsp.normalizer.off': 'Apagado',
   'dsp.normalizer.truePeak': 'Pico real',

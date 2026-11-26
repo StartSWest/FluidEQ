@@ -29,6 +29,7 @@ import {
 import DspPanel from '../../../renderer/dsp/DspPanel';
 import {
   DSP_LEVEL_SECTIONS,
+  DSP_OUTPUT_SECTIONS,
   DSP_PLAYBACK_SECTIONS,
   DSP_SECTIONS,
 } from '../../../renderer/dsp/sections';
@@ -198,7 +199,12 @@ describe('a DSP processor page arriving', () => {
     expect(COLUMNS).toBeGreaterThan(0);
   });
 
-  it.each([...DSP_LEVEL_SECTIONS, ...DSP_SECTIONS, ...DSP_PLAYBACK_SECTIONS])(
+  it.each([
+    ...DSP_LEVEL_SECTIONS,
+    ...DSP_SECTIONS,
+    ...DSP_OUTPUT_SECTIONS,
+    ...DSP_PLAYBACK_SECTIONS,
+  ])(
     '$id: the card holds still, every row arrives, and nothing arrives twice',
     ({ id: section, labelKey }) => {
       const { container } = renderPanel();

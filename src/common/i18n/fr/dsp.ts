@@ -145,9 +145,12 @@ const dsp = {
   'dsp.normalizer.mode': 'Mode de normalisation',
   'dsp.rail.levelGroup': 'Niveau de la source',
   'dsp.rail.filtersGroup': 'Filtres',
+  'dsp.rail.outputGroup': 'Niveau de sortie',
   'dsp.rail.turnOff': 'Désactiver {name}',
   'dsp.rail.turnOn': 'Activer {name}',
   'dsp.normalizer.independent':
+    'Indépendant des préréglages : en choisir un ne le modifie jamais, et le modifier conserve votre préréglage.',
+  'dsp.master.independent':
     'Indépendant des préréglages : en choisir un ne le modifie jamais, et le modifier conserve votre préréglage.',
   'dsp.normalizer.off': 'Désactivé',
   'dsp.normalizer.truePeak': 'Crête vraie',

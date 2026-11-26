@@ -143,9 +143,12 @@ const dsp = {
   'dsp.normalizer.mode': '标准化模式',
   'dsp.rail.levelGroup': '音源电平',
   'dsp.rail.filtersGroup': '滤镜',
+  'dsp.rail.outputGroup': '输出电平',
   'dsp.rail.turnOff': '关闭{name}',
   'dsp.rail.turnOn': '开启{name}',
   'dsp.normalizer.independent':
+    '与预设无关：选择预设不会改变它，修改它也会保留你的预设。',
+  'dsp.master.independent':
     '与预设无关：选择预设不会改变它，修改它也会保留你的预设。',
   'dsp.normalizer.off': '关闭',
   'dsp.normalizer.truePeak': '真实峰值',

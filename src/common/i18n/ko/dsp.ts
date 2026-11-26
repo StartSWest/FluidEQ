@@ -130,9 +130,12 @@ const dsp = {
   'dsp.normalizer.mode': '정규화 모드',
   'dsp.rail.levelGroup': '소스 레벨',
   'dsp.rail.filtersGroup': '필터',
+  'dsp.rail.outputGroup': '출력 레벨',
   'dsp.rail.turnOff': '{name} 끄기',
   'dsp.rail.turnOn': '{name} 켜기',
   'dsp.normalizer.independent':
+    '프리셋과 별개입니다. 프리셋을 골라도 바뀌지 않고, 바꿔도 프리셋은 그대로입니다.',
+  'dsp.master.independent':
     '프리셋과 별개입니다. 프리셋을 골라도 바뀌지 않고, 바꿔도 프리셋은 그대로입니다.',
   'dsp.normalizer.off': '꺼짐',
   'dsp.normalizer.truePeak': '트루피크',

@@ -70,7 +70,6 @@ export const DSP_SECTIONS: { id: TDspSection; labelKey: TranslationKey }[] = [
   // far, the ceiling still catches (`compander.h`).
   { id: 'dynamics', labelKey: 'dsp.dynamics.title' },
   { id: 'maximizer', labelKey: 'dsp.maximizer.title' },
-  { id: 'master', labelKey: 'dsp.master.title' },
 ];
 
 /**
@@ -84,6 +83,19 @@ export const DSP_LEVEL_SECTIONS: {
   id: TDspSection;
   labelKey: TranslationKey;
 }[] = [{ id: 'normalizer', labelKey: 'dsp.normalizer.title' }];
+
+/**
+ * The output level, last in the audio and in a group of its own under the
+ * filters, as the Normalizer's is over them: the Master is the listener's
+ * final level and ceiling, so no preset switches it or carries it, and
+ * changing it keeps the preset's name (Ivan, 2026-11-26: "separate the
+ * Master from the preset and from the UI like the Normalizer, so users can
+ * have it enabled for all presets").
+ */
+export const DSP_OUTPUT_SECTIONS: {
+  id: TDspSection;
+  labelKey: TranslationKey;
+}[] = [{ id: 'master', labelKey: 'dsp.master.title' }];
 
 /** Playback transitions are configured here, but are not DSP filter stages. */
 export const DSP_PLAYBACK_SECTIONS: {

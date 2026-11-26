@@ -233,8 +233,11 @@ describe('dspStageSwitch', () => {
       expect(Object.keys(once.patch)).toEqual([section]);
       expect(turned[section]).not.toEqual(DSP_DEFAULTS[section]);
       expect(back[section]).toEqual(DSP_DEFAULTS[section]);
+      // The stages no preset sets keep the preset's name when switched.
       expect(once.preservePreset).toBe(
-        section === 'normalizer' || section === 'crossfade',
+        section === 'normalizer' ||
+          section === 'master' ||
+          section === 'crossfade',
       );
     },
   );

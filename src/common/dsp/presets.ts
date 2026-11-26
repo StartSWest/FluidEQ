@@ -373,6 +373,11 @@ export const dspPresetSettings = (
     // has it off, and a pick neither switches it on nor takes away the
     // level somebody set.
     normalizer: current?.normalizer ?? preset.settings.normalizer,
+    // The Master likewise, at the other end of the rack (Ivan, 2026-11-26:
+    // "users can have it enabled for all presets"): no factory chain uses it,
+    // so a pick that rebuilt it from the defaults switched off the final
+    // level and ceiling the listener had set.
+    master: current?.master ?? preset.settings.master,
     // And the surround switch is the machine, not the sound: it says which
     // channels of THIS output the rack runs on. Every recipe is built from
     // the defaults, so without this a listener who had chosen the front pair
