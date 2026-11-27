@@ -4,15 +4,18 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { TFillTexture } from '../../common/graphTextures';
+import { PATTERN_TILE, type TFillTexture } from '../../common/graphTextures';
 
 /**
  * The patterns' tiles, drawn: what `fillTextures.ts` makes its patterns and
  * the engine's bitmaps from, and the style editor its buttons.
  */
 
-/** The side of a tile in CSS pixels. Small enough to read as a material. */
-export const TILE = 16;
+/**
+ * The grid a tile is drawn on, in units: one unit is one CSS pixel at the
+ * size every pattern had before the size slider, so the two are one number.
+ */
+export const TILE = PATTERN_TILE;
 
 export const makeCanvas = (side: number): HTMLCanvasElement => {
   const canvas = document.createElement('canvas');
@@ -28,11 +31,17 @@ export const makeCanvas = (side: number): HTMLCanvasElement => {
  * every look on screen and tinted at paint time through `globalAlpha` and the
  * composite operation — building one tile per colour would mean a new canvas
  * every time a gradient moved.
+ *
+ * `side` is the tile in device pixels. `zoom` is how many times its first
+ * size the size slider grew it (never the display's ratio, which `side`
+ * already carries): every stroke is drawn in units and grows by itself, and
+ * the grain is the one pattern that has to be told, because it counts specks.
  */
 export const drawTile = (
   context: CanvasRenderingContext2D,
   texture: TFillTexture,
   side: number,
+  zoom = 1,
 ): void => {
   const unit = side / TILE;
   context.strokeStyle = '#ffffff';
@@ -56,7 +65,12 @@ export const drawTile = (
 
   switch (texture) {
     case 'hatch':
-      diagonals(6, false);
+      // A third of the tile, so three stripes meet their copies at every
+      // edge. It was 6 units, which does not divide 16: every tile ended on
+      // a gap of 4 between two of 6, invisible at 16 pixels and a broken
+      // stripe every tile once the size slider grew it. The average spacing
+      // is the same 16/3 it always was.
+      diagonals(TILE / 3, false);
       break;
     case 'crosshatch':
       diagonals(8, false);
@@ -194,13 +208,21 @@ export const drawTile = (
       };
       // A twentieth of the tile carries a speck. At a hundredth the grain
       // was invisible at every size it is actually seen at, which is not a
-      // texture but an expensive way of drawing nothing.
-      const count = Math.round(side * side * 0.05);
+      // texture but an expensive way of drawing nothing. Counted on the
+      // tile as it was before it was grown, so a grown grain is the same
+      // specks larger, as a grown picture of it would be: counted on the
+      // grown tile, four times the size held sixteen times the specks, each
+      // four times as wide, and the fill went solid.
+      const before = side / zoom;
+      const count = Math.round(before * before * 0.05);
+      // Never under a device pixel, as no stroke is: a tile shrunk under its
+      // first size would print its specks as a faint blur.
+      const speck = Math.max(1, unit);
       for (let index = 0; index < count; index += 1) {
         const x = next() * side;
         const y = next() * side;
         context.globalAlpha = 0.45 + next() * 0.55;
-        context.fillRect(x, y, unit, unit);
+        context.fillRect(x, y, speck, speck);
       }
       context.globalAlpha = 1;
       break;

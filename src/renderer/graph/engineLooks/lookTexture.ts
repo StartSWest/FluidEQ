@@ -8,6 +8,7 @@ import type { ILookTuning } from 'common/customLooks';
 import {
   PICTURE_ALPHA,
   TEXTURE_ALPHA,
+  lookTexturePaint,
   texturePlacement,
 } from '../fillTextures';
 import type { ITextureArea } from '../texturePictures';
@@ -32,7 +33,12 @@ export const writeLookTexture = (
   input: IEngineLookInput,
   tuning: Pick<
     ILookTuning,
-    'filled' | 'texture' | 'textureImage' | 'textureFit' | 'textureSize'
+    | 'filled'
+    | 'texture'
+    | 'textureImage'
+    | 'textureFit'
+    | 'textureSize'
+    | 'patternSize'
   >,
   scale: number,
   area: ITextureArea,
@@ -41,14 +47,7 @@ export const writeLookTexture = (
     input.texture = undefined;
     return;
   }
-  const placement = texturePlacement({
-    texture: tuning.texture,
-    image: tuning.textureImage,
-    scale,
-    fit: tuning.textureFit,
-    size: tuning.textureSize,
-    area,
-  });
+  const placement = texturePlacement(lookTexturePaint(tuning, scale, area));
   if (!placement) {
     input.texture = undefined;
     return;

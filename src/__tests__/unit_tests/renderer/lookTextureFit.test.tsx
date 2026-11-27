@@ -5,13 +5,21 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The look editor's picture fit: "Whole picture" or "Tiled", and a tiled
- * picture's size — offered only while the texture is a picture, since a
- * pattern is a fixed 16-pixel material with no fit to choose.
+ * The look editor's picture fit — "Whole picture" or "Tiled" — and the one
+ * "Tile size" slider: a tiled picture's height, or a pattern's tile side
+ * (Ivan, 2026-11-27: "a slider to grow the tile", as the picture has). The
+ * fit is a picture's alone; a pattern always tiles. Each texture kind moves
+ * a size of its own.
  */
 
 import { fireEvent, render, screen } from '@testing-library/react';
 import en from 'common/i18n/en';
+import {
+  MAX_PATTERN_SIZE,
+  MAX_TEXTURE_SIZE,
+  MIN_PATTERN_SIZE,
+  MIN_TEXTURE_SIZE,
+} from 'common/graphTextures';
 import LookTextureRow from '../../../renderer/components/LookTextureRow';
 import { I18nProvider } from '../../../renderer/utils/I18nContext';
 
@@ -31,7 +39,12 @@ const picture = `data:image/webp;base64,${'A'.repeat(16)}`;
 
 const show = (props: Partial<Parameters<typeof LookTextureRow>[0]> = {}) => {
   const onChange = jest.fn();
-  const { texture = 'image', fit = 'tile', size = 192 } = props;
+  const {
+    texture = 'image',
+    fit = 'tile',
+    pictureSize = 192,
+    patternSize = 16,
+  } = props;
   const image = 'image' in props ? props.image : picture;
   render(
     <I18nProvider>
@@ -39,7 +52,8 @@ const show = (props: Partial<Parameters<typeof LookTextureRow>[0]> = {}) => {
         texture={texture}
         image={image}
         fit={fit}
-        size={size}
+        pictureSize={pictureSize}
+        patternSize={patternSize}
         onChange={onChange}
       />
     </I18nProvider>,
@@ -50,6 +64,11 @@ const show = (props: Partial<Parameters<typeof LookTextureRow>[0]> = {}) => {
 const fitButton = (key: 'look.texture.fit.cover' | 'look.texture.fit.tile') =>
   screen.queryByRole('button', { name: en[key] });
 
+const tileSlider = () =>
+  screen.queryByLabelText(en['look.texture.tileSize'], {
+    exact: false,
+  }) as HTMLInputElement | null;
+
 describe('the picture fit', () => {
   it('is offered for a picture, and the tile size only while tiled', () => {
     show();
@@ -57,10 +76,7 @@ describe('the picture fit', () => {
     expect(
       fitButton('look.texture.fit.tile')?.getAttribute('aria-pressed'),
     ).toBe('true');
-    const slider = screen.getByLabelText(en['look.texture.tileSize'], {
-      exact: false,
-    });
-    expect((slider as HTMLInputElement).value).toBe('192');
+    expect(tileSlider()?.value).toBe('192');
   });
 
   it('hides the tile size over a whole picture', () => {
@@ -68,9 +84,7 @@ describe('the picture fit', () => {
     expect(
       fitButton('look.texture.fit.cover')?.getAttribute('aria-pressed'),
     ).toBe('true');
-    expect(
-      screen.queryByLabelText(en['look.texture.tileSize'], { exact: false }),
-    ).toBeNull();
+    expect(tileSlider()).toBeNull();
   });
 
   it('is not offered for a pattern', () => {
@@ -81,16 +95,14 @@ describe('the picture fit', () => {
   it('is not offered before a picture is chosen', () => {
     show({ image: undefined });
     expect(fitButton('look.texture.fit.cover')).toBeNull();
+    expect(tileSlider()).toBeNull();
   });
 
   it('says what was chosen', () => {
     const onChange = show();
     fireEvent.click(fitButton('look.texture.fit.cover') as HTMLElement);
     expect(onChange).toHaveBeenLastCalledWith({ textureFit: 'cover' });
-    fireEvent.change(
-      screen.getByLabelText(en['look.texture.tileSize'], { exact: false }),
-      { target: { value: '96' } },
-    );
+    fireEvent.change(tileSlider() as HTMLElement, { target: { value: '96' } });
     expect(onChange).toHaveBeenLastCalledWith({ textureSize: 96 });
   });
 
@@ -117,5 +129,45 @@ describe('the picture fit', () => {
     const [last] = replaced.mock.calls[replaced.mock.calls.length - 1];
     expect(last).toMatchObject({ texture: 'image' });
     expect(last).not.toHaveProperty('textureFit');
+  });
+});
+
+describe("a pattern's tile size", () => {
+  it.each(['hatch', 'dots', 'static'] as const)(
+    'is offered for %s, at the pattern size and range, under the same name',
+    (texture) => {
+      show({ texture, patternSize: 40, pictureSize: 320 });
+      const slider = tileSlider();
+      expect(slider?.value).toBe('40');
+      expect(slider?.min).toBe(String(MIN_PATTERN_SIZE));
+      expect(slider?.max).toBe(String(MAX_PATTERN_SIZE));
+      // The same control as the picture's, drawn and labelled the same.
+      expect(slider?.className).toBe('look-designer__slider');
+      expect(screen.getByText('40 px')).not.toBeNull();
+    },
+  );
+
+  it('moves the pattern size and never the picture one', () => {
+    const onChange = show({ texture: 'hatch' });
+    fireEvent.change(tileSlider() as HTMLElement, { target: { value: '64' } });
+    expect(onChange).toHaveBeenLastCalledWith({ patternSize: 64 });
+    expect(onChange).not.toHaveBeenCalledWith(
+      expect.objectContaining({ textureSize: expect.anything() }),
+    );
+  });
+
+  it("is the picture's range and size again for a tiled picture", () => {
+    // The control for the two above: the same slider over a picture moves
+    // the picture's size, in the picture's range.
+    show({ texture: 'image', patternSize: 40, pictureSize: 320 });
+    const slider = tileSlider();
+    expect(slider?.value).toBe('320');
+    expect(slider?.min).toBe(String(MIN_TEXTURE_SIZE));
+    expect(slider?.max).toBe(String(MAX_TEXTURE_SIZE));
+  });
+
+  it('is not offered on a plain fill', () => {
+    show({ texture: 'none' });
+    expect(tileSlider()).toBeNull();
   });
 });

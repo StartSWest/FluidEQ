@@ -15,6 +15,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
   fillTexturePattern,
+  lookTexturePaint,
   printTexture,
   resetFillTextures,
   texturePlacement,
@@ -119,6 +120,10 @@ const paint = (overrides: Partial<ITexturePaint>): ITexturePaint => ({
   area: { left: 40, top: 10, right: 1040, bottom: 310 },
   ...overrides,
 });
+
+/** A pattern at the size every pattern had before the size slider. */
+const patternPaint = (overrides: Partial<ITexturePaint>): ITexturePaint =>
+  paint({ size: 16, ...overrides });
 
 beforeAll(() => {
   Object.assign(globalThis, { DOMMatrix: TestMatrix });
@@ -247,24 +252,28 @@ describe('a picture texture', () => {
 describe('a pattern texture', () => {
   it('is built once, however many frames print it', () => {
     for (let frame = 0; frame < 120; frame += 1) {
-      fillTexturePattern(context, paint({ texture: 'hatch' }));
+      fillTexturePattern(context, patternPaint({ texture: 'hatch' }));
     }
     expect(createPattern).toHaveBeenCalledTimes(1);
     // The control: another pattern is another build.
-    fillTexturePattern(context, paint({ texture: 'dots' }));
+    fillTexturePattern(context, patternPaint({ texture: 'dots' }));
     expect(createPattern).toHaveBeenCalledTimes(2);
   });
 
   it('reaches the engine as one bitmap of its tile', async () => {
-    expect(texturePlacement(paint({ texture: 'hatch' }))).toBeUndefined();
+    expect(
+      texturePlacement(patternPaint({ texture: 'hatch' })),
+    ).toBeUndefined();
     await settle();
-    const placed = texturePlacement(paint({ texture: 'hatch', scale: 2 }));
+    const placed = texturePlacement(
+      patternPaint({ texture: 'hatch', scale: 2 }),
+    );
     // A different scale is a different tile, still being made.
     expect(placed).toBeUndefined();
-    const ready = texturePlacement(paint({ texture: 'hatch' }));
+    const ready = texturePlacement(patternPaint({ texture: 'hatch' }));
     expect(ready).toMatchObject({ x: 0, y: 0, width: 16, height: 16 });
     expect(ready?.repeat).toBe(true);
-    texturePlacement(paint({ texture: 'hatch' }));
+    texturePlacement(patternPaint({ texture: 'hatch' }));
     expect(
       bitmaps.mock.calls.filter((call) => call[0] instanceof HTMLCanvasElement),
     ).toHaveLength(2);
@@ -273,7 +282,10 @@ describe('a pattern texture', () => {
 
 describe('printing a texture in a figure', () => {
   it('fills the figure alone, with the pattern laid in the window, and puts it back', () => {
-    const pattern = fillTexturePattern(context, paint({ texture: 'hatch' }));
+    const pattern = fillTexturePattern(
+      context,
+      patternPaint({ texture: 'hatch' }),
+    );
     expect(pattern).toBeDefined();
     const [made] = patterns;
     const placed = made.setTransform.mock.calls[0][0] as TestMatrix;
@@ -299,7 +311,10 @@ describe('printing a texture in a figure', () => {
   });
 
   it('prints nothing in a figure squashed flat', () => {
-    const pattern = fillTexturePattern(context, paint({ texture: 'hatch' }));
+    const pattern = fillTexturePattern(
+      context,
+      patternPaint({ texture: 'hatch' }),
+    );
     current = new TestMatrix([1, 0, 0, 0, 0, 0]);
     printTexture(
       context,
@@ -308,5 +323,120 @@ describe('printing a texture in a figure', () => {
       new DOMMatrix([1, 0, 0, 1, 0, 0]),
     );
     expect(fill).not.toHaveBeenCalled();
+  });
+});
+
+/** The canvas the page's `n`th pattern was made from, and where it lies. */
+const madePattern = (index: number) => {
+  const [canvas] = createPattern.mock.calls[index] as unknown as [
+    HTMLCanvasElement,
+  ];
+  const place = patterns[index].setTransform.mock.calls[0][0] as TestMatrix;
+  return { canvas, place };
+};
+
+describe('a pattern grown by the size slider', () => {
+  it.each([
+    [16, 1],
+    [40, 1.5],
+    [128, 2],
+  ])(
+    'prints a %i px tile at %f device pixels a pixel, the same on the page and the engine',
+    async (size, scale) => {
+      const grown = patternPaint({ texture: 'grid', size, scale });
+      fillTexturePattern(context, grown);
+      const { canvas, place } = madePattern(0);
+      // Drawn at the device pixels it covers, never a small tile magnified.
+      expect(canvas.width).toBe(Math.round(size * scale));
+      const onPage = canvas.width * place.a;
+      expect(onPage).toBeCloseTo(size, 0);
+      expect(texturePlacement(grown)).toBeUndefined();
+      await settle();
+      const engine = texturePlacement(grown);
+      expect(engine?.width).toBeCloseTo(onPage);
+      expect(engine?.height).toBeCloseTo(onPage);
+      expect(engine?.repeat).toBe(true);
+      // From the same pixels: the engine's bitmap is the page's own tile.
+      const [source] = bitmaps.mock.calls.find(
+        (call) => call[0] instanceof HTMLCanvasElement,
+      ) as [HTMLCanvasElement];
+      expect(source).toBe(canvas);
+    },
+  );
+
+  it('is a new tile on the page at once for a new size, and the same one for the same size', () => {
+    fillTexturePattern(context, patternPaint({ texture: 'hatch' }));
+    fillTexturePattern(context, patternPaint({ texture: 'hatch' }));
+    expect(createPattern).toHaveBeenCalledTimes(1);
+    expect(
+      fillTexturePattern(context, patternPaint({ texture: 'hatch', size: 64 })),
+    ).toBeDefined();
+    expect(createPattern).toHaveBeenCalledTimes(2);
+    expect(madePattern(1).canvas.width).toBe(64);
+  });
+
+  it('stands in on the engine with the size before while the new one is made', async () => {
+    // The control: with no size made yet there is nothing to stand in.
+    expect(texturePlacement(patternPaint({ texture: 'dots' }))).toBeUndefined();
+    await settle();
+    const first = texturePlacement(patternPaint({ texture: 'dots' }));
+    expect(first?.bitmap).toBeDefined();
+    const dragged = texturePlacement(
+      patternPaint({ texture: 'dots', size: 48 }),
+    );
+    // The 16-pixel tile, stretched to where the 48-pixel one lies.
+    expect(dragged?.key).toBe(first?.key);
+    expect(dragged?.bitmap).toBe(first?.bitmap);
+    expect(dragged?.width).toBe(48);
+    await settle();
+    const made = texturePlacement(patternPaint({ texture: 'dots', size: 48 }));
+    expect(made?.key).not.toBe(first?.key);
+    expect(made?.width).toBe(48);
+    // Never another pattern's tile: the grain has none of its own yet.
+    expect(
+      texturePlacement(patternPaint({ texture: 'static', size: 48 })),
+    ).toBeUndefined();
+  });
+
+  it('lets go of the size printed longest ago, past a few dozen', () => {
+    const print = (size: number) =>
+      fillTexturePattern(context, patternPaint({ texture: 'rules', size }));
+    for (let size = 8; size < 56; size += 1) {
+      print(size);
+    }
+    expect(createPattern).toHaveBeenCalledTimes(48);
+    // The control: sizes printed a moment ago are still held.
+    print(55);
+    print(9);
+    expect(createPattern).toHaveBeenCalledTimes(48);
+    // One more lets the oldest go, and only that one is drawn again.
+    print(56);
+    print(8);
+    expect(createPattern).toHaveBeenCalledTimes(50);
+    print(9);
+    expect(createPattern).toHaveBeenCalledTimes(50);
+  });
+});
+
+describe('which size a look prints its texture at', () => {
+  const area = { left: 0, top: 0, right: 400, bottom: 200 };
+  const tuning = {
+    texture: 'hatch',
+    textureImage: undefined,
+    textureFit: 'tile',
+    textureSize: 320,
+    patternSize: 24,
+  } as const;
+
+  it("prints a pattern at the pattern's size and a picture at the picture's", () => {
+    expect(lookTexturePaint(tuning, 2, area)).toMatchObject({
+      texture: 'hatch',
+      size: 24,
+      scale: 2,
+      area,
+    });
+    expect(
+      lookTexturePaint({ ...tuning, texture: 'image' }, 2, area).size,
+    ).toBe(320);
   });
 });

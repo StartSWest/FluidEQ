@@ -1696,6 +1696,14 @@ Out-String` (or any other capture) is what actually waits for it and shows
   looks keep a texture on the page. A picture is decoded once and redrawn at
   the device pixels it covers (`texturePictures.ts`), and travels to the
   worker once per key (`textureOnce.ts`) — never a bitmap in every frame.
+  A pattern has a size of its own (`patternSize`, 16 before 2026-11-27),
+  apart from a picture's 192 (`textureSize`): every painter, page or engine,
+  takes the size from `lookTexturePaint`, and a new one that reads
+  `textureSize` itself draws a pattern twelve times too large. Engine and
+  page were measured pixel-identical at 8-128 px on 1x to 2x displays, the
+  engine's own look shader compiled on the page's WebGL beside the page's
+  painter: the scene worker refuses software GL (no non-blocking compile),
+  so a headless harness never shows the engine itself.
 - **A model is checked the way three's `GLTFLoader` reads it, never the way
   the format says a file is written** (`worldModelCheck.ts` and its two
   parts, vendored to the server). The loader keeps the LAST JSON chunk and

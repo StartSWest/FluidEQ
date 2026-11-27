@@ -19,6 +19,7 @@ import {
   PICTURE_ALPHA,
   TEXTURE_ALPHA,
   fillTexturePattern,
+  lookTexturePaint,
   printTexture,
 } from '../fillTextures';
 import {
@@ -278,14 +279,10 @@ const printSceneTexture = (
   body: Path2D,
 ): void => {
   const { context, ratio, plot } = frame;
-  const pattern = fillTexturePattern(context, {
-    texture: tuning.texture,
-    image: tuning.textureImage,
-    scale: ratio,
-    fit: tuning.textureFit,
-    size: tuning.textureSize,
-    area: plot,
-  });
+  const pattern = fillTexturePattern(
+    context,
+    lookTexturePaint(tuning, ratio, plot),
+  );
   if (!pattern) {
     return;
   }

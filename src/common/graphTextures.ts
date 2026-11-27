@@ -71,7 +71,7 @@ export const isTextureFit = (value: unknown): value is TTextureFit =>
  * The height a tiled picture repeats at, in CSS pixels.
  *
  * Pixels rather than a share of the plot, because the patterns beside it are
- * a fixed 16 pixels at every size too, and because the 192 every picture was
+ * sized in pixels too (`PATTERN_TILE`), and because the 192 every picture was
  * drawn at before this choice is then the default exactly — a look saved
  * before it opens tiled at the size it always had. 32 is about the smallest
  * a photograph still reads at; 640 is past the docked graph's whole height.
@@ -84,6 +84,24 @@ export const MAX_TEXTURE_SIZE = 640;
  * square of this side, and still the default tile height.
  */
 export const TEXTURE_TILE = 192;
+
+/**
+ * The side a pattern's tile repeats at, in CSS pixels (Ivan, 2026-11-27: "a
+ * slider to grow the tile", as the picture has).
+ *
+ * Its own setting rather than the picture's: the two live a decade apart —
+ * a pattern is a 16-pixel material, a picture a 192-pixel photograph — so one
+ * stored size would draw a pattern twelve times too large the moment it
+ * replaced a picture, and a picture a twelfth of its size the other way. Each
+ * keeps what was last chosen for it. 16 is the size every pattern was drawn
+ * at before the slider existed, so a look saved then keeps it. A pattern
+ * grows the way a tiled picture does, the whole tile magnified, strokes
+ * included; under 8 its strokes, already one device pixel, would crowd into
+ * a flat tone, and at 128 one stripe of the hatch is as wide as a bar.
+ */
+export const PATTERN_TILE = 16;
+export const MIN_PATTERN_SIZE = 8;
+export const MAX_PATTERN_SIZE = 128;
 
 /**
  * How large a stored picture may be.

@@ -10,7 +10,9 @@ import { type ReactNode, useCallback, useRef, useState } from 'react';
 import type { ILookTuning } from 'common/customLooks';
 import {
   FILL_TEXTURES,
+  MAX_PATTERN_SIZE,
   MAX_TEXTURE_SIZE,
+  MIN_PATTERN_SIZE,
   MIN_TEXTURE_SIZE,
   TEXTURE_FITS,
   type TFillTexture,
@@ -23,14 +25,20 @@ import { TextureError, tileFromFile } from '../graph/textureUpload';
 import { SettingRow, SettingSlider } from './LookDesignerParts';
 
 type TTexturePatch = Partial<
-  Pick<ILookTuning, 'texture' | 'textureImage' | 'textureFit' | 'textureSize'>
+  Pick<
+    ILookTuning,
+    'texture' | 'textureImage' | 'textureFit' | 'textureSize' | 'patternSize'
+  >
 >;
 
 interface ILookTextureRowProps {
   texture: TFillTexture;
   image?: string;
   fit: TTextureFit;
-  size: number;
+  /** A tiled picture's height. */
+  pictureSize: number;
+  /** A pattern's tile side, a setting of its own (`PATTERN_TILE`). */
+  patternSize: number;
   onChange: (next: TTexturePatch) => void;
 }
 
@@ -42,6 +50,61 @@ const FIT_LABEL: Record<TTextureFit, TranslationKey> = {
 
 /** The tile slider's step: fine enough to match a picture to the bars. */
 const SIZE_STEP = 8;
+
+/**
+ * The same slider's step over a pattern. Its range is a tenth of a
+ * picture's, and at 8 the smallest sizes would be a single doubling apart;
+ * at 4 the slider's travel still moves a few pixels for each step.
+ */
+const PATTERN_STEP = 4;
+
+/** The one "Tile size" slider, whichever of the two sizes it is moving. */
+interface ITileSize {
+  min: number;
+  max: number;
+  step: number;
+  value: number;
+  patch: (value: number) => TTexturePatch;
+}
+
+/**
+ * What the size slider moves for this texture, or nothing where there is no
+ * tile: a plain fill, a picture not chosen yet, a picture over the whole plot.
+ * One control under one name for both, so a pattern's tile and a picture's
+ * are grown the same way; each moves its own stored size, and going from
+ * one to the other shows the size that one was left at.
+ */
+const tileSizeOf = (
+  texture: TFillTexture,
+  isPicture: boolean,
+  {
+    fit,
+    pictureSize,
+    patternSize,
+  }: Pick<ILookTextureRowProps, 'fit' | 'pictureSize' | 'patternSize'>,
+): ITileSize | undefined => {
+  if (texture === 'none') {
+    return undefined;
+  }
+  if (texture !== 'image') {
+    return {
+      min: MIN_PATTERN_SIZE,
+      max: MAX_PATTERN_SIZE,
+      step: PATTERN_STEP,
+      value: patternSize,
+      patch: (value) => ({ patternSize: value }),
+    };
+  }
+  return isPicture && fit === 'tile'
+    ? {
+        min: MIN_TEXTURE_SIZE,
+        max: MAX_TEXTURE_SIZE,
+        step: SIZE_STEP,
+        value: pictureSize,
+        patch: (value) => ({ textureSize: value }),
+      }
+    : undefined;
+};
 
 /**
  * The pattern printed inside a filled figure, and where a picture is chosen.
@@ -56,7 +119,8 @@ const LookTextureRow = ({
   texture,
   image,
   fit,
-  size,
+  pictureSize,
+  patternSize,
   onChange,
 }: ILookTextureRowProps): ReactNode => {
   const { t } = useTranslation();
@@ -107,6 +171,11 @@ const LookTextureRow = ({
   );
 
   const isPicture = texture === 'image' && image !== undefined;
+  const tileSize = tileSizeOf(texture, isPicture, {
+    fit,
+    pictureSize,
+    patternSize,
+  });
 
   return (
     <>
@@ -176,8 +245,8 @@ const LookTextureRow = ({
           <span className="look-designer__hint is-warning">{failure}</span>
         ) : null}
       </div>
-      {/* How the picture lies, only while there is a picture: the patterns
-        are a fixed 16-pixel material and have no fit to choose. */}
+      {/* How the picture lies, only while there is a picture: a pattern is
+        a material and always tiles, at the size the slider below gives it. */}
       {isPicture ? (
         <div className="look-designer__row">
           <span className="look-designer__caption">
@@ -202,19 +271,19 @@ const LookTextureRow = ({
           </div>
         </div>
       ) : null}
-      {isPicture && fit === 'tile' ? (
+      {tileSize ? (
         <SettingRow
           id="look-designer-tile-size"
           label={t('look.texture.tileSize')}
-          value={`${size} px`}
+          value={`${tileSize.value} px`}
         >
           <SettingSlider
             id="look-designer-tile-size"
-            min={MIN_TEXTURE_SIZE}
-            max={MAX_TEXTURE_SIZE}
-            step={SIZE_STEP}
-            value={size}
-            onChange={(textureSize) => onChange({ textureSize })}
+            min={tileSize.min}
+            max={tileSize.max}
+            step={tileSize.step}
+            value={tileSize.value}
+            onChange={(value) => onChange(tileSize.patch(value))}
           />
         </SettingRow>
       ) : null}

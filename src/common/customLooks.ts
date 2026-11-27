@@ -41,8 +41,11 @@ import {
 import {
   type TFillTexture,
   type TTextureFit,
+  MAX_PATTERN_SIZE,
   MAX_TEXTURE_SIZE,
+  MIN_PATTERN_SIZE,
   MIN_TEXTURE_SIZE,
+  PATTERN_TILE,
   TEXTURE_TILE,
   isFillTexture,
   isTextureFit,
@@ -174,6 +177,13 @@ export interface ILookTuning {
   textureFit: TTextureFit;
   /** A tiled picture's height in CSS pixels; 192 before the choice existed. */
   textureSize: number;
+  /**
+   * A pattern's tile side in CSS pixels, apart from the picture's
+   * (`PATTERN_TILE`). Absent on every look saved before the slider, which
+   * reads as 16, the size those looks always drew at; an older FluidEQ
+   * ignores the field and draws 16.
+   */
+  patternSize: number;
   /** One figure for both channels, or one for each. */
   channels: TGraphChannels;
   // No slope: it was here until 2026-11-16 and is now the graph's own, in
@@ -421,6 +431,7 @@ export const getDefaultTuning = (style: GraphStyle): ILookTuning => {
     // saved then reads exactly as it drew.
     textureFit: 'tile',
     textureSize: TEXTURE_TILE,
+    patternSize: PATTERN_TILE,
     channels: 'joined',
   };
 };
@@ -523,6 +534,14 @@ export const normalizeTuning = (
         MIN_TEXTURE_SIZE,
         MAX_TEXTURE_SIZE,
         defaults.textureSize,
+      ),
+    ),
+    patternSize: Math.round(
+      readNumber(
+        source.patternSize,
+        MIN_PATTERN_SIZE,
+        MAX_PATTERN_SIZE,
+        defaults.patternSize,
       ),
     ),
     channels: isGraphChannels(source.channels)

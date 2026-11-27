@@ -28,6 +28,7 @@ import { GLOW_LAYERS, HALO_SCALE } from './figureGlow';
 import { setAlpha } from './liveTraceStyle';
 import {
   fillTexturePattern,
+  lookTexturePaint,
   printTexture,
   PICTURE_ALPHA,
   TEXTURE_ALPHA,
@@ -329,14 +330,10 @@ export const paintFillTexture = ({
    * chose a picture chose its colours too.
    */
   if (isFilled && tuning.texture !== 'none') {
-    const pattern = fillTexturePattern(context, {
-      texture: tuning.texture,
-      image: tuning.textureImage,
-      scale: ratio,
-      fit: tuning.textureFit,
-      size: tuning.textureSize,
-      area: plot,
-    });
+    const pattern = fillTexturePattern(
+      context,
+      lookTexturePaint(tuning, ratio, plot),
+    );
     if (pattern) {
       context.save();
       context.globalCompositeOperation =

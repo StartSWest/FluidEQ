@@ -4,11 +4,13 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import type { ILookTuning } from '../../common/customLooks';
 import {
   type TFillTexture,
   type TTextureFit,
   TEXTURE_TILE,
 } from '../../common/graphTextures';
+import { recallRecent, rememberRecent } from '../utils/recentMap';
 import {
   type ITextureArea,
   type ITexturePlacement,
@@ -33,14 +35,20 @@ import { TILE, drawTile, makeCanvas } from './fillTextureTiles';
 interface ITileKey {
   texture: TFillTexture;
   scale: number;
+  /** The tile's side in CSS pixels (`patternSize`). */
+  size: number;
 }
 
-const keyOf = ({ texture, scale }: ITileKey) => `${texture}|${scale}`;
+/** A pattern at a display ratio, whatever its size: what a size stands in for. */
+const familyOf = ({ texture, scale }: ITileKey) => `${texture}|${scale}`;
+
+const keyOf = (key: ITileKey) => `${familyOf(key)}|${key.size}`;
 
 /**
- * One tile of a named pattern at a display scale, drawn once and kept: the
- * canvas it is drawn on, the page's pattern made from it, and the copy the
- * engine is handed (`texturePlacement`), each made the first time asked.
+ * One tile of a named pattern at a display scale and a size, drawn once and
+ * kept: the canvas it is drawn on, the page's pattern made from it, and the
+ * copy the engine is handed (`texturePlacement`), each made the first time
+ * asked.
  */
 interface ITile {
   canvas: HTMLCanvasElement;
@@ -48,7 +56,24 @@ interface ITile {
   bitmap?: ImageBitmap | 'loading';
 }
 
+/**
+ * The tiles drawn, the most recently printed kept. Every size the slider
+ * passes through on a drag is a tile of its own, so an unbounded map was a
+ * slow leak of one canvas and one bitmap per step; 48 is several times what
+ * one window prints at once — the graph, the editor's preview and a gallery
+ * of looks, each pattern at its own size — and at the largest size on a 2x
+ * display all of them are 25 MB.
+ */
 const tiles = new Map<string, ITile | null>();
+const KEPT_TILES = 48;
+
+/**
+ * The newest tile of each pattern whose bitmap the engine can print, by
+ * `familyOf`: what stands in, stretched to the new size, while the size
+ * slider's next tile is made, so the engine's figure does not flash plain at
+ * every step of a drag — what a picture's last redraw does for its own size.
+ */
+const lastReadyTiles = new Map<string, { key: string; bitmap: ImageBitmap }>();
 
 /**
  * Where each pattern lies in the window's CSS pixels: what `printTexture`
@@ -61,26 +86,32 @@ const placeOn = (pattern: CanvasPattern, place: DOMMatrix): void => {
   pattern.setTransform(place);
 };
 
-const tileOf = (texture: TFillTexture, scale: number): ITile | null => {
-  const key = keyOf({ texture, scale });
-  const held = tiles.get(key);
+/**
+ * A pattern's tile, drawn at the device pixels it covers: its size times the
+ * display's ratio. Grown by the size slider it is drawn again at that size,
+ * never a small tile magnified, so a grown stroke is as sharp as a first one.
+ */
+const tileOf = (key: ITileKey): ITile | null => {
+  const name = keyOf(key);
+  const held = recallRecent(tiles, name);
   if (held !== undefined) {
     return held;
   }
-  const side = Math.max(2, Math.round(TILE * scale));
+  const side = Math.max(2, Math.round(key.size * key.scale));
   const canvas = makeCanvas(side);
   const tileContext = canvas.getContext('2d');
   let tile: ITile | null = null;
   if (tileContext) {
-    drawTile(tileContext, texture, side);
+    drawTile(tileContext, key.texture, side, key.size / TILE);
     tile = { canvas };
   }
-  tiles.set(key, tile);
+  rememberRecent(tiles, name, tile, KEPT_TILES);
   return tile;
 };
 
 /**
- * The pattern for a named texture at a display scale, built once and kept.
+ * The pattern for a named texture at a display scale and a size, built once
+ * and kept.
  *
  * `setTransform` is what maps the device-resolution tile back onto CSS
  * pixels: the context is already scaled by the display's ratio, so without it
@@ -88,10 +119,10 @@ const tileOf = (texture: TFillTexture, scale: number): ITile | null => {
  */
 const tilePattern = (
   context: CanvasRenderingContext2D,
-  texture: TFillTexture,
-  scale: number,
+  key: ITileKey,
 ): CanvasPattern | undefined => {
-  const tile = tileOf(texture, scale);
+  const { scale } = key;
+  const tile = tileOf(key);
   if (!tile) {
     return undefined;
   }
@@ -190,12 +221,34 @@ export interface ITexturePaint {
   image?: string;
   /** The display's device ratio, so a hairline stays a hairline. */
   scale: number;
-  /** How a picture lies: once over `area`, or tiled `size` pixels tall. */
+  /** How a picture lies: once over `area`, or tiled. A pattern always tiles. */
   fit: TTextureFit;
+  /** The tile in CSS pixels: a tiled picture's height, a pattern's side. */
   size: number;
   /** The plot, in the CSS pixels the texture is printed in. */
   area: ITextureArea;
 }
+
+/**
+ * A look's texture as the page and the engine both print it: the one place
+ * that says which of the look's two sizes this texture is drawn at, so no
+ * painter can take the picture's 192 for a pattern.
+ */
+export const lookTexturePaint = (
+  tuning: Pick<
+    ILookTuning,
+    'texture' | 'textureImage' | 'textureFit' | 'textureSize' | 'patternSize'
+  >,
+  scale: number,
+  area: ITextureArea,
+): ITexturePaint => ({
+  texture: tuning.texture,
+  image: tuning.textureImage,
+  scale,
+  fit: tuning.textureFit,
+  size: tuning.texture === 'image' ? tuning.textureSize : tuning.patternSize,
+  area,
+});
 
 const tileScale = (scale: number) => Math.max(1, Math.min(4, scale));
 
@@ -222,14 +275,15 @@ export const fillTexturePattern = (
       : undefined;
     return placement ? placedPattern(context, placement) : undefined;
   }
-  return tilePattern(context, texture, tileScale(scale));
+  return tilePattern(context, { texture, scale: tileScale(scale), size });
 };
 
 /**
  * The texture as the engine prints it (`engineLooks/lookTexture.ts`): the
  * same device pixels the page's pattern is made of, and where they lie. A
- * pattern's tile is turned into a bitmap the first time it is asked for, and
- * nothing is returned until it is.
+ * pattern's tile is turned into a bitmap the first time it is asked for;
+ * until it is, the same pattern's last bitmap at another size stands in,
+ * stretched to this one, and nothing is returned only when there is none.
  */
 export const texturePlacement = (
   paint: ITexturePaint,
@@ -241,16 +295,19 @@ export const texturePlacement = (
   if (texture === 'image') {
     return image ? placePicture({ image, fit, size, scale, area }) : undefined;
   }
-  const ratio = tileScale(scale);
-  const tile = tileOf(texture, ratio);
+  const key: ITileKey = { texture, scale: tileScale(scale), size };
+  const tile = tileOf(key);
   if (!tile) {
     return undefined;
   }
+  const name = `tile|${keyOf(key)}`;
+  const family = familyOf(key);
   if (tile.bitmap === undefined) {
     tile.bitmap = 'loading';
     createImageBitmap(tile.canvas, { premultiplyAlpha: 'premultiply' })
       .then((bitmap) => {
         tile.bitmap = bitmap;
+        lastReadyTiles.set(family, { key: name, bitmap });
         announceTextureReady();
         return undefined;
       })
@@ -258,16 +315,22 @@ export const texturePlacement = (
         tile.bitmap = undefined;
       });
   }
-  if (tile.bitmap === 'loading') {
+  const shown =
+    tile.bitmap === 'loading'
+      ? lastReadyTiles.get(family)
+      : { key: name, bitmap: tile.bitmap };
+  if (!shown) {
     return undefined;
   }
+  // Where the page's pattern lies too (`tilePattern`): the tile's device
+  // pixels one to one, so the two print the same stroke at the same place.
   return {
-    key: `tile|${keyOf({ texture, scale: ratio })}`,
-    bitmap: tile.bitmap,
+    key: shown.key,
+    bitmap: shown.bitmap,
     x: 0,
     y: 0,
-    width: tile.canvas.width / ratio,
-    height: tile.canvas.height / ratio,
+    width: tile.canvas.width / key.scale,
+    height: tile.canvas.height / key.scale,
     repeat: true,
   };
 };
@@ -315,6 +378,7 @@ export const texturePreviewUrl = (texture: TFillTexture): string => {
 /** Clears the cached tiles. For tests, which build a fresh canvas each run. */
 export const resetFillTextures = (): void => {
   tiles.clear();
+  lastReadyTiles.clear();
   previews.clear();
 };
 

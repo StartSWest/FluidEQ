@@ -27,7 +27,12 @@ import {
   isFilledGraphStyle,
 } from 'common/graphStyles';
 import { ACCENT_STYLES, hasGraphAccent } from 'common/graphShapes';
-import { MAX_TEXTURE_SIZE, MIN_TEXTURE_SIZE } from 'common/graphTextures';
+import {
+  MAX_PATTERN_SIZE,
+  MAX_TEXTURE_SIZE,
+  MIN_PATTERN_SIZE,
+  MIN_TEXTURE_SIZE,
+} from 'common/graphTextures';
 import { DEFAULT_GRAPH_TILT, isGraphTilt } from 'common/graphAnalysis';
 import {
   CUSTOM_LOOK_PREFIX,
@@ -154,6 +159,7 @@ describe('normalizeTuning', () => {
       textureImage: undefined,
       textureFit: 'tile',
       textureSize: 192,
+      patternSize: 16,
       channels: 'joined',
     });
   });
@@ -653,6 +659,7 @@ describe('every stored setting is validated', () => {
     ['gap', MIN_BAR_GAP, MAX_BAR_GAP],
     ['accentWidth', MIN_ACCENT_WIDTH, MAX_ACCENT_WIDTH],
     ['textureSize', MIN_TEXTURE_SIZE, MAX_TEXTURE_SIZE],
+    ['patternSize', MIN_PATTERN_SIZE, MAX_PATTERN_SIZE],
   ];
 
   it.each(NUMERIC)('clamps %s to its range', (key, min, max) => {
