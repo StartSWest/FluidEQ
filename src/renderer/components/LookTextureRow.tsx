@@ -20,7 +20,8 @@ import {
 } from 'common/graphTextures';
 import type { TranslationKey } from 'common/i18n';
 import { useTranslation } from '../utils/I18nContext';
-import { texturePreviewUrl } from '../graph/fillTextures';
+import { useLightWindow } from '../utils/windowSide';
+import { patternInkOn, texturePreviewUrl } from '../graph/fillTextures';
 import { TextureError, tileFromFile } from '../graph/textureUpload';
 import { SettingRow, SettingSlider } from './LookDesignerParts';
 
@@ -126,6 +127,8 @@ const LookTextureRow = ({
   const { t } = useTranslation();
   const fileRef = useRef<HTMLInputElement>(null);
   const [failure, setFailure] = useState<string>('');
+  // The swatches in the ink the fill prints its pattern in (`patternInk`).
+  const ink = patternInkOn(useLightWindow());
 
   const choose = useCallback(
     (choice: TFillTexture) => {
@@ -193,7 +196,9 @@ const LookTextureRow = ({
         >
           {FILL_TEXTURES.map((choice) => {
             const preview =
-              choice === 'image' ? (image ?? '') : texturePreviewUrl(choice);
+              choice === 'image'
+                ? (image ?? '')
+                : texturePreviewUrl(choice, ink);
             return (
               <button
                 key={choice}

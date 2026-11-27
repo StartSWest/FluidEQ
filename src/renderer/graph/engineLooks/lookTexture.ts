@@ -47,7 +47,8 @@ export const writeLookTexture = (
     input.texture = undefined;
     return;
   }
-  const placement = texturePlacement(lookTexturePaint(tuning, scale, area));
+  const paint = lookTexturePaint(tuning, scale, area);
+  const placement = texturePlacement(paint);
   if (!placement) {
     input.texture = undefined;
     return;
@@ -57,6 +58,7 @@ export const writeLookTexture = (
     key: placement.key,
     bitmap: placement.bitmap,
     mode: isPicture ? 2 : 1,
+    ink: paint.ink,
     strength: isPicture ? PICTURE_ALPHA : TEXTURE_ALPHA,
     x: placement.x,
     y: placement.y,

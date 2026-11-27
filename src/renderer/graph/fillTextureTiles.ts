@@ -25,12 +25,18 @@ export const makeCanvas = (side: number): HTMLCanvasElement => {
 };
 
 /**
- * One tile of a named pattern, drawn white on nothing.
+ * The colour a pattern's tile is drawn in: white on a dark window, black on
+ * a light one (`patternInk`).
+ */
+export type TTileInk = 'white' | 'black';
+
+/**
+ * One tile of a named pattern, drawn in `ink` on nothing.
  *
- * White rather than the figure's colour because the tile is cached across
- * every look on screen and tinted at paint time through `globalAlpha` and the
- * composite operation — building one tile per colour would mean a new canvas
- * every time a gradient moved.
+ * White or black rather than the figure's colour because the tile is cached
+ * across every look on screen and tinted at paint time through `globalAlpha`
+ * and the composite operation — building one tile per colour would mean a
+ * new canvas every time a gradient moved.
  *
  * `side` is the tile in device pixels. `zoom` is how many times its first
  * size the size slider grew it (never the display's ratio, which `side`
@@ -42,10 +48,12 @@ export const drawTile = (
   texture: TFillTexture,
   side: number,
   zoom = 1,
+  ink: TTileInk = 'white',
 ): void => {
   const unit = side / TILE;
-  context.strokeStyle = '#ffffff';
-  context.fillStyle = '#ffffff';
+  const colour = ink === 'black' ? '#000000' : '#ffffff';
+  context.strokeStyle = colour;
+  context.fillStyle = colour;
   context.lineCap = 'butt';
 
   const diagonals = (step: number, back: boolean) => {

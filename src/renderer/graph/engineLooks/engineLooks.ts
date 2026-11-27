@@ -208,7 +208,9 @@ export const engineAnalysisStep = (
 // 7: the measuring views print the style editor's texture — a pattern or a
 // picture, tiled or over the whole plot — in their bodies (`lookTextured`),
 // and a look wearing one is drawn here instead of on the page (2026-11-26).
-const LOOK_PACK_VERSION = 7;
+// 8: a pattern prints in black on a light window, where white vanished on a
+// pale fill (`uLookTexturing.w`, 2026-11-27).
+const LOOK_PACK_VERSION = 8;
 
 const packs = new Map<GraphStyle, IScenePack>();
 

@@ -108,6 +108,11 @@ export interface IEngineLookTexture {
   bitmap?: ImageBitmap;
   /** 1 a pattern, printed in overlay; 2 a picture, printed over the fill. */
   mode: 1 | 2;
+  /**
+   * A pattern's colour in that overlay (`patternInk`): the tile carries only
+   * its coverage, white, so a change of the window's side sends no new one.
+   */
+  ink: 'white' | 'black';
   /** How strongly it prints before the fill's own opacity (`PICTURE_ALPHA`). */
   strength: number;
   /** Where one copy lies, in the look's CSS pixels, and whether it repeats. */

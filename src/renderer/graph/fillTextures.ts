@@ -17,7 +17,8 @@ import {
   announceTextureReady,
   placePicture,
 } from './texturePictures';
-import { TILE, drawTile, makeCanvas } from './fillTextureTiles';
+import { isLightWindow } from '../utils/windowSide';
+import { TILE, type TTileInk, drawTile, makeCanvas } from './fillTextureTiles';
 
 /**
  * The pattern that goes inside a filled figure.
@@ -37,10 +38,15 @@ interface ITileKey {
   scale: number;
   /** The tile's side in CSS pixels (`patternSize`). */
   size: number;
+  ink: TTileInk;
 }
 
-/** A pattern at a display ratio, whatever its size: what a size stands in for. */
-const familyOf = ({ texture, scale }: ITileKey) => `${texture}|${scale}`;
+/**
+ * The pattern at a display ratio and in an ink, whatever its size: what a
+ * size stands in for.
+ */
+const familyOf = ({ texture, scale, ink }: ITileKey) =>
+  `${texture}|${scale}|${ink}`;
 
 const keyOf = (key: ITileKey) => `${familyOf(key)}|${key.size}`;
 
@@ -102,7 +108,7 @@ const tileOf = (key: ITileKey): ITile | null => {
   const tileContext = canvas.getContext('2d');
   let tile: ITile | null = null;
   if (tileContext) {
-    drawTile(tileContext, key.texture, side, key.size / TILE);
+    drawTile(tileContext, key.texture, side, key.size / TILE, key.ink);
     tile = { canvas };
   }
   rememberRecent(tiles, name, tile, KEPT_TILES);
@@ -227,7 +233,25 @@ export interface ITexturePaint {
   size: number;
   /** The plot, in the CSS pixels the texture is printed in. */
   area: ITextureArea;
+  /** The colour a pattern is printed in (`patternInk`). */
+  ink: TTileInk;
 }
+
+/**
+ * The colour a pattern prints in on this window: white on a dark one, black
+ * on a light one.
+ *
+ * In `overlay` a white tile can only lighten (over a channel above half it
+ * leaves full white) and a black one only darken, each by the same share of
+ * the way to its own end. White was the only ink there was, so on the white
+ * window the pattern lightened a fill already near white and vanished; black
+ * there is the exact mirror of what white does on a dark window, and reads
+ * as strongly.
+ */
+export const patternInkOn = (lightWindow: boolean): TTileInk =>
+  lightWindow ? 'black' : 'white';
+
+export const patternInk = (): TTileInk => patternInkOn(isLightWindow());
 
 /**
  * A look's texture as the page and the engine both print it: the one place
@@ -248,6 +272,7 @@ export const lookTexturePaint = (
   fit: tuning.textureFit,
   size: tuning.texture === 'image' ? tuning.textureSize : tuning.patternSize,
   area,
+  ink: patternInk(),
 });
 
 const tileScale = (scale: number) => Math.max(1, Math.min(4, scale));
@@ -265,7 +290,7 @@ export const fillTexturePattern = (
   context: CanvasRenderingContext2D,
   paint: ITexturePaint,
 ): CanvasPattern | undefined => {
-  const { texture, image, scale, fit, size, area } = paint;
+  const { texture, image, scale, fit, size, area, ink } = paint;
   if (texture === 'none') {
     return undefined;
   }
@@ -275,7 +300,7 @@ export const fillTexturePattern = (
       : undefined;
     return placement ? placedPattern(context, placement) : undefined;
   }
-  return tilePattern(context, { texture, scale: tileScale(scale), size });
+  return tilePattern(context, { texture, scale: tileScale(scale), size, ink });
 };
 
 /**
@@ -284,6 +309,10 @@ export const fillTexturePattern = (
  * pattern's tile is turned into a bitmap the first time it is asked for;
  * until it is, the same pattern's last bitmap at another size stands in,
  * stretched to this one, and nothing is returned only when there is none.
+ *
+ * Always the white tile: the engine reads only a tile's coverage and is told
+ * the ink beside it (`IEngineLookTexture.ink`), so switching the window's side
+ * sends it no new bitmap.
  */
 export const texturePlacement = (
   paint: ITexturePaint,
@@ -295,7 +324,12 @@ export const texturePlacement = (
   if (texture === 'image') {
     return image ? placePicture({ image, fit, size, scale, area }) : undefined;
   }
-  const key: ITileKey = { texture, scale: tileScale(scale), size };
+  const key: ITileKey = {
+    texture,
+    scale: tileScale(scale),
+    size,
+    ink: 'white',
+  };
   const tile = tileOf(key);
   if (!tile) {
     return undefined;
@@ -338,10 +372,10 @@ export const texturePlacement = (
 /**
  * How strongly a pattern prints on the fill it sits in.
  *
- * Painted in `overlay` the tile both darkens and lightens what is under it,
- * so one tile reads on a pale fill and on a dark one without carrying a
- * colour of its own. A dropped picture goes on flat instead: somebody who
- * chose a picture chose its colours.
+ * Painted in `overlay`, in white on a dark window and black on a light one
+ * (`patternInk`), so the tile reads on whatever fill the look has without
+ * carrying a colour of its own. A dropped picture goes on flat instead:
+ * somebody who chose a picture chose its colours.
  */
 export const TEXTURE_ALPHA = 0.32;
 export const PICTURE_ALPHA = 0.5;
@@ -353,13 +387,21 @@ export const PICTURE_ALPHA = 0.5;
  * of twelve words says nothing about what any of them looks like, and a swatch
  * wide enough to read would push the row onto three lines.
  */
-const previews = new Map<TFillTexture, string>();
+const previews = new Map<string, string>();
 
-export const texturePreviewUrl = (texture: TFillTexture): string => {
+/**
+ * In `ink`, the window's (`patternInk`): a white swatch on a pale button was
+ * as invisible as a white pattern on a pale fill.
+ */
+export const texturePreviewUrl = (
+  texture: TFillTexture,
+  ink: TTileInk,
+): string => {
   if (texture === 'none' || texture === 'image') {
     return '';
   }
-  const held = previews.get(texture);
+  const name = `${texture}|${ink}`;
+  const held = previews.get(name);
   if (held !== undefined) {
     return held;
   }
@@ -368,10 +410,10 @@ export const texturePreviewUrl = (texture: TFillTexture): string => {
   const context = canvas.getContext('2d');
   let url = '';
   if (context) {
-    drawTile(context, texture, side);
+    drawTile(context, texture, side, 1, ink);
     url = canvas.toDataURL('image/png');
   }
-  previews.set(texture, url);
+  previews.set(name, url);
   return url;
 };
 

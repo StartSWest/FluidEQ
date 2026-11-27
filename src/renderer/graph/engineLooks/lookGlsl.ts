@@ -224,10 +224,13 @@ vec4 lookGlow(vec4 picture, vec4 light) {
 // The style editor's texture printed into what is painted at p, over the
 // share cover of a filled body at the fill's opacity strength, as the 2D
 // figures print it (fillTextures.ts): a picture laid over what is there and
-// keeping its alpha (the canvas's source-atop), a pattern's white tile in
-// the canvas's overlay, which lightens and darkens the fill beneath it.
+// keeping its alpha (the canvas's source-atop), a pattern's tile in the
+// canvas's overlay: in white on a dark window, which only lightens, and in
+// black on a light one, which only darkens (fillTextures.ts, patternInk).
+// The tile is always the white one; only its coverage is read.
 // uLookTexturing: mode (0 none, 1 pattern, 2 picture), strength, 1 where it
-// repeats; uLookTextureRect: where one copy lies, x, y, width, height.
+// repeats, 1 where a pattern's ink is black; uLookTextureRect: where one copy
+// lies, x, y, width, height.
 vec4 lookTextured(vec4 picture, vec2 p, float cover, float strength) {
   int mode = int(uLookTexturing.x + 0.5);
   if (mode == 0 || cover <= 0.0 || lookBloomPass()) {
@@ -244,6 +247,12 @@ vec4 lookTextured(vec4 picture, vec2 p, float cover, float strength) {
   }
   float a = tile.a * k;
   vec3 under = picture.a > 0.0 ? picture.rgb / picture.a : vec3(0.0);
+  if (uLookTexturing.w > 0.5) {
+    // Overlay with black: nothing of the source where it lies alone, and
+    // under half each channel goes to black, over it to 2u - 1.
+    vec3 darkened = max(vec3(0.0), 2.0 * under - 1.0);
+    return vec4(picture.rgb * (1.0 - a) + a * picture.a * darkened, a + picture.a * (1.0 - a));
+  }
   vec3 blended = min(vec3(1.0), 2.0 * under);
   vec3 colour = vec3(a * (1.0 - picture.a)) + picture.rgb * (1.0 - a) + a * picture.a * blended;
   return vec4(colour, a + picture.a * (1.0 - a));

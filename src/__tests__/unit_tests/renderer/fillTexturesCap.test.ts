@@ -118,6 +118,7 @@ const paint = (overrides: Partial<ITexturePaint>): ITexturePaint => ({
   fit: 'tile',
   size: 192,
   area: { left: 40, top: 10, right: 1040, bottom: 310 },
+  ink: 'white',
   ...overrides,
 });
 

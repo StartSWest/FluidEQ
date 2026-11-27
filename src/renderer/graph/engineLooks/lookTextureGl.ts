@@ -91,7 +91,7 @@ export const createLookTextureGl = (
       texture && ready ? texture.mode : 0,
       texture?.strength ?? 0,
       texture?.repeat ? 1 : 0,
-      0,
+      texture?.ink === 'black' ? 1 : 0,
     );
     gl.uniform4f(
       textureRectAt,
