@@ -612,7 +612,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.sampleMaker': 'Lumen Works',
   'help.looks.title': 'Stile und Szenen',
   'help.looks.intro':
-    'Standardstile sind kostenlose Zeichnungen des Live-Klangs, die Sie selbst einfärben und gestalten können: Linie und Fläche für eine klare Spur, LED-Blöcke und Spitzen für Wucht, Fachwerk, Skyline und Tanzende Flammen für ganze Szenen. Szenen sind lebendige Bilder, auf der Grafikkarte gezeichnet, wie Alpin, Aurora, Blüte und Neonstadt, in denen Bass, Beat und Höhen jeweils etwas anderes bewegen.',
+    'Standardstile sind kostenlose Zeichnungen des Live-Klangs, die Sie selbst einfärben und gestalten können: Spektrumwelle für eine klare Spur, LED-Balken und Neonbalken für Wucht, Skyline, Glastürme und Echo für ganze Szenen. Szenen sind lebendige Bilder, auf der Grafikkarte gezeichnet, wie Alpin, Aurora, Blüte und Neonstadt, in denen Bass, Beat und Höhen jeweils etwas anderes bewegen.',
   'help.looks.steps':
     'Klicken Sie im Diagramm auf den Namen der Darstellung. Wählen Sie links eine Rubrik, oder durchsuchen Sie alles auf einmal.\nMit „Von“ sehen Sie nur die Darstellungen von FluidEQ, die Szenen von Mitgliedern oder Ihre eigenen. Gehört Ihnen eine Szene noch nicht, ist sie gesperrt, und wenn Sie sie wählen, erfahren Sie, wie Sie sie bekommen.\nDrücken Sie bei einem Standardstil Neue Darstellung, um Farben, Bewegung und Spitzen zu ändern, und speichern Sie sie dann; sie erscheint unter „Von: Ihre“.',
   'help.looks.tip':

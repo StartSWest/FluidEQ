@@ -89,11 +89,11 @@ const tour: Partial<Dictionary> = {
     '在“均衡器”页面上以自身配色显示的 FluidEQ：“频谱分析仪”在曲线下方描绘一首歌，角落上方打开了脉冲图标后的菜单，“亮度”在一半。',
   'tour.gpu.kicker': '全新场景引擎',
   'tour.gpu.title': '所有场景都在你的显卡上运行',
-  'tour.gpu.subtitle': '四十种样式跟上屏幕刷新率，还有 3D 世界',
+  'tour.gpu.subtitle': '每种样式都跟上屏幕刷新率，还有 3D 世界',
   'tour.gpu.lead':
-    '图表的四十种样式现在都由场景所用的引擎绘制：在你的显卡上、以你屏幕自己的刷新率运行，频柱、粒子和峰值从过去的跳动变成流畅滑动。场景现在还可以是真正的 3D 世界。',
+    '图表的 {looks} 种样式现在都由场景所用的引擎绘制：在你的显卡上、以你屏幕自己的刷新率运行，频柱、粒子和峰值从过去的跳动变成流畅滑动。场景现在还可以是真正的 3D 世界。',
   'tour.gpu.point1':
-    '“{scenes}”里新增十八种样式，包括“{synthwave}”“{horizon}”“{towers}”和“{ledwall}”；没有自带颜色的样式会使用窗口的颜色。',
+    '“{scenes}”里新增多种样式，包括“{halo}”“{horizon}”“{towers}”和“{ledwall}”；没有自带颜色的样式会使用窗口的颜色。',
   'tour.gpu.point2':
     '3D 世界随底鼓踏步、随军鼓摇摆、在 drop 时跃起，并随“{brightness}”从黑夜变为白天；拖动它可以换个角度观看。',
   'tour.gpu.point3':
@@ -101,7 +101,7 @@ const tour: Partial<Dictionary> = {
   'tour.gpu.how': '点击图表上的样式名称，在“{scenes}”中选择一种。',
   'tour.gpu.open': '打开均衡器',
   'tour.gpu.imageAlt':
-    '一个呈现夜晚 3D 城市的场景，以及在图表上实拍的四种新样式：“{synthwave}”“{horizon}”“{towers}”和“{ledwall}”，第一张中的样式选择器被圈出。',
+    '一个呈现夜晚 3D 城市的场景，以及在图表上实拍的四种新样式：“{halo}”“{horizon}”“{towers}”和“{ledwall}”，第一张中的样式选择器被圈出。',
   'tour.gpu.world': '3D 世界',
   'tour.sparks.kicker': '指针火花',
   'tour.sparks.title': '会回应鼠标的场景',

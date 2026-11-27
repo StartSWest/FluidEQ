@@ -95,11 +95,11 @@ const tour: Partial<Dictionary> = {
     'EQ ページで自分の色の FluidEQ。カーブの下に曲を描く「アナライザー」と、角の上に開いたパルスアイコンのメニュー。「明るさ」は半分です。',
   'tour.gpu.kicker': '新しいシーンエンジン',
   'tour.gpu.title': 'すべてのシーンをグラフィックカードで',
-  'tour.gpu.subtitle': '40 の表示を画面の速さで、そして 3D の世界',
+  'tour.gpu.subtitle': 'すべての表示を画面の速さで、そして 3D の世界',
   'tour.gpu.lead':
-    'グラフの 40 の表示は、シーンと同じエンジンで描かれるようになりました。グラフィックカード上で、画面そのもののリフレッシュレートで動くので、バーや粒子やピークがカクつかずに滑らかに動きます。さらにシーンは本物の 3D の世界にもなれます。',
+    'グラフの {looks} の表示は、シーンと同じエンジンで描かれるようになりました。グラフィックカード上で、画面そのもののリフレッシュレートで動くので、バーや粒子やピークがカクつかずに滑らかに動きます。さらにシーンは本物の 3D の世界にもなれます。',
   'tour.gpu.point1':
-    '「{scenes}」に新しい表示が 18 種類。「{synthwave}」「{horizon}」「{towers}」「{ledwall}」など。自前の色を持たない表示はウィンドウの色をまといます。',
+    '「{scenes}」に新しい表示。「{halo}」「{horizon}」「{towers}」「{ledwall}」など。自前の色を持たない表示はウィンドウの色をまといます。',
   'tour.gpu.point2':
     '3D の世界はキックで踏み込み、スネアで揺れ、ドロップで跳ね、「{brightness}」に合わせて夜から昼へ移ります。ドラッグすると別の角度から見られます。',
   'tour.gpu.point3':
@@ -107,7 +107,7 @@ const tour: Partial<Dictionary> = {
   'tour.gpu.how': 'グラフ上の表示名をクリックし、「{scenes}」から選びます。',
   'tour.gpu.open': 'EQ を開く',
   'tour.gpu.imageAlt':
-    '夜の 3D 都市のシーンと、グラフ上で撮影した 4 つの新しい表示（「{synthwave}」「{horizon}」「{towers}」「{ledwall}」）。最初の画像では表示の選択を丸で囲んでいます。',
+    '夜の 3D 都市のシーンと、グラフ上で撮影した 4 つの新しい表示（「{halo}」「{horizon}」「{towers}」「{ledwall}」）。最初の画像では表示の選択を丸で囲んでいます。',
   'tour.gpu.world': '3D の世界',
   'tour.sparks.kicker': 'ポインターの火花',
   'tour.sparks.title': 'マウスに応えるシーン',

@@ -236,16 +236,16 @@ The same switch brings the full app back on the page you left.
 the way studio analysers do: twelve views, from the Analyzer, a spectrogram and
 a waterfall to stereo, loudness and phase, the live sound drawn 80 dB deep and
 down to 10 Hz, a twelfth of an octave per point, on scales that hold still while
-the music moves. Or it draws the music: forty looks in all, every one on your
-graphics card at your screen's own refresh rate — terraces, a skyline, LED and
-neon bars, glass towers, a synthwave road — each one yours to recolour and
+the music moves. Or it draws the music: thirty-two looks in all, every one on
+your graphics card at your screen's own refresh rate — a skyline, a halo, LED
+and neon bars, glass towers, a horizon of bars — each one yours to recolour and
 reshape in a designer that opens on the look you are using. The stereo output
 meter has ten looks of its own: bar, segments, LEDs, fluid, mercury, needle,
 pulse, stack, flow and centre.
 
 ![The graph on its Analyzer with a song playing: the live spectrum as a filled curve 80 dB deep from 10 Hz to 20 kHz, green in the bass turning blue and violet toward the treble, its peaks traced above it in grey, and the EQ's curves on top — the flat line of the bands with a point for each, the yellow Tone curve lifting the bass and the violet curves of the other layers — with the equaliser's ±20 dB on the left and the analyser's 0 to −80 dB on the right. Along its top, the Presets picker, Smart EQ, the EQ mode, the band layout and Curves, and under them the look picker on Analyzer.](assets/tour/graph-analyzer.jpg)
 
-![Four of the graph's new looks, each under the EQ's curves with its name in the look picker: Synthwave, a sun over a grid road running to the horizon with the spectrum as mountains behind it; Glass towers, a row of lit glass columns with their peaks floating above them; Horizon, tall bars standing on their own reflection; and LED wall, the spectrum as a wall of glowing dots.](docs/graph-looks.jpg)
+![Four of the graph's looks, each under the EQ's curves with its name on the look strip at the plot's foot: Halo, a ring of rays round a glowing disc, each ray as long as its band is loud; Glass towers, a row of lit glass columns with their peaks floating above them; Horizon, tall bars standing on their own reflection; and LED wall, the spectrum as a wall of glowing dots.](docs/graph-looks.jpg)
 
 **Plays in two places at once.** A second output mirrors what you are hearing to
 any number of other devices, with a level for each, and nothing to install.

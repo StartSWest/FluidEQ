@@ -50,16 +50,7 @@ export const createLookInput = (style: string): IEngineLookInput => ({
   bloom: 0,
   sprites: new Float32Array(0),
   spriteCount: 0,
-  spritesUnder: 0,
 });
-
-/**
- * Every sprite pushed so far is scenery, drawn under the picture; the ones
- * pushed after are drawn over it.
- */
-export const spritesSoFarUnder = (input: IEngineLookInput): void => {
-  input.spritesUnder = input.spriteCount;
-};
 
 /**
  * One sprite drawn over the picture (`SPRITE_FLOATS`): at `x`, `y` in CSS
@@ -270,7 +261,6 @@ export const readLookInput = (
   const { plot, look, music, bands, colours } = reading;
   // A frame's sprites are its own: each step pushes what it draws this time.
   input.spriteCount = 0;
-  input.spritesUnder = 0;
   setLookVector(input, 0, reading.window.width, reading.window.height, 0, 0);
   setLookVector(input, 1, plot.left, plot.right, plot.top, plot.bottom);
   setLookBands(input, bands);

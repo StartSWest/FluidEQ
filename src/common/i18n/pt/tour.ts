@@ -95,11 +95,11 @@ const tour: Partial<Dictionary> = {
     'O FluidEQ nas próprias cores na página do EQ, o Analisador desenhando uma música sob as curvas, e o menu do ícone de pulso aberto sobre o canto, com o Brilho na metade.',
   'tour.gpu.kicker': 'UM NOVO MOTOR DE CENAS',
   'tour.gpu.title': 'Todas as cenas na sua placa de vídeo',
-  'tour.gpu.subtitle': 'Quarenta estilos no ritmo da sua tela, e mundos 3D',
+  'tour.gpu.subtitle': 'Cada estilo no ritmo da sua tela, e mundos 3D',
   'tour.gpu.lead':
-    'Os quarenta estilos do gráfico agora são desenhados pelo motor das cenas: na sua placa de vídeo, na taxa de atualização da sua tela, então barras, partículas e picos deslizam onde antes saltavam. E uma cena agora pode ser um mundo 3D de verdade.',
+    'Os {looks} estilos do gráfico agora são desenhados pelo motor das cenas: na sua placa de vídeo, na taxa de atualização da sua tela, então barras, partículas e picos deslizam onde antes saltavam. E uma cena agora pode ser um mundo 3D de verdade.',
   'tour.gpu.point1':
-    'Dezoito estilos novos em {scenes}, entre eles {synthwave}, {horizon}, {towers} e {ledwall}; um estilo sem cores próprias usa as da janela.',
+    'Estilos novos em {scenes}, entre eles {halo}, {horizon}, {towers} e {ledwall}; um estilo sem cores próprias usa as da janela.',
   'tour.gpu.point2':
     'Os mundos 3D pisam no bumbo, balançam com a caixa, saltam no drop e passam da noite ao dia com {brightness}; arraste um para vê-lo de outro lado.',
   'tour.gpu.point3':
@@ -108,7 +108,7 @@ const tour: Partial<Dictionary> = {
     'Clique no nome do estilo no gráfico e escolha um em {scenes}.',
   'tour.gpu.open': 'Abrir EQ',
   'tour.gpu.imageAlt':
-    'Uma cena que é uma cidade 3D à noite, e quatro estilos novos fotografados no gráfico — {synthwave}, {horizon}, {towers} e {ledwall} —, com o seletor de estilos destacado no primeiro.',
+    'Uma cena que é uma cidade 3D à noite, e quatro estilos novos fotografados no gráfico — {halo}, {horizon}, {towers} e {ledwall} —, com o seletor de estilos destacado no primeiro.',
   'tour.gpu.world': 'Mundo 3D',
   'tour.sparks.kicker': 'FAÍSCAS DO PONTEIRO',
   'tour.sparks.title': 'Cenas que respondem ao seu mouse',

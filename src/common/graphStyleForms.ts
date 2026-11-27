@@ -96,16 +96,11 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   phase: { attackMs: 2, releaseMs: 80 },
   /**
    * The drawn scenes move like the things they are: lamps snap on and let
-   * go quickly, glass is a little heavier, the sea is slow both ways, and
-   * the halo and the skyline sit between.
+   * go quickly, glass is a little heavier, and the halo sits between.
    */
   ledwall: { attackMs: 3, releaseMs: 240 },
   towers: { attackMs: 8, releaseMs: 220 },
-  // The slowest release the style editor offers: a default past its slider
-  // is one the look editor can never put back.
-  tide: { attackMs: 45, releaseMs: 400 },
   halo: { attackMs: 6, releaseMs: 200 },
-  synthwave: { attackMs: 14, releaseMs: 300 },
   // A segment board snaps like the lamps; bars carry a little weight; the
   // waves are strokes of a brush, slower both ways.
   ledbars: { attackMs: 2, releaseMs: 260 },
@@ -141,7 +136,6 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   crown: { attackMs: 4, releaseMs: 36 },
   // Landscapes. A hill that twitches is noise, so these are the slow ones.
   ridge: { attackMs: 22, releaseMs: 90 },
-  terrace: { attackMs: 24, releaseMs: 240 },
   area: { attackMs: 18, releaseMs: 145 },
   // The staircase steps by nature; easing it hard would blur the treads.
   steps: { attackMs: 10, releaseMs: 90 },
@@ -159,32 +153,23 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   // Architecture. Buildings do not sway, so these are stiff going up and slow
   // coming down — the skyline should look built, not blown about.
   skyline: { attackMs: 5, releaseMs: 72 },
-  // Quick, so the bridge rides the music; the deck eases itself on top.
-  truss: { attackMs: 20, releaseMs: 140 },
   matrix: { attackMs: 3, releaseMs: 66 },
   sawtooth: { attackMs: 4, releaseMs: 40 },
 
   // Things that hang, fall or float have gravity in them: quick to appear,
   // reluctant to leave.
   stalactites: { attackMs: 45, releaseMs: 320 },
-  bubbles: { attackMs: 12, releaseMs: 190 },
   diamonds: { attackMs: 4, releaseMs: 78 },
 
-  // Keep the attack readable without losing 85% of a pulse between 30Hz
-  // frames. Slope follows spatial direction, not instantaneous velocity.
-  ecg: { attackMs: 8, releaseMs: 110 },
+  // Slope follows spatial direction, not instantaneous velocity.
   slope: { attackMs: 8, releaseMs: 220 },
   feather: { attackMs: 4, releaseMs: 34 },
   zipper: { attackMs: 12, releaseMs: 90 },
 
-  // The arcade. These are toys, and toys have physics: the runner pops off the
-  // ground on a kick and comes down under its own weight, the aliens hover
-  // rather than twitch, the warp streaks are as immediate as the pulse, and
-  // the bricks behave like the level meter they secretly are.
+  // The arcade. These are toys, and toys have physics.
   // Quick enough for the car, the trees and the lights to answer a beat;
   // the hillside eases itself far slower on top of this — see roadTrip.
   racer: { attackMs: 30, releaseMs: 200 },
-  invaders: { attackMs: 6, releaseMs: 85 },
   starfield: { attackMs: 20, releaseMs: 150 },
 
   // Meters with a body to them. A candle and a barcode stripe are both read by
@@ -290,23 +275,16 @@ const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   dots: 48,
   blocks: 40,
   stems: 48,
-  terrace: 32,
   dashes: 48,
   scatter: 48,
   skyline: 26,
-  truss: 28,
-  ecg: 26,
   matrix: 40,
-  bubbles: 24,
   zipper: 40,
   sawtooth: 40,
   feather: 44,
   slope: 44,
   diamonds: 48,
   stalactites: 36,
-  // The arcade forms are drawn as sprites, and a sprite squeezed into a
-  // six-pixel column is a smudge. Fewer, bigger.
-  invaders: 20,
   starfield: 40,
 
   // Anything with an inside needs room to show it. A hexagon under about ten
@@ -437,9 +415,7 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   // Solid concrete, so the towers read as buildings with windows in them; at
   // the shared half-strength they were a murk over the floor (2026-09-28).
   skyline: 1,
-  tide: 1,
   halo: 1,
-  synthwave: 1,
   ledbars: 1,
   neonbars: 1,
   bars3d: 1,
@@ -466,14 +442,12 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
    * supposed to sit behind.
    */
   fluid: 0.92,
-  bubbles: 0.85,
   dots: 0.9,
   blocks: 0.74,
   // Denser: at three quarters the spikes were washed toward the black and
   // read as pastel; solid colour is what vibrant means on a black stage.
   spikes: 0.94,
   stems: 0.84,
-  terrace: 0.74,
   scatter: 0.74,
   ribs: 1,
   contour: 0.74,
@@ -526,13 +500,11 @@ const BAR_GAP_DEFAULTS: Partial<Record<GraphStyle, number>> = {
   crown: 0.2,
   matrix: 0.64,
   stalactites: 0.08,
-  bubbles: 0.38,
   diamonds: 0.15,
   fence: 0.64,
   candles: 0.48,
   barcode: 0.18,
   honeycomb: 0.2,
-  invaders: 0.35,
   // The drawn scenes made of pieces, each at the spacing it was drawn at: a
   // board's lamps, a row of glass, the halo's rays, and the plain bars.
   ledwall: 0.28,
@@ -685,7 +657,6 @@ export const DISCRETE_STYLES = new Set<GraphStyle>([
   'blocks',
   'spikes',
   'stems',
-  'terrace',
   'dashes',
   'scatter',
   'caps',
@@ -695,15 +666,11 @@ export const DISCRETE_STYLES = new Set<GraphStyle>([
   'matrix',
   'skyline',
   'feather',
-  'truss',
   'zipper',
   'slope',
   'stalactites',
-  'bubbles',
   'diamonds',
   'sawtooth',
-  'ecg',
-  'invaders',
   'starfield',
   'candles',
   'arches',

@@ -47,19 +47,3 @@ export const GLOW_LAYERS: readonly { widen: number; opacity: number }[] = [
  * on the five-strand braid at 2560 wide: 21ms a frame to 11.
  */
 export const HALO_SCALE = 1 / 3;
-
-/**
- * The sea is painted at a third of the resolution and stretched over the
- * frame, for the same reason the halo is — by the page's canvas, and by
- * the engine's bridge as the softness of what it draws there.
- *
- * Nine translucent strips the width of the scene are a full screen of
- * alpha blending every frame, and that alone held the bridge at three
- * times the frame budget on a 1440p display while the profile showed the
- * script idle — turning the strips off brought it back to the floor and
- * changing their count did nothing, because the cost is the area, not the
- * geometry. Water is smooth and the swells are tens of pixels apart, so a
- * third of the pixels is a ninth of the blending and nothing anyone can
- * see.
- */
-export const SEA_SCALE = 1 / 3;

@@ -26,8 +26,6 @@ import {
 } from './graphShapeMarks';
 import { createGraphPieces } from './graphShapePieces';
 import { createGraphStems } from './graphStems';
-import createGraphTerrace from './graphTerrace';
-import createTrussRoad from './graphTruss';
 import createGraphStalactites from './graphStalactites';
 
 // Every form the graph draws its spectrum in, one case each, from the
@@ -170,11 +168,6 @@ const drawGraphForm = ({
 
     case 'stems':
       return createGraphStems(figure, baseline, gap).shape;
-
-    case 'terrace': {
-      const terrace = createGraphTerrace(figure, baseline);
-      return filled ? terrace.shape : terrace.outline;
-    }
 
     // Just the tops, floating where the level is.
     case 'dashes': {
@@ -503,30 +496,6 @@ const drawGraphForm = ({
           y + length
         ).toFixed(1)}`;
       }
-      return path;
-    }
-
-    // A bridge. Top chord along the peaks, bottom chord on the floor, and a
-    // cross-brace in every bay — the spectrum drawn as the thing that would
-    // have to be built to hold it up.
-    case 'truss': {
-      const road = createTrussRoad(figure);
-      const joints = road.filter((_point, index) => index % 8 === 0);
-      let path = `${polyline(road)} M ${figure[0][0]},${baseline} H ${figure[figure.length - 1][0]}`;
-      for (let index = 0; index < figure.length - 1; index += 1) {
-        const [x, y] = joints[index];
-        const [nextX, nextY] = joints[index + 1];
-        path += ` M ${x.toFixed(1)},${y.toFixed(1)} V ${baseline.toFixed(1)}`;
-        path +=
-          index % 2 === 0
-            ? ` M ${x.toFixed(1)},${y.toFixed(1)} L ${nextX.toFixed(1)},${baseline.toFixed(1)}`
-            : ` M ${x.toFixed(1)},${baseline.toFixed(1)} L ${nextX.toFixed(1)},${nextY.toFixed(1)}`;
-      }
-      const last = joints[joints.length - 1];
-      path += ` M ${last[0].toFixed(1)},${last[1].toFixed(1)} V ${baseline.toFixed(1)}`;
-      // Filled or not, the truss is open: the bridge's "filled" variant is
-      // its towers and piers going solid, and the water under the deck
-      // stays in view.
       return path;
     }
 

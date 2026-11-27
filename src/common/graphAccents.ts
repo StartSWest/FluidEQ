@@ -39,7 +39,7 @@ import { WAVE_SAMPLE_COUNT, toWaveSamples } from './graphShapeWaves';
  * effect applied to all of them is not an effect — it is the drawing with the
  * contrast turned up, and it flattens the exact variety the forms exist to
  * provide. A lit tip belongs on a stem, which is a thin line with an end. It
- * says nothing on a contour map, a slope field or a bridge truss, and on a
+ * says nothing on a contour map or a slope field, and on a
  * smooth curve it reads as damage.
  *
  * The table is a table rather than a check for one string so that a second
@@ -109,13 +109,12 @@ const ACCENTS: Partial<Record<GraphStyle, 'bead' | 'trace'>> = {
   /**
    * The drawn scenes that hold their peaks: the lamp left lit over a board's
    * column, the cap floating over glass or a bar, the dotted ring outside the
-   * halo, the spray off the sea, the envelope over the spectrum wave. Each
+   * halo, the envelope over the spectrum wave. Each
    * draws its own mark (`sceneViews/`); this only says it has one, so Lit
    * peaks starts on for them.
    */
   ledwall: 'bead',
   towers: 'bead',
-  tide: 'bead',
   halo: 'bead',
   ledbars: 'bead',
   neonbars: 'bead',

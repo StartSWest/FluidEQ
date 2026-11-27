@@ -176,8 +176,7 @@ const levelAt = (
 
 /**
  * One lane of traffic as paths: bodies, cabins, wheels with a turning spoke,
- * lamps, tail lights, a glow halo per vehicle and a headlight beam each.
- * Shared with the bridge, which runs the same traffic on its deck. A beat
+ * lamps, tail lights, a glow halo per vehicle and a headlight beam each. A beat
  * (`thump`, 0..1) bounces every vehicle a little on its springs.
  */
 export const createLanePaths = (

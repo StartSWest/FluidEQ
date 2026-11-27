@@ -29,7 +29,6 @@ import { type IEngineLookInput } from './engineLooks/engineLookInput';
 import { createLookInput } from './engineLooks/lookInput';
 import { getWaveTransform } from './liveTracePaint';
 import getGraphMotionDelta from './graphMotionPacing';
-import { setAlpha } from './liveTraceStyle';
 import easeTraceToward from './traceEasing';
 import { traceStretch } from './traceStretch';
 import { type IAnalysisBand } from './analysis/analysisFrame';
@@ -37,7 +36,6 @@ import { noteLookPreviewPainted } from './lookPreview';
 
 import { hasGraphAmbientMotion } from './graphMotion';
 
-import { invaderInks } from './invaderInks';
 import paintCurves from './liveTraceCurvePass';
 
 import presentFigure from './liveTracePresentation';
@@ -100,17 +98,9 @@ const drawLiveTraceFrame = (
     fluidBarsRef,
     motionRef,
     sawtoothScopeRef,
-    pulseMonitorRef,
     echoWavesRef,
-    trussClockRef,
-    trussBridgeRef,
     caveClockRef,
     caveDripsRef,
-    wasInvadersRef,
-    invasionRef,
-    invaderCabinetRef,
-    invasionClockRef,
-    chromeRef,
     warpClockRef,
     warpRef,
     arcadeClockRef,
@@ -125,28 +115,21 @@ const drawLiveTraceFrame = (
     braidStageRef,
     crystalClockRef,
     crystalRef,
-    valleyClockRef,
-    valleyRef,
     cityClockRef,
     cityRef,
     roadTripRef,
     slopeClockRef,
     slopeFieldRef,
-    bubbleMotesClockRef,
-    bubbleMotesRef,
     slopeFlowRef,
     dashTrailsRef,
-    terraceJumperRef,
     stemClockRef,
     stemLevelsRef,
     stemFlareRef,
     pumpRef,
-    bubbleStormRef,
     accentStateRef,
     textureMotionRef,
     shownOpacityRef,
     shownStrokeWidthRef,
-    seaCanvasRef,
     nightRef,
     haloCanvasRef,
   }: IDrawLiveTraceFrameInput,
@@ -355,9 +338,9 @@ const drawLiveTraceFrame = (
   /**
    * The whole window, in scene space.
    *
-   * A scene's sky and sea are scenery, not the figure: they reach the
-   * edges of the window at every height setting, while the bridge, the
-   * tiers or the towers under them answer the slider. Inverting the
+   * A scene's sky is scenery, not the figure: it reaches the edges of
+   * the window at every height setting, while the towers or the field
+   * under it answer the slider. Inverting the
    * first curve's placement gives the rows the screen's edges land on.
    */
   const skyFrame = (() => {
@@ -498,11 +481,9 @@ const drawLiveTraceFrame = (
   const fluidLeft = projected[0][0];
   const fluidRight = projected[projected.length - 1][0];
   const {
-    pulsePaths,
     echoPaths,
     sawTrace,
     stems,
-    pulseGrid,
     moving: layOutInstrumentsMoving,
   } = layOutInstruments({
     isWaveForm,
@@ -522,37 +503,23 @@ const drawLiveTraceFrame = (
     sawtoothScopeRef,
     sceneTop,
     playingRef,
-    pulseMonitorRef,
-    isGridHiddenRef,
-    width,
-    height,
-    depth,
-    baseline,
     echoWavesRef,
     isFilled,
   });
   moving = layOutInstrumentsMoving;
   const {
     roadPaths,
-    trussPaths,
     cavePaths,
-    invasionPaths,
     warpPaths,
     arcadePaths,
     firePaths,
     stormPaths,
     fencePaths,
-    valleyPaths,
     fieldColumns,
     cityPaths,
     fieldPaths,
-    motePaths,
-    terraceScene,
-    valleyColumns,
-    cabinetFrame,
     crystalPaths,
     stagePaths,
-    shelterPath,
     moving: layOutScenesMoving,
   } = layOutScenes({
     chosen,
@@ -560,10 +527,8 @@ const drawLiveTraceFrame = (
     projected,
     tuning,
     playingRef,
-    trussClockRef,
     motionDeltaMs,
     moving,
-    trussBridgeRef,
     liveProjected,
     sceneTop,
     sceneBase,
@@ -571,17 +536,6 @@ const drawLiveTraceFrame = (
     skyFrame,
     caveClockRef,
     caveDripsRef,
-    wasInvadersRef,
-    invasionRef,
-    invaderCabinetRef,
-    invasionClockRef,
-    curves,
-    baseline,
-    plot,
-    height,
-    chromeRef,
-    width,
-    frameWaveform,
     warpClockRef,
     warpRef,
     arcadeClockRef,
@@ -596,16 +550,12 @@ const drawLiveTraceFrame = (
     braidStageRef,
     crystalClockRef,
     crystalRef,
-    valleyClockRef,
-    valleyRef,
     cityClockRef,
     cityRef,
     roadTripRef,
     motionRef,
     slopeClockRef,
     slopeFieldRef,
-    bubbleMotesClockRef,
-    bubbleMotesRef,
   });
   moving = layOutScenesMoving;
   const {
@@ -615,7 +565,6 @@ const drawLiveTraceFrame = (
     scatter,
     isEuphoric,
     euphoria,
-    terraceJumper,
     piecePaths,
     slopeFlow,
     overflowsPlot,
@@ -623,21 +572,16 @@ const drawLiveTraceFrame = (
     scatterPaths,
     stemLayers,
     connector,
-    terraceTiers,
     moving: shapeFigureMoving,
   } = shapeFigure({
-    pulsePaths,
     echoPaths,
     roadPaths,
-    trussPaths,
     cavePaths,
-    invasionPaths,
     warpPaths,
     arcadePaths,
     firePaths,
     stormPaths,
     fencePaths,
-    valleyPaths,
     sawTrace,
     stems,
     chosen,
@@ -656,17 +600,12 @@ const drawLiveTraceFrame = (
     motionDeltaMs,
     moving,
     fieldColumns,
-    pulseGrid,
     cityPaths,
     fieldPaths,
-    motePaths,
     motionRef,
-    terraceScene,
     sceneSpace,
     projected,
     dashTrailsRef,
-    valleyColumns,
-    terraceJumperRef,
     liveProjected,
     stemClockRef,
     stemLevelsRef,
@@ -709,10 +648,8 @@ const drawLiveTraceFrame = (
     pumpRef,
     motionDeltaMs,
     moving,
-    pulsePaths,
     echoPaths,
     roadPaths,
-    trussPaths,
     shape,
     isFilled,
     isFluidForm,
@@ -722,13 +659,9 @@ const drawLiveTraceFrame = (
     warpPaths,
     firePaths,
     arcadePaths,
-    invasionPaths,
     cavePaths,
     stormPaths,
     fencePaths,
-    bubbleStormRef,
-    motionRef,
-    playingRef,
     figurePoints,
     sceneBase,
     sceneTop,
@@ -745,23 +678,11 @@ const drawLiveTraceFrame = (
     euphoria,
     context,
     isEngineTaking,
-    motePaths,
-    cabinetFrame,
-    invaderCabinetRef,
-    invasionRef,
-    invasionClockRef,
-    valleyPaths,
-    valleyColumns,
-    terraceJumper,
     cityPaths,
     piecePaths,
     fieldPaths,
     slopeFlow,
     fieldColumns,
-    pulseMonitorRef,
-    pulseGrid,
-    width,
-    height,
   });
   moving = presentFigureMoving;
   if (designed) {
@@ -804,37 +725,6 @@ const drawLiveTraceFrame = (
   context.lineCap = 'round';
   context.lineJoin = 'round';
 
-  // The arcade's screen edges — ground, score, hi-score, spare ships and
-  // credit — once, in the window's own pixels and under everything,
-  // before any curve's transform is set. Through the wave they would
-  // float mid-panel at half height, print upside down in the mirror and
-  // shake when the ship is hit.
-  if (cabinetFrame) {
-    const paintEdge = (path: Path2D, colour: string, alpha: number) => {
-      setAlpha(context, opacity * alpha);
-      if (isFilled) {
-        context.fillStyle = colour;
-        context.fill(path);
-      } else {
-        context.strokeStyle = colour;
-        context.lineWidth = 1;
-        context.stroke(path);
-      }
-    };
-    const { frame: frameInk } = invaderInks();
-    paintEdge(
-      cabinetFrame.ground,
-      frameInk.ground.colour,
-      frameInk.ground.alpha,
-    );
-    paintEdge(cabinetFrame.spare, frameInk.spare.colour, frameInk.spare.alpha);
-    paintEdge(
-      cabinetFrame.readout,
-      frameInk.readout.colour,
-      frameInk.readout.alpha,
-    );
-  }
-
   paintCurves({
     curves,
     baseline,
@@ -845,23 +735,16 @@ const drawLiveTraceFrame = (
     texturePose,
     motionRef,
     isFilled,
-    bubbleStormRef,
     figure,
     context,
-    seaCanvasRef,
     canvas,
     height,
     needsOutside,
     figureStrokeWidth,
     sceneBase,
-    pulsePaths,
-    pulseMonitorRef,
     stormPaths,
     stormRef,
     stormClockRef,
-    invasionPaths,
-    invasionRef,
-    invasionClockRef,
     overflowsPlot,
     depth,
     paintPalette,
@@ -871,13 +754,10 @@ const drawLiveTraceFrame = (
     dashTrails,
     opacity,
     strokeWidth,
-    pulseGrid,
-    motePaths,
     fieldPaths,
     cityPaths,
     nightRef,
     ratio,
-    valleyPaths,
     sceneTop,
     haloPath,
     isSelfColoured,
@@ -898,14 +778,11 @@ const drawLiveTraceFrame = (
     arcadePaths,
     arcadeOwnColours,
     warpPaths,
-    shelterPath,
     cavePaths,
     caveOwnColours,
-    trussPaths,
     roadPaths,
     connector,
     blinkingSatellites,
-    terraceTiers,
     isFluidForm,
     fluidLeft,
     fluidRight,
@@ -916,7 +793,6 @@ const drawLiveTraceFrame = (
     echoPaths,
     sawTrace,
     sawtoothScopeRef,
-    terraceJumper,
     isEuphoriaEdge,
     roadTripRef,
   });

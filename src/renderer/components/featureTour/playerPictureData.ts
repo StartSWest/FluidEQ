@@ -161,7 +161,7 @@ export const PICTURE_BANDS: readonly { hz: number; gain: number }[] = [
 export const PICTURE_TONE = { bass: 3, mid: -1, treble: 2 } as const;
 
 /** The standard look in the second picture's panel. */
-export const PICTURE_LOOK: GraphStyle = 'synthwave';
+export const PICTURE_LOOK: GraphStyle = 'halo';
 
 /**
  * The scene behind the first picture, as the player's look picker names and

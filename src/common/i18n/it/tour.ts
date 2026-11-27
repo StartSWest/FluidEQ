@@ -94,11 +94,11 @@ const tour: Partial<Dictionary> = {
     'FluidEQ nei suoi colori nella pagina EQ, l’Analizzatore che disegna un brano sotto le curve, e il menu dietro l’icona a impulso aperto sul suo angolo, con la Luminosità a metà.',
   'tour.gpu.kicker': 'UN NUOVO MOTORE PER LE SCENE',
   'tour.gpu.title': 'Ogni scena sulla tua scheda grafica',
-  'tour.gpu.subtitle': 'Quaranta stili al ritmo del tuo schermo, e mondi 3D',
+  'tour.gpu.subtitle': 'Ogni stile al ritmo del tuo schermo, e mondi 3D',
   'tour.gpu.lead':
-    'I quaranta stili del grafico ora si disegnano con il motore delle scene: sulla tua scheda grafica, alla frequenza di aggiornamento del tuo schermo, così barre, particelle e picchi scorrono fluidi dove prima scattavano. E una scena ora può essere un vero mondo 3D.',
+    'I {looks} stili del grafico ora si disegnano con il motore delle scene: sulla tua scheda grafica, alla frequenza di aggiornamento del tuo schermo, così barre, particelle e picchi scorrono fluidi dove prima scattavano. E una scena ora può essere un vero mondo 3D.',
   'tour.gpu.point1':
-    'Diciotto nuovi stili in {scenes}, tra cui {synthwave}, {horizon}, {towers} e {ledwall}; uno stile senza colori propri prende quelli della finestra.',
+    'Nuovi stili in {scenes}, tra cui {halo}, {horizon}, {towers} e {ledwall}; uno stile senza colori propri prende quelli della finestra.',
   'tour.gpu.point2':
     'I mondi 3D battono sulla cassa, ondeggiano con il rullante, saltano sul drop e passano dalla notte al giorno con {brightness}; trascinane uno per vederlo da un altro lato.',
   'tour.gpu.point3':
@@ -107,7 +107,7 @@ const tour: Partial<Dictionary> = {
     'Fai clic sul nome dello stile nel grafico e scegline uno in {scenes}.',
   'tour.gpu.open': 'Apri l’EQ',
   'tour.gpu.imageAlt':
-    'Una scena che è una città 3D di notte, e quattro nuovi stili fotografati sul grafico — {synthwave}, {horizon}, {towers} e {ledwall} — con il selettore degli stili cerchiato sul primo.',
+    'Una scena che è una città 3D di notte, e quattro nuovi stili fotografati sul grafico — {halo}, {horizon}, {towers} e {ledwall} — con il selettore degli stili cerchiato sul primo.',
   'tour.gpu.world': 'Mondo 3D',
   'tour.sparks.kicker': 'SCINTILLE DEL PUNTATORE',
   'tour.sparks.title': 'Scene che rispondono al tuo mouse',

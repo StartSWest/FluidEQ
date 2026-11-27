@@ -55,9 +55,9 @@ describe('visualizer timing', () => {
     expect(resolveLookWaveform(live, live, [0.2, 0.8])).toEqual([0.2, 0.8]);
   });
 
-  // Invaders and Warp speed run on their own scene clocks now, tested with
-  // their scenes; the motion module no longer draws them.
-  it.each(['flames', 'braid', 'bubbles', 'racer'] as const)(
+  // Warp speed runs on its own scene clock now, tested with its scene; the
+  // motion module no longer draws it.
+  it.each(['flames', 'braid', 'racer'] as const)(
     '%s moves continuously at every refresh rate and freezes on pause',
     (style) => {
       const paths = [30, 60, 144].map((hz) => {
@@ -70,7 +70,6 @@ describe('visualizer timing', () => {
           bottom: 300,
           playing: true,
           filled: true,
-          gap: 0.3,
         };
         const first = createMovingGraphShape({ ...args, deltaMs: 0 });
         let last = first;
@@ -95,7 +94,7 @@ describe('visualizer timing', () => {
     },
   );
 
-  it.each(['rain', 'flames', 'braid', 'bubbles', 'racer', 'echo'] as const)(
+  it.each(['rain', 'flames', 'braid', 'racer', 'echo'] as const)(
     '%s responds to audio, stops scheduling in silence, and handles resized plots',
     (style) => {
       const args = {
@@ -130,33 +129,6 @@ describe('visualizer timing', () => {
       });
       expect(resized.path.length).toBeGreaterThan(0);
       expect(resized.path).not.toMatch(/NaN|Infinity/);
-    },
-  );
-
-  it.each(['bubbles'] as const)(
-    '%s preserves the editable gap during animation',
-    (style) => {
-      const args = {
-        points,
-        style,
-        columns: 32,
-        top: 20,
-        bottom: 300,
-        playing: true,
-        filled: true,
-        deltaMs: 30,
-      };
-      const wide = createMovingGraphShape({
-        ...args,
-        state: createGraphMotionState(),
-        gap: 0,
-      });
-      const narrow = createMovingGraphShape({
-        ...args,
-        state: createGraphMotionState(),
-        gap: 0.85,
-      });
-      expect(wide.path).not.toBe(narrow.path);
     },
   );
 
@@ -324,8 +296,10 @@ describe('curated forms and settings', () => {
     // 2026-09-24 (five pictures and five plain spectrums), and ten more
     // visualizers the next day — less the Mesh, which the Waterfall took in —
     // and Horizon the day after that; Silk waves and Mirror bars went on
-    // 2026-09-28, onto Spectrum wave and the LED bars, and Braid came back.
-    expect(GRAPH_FORM_LOOKS).toHaveLength(39);
+    // 2026-09-28, onto Spectrum wave and the LED bars, and Braid came back;
+    // and on 2026-11-27 Synthwave, Tide, Invaders, Pulse, Bubbles, Truss and
+    // Terrace were taken out altogether.
+    expect(GRAPH_FORM_LOOKS).toHaveLength(32);
     expect(SELECTABLE_GRAPH_STYLES).toContain('braid');
     expect(SELECTABLE_GRAPH_STYLES).toContain('ledbars');
     expect(SELECTABLE_GRAPH_STYLES).toContain('spectrumwave');
@@ -334,7 +308,7 @@ describe('curated forms and settings', () => {
     expect(SELECTABLE_GRAPH_STYLES).toContain('rta');
     expect(SELECTABLE_GRAPH_STYLES).toContain('scope');
     expect(SELECTABLE_GRAPH_STYLES).toContain('notes');
-    expect(SELECTABLE_GRAPH_STYLES).toContain('terrace');
+    expect(SELECTABLE_GRAPH_STYLES).toContain('skyline');
     (
       [
         'ridge',
@@ -375,7 +349,7 @@ describe('curated forms and settings', () => {
   });
 
   it('keeps the formerly frantic forms readable between audio frames', () => {
-    (['ecg', 'slope', 'spikes', 'starfield', 'wave-line'] as const).forEach(
+    (['slope', 'spikes', 'starfield', 'wave-line'] as const).forEach(
       (style) => {
         expect(getGraphBallistics(style).releaseMs).toBeGreaterThanOrEqual(90);
         expect(getGraphBallistics(style).attackMs).toBeLessThan(

@@ -143,7 +143,7 @@ const ROLES: Record<
  * Roles only one look paints in, offered to that look alone. The Skyline's
  * concrete is the floor lifted a step, so in every other look it stands in
  * for the floor nearly as well as the floor does - and on the white window
- * the generator took it for the Waterfall's and the Synthwave's floor, and
+ * the generator took it for the Waterfall's floor and another look's, and
  * the lift that does not follow the floor's colour put both visibly off.
  */
 const OWN_ROLES: Readonly<Record<string, string>> = {

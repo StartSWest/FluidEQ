@@ -106,7 +106,7 @@ describe('the visualizer with nothing playing', () => {
   });
 
   it('stays on the plot for a scenery style as it always did', () => {
-    const { container, unmount } = draw('truss');
+    const { container, unmount } = draw('skyline');
     expect(container.querySelector('canvas.chart-live-canvas')).not.toBeNull();
     unmount();
   });

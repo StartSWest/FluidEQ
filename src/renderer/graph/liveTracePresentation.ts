@@ -50,8 +50,7 @@ import {
   TRACE_WIDTH_RAINBOW,
   traceGlowCyan,
 } from './liveTraceStyle';
-import { hasGraphMotion, type IGraphMotionState } from './graphMotion';
-import { advanceBubbleStorm, type IBolt } from './bubbleStorm';
+import { hasGraphMotion } from './graphMotion';
 import {
   advanceGraphAccent,
   createAccentState,
@@ -59,7 +58,6 @@ import {
   paintGraphAccent,
 } from './graphAccents';
 import {
-  getWaveTransform,
   type IEuphoriaPaint,
   isEuphoriaFigureStroke,
   isSelfColouredLook,
@@ -79,28 +77,12 @@ import {
 } from './countryFence';
 import { cityTowerColours, type createCitySkylinePaths } from './citySkyline';
 import { designedSceneOf } from './engineLooks/designed/designedLooks';
-import { bubbleLayout } from './bubblePaths';
-import {
-  type createCabinetFramePaths,
-  type InvaderCabinet,
-  shelterRects,
-} from './invaderCabinet';
-import { SHIP_LANE, type SpaceInvasion } from './spaceInvasion';
 import { heatColour } from './lookColours';
-import {
-  type createPulsePaths,
-  type IEcho,
-  pulseGridCell,
-} from './pulseMonitor';
 import { type createEchoWavePaths } from './echoWaves';
 import { type createRoadTripPaths } from './roadTrip';
-import { type createTrussBridgePaths } from './trussBridgeLayout';
 import { type createWarpTunnelPaths } from './warpTunnel';
-import { type createSpaceInvasionPaths } from './spaceInvasionLayout';
 import { type ILiveCurveData } from './ChartController';
 import { type ILookTuning, type IResolvedLook } from '../../common/customLooks';
-import { type createBubbleMotePaths } from './bubbleMotes';
-import { type createTerraceValleyPaths } from './terraceValley';
 import { type createSlopeFieldPaths } from './slopeField';
 import createSlopeFlow from './slopeFlow';
 
@@ -124,7 +106,6 @@ interface IPresentFigureInput {
     | 'spikes'
     | 'ridge'
     | 'stems'
-    | 'terrace'
     | 'dashes'
     | 'scatter'
     | 'caps'
@@ -139,17 +120,13 @@ interface IPresentFigureInput {
     | 'bezier'
     | 'ribbon'
     | 'feather'
-    | 'truss'
     | 'zipper'
     | 'slope'
     | 'stalactites'
-    | 'bubbles'
     | 'diamonds'
     | 'sawtooth'
-    | 'ecg'
     | 'echo'
     | 'racer'
-    | 'invaders'
     | 'starfield'
     | 'candles'
     | 'arches'
@@ -175,10 +152,8 @@ interface IPresentFigureInput {
   pumpRef: RefObject<number>;
   motionDeltaMs: number;
   moving: boolean;
-  pulsePaths: ReturnType<typeof createPulsePaths> | undefined;
   echoPaths: ReturnType<typeof createEchoWavePaths> | undefined;
   roadPaths: ReturnType<typeof createRoadTripPaths> | undefined;
-  trussPaths: ReturnType<typeof createTrussBridgePaths> | undefined;
   shape: string;
   isFilled: boolean;
   isFluidForm: boolean;
@@ -188,21 +163,9 @@ interface IPresentFigureInput {
   warpPaths: ReturnType<typeof createWarpTunnelPaths> | undefined;
   firePaths: ReturnType<typeof createBonfirePaths> | undefined;
   arcadePaths: ReturnType<typeof createStoneArcadePaths> | undefined;
-  invasionPaths: ReturnType<typeof createSpaceInvasionPaths> | undefined;
   cavePaths: ReturnType<typeof createCaveDripsPaths> | undefined;
   stormPaths: ReturnType<typeof createRainstormPaths> | undefined;
   fencePaths: ReturnType<typeof createCountryFencePaths> | undefined;
-  bubbleStormRef: RefObject<{
-    levels: number[];
-    beatLevel: number;
-    trackedAt: number;
-    pops: Map<number, number>;
-    bolts: IBolt[];
-    shakeAt: number;
-    shakeStrength: number;
-  }>;
-  motionRef: RefObject<IGraphMotionState>;
-  playingRef: RefObject<boolean>;
   figurePoints: Projected[];
   sceneBase: number;
   sceneTop: number;
@@ -219,29 +182,11 @@ interface IPresentFigureInput {
   euphoria: IEuphoriaPaint;
   context: CanvasRenderingContext2D;
   isEngineTaking: boolean;
-  motePaths: ReturnType<typeof createBubbleMotePaths> | undefined;
-  cabinetFrame: ReturnType<typeof createCabinetFramePaths> | undefined;
-  invaderCabinetRef: RefObject<InvaderCabinet>;
-  invasionRef: RefObject<SpaceInvasion>;
-  invasionClockRef: RefObject<number>;
-  valleyPaths: ReturnType<typeof createTerraceValleyPaths> | undefined;
-  valleyColumns: Projected[] | undefined;
-  terraceJumper: { x: number; y: number; direction: number } | undefined;
   cityPaths: ReturnType<typeof createCitySkylinePaths> | undefined;
   piecePaths: { path: Path2D; energy: number }[] | undefined;
   fieldPaths: ReturnType<typeof createSlopeFieldPaths> | undefined;
   slopeFlow: ReturnType<typeof createSlopeFlow> | undefined;
   fieldColumns: Projected[] | undefined;
-  pulseMonitorRef: RefObject<{
-    beatLevel: number;
-    trackedAt: number;
-    thumpAt: number;
-    thumpStrength: number;
-    echoes: IEcho[];
-  }>;
-  pulseGrid: { fine: Path2D; heavy: Path2D } | undefined;
-  width: number;
-  height: number;
 }
 
 /**
@@ -257,10 +202,8 @@ const presentFigure = ({
   pumpRef,
   motionDeltaMs,
   moving: movingIn,
-  pulsePaths,
   echoPaths,
   roadPaths,
-  trussPaths,
   shape,
   isFilled,
   isFluidForm,
@@ -270,13 +213,9 @@ const presentFigure = ({
   warpPaths,
   firePaths,
   arcadePaths,
-  invasionPaths,
   cavePaths,
   stormPaths,
   fencePaths,
-  bubbleStormRef,
-  motionRef,
-  playingRef,
   figurePoints,
   sceneBase,
   sceneTop,
@@ -293,23 +232,11 @@ const presentFigure = ({
   euphoria,
   context,
   isEngineTaking,
-  motePaths,
-  cabinetFrame,
-  invaderCabinetRef,
-  invasionRef,
-  invasionClockRef,
-  valleyPaths,
-  valleyColumns,
-  terraceJumper,
   cityPaths,
   piecePaths,
   fieldPaths,
   slopeFlow,
   fieldColumns,
-  pulseMonitorRef,
-  pulseGrid,
-  width,
-  height,
 }: IPresentFigureInput) => {
   let moving = movingIn;
   /**
@@ -354,11 +281,11 @@ const presentFigure = ({
     // The silhouette light comes off, which for most forms is not the form
     // — see `getGlowStyle`. Reused rather than rebuilt when the two are the
     // same shape, which is the common case for the simple forms.
-    // The monitor has no string to measure; its trace is simple enough
-    // for the light to follow the real thing.
+    // The echo and the road have no string to measure; their traces are
+    // simple enough for the light to follow the real thing.
     const glowStyle = getGlowStyle(
       chosen,
-      pulsePaths || echoPaths || roadPaths || trussPaths ? 0 : shape.length,
+      echoPaths || roadPaths ? 0 : shape.length,
       isFilled,
     );
     halo =
@@ -391,25 +318,11 @@ const presentFigure = ({
     warpPaths ||
     firePaths ||
     arcadePaths ||
-    invasionPaths ||
     cavePaths ||
     stormPaths ||
     fencePaths
       ? undefined
       : halo;
-  if (chosen === 'bubbles') {
-    // Once per frame, before the curves: a mirrored wave paints the same
-    // storm twice and must not trigger its rays twice.
-    advanceBubbleStorm(
-      bubbleStormRef.current,
-      toColumns(projected, tuning.columns),
-      plot.top,
-      baseline,
-      motionRef.current.travel[0] ?? 0,
-      playingRef.current,
-    );
-  }
-
   // The lit peaks. Same frame, same numbers, stroked faint-and-thick under
   // bright-and-thin — a glow made of strokes rather than of a filter,
   // because a filter over geometry that changes every frame re-rasterises
@@ -706,59 +619,10 @@ const presentFigure = ({
    */
   const designed = isEngineTaking
     ? designedSceneOf(chosen, {
-        bubbles:
-          chosen === 'bubbles' && motePaths
-            ? {
-                scene: {
-                  layouts: curves.map((curve) =>
-                    bubbleLayout(
-                      toColumns(projected, tuning.columns),
-                      plot.top,
-                      baseline,
-                      Math.abs(
-                        getWaveTransform(curve, baseline, plot.top).scaleY,
-                      ),
-                      motionRef.current.travel[0] ?? 0,
-                      tuning.gap,
-                      bubbleStormRef.current,
-                      plot,
-                    ),
-                  ),
-                  motes: motePaths.layout,
-                  left: toColumns(projected, tuning.columns)[0]?.[0] ?? 0,
-                  figureStroke: figureStrokeWidth,
-                },
-                storm: bubbleStormRef.current,
-                clock: motionRef.current.travel[0] ?? 0,
-              }
-            : undefined,
         echo: echoPaths && {
           layout: echoPaths.layout,
           figureStroke: figureStrokeWidth,
         },
-        truss: trussPaths && { bridge: trussPaths.layout },
-        invaders: invasionPaths &&
-          cabinetFrame && {
-            fight: invasionPaths.layout,
-            shelters: shelterRects(
-              invaderCabinetRef.current,
-              sceneBase - (sceneBase - sceneTop) * SHIP_LANE,
-              invasionPaths.unit,
-            ),
-            cabinet: cabinetFrame.layout,
-            state: invasionRef.current,
-            clock: invasionClockRef.current,
-          },
-        terrace:
-          valleyPaths && valleyColumns && valleyColumns.length > 1
-            ? {
-                valley: valleyPaths.layout,
-                columns: valleyColumns,
-                jumper: terraceJumper,
-                plotWidth: plot.right - plot.left,
-                depth,
-              }
-            : undefined,
         skyline: cityPaths && {
           city: cityPaths.layout,
           towers: createSkylineTowers(
@@ -783,17 +647,6 @@ const presentFigure = ({
             columns: fieldColumns,
             gap: tuning.gap,
           },
-        pulse: pulsePaths && {
-          monitor: pulseMonitorRef.current,
-          layout: pulsePaths.layout,
-          clock: motionRef.current.travel[0] ?? 0,
-          paper: pulseGrid && {
-            cell: pulseGridCell(depth),
-            floor: baseline,
-            width,
-            height,
-          },
-        },
       })
     : undefined;
 

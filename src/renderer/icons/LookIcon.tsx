@@ -30,7 +30,7 @@ import { isTraceGradient, resolveTracePaint } from '../graph/liveTracePaint';
  *
  * The picker holds fifty-seven entries — one per form, with the palette on a
  * toggle beside it — and until now every one of them was a line of text.
- * "Terrace", "Crown", "Weave" and "Truss" are names chosen by eye for shapes
+ * "Crown", "Weave" and "Matrix" are names chosen by eye for shapes
  * chosen by eye, and none of them tells anybody what they will get: the only
  * way to find the one you wanted was to select it and look, which for a list
  * this long means selecting a great many of them.
@@ -245,13 +245,6 @@ const GLYPHS = {
     d: 'M1.2 10a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0ZM5 5.2a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0ZM8.8 8a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0ZM12.6 6.4a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0Z',
     isFilled: true,
   },
-  // The same marks sized by the level, which is the only thing that tells
-  // bubbles from dots — so the sizes here are exaggerated well past what four
-  // marks would really differ by.
-  bubbles: {
-    d: 'M1.4 10.6a1 1 0 1 0 2 0a1 1 0 1 0-2 0ZM4.3 5.8a2.3 2.3 0 1 0 4.6 0a2.3 2.3 0 1 0-4.6 0ZM9.4 8.8a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0ZM13.3 5.4a0.8 0.8 0 1 0 1.6 0a0.8 0.8 0 1 0-1.6 0Z',
-    isFilled: true,
-  },
   // Gems on the peaks.
   diamonds: {
     d: 'M3 8.2L4.8 10L3 11.8L1.2 10ZM7.2 2.6L9.6 5L7.2 7.4L4.8 5ZM11 6L13 8L11 10L9 8ZM14.4 5.2L15.8 6.6L14.4 8L13 6.6Z',
@@ -266,11 +259,6 @@ const GLYPHS = {
   steps: {
     d: 'M1 11.4H4.5V6.4H8V9.2H11.5V3.6H14V7.6H15',
     isFilled: false,
-  },
-  // The same staircase, filled.
-  terrace: {
-    d: 'M1 13.5V11.4H4.5V6.4H8V9.2H11.5V3.6H14V7.6H15V13.5Z',
-    isFilled: true,
   },
   // Just the tops, hanging in the air where the level is.
   dashes: {
@@ -305,14 +293,6 @@ const GLYPHS = {
     d: 'M1 10.8L5 5.4L9 8.6L15 6M1.6 13.5L3.4 11.7M3.6 13.5L6.4 10.7M6 13.5L8.6 10.9M8.4 13.5L11.4 10.5M10.8 13.5L13.4 10.9M13 13.5L15 11.5',
     isFilled: false,
   },
-  // The spectrum drawn as the bridge that would have to hold it up. The top
-  // chord is flatter than a spectrum really is, because a chord with a proper
-  // peak in it closes the bays into one triangle and the glyph stops reading as
-  // a structure.
-  truss: {
-    d: 'M1.5 7.4L5.5 5.6L9.5 7L14.5 6M1.5 13.5H14.5M1.5 7.4L5.5 13.5L9.5 7L14.5 13.5M5.5 5.6V13.5M9.5 7V13.5',
-    isFilled: false,
-  },
   // Two rails with teeth reaching alternately across the gap.
   zipper: {
     d: 'M1 7L15 4.6M1 12L15 9.6M3 6.7V10.2M5 11.3V7.8M7 6V9.5M9 10.6V7.1M11 5.3V8.8M13 9.9V6.4',
@@ -335,11 +315,6 @@ const GLYPHS = {
     d: 'M2.4 2.6v3.2M4.4 4.4v4.4M6.4 2v2.6M8.4 5.2v5M10.4 3v3.6M12.4 6.2v3.2M14.2 3.4v4.2',
     isFilled: false,
   },
-  // A heart monitor: a resting line that deflects once per band.
-  pulse: {
-    d: 'M1 9H3.4L4.2 10.4L5.2 4L6 11.2L6.8 9H9.2L10 10.4L11 5L11.8 11.2L12.6 9H15',
-    isFilled: false,
-  },
   // The trace and two afterimages, each later and lower.
   echo: {
     d: 'M1 10.8L4.4 5.2L8 8.4L12.2 6M2.4 11.6L5.8 6.9L9.4 9.6L13.6 7.6M3.8 12.3L7.2 8.6L10.8 10.8L15 9.2',
@@ -348,11 +323,6 @@ const GLYPHS = {
   // Hung from the ceiling rather than stood on the floor.
   hanging: {
     d: 'M1.4 2.5h2.4L2.6 8.4ZM5.2 2.5h2.4L6.4 12.6ZM9 2.5h2.4L10.2 7ZM12.8 2.5h2.4L14 10Z',
-    isFilled: true,
-  },
-  // One of the rank of little creatures, eyes cut out of it.
-  sprite: {
-    d: 'M4.8 7.2h6.4v3.2h-6.4ZM3.2 8h1.6v2.4h-1.6ZM11.2 8h1.6v2.4h-1.6ZM5.6 4.8h1.6v2.4h-1.6ZM8.8 4.8h1.6v2.4h-1.6ZM4.8 10.4h1.6v1.6h-1.6ZM9.6 10.4h1.6v1.6h-1.6ZM6.2 8v1.2h1.2v-1.2ZM8.8 8v1.2h1.2v-1.2Z',
     isFilled: true,
   },
   // The trace as tarmac, with a centre line punched through it and a car riding
@@ -443,20 +413,10 @@ const GLYPHS = {
     d: 'M1 12V8.6A1.6 1.6 0 0 1 4.2 8.6V12ZM4.4 12V5.1A1.6 1.6 0 0 1 7.6 5.1V12ZM7.8 12V3.2A1.6 1.6 0 0 1 11 3.2V12ZM11.2 12V6.8A1.6 1.6 0 0 1 14.4 6.8V12ZM0.6 12.6H15.4V13.2H0.6ZM1 13.8H4.2V15.05H1ZM4.4 13.8H7.6V15.6H4.4ZM7.8 13.8H11V15.6H7.8ZM11.2 13.8H14.4V15.5H11.2Z',
     isFilled: true,
   },
-  // Three swells, one behind the other.
-  tide: {
-    d: 'M1 15V5.2L1 5.96L1.5 5.96L2 5.67L2.5 5.2L3 4.73L3.5 4.44L4 4.44L4.5 4.73L5 5.2L5.5 5.67L6 5.96L6.5 5.96L7 5.67L7.5 5.2L8 4.73L8.5 4.44L9 4.44L9.5 4.73L10 5.2L10.5 5.67L11 5.96L11.5 5.96L12 5.67L12.5 5.2L13 4.73L13.5 4.44L14 4.44L14.5 4.73L15 5.2V15ZM1 15V9.19L1 8.72L1.5 8.3L2 7.85L2.5 7.48L3 7.25L3.5 7.21L4 7.36L4.5 7.68L5 8.1L5.5 8.55L6 8.92L6.5 9.15L7 9.19L7.5 9.04L8 8.72L8.5 8.3L9 7.85L9.5 7.48L10 7.25L10.5 7.21L11 7.36L11.5 7.68L12 8.1L12.5 8.55L13 8.92L13.5 9.15L14 9.19L14.5 9.04L15 8.72V15ZM1 15V10.87L1 10.19L1.5 9.99L2 9.9L2.5 9.94L3 10.11L3.5 10.38L4 10.73L4.5 11.13L5 11.53L5.5 11.9L6 12.21L6.5 12.41L7 12.5L7.5 12.46L8 12.29L8.5 12.02L9 11.67L9.5 11.27L10 10.87L10.5 10.5L11 10.19L11.5 9.99L12 9.9L12.5 9.94L13 10.11L13.5 10.38L14 10.73L14.5 11.13L15 11.53V15Z',
-    isFilled: true,
-  },
   // A ring with rays standing out of it.
   halo: {
     d: 'M11.2 8A3.2 3.2 0 1 1 4.8 8A3.2 3.2 0 1 1 11.2 8M8 3.7L8 2.06M9.65 4.03L10.62 1.68M11.04 4.96L12.5 3.5M11.97 6.35L14.04 5.5M12.3 8L14.71 8M11.97 9.65L13.68 10.35M11.04 11.04L12.92 12.92M9.65 11.97L10.18 13.27M8 12.3L8 15.08M6.35 11.97L6 12.82M4.96 11.04L2.99 13.01M4.03 9.65L2.76 10.17M3.7 8L1.04 8M4.03 6.35L2.34 5.66M4.96 4.96L3.24 3.24M6.35 4.03L5.51 1.98',
     isFilled: false,
-  },
-  // A striped sun setting over a grid floor.
-  synth: {
-    d: 'M8.68 3.85L10.26 4.39L11.02 4.93L11.55 5.47L11.93 6.02L12.22 6.56L12.41 7.1L3.59 7.1L3.78 6.56L4.07 6.02L4.45 5.48L4.98 4.93L5.74 4.39L7.32 3.85ZM12.53 7.6L12.55 7.71L12.56 7.82L12.58 7.92L12.59 8.03L12.59 8.14L12.6 8.25L3.4 8.25L3.41 8.14L3.41 8.03L3.42 7.92L3.44 7.82L3.45 7.71L3.47 7.6ZM12.59 8.7L12.59 8.77L12.58 8.83L12.57 8.9L12.56 8.97L12.56 9.03L12.55 9.1L3.45 9.1L3.44 9.03L3.44 8.97L3.43 8.9L3.42 8.83L3.41 8.77L3.41 8.7ZM0.6 9.95L15.4 9.95L15.4 9.25L0.6 9.25ZM0.6 11.5L15.4 11.5L15.4 10.9L0.6 10.9ZM0.6 13.7L15.4 13.7L15.4 13.1L0.6 13.1ZM6.05 9.42L0.8 15.22L1.2 15.58L6.45 9.78ZM6.87 9.49L4.25 15.29L4.75 15.51L7.38 9.71ZM7.72 9.6L7.72 15.4L8.28 15.4L8.28 9.6ZM8.62 9.71L11.25 15.51L11.75 15.29L9.13 9.49ZM9.55 9.78L14.8 15.58L15.2 15.22L9.95 9.42Z',
-    isFilled: true,
   },
   /** The plain spectrums drawn as scenes. */
   // Columns of square segments, a held one floating over three of them.
@@ -592,9 +552,7 @@ const FORM_GLYPHS: Record<GraphStyle, TLookGlyphId> = {
   phase: 'history',
   ledwall: 'ledBoard',
   towers: 'towers',
-  tide: 'tide',
   halo: 'halo',
-  synthwave: 'synth',
   ledbars: 'ledSegments',
   neonbars: 'neonTubes',
   bars3d: 'blocks3d',
@@ -619,7 +577,6 @@ const FORM_GLYPHS: Record<GraphStyle, TLookGlyphId> = {
   spikes: 'spikes',
   ridge: 'area',
   stems: 'stems',
-  terrace: 'terrace',
   dashes: 'dashes',
   scatter: 'spread',
   caps: 'dashes',
@@ -634,17 +591,13 @@ const FORM_GLYPHS: Record<GraphStyle, TLookGlyphId> = {
   bezier: 'curve',
   ribbon: 'ribbon',
   feather: 'feather',
-  truss: 'truss',
   zipper: 'zipper',
   slope: 'slope',
   stalactites: 'hanging',
-  bubbles: 'bubbles',
   diamonds: 'diamonds',
   sawtooth: 'spikes',
-  ecg: 'pulse',
   echo: 'echo',
   racer: 'road',
-  invaders: 'sprite',
   starfield: 'streaks',
   candles: 'candles',
   arches: 'arches',

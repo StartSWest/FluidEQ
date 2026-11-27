@@ -1,8 +1,8 @@
 import type { Projected } from 'common/graphStyles';
 import { getEaseFactor } from 'common/smoothing';
 import noise from 'common/seededNoise';
-import type { ISkyFrame } from './terraceValley';
-import { DAY_SUN } from './terraceNight';
+import type { ISkyFrame } from './skyFrame';
+import { DAY_SUN } from './nightSurfaces';
 import { floorLifted } from '../utils/windowInk';
 import { isLightWindow } from '../utils/windowSide';
 
@@ -137,7 +137,7 @@ export const CITY_INKS = {
 
 /**
  * The city by day, on a light window: no stars, the sun where the moon
- * stood (`DAY_SUN`, and its warmth for a halo in `terraceNight.ts`), no
+ * stood (`DAY_SUN`, and its warmth for a halo in `nightSurfaces.ts`), no
  * craters on it. The rest — the haze, the windows, the beacons — read on the
  * day towers as they are.
  */

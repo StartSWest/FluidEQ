@@ -25,8 +25,10 @@ import {
   getColumnCount,
   rect,
 } from './graphStyles';
-import { type PixelRect } from './graphInvaders';
 import toColumns from './graphColumns';
+
+/** A pixel rectangle: x, y, width, height. */
+export type PixelRect = readonly [number, number, number, number];
 
 // The graph's forms made of pieces — LED cells, towers, the skyline — laid
 // out per column.

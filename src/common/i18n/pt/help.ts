@@ -598,7 +598,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.sampleMaker': 'Lumen Works',
   'help.looks.title': 'Estilos e cenas',
   'help.looks.intro':
-    'Os estilos padrão são desenhos gratuitos do som ao vivo que você mesmo pode colorir e personalizar: Linha e Área para um traço limpo, Blocos LED e Picos para impacto, Treliça, Horizonte e Chamas dançantes para cenas inteiras. As cenas são imagens vivas desenhadas na placa de vídeo, como Alpino, Aurora, Floração e Cidade de neon, em que os graves, a batida e os agudos movem, cada um, algo diferente.',
+    'Os estilos padrão são desenhos gratuitos do som ao vivo que você mesmo pode colorir e personalizar: Onda espectral para um traço limpo, Barras de LED e Barras neon para impacto, Horizonte, Torres de vidro e Eco para cenas inteiras. As cenas são imagens vivas desenhadas na placa de vídeo, como Alpino, Aurora, Floração e Cidade de neon, em que os graves, a batida e os agudos movem, cada um, algo diferente.',
   'help.looks.steps':
     'Clique no nome do visual no gráfico. Escolha uma seção à esquerda, ou pesquise em tudo de uma vez.\nCom “De”, veja só os do FluidEQ, as cenas dos membros ou os seus. Se uma cena ainda não for sua, ela fica bloqueada, e escolhê-la explica como obtê-la.\nEm um estilo padrão, pressione Novo visual para mudar as cores, o movimento e os picos, e depois salve; ele aparece em “De: Seus”.',
   'help.looks.tip':

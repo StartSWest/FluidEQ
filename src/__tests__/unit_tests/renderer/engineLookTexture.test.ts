@@ -39,8 +39,8 @@ describe('which looks the engine draws with a texture', () => {
 
   it('leaves a designed look with a texture on the page', () => {
     // The control: the same designed look plain is the engine's.
-    expect(isEngineLookStyle('truss', plain)).toBe(true);
-    expect(isEngineLookStyle('truss', { ...plain, texture: 'hatch' })).toBe(
+    expect(isEngineLookStyle('skyline', plain)).toBe(true);
+    expect(isEngineLookStyle('skyline', { ...plain, texture: 'hatch' })).toBe(
       false,
     );
   });

@@ -177,7 +177,7 @@ const row = (id: string): IStyleRow =>
     // what this file is about (`lookTilesShippedStill.test.tsx` has the rest).
     look: {
       id,
-      style: 'truss',
+      style: 'echo',
       palette: 'signal',
       label: id,
       isCustom: false,
@@ -185,7 +185,7 @@ const row = (id: string): IStyleRow =>
     },
   }) as unknown as IStyleRow;
 
-const ROWS = [row('truss'), row('skyline'), row('bonfire')];
+const ROWS = [row('echo'), row('skyline'), row('bonfire')];
 
 const tiles = () => (
   <LookStyleGrid>
@@ -194,7 +194,7 @@ const tiles = () => (
         key={each.id}
         row={each}
         selected={false}
-        tabbable={each.id === 'truss'}
+        tabbable={each.id === 'echo'}
         onChoose={jest.fn()}
       />
     ))}

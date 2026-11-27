@@ -28,12 +28,6 @@ import {
   type ISpark,
 } from './sawtoothScope';
 import {
-  advancePulseMonitor,
-  createPulseGrid,
-  createPulsePaths,
-  type IEcho,
-} from './pulseMonitor';
-import {
   advanceEchoWaves,
   createEchoWavePaths,
   type IEchoWave,
@@ -45,8 +39,8 @@ import { type IGraphMotionState } from './graphMotion';
 import { type ILookTuning } from '../../common/customLooks';
 
 // The live graph's instrument looks laid out this frame: the waveform and
-// the FFT through the Edit ballistics, the stems, the sawtooth scope, the
-// pulse monitor and its grid, and the echo waves.
+// the FFT through the Edit ballistics, the stems, the sawtooth scope and
+// the echo waves.
 
 interface ILayOutInstrumentsInput {
   isWaveForm: boolean;
@@ -68,7 +62,6 @@ interface ILayOutInstrumentsInput {
     | 'spikes'
     | 'ridge'
     | 'stems'
-    | 'terrace'
     | 'dashes'
     | 'scatter'
     | 'caps'
@@ -83,17 +76,13 @@ interface ILayOutInstrumentsInput {
     | 'bezier'
     | 'ribbon'
     | 'feather'
-    | 'truss'
     | 'zipper'
     | 'slope'
     | 'stalactites'
-    | 'bubbles'
     | 'diamonds'
     | 'sawtooth'
-    | 'ecg'
     | 'echo'
     | 'racer'
-    | 'invaders'
     | 'starfield'
     | 'candles'
     | 'arches'
@@ -129,18 +118,6 @@ interface ILayOutInstrumentsInput {
   }>;
   sceneTop: number;
   playingRef: RefObject<boolean>;
-  pulseMonitorRef: RefObject<{
-    beatLevel: number;
-    trackedAt: number;
-    thumpAt: number;
-    thumpStrength: number;
-    echoes: IEcho[];
-  }>;
-  isGridHiddenRef: RefObject<boolean>;
-  width: number;
-  height: number;
-  depth: number;
-  baseline: number;
   echoWavesRef: RefObject<{
     waves: IEchoWave[];
     beatLevel: number;
@@ -173,12 +150,6 @@ const layOutInstruments = ({
   sawtoothScopeRef,
   sceneTop,
   playingRef,
-  pulseMonitorRef,
-  isGridHiddenRef,
-  width,
-  height,
-  depth,
-  baseline,
   echoWavesRef,
   isFilled,
 }: ILayOutInstrumentsInput) => {
@@ -260,52 +231,6 @@ const layOutInstruments = ({
       playingRef.current,
     );
   }
-  // The monitor decides its beat first and hands back its own figure,
-  // pumped by the thump; the static shape is never built for it.
-  if (chosen === 'ecg') {
-    advancePulseMonitor(
-      pulseMonitorRef.current,
-      sceneSpace(toColumns(projected, tuning.columns)),
-      sceneTop,
-      sceneBase,
-      motionRef.current.travel[0] ?? 0,
-      playingRef.current,
-    );
-  }
-  /**
-   * The monitor's ruled paper, over the whole window: it is scenery,
-   * so the height slider moves the trace and not the grid.
-   *
-   * The one thing here built in the SCREEN's space rather than the
-   * scene's. Scene space is the screen stretched vertically by the
-   * height slider, and a square in it is a rectangle on the glass —
-   * the paper would print taller-than-wide cells at any setting below
-   * full, with the horizontal rules drawn thicker than the vertical
-   * ones by the same amount. Ruled on the glass instead, the squares
-   * stay square and it is their count that answers the slider.
-   *
-   * Only when the measurement grid is off. Two sets of rules over each
-   * other is two instruments arguing — the decibel scale is a reading
-   * and the paper is a picture, and neither survives the other being
-   * there. The grid the user asked for wins.
-   */
-  const pulseGrid =
-    chosen === 'ecg' && isGridHiddenRef.current
-      ? createPulseGrid(
-          { left: 0, right: width, top: 0, bottom: height },
-          depth,
-          baseline,
-        )
-      : undefined;
-  const pulsePaths =
-    chosen === 'ecg'
-      ? createPulsePaths(
-          pulseMonitorRef.current,
-          sceneSpace(toColumns(projected, tuning.columns)),
-          sceneBase,
-          motionRef.current.travel[0] ?? 0,
-        )
-      : undefined;
   // Echo keeps its own past and hands back the live wave as the figure;
   // the static stack is never built for it.
   if (chosen === 'echo') {
@@ -330,7 +255,7 @@ const layOutInstruments = ({
         )
       : undefined;
 
-  return { pulsePaths, echoPaths, sawTrace, stems, pulseGrid, moving };
+  return { echoPaths, sawTrace, stems, moving };
 };
 
 export default layOutInstruments;

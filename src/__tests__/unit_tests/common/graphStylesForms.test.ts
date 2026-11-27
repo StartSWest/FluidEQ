@@ -134,8 +134,8 @@ describe('the lit peaks', () => {
       (style) => hasGraphAccent(style) && style !== 'fluid',
     );
     // The drawn scenes that hold their peaks do it as the thing they picture
-    // does — a lamp left lit, a floating cap, spray off a crest — so theirs
-    // start on; Synthwave's held ridge and the silk's start off.
+    // does — a lamp left lit, a floating cap — so theirs start on; the
+    // silk's starts off.
     expect(lit).toEqual([
       'dots',
       'blocks',
@@ -143,7 +143,6 @@ describe('the lit peaks', () => {
       'slope',
       'ledwall',
       'towers',
-      'tide',
       'halo',
       'ledbars',
       'neonbars',
@@ -210,8 +209,8 @@ describe('graph ballistics', () => {
     expect(cadences.size).toBeGreaterThan(10);
   });
 
-  it('lets the pulse and the slope field lead the slow landscapes', () => {
-    expect(getGraphBallistics('ecg').attackMs).toBeLessThan(
+  it('lets the slope field lead the slow landscapes', () => {
+    expect(getGraphBallistics('slope').attackMs).toBeLessThan(
       getGraphBallistics('contour').attackMs,
     );
     expect(getGraphBallistics('slope').releaseMs).toBeLessThan(

@@ -96,11 +96,11 @@ const tour: Partial<Dictionary> = {
   'tour.gpu.kicker': 'EINE NEUE SZENEN-ENGINE',
   'tour.gpu.title': 'Jede Szene auf Ihrer Grafikkarte',
   'tour.gpu.subtitle':
-    'Vierzig Darstellungen im Takt Ihres Bildschirms, und 3D-Welten',
+    'Jede Darstellung im Takt Ihres Bildschirms, und 3D-Welten',
   'tour.gpu.lead':
-    'Die vierzig Darstellungen des Diagramms laufen jetzt auf der Engine der Szenen: auf Ihrer Grafikkarte, mit der Bildwiederholrate Ihres Bildschirms, sodass Balken, Partikel und Spitzen gleiten, wo sie früher ruckelten. Und eine Szene kann jetzt eine echte 3D-Welt sein.',
+    'Die {looks} Darstellungen des Diagramms laufen jetzt auf der Engine der Szenen: auf Ihrer Grafikkarte, mit der Bildwiederholrate Ihres Bildschirms, sodass Balken, Partikel und Spitzen gleiten, wo sie früher ruckelten. Und eine Szene kann jetzt eine echte 3D-Welt sein.',
   'tour.gpu.point1':
-    'Achtzehn neue Darstellungen unter {scenes}, darunter {synthwave}, {horizon}, {towers} und {ledwall}; eine Darstellung ohne eigene Farben trägt die des Fensters.',
+    'Neue Darstellungen unter {scenes}, darunter {halo}, {horizon}, {towers} und {ledwall}; eine Darstellung ohne eigene Farben trägt die des Fensters.',
   'tour.gpu.point2':
     '3D-Welten treten auf die Kick, wiegen sich mit der Snare, springen beim Drop und wechseln mit {brightness} von Nacht zu Tag; ziehen Sie eine, um sie von einer anderen Seite zu sehen.',
   'tour.gpu.point3':
@@ -109,7 +109,7 @@ const tour: Partial<Dictionary> = {
     'Klicken Sie im Diagramm auf den Namen der Darstellung und wählen Sie eine unter {scenes}.',
   'tour.gpu.open': 'EQ öffnen',
   'tour.gpu.imageAlt':
-    'Eine Szene als nächtliche 3D-Stadt und vier neue Darstellungen, im Diagramm fotografiert – {synthwave}, {horizon}, {towers} und {ledwall} –, bei der ersten die Auswahl der Darstellung markiert.',
+    'Eine Szene als nächtliche 3D-Stadt und vier neue Darstellungen, im Diagramm fotografiert – {halo}, {horizon}, {towers} und {ledwall} –, bei der ersten die Auswahl der Darstellung markiert.',
   'tour.gpu.world': '3D-Welt',
   'tour.sparks.kicker': 'ZEIGER-FUNKEN',
   'tour.sparks.title': 'Szenen, die auf Ihre Maus antworten',

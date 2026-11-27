@@ -81,13 +81,8 @@ void main() {
 const SPRITE_UNIT = 7;
 
 export interface ILookSprites {
-  /** Draws the sprites from `first`, `count` of them. */
-  draw(
-    input: IEngineLookInput,
-    panel: { width: number; height: number },
-    first: number,
-    count: number,
-  ): void;
+  /** Draws the frame's sprites over the picture. */
+  draw(input: IEngineLookInput, panel: { width: number; height: number }): void;
   dispose(): void;
 }
 
@@ -125,23 +120,18 @@ export const createLookSprites = (
   const rowFloats = SPRITES_PER_ROW * SPRITE_FLOATS;
 
   return {
-    draw: (input, panel, first, wanted) => {
-      const count = Math.min(wanted, MAX_SPRITES - first);
+    draw: (input, panel) => {
+      const count = Math.min(input.spriteCount, MAX_SPRITES);
       if (count <= 0) {
         return;
       }
       gl.activeTexture(gl.TEXTURE0 + SPRITE_UNIT);
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-      // Every row the range touches, from its first sprite's row on.
-      const end = first + count;
-      for (
-        let row = Math.floor(first / SPRITES_PER_ROW);
-        row * SPRITES_PER_ROW < end;
-        row += 1
-      ) {
+      // Every row the sprites fill.
+      for (let row = 0; row * SPRITES_PER_ROW < count; row += 1) {
         const from = row * SPRITES_PER_ROW;
-        const inRow = Math.min(SPRITES_PER_ROW, end - from);
+        const inRow = Math.min(SPRITES_PER_ROW, count - from);
         gl.texSubImage2D(
           gl.TEXTURE_2D,
           0,
@@ -172,7 +162,7 @@ export const createLookSprites = (
       ].map((name) => gl.getParameter(name) as number);
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-      gl.drawArrays(gl.POINTS, first, count);
+      gl.drawArrays(gl.POINTS, 0, count);
       gl.blendFuncSeparate(factors[0], factors[1], factors[2], factors[3]);
       if (!blended) {
         gl.disable(gl.BLEND);

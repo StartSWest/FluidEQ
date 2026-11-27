@@ -18,11 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { legendWords } from 'common/graphAnalysis';
 import { createGraphMotionState } from './graphMotion';
-import { createTerraceJumper } from './terraceJumper';
-import { createTrussBridge } from './trussBridge';
 import { createCaveDrips } from './caveDrips';
-import { createSpaceInvasion } from './spaceInvasion';
-import { createInvaderCabinet } from './invaderCabinet';
 import { createWarpTunnel } from './warpTunnel';
 import { createStoneArcade } from './stoneArcade';
 import { createBonfire } from './bonfire';
@@ -30,14 +26,10 @@ import { createRainstorm } from './rainstorm';
 import { createCountryFence } from './countryFence';
 import { createBraidStage } from './braidStage';
 import { createCrystalSpikes } from './crystalSpikes';
-import { createTerraceValley } from './terraceValley';
-import { createNightSurfaces } from './terraceNight';
+import { createNightSurfaces } from './nightSurfaces';
 import { createCitySkyline } from './citySkyline';
 import { createSlopeField } from './slopeField';
-import { createBubbleStorm } from './bubbleStorm';
-import { createBubbleMotes } from './bubbleMotes';
 import { createSawtoothScope } from './sawtoothScope';
-import { createPulseMonitor } from './pulseMonitor';
 import { createEchoWaves } from './echoWaves';
 import { createRoadTrip } from './roadTrip';
 import { createDashTrails } from './dashTrails';
@@ -54,17 +46,13 @@ import { createTextureMotion } from './textureMotion';
  *
  * Each used to be `useRef(createX())`, which calls `createX` on every render
  * and keeps only the first result. This component renders with every
- * analyser frame, so the space invasion's 340 stars and the warp tunnel's 420
- * alone were about 760 objects and 2,300 noise lookups built and thrown away
- * on each one, on the default page, whichever look was showing.
+ * analyser frame, so the warp tunnel's 420 stars and the scenes beside them
+ * were hundreds of objects and thousands of noise lookups built and thrown
+ * away on each one, on the default page, whichever look was showing.
  */
 const createSceneStates = () => ({
   motion: createGraphMotionState(),
-  terraceJumper: createTerraceJumper(),
-  trussBridge: createTrussBridge(),
   caveDrips: createCaveDrips(),
-  invasion: createSpaceInvasion(),
-  invaderCabinet: createInvaderCabinet(),
   warp: createWarpTunnel(),
   arcade: createStoneArcade(),
   bonfire: createBonfire(),
@@ -72,14 +60,10 @@ const createSceneStates = () => ({
   fence: createCountryFence(),
   braidStage: createBraidStage(),
   crystal: createCrystalSpikes(),
-  valley: createTerraceValley(),
   night: createNightSurfaces(),
   city: createCitySkyline(),
   slopeField: createSlopeField(),
-  bubbleStorm: createBubbleStorm(),
-  bubbleMotes: createBubbleMotes(),
   sawtoothScope: createSawtoothScope(),
-  pulseMonitor: createPulseMonitor(),
   echoWaves: createEchoWaves(),
   roadTrip: createRoadTrip(),
   dashTrails: createDashTrails(),

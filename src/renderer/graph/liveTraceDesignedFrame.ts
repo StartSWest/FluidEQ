@@ -26,7 +26,6 @@ import {
   type TracePaint,
 } from './liveTracePaint';
 import {
-  designedShake,
   stepDesignedLook,
   type TDesignedScene,
 } from './engineLooks/designed/designedLooks';
@@ -125,7 +124,6 @@ const drawDesignedFrame = ({
     energy,
   );
   const input = engineInputFor(chosen);
-  const shake = designedShake(designed);
   stepDesignedLook(
     {
       window: { width, height },
@@ -137,7 +135,6 @@ const drawDesignedFrame = ({
       copies: curves.map((curve) =>
         getWaveTransform(curve, baseline, plot.top),
       ),
-      shake,
       paint: basePaint,
       glowPaint:
         resolveFigureStroke(
@@ -177,7 +174,7 @@ const drawDesignedFrame = ({
         energy,
       );
       context.save();
-      context.translate(shake.x, shake.y + wave.translateY);
+      context.translate(0, wave.translateY);
       context.scale(1, wave.scaleY / Math.abs(wave.scaleY));
       const curveInk = toCanvasPaint(context, curvePaint);
       paintPeaks(curveInk, curvePaint, (paint) =>

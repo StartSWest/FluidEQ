@@ -9,6 +9,7 @@ import EngineSoundVisual from './EngineSoundVisual';
 import ShowcaseSlide from './ShowcaseSlide';
 import SparksVisual from './SparksVisual';
 import VisualizerEngineVisual, { lookNames } from './VisualizerEngineVisual';
+import { FREE_LOOK_COUNT } from './lookCounts';
 import type { ISlideActions } from './slides';
 
 /**
@@ -32,6 +33,7 @@ export function VisualizerEngineSlide({ actions }: ISlideProps) {
       values={{
         scenes: t('graph.family.scenes'),
         brightness: t('graph.sceneTint.brightness'),
+        looks: FREE_LOOK_COUNT,
         ...lookNames(t),
       }}
     />

@@ -55,11 +55,11 @@ const tour = {
     'FluidEQ 在 EQ 頁面上有自己的顏色，分析器在曲線下繪製一首歌曲，脈衝圖示後面的選單在其一角開啟，亮度為一半。',
   'tour.gpu.kicker': '新的場景引擎',
   'tour.gpu.title': '顯示卡上的每個場景',
-  'tour.gpu.subtitle': '四十看看你的螢幕本身的速度和 3D 世界',
+  'tour.gpu.subtitle': '每種外觀都跟上螢幕的更新率，還有 3D 世界',
   'tour.gpu.lead':
-    '這張圖表的四十種外觀現在在場景執行的引擎上繪製：在圖形卡上，以螢幕自己的重新整理率，因此條形、粒子和峰值會在它們以前移動的地方滑動。現在場景可以是真正的 3D 世界。',
+    '圖表的 {looks} 種外觀現在都由場景所用的引擎繪製：在你的顯示卡上、以螢幕本身的更新率執行，長條、粒子和峰值從過去的跳動變成流暢滑動。場景現在還可以是真正的 3D 世界。',
   'tour.gpu.point1':
-    '{scenes} 下方有 18 種新外觀，其中包括 {synthwave}、{horizon}、{towers} 和 {ledwall}；沒有自己顏色的外觀會磨損視窗的顏色。',
+    '{scenes} 中新增多種外觀，包括 {halo}、{horizon}、{towers} 和 {ledwall}；沒有自己顏色的外觀會使用視窗的顏色。',
   'tour.gpu.point2':
     '透過 {brightness}，3D 世界踩下底鼓，隨著軍鼓搖擺，跳躍，從夜晚轉向白天；拖動一個可以從另一側檢視它。',
   'tour.gpu.point3':
@@ -67,7 +67,7 @@ const tour = {
   'tour.gpu.how': '按一下圖表上的外觀名稱，然後在 {scenes} 下選擇外觀。',
   'tour.gpu.open': '開啟等化器',
   'tour.gpu.imageAlt':
-    '夜晚的 3D 城市場景，以及圖表上拍攝的四個新外觀 - {synthwave}、{horizon}、{towers} 和 {ledwall} - 外觀選擇器在第一個上響起。',
+    '一個呈現夜晚 3D 城市的場景，以及在圖表上實拍的四種新外觀：{halo}、{horizon}、{towers} 和 {ledwall}，第一張中的外觀選擇器被圈出。',
   'tour.gpu.world': '3D世界',
   'tour.sparks.kicker': '指標火花',
   'tour.sparks.title': '響應滑鼠的場景',

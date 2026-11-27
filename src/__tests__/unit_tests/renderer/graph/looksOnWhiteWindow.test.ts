@@ -9,8 +9,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * standard viz to make sure they work also nice on white theme"). A scan of
  * the 39 looks found the night colours, the whitened highlights, the glow
  * added as light and the floor darkened toward black all vanishing or going
- * grey on white: Skyline's towers at 1.1:1, the arcade's score at 1.04:1,
- * LED bars at 1.2:1. What each picture does with these is checked on screen;
+ * grey on white: Skyline's towers at 1.1:1, LED bars at 1.2:1. What each picture does with these is checked on screen;
  * what every picture is handed for each side of the Brightness is held here,
  * each light-window case beside the dark-window answer it must not change.
  */
@@ -28,13 +27,6 @@ import {
   lightRamp,
   writeWindowInk,
 } from '../../../../renderer/graph/engineLooks/lookInput';
-import INVADER_INKS, {
-  invaderInks,
-} from '../../../../renderer/graph/invaderInks';
-import {
-  PULSE_OLD_ALPHA,
-  PULSE_OLD_DAY_ALPHA,
-} from '../../../../renderer/graph/pulseMonitor';
 import {
   glowComposite,
   lightInkAt,
@@ -45,18 +37,7 @@ import {
   DAY_HALO_STOPS,
   HALO_STOPS,
   haloStops,
-} from '../../../../renderer/graph/terraceNight';
-import {
-  VALLEY_DAY_INKS,
-  VALLEY_INKS,
-  valleyInks,
-} from '../../../../renderer/graph/terraceValley';
-import {
-  CAR_COLOURS,
-  CAR_DAY_COLOURS,
-  carColours,
-  trussWireInk,
-} from '../../../../renderer/graph/trussBridge';
+} from '../../../../renderer/graph/nightSurfaces';
 import {
   floorDarkening,
   floorInk,
@@ -205,53 +186,17 @@ describe("the Skyline's towers", () => {
 describe('the night scenes by day', () => {
   it('keep their night inks on a dark window', () => {
     expect(cityInks()).toBe(CITY_INKS);
-    expect(valleyInks()).toBe(VALLEY_INKS);
-    expect(invaderInks()).toBe(INVADER_INKS);
-    expect(carColours()).toBe(CAR_COLOURS);
     expect(haloStops()).toBe(HALO_STOPS);
-    expect(trussWireInk()).toBe('#fff');
   });
 
   it('change every ink that vanished on white for one that reads', () => {
     setLightWindow(true);
     expect(cityInks()).toBe(CITY_DAY_INKS);
-    expect(valleyInks()).toBe(VALLEY_DAY_INKS);
     expect(haloStops()).toBe(DAY_HALO_STOPS);
     // The sun where the moon stood, and no craters on it.
     expect(contrast(CITY_INKS.moon.colour, WHITE_FLOOR)).toBeLessThan(1.3);
     expect(contrast(CITY_DAY_INKS.moon.colour, WHITE_FLOOR)).toBeGreaterThan(2);
     expect(CITY_DAY_INKS.crater.alpha).toBe(0);
-    expect(contrast(VALLEY_DAY_INKS.moon.colour, WHITE_FLOOR)).toBeGreaterThan(
-      2,
-    );
-    // The arcade: what read at night vanished by day, and reads now.
-    const day = invaderInks();
-    expect(
-      contrast(INVADER_INKS.frame.readout.colour, WHITE_FLOOR),
-    ).toBeLessThan(1.2);
-    expect(contrast(day.frame.readout.colour, WHITE_FLOOR)).toBeGreaterThan(
-      4.5,
-    );
-    expect(contrast(day.ship.hull.colour, WHITE_FLOOR)).toBeGreaterThan(3);
-    expect(contrast(day.hit.colour, WHITE_FLOOR)).toBeGreaterThan(4.5);
-    // The bridge's cars.
-    expect(carColours()).toBe(CAR_DAY_COLOURS);
-    CAR_DAY_COLOURS.forEach((car, index) => {
-      expect(contrast(car, WHITE_FLOOR)).toBeGreaterThan(2.5);
-      expect(contrast(car, WHITE_FLOOR)).toBeGreaterThan(
-        contrast(CAR_COLOURS[index], WHITE_FLOOR),
-      );
-    });
-  });
-
-  it("draws the bridge's wire in the window's ink by day", () => {
-    root.style.setProperty('--ink', '#1b1b1b');
-    setLightWindow(true);
-    expect(contrast(trussWireInk(), WHITE_FLOOR)).toBeGreaterThan(10);
-  });
-
-  it("draws Pulse's previous sweep solider on a light window", () => {
-    expect(PULSE_OLD_DAY_ALPHA).toBeGreaterThan(PULSE_OLD_ALPHA * 2);
   });
 });
 

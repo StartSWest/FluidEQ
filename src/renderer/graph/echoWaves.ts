@@ -122,7 +122,9 @@ export const advanceEchoWaves = (
   if (jump >= 0.05) {
     state.pending = Math.max(state.pending, Math.min(1, jump / 0.2));
   }
-  // Released on the clock, not per frame — see the bubble storm's tracker.
+  // Released on the clock, not per frame: a per-frame factor decays three
+  // times faster at 60Hz than at the analyser's 22Hz, and a jump would mean
+  // a different thing on every machine.
   const elapsedMs =
     state.trackedAt < 0 ? 0 : Math.max(0, seconds - state.trackedAt) * 1000;
   state.trackedAt = seconds;

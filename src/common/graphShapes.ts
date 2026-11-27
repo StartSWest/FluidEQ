@@ -156,7 +156,6 @@ export const createGraphShape = (
       style,
       top: ceiling,
       bottom: baseline,
-      gap,
       filled,
       seconds,
     });

@@ -32,8 +32,6 @@ export interface IDesignedFrame {
   sceneTop: number;
   sceneBase: number;
   copies: readonly IDesignedCopy[];
-  /** Where the whole scene is shaken to this frame, in pixels. */
-  shake: { x: number; y: number };
   /** The look's paint and the halo's, as the page resolves them. */
   paint: TracePaint;
   glowPaint: TracePaint;
@@ -95,15 +93,14 @@ export const paintAt = (
   return [red / 255, green / 255, blue / 255];
 };
 
-/** Where a copy's scene-space point lands on the screen, shaken. */
+/** Where a copy's scene-space point lands on the screen. */
 export const sceneToScreen = (
-  frame: IDesignedFrame,
   copy: IDesignedCopy,
   x: number,
   y: number,
 ): { x: number; y: number } => ({
-  x: x + frame.shake.x,
-  y: copy.translateY + (copy.scaleY < 0 ? -y : y) + frame.shake.y,
+  x,
+  y: copy.translateY + (copy.scaleY < 0 ? -y : y),
 });
 
 export const readDesignedInput = (
@@ -112,7 +109,6 @@ export const readDesignedInput = (
 ): void => {
   const { plot, window, copies } = frame;
   input.spriteCount = 0;
-  input.spritesUnder = 0;
   input.bloom = 0;
   setLookVector(input, 0, window.width, window.height, 0, 0);
   setLookVector(input, 1, plot.left, plot.right, plot.top, plot.bottom);
@@ -141,13 +137,6 @@ export const readDesignedInput = (
     frame.lit,
     frame.swell,
   );
-  setLookVector(
-    input,
-    7,
-    frame.shake.x,
-    frame.shake.y,
-    frame.sceneBase,
-    frame.sceneTop,
-  );
+  setLookVector(input, 7, 0, 0, frame.sceneBase, frame.sceneTop);
   writeWindowInk(input);
 };

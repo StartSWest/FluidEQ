@@ -27,7 +27,6 @@ import {
 } from 'common/graphShapes';
 import { type Projected, resolveGraphPalette } from 'common/graphStyles';
 import { type RefObject } from 'react';
-import createGraphTerrace from 'common/graphTerrace';
 import { spectrumBarsPath } from '../waveformPaint';
 import createSlopeFlow from './slopeFlow';
 import {
@@ -36,42 +35,32 @@ import {
   type IGraphMotionState,
 } from './graphMotion';
 import { advanceDashTrails, type IDashTrails } from './dashTrails';
-import { advanceTerraceJumper, type ITerraceJumper } from './terraceJumper';
 import { IEuphoriaPaint, readEuphoriaHue } from './liveTracePaint';
-import { type createPulsePaths } from './pulseMonitor';
 import { type createEchoWavePaths } from './echoWaves';
 import { type createRoadTripPaths } from './roadTrip';
-import { type createTrussBridgePaths } from './trussBridgeLayout';
 import { type createCaveDripsPaths } from './caveDrips';
-import { type createSpaceInvasionPaths } from './spaceInvasionLayout';
 import { type createWarpTunnelPaths } from './warpTunnel';
 import { type createStoneArcadePaths } from './stoneArcade';
 import { type createBonfirePaths } from './bonfire';
 import { type createRainstormPaths } from './rainstorm';
 import { type createCountryFencePaths } from './countryFence';
-import { type createTerraceValleyPaths } from './terraceValley';
 import { type createCitySkylinePaths } from './citySkyline';
 import { type createSlopeFieldPaths } from './slopeField';
-import { type createBubbleMotePaths } from './bubbleMotes';
 import { type ILookTuning, type IResolvedLook } from '../../common/customLooks';
 
 // The live graph's figure as a path this frame: the scene's form or the
-// plain shape, the scatter and the dashes' trails, the terrace's jumper and
-// tiers, the stems' layers, the pieces, and the euphoria it is drawn in.
+// plain shape, the scatter and the dashes' trails, the stems' layers, the
+// pieces, and the euphoria it is drawn in.
 
 interface IShapeFigureInput {
-  pulsePaths: ReturnType<typeof createPulsePaths> | undefined;
   echoPaths: ReturnType<typeof createEchoWavePaths> | undefined;
   roadPaths: ReturnType<typeof createRoadTripPaths> | undefined;
-  trussPaths: ReturnType<typeof createTrussBridgePaths> | undefined;
   cavePaths: ReturnType<typeof createCaveDripsPaths> | undefined;
-  invasionPaths: ReturnType<typeof createSpaceInvasionPaths> | undefined;
   warpPaths: ReturnType<typeof createWarpTunnelPaths> | undefined;
   arcadePaths: ReturnType<typeof createStoneArcadePaths> | undefined;
   firePaths: ReturnType<typeof createBonfirePaths> | undefined;
   stormPaths: ReturnType<typeof createRainstormPaths> | undefined;
   fencePaths: ReturnType<typeof createCountryFencePaths> | undefined;
-  valleyPaths: ReturnType<typeof createTerraceValleyPaths> | undefined;
   sawTrace: Path2D | undefined;
   stems: { shape: string; tips: string; layers: string[] } | undefined;
   chosen:
@@ -84,7 +73,6 @@ interface IShapeFigureInput {
     | 'spikes'
     | 'ridge'
     | 'stems'
-    | 'terrace'
     | 'dashes'
     | 'scatter'
     | 'caps'
@@ -99,17 +87,13 @@ interface IShapeFigureInput {
     | 'bezier'
     | 'ribbon'
     | 'feather'
-    | 'truss'
     | 'zipper'
     | 'slope'
     | 'stalactites'
-    | 'bubbles'
     | 'diamonds'
     | 'sawtooth'
-    | 'ecg'
     | 'echo'
     | 'racer'
-    | 'invaders'
     | 'starfield'
     | 'candles'
     | 'arches'
@@ -147,17 +131,12 @@ interface IShapeFigureInput {
   motionDeltaMs: number;
   moving: boolean;
   fieldColumns: Projected[] | undefined;
-  pulseGrid: { fine: Path2D; heavy: Path2D } | undefined;
   cityPaths: ReturnType<typeof createCitySkylinePaths> | undefined;
   fieldPaths: ReturnType<typeof createSlopeFieldPaths> | undefined;
-  motePaths: ReturnType<typeof createBubbleMotePaths> | undefined;
   motionRef: RefObject<IGraphMotionState>;
-  terraceScene: ReturnType<typeof createGraphTerrace> | undefined;
   sceneSpace: (points: readonly Projected[]) => Projected[];
   projected: [number, number][];
   dashTrailsRef: RefObject<IDashTrails>;
-  valleyColumns: Projected[] | undefined;
-  terraceJumperRef: RefObject<ITerraceJumper>;
   liveProjected: [number, number][];
   stemClockRef: RefObject<number>;
   stemLevelsRef: RefObject<number[]>;
@@ -173,18 +152,14 @@ interface IShapeFigureInput {
  * `moving` stays raised while any of it is still animating.
  */
 const shapeFigure = ({
-  pulsePaths,
   echoPaths,
   roadPaths,
-  trussPaths,
   cavePaths,
-  invasionPaths,
   warpPaths,
   arcadePaths,
   firePaths,
   stormPaths,
   fencePaths,
-  valleyPaths,
   sawTrace,
   stems,
   chosen,
@@ -203,17 +178,12 @@ const shapeFigure = ({
   motionDeltaMs,
   moving: movingIn,
   fieldColumns,
-  pulseGrid,
   cityPaths,
   fieldPaths,
-  motePaths,
   motionRef,
-  terraceScene,
   sceneSpace,
   projected,
   dashTrailsRef,
-  valleyColumns,
-  terraceJumperRef,
   liveProjected,
   stemClockRef,
   stemLevelsRef,
@@ -225,18 +195,14 @@ const shapeFigure = ({
 }: IShapeFigureInput) => {
   let moving = movingIn;
   const isSceneForm = Boolean(
-    pulsePaths ||
     echoPaths ||
     roadPaths ||
-    trussPaths ||
     cavePaths ||
-    invasionPaths ||
     warpPaths ||
     arcadePaths ||
     firePaths ||
     stormPaths ||
     fencePaths ||
-    valleyPaths ||
     sawTrace,
   );
   let shape =
@@ -287,18 +253,8 @@ const shapeFigure = ({
    * dead zone — the canvas would throw on the first frame of every scene.
    */
   const overflowsPlot =
-    isSceneForm ||
-    Boolean(pulseGrid) ||
-    Boolean(cityPaths) ||
-    Boolean(fieldPaths) ||
-    Boolean(motePaths);
-  if (
-    hasGraphMotion(chosen) &&
-    !invasionPaths &&
-    !warpPaths &&
-    !firePaths &&
-    !stormPaths
-  ) {
+    isSceneForm || Boolean(cityPaths) || Boolean(fieldPaths);
+  if (hasGraphMotion(chosen) && !warpPaths && !firePaths && !stormPaths) {
     const motion = createMovingGraphShape({
       state: motionRef.current,
       points: figurePoints,
@@ -309,7 +265,6 @@ const shapeFigure = ({
       deltaMs: motionDeltaMs,
       playing: playingRef.current,
       filled: isFilled,
-      gap: tuning.gap,
     });
     shape = motion.path;
     moving = motion.moving || moving;
@@ -323,20 +278,14 @@ const shapeFigure = ({
   const blinkingSatellites =
     scatter && tuning.accents && tuning.accentStyle === 'blink';
   const figure =
-    pulsePaths?.shape ??
     echoPaths?.shape ??
     roadPaths?.shape ??
-    trussPaths?.shape ??
     cavePaths?.shape ??
-    invasionPaths?.shape ??
     warpPaths?.shape ??
     arcadePaths?.shape ??
     firePaths?.shape ??
     stormPaths?.shape ??
     fencePaths?.shape ??
-    (terraceScene
-      ? new Path2D(isFilled ? terraceScene.shape : terraceScene.outline)
-      : undefined) ??
     new Path2D(
       blinkingSatellites && chosen === 'scatter' ? scatter.primary : shape,
     );
@@ -378,25 +327,6 @@ const shapeFigure = ({
   if (!dashHistory) {
     dashTrailsRef.current.key = '';
   }
-  const terraceJumper = valleyColumns
-    ? advanceTerraceJumper(
-        terraceJumperRef.current,
-        valleyColumns,
-        motionDeltaMs,
-        playingRef.current,
-      )
-    : undefined;
-  if (terraceJumper && playingRef.current) {
-    moving = true;
-  }
-  const terraceTiers =
-    terraceScene && isFilled
-      ? terraceScene.tiers.map((tier) => ({
-          body: new Path2D(tier.body),
-          edge: new Path2D(tier.edge),
-          opacity: tier.opacity,
-        }))
-      : undefined;
   const stemLayers =
     isFilled && stems
       ? {
@@ -504,7 +434,6 @@ const shapeFigure = ({
     scatter,
     isEuphoric,
     euphoria,
-    terraceJumper,
     piecePaths,
     slopeFlow,
     overflowsPlot,
@@ -512,7 +441,6 @@ const shapeFigure = ({
     scatterPaths,
     stemLayers,
     connector,
-    terraceTiers,
     moving,
   };
 };

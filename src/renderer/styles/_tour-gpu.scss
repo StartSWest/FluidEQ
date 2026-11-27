@@ -92,10 +92,13 @@ it under the terms of the GNU General Public License version 3 or later.
 // measured there: 180..432 by 12..48 of 640 x 320), ringed.
 .gpu-visual__ring {
   position: absolute;
-  top: 2%;
-  left: 27%;
-  width: 41.5%;
-  height: 15.5%;
+  // Round the picker on the strip at the plot's foot, as measured in the
+  // photograph's crop (`VisualizerEngineVisual`): 11.8% in, 84.3% down,
+  // 29.8% by 8.8%, with a step of room on every side.
+  top: 82.3%;
+  left: 10.8%;
+  width: 31.8%;
+  height: 12.8%;
   border: 2px solid $secondary-light;
   border-radius: $radius-s;
   box-shadow: 0 0 calc(#{$u} * 0.6)

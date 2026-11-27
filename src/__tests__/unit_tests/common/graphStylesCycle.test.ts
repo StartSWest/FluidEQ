@@ -61,9 +61,11 @@ const DRAWN_HERE = GRAPH_STYLES.filter(
 );
 
 describe('the graph style cycle', () => {
-  it('offers eighty-nine distinct forms', () => {
-    expect(GRAPH_STYLES).toHaveLength(89);
-    expect(new Set(GRAPH_STYLES).size).toBe(89);
+  // Eighty-nine until 2026-11-27, when seven looks were taken out altogether
+  // (`removedGraphStyles.ts`).
+  it('offers eighty-two distinct forms', () => {
+    expect(GRAPH_STYLES).toHaveLength(82);
+    expect(new Set(GRAPH_STYLES).size).toBe(82);
   });
 
   it('gives every form a name of its own', () => {
@@ -271,25 +273,20 @@ describe('createGraphShape', () => {
     // reads as the capture having died rather than as a switch having been
     // thrown. Whatever the form is, if the picker offers Filled for it then
     // asking for it has to draw.
-    // The bridge is the one exception: its deck is a line over open water
-    // in both variants, and Filled makes its towers and piers solid — the
-    // renderer paints those, not the shape.
-    DRAWN_HERE.filter(canGraphFill)
-      .filter((style) => style !== 'truss')
-      .forEach((style) => {
-        expect(
-          createGraphShape(
-            points,
-            style,
-            BASELINE,
-            undefined,
-            undefined,
-            0,
-            0,
-            true,
-          ),
-        ).toMatch(/Z/);
-      });
+    DRAWN_HERE.filter(canGraphFill).forEach((style) => {
+      expect(
+        createGraphShape(
+          points,
+          style,
+          BASELINE,
+          undefined,
+          undefined,
+          0,
+          0,
+          true,
+        ),
+      ).toMatch(/Z/);
+    });
   });
 
   it('does not frame the stroked forms in a box to achieve it', () => {
@@ -297,11 +294,9 @@ describe('createGraphShape', () => {
     // unconditionally would satisfy it while growing a hairline along the
     // bottom of the plot and a vertical up each side — a frame drawn round a
     // line nobody asked to frame. Stroked, they must still be open.
-    (['line', 'steps', 'bezier', 'ecg', 'echo'] as GraphStyle[]).forEach(
-      (style) => {
-        expect(shapeOf(style)).not.toMatch(/Z/);
-      },
-    );
+    (['line', 'steps', 'bezier', 'echo'] as GraphStyle[]).forEach((style) => {
+      expect(shapeOf(style)).not.toMatch(/Z/);
+    });
   });
 
   it('offers Filled only where a form has an inside', () => {
@@ -340,13 +335,5 @@ describe('createGraphShape', () => {
     expect(
       topOf(createGraphShape(flat, 'wave-line', 300, 64, undefined, 0, 40)),
     ).toBeGreaterThanOrEqual(39);
-  });
-
-  it('sizes the bubbles by level rather than drawing them all alike', () => {
-    const radii = [...shapeOf('bubbles').matchAll(/a ([\d.]+),/g)].map(
-      (match) => Number(match[1]),
-    );
-    expect(radii.length).toBeGreaterThan(4);
-    expect(new Set(radii).size).toBeGreaterThan(1);
   });
 });

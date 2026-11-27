@@ -74,18 +74,10 @@ export interface IEngineLookInput {
    */
   sprites: Float32Array;
   spriteCount: number;
-  /**
-   * How many of the sprites, from the first, are drawn UNDER the picture —
-   * scenery the look's own shapes stand in front of, like a sky's stars —
-   * rather than over it.
-   */
-  spritesUnder: number;
   /** A picture the engine keeps from frame to frame, where the look has one. */
   history?: IEngineLookHistory;
   /** Free-drawn lines the look's shader reads as coverage, where it has any. */
   lines?: IEngineLookLines;
-  /** Strokes in their own colours the look lays over its picture, if any. */
-  strokes?: IEngineLookStrokes;
   /**
    * The style editor's texture, printed in the figure's body where the 2D
    * view prints it (`lookTexture.ts`, `uLookTexture`). Absent for none.
@@ -154,33 +146,6 @@ export const LINE_FLOATS = 4;
 /** The most points a frame draws, and how many a row of texels holds. */
 export const MAX_LINE_POINTS = 4096;
 export const LINE_POINTS_PER_ROW = 1024;
-
-/**
- * Strokes that each carry their own colour, width and ends — a burst of a
- * firework's sparks — drawn first into a target the look's shader lays
- * over its picture where the page would have stroked them (`uLookStrokes`).
- * Each pixel keeps the most any stroke put there, colour by colour
- * (premultiplied), which is what a canvas painting them back to front
- * gives wherever the later ones are the brighter: the coolest, faintest
- * piece of a spark first and its white-hot head last. Each copy of the
- * drawing is kept apart, stacked in the target, so a mirrored copy's
- * strokes are laid down where that copy is painted.
- */
-export interface IEngineLookStrokes {
-  /**
-   * `STROKE_FLOATS` per point: x, y in CSS pixels; 1 where a new line
-   * starts, plus 2 where the segment ending here has round ends, plus 4 for
-   * the second copy; the segment's width; then its colour, straight, and
-   * how solid.
-   */
-  points: Float32Array;
-  count: number;
-}
-
-export const STROKE_FLOATS = 8;
-/** The most points a frame draws, and how many a row of texels holds. */
-export const MAX_STROKE_POINTS = 16384;
-export const STROKE_POINTS_PER_ROW = 1024;
 
 /**
  * A scrolling picture the engine keeps on the GPU (`uLookHistory`) — the

@@ -25,24 +25,16 @@ import {
   resolveTracePaint,
   TracePaint,
 } from './liveTracePaint';
-import createBubblePaths from './bubblePaths';
 import createDotPaths from './dotPaths';
-import { SEA_SCALE } from './figureGlow';
 import { setAlpha, toCanvasPaint } from './liveTraceStyle';
-import { bubbleShake, type IBolt } from './bubbleStorm';
-import { type createPulsePaths, type IEcho, pulseShake } from './pulseMonitor';
 import {
   type createRainstormPaths,
   type Rainstorm,
   stormShake,
 } from './rainstorm';
-import { invasionShake, type SpaceInvasion } from './spaceInvasion';
 import {
-  paintBubbles,
   paintDashTrails,
   paintEchoWaves,
-  paintPulseBeam,
-  paintPulseGrid,
   paintSawtoothTrace,
   paintScatter,
 } from './liveTraceSignalLooks';
@@ -51,11 +43,9 @@ import {
   paintCrystals,
   paintField,
   paintStage,
-  paintValley,
   strokeCity,
   strokeCrystals,
   strokeStage,
-  strokeValley,
 } from './liveTraceTownScenes';
 import {
   paintAccentBehind,
@@ -71,22 +61,16 @@ import {
   strokeStorm,
 } from './liveTraceWeatherScenes';
 import { paintArcade, paintWarp, strokeArcade } from './liveTraceArcadeScenes';
-import { paintInvasion, strokeInvasion } from './liveTraceInvasionScene';
 import { paintCave, strokeCave } from './liveTraceCaveScene';
-import { paintTrussScenery, strokeTrussBridge } from './liveTraceTrussScene';
 import {
   paintRoadLandscape,
   paintRoadLine,
   strokeRoadLandscape,
   strokeRoadLine,
 } from './liveTraceRoadScene';
-import { paintTerraceJumper } from './terraceJumper';
 import { type ILiveCurveData } from './ChartController';
-import { type createSpaceInvasionPaths } from './spaceInvasionLayout';
-import { type createBubbleMotePaths } from './bubbleMotes';
 import { type createSlopeFieldPaths } from './slopeField';
 import { type createCitySkylinePaths } from './citySkyline';
-import { type createTerraceValleyPaths } from './terraceValley';
 import { type createCrystalSpikesPaths } from './crystalSpikes';
 import { type createBraidStagePaths } from './braidStage';
 import { type createCountryFencePaths } from './countryFence';
@@ -94,13 +78,12 @@ import { type createBonfirePaths } from './bonfire';
 import { type createStoneArcadePaths } from './stoneArcade';
 import { type createWarpTunnelPaths } from './warpTunnel';
 import { type createCaveDripsPaths } from './caveDrips';
-import { type createTrussBridgePaths } from './trussBridgeLayout';
 import { type createRoadTripPaths } from './roadTrip';
 import { type createEchoWavePaths } from './echoWaves';
 import { type ILookTuning } from '../../common/customLooks';
 import { type IGraphMotionState } from './graphMotion';
 import { type ResolvedGraphPalette } from '../../common/graphStyles';
-import { type NightSurfaces } from './terraceNight';
+import { type NightSurfaces } from './nightSurfaces';
 import { type IGhost, type ISpark } from './sawtoothScope';
 import type { ITexturePose } from './textureMotion';
 
@@ -123,7 +106,6 @@ interface IPaintCurvesInput {
     | 'spikes'
     | 'ridge'
     | 'stems'
-    | 'terrace'
     | 'dashes'
     | 'scatter'
     | 'caps'
@@ -138,17 +120,13 @@ interface IPaintCurvesInput {
     | 'bezier'
     | 'ribbon'
     | 'feather'
-    | 'truss'
     | 'zipper'
     | 'slope'
     | 'stalactites'
-    | 'bubbles'
     | 'diamonds'
     | 'sawtooth'
-    | 'ecg'
     | 'echo'
     | 'racer'
-    | 'invaders'
     | 'starfield'
     | 'candles'
     | 'arches'
@@ -177,37 +155,16 @@ interface IPaintCurvesInput {
   texturePose: ITexturePose | undefined;
   motionRef: RefObject<IGraphMotionState>;
   isFilled: boolean;
-  bubbleStormRef: RefObject<{
-    levels: number[];
-    beatLevel: number;
-    trackedAt: number;
-    pops: Map<number, number>;
-    bolts: IBolt[];
-    shakeAt: number;
-    shakeStrength: number;
-  }>;
   figure: Path2D;
   context: CanvasRenderingContext2D;
-  seaCanvasRef: RefObject<HTMLCanvasElement | null>;
   canvas: HTMLCanvasElement;
   height: number;
   needsOutside: boolean;
   figureStrokeWidth: number;
   sceneBase: number;
-  pulsePaths: ReturnType<typeof createPulsePaths> | undefined;
-  pulseMonitorRef: RefObject<{
-    beatLevel: number;
-    trackedAt: number;
-    thumpAt: number;
-    thumpStrength: number;
-    echoes: IEcho[];
-  }>;
   stormPaths: ReturnType<typeof createRainstormPaths> | undefined;
   stormRef: RefObject<Rainstorm>;
   stormClockRef: RefObject<number>;
-  invasionPaths: ReturnType<typeof createSpaceInvasionPaths> | undefined;
-  invasionRef: RefObject<SpaceInvasion>;
-  invasionClockRef: RefObject<number>;
   overflowsPlot: boolean;
   depth: number;
   paintPalette: ResolvedGraphPalette;
@@ -217,13 +174,10 @@ interface IPaintCurvesInput {
   dashTrails: { path: Path2D; opacity: number; width: number }[] | undefined;
   opacity: number;
   strokeWidth: number;
-  pulseGrid: { fine: Path2D; heavy: Path2D } | undefined;
-  motePaths: ReturnType<typeof createBubbleMotePaths> | undefined;
   fieldPaths: ReturnType<typeof createSlopeFieldPaths> | undefined;
   cityPaths: ReturnType<typeof createCitySkylinePaths> | undefined;
   nightRef: RefObject<NightSurfaces>;
   ratio: number;
-  valleyPaths: ReturnType<typeof createTerraceValleyPaths> | undefined;
   sceneTop: number;
   haloPath: Path2D | undefined;
   isSelfColoured: boolean;
@@ -248,14 +202,11 @@ interface IPaintCurvesInput {
   arcadePaths: ReturnType<typeof createStoneArcadePaths> | undefined;
   arcadeOwnColours: boolean;
   warpPaths: ReturnType<typeof createWarpTunnelPaths> | undefined;
-  shelterPath: Path2D | undefined;
   cavePaths: ReturnType<typeof createCaveDripsPaths> | undefined;
   caveOwnColours: boolean;
-  trussPaths: ReturnType<typeof createTrussBridgePaths> | undefined;
   roadPaths: ReturnType<typeof createRoadTripPaths> | undefined;
   connector: Path2D | undefined;
   blinkingSatellites: boolean | undefined;
-  terraceTiers: { body: Path2D; edge: Path2D; opacity: number }[] | undefined;
   isFluidForm: boolean;
   fluidLeft: number;
   fluidRight: number;
@@ -272,7 +223,6 @@ interface IPaintCurvesInput {
     flareAt: number;
     sparks: ISpark[];
   }>;
-  terraceJumper: { x: number; y: number; direction: number } | undefined;
   isEuphoriaEdge: boolean;
   roadTripRef: RefObject<{
     beatLevel: number;
@@ -284,8 +234,8 @@ interface IPaintCurvesInput {
 }
 
 /**
- * Every curve of the frame, each painted in its own band: the sea and the
- * halo under it, the scene's scenery, the figure, the accents and the
+ * Every curve of the frame, each painted in its own band: the halo under
+ * it, the scene's scenery, the figure, the accents and the
  * look's stroke over it — each layer in the functions named for it.
  */
 const paintCurves = ({
@@ -298,23 +248,16 @@ const paintCurves = ({
   texturePose,
   motionRef,
   isFilled,
-  bubbleStormRef,
   figure,
   context,
-  seaCanvasRef,
   canvas,
   height,
   needsOutside,
   figureStrokeWidth,
   sceneBase,
-  pulsePaths,
-  pulseMonitorRef,
   stormPaths,
   stormRef,
   stormClockRef,
-  invasionPaths,
-  invasionRef,
-  invasionClockRef,
   overflowsPlot,
   depth,
   paintPalette,
@@ -324,13 +267,10 @@ const paintCurves = ({
   dashTrails,
   opacity,
   strokeWidth,
-  pulseGrid,
-  motePaths,
   fieldPaths,
   cityPaths,
   nightRef,
   ratio,
-  valleyPaths,
   sceneTop,
   haloPath,
   isSelfColoured,
@@ -351,14 +291,11 @@ const paintCurves = ({
   arcadePaths,
   arcadeOwnColours,
   warpPaths,
-  shelterPath,
   cavePaths,
   caveOwnColours,
-  trussPaths,
   roadPaths,
   connector,
   blinkingSatellites,
-  terraceTiers,
   isFluidForm,
   fluidLeft,
   fluidRight,
@@ -369,26 +306,11 @@ const paintCurves = ({
   echoPaths,
   sawTrace,
   sawtoothScopeRef,
-  terraceJumper,
   isEuphoriaEdge,
   roadTripRef,
 }: IPaintCurvesInput) => {
-  curves.forEach((curve, curveIndex) => {
+  curves.forEach((curve) => {
     const wave = getWaveTransform(curve, baseline, plot.top);
-    const bubblePaths =
-      chosen === 'bubbles' && wave.scaleY !== 0
-        ? createBubblePaths(
-            toColumns(projected, tuning.columns),
-            plot.top,
-            baseline,
-            Math.abs(wave.scaleY),
-            motionRef.current.travel[0] ?? 0,
-            tuning.gap,
-            isFilled,
-            bubbleStormRef.current,
-            plot,
-          )
-        : undefined;
     const dotPaths =
       chosen === 'dots' && wave.scaleY !== 0
         ? createDotPaths(
@@ -400,7 +322,7 @@ const paintCurves = ({
             tuning.connectingLine,
           )
         : undefined;
-    const dots = bubblePaths ?? dotPaths;
+    const dots = dotPaths;
     const curveFigure = dots?.shape ?? figure;
     // Everything a scene draws is in scene space: the wave's vertical
     // STRETCH undone but its flip kept, so a mirrored curve shows the
@@ -411,56 +333,6 @@ const paintCurves = ({
       context.save();
       context.scale(1, 1 / Math.abs(wave.scaleY));
     };
-    /**
-     * Paint something big and soft at a third of the resolution.
-     *
-     * A screen of translucent fill is what these scenes cost to
-     * raster — the bridge's sea and the echo's rows of water each held
-     * their look at three times the frame budget on a 1440p display
-     * while the profile showed the script idle. Painted on a surface a
-     * third the size under the same transform and stretched back over
-     * this one, the blending is a ninth of the pixels and the result
-     * is water, which has no edges to lose. Without a surface (a
-     * context lost, a canvas that will not give one) the caller's own
-     * drawing runs here at full cost.
-     */
-    const paintLowRes = (draw: (target: CanvasRenderingContext2D) => void) => {
-      const scale = SEA_SCALE;
-      const surface = seaCanvasRef.current ?? document.createElement('canvas');
-      seaCanvasRef.current = surface;
-      const surfaceWidth = Math.max(1, Math.ceil(canvas.width * scale));
-      const surfaceHeight = Math.max(1, Math.ceil(canvas.height * scale));
-      if (surface.width !== surfaceWidth || surface.height !== surfaceHeight) {
-        surface.width = surfaceWidth;
-        surface.height = surfaceHeight;
-      }
-      const surface2d = surface.getContext('2d');
-      if (!surface2d) {
-        draw(context);
-        return;
-      }
-      const base = context.getTransform();
-      surface2d.setTransform(1, 0, 0, 1, 0, 0);
-      surface2d.clearRect(0, 0, surfaceWidth, surfaceHeight);
-      surface2d.save();
-      surface2d.setTransform(
-        base.a * scale,
-        base.b * scale,
-        base.c * scale,
-        base.d * scale,
-        base.e * scale,
-        base.f * scale,
-      );
-      draw(surface2d);
-      surface2d.restore();
-      context.save();
-      context.setTransform(1, 0, 0, 1, 0, 0);
-      context.imageSmoothingEnabled = true;
-      setAlpha(context, 1);
-      context.drawImage(surface, 0, 0, canvas.width, canvas.height);
-      context.restore();
-    };
-
     /**
      * The whole canvas in this curve's scene space.
      *
@@ -488,31 +360,9 @@ const paintCurves = ({
       curveOutside.addPath(curveFigure);
     }
     context.save();
-    if (chosen === 'bubbles') {
-      const shake = bubbleShake(
-        bubbleStormRef.current,
-        motionRef.current.travel[0] ?? 0,
-      );
-      context.translate(shake.x, shake.y);
-    }
-    if (pulsePaths) {
-      const shake = pulseShake(
-        pulseMonitorRef.current,
-        motionRef.current.travel[0] ?? 0,
-      );
-      context.translate(shake.x, shake.y);
-    }
     if (stormPaths) {
       // Thunder.
       const shake = stormShake(stormRef.current, stormClockRef.current);
-      context.translate(shake.x, shake.y);
-    }
-    if (invasionPaths) {
-      // A bolt landing on the ship rocks the whole screen.
-      const shake = invasionShake(
-        invasionRef.current,
-        invasionClockRef.current,
-      );
       context.translate(shake.x, shake.y);
     }
     context.translate(0, wave.translateY);
@@ -558,29 +408,6 @@ const paintCurves = ({
       strokeWidth,
     });
 
-    paintPulseGrid({
-      pulseGrid,
-      curveIndex,
-      pulseMonitorRef,
-      motionRef,
-      context,
-      canvasPaint,
-      opacity,
-      pulsePaths,
-      plot,
-      height,
-    });
-    if (motePaths) {
-      // Small dots drifting up over the whole screen, in the look's
-      // own colour. Nothing is painted behind them.
-      enterSceneSpace();
-      context.fillStyle = canvasPaint;
-      motePaths.bands.forEach((band) => {
-        setAlpha(context, opacity * band.alpha);
-        context.fill(band.path);
-      });
-      context.restore();
-    }
     paintField({
       fieldPaths,
       enterSceneSpace,
@@ -597,19 +424,6 @@ const paintCurves = ({
       nightRef,
       ratio,
     });
-    paintValley({
-      valleyPaths,
-      isFilled,
-      enterSceneSpace,
-      context,
-      opacity,
-      nightRef,
-      ratio,
-      plot,
-      sceneBase,
-      sceneTop,
-    });
-
     paintHalo({
       haloPath,
       paintFor,
@@ -706,14 +520,6 @@ const paintCurves = ({
       sceneBase,
     });
     paintWarp({ warpPaths, context, opacity, canvasPaint });
-    paintInvasion({
-      invasionPaths,
-      context,
-      opacity,
-      isFilled,
-      shelterPath,
-      canvasPaint,
-    });
     paintCave({
       cavePaths,
       caveOwnColours,
@@ -722,16 +528,6 @@ const paintCurves = ({
       context,
       opacity,
       sceneBase,
-    });
-    paintTrussScenery({
-      trussPaths,
-      context,
-      opacity,
-      canvasPaint,
-      strokeWidth,
-      plot,
-      paintLowRes,
-      isFilled,
     });
     paintRoadLine({ roadPaths, isFilled, context, canvasPaint, opacity });
     paintRoadLandscape({
@@ -754,8 +550,6 @@ const paintCurves = ({
       opacity,
       tuning,
       blinkingSatellites,
-      terraceTiers,
-      valleyPaths,
       stemLayers,
       isFluidForm,
       isFilled,
@@ -769,7 +563,6 @@ const paintCurves = ({
       paintPalette,
       paintColours,
       piecePaths,
-      trussPaths,
       curveFigure,
     });
     paintFillTexture({
@@ -782,7 +575,6 @@ const paintCurves = ({
       plot,
       texturePose,
     });
-    paintBubbles({ bubblePaths, context, canvasPaint, opacity });
     paintEchoWaves({
       echoPaths,
       context,
@@ -791,15 +583,6 @@ const paintCurves = ({
       plot,
       canvasPaint,
       tuning,
-    });
-    paintPulseBeam({
-      pulsePaths,
-      motionRef,
-      pulseMonitorRef,
-      depth,
-      context,
-      canvasPaint,
-      opacity,
     });
     paintSawtoothTrace({
       sawTrace,
@@ -812,11 +595,6 @@ const paintCurves = ({
       sceneTop,
     });
     strokeCity({ cityPaths, context, sceneBase, opacity, plot, isFilled });
-    strokeValley({ valleyPaths, context, opacity });
-    if (terraceJumper) {
-      setAlpha(context, opacity);
-      paintTerraceJumper(context, terraceJumper, plot.right - plot.left, depth);
-    }
     const figureStroke = resolveFigureStroke(
       basePaint,
       isFilled,
@@ -827,7 +605,6 @@ const paintCurves = ({
     strokeFigure({
       figureStroke,
       figureStrokeWidth,
-      pulsePaths,
       context,
       opacity,
       paintFor,
@@ -864,7 +641,6 @@ const paintCurves = ({
       context,
       opacity,
     });
-    strokeInvasion({ invasionPaths, context, opacity });
     strokeCave({
       cavePaths,
       isFilled,
@@ -872,14 +648,6 @@ const paintCurves = ({
       opacity,
       canvasPaint,
       caveOwnColours,
-    });
-    strokeTrussBridge({
-      trussPaths,
-      context,
-      opacity,
-      figure,
-      isFilled,
-      canvasPaint,
     });
     strokeRoadLine({
       roadPaths,

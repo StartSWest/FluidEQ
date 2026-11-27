@@ -41,13 +41,7 @@ import {
   drawGlassTowers,
   type IGlassTowersState,
 } from './glassTowers';
-import { createTideState, drawTide, type ITideState } from './tide';
 import { createHaloState, drawHalo, type IHaloState } from './halo';
-import {
-  createSynthwaveState,
-  drawSynthwave,
-  type ISynthwaveState,
-} from './synthwave';
 import { createLedBarsState, drawLedBars, type ILedBarsState } from './ledBars';
 import {
   createNeonBarsState,
@@ -130,9 +124,7 @@ export interface ISceneViewState {
   music: ISceneMusicState;
   ledWall: ILedWallState;
   towers: IGlassTowersState;
-  tide: ITideState;
   halo: IHaloState;
-  synthwave: ISynthwaveState;
   ledBars: ILedBarsState;
   neonBars: INeonBarsState;
   bars3d: IBars3dState;
@@ -160,9 +152,7 @@ export const createSceneViewState = (): ISceneViewState => ({
   music: createSceneMusic(),
   ledWall: createLedWallState(),
   towers: createGlassTowersState(),
-  tide: createTideState(),
   halo: createHaloState(),
-  synthwave: createSynthwaveState(),
   ledBars: createLedBarsState(),
   neonBars: createNeonBarsState(),
   bars3d: createBars3dState(),
@@ -246,9 +236,7 @@ const DRAW: Record<
 > = {
   ledwall: (frame, state) => drawLedWall(frame, state.ledWall),
   towers: (frame, state) => drawGlassTowers(frame, state.towers),
-  tide: (frame, state) => drawTide(frame, state.tide),
   halo: (frame, state) => drawHalo(frame, state.halo),
-  synthwave: (frame, state) => drawSynthwave(frame, state.synthwave),
   ledbars: (frame, state) => drawLedBars(frame, state.ledBars),
   neonbars: (frame, state) => drawNeonBars(frame, state.neonBars),
   bars3d: (frame, state) => drawBars3d(frame, state.bars3d),

@@ -604,7 +604,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.sampleMaker': 'Lumen Works',
   'help.looks.title': 'Stili e scene',
   'help.looks.intro':
-    'Gli stili standard sono disegni gratuiti del suono dal vivo che puoi colorare e personalizzare tu: Linea e Area per una traccia pulita, Blocchi LED e Picchi per l’impatto, Traliccio, Profilo urbano e Fiamme danzanti per scene intere. Le scene sono immagini vive disegnate dalla scheda grafica, come Alpino, Aurora, Fioritura e Città al neon, in cui bassi, battito e acuti muovono ognuno qualcosa di diverso.',
+    'Gli stili standard sono disegni gratuiti del suono dal vivo che puoi colorare e personalizzare tu: Onda spettrale per una traccia pulita, Barre LED e Barre al neon per l’impatto, Profilo urbano, Torri di vetro ed Eco per scene intere. Le scene sono immagini vive disegnate dalla scheda grafica, come Alpino, Aurora, Fioritura e Città al neon, in cui bassi, battito e acuti muovono ognuno qualcosa di diverso.',
   'help.looks.steps':
     'Fai clic sul nome dell’aspetto sul grafico. Scegli una sezione a sinistra, oppure cerca in tutto insieme.\nCon «Di» vedi solo quelli di FluidEQ, le scene dei membri o i tuoi. Se una scena non è ancora tua è bloccata, e se la scegli scopri come ottenerla.\nSu uno stile standard, premi Nuovo aspetto per cambiarne colori, movimento e picchi, poi salvalo: compare in «Di: Tuoi».',
   'help.looks.tip':

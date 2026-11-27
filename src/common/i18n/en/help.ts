@@ -601,7 +601,7 @@ const help = {
 
   'help.looks.title': 'Styles and scenes',
   'help.looks.intro':
-    'Standard styles are free drawings of the live sound that you can colour and design yourself: Line and Area for a clean trace, LED blocks and Spikes for punch, Truss, Skyline and Dancing flames for whole scenes. Scenes are living pictures drawn on the graphics card, such as Alpine, Aurora, Bloom and Neon City, where the bass, the beat and the treble each move something different.',
+    'Standard styles are free drawings of the live sound that you can colour and design yourself: Spectrum wave for a clean trace, LED bars and Neon bars for punch, Skyline, Glass towers and Echo for whole scenes. Scenes are living pictures drawn on the graphics card, such as Alpine, Aurora, Bloom and Neon City, where the bass, the beat and the treble each move something different.',
   'help.looks.steps':
     'Click the look’s name on the graph. Choose a place on the left, or search everything at once.\nUse From to see only FluidEQ’s looks, members’ scenes or your own. A scene that is not yours yet is locked, and choosing it explains how to get it.\nOn a standard style, press New look to change its colours, motion and peaks, then save it; it appears under From: Yours.',
   'help.looks.tip':

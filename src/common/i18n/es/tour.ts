@@ -96,11 +96,11 @@ const tour: Partial<Dictionary> = {
     'FluidEQ con sus propios colores en la página del EQ, el Analizador dibujando una canción bajo las curvas, y el menú del icono de pulso abierto sobre su esquina, con el Brillo a la mitad.',
   'tour.gpu.kicker': 'UN NUEVO MOTOR DE ESCENAS',
   'tour.gpu.title': 'Todas las escenas en tu tarjeta gráfica',
-  'tour.gpu.subtitle': 'Cuarenta estilos al ritmo de tu pantalla, y mundos 3D',
+  'tour.gpu.subtitle': 'Cada estilo al ritmo de tu pantalla, y mundos 3D',
   'tour.gpu.lead':
-    'Los cuarenta estilos de la gráfica ahora se dibujan con el motor de las escenas: en tu tarjeta gráfica y a la frecuencia de refresco de tu pantalla, así que barras, partículas y picos se deslizan donde antes saltaban. Y una escena ya puede ser un auténtico mundo 3D.',
+    'Los {looks} estilos de la gráfica ahora se dibujan con el motor de las escenas: en tu tarjeta gráfica y a la frecuencia de refresco de tu pantalla, así que barras, partículas y picos se deslizan donde antes saltaban. Y una escena ya puede ser un auténtico mundo 3D.',
   'tour.gpu.point1':
-    'Dieciocho estilos nuevos en {scenes}, entre ellos {synthwave}, {horizon}, {towers} y {ledwall}; un estilo sin colores propios lleva los de la ventana.',
+    'Estilos nuevos en {scenes}, entre ellos {halo}, {horizon}, {towers} y {ledwall}; un estilo sin colores propios lleva los de la ventana.',
   'tour.gpu.point2':
     'Los mundos 3D pisan con el bombo, se mecen con la caja, saltan en el drop y pasan de la noche al día con {brightness}; arrastra uno para verlo desde otro lado.',
   'tour.gpu.point3':
@@ -109,7 +109,7 @@ const tour: Partial<Dictionary> = {
     'Haz clic en el nombre del estilo en la gráfica y elige uno en {scenes}.',
   'tour.gpu.open': 'Abrir EQ',
   'tour.gpu.imageAlt':
-    'Una escena que es una ciudad 3D de noche, y cuatro estilos nuevos fotografiados en la gráfica —{synthwave}, {horizon}, {towers} y {ledwall}—, con el selector de estilos marcado en el primero.',
+    'Una escena que es una ciudad 3D de noche, y cuatro estilos nuevos fotografiados en la gráfica —{halo}, {horizon}, {towers} y {ledwall}—, con el selector de estilos marcado en el primero.',
   'tour.gpu.world': 'Mundo 3D',
   'tour.sparks.kicker': 'CHISPAS DEL PUNTERO',
   'tour.sparks.title': 'Escenas que responden a tu ratón',

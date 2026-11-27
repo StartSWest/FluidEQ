@@ -8,9 +8,8 @@ import { HALO_SCALE } from '../../figureGlow';
 import { LOOK_INKS } from '../engineLookInput';
 
 /**
- * What the designed scenes — the terrace, the skyline, the bridge, the
- * slope, the bubbles, the monitor, the echo and the invasion — are painted
- * with on the GPU, after `LOOK_GLSL` and ahead of each scene's own
+ * What the designed scenes — the skyline, the slope and the echo — are
+ * painted with on the GPU, after `LOOK_GLSL` and ahead of each scene's own
  * `sceneColour`: where each copy of the drawing stands, the look's paint and
  * the glow's as the page resolves them (`resolveTracePaint`), the halo's
  * soft strokes and the polylines the scenes are made of.
@@ -27,7 +26,7 @@ import { LOOK_INKS } from '../engineLookInput';
  *            start and end; the fill's opacity
  *   uLook[5] the glow's paint, the same way; 1 where the figure is filled
  *   uLook[6] the trace's presence, its width, the halo's light and swell
- *   uLook[7] the shake, and the scene's floor and ceiling
+ *   uLook[7] nothing, nothing, and the scene's floor and ceiling
  * and uLook[8] to uLook[15] are each scene's own. The look's stops are
  * `uInk`, the glow's `uInkMate`.
  */
@@ -39,17 +38,17 @@ vec4 dsCopy(int copy) {
   return copy == 0 ? uLook[2] : uLook[3];
 }
 
-// A pixel in a copy's scene space: the shake and the row offset taken off,
+// A pixel in a copy's scene space: the row offset taken off,
 // the flip undone, the stretch not applied.
 vec2 dsScene(vec2 p, int copy) {
   vec4 at = dsCopy(copy);
-  return vec2(p.x - uLook[7].x, (p.y - uLook[7].y - at.x) * (at.y < 0.0 ? -1.0 : 1.0));
+  return vec2(p.x, (p.y - at.x) * (at.y < 0.0 ? -1.0 : 1.0));
 }
 
 // The same pixel in wave space, the stretch undone as well.
 vec2 dsWave(vec2 p, int copy) {
   vec4 at = dsCopy(copy);
-  return vec2(p.x - uLook[7].x, (p.y - uLook[7].y - at.x) / (abs(at.y) < 1e-4 ? 1e-4 : at.y));
+  return vec2(p.x, (p.y - at.x) / (abs(at.y) < 1e-4 ? 1e-4 : at.y));
 }
 
 float dsOpacity() {

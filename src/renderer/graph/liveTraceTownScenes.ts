@@ -19,8 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { type RefObject } from 'react';
 import { setAlpha } from './liveTraceStyle';
 import { cityInks, type createCitySkylinePaths } from './citySkyline';
-import { type NightSurfaces, paintMist, paintMoonHalo } from './terraceNight';
-import { type createTerraceValleyPaths, valleyInks } from './terraceValley';
+import { type NightSurfaces, paintMoonHalo } from './nightSurfaces';
 import { isLightWindow } from '../utils/windowSide';
 import { markFill } from './sceneViews/sceneFrame';
 import { type createSlopeFieldPaths } from './slopeField';
@@ -28,7 +27,7 @@ import { type createCrystalSpikesPaths } from './crystalSpikes';
 import { type createBraidStagePaths } from './braidStage';
 
 // The quieter sceneries of the live graph: the field, the city, the
-// valley, the crystals and the stage, each filled and then stroked.
+// crystals and the stage, each filled and then stroked.
 
 interface IPaintFieldInput {
   fieldPaths: ReturnType<typeof createSlopeFieldPaths> | undefined;
@@ -102,7 +101,7 @@ export const paintCity = ({
 }: IPaintCityInput) => {
   if (cityPaths) {
     // No sky painted: the stars and the moon stand over whatever is
-    // behind the graph, the same as the terrace's night.
+    // behind the graph.
     enterSceneSpace();
     context.fillStyle = cityInks().star;
     // No stars by day: a light window is a daytime sky.
@@ -135,93 +134,6 @@ export const paintCity = ({
     context.fillStyle = cityInks().crater.colour;
     setAlpha(context, opacity * cityInks().crater.alpha);
     context.fill(cityPaths.craters);
-    context.restore();
-  }
-};
-
-interface IPaintValleyInput {
-  valleyPaths: ReturnType<typeof createTerraceValleyPaths> | undefined;
-  isFilled: boolean;
-  enterSceneSpace: () => void;
-  context: CanvasRenderingContext2D;
-  opacity: number;
-  nightRef: RefObject<NightSurfaces>;
-  ratio: number;
-  plot: { left: number; right: number; top: number; bottom: number };
-  sceneBase: number;
-  sceneTop: number;
-}
-
-/**
- * The valley's terraces, filled.
- */
-export const paintValley = ({
-  valleyPaths,
-  isFilled,
-  enterSceneSpace,
-  context,
-  opacity,
-  nightRef,
-  ratio,
-  plot,
-  sceneBase,
-  sceneTop,
-}: IPaintValleyInput) => {
-  if (valleyPaths && isFilled) {
-    // NO SKY. The night is only the things in it — stars, the moon,
-    // clouds, mist — over whatever is behind the graph, so a video
-    // playing under the window shows through instead of being
-    // covered by a painted gradient.
-    enterSceneSpace();
-    // The stars: the bright ones twinkle with the treble.
-    context.fillStyle = valleyInks().star;
-    if (!isLightWindow()) {
-      valleyPaths.stars.forEach((band) => {
-        setAlpha(context, opacity * band.alpha);
-        context.fill(band.path);
-      });
-    }
-    // The moon's halo breathes with the bass; the moon is a circle in
-    // scene space, so the height slider never squashes it.
-    setAlpha(context, opacity * valleyPaths.layout.haloAlpha);
-    paintMoonHalo(
-      context,
-      nightRef.current,
-      valleyPaths.moonX,
-      valleyPaths.moonY,
-      valleyPaths.moonRadius,
-      ratio,
-    );
-    context.fillStyle = valleyInks().moon.colour;
-    setAlpha(context, opacity * valleyInks().moon.alpha);
-    context.beginPath();
-    context.arc(
-      valleyPaths.moonX,
-      valleyPaths.moonY,
-      valleyPaths.moonRadius,
-      0,
-      Math.PI * 2,
-    );
-    context.fill();
-    context.fillStyle = valleyInks().crater.colour;
-    setAlpha(context, opacity * valleyInks().crater.alpha);
-    context.fill(valleyPaths.craters);
-    context.fillStyle = valleyInks().cloud.colour;
-    setAlpha(context, opacity * valleyInks().cloud.alpha);
-    context.fill(valleyPaths.clouds);
-    // Two bands of mist between the tiers, thinning as it gets loud.
-    setAlpha(context, opacity * valleyPaths.mist);
-    // Laid between the tiers as rendered, so it stays on them when
-    // the height slider brings them down.
-    paintMist(
-      context,
-      nightRef.current,
-      plot.left,
-      plot.right,
-      sceneBase,
-      sceneBase - sceneTop,
-      ratio,
-    );
     context.restore();
   }
 };
@@ -374,39 +286,6 @@ export const strokeCity = ({
     context.fillStyle = cityInks().beacon.colour;
     setAlpha(context, opacity * cityInks().beacon.alpha);
     context.fill(cityPaths.beacons);
-  }
-};
-
-interface IStrokeValleyInput {
-  valleyPaths: ReturnType<typeof createTerraceValleyPaths> | undefined;
-  context: CanvasRenderingContext2D;
-  opacity: number;
-}
-
-/**
- * The terraces' edges over the valley.
- */
-export const strokeValley = ({
-  valleyPaths,
-  context,
-  opacity,
-}: IStrokeValleyInput) => {
-  if (valleyPaths) {
-    context.strokeStyle = valleyInks().glint.colour;
-    context.lineWidth = valleyInks().glint.width;
-    context.lineCap = 'round';
-    setAlpha(context, opacity * valleyPaths.layout.glintAlpha);
-    context.stroke(valleyPaths.glints);
-    context.fillStyle = valleyInks().firefly.colour;
-    valleyPaths.fireflies.forEach((band) => {
-      setAlpha(context, opacity * band.alpha);
-      context.fill(band.path);
-    });
-    context.strokeStyle = valleyInks().bird.colour;
-    context.lineWidth = valleyInks().bird.width;
-    context.lineJoin = 'round';
-    setAlpha(context, opacity * valleyInks().bird.alpha);
-    context.stroke(valleyPaths.birds);
   }
 };
 

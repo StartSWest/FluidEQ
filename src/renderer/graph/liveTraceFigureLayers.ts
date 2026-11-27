@@ -33,7 +33,6 @@ import {
   textureAlphaOf,
 } from './fillTextures';
 import type { ITexturePose } from './textureMotion';
-import { type createPulsePaths } from './pulseMonitor';
 import { type ILookTuning } from '../../common/customLooks';
 
 // The layers every form of the live graph shares: the beat-driven halo,
@@ -188,7 +187,6 @@ interface IPaintAccentBehindInput {
     | 'spikes'
     | 'ridge'
     | 'stems'
-    | 'terrace'
     | 'dashes'
     | 'scatter'
     | 'caps'
@@ -203,17 +201,13 @@ interface IPaintAccentBehindInput {
     | 'bezier'
     | 'ribbon'
     | 'feather'
-    | 'truss'
     | 'zipper'
     | 'slope'
     | 'stalactites'
-    | 'bubbles'
     | 'diamonds'
     | 'sawtooth'
-    | 'ecg'
     | 'echo'
     | 'racer'
-    | 'invaders'
     | 'starfield'
     | 'candles'
     | 'arches'
@@ -354,7 +348,6 @@ export const paintFillTexture = ({
 interface IStrokeFigureInput {
   figureStroke: TracePaint | undefined;
   figureStrokeWidth: number;
-  pulsePaths: ReturnType<typeof createPulsePaths> | undefined;
   context: CanvasRenderingContext2D;
   opacity: number;
   paintFor: (paint: TracePaint) => string | CanvasGradient;
@@ -371,7 +364,6 @@ interface IStrokeFigureInput {
 export const strokeFigure = ({
   figureStroke,
   figureStrokeWidth,
-  pulsePaths,
   context,
   opacity,
   paintFor,
@@ -383,9 +375,7 @@ export const strokeFigure = ({
 }: IStrokeFigureInput) => {
   // Stroked must draw Fluid too; excluding it erased the bars while
   // the designer continued offering Weight and Border controls.
-  // The monitor's beam IS its outline: stroking the figure as well
-  // painted the whole trace bright over the sweep and hid it.
-  if (figureStroke !== undefined && figureStrokeWidth > 0 && !pulsePaths) {
+  if (figureStroke !== undefined && figureStrokeWidth > 0) {
     setAlpha(context, opacity);
     context.strokeStyle = paintFor(figureStroke);
     if (curveOutside) {

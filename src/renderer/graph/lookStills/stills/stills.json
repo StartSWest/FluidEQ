@@ -295,54 +295,6 @@
     "file": "braid-auto-light-one.png"
   },
   {
-    "style": "bubbles",
-    "palette": "auto",
-    "side": "dark",
-    "colours": "many",
-    "roles": [
-      "stop-2",
-      "stop-3",
-      "stop-0",
-      "stop-6",
-      "stop-1",
-      "stop-5",
-      "stop-4"
-    ],
-    "file": "bubbles-auto-dark-many.png"
-  },
-  {
-    "style": "bubbles",
-    "palette": "auto",
-    "side": "dark",
-    "colours": "one",
-    "roles": ["stop"],
-    "file": "bubbles-auto-dark-one.png"
-  },
-  {
-    "style": "bubbles",
-    "palette": "auto",
-    "side": "light",
-    "colours": "many",
-    "roles": [
-      "stop-2",
-      "stop-0",
-      "stop-6",
-      "stop-3",
-      "stop-1",
-      "stop-5",
-      "stop-4"
-    ],
-    "file": "bubbles-auto-light-many.png"
-  },
-  {
-    "style": "bubbles",
-    "palette": "auto",
-    "side": "light",
-    "colours": "one",
-    "roles": ["stop"],
-    "file": "bubbles-auto-light-one.png"
-  },
-  {
     "style": "compare",
     "palette": "auto",
     "side": "dark",
@@ -396,38 +348,6 @@
     "colours": "one",
     "roles": ["stop", "mate"],
     "file": "compare-auto-light-one.png"
-  },
-  {
-    "style": "ecg",
-    "palette": "auto",
-    "side": "dark",
-    "colours": "many",
-    "roles": ["stop-0"],
-    "file": "ecg-auto-dark-many.png"
-  },
-  {
-    "style": "ecg",
-    "palette": "auto",
-    "side": "dark",
-    "colours": "one",
-    "roles": ["stop"],
-    "file": "ecg-auto-dark-one.png"
-  },
-  {
-    "style": "ecg",
-    "palette": "auto",
-    "side": "light",
-    "colours": "many",
-    "roles": ["stop-0", "ink"],
-    "file": "ecg-auto-light-many.png"
-  },
-  {
-    "style": "ecg",
-    "palette": "auto",
-    "side": "light",
-    "colours": "one",
-    "roles": ["stop", "ink"],
-    "file": "ecg-auto-light-one.png"
   },
   {
     "style": "echo",
@@ -818,54 +738,6 @@
     "colours": "one",
     "roles": ["stop"],
     "file": "horizon-auto-light-one.png"
-  },
-  {
-    "style": "invaders",
-    "palette": "auto",
-    "side": "dark",
-    "colours": "many",
-    "roles": [
-      "stop-1",
-      "stop-2",
-      "stop-3",
-      "stop-4",
-      "stop-5",
-      "stop-0",
-      "stop-6"
-    ],
-    "file": "invaders-auto-dark-many.png"
-  },
-  {
-    "style": "invaders",
-    "palette": "auto",
-    "side": "dark",
-    "colours": "one",
-    "roles": ["stop"],
-    "file": "invaders-auto-dark-one.png"
-  },
-  {
-    "style": "invaders",
-    "palette": "auto",
-    "side": "light",
-    "colours": "many",
-    "roles": [
-      "stop-2",
-      "stop-1",
-      "stop-4",
-      "stop-3",
-      "stop-0",
-      "stop-5",
-      "stop-6"
-    ],
-    "file": "invaders-auto-light-many.png"
-  },
-  {
-    "style": "invaders",
-    "palette": "auto",
-    "side": "light",
-    "colours": "one",
-    "roles": ["stop"],
-    "file": "invaders-auto-light-one.png"
   },
   {
     "style": "ledbars",
@@ -1557,152 +1429,6 @@
     "file": "spectrumwave-auto-light-one.png"
   },
   {
-    "style": "synthwave",
-    "palette": "auto",
-    "side": "dark",
-    "colours": "many",
-    "roles": [
-      "stop-1",
-      "stop-2",
-      "stop-5",
-      "floor",
-      "stop-6",
-      "stop-3",
-      "stop-4",
-      "stop-0"
-    ],
-    "file": "synthwave-auto-dark-many.png"
-  },
-  {
-    "style": "synthwave",
-    "palette": "auto",
-    "side": "dark",
-    "colours": "one",
-    "roles": ["stop", "floor"],
-    "file": "synthwave-auto-dark-one.png"
-  },
-  {
-    "style": "synthwave",
-    "palette": "auto",
-    "side": "light",
-    "colours": "many",
-    "roles": [
-      "stop-1",
-      "stop-2",
-      "floor",
-      "stop-5",
-      "stop-6",
-      "stop-3",
-      "stop-4",
-      "stop-0"
-    ],
-    "file": "synthwave-auto-light-many.png"
-  },
-  {
-    "style": "synthwave",
-    "palette": "auto",
-    "side": "light",
-    "colours": "one",
-    "roles": ["stop", "floor"],
-    "file": "synthwave-auto-light-one.png"
-  },
-  {
-    "style": "terrace",
-    "palette": "auto",
-    "side": "dark",
-    "colours": "many",
-    "roles": [
-      "stop-1",
-      "stop-2",
-      "stop-0",
-      "stop-3",
-      "stop-4",
-      "stop-5",
-      "stop-6"
-    ],
-    "file": "terrace-auto-dark-many.png"
-  },
-  {
-    "style": "terrace",
-    "palette": "auto",
-    "side": "dark",
-    "colours": "one",
-    "roles": ["stop"],
-    "file": "terrace-auto-dark-one.png"
-  },
-  {
-    "style": "terrace",
-    "palette": "auto",
-    "side": "light",
-    "colours": "many",
-    "roles": [
-      "stop-2",
-      "stop-1",
-      "stop-0",
-      "stop-3",
-      "stop-4",
-      "stop-5",
-      "stop-6"
-    ],
-    "file": "terrace-auto-light-many.png"
-  },
-  {
-    "style": "terrace",
-    "palette": "auto",
-    "side": "light",
-    "colours": "one",
-    "roles": ["stop"],
-    "file": "terrace-auto-light-one.png"
-  },
-  {
-    "style": "tide",
-    "palette": "auto",
-    "side": "dark",
-    "colours": "many",
-    "roles": [
-      "stop-0",
-      "stop-1",
-      "stop-3",
-      "stop-4",
-      "stop-2",
-      "stop-5",
-      "stop-6"
-    ],
-    "file": "tide-auto-dark-many.png"
-  },
-  {
-    "style": "tide",
-    "palette": "auto",
-    "side": "dark",
-    "colours": "one",
-    "roles": ["stop", "stop"],
-    "file": "tide-auto-dark-one.png"
-  },
-  {
-    "style": "tide",
-    "palette": "auto",
-    "side": "light",
-    "colours": "many",
-    "roles": [
-      "stop-0",
-      "stop-1",
-      "stop-3",
-      "stop-4",
-      "stop-2",
-      "stop-6",
-      "stop-5"
-    ],
-    "file": "tide-auto-light-many.png"
-  },
-  {
-    "style": "tide",
-    "palette": "auto",
-    "side": "light",
-    "colours": "one",
-    "roles": ["stop"],
-    "file": "tide-auto-light-one.png"
-  },
-  {
     "style": "towers",
     "palette": "auto",
     "side": "dark",
@@ -1750,38 +1476,6 @@
     "colours": "one",
     "roles": ["stop", "ink"],
     "file": "towers-auto-light-one.png"
-  },
-  {
-    "style": "truss",
-    "palette": "auto",
-    "side": "dark",
-    "colours": "many",
-    "roles": ["stop-0", "stop-0"],
-    "file": "truss-auto-dark-many.png"
-  },
-  {
-    "style": "truss",
-    "palette": "auto",
-    "side": "dark",
-    "colours": "one",
-    "roles": ["stop", "stop"],
-    "file": "truss-auto-dark-one.png"
-  },
-  {
-    "style": "truss",
-    "palette": "auto",
-    "side": "light",
-    "colours": "many",
-    "roles": ["stop-0", "stop-0", "ink"],
-    "file": "truss-auto-light-many.png"
-  },
-  {
-    "style": "truss",
-    "palette": "auto",
-    "side": "light",
-    "colours": "one",
-    "roles": ["stop", "stop", "ink"],
-    "file": "truss-auto-light-one.png"
   },
   {
     "style": "waterfall",

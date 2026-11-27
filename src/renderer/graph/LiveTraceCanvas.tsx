@@ -76,7 +76,6 @@ import {
   useLiveAudioControl,
 } from '../audio/LiveAudioContext';
 import { hasGraphAmbientMotion } from './graphMotion';
-import useLiveTraceChrome from './liveTraceChrome';
 import { resolveLookWaveform, useLookPreviewPoints } from './lookPreview';
 import EngineLookLayer, {
   type TEngineLookPhase,
@@ -208,15 +207,8 @@ const LiveTraceCanvas = ({
   // below as their first values, which the drawing then owns and replaces.
   const [scenes] = useState(createSceneStates);
   const motionRef = useRef(scenes.motion);
-  const terraceJumperRef = useRef(scenes.terraceJumper);
-  const trussBridgeRef = useRef(scenes.trussBridge);
   const caveDripsRef = useRef(scenes.caveDrips);
   const caveClockRef = useRef(0);
-  const invasionRef = useRef(scenes.invasion);
-  const invaderCabinetRef = useRef(scenes.invaderCabinet);
-  /** Whether the last frame drawn was the arcade, to tell an arrival. */
-  const wasInvadersRef = useRef(false);
-  const invasionClockRef = useRef(0);
   const warpRef = useRef(scenes.warp);
   const warpClockRef = useRef(0);
   const arcadeRef = useRef(scenes.arcade);
@@ -231,8 +223,6 @@ const LiveTraceCanvas = ({
   const braidClockRef = useRef(0);
   const crystalRef = useRef(scenes.crystal);
   const crystalClockRef = useRef(0);
-  const valleyRef = useRef(scenes.valley);
-  const valleyClockRef = useRef(0);
   const nightRef = useRef(scenes.night);
   const cityRef = useRef(scenes.city);
   const cityClockRef = useRef(0);
@@ -242,24 +232,16 @@ const LiveTraceCanvas = ({
   const stemClockRef = useRef(0);
   /** The low-resolution surface the halo is painted on, kept between frames. */
   const haloCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const seaCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const liveProjectedRef = useRef<[number, number][]>([]);
-  // The bridge keeps its own clock, advanced while its scenery is visible.
-  const trussClockRef = useRef(0);
   const slopeFlowRef = useRef(0);
   const slopeFieldRef = useRef(scenes.slopeField);
   const slopeClockRef = useRef(0);
-  const bubbleStormRef = useRef(scenes.bubbleStorm);
-  const bubbleMotesRef = useRef(scenes.bubbleMotes);
-  const bubbleMotesClockRef = useRef(0);
   const sawtoothScopeRef = useRef(scenes.sawtoothScope);
-  const pulseMonitorRef = useRef(scenes.pulseMonitor);
   const echoWavesRef = useRef(scenes.echoWaves);
   const roadTripRef = useRef(scenes.roadTrip);
   const dashTrailsRef = useRef(scenes.dashTrails);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const chromeRef = useLiveTraceChrome(canvasRef, width, height);
   const visibleRef = useRef(true);
   const intersectionRef = useRef<IntersectionObserver | null>(null);
   const transitionRef = useRef(scenes.transition);
@@ -488,17 +470,9 @@ const LiveTraceCanvas = ({
           fluidBarsRef,
           motionRef,
           sawtoothScopeRef,
-          pulseMonitorRef,
           echoWavesRef,
-          trussClockRef,
-          trussBridgeRef,
           caveClockRef,
           caveDripsRef,
-          wasInvadersRef,
-          invasionRef,
-          invaderCabinetRef,
-          invasionClockRef,
-          chromeRef,
           warpClockRef,
           warpRef,
           arcadeClockRef,
@@ -513,28 +487,21 @@ const LiveTraceCanvas = ({
           braidStageRef,
           crystalClockRef,
           crystalRef,
-          valleyClockRef,
-          valleyRef,
           cityClockRef,
           cityRef,
           roadTripRef,
           slopeClockRef,
           slopeFieldRef,
-          bubbleMotesClockRef,
-          bubbleMotesRef,
           slopeFlowRef,
           dashTrailsRef,
-          terraceJumperRef,
           stemClockRef,
           stemLevelsRef,
           stemFlareRef,
           pumpRef,
-          bubbleStormRef,
           accentStateRef,
           textureMotionRef,
           shownOpacityRef,
           shownStrokeWidthRef,
-          seaCanvasRef,
           nightRef,
           haloCanvasRef,
         },
@@ -557,10 +524,9 @@ const LiveTraceCanvas = ({
     // `channels` is the per-channel reader, whose identity never changes —
     // named here because the loop reads it and a dependency list that lies
     // about what a callback reads is worse than one that is slightly long.
-    // So are `fadeLeavingEngineLook` and `chromeRef`.
+    // So is `fadeLeavingEngineLook`.
     [
       channels,
-      chromeRef,
       curves,
       fadeLeavingEngineLook,
       height,

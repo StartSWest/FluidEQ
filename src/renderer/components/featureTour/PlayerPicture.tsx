@@ -33,7 +33,7 @@ import {
   PICTURE_VOLUME,
 } from './playerPictureData';
 import playerAurora from '../../../../assets/tour/player-aurora.jpg';
-import playerSynthwave from '../../../../assets/tour/player-synthwave.jpg';
+import playerHalo from '../../../../assets/tour/player-halo.jpg';
 import '../../styles/MiniPlayer.scss';
 
 /**
@@ -49,10 +49,11 @@ import '../../styles/MiniPlayer.scss';
  * `playerPictureData.ts`, at the player's own width, and the slide scales it.
  *
  * ONLY THE VISUALIZERS ARE STILLS: the aurora scene behind the whole player,
- * and the Synthwave look in its panel — a scene is drawn by the graphics
+ * and the Halo look in its panel — a scene is drawn by the graphics
  * card and a look from the live sound, neither of which a slide has
- * (`assets/tour/player-aurora.jpg`, `player-synthwave.jpg`, taken from the
- * player's harness with every control hidden).
+ * (`assets/tour/player-aurora.jpg`, taken from the player's harness with
+ * every control hidden; `player-halo.jpg`, the look alone on the whole-app
+ * harness's graph — solo, no grid — cut to the panel's 8:3).
  *
  * Nothing in it can be pressed, focused or read out: the slide gives it
  * `inert` and `aria-hidden` and says what it shows in words.
@@ -133,7 +134,7 @@ const PictureHero = ({ picture }: { picture: TPlayerPicture }) => {
     <section className={`player-hero${isScene ? ' has-scene' : ''}`}>
       {!isScene && (
         <div className="player-hero__view">
-          <img className="player-picture__still" src={playerSynthwave} alt="" />
+          <img className="player-picture__still" src={playerHalo} alt="" />
         </div>
       )}
       <div className="player-hero__shade" />
@@ -279,7 +280,7 @@ const PictureDock = ({ picture }: { picture: TPlayerPicture }) => {
                       palette="auto"
                     />
                     <span className="graph-look-name">
-                      {t('graph.styleName.synthwave')}
+                      {t('graph.styleName.halo')}
                     </span>
                   </>
                 )}

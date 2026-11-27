@@ -48,8 +48,6 @@ import mirrorBarsLook from './mirrorBarsLook';
 import pixelBarsLook from './pixelBarsLook';
 import neonBarsLook from './neonBarsLook';
 import silkWavesLook from './silkWavesLook';
-import synthwaveLook from './synthwaveLook';
-import tideLook from './tideLook';
 
 /**
  * Which of the graph's looks the engine draws, and what it draws them from.
@@ -121,8 +119,6 @@ const LOOKS: Partial<Record<GraphStyle, IEngineLookEntry>> = {
   silkwaves: entry(silkWavesLook),
   sparkbars: entry(sparkBarsLook),
   spectrumwave: entry(spectrumWaveLook),
-  synthwave: entry(synthwaveLook),
-  tide: entry(tideLook),
   towers: entry(glassTowersLook),
 };
 
@@ -210,7 +206,9 @@ export const engineAnalysisStep = (
 // and a look wearing one is drawn here instead of on the page (2026-11-26).
 // 8: a pattern prints in black on a light window, where white vanished on a
 // pale fill (`uLookTexturing.w`, 2026-11-27).
-const LOOK_PACK_VERSION = 8;
+// 9: the designed scenes lose the shake only the removed Bubbles, Pulse and
+// Invaders used, and the night sky its streaks (2026-11-27).
+const LOOK_PACK_VERSION = 9;
 
 const packs = new Map<GraphStyle, IScenePack>();
 

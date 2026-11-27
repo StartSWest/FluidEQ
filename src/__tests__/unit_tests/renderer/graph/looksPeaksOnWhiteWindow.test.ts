@@ -76,16 +76,14 @@ describe('a mark on the ground, on the page', () => {
 });
 
 describe("the engine's shaders", () => {
-  // The Truss keeps its whites by design: road markings on dark asphalt,
-  // light on the water, a daylight lamp; none of them lies on the floor.
   const shaders = GRAPH_STYLES.flatMap((style) => {
-    const pack = style === 'truss' ? undefined : engineLookPack(style);
+    const pack = engineLookPack(style);
     return pack ? [[style, pack.source] as const] : [];
   });
 
   it('cover the looks this rule is about', () => {
     const styles = shaders.map(([style]) => style);
-    [...CAPPED, 'halo', 'ledwall', 'echo', 'slope', 'ecg'].forEach((look) =>
+    [...CAPPED, 'halo', 'ledwall', 'echo', 'slope'].forEach((look) =>
       expect(styles).toContain(look),
     );
   });

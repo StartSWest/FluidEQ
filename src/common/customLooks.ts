@@ -52,6 +52,10 @@ import {
   isTextureImage,
 } from './graphTextures';
 import { type TGraphChannels, isGraphChannels } from './graphChannels';
+import {
+  REMOVED_STYLE_FALLBACK,
+  isRemovedGraphStyle,
+} from './removedGraphStyles';
 import { PRODUCT_NAME } from './branding';
 import {
   type ILookStop,
@@ -327,8 +331,8 @@ export const MAX_ACCENT_WIDTH = 3;
 export const MIN_ATTACK_MS = 1;
 export const MAX_ATTACK_MS = 60;
 export const MIN_RELEASE_MS = 4;
-// 400 so the forms with gravity in them — Stalactites and Truss let go over
-// 320ms — stay reachable on the slider; a default no slider can express is
+// 400 so the forms with gravity in them — Stalactites lets go over 320ms —
+// stay reachable on the slider; a default no slider can express is
 // one the Reset button cannot put back.
 export const MAX_RELEASE_MS = 400;
 export const MIN_STROKE_WIDTH = 1;
@@ -415,10 +419,7 @@ export const getDefaultTuning = (style: GraphStyle): ILookTuning => {
     releaseMs: ballistics.releaseMs,
     filled: isFilledGraphStyle(style),
     strokeWidth:
-      style === 'line' ||
-      style === 'dashes' ||
-      style === 'truss' ||
-      style === 'slope'
+      style === 'line' || style === 'dashes' || style === 'slope'
         ? 3
         : DEFAULT_STROKE_WIDTH,
     fillOpacity: getGraphFillOpacity(style, DEFAULT_FILL_OPACITY),
@@ -625,13 +626,18 @@ export const normalizeCustomLook = (raw: unknown): ICustomLook | null => {
   if (!id || !isCustomLookId(id)) {
     return null;
   }
+  // A look made from a form taken out of the app keeps its name and colours
+  // and draws as the Analyzer, from the Analyzer's own settings: the numbers
+  // it was tuned with were the removed drawing's (`removedGraphStyles.ts`).
+  const removed = isRemovedGraphStyle(source.style);
   // Pulled out before the guard rather than after it, so the narrowing lands on
   // a plain local. A type guard applied to an index-signature property does not
   // survive being destructured out of it afterwards.
-  const { style } = source;
+  const style = removed ? REMOVED_STYLE_FALLBACK : source.style;
   if (!isGraphStyle(style)) {
     return null;
   }
+  const storedTuning = removed ? undefined : source.tuning;
   const name =
     typeof source.name === 'string' ? normalizeLookName(source.name) : '';
   const palette = isGraphPalette(source.palette) ? source.palette : 'signal';
@@ -642,7 +648,7 @@ export const normalizeCustomLook = (raw: unknown): ICustomLook | null => {
       name: name || GRAPH_STYLE_LABELS[style],
       style,
       palette,
-      tuning: normalizeTuning(source.tuning, style),
+      tuning: normalizeTuning(storedTuning, style),
       // Worked out again rather than trusted: the points are the gradient,
       // and `colours` is only what an older version is shown of it.
       colours: legacyColoursFromStops(stops),
@@ -656,7 +662,7 @@ export const normalizeCustomLook = (raw: unknown): ICustomLook | null => {
     name: name || GRAPH_STYLE_LABELS[style],
     style,
     palette,
-    tuning: normalizeTuning(source.tuning, style),
+    tuning: normalizeTuning(storedTuning, style),
     // Looks saved before palettes were colourable have no stops at all, which
     // is exactly the value that means "the palette's own" — so they keep
     // drawing as they did.

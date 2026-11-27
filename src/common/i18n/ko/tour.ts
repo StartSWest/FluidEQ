@@ -55,11 +55,11 @@ const tour = {
     'EQ 페이지에 자체 색상으로 표시된 FluidEQ, 곡선 아래에 노래를 그리는 분석기, 모서리 위에 열리는 펄스 아이콘 뒤의 메뉴, 밝기가 절반입니다.',
   'tour.gpu.kicker': '새로운 장면 엔진',
   'tour.gpu.title': '그래픽 카드의 모든 장면',
-  'tour.gpu.subtitle': '마흔은 화면 자체의 속도와 3D 세계를 살펴봅니다.',
+  'tour.gpu.subtitle': '모든 디자인을 화면 속도 그대로, 그리고 3D 세계',
   'tour.gpu.lead':
-    '이제 그래프의 40가지 모양은 장면이 실행되는 엔진에서 그려집니다. 즉, 그래픽 카드에서 화면 자체의 새로 고침 빈도로 막대, 입자 및 피크가 밟았던 위치로 미끄러집니다. 이제 장면은 실제 3D 세계가 될 수 있습니다.',
+    '이제 그래프의 디자인 {looks}가지가 장면과 같은 엔진에서 그려집니다. 그래픽 카드에서 화면의 새로 고침 빈도에 맞춰 그려지므로 막대, 입자, 피크가 끊기지 않고 부드럽게 움직입니다. 이제 장면은 실제 3D 세계가 될 수도 있습니다.',
   'tour.gpu.point1':
-    '{scenes}에는 {synthwave}, {horizon}, {towers} 및 {ledwall} 등 18개의 새로운 디자인이 있습니다. 그 자체의 색깔이 없는 모습이 창문을 입고 있다.',
+    '{scenes}에 새 디자인이 추가되었습니다. {halo}, {horizon}, {towers}, {ledwall} 등이 있으며, 자체 색이 없는 디자인은 창의 색을 따릅니다.',
   'tour.gpu.point2':
     '{brightness}를 사용하면 3D 세계가 킥을 밟고, 스네어와 함께 흔들리고, 드롭에서 도약하고 밤낮으로 회전합니다. 다른 쪽에서 보려면 하나를 드래그하세요.',
   'tour.gpu.point3':
@@ -68,7 +68,7 @@ const tour = {
     '그래프에서 스타일의 이름을 클릭하고 {scenes}에서 하나를 선택합니다.',
   'tour.gpu.open': '오픈 EQ',
   'tour.gpu.imageAlt':
-    '밤의 3D 도시 장면과 그래프에 촬영된 4개의 새로운 모습({synthwave}, {horizon}, {towers} 및 {ledwall})과 첫 번째에 모양 선택기가 울립니다.',
+    '밤의 3D 도시 장면과 그래프에서 촬영한 새 디자인 네 가지({halo}, {horizon}, {towers}, {ledwall}). 첫 번째 사진에는 디자인 선택기가 표시되어 있습니다.',
   'tour.gpu.world': '3D 세계',
   'tour.sparks.kicker': '포인터 불꽃',
   'tour.sparks.title': '마우스에 응답하는 장면',

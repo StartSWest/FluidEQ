@@ -31,18 +31,10 @@ import braidAutoDarkMany from './stills/braid-auto-dark-many.png';
 import braidAutoDarkOne from './stills/braid-auto-dark-one.png';
 import braidAutoLightMany from './stills/braid-auto-light-many.png';
 import braidAutoLightOne from './stills/braid-auto-light-one.png';
-import bubblesAutoDarkMany from './stills/bubbles-auto-dark-many.png';
-import bubblesAutoDarkOne from './stills/bubbles-auto-dark-one.png';
-import bubblesAutoLightMany from './stills/bubbles-auto-light-many.png';
-import bubblesAutoLightOne from './stills/bubbles-auto-light-one.png';
 import compareAutoDarkMany from './stills/compare-auto-dark-many.png';
 import compareAutoDarkOne from './stills/compare-auto-dark-one.png';
 import compareAutoLightMany from './stills/compare-auto-light-many.png';
 import compareAutoLightOne from './stills/compare-auto-light-one.png';
-import ecgAutoDarkMany from './stills/ecg-auto-dark-many.png';
-import ecgAutoDarkOne from './stills/ecg-auto-dark-one.png';
-import ecgAutoLightMany from './stills/ecg-auto-light-many.png';
-import ecgAutoLightOne from './stills/ecg-auto-light-one.png';
 import echoAutoDarkMany from './stills/echo-auto-dark-many.png';
 import echoAutoDarkOne from './stills/echo-auto-dark-one.png';
 import echoAutoLightMany from './stills/echo-auto-light-many.png';
@@ -75,10 +67,6 @@ import horizonAutoDarkMany from './stills/horizon-auto-dark-many.png';
 import horizonAutoDarkOne from './stills/horizon-auto-dark-one.png';
 import horizonAutoLightMany from './stills/horizon-auto-light-many.png';
 import horizonAutoLightOne from './stills/horizon-auto-light-one.png';
-import invadersAutoDarkMany from './stills/invaders-auto-dark-many.png';
-import invadersAutoDarkOne from './stills/invaders-auto-dark-one.png';
-import invadersAutoLightMany from './stills/invaders-auto-light-many.png';
-import invadersAutoLightOne from './stills/invaders-auto-light-one.png';
 import ledbarsAutoDarkMany from './stills/ledbars-auto-dark-many.png';
 import ledbarsAutoDarkOne from './stills/ledbars-auto-dark-one.png';
 import ledbarsAutoLightMany from './stills/ledbars-auto-light-many.png';
@@ -139,26 +127,10 @@ import spectrumwaveAutoDarkMany from './stills/spectrumwave-auto-dark-many.png';
 import spectrumwaveAutoDarkOne from './stills/spectrumwave-auto-dark-one.png';
 import spectrumwaveAutoLightMany from './stills/spectrumwave-auto-light-many.png';
 import spectrumwaveAutoLightOne from './stills/spectrumwave-auto-light-one.png';
-import synthwaveAutoDarkMany from './stills/synthwave-auto-dark-many.png';
-import synthwaveAutoDarkOne from './stills/synthwave-auto-dark-one.png';
-import synthwaveAutoLightMany from './stills/synthwave-auto-light-many.png';
-import synthwaveAutoLightOne from './stills/synthwave-auto-light-one.png';
-import terraceAutoDarkMany from './stills/terrace-auto-dark-many.png';
-import terraceAutoDarkOne from './stills/terrace-auto-dark-one.png';
-import terraceAutoLightMany from './stills/terrace-auto-light-many.png';
-import terraceAutoLightOne from './stills/terrace-auto-light-one.png';
-import tideAutoDarkMany from './stills/tide-auto-dark-many.png';
-import tideAutoDarkOne from './stills/tide-auto-dark-one.png';
-import tideAutoLightMany from './stills/tide-auto-light-many.png';
-import tideAutoLightOne from './stills/tide-auto-light-one.png';
 import towersAutoDarkMany from './stills/towers-auto-dark-many.png';
 import towersAutoDarkOne from './stills/towers-auto-dark-one.png';
 import towersAutoLightMany from './stills/towers-auto-light-many.png';
 import towersAutoLightOne from './stills/towers-auto-light-one.png';
-import trussAutoDarkMany from './stills/truss-auto-dark-many.png';
-import trussAutoDarkOne from './stills/truss-auto-dark-one.png';
-import trussAutoLightMany from './stills/truss-auto-light-many.png';
-import trussAutoLightOne from './stills/truss-auto-light-one.png';
 import waterfallAutoDarkMany from './stills/waterfall-auto-dark-many.png';
 import waterfallAutoDarkOne from './stills/waterfall-auto-dark-one.png';
 import waterfallAutoLightMany from './stills/waterfall-auto-light-many.png';
@@ -345,32 +317,6 @@ const SHIPPED_STILL_FILES: Readonly<Record<string, IShippedStillFile>> = {
     ],
   },
   'braid auto light one': { url: braidAutoLightOne, roles: ['stop'] },
-  'bubbles auto dark many': {
-    url: bubblesAutoDarkMany,
-    roles: [
-      'stop-2',
-      'stop-3',
-      'stop-0',
-      'stop-6',
-      'stop-1',
-      'stop-5',
-      'stop-4',
-    ],
-  },
-  'bubbles auto dark one': { url: bubblesAutoDarkOne, roles: ['stop'] },
-  'bubbles auto light many': {
-    url: bubblesAutoLightMany,
-    roles: [
-      'stop-2',
-      'stop-0',
-      'stop-6',
-      'stop-3',
-      'stop-1',
-      'stop-5',
-      'stop-4',
-    ],
-  },
-  'bubbles auto light one': { url: bubblesAutoLightOne, roles: ['stop'] },
   'compare auto dark many': {
     url: compareAutoDarkMany,
     roles: [
@@ -407,10 +353,6 @@ const SHIPPED_STILL_FILES: Readonly<Record<string, IShippedStillFile>> = {
     url: compareAutoLightOne,
     roles: ['stop', 'mate'],
   },
-  'ecg auto dark many': { url: ecgAutoDarkMany, roles: ['stop-0'] },
-  'ecg auto dark one': { url: ecgAutoDarkOne, roles: ['stop'] },
-  'ecg auto light many': { url: ecgAutoLightMany, roles: ['stop-0', 'ink'] },
-  'ecg auto light one': { url: ecgAutoLightOne, roles: ['stop', 'ink'] },
   'echo auto dark many': {
     url: echoAutoDarkMany,
     roles: [
@@ -625,32 +567,6 @@ const SHIPPED_STILL_FILES: Readonly<Record<string, IShippedStillFile>> = {
     ],
   },
   'horizon auto light one': { url: horizonAutoLightOne, roles: ['stop'] },
-  'invaders auto dark many': {
-    url: invadersAutoDarkMany,
-    roles: [
-      'stop-1',
-      'stop-2',
-      'stop-3',
-      'stop-4',
-      'stop-5',
-      'stop-0',
-      'stop-6',
-    ],
-  },
-  'invaders auto dark one': { url: invadersAutoDarkOne, roles: ['stop'] },
-  'invaders auto light many': {
-    url: invadersAutoLightMany,
-    roles: [
-      'stop-2',
-      'stop-1',
-      'stop-4',
-      'stop-3',
-      'stop-0',
-      'stop-5',
-      'stop-6',
-    ],
-  },
-  'invaders auto light one': { url: invadersAutoLightOne, roles: ['stop'] },
   'ledbars auto dark many': {
     url: ledbarsAutoDarkMany,
     roles: [
@@ -1049,92 +965,6 @@ const SHIPPED_STILL_FILES: Readonly<Record<string, IShippedStillFile>> = {
     url: spectrumwaveAutoLightOne,
     roles: ['stop'],
   },
-  'synthwave auto dark many': {
-    url: synthwaveAutoDarkMany,
-    roles: [
-      'stop-1',
-      'stop-2',
-      'stop-5',
-      'floor',
-      'stop-6',
-      'stop-3',
-      'stop-4',
-      'stop-0',
-    ],
-  },
-  'synthwave auto dark one': {
-    url: synthwaveAutoDarkOne,
-    roles: ['stop', 'floor'],
-  },
-  'synthwave auto light many': {
-    url: synthwaveAutoLightMany,
-    roles: [
-      'stop-1',
-      'stop-2',
-      'floor',
-      'stop-5',
-      'stop-6',
-      'stop-3',
-      'stop-4',
-      'stop-0',
-    ],
-  },
-  'synthwave auto light one': {
-    url: synthwaveAutoLightOne,
-    roles: ['stop', 'floor'],
-  },
-  'terrace auto dark many': {
-    url: terraceAutoDarkMany,
-    roles: [
-      'stop-1',
-      'stop-2',
-      'stop-0',
-      'stop-3',
-      'stop-4',
-      'stop-5',
-      'stop-6',
-    ],
-  },
-  'terrace auto dark one': { url: terraceAutoDarkOne, roles: ['stop'] },
-  'terrace auto light many': {
-    url: terraceAutoLightMany,
-    roles: [
-      'stop-2',
-      'stop-1',
-      'stop-0',
-      'stop-3',
-      'stop-4',
-      'stop-5',
-      'stop-6',
-    ],
-  },
-  'terrace auto light one': { url: terraceAutoLightOne, roles: ['stop'] },
-  'tide auto dark many': {
-    url: tideAutoDarkMany,
-    roles: [
-      'stop-0',
-      'stop-1',
-      'stop-3',
-      'stop-4',
-      'stop-2',
-      'stop-5',
-      'stop-6',
-    ],
-  },
-  'tide auto dark one': { url: tideAutoDarkOne, roles: ['stop', 'stop'] },
-  'tide auto light many': {
-    url: tideAutoLightMany,
-    roles: [
-      'stop-0',
-      'stop-1',
-      'stop-3',
-      'stop-4',
-      'stop-2',
-      'stop-6',
-      'stop-5',
-    ],
-  },
-  'tide auto light one': { url: tideAutoLightOne, roles: ['stop'] },
   'towers auto dark many': {
     url: towersAutoDarkMany,
     roles: [
@@ -1162,19 +992,6 @@ const SHIPPED_STILL_FILES: Readonly<Record<string, IShippedStillFile>> = {
     ],
   },
   'towers auto light one': { url: towersAutoLightOne, roles: ['stop', 'ink'] },
-  'truss auto dark many': {
-    url: trussAutoDarkMany,
-    roles: ['stop-0', 'stop-0'],
-  },
-  'truss auto dark one': { url: trussAutoDarkOne, roles: ['stop', 'stop'] },
-  'truss auto light many': {
-    url: trussAutoLightMany,
-    roles: ['stop-0', 'stop-0', 'ink'],
-  },
-  'truss auto light one': {
-    url: trussAutoLightOne,
-    roles: ['stop', 'stop', 'ink'],
-  },
   'waterfall auto dark many': {
     url: waterfallAutoDarkMany,
     roles: [

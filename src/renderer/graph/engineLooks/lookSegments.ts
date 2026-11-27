@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * What the free-drawn passes share (`lookLines.ts`, `lookStrokes.ts`): a
+ * What the free-drawn pass is made of (`lookLines.ts`): a
  * program that draws each segment between two points as a quad around it,
  * instanced, into a target the size of the picture — or of several stacked,
  * one per copy of the drawing kept apart — keeping at each pixel the most

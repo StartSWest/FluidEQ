@@ -9,8 +9,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Every scene's state was held as `useRef(createX())`, and the argument to
  * `useRef` is evaluated on every render whether React keeps it or not. The
- * trace renders with every analyser frame, so on the default page the space
- * invasion's 340 stars and the warp tunnel's 420 were built and thrown away
+ * trace renders with every analyser frame, so on the default page the warp
+ * tunnel's 420 stars and the storm beside it were built and thrown away
  * thirty times a second, whichever look was showing. The picture is the same
  * either way, so what is held is the count of builds.
  */
@@ -18,7 +18,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { render } from '@testing-library/react';
 import type { IChartPointData } from 'renderer/graph/ChartController';
 import LiveTraceCanvas from 'renderer/graph/LiveTraceCanvas';
-import { createSpaceInvasion } from 'renderer/graph/spaceInvasion';
+import { createRainstorm } from 'renderer/graph/rainstorm';
 import { createWarpTunnel } from 'renderer/graph/warpTunnel';
 
 const mockFrame: {
@@ -36,12 +36,9 @@ jest.mock('renderer/audio/LiveAudioContext', () => ({
   useAnalysisTap: () => undefined,
 }));
 
-jest.mock('renderer/graph/spaceInvasion', () => {
-  const actual = jest.requireActual('renderer/graph/spaceInvasion');
-  return {
-    ...actual,
-    createSpaceInvasion: jest.fn(actual.createSpaceInvasion),
-  };
+jest.mock('renderer/graph/rainstorm', () => {
+  const actual = jest.requireActual('renderer/graph/rainstorm');
+  return { ...actual, createRainstorm: jest.fn(actual.createRainstorm) };
 });
 
 jest.mock('renderer/graph/warpTunnel', () => {
@@ -76,7 +73,7 @@ const nextFrame = (level: number) => {
 };
 
 beforeEach(() => {
-  jest.mocked(createSpaceInvasion).mockClear();
+  jest.mocked(createRainstorm).mockClear();
   jest.mocked(createWarpTunnel).mockClear();
 });
 
@@ -88,7 +85,7 @@ describe("the live trace's scene states", () => {
       nextFrame(-40 + frame);
       rerender(trace());
     }
-    expect(createSpaceInvasion).toHaveBeenCalledTimes(1);
+    expect(createRainstorm).toHaveBeenCalledTimes(1);
     expect(createWarpTunnel).toHaveBeenCalledTimes(1);
     unmount();
   });
@@ -98,7 +95,7 @@ describe("the live trace's scene states", () => {
     // comes back is given scenes of its own rather than the last one's.
     render(trace()).unmount();
     render(trace()).unmount();
-    expect(createSpaceInvasion).toHaveBeenCalledTimes(2);
+    expect(createRainstorm).toHaveBeenCalledTimes(2);
     expect(createWarpTunnel).toHaveBeenCalledTimes(2);
   });
 });

@@ -80,7 +80,6 @@ export const readAnalysisLookInput = (
   const { plot, tuning, edge } = first;
   // A frame's sprites and bloom are its own: each view sets what it draws.
   input.spriteCount = 0;
-  input.spritesUnder = 0;
   input.bloom = 0;
   setLookVector(input, 0, window.width, window.height, 0, 0);
   setLookVector(input, 1, plot.left, plot.right, plot.top, plot.bottom);

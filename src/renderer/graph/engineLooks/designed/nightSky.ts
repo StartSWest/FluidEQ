@@ -10,14 +10,13 @@ import {
   HALO_INNER,
   HALO_REACH,
   HALO_STOPS,
-} from '../../terraceNight';
+} from '../../nightSurfaces';
 
 /**
- * The night skies of the terrace and the skyline on the GPU, the parts the
- * two share (`terraceLook.ts`, `skylineLook.ts`): hundreds of square stars
- * found through a grid rather than asked about one by one, the moon's halo
- * as `terraceNight.ts` paints it for both, and circles by the row — the
- * craters, the clouds.
+ * The skyline's night sky on the GPU (`skylineLook.ts`): hundreds of square
+ * stars found through a grid rather than asked about one by one, the moon's
+ * halo as `nightSurfaces.ts` paints it on the page, and circles by the row —
+ * the craters.
  */
 
 const f = (value: number) => value.toFixed(6);
@@ -176,33 +175,6 @@ vec2 nightStars(vec2 q, int starRow, int cellRow, vec4 grid, ivec2 cells) {
     }
   }
   return cover;
-}
-
-// The same grid holding streaks rather than stars: each a line from where
-// it stands up by its length (z), in one of three layers (w). How far q
-// is from the nearest streak of each layer.
-vec3 nightStreaks(vec2 q, int starRow, int cellRow, vec4 grid, ivec2 cells) {
-  ivec2 home = ivec2(floor((q - grid.xy) / grid.zw));
-  vec3 near = vec3(1e5);
-  for (int k = 0; k < 9; k++) {
-    ivec2 cell = home + ivec2(k % 3 - 1, k / 3 - 1);
-    if (cell.x < 0 || cell.y < 0 || cell.x >= cells.x || cell.y >= cells.y) {
-      continue;
-    }
-    vec4 span = texelFetch(uLookData, ivec2(cell.y * cells.x + cell.x, cellRow), 0);
-    int start = int(span.x + 0.5);
-    int count = int(span.y + 0.5);
-    for (int s = 0; s < 32; s++) {
-      if (s >= count) {
-        break;
-      }
-      vec4 streak = texelFetch(uLookData, ivec2(start + s, starRow), 0);
-      float d = dsToSegment(q, streak.xy, streak.xy - vec2(0.0, streak.z));
-      int layer = int(streak.w + 0.5);
-      near[layer] = min(near[layer], d);
-    }
-  }
-  return near;
 }
 
 ${haloInk('nightHaloMoon', HALO_STOPS)}

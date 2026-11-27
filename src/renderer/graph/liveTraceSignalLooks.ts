@@ -19,22 +19,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { STEM_FADE_LEVELS } from 'common/graphStems';
 import { type RefObject } from 'react';
 import { setAlpha } from './liveTraceStyle';
-import {
-  type createPulsePaths,
-  echoDrift,
-  type IEcho,
-  PULSE_OLD_ALPHA,
-  PULSE_OLD_DAY_ALPHA,
-  pulseThump,
-} from './pulseMonitor';
-import { readSurface } from '../utils/theme';
 import { isLightWindow } from '../utils/windowSide';
 import { markFill, sheenFill } from './sceneViews/sceneFrame';
-import {
-  type createTerraceValleyPaths,
-  terraceEdgeStroke,
-  VALLEY_INKS,
-} from './terraceValley';
 import {
   paintSpectrumBars,
   SPECTRUM_HUE_BY_PALETTE,
@@ -49,16 +35,13 @@ import {
   type ISpark,
   sawtoothFlare,
 } from './sawtoothScope';
-import { type createTrussBridgePaths } from './trussBridgeLayout';
-import createBubblePaths from './bubblePaths';
 import { type createEchoWavePaths } from './echoWaves';
 import { type IGraphMotionState } from './graphMotion';
 import { type ILookTuning } from '../../common/customLooks';
 import { type ResolvedGraphPalette } from '../../common/graphStyles';
 
-// The live graph's instrument looks: the pulse monitor and its grid, the
-// sawtooth scope, the echo waves, the bubbles, the dash trails and the
-// scatter plot.
+// The live graph's instrument looks: the sawtooth scope, the echo waves,
+// the dash trails and the scatter plot.
 
 interface IPaintDashTrailsInput {
   dashTrails: { path: Path2D; opacity: number; width: number }[] | undefined;
@@ -95,76 +78,6 @@ export const paintDashTrails = ({
   }
 };
 
-interface IPaintPulseGridInput {
-  pulseGrid: { fine: Path2D; heavy: Path2D } | undefined;
-  curveIndex: number;
-  pulseMonitorRef: RefObject<{
-    beatLevel: number;
-    trackedAt: number;
-    thumpAt: number;
-    thumpStrength: number;
-    echoes: IEcho[];
-  }>;
-  motionRef: RefObject<IGraphMotionState>;
-  context: CanvasRenderingContext2D;
-  canvasPaint: string | CanvasGradient;
-  opacity: number;
-  pulsePaths: ReturnType<typeof createPulsePaths> | undefined;
-  plot: { left: number; right: number; top: number; bottom: number };
-  height: number;
-}
-
-/**
- * The monitor's grid, painted once for every curve.
- */
-export const paintPulseGrid = ({
-  pulseGrid,
-  curveIndex,
-  pulseMonitorRef,
-  motionRef,
-  context,
-  canvasPaint,
-  opacity,
-  pulsePaths,
-  plot,
-  height,
-}: IPaintPulseGridInput) => {
-  // The paper is the same sheet for every curve — ruled symmetrically
-  // about the baseline, so the mirror's flip lands it exactly on
-  // itself — and painting it once instead of per curve is the whole
-  // of that cost saved on a mirrored look.
-  if (pulseGrid && curveIndex === 0) {
-    // The paper first, under everything: fine squares and a heavy
-    // line every fifth, in the look's own colour, brightening with
-    // the beat like the rest of the instrument.
-    const lift =
-      0.55 +
-      pulseThump(pulseMonitorRef.current, motionRef.current.travel[0] ?? 0) *
-        0.45;
-    context.save();
-    context.strokeStyle = canvasPaint;
-    context.lineWidth = 1;
-    setAlpha(context, opacity * 0.12 * lift);
-    context.stroke(pulseGrid.fine);
-    setAlpha(context, opacity * 0.3 * lift);
-    context.stroke(pulseGrid.heavy);
-    // The write head lights the paper it is passing over, and the
-    // glow trails off behind it — the tube's own afterglow, which is
-    // what stops the sweep reading as a line that simply appears.
-    if (pulsePaths) {
-      const [scanX] = pulsePaths.head;
-      const reach = (plot.right - plot.left) * 0.14;
-      const scan = context.createLinearGradient(scanX - reach, 0, scanX, 0);
-      scan.addColorStop(0, 'rgba(255,255,255,0)');
-      scan.addColorStop(1, 'rgba(255,255,255,0.1)');
-      context.fillStyle = scan;
-      setAlpha(context, opacity * lift);
-      context.fillRect(scanX - reach, 0, reach, height);
-    }
-    context.restore();
-  }
-};
-
 interface IPaintScatterInput {
   scatterPaths: { primary: Path2D; secondary: Path2D } | undefined;
   context: CanvasRenderingContext2D;
@@ -172,8 +85,6 @@ interface IPaintScatterInput {
   opacity: number;
   tuning: ILookTuning;
   blinkingSatellites: boolean | undefined;
-  terraceTiers: { body: Path2D; edge: Path2D; opacity: number }[] | undefined;
-  valleyPaths: ReturnType<typeof createTerraceValleyPaths> | undefined;
   stemLayers: { tips: Path2D; lines: Path2D[]; hot: Path2D } | undefined;
   isFluidForm: boolean;
   isFilled: boolean;
@@ -187,7 +98,6 @@ interface IPaintScatterInput {
   paintPalette: ResolvedGraphPalette;
   paintColours: readonly string[];
   piecePaths: { path: Path2D; energy: number }[] | undefined;
-  trussPaths: ReturnType<typeof createTrussBridgePaths> | undefined;
   curveFigure: Path2D;
 }
 
@@ -201,8 +111,6 @@ export const paintScatter = ({
   opacity,
   tuning,
   blinkingSatellites,
-  terraceTiers,
-  valleyPaths,
   stemLayers,
   isFluidForm,
   isFilled,
@@ -216,7 +124,6 @@ export const paintScatter = ({
   paintPalette,
   paintColours,
   piecePaths,
-  trussPaths,
   curveFigure,
 }: IPaintScatterInput) => {
   if (scatterPaths) {
@@ -227,26 +134,6 @@ export const paintScatter = ({
     }
     setAlpha(context, opacity * tuning.fillOpacity);
     context.fill(scatterPaths.primary);
-  } else if (terraceTiers) {
-    context.fillStyle = canvasPaint;
-    context.strokeStyle = canvasPaint;
-    terraceTiers.forEach((tier, index) => {
-      setAlpha(context, opacity * tuning.fillOpacity * tier.opacity);
-      context.fill(tier.body, 'evenodd');
-      const edge = terraceEdgeStroke(index);
-      setAlpha(context, opacity * edge.alpha);
-      context.lineWidth = edge.width;
-      context.stroke(tier.edge);
-    });
-    if (valleyPaths) {
-      context.fillStyle = VALLEY_INKS.wall.colour;
-      setAlpha(context, opacity * VALLEY_INKS.wall.alpha);
-      context.fill(valleyPaths.walls);
-      context.strokeStyle = VALLEY_INKS.rim.colour;
-      context.lineWidth = VALLEY_INKS.rim.width;
-      setAlpha(context, opacity * valleyPaths.layout.rimAlpha);
-      context.stroke(valleyPaths.rims);
-    }
   } else if (stemLayers) {
     context.fillStyle = canvasPaint;
     stemLayers.lines.forEach((path, level) => {
@@ -334,9 +221,7 @@ export const paintScatter = ({
       context.fillStyle = heatColour(paintColours, piece.energy);
       context.fill(piece.path);
     });
-  } else if (isFilled && !trussPaths) {
-    // The bridge has nothing to fill: its deck is a line over open
-    // water, and "filled" is its towers and piers going solid.
+  } else if (isFilled) {
     // The fill and the stroke are composited separately here, where SVG
     // composited the element as a group. The only place the two differ is
     // the sliver where a translucent stroke sits over its own fill, and
@@ -344,69 +229,6 @@ export const paintScatter = ({
     setAlpha(context, opacity * tuning.fillOpacity);
     context.fillStyle = canvasPaint;
     context.fill(curveFigure);
-  }
-};
-
-interface IPaintBubblesInput {
-  bubblePaths: ReturnType<typeof createBubblePaths> | undefined;
-  context: CanvasRenderingContext2D;
-  canvasPaint: string | CanvasGradient;
-  opacity: number;
-}
-
-/**
- * The bubbles and the motes rising through them.
- */
-export const paintBubbles = ({
-  bubblePaths,
-  context,
-  canvasPaint,
-  opacity,
-}: IPaintBubblesInput) => {
-  if (bubblePaths) {
-    // The glassy body, faint so what is behind still shows through.
-    context.fillStyle = canvasPaint;
-    setAlpha(context, opacity * 0.09);
-    context.fill(bubblePaths.body);
-    // Light on the film: a hard glint high-left, a soft band low-right.
-    // White on a dark window, the look's own colour on a light one, where
-    // white vanished (the droplets and the strike's core alike).
-    const film = isLightWindow() ? canvasPaint : '#fff';
-    context.fillStyle = film;
-    setAlpha(context, opacity * 0.85);
-    context.fill(bubblePaths.glints);
-    context.strokeStyle = film;
-    context.lineWidth = 1.6;
-    setAlpha(context, opacity * 0.28);
-    context.stroke(bubblePaths.refraction);
-    // A burst: the rim expands and fades over four age batches, the
-    // freshest first, while droplets fly off it.
-    context.strokeStyle = canvasPaint;
-    context.lineWidth = 1.4;
-    bubblePaths.rings.forEach((batch, ageStep) => {
-      setAlpha(context, opacity * (1 - ageStep / 4) * 0.75);
-      context.stroke(batch);
-    });
-    context.fillStyle = film;
-    setAlpha(context, opacity * 0.7);
-    context.fill(bubblePaths.droplets);
-    // A strike is light, not a line: a wide soft glow in the look's
-    // colour, a tighter one over it, and a thin white core. Batch 0 is
-    // the freshest and brightest; the whole thing is gone in 180ms.
-    bubblePaths.bolts.forEach((batch, ageStep) => {
-      const strength = 1 - ageStep / 4;
-      context.strokeStyle = canvasPaint;
-      context.lineWidth = 7;
-      setAlpha(context, opacity * strength * 0.22);
-      context.stroke(batch);
-      context.lineWidth = 2.6;
-      setAlpha(context, opacity * strength * 0.55);
-      context.stroke(batch);
-      context.strokeStyle = film;
-      context.lineWidth = 1;
-      setAlpha(context, opacity * strength);
-      context.stroke(batch);
-    });
   }
 };
 
@@ -507,87 +329,6 @@ export const paintEchoWaves = ({
         }
       });
     })(context);
-  }
-};
-
-interface IPaintPulseBeamInput {
-  pulsePaths: ReturnType<typeof createPulsePaths> | undefined;
-  motionRef: RefObject<IGraphMotionState>;
-  pulseMonitorRef: RefObject<{
-    beatLevel: number;
-    trackedAt: number;
-    thumpAt: number;
-    thumpStrength: number;
-    echoes: IEcho[];
-  }>;
-  depth: number;
-  context: CanvasRenderingContext2D;
-  canvasPaint: string | CanvasGradient;
-  opacity: number;
-}
-
-/**
- * The monitor's beam and its sweep.
- */
-export const paintPulseBeam = ({
-  pulsePaths,
-  motionRef,
-  pulseMonitorRef,
-  depth,
-  context,
-  canvasPaint,
-  opacity,
-}: IPaintPulseBeamInput) => {
-  if (pulsePaths) {
-    const clock = motionRef.current.travel[0] ?? 0;
-    const thump = pulseThump(pulseMonitorRef.current, clock);
-    // Echoes of past beats passing behind, each drifting up and away.
-    pulseMonitorRef.current.echoes.forEach((echo) => {
-      const drift = echoDrift(echo, clock, depth);
-      if (drift.glow <= 0) {
-        return;
-      }
-      context.save();
-      context.translate(drift.x, drift.y);
-      context.strokeStyle = canvasPaint;
-      context.lineWidth = 1.4;
-      setAlpha(context, opacity * drift.glow * 0.55);
-      context.stroke(echo.path);
-      context.restore();
-    });
-    // The previous sweep, dim, then the tail brightening toward the
-    // head: colour wide and faint under a white core. On a light window
-    // the core and the head's dot are the window's ink, and the old sweep
-    // solider (`PULSE_OLD_DAY_ALPHA`).
-    const day = isLightWindow();
-    const core = day ? readSurface('--ink', '#1b1b1b') : '#fff';
-    context.strokeStyle = canvasPaint;
-    context.lineWidth = 1.2;
-    setAlpha(context, opacity * (day ? PULSE_OLD_DAY_ALPHA : PULSE_OLD_ALPHA));
-    context.stroke(pulsePaths.old);
-    pulsePaths.fresh.forEach((slice, index) => {
-      const nearness = (index + 1) / 4;
-      context.strokeStyle = canvasPaint;
-      context.lineWidth = 3 + thump * 3;
-      setAlpha(context, opacity * nearness * (0.35 + thump * 0.3));
-      context.stroke(slice);
-      context.strokeStyle = core;
-      context.lineWidth = 1.2 + thump;
-      setAlpha(context, opacity * (0.3 + nearness * 0.7));
-      context.stroke(slice);
-    });
-    // The write-head: a dot that flares on the thump.
-    const [headX, headY] = pulsePaths.head;
-    const dot = new Path2D();
-    dot.arc(headX, headY, 2.5 + thump * 4, 0, Math.PI * 2);
-    context.fillStyle = canvasPaint;
-    setAlpha(context, opacity * 0.5);
-    context.fill(dot);
-    const headCore = new Path2D();
-    headCore.arc(headX, headY, 1.6 + thump * 2, 0, Math.PI * 2);
-    context.fillStyle = core;
-    setAlpha(context, opacity);
-    context.fill(headCore);
   }
 };
 

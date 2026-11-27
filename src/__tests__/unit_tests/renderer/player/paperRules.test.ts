@@ -55,7 +55,7 @@ describe('the amp’s grid', () => {
   it('leaves every picture its whole surface', () => {
     const bare = { frequency: false, level: false };
     // The scenes are pictures, not instruments.
-    (['terrace', 'bubbles', 'invaders'] as GraphStyle[]).forEach((style) => {
+    (['skyline', 'echo', 'braid'] as GraphStyle[]).forEach((style) => {
       expect(playerPaperFor(style, ON)).toEqual(bare);
     });
     // A Plus scene plays in the panel instead of the trace.

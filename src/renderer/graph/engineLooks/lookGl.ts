@@ -9,7 +9,6 @@ import { linkProgram, setNearestClamped } from '../glProgram';
 import type { IEngineLookHistory, IEngineLookInput } from './engineLookInput';
 import { createLookTextureGl } from './lookTextureGl';
 import { createLookLines, type ILookLines } from './lookLines';
-import { createLookStrokes, type ILookStrokes } from './lookStrokes';
 import { createLookSprites, type ILookSprites } from './lookSprites';
 
 /**
@@ -63,7 +62,6 @@ const BLOOM_UNIT = 5;
 const BLUR_UNIT = 6;
 const HISTORY_UNIT = 8;
 const LINES_UNIT = 9;
-const STROKES_UNIT = 12;
 
 export interface ILookGl {
   /**
@@ -182,9 +180,6 @@ export const createLookGl = (
   // frame that has any (`IEngineLookLines`).
   const linesAt = gl.getUniformLocation(program, 'uLookLines');
   let lines: ILookLines | null | undefined;
-  // The strokes in their own colours, likewise (`IEngineLookStrokes`).
-  const strokesAt = gl.getUniformLocation(program, 'uLookStrokes');
-  let strokes: ILookStrokes | null | undefined;
 
   // The kept picture, for the look that declares one (`IEngineLookHistory`):
   // which picture it holds, and how many rows of each strip it has printed.
@@ -374,17 +369,6 @@ export const createLookGl = (
         );
         gl.uniform1i(linesAt, LINES_UNIT);
       }
-      if (strokesAt && input.strokes) {
-        strokes ??= createLookStrokes(gl);
-        strokes?.draw(
-          input.strokes,
-          { width: input.vectors[0], height: input.vectors[1] },
-          Math.max(1, Math.round(panel.width)),
-          Math.max(1, Math.round(panel.height)),
-          STROKES_UNIT,
-        );
-        gl.uniform1i(strokesAt, STROKES_UNIT);
-      }
       const blooms =
         input.bloom > 0 && passAt !== null && bloomAt !== null && buildBloom();
       if (blooms && front) {
@@ -413,45 +397,15 @@ export const createLookGl = (
       gl.uniform1i(bloomAt, BLOOM_UNIT);
       gl.uniform1f(passAt, 0);
       gl.uniform1f(strengthAt, blooms ? input.bloom : 0);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
       if (input.spriteCount > 0) {
         sprites ??= createLookSprites(gl);
-      }
-      const under = sprites
-        ? Math.min(input.spritesUnder, input.spriteCount)
-        : 0;
-      if (under > 0 && sprites) {
-        // Scenery first, on a cleared target, and the picture laid over it:
-        // the picture alone replaces every pixel, which would take the
-        // scenery with it.
-        gl.clearColor(0, 0, 0, 0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        sprites.draw(input, panel, 0, under);
-        gl.useProgram(program);
-        const blended = gl.isEnabled(gl.BLEND);
-        const factors = [
-          gl.BLEND_SRC_RGB,
-          gl.BLEND_DST_RGB,
-          gl.BLEND_SRC_ALPHA,
-          gl.BLEND_DST_ALPHA,
-        ].map((name) => gl.getParameter(name) as number);
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-        gl.drawArrays(gl.TRIANGLES, 0, 3);
-        gl.blendFuncSeparate(factors[0], factors[1], factors[2], factors[3]);
-        if (!blended) {
-          gl.disable(gl.BLEND);
-        }
-      } else {
-        gl.drawArrays(gl.TRIANGLES, 0, 3);
-      }
-      if (sprites && input.spriteCount > under) {
-        sprites.draw(input, panel, under, input.spriteCount - under);
+        sprites?.draw(input, panel);
       }
     },
     dispose: () => {
       sprites?.dispose();
       lines?.dispose();
-      strokes?.dispose();
       gl.deleteTexture(data);
       gl.deleteTexture(history);
       fillTexture.dispose();

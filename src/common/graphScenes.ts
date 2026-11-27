@@ -1,22 +1,11 @@
 import { GraphStyle, Projected } from './graphStyles';
 import createGraphSawtooth from './graphSawtooth';
-import createGraphPulse from './graphPulse';
 import createGraphEcho from './graphEcho';
 import createGraphRoad from './graphRoad';
 import toColumns from './graphColumns';
-import { createGraphInvaders } from './graphInvaders';
 
 export const isGraphScene = (style: GraphStyle): boolean =>
-  [
-    'flames',
-    'braid',
-    'bubbles',
-    'racer',
-    'invaders',
-    'sawtooth',
-    'ecg',
-    'echo',
-  ].includes(style);
+  ['flames', 'braid', 'racer', 'sawtooth', 'echo'].includes(style);
 
 const point = (x: number, y: number) => `${x.toFixed(2)},${y.toFixed(2)}`;
 const line = (points: readonly Projected[]) =>
@@ -44,7 +33,6 @@ interface ISceneArgs {
   style: GraphStyle;
   top: number;
   bottom: number;
-  gap: number;
   filled: boolean;
   seconds: number;
 }
@@ -55,7 +43,6 @@ export const createGraphScene = ({
   style,
   top,
   bottom,
-  gap,
   filled,
   seconds,
 }: ISceneArgs): string => {
@@ -64,9 +51,6 @@ export const createGraphScene = ({
   }
   if (style === 'sawtooth') {
     return createGraphSawtooth(points, bottom, seconds).shape;
-  }
-  if (style === 'ecg') {
-    return createGraphPulse(points, bottom, filled);
   }
   if (style === 'echo') {
     return createGraphEcho(points, top, bottom, filled);
@@ -77,7 +61,6 @@ export const createGraphScene = ({
   const step = width / (points.length - 1);
   const energyAt = (y: number) =>
     Math.max(0, Math.min(1, (bottom - y) / height));
-  const pieceWidth = step * (1 - Math.max(0, Math.min(0.85, gap)));
   let path = '';
 
   if (style === 'braid') {
@@ -120,9 +103,6 @@ export const createGraphScene = ({
   if (style === 'racer') {
     return createGraphRoad(points, top, bottom, seconds);
   }
-  if (style === 'invaders') {
-    return createGraphInvaders(points, top, bottom);
-  }
 
   points.forEach(([x, y], index) => {
     const energy = energyAt(y);
@@ -141,29 +121,6 @@ export const createGraphScene = ({
       const radius =
         Math.min(2.4, half * 0.18) * energy * Math.sin(phase * Math.PI);
       path += circle(emberX, emberY, radius);
-    } else if (style === 'bubbles') {
-      for (let layer = 0; layer < 2; layer += 1) {
-        const phase =
-          (seconds * (0.055 + layer * 0.018) + seed + layer * 0.5) % 1;
-        // Grow and dissolve at the ends instead of teleporting a full orb.
-        const life = Math.sin(phase * Math.PI);
-        const radius = Math.max(
-          0.2,
-          Math.min(pieceWidth * 0.68, height * 0.1) *
-            (0.35 + Math.sqrt(energy) * 0.65) *
-            (layer === 0 ? 1 : 0.72) *
-            life,
-        );
-        const cy = bottom - radius - phase * (height - radius * 2);
-        const cx =
-          x + Math.sin(seconds * 0.6 + seed * 12 + layer) * step * 0.12;
-        path += circle(cx, cy, radius);
-        // Reversed inner contour keeps the orbs translucent with Filled on.
-        const inner = radius * 0.78;
-        if (filled) {
-          path += `M ${point(cx - inner, cy)} a ${inner},${inner} 0 1,1 ${inner * 2},0 a ${inner},${inner} 0 1,1 ${-inner * 2},0 Z `;
-        }
-      }
     }
   });
   return path;

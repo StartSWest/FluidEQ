@@ -369,7 +369,13 @@ it('names the new looks on the visualizer engine slide as the picker does', () =
   goTo('Every scene on your graphics card');
   expect(
     screen.getByText(
-      /^Eighteen new looks under Scenes, among them Synthwave, Horizon, Glass towers and LED wall;/,
+      /^New looks under Scenes, among them Halo, Horizon, Glass towers and LED wall;/,
+    ),
+  ).toBeInTheDocument();
+  // The count is the picker's own, never a number typed into the words.
+  expect(
+    screen.getByText(
+      new RegExp(`^The graph's ${SELECTABLE_GRAPH_STYLES.length} looks now`),
     ),
   ).toBeInTheDocument();
   expect(

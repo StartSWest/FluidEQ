@@ -20,7 +20,7 @@ export const hasGraphMotion = (style: GraphStyle): boolean =>
 /** Scenery has ambient travel even when every measured band is silent. */
 export const hasGraphAmbientMotion = (style: GraphStyle): boolean =>
   hasGraphMotion(style) ||
-  ['truss', 'stalactites', 'arches', 'starfield', 'slope'].includes(style);
+  ['stalactites', 'arches', 'starfield', 'slope'].includes(style);
 
 interface IMotionArgs {
   state: IGraphMotionState;
@@ -32,7 +32,6 @@ interface IMotionArgs {
   deltaMs: number;
   playing: boolean;
   filled: boolean;
-  gap?: number;
 }
 
 export const createMovingGraphShape = ({
@@ -45,7 +44,6 @@ export const createMovingGraphShape = ({
   deltaMs,
   playing,
   filled,
-  gap = 0,
 }: IMotionArgs): { path: string; moving: boolean } => {
   if (points.length < 2 || !hasGraphMotion(style)) {
     return { path: '', moving: false };
@@ -79,7 +77,7 @@ export const createMovingGraphShape = ({
         bottom,
         columns,
         undefined,
-        gap,
+        0,
         top,
         filled,
         state.travel[0],

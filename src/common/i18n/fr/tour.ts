@@ -96,11 +96,11 @@ const tour: Partial<Dictionary> = {
   'tour.gpu.kicker': 'UN NOUVEAU MOTEUR DE SCÈNES',
   'tour.gpu.title': 'Toutes les scènes sur votre carte graphique',
   'tour.gpu.subtitle':
-    'Quarante styles au rythme de votre écran, et des mondes 3D',
+    'Chaque style au rythme de votre écran, et des mondes 3D',
   'tour.gpu.lead':
-    'Les quarante styles du graphique s’affichent désormais avec le moteur des scènes : sur votre carte graphique, à la fréquence de rafraîchissement de votre écran, si bien que barres, particules et crêtes glissent là où elles sautaient. Et une scène peut désormais être un vrai monde 3D.',
+    'Les {looks} styles du graphique s’affichent désormais avec le moteur des scènes : sur votre carte graphique, à la fréquence de rafraîchissement de votre écran, si bien que barres, particules et crêtes glissent là où elles sautaient. Et une scène peut désormais être un vrai monde 3D.',
   'tour.gpu.point1':
-    'Dix-huit nouveaux styles dans {scenes}, dont {synthwave}, {horizon}, {towers} et {ledwall} ; un style sans couleurs propres prend celles de la fenêtre.',
+    'De nouveaux styles dans {scenes}, dont {halo}, {horizon}, {towers} et {ledwall} ; un style sans couleurs propres prend celles de la fenêtre.',
   'tour.gpu.point2':
     'Les mondes 3D marchent sur la grosse caisse, ondulent avec la caisse claire, bondissent au drop et passent de la nuit au jour avec {brightness} ; faites-en glisser un pour le voir sous un autre angle.',
   'tour.gpu.point3':
@@ -109,7 +109,7 @@ const tour: Partial<Dictionary> = {
     'Cliquez sur le nom du style sur le graphique et choisissez-en un dans {scenes}.',
   'tour.gpu.open': 'Ouvrir l’Égaliseur',
   'tour.gpu.imageAlt':
-    'Une scène qui est une ville 3D de nuit, et quatre nouveaux styles photographiés sur le graphique — {synthwave}, {horizon}, {towers} et {ledwall} — avec le sélecteur de styles entouré sur le premier.',
+    'Une scène qui est une ville 3D de nuit, et quatre nouveaux styles photographiés sur le graphique — {halo}, {horizon}, {towers} et {ledwall} — avec le sélecteur de styles entouré sur le premier.',
   'tour.gpu.world': 'Monde 3D',
   'tour.sparks.kicker': 'ÉTINCELLES DU POINTEUR',
   'tour.sparks.title': 'Des scènes qui répondent à votre souris',

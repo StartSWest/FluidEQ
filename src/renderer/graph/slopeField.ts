@@ -1,7 +1,7 @@
 import type { Projected } from 'common/graphStyles';
 import { getEaseFactor } from 'common/smoothing';
 import noise from 'common/seededNoise';
-import type { ISkyFrame } from './terraceValley';
+import type { ISkyFrame } from './skyFrame';
 
 /**
  * The field the Slope form lives in.

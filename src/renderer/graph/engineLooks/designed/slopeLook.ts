@@ -284,7 +284,7 @@ const writeMotes = (
     const trailKept = index === 0 ? 1 : 4;
     const headKept = index === 0 ? 2 : 8;
     field.motes.forEach((trail) => {
-      const onScreen = trail.map(([x, y]) => sceneToScreen(frame, copy, x, y));
+      const onScreen = trail.map(([x, y]) => sceneToScreen(copy, x, y));
       onScreen.forEach(({ x, y }, at) => put(x, y, at === 0, trailKept));
       const head = onScreen[onScreen.length - 1];
       const previous = onScreen[onScreen.length - 2] ?? head;

@@ -52,9 +52,7 @@ const FAMILIES: Record<GraphStyle, TGraphStyleFamily> = {
   phase: 'analysis',
   ledwall: 'scenes',
   towers: 'scenes',
-  tide: 'scenes',
   halo: 'scenes',
-  synthwave: 'scenes',
   ledbars: 'scenes',
   neonbars: 'scenes',
   bars3d: 'scenes',
@@ -79,12 +77,6 @@ const FAMILIES: Record<GraphStyle, TGraphStyleFamily> = {
   spikes: 'bars',
   ridge: 'fills',
   stems: 'bars',
-  // A scene, whatever it draws with. The eight Ivan designed one at a time
-  // are the whole of what is left beside the measuring views, and the picker
-  // heads them as one group — filed by what they draw they came out under
-  // five headings with one or two rows each (Ivan, 2026-09-23: "separate
-  // real meters from the rest of viz like terra and sky line with a group").
-  terrace: 'scenes',
   dashes: 'bars',
   scatter: 'points',
   caps: 'points',
@@ -95,21 +87,22 @@ const FAMILIES: Record<GraphStyle, TGraphStyleFamily> = {
   contour: 'lines',
   hatch: 'fills',
   matrix: 'bars',
+  // A scene, whatever it draws with. The ones Ivan designed one at a time
+  // are the whole of what is left beside the measuring views, and the picker
+  // heads them as one group — filed by what they draw they came out under
+  // five headings with one or two rows each (Ivan, 2026-09-23: "separate
+  // real meters from the rest of viz like terra and sky line with a group").
   skyline: 'scenes',
   bezier: 'lines',
   ribbon: 'fills',
   feather: 'lines',
-  truss: 'scenes',
   zipper: 'lines',
   slope: 'scenes',
   stalactites: 'scenes',
-  bubbles: 'scenes',
   diamonds: 'points',
   sawtooth: 'lines',
-  ecg: 'scenes',
   echo: 'scenes',
   racer: 'scenes',
-  invaders: 'scenes',
   starfield: 'scenes',
   candles: 'bars',
   arches: 'scenes',

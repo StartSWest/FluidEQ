@@ -608,7 +608,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.sampleMaker': 'Lumen Works',
   'help.looks.title': 'Styles et scènes',
   'help.looks.intro':
-    'Les styles standard sont des dessins gratuits du son en direct, que vous pouvez colorer et concevoir vous-même : Ligne et Aire pour un tracé net, Blocs LED et Pics pour du punch, Treillis, Horizon et Flammes dansantes pour des scènes entières. Les scènes sont des images vivantes dessinées par la carte graphique, comme Alpin, Aurore, Floraison et Ville néon, où les basses, le rythme et les aigus font chacun bouger quelque chose de différent.',
+    'Les styles standard sont des dessins gratuits du son en direct, que vous pouvez colorer et concevoir vous-même : Onde spectrale pour un tracé net, Barres LED et Barres néon pour du punch, Horizon, Tours de verre et Écho pour des scènes entières. Les scènes sont des images vivantes dessinées par la carte graphique, comme Alpin, Aurore, Floraison et Ville néon, où les basses, le rythme et les aigus font chacun bouger quelque chose de différent.',
   'help.looks.steps':
     'Sur le graphique, cliquez sur le nom du style. Choisissez une rubrique à gauche, ou cherchez dans tout à la fois.\nAvec « De », ne voyez que ceux de FluidEQ, les scènes des membres ou les vôtres. Si une scène n’est pas encore à vous, elle est verrouillée, et la choisir explique comment l’obtenir.\nSur un style standard, appuyez sur Nouveau style pour changer ses couleurs, son mouvement et ses crêtes, puis enregistrez-le ; il apparaît sous « De : Les vôtres ».',
   'help.looks.tip':

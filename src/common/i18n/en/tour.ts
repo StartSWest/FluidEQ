@@ -106,11 +106,11 @@ const tour = {
     'FluidEQ in its own colours on the EQ page, the Analyzer drawing a song under the curves, and the menu behind the pulse icon open over its corner, with Brightness at half.',
   'tour.gpu.kicker': 'A NEW SCENE ENGINE',
   'tour.gpu.title': 'Every scene on your graphics card',
-  'tour.gpu.subtitle': "Forty looks at your screen's own speed, and 3D worlds",
+  'tour.gpu.subtitle': "Every look at your screen's own speed, and 3D worlds",
   'tour.gpu.lead':
-    "The graph's forty looks now draw on the engine the scenes run on: on your graphics card, at your screen's own refresh rate, so bars, particles and peaks glide where they used to step. And a scene can now be a real 3D world.",
+    "The graph's {looks} looks now draw on the engine the scenes run on: on your graphics card, at your screen's own refresh rate, so bars, particles and peaks glide where they used to step. And a scene can now be a real 3D world.",
   'tour.gpu.point1':
-    "Eighteen new looks under {scenes}, among them {synthwave}, {horizon}, {towers} and {ledwall}; a look with no colours of its own wears the window's.",
+    "New looks under {scenes}, among them {halo}, {horizon}, {towers} and {ledwall}; a look with no colours of its own wears the window's.",
   'tour.gpu.point2':
     '3D worlds step on the kick, sway with the snare, leap at the drop and turn from night to day with {brightness}; drag one to see it from another side.',
   'tour.gpu.point3':
@@ -119,7 +119,7 @@ const tour = {
     "Click the look's name on the graph and pick one under {scenes}.",
   'tour.gpu.open': 'Open EQ',
   'tour.gpu.imageAlt':
-    'A scene that is a 3D city by night, and four new looks photographed on the graph — {synthwave}, {horizon}, {towers} and {ledwall} — with the look picker ringed on the first.',
+    'A scene that is a 3D city by night, and four new looks photographed on the graph — {halo}, {horizon}, {towers} and {ledwall} — with the look picker ringed on the first.',
   'tour.gpu.world': '3D world',
   'tour.sparks.kicker': 'POINTER SPARKS',
   'tour.sparks.title': 'Scenes that answer your mouse',

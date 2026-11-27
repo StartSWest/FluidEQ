@@ -607,7 +607,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.sampleMaker': 'Lumen Works',
   'help.looks.title': 'Estilos y escenas',
   'help.looks.intro':
-    'Los estilos estándar son dibujos gratuitos del sonido en directo que puedes colorear y diseñar a tu gusto: Línea y Área para un trazo limpio, Bloques LED y Picos para dar pegada, y Cercha, Horizonte y Llamas danzantes para escenas completas. Las escenas son imágenes vivas dibujadas en la tarjeta gráfica, como Alpino, Aurora, Floración y Ciudad de neón, en las que los graves, el ritmo y los agudos mueven cada uno algo distinto.',
+    'Los estilos estándar son dibujos gratuitos del sonido en directo que puedes colorear y diseñar a tu gusto: Onda espectral para un trazo limpio, Barras LED y Barras neón para dar pegada, y Horizonte, Torres de cristal y Eco para escenas completas. Las escenas son imágenes vivas dibujadas en la tarjeta gráfica, como Alpino, Aurora, Floración y Ciudad de neón, en las que los graves, el ritmo y los agudos mueven cada uno algo distinto.',
   'help.looks.steps':
     'Haz clic en el nombre del estilo que hay sobre la gráfica. Elige una sección a la izquierda, o busca en todo a la vez.\nCon «De» ves solo los de FluidEQ, las escenas de los miembros o los tuyos. Si una escena todavía no es tuya aparece bloqueada, y al elegirla se explica cómo conseguirla.\nCon un estilo estándar, pulsa Nuevo estilo para cambiar sus colores, su movimiento y sus picos, y guárdalo; aparecerá en «De: Tuyos».',
   'help.looks.tip':

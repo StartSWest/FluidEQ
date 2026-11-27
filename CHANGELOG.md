@@ -203,6 +203,10 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 - **The gallery is drawn like the Library,** with its search at the top and
   its categories in one row. FluidEQ's own scenes are listed once, and a new
   visit shows every scene again.
+- **Seven standard looks are gone:** Synthwave, Tide, Invaders, Pulse,
+  Bubbles, Truss and Terrace. If one of them was on your graph, it opens on
+  the Analyzer; a look you made from one keeps its name and colours and now
+  draws as the Analyzer.
 
 #### Credits and downloads
 

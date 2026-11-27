@@ -29,12 +29,8 @@ import { type IAnalysisState } from './analysis/analysisFrame';
 import { type ISceneViewState } from './sceneViews/drawSceneView';
 import { type IGraphMotionState } from './graphMotion';
 import { type IGhost, type ISpark } from './sawtoothScope';
-import { type IEcho } from './pulseMonitor';
 import { type IEchoWave } from './echoWaves';
-import { type IRocket } from './bridgeFireworks';
 import { type CaveDrips } from './caveDrips';
-import { type SpaceInvasion } from './spaceInvasion';
-import { type IChromeBox, type InvaderCabinet } from './invaderCabinet';
 import { type WarpTunnel } from './warpTunnel';
 import { type StoneArcade } from './stoneArcade';
 import { type Bonfire } from './bonfire';
@@ -42,16 +38,12 @@ import { type Rainstorm } from './rainstorm';
 import { type CountryFence } from './countryFence';
 import { type BraidStage } from './braidStage';
 import { type CrystalSpikes } from './crystalSpikes';
-import { type TerraceValley } from './terraceValley';
 import { type CitySkyline } from './citySkyline';
 import { type SlopeField } from './slopeField';
-import { type BubbleMotes } from './bubbleMotes';
 import { type IDashTrails } from './dashTrails';
-import { type ITerraceJumper } from './terraceJumper';
-import { type IBolt } from './bubbleStorm';
 import { type IAccentState } from './graphAccents';
 import { type ITextureMotion } from './textureMotion';
-import { type NightSurfaces } from './terraceNight';
+import { type NightSurfaces } from './nightSurfaces';
 
 // What a frame of the live graph is drawn from: the component's refs, the
 // look and the analyser's points, and the scales the plot was laid out in.
@@ -114,13 +106,6 @@ export interface IDrawLiveTraceFrameInput {
     flareAt: number;
     sparks: ISpark[];
   }>;
-  pulseMonitorRef: RefObject<{
-    beatLevel: number;
-    trackedAt: number;
-    thumpAt: number;
-    thumpStrength: number;
-    echoes: IEcho[];
-  }>;
   echoWavesRef: RefObject<{
     waves: IEchoWave[];
     beatLevel: number;
@@ -128,26 +113,8 @@ export interface IDrawLiveTraceFrameInput {
     trackedAt: number;
     pending: number;
   }>;
-  trussClockRef: RefObject<number>;
-  trussBridgeRef: RefObject<{
-    beatLevel: number;
-    trebleLevel: number;
-    bass: number;
-    trackedAt: number;
-    blinkAt: number;
-    blinkParity: number;
-    glow: number;
-    rockets: IRocket[];
-    launched: number;
-    deck: number[];
-  }>;
   caveClockRef: RefObject<number>;
   caveDripsRef: RefObject<CaveDrips>;
-  wasInvadersRef: RefObject<boolean>;
-  invasionRef: RefObject<SpaceInvasion>;
-  invaderCabinetRef: RefObject<InvaderCabinet>;
-  invasionClockRef: RefObject<number>;
-  chromeRef: RefObject<readonly IChromeBox[]>;
   warpClockRef: RefObject<number>;
   warpRef: RefObject<WarpTunnel>;
   arcadeClockRef: RefObject<number>;
@@ -162,8 +129,6 @@ export interface IDrawLiveTraceFrameInput {
   braidStageRef: RefObject<BraidStage>;
   crystalClockRef: RefObject<number>;
   crystalRef: RefObject<CrystalSpikes>;
-  valleyClockRef: RefObject<number>;
-  valleyRef: RefObject<TerraceValley>;
   cityClockRef: RefObject<number>;
   cityRef: RefObject<CitySkyline>;
   roadTripRef: RefObject<{
@@ -175,30 +140,17 @@ export interface IDrawLiveTraceFrameInput {
   }>;
   slopeClockRef: RefObject<number>;
   slopeFieldRef: RefObject<SlopeField>;
-  bubbleMotesClockRef: RefObject<number>;
-  bubbleMotesRef: RefObject<BubbleMotes>;
   slopeFlowRef: RefObject<number>;
   dashTrailsRef: RefObject<IDashTrails>;
-  terraceJumperRef: RefObject<ITerraceJumper>;
   stemClockRef: RefObject<number>;
   stemLevelsRef: RefObject<number[]>;
   stemFlareRef: RefObject<number[]>;
   pumpRef: RefObject<number>;
-  bubbleStormRef: RefObject<{
-    levels: number[];
-    beatLevel: number;
-    trackedAt: number;
-    pops: Map<number, number>;
-    bolts: IBolt[];
-    shakeAt: number;
-    shakeStrength: number;
-  }>;
   accentStateRef: RefObject<IAccentState>;
   /** Where the music has carried the look's texture (`textureMotion.ts`). */
   textureMotionRef: RefObject<ITextureMotion>;
   shownOpacityRef: RefObject<number>;
   shownStrokeWidthRef: RefObject<number>;
-  seaCanvasRef: RefObject<HTMLCanvasElement | null>;
   nightRef: RefObject<NightSurfaces>;
   haloCanvasRef: RefObject<HTMLCanvasElement | null>;
 }

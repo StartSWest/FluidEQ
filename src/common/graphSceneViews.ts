@@ -14,7 +14,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * solo vizualisers") — visualizers, no scenery; four of those he did not
  * like were replaced the same morning, and the Mesh went into the Waterfall,
  * which draws the same history against the scale. Horizon came the day after,
- * from a picture Ivan loved ("make one like this one").
+ * from a picture Ivan loved ("make one like this one"). Tide and Synthwave
+ * were taken out on 2026-11-27 (`removedGraphStyles.ts`).
  *
  * Filed under Scenes with the ones before them, and drawn apart from them,
  * like the measuring views: each is several paths, layers and lights rather
@@ -28,9 +29,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 export const SCENE_VIEW_STYLES = [
   'ledwall',
   'towers',
-  'tide',
   'halo',
-  'synthwave',
   'ledbars',
   'neonbars',
   'bars3d',

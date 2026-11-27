@@ -64,9 +64,7 @@ export type GraphStyle =
   | 'phase'
   | 'ledwall'
   | 'towers'
-  | 'tide'
   | 'halo'
-  | 'synthwave'
   | 'ledbars'
   | 'neonbars'
   | 'bars3d'
@@ -91,7 +89,6 @@ export type GraphStyle =
   | 'spikes'
   | 'ridge'
   | 'stems'
-  | 'terrace'
   | 'dashes'
   | 'scatter'
   | 'caps'
@@ -106,17 +103,13 @@ export type GraphStyle =
   | 'bezier'
   | 'ribbon'
   | 'feather'
-  | 'truss'
   | 'zipper'
   | 'slope'
   | 'stalactites'
-  | 'bubbles'
   | 'diamonds'
   | 'sawtooth'
-  | 'ecg'
   | 'echo'
   | 'racer'
-  | 'invaders'
   | 'starfield'
   | 'candles'
   | 'arches'
@@ -172,7 +165,6 @@ export const GRAPH_STYLES: GraphStyle[] = [
   'spikes',
   'ridge',
   'stems',
-  'terrace',
   'dashes',
   'scatter',
   'caps',
@@ -187,17 +179,13 @@ export const GRAPH_STYLES: GraphStyle[] = [
   'bezier',
   'ribbon',
   'feather',
-  'truss',
   'zipper',
   'slope',
   'stalactites',
-  'bubbles',
   'diamonds',
   'sawtooth',
-  'ecg',
   'echo',
   'racer',
-  'invaders',
   'starfield',
   // Appended rather than slotted in beside their relatives. The order is the
   // cycle order, and anybody who has learned that their favourite is four
@@ -228,13 +216,11 @@ export const GRAPH_STYLES: GraphStyle[] = [
   'wave-blocks',
   'wave-outline',
   'wave-lattice',
-  // The drawn scenes, after the eight they are filed with
+  // The drawn scenes, after the four they are filed with
   // (`graphSceneViews.ts`), and the plain spectrums after them.
   'ledwall',
   'towers',
-  'tide',
   'halo',
-  'synthwave',
   'ledbars',
   'neonbars',
   'bars3d',
@@ -262,13 +248,15 @@ export const GRAPH_STYLES: GraphStyle[] = [
  *
  * The plain forms went on 2026-09-23, all twenty of them, when the measuring
  * views took their place: Ivan asked to "remove all other standard
- * vizualuser and start building all these new". What stayed is the eight
- * scenes he designed one at a time — Terrace, Skyline, Truss, Slope field,
- * Echo, Bubbles, Pulse, Invaders — because those are pictures rather than
- * readings and the new views replace readings.
+ * vizualuser and start building all these new". What stayed is the scenes
+ * he designed one at a time, because those are pictures rather than readings
+ * and the new views replace readings.
  *
  * Each lands on the view that answers the question it was being used to ask:
  * a trace or a body on the Analyzer, a row of pieces on the RTA.
+ *
+ * Not to be confused with the forms taken out of the app altogether, which no
+ * longer draw at all (`removedGraphStyles.ts`).
  */
 const RETIRED: Partial<Record<GraphStyle, GraphStyle>> = {
   // Traces and bodies: the filled spectrum with its peak hold.
@@ -342,7 +330,7 @@ export const SELECTABLE_GRAPH_STYLES = GRAPH_STYLES.filter(
 /**
  * Human names for the picker.
  *
- * Written out rather than generated from the key, because "terrace" and
+ * Written out rather than generated from the key, because "matrix" and
  * "crown" mean nothing on their own — the list is chosen by eye and the
  * label is what somebody searches.
  */
@@ -361,9 +349,7 @@ export const GRAPH_STYLE_LABELS: Record<GraphStyle, string> = {
   phase: 'Phase history',
   ledwall: 'LED wall',
   towers: 'Glass towers',
-  tide: 'Tide',
   halo: 'Halo',
-  synthwave: 'Synthwave',
   ledbars: 'LED bars',
   neonbars: 'Neon bars',
   bars3d: '3D bars',
@@ -388,7 +374,6 @@ export const GRAPH_STYLE_LABELS: Record<GraphStyle, string> = {
   spikes: 'Spikes',
   ridge: 'Ridge',
   stems: 'Stems',
-  terrace: 'Terrace',
   dashes: 'Dashes',
   scatter: 'Scatter',
   caps: 'Floating caps',
@@ -403,17 +388,13 @@ export const GRAPH_STYLE_LABELS: Record<GraphStyle, string> = {
   bezier: 'Silk',
   ribbon: 'Ribbon',
   feather: 'Feather',
-  truss: 'Truss',
   zipper: 'Zipper',
   slope: 'Slope field',
   stalactites: 'Stalactites',
-  bubbles: 'Bubbles',
   diamonds: 'Diamonds',
   sawtooth: 'Sawtooth',
-  ecg: 'Pulse',
   echo: 'Echo',
   racer: 'Road trip',
-  invaders: 'Invaders',
   starfield: 'Warp speed',
   candles: 'Candles',
   arches: 'Arches',
@@ -462,10 +443,6 @@ const STROKED_STYLES = new Set<GraphStyle>([
   'feather',
   'zipper',
   'slope',
-  'ecg',
-  // The bridge: an open truss over water with wireframe cars, which is
-  // the design; filled only makes its posts solid.
-  'truss',
   'starfield',
   'braid',
   'stitch',
@@ -587,14 +564,12 @@ const OWN_PALETTES: Record<GraphStyle, ResolvedGraphPalette> = {
   /**
    * The drawn scenes. Under Auto each is painted in the window's colours
    * (`windowInk.ts`), laid the way this says: a board's lamps and an
-   * LED column up the axis, like the sea's depth; glass, bars, waves, the
-   * halo and a synthwave skyline across it, bass to treble.
+   * LED column up the axis; glass, bars, waves and the halo across it,
+   * bass to treble.
    */
   ledwall: 'level',
   towers: 'rainbow',
-  tide: 'level',
   halo: 'rainbow',
-  synthwave: 'rainbow',
   ledbars: 'level',
   neonbars: 'rainbow',
   bars3d: 'rainbow',
@@ -619,9 +594,7 @@ const OWN_PALETTES: Record<GraphStyle, ResolvedGraphPalette> = {
   ribbon: 'signal',
   feather: 'signal',
   zipper: 'signal',
-  truss: 'signal',
   sawtooth: 'signal',
-  ecg: 'signal',
   // Hyperspace: the tunnel's streaks coloured by where they fly.
   starfield: 'rainbow',
   barcode: 'signal',
@@ -652,9 +625,7 @@ const OWN_PALETTES: Record<GraphStyle, ResolvedGraphPalette> = {
   hatch: 'rainbow',
   matrix: 'rainbow',
   slope: 'rainbow',
-  bubbles: 'rainbow',
   diamonds: 'rainbow',
-  invaders: 'rainbow',
   // The aqueduct: the evening sky through the arches, a ramp up from the
   // horizon.
   arches: 'level',
@@ -669,7 +640,6 @@ const OWN_PALETTES: Record<GraphStyle, ResolvedGraphPalette> = {
   // Meters and terrain: the level ramp up the axis.
   area: 'level',
   blocks: 'level',
-  terrace: 'level',
   contour: 'level',
   echo: 'level',
   candles: 'level',
