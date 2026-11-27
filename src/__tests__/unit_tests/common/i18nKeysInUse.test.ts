@@ -78,7 +78,7 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
   ],
   'src/renderer/components/LookTextureRow.tsx': [
     [
-      'look.texture.{none,hatch,crosshatch,rules,pinstripe,dots,grid,weave,scales,chevron,static,image,tooBig,unreadable}',
+      'look.texture.{none,hatch,crosshatch,rules,pinstripe,dots,grid,weave,scales,chevron,static,bricks,honeycomb,waves,speakers,image,tooBig,unreadable}',
       'look.texture.*',
     ],
   ],

@@ -5,6 +5,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { PATTERN_TILE, type TFillTexture } from '../../common/graphTextures';
+import {
+  drawBricks,
+  drawHoneycomb,
+  drawSpeakers,
+  drawWaves,
+} from './fillTextureShapes';
 
 /**
  * The patterns' tiles, drawn: what `fillTextures.ts` makes its patterns and
@@ -27,7 +33,9 @@ export type TPatternTexture = Exclude<TFillTexture, 'none' | 'image'>;
  * across; the cross-hatch's 8/√2; rules, pinstripes and the grid every 4;
  * the weave's runs every 2.5; scales and chevrons in rows of 8; and the
  * grain, a speck in a twentieth of the tile, about one in every 8 units
- * along a line. A texture moving with the music counts its travel in these
+ * along a line; and in `fillTextureShapes.ts`, the bricks' courses, the
+ * honeycomb's rows and the waves every 4, the speakers' rings 2.5 apart.
+ * A texture moving with the music counts its travel in these
  * (`textureMotion.ts`), so the finest pattern's lines pass a pixel no more
  * often than the dots' do: counted in the tile, an 8 px hatch swept six
  * lines a second past each pixel, and on the white window the flash meter
@@ -45,6 +53,10 @@ export const PATTERN_SPACING: Record<TPatternTexture, number> = {
   scales: 8 / TILE,
   chevron: 8 / TILE,
   static: 8 / TILE,
+  bricks: 4 / TILE,
+  honeycomb: 4 / TILE,
+  waves: 4 / TILE,
+  speakers: 2.5 / TILE,
 };
 
 export const makeCanvas = (side: number): HTMLCanvasElement => {
@@ -265,6 +277,18 @@ export const drawTile = (
       context.globalAlpha = 1;
       break;
     }
+    case 'bricks':
+      drawBricks(context, unit);
+      break;
+    case 'honeycomb':
+      drawHoneycomb(context, unit);
+      break;
+    case 'waves':
+      drawWaves(context, unit);
+      break;
+    case 'speakers':
+      drawSpeakers(context, unit);
+      break;
     default:
       break;
   }

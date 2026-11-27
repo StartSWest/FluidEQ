@@ -30,6 +30,10 @@ export type TFillTexture =
   | 'scales'
   | 'chevron'
   | 'static'
+  | 'bricks'
+  | 'honeycomb'
+  | 'waves'
+  | 'speakers'
   | 'image';
 
 /** In the order the style editor offers them: plain first, the picture last. */
@@ -45,6 +49,10 @@ export const FILL_TEXTURES: TFillTexture[] = [
   'scales',
   'chevron',
   'static',
+  'bricks',
+  'honeycomb',
+  'waves',
+  'speakers',
   'image',
 ];
 
