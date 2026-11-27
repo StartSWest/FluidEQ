@@ -39,6 +39,11 @@ import { ISmartEqSettings, sanitizeSmartEqSettings } from './smartEq';
  * residual back on. Take the loop away and every one of those became a
  * memory of where the correction started, which is exactly what a correction
  * must not have.
+ *
+ * What plays does step now, toward the curve forming
+ * (`renderer/utils/smartEqLiveApply.ts`), and that is not this coming back:
+ * those steps are of what is heard while the answer forms, never of the
+ * answer, which is still solved whole from the source and written whole.
  */
 
 /**

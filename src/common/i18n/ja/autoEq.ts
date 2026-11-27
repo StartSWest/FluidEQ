@@ -84,6 +84,9 @@ export default {
     'この曲の補正が確定するまで、今の音のまま再生されます。',
   'autoEq.smart.note.waitingOn':
     '{ranges}を待っています。この曲の補正が確定するまで、今の音のまま再生されます。',
+  'autoEq.smart.note.listeningLive': '聴きながら補正が少しずつ加わります。',
+  'autoEq.smart.note.waitingOnLive':
+    '{ranges}を待っています。聴きながら補正が少しずつ加わります。',
   'autoEq.smart.note.settling':
     '書き込む前に、カーブが動かなくなったか確認しています。',
   'autoEq.smart.note.held': '測定は終了しました。次の曲で再び聴取します。',

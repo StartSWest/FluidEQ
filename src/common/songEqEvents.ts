@@ -108,6 +108,15 @@ export interface ISongEqRecorderState {
   isSongsOn: boolean;
   /** The Smart EQ layer as it currently stands. */
   liveLayer?: ISmartEqSettings;
+  /**
+   * The song whose curve Smart correction is putting on while it measures
+   * (`forming`), by identity key: what plays is that song's own, so its
+   * lookup finding nothing kept leaves it, and its end takes it off as it
+   * takes off a measured one. Keyed by the song rather than kept on the
+   * session, because a pause in a song's first seconds drops a session
+   * that never settled and opens a new one for the same song.
+   */
+  formingKey?: string;
 }
 
 export type TSongEqEvent =
@@ -133,6 +142,15 @@ export type TSongEqEvent =
    * the mechanism.
    */
   | { kind: 'ownWrite'; layer?: ISmartEqSettings }
+  /**
+   * A step of the curve Smart correction is forming for `songKey`, put on
+   * while it measures (`smartEqLiveApply.ts`). Ours like `ownWrite`, and the
+   * song's own: the lookup lands after the song's two-second settle, by when
+   * the first steps are on, and taking them off as the last song's curve
+   * would drop every new song back to flat at that moment, a jump, before
+   * the walk climbed back.
+   */
+  | { kind: 'forming'; layer?: ISmartEqSettings; songKey?: string }
   | { kind: 'deviceChanged'; deviceId: string }
   | { kind: 'saveToggled'; isSaveOn: boolean }
   /**

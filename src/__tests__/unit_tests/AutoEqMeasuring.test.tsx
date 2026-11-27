@@ -114,6 +114,7 @@ beforeEach(() => {
     }),
     setSilent: jest.fn(),
     restart: jest.fn(),
+    hold: jest.fn(),
   }));
 });
 

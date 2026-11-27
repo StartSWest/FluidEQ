@@ -322,6 +322,26 @@ export const noteSmartEqWrite = (layer?: ISmartEqSettings): void => {
 };
 
 /**
+ * A step of the curve Smart correction is forming for the song `songKey`
+ * names, put on while it measures (`smartEqLive.ts`), and by nothing else.
+ * Ours as `noteSmartEqWrite` is, and the song's own: see `formingKey`.
+ */
+export const noteSmartEqForming = (
+  layer: ISmartEqSettings | undefined,
+  songKey: string | undefined,
+): void => {
+  dispatchSongEq({ kind: 'forming', layer, songKey }, Date.now());
+};
+
+/**
+ * The playing song is playing a correction it kept from an earlier play, lent
+ * to it by its lookup. Smart correction then leaves what plays alone while it
+ * measures: walking a finished measurement toward one still forming would
+ * take most of it off and put it back over the next minute.
+ */
+export const isSongSoundLent = (): boolean => state.session?.hasLoan === true;
+
+/**
  * Smart correction is done with the playing song, and `layer` is what it
  * wrote for it: a running mode's hold, Measure again's, or Measure once. Called
  * by `SmartEqEngine.tsx` at that moment and by nothing else; the reducer

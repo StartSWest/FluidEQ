@@ -19,6 +19,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useEffect, useRef, useState } from 'react';
 import type { ISmartEqSettings } from 'common/constants';
 import {
+  SMART_EQ_MAX_FREQUENCY,
+  SMART_EQ_MIN_FREQUENCY,
   describeSmartEqLayer,
   getSmartEqBands,
   hasSmartEqLayer,
@@ -32,7 +34,13 @@ import {
 import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import { setSmartEq as setSmartEqApi } from './utils/equalizerApi';
-import { noteSmartEqHeld, noteSmartEqWrite } from './audio/songEqSession';
+import {
+  isSongSoundLent,
+  noteSmartEqHeld,
+  noteSmartEqWrite,
+} from './audio/songEqSession';
+import { createSmartEqLive } from './audio/smartEqLive';
+import { useCurrentEngine } from './utils/audioEngineContext';
 import { useNowPlayingIdentity } from './audio/nowPlayingIdentity';
 import { usePlaybackOwner } from './audio/playbackOwner';
 import { useLastPlayingOwner } from './audio/transportSource';
@@ -216,12 +224,43 @@ const SmartEqEngine = () => {
   const songHalfLife = (key: string | undefined) =>
     key === undefined ? CONTINUOUS_HALF_LIFE_MS : undefined;
   const previousSongRef = useRef(songKey);
+  const smartEqRef = useRef(smartEq);
+  smartEqRef.current = smartEq;
+  const setSmartEqRef = useRef(setSmartEq);
+  setSmartEqRef.current = setSmartEq;
+  const engine = useCurrentEngine();
+  const engineRef = useRef(engine);
+  engineRef.current = engine;
+  /** `ISmartEqLiveDeps.canWalk`, read through refs so it is always current. */
+  const canWalk = () => engineRef.current === 'fluid' && !isSongSoundLent();
+  /**
+   * The correction put on while it is measured, not only at the end (Ivan,
+   * 2026-11-27) — `audio/smartEqLive.ts`, and the reasoning in
+   * `utils/smartEqLiveApply.ts`. Every write a measurement makes goes through
+   * it. The ref mirrors what is shown at once, so a step half a second later
+   * steps from it whether or not the window has drawn since.
+   */
+  const [live] = useState(() =>
+    createSmartEqLive({
+      playing: () => smartEqRef.current,
+      show: (layer) => {
+        smartEqRef.current = layer;
+        setSmartEqRef.current(layer);
+      },
+      canWalk,
+      songKey: () => previousSongRef.current,
+    }),
+  );
   useEffect(() => {
     if (previousSongRef.current === songKey) {
       return;
     }
     heldSongsRef.current.leave(previousSongRef.current);
     previousSongRef.current = songKey;
+    // The last song's walk, if one was still landing, ends with it: its
+    // curve goes with the song (`closeSession`), and the new song forms
+    // from what plays now.
+    live.begin();
     // Held, a new session opens a tap for the new song or resumes it if it
     // was held before; on a held song, it closes whatever was measuring
     // meanwhile. The session effect decides which.
@@ -233,7 +272,8 @@ const SmartEqEngine = () => {
       measurementRef.current.restart(songHalfLife(songKey));
       startSmartEqPreview();
     }
-  }, [songKey]);
+    // `live` is made once and never changes; named so the rule can see it.
+  }, [songKey, live]);
   /**
    * The running mode's phase in a word, for the bubble: a condition rather
    * than a remark (`useSmartEqStatus`), and written only when it changes, since
@@ -241,8 +281,6 @@ const SmartEqEngine = () => {
    * preview store, read by the two small things that draw them.
    */
   const listeningForRef = useRef('');
-  /** A correction is on its way to the engine right now. */
-  const isApplyingRef = useRef(false);
   /**
    * Which reference the loop is holding records to, and which tap it should
    * open, read from refs: the callbacks inside a measurement are held for as
@@ -253,8 +291,6 @@ const SmartEqEngine = () => {
   referenceModeRef.current = smartEqMode;
   const sourceKindRef = useRef(sourceKind);
   sourceKindRef.current = sourceKind;
-  const smartEqRef = useRef(smartEq);
-  smartEqRef.current = smartEq;
 
   /** The whole answer for a report, under the mode chosen now. */
   const solve = (report: Pick<IBalanceReport, 'samples' | 'regions'>) =>
@@ -266,9 +302,51 @@ const SmartEqEngine = () => {
     measurement: Parameters<typeof smartEqLayerOf>[1],
   ) => smartEqLayerOf(gains, measurement, smartEqRef.current?.intensity);
 
+  /** What a report measured, as the layer records it. */
+  const measuredOf = (report: Pick<IBalanceReport, 'regions' | 'status'>) => {
+    const covered = report.regions.filter((region) => region.isCovered);
+    return {
+      status:
+        report.status === 'ready' ? ('ready' as const) : ('partial' as const),
+      lowFrequency: covered[0]?.lowFrequency ?? SMART_EQ_MIN_FREQUENCY,
+      highFrequency:
+        covered[covered.length - 1]?.highFrequency ?? SMART_EQ_MAX_FREQUENCY,
+    };
+  };
+
+  /** Gains to the layer a report writes, for a step or for the take. */
+  const builderOf =
+    (measurement: Parameters<typeof smartEqLayerOf>[1]) =>
+    (gains: Record<string, number>) =>
+      layerOf(gains, measurement);
+
+  /**
+   * A measurement that ends with no curve to land — too little heard to
+   * correct, cancelled, its tap gone — leaves the sound as it found it: what
+   * the walk put on comes off again, walked off on `tap`'s music where the
+   * tap is still open and put back at once where it is not. Left on, a
+   * half-formed curve played on under "the sound stays as it was".
+   */
+  const unform = (tap?: AbortController) => {
+    const formed = live.endForming();
+    if (formed) {
+      live.land(
+        formed.layer,
+        builderOf({
+          status: 'partial',
+          lowFrequency: SMART_EQ_MIN_FREQUENCY,
+          highFrequency: SMART_EQ_MAX_FREQUENCY,
+        }),
+        () => undefined,
+        tap,
+      );
+    }
+  };
+
   /**
    * The curve forming on the graph, from a checkpoint: solved exactly as the
-   * hold will write it, at the layer's strength, and written nowhere.
+   * hold will write it, at the layer's strength — and what plays one step
+   * nearer it (`live.form`).
    */
   const showPreview = ({
     report,
@@ -287,7 +365,13 @@ const SmartEqEngine = () => {
       gains: gains && atStrength(gains, smartEqRef.current?.intensity),
       regions: previewRegionsOf(report),
       meanCoverage: report.meanCoverage,
+      isHeardForming: canWalk(),
     });
+    // And heard, a step at a time: the same solve, so what plays walks
+    // toward exactly the curve drawn forming.
+    if (gains) {
+      live.form(gains, builderOf(measuredOf(report)));
+    }
   };
   const showPreviewRef = useRef(showPreview);
   showPreviewRef.current = showPreview;
@@ -307,6 +391,29 @@ const SmartEqEngine = () => {
       regions: previewRegionsOf(report),
       gains: gains && atStrength(gains, smartEqRef.current?.intensity),
     });
+
+  /**
+   * What was heard, and then what was done about it. The first half
+   * describes a measurement; the second is the gains written, which are on
+   * disk and can be argued with.
+   *
+   * Joined through a key rather than with a template literal, because the
+   * separator between the two halves is a typographic decision and one of the
+   * ten dictionaries may want a different one.
+   */
+  const describeTake = (
+    result: Parameters<typeof describeBalanceResult>[0],
+    measured: ISmartEqSettings | undefined,
+  ) => {
+    const shape = describeCorrectionShape(
+      Object.values(measured?.filters ?? {}),
+      tRef.current,
+    );
+    const heard = describeBalanceResult(result, tRef.current);
+    return shape
+      ? tRef.current('eq.smart.result.withShape', { result: heard, shape })
+      : heard;
+  };
 
   /**
    * The one-shot, reachable from an effect.
@@ -400,6 +507,9 @@ const SmartEqEngine = () => {
     // waiting for the effect to do this would be a race rather than an
     // ordering.
     continuousAbortRef.current?.abort();
+    // And a fresh forming: whatever was walking in belongs to what this press
+    // replaces.
+    live.begin();
 
     balanceRunRef.current += 1;
     const runId = balanceRunRef.current;
@@ -434,6 +544,8 @@ const SmartEqEngine = () => {
               showPreviewRef.current(preview);
             }
           },
+          // The tap outlives the take while its curve walks in.
+          onAfterTake: (isLast) => live.afterTake(controller, isLast),
         },
         tRef.current,
       );
@@ -447,23 +559,33 @@ const SmartEqEngine = () => {
 
       const gains = solve(result);
       if (!gains) {
+        unform(controller);
         showHeld(result, 'short', undefined);
         setSmartEqStatus(tRef.current('eq.smart.status.notEnoughRange'));
         return;
       }
-      const measured = layerOf(gains, {
+      const build = builderOf({
         status: result.status,
         lowFrequency: result.lowFrequency,
         highFrequency: result.highFrequency,
       });
+      const measured = build(gains);
+      // What played before the measurement moved anything, when it did: what
+      // the press found is a question about the take, not about the last
+      // step of the walk toward it.
+      const formed = live.endForming();
+      const before = formed ? formed.layer : layer;
+      const isInPlace =
+        describeSmartEqLayer(measured) ===
+        describeSmartEqLayer(smartEqRef.current);
 
       // Compared on what will be written, not on object identity: a run that
       // lands within the rounding step of what is applied has genuinely found
       // nothing left to correct.
       const isUnchanged =
-        describeSmartEqLayer(measured) === describeSmartEqLayer(layer);
+        describeSmartEqLayer(measured) === describeSmartEqLayer(before);
       showHeld(result, isUnchanged ? 'unchanged' : 'written', gains);
-      if (isUnchanged) {
+      if (isUnchanged && (isInPlace || !formed)) {
         // What plays is this song's measurement: the song's, for this play.
         if (measured) {
           noteSmartEqHeld(measured);
@@ -472,6 +594,29 @@ const SmartEqEngine = () => {
         return;
       }
 
+      if (formed) {
+        // The curve has been coming in, heard and drawn, while it formed: no
+        // reveal. The take's own curve lands now when it is a step away or
+        // nearer, and otherwise on the music's next half seconds.
+        if (!isInPlace) {
+          live.land(measured, build, () => undefined, controller);
+        }
+        if (measured) {
+          noteSmartEqHeld(measured);
+        }
+        setSmartEqStatus(
+          isUnchanged
+            ? tRef.current('eq.smart.status.alreadyBalanced')
+            : describeTake(result, measured),
+        );
+        return;
+      }
+
+      // Nothing walked in — Equalizer APO, a song's own kept sound playing,
+      // or a curve that never moved what plays — so the take is written
+      // whole and drawn arriving, as it always was; the tap has nothing
+      // left to do.
+      controller.abort();
       setSmartEqStatus(tRef.current('eq.smart.status.applying'));
 
       // The same reveal the AutoEQ panel uses, pointed at the layer instead
@@ -521,32 +666,13 @@ const SmartEqEngine = () => {
         setSmartEq(measured);
       }
 
-      // What was heard, and then what was done about it. The first half
-      // describes a measurement; the second is the gains written, which are
-      // on disk and can be argued with.
-      //
-      // Joined through a key rather than with a template literal, because the
-      // separator between the two halves is a typographic decision and one of
-      // the ten dictionaries may want a different one.
-      {
-        const shape = describeCorrectionShape(
-          Object.values(measured?.filters ?? {}),
-          tRef.current,
-        );
-        const heard = describeBalanceResult(result, tRef.current);
-        setSmartEqStatus(
-          shape
-            ? tRef.current('eq.smart.result.withShape', {
-                result: heard,
-                shape,
-              })
-            : heard,
-        );
-      }
+      setSmartEqStatus(describeTake(result, measured));
     } catch (e) {
       if (!isCurrentRun()) {
         return;
       }
+      // Cancelled or failed: nothing to land, and the tap is already shut.
+      unform();
       endSmartEqPreview();
       // A failed measurement is a normal outcome (nothing to hear, cancelled,
       // no tap on the source); report it in place rather than as a global
@@ -565,6 +691,11 @@ const SmartEqEngine = () => {
         );
       }
     } finally {
+      // The tap closes with the run, unless the take's curve is still
+      // walking in on it.
+      if (!live.isWalkingOn(controller)) {
+        controller.abort();
+      }
       if (isCurrentRun()) {
         setSmartEqRunning(false);
         balanceAbortRef.current = undefined;
@@ -589,9 +720,19 @@ const SmartEqEngine = () => {
    * all evening; a hold writes once per song, and the same song played again
    * resumes its own hold (`heldSongs.ts`), which describes the same layer and
    * writes nothing. The tilt fit still needs a wide trusted span.
+   *
+   * Judged against what played before the song's curve started coming in
+   * (`endForming`), so "written" and what the bubble names are the change
+   * the song got, not the last step of it. Written through `smartEqLive`:
+   * given the tap, a curve more than a step from what plays walks in on it.
+   * It used to refuse while a write was in flight, which once kept two
+   * checkpoints of an older loop from both writing; every write now goes out
+   * in the order it was decided and the last one wins, and the refusal could
+   * only drop a newer answer — a mode chosen while the hold was landing.
    */
   const writeHeld = (
     report: IBalanceReport,
+    tap?: AbortController,
   ): {
     outcome: TSmartEqHeldOutcome;
     gains?: Record<string, number>;
@@ -601,48 +742,43 @@ const SmartEqEngine = () => {
     const ready = report.regions.filter((region) => region.isCovered);
     const gains = ready.length > 0 ? solve(report) : undefined;
     if (!gains) {
+      unform(tap);
       return { outcome: 'short' };
     }
-    const layer = smartEqRef.current;
-    const written = gainsOf(layer);
-    const measured = layerOf(gains, {
-      status: report.status === 'ready' ? 'ready' : 'partial',
-      lowFrequency: ready[0].lowFrequency,
-      highFrequency: ready[ready.length - 1].highFrequency,
-    });
-    if (
-      isApplyingRef.current ||
-      describeSmartEqLayer(measured) === describeSmartEqLayer(layer)
-    ) {
+    const playing = smartEqRef.current;
+    const formed = live.endForming();
+    const before = formed ? formed.layer : playing;
+    const build = builderOf(measuredOf(report));
+    const measured = build(gains);
+    const isNew =
+      describeSmartEqLayer(measured) !== describeSmartEqLayer(before);
+    const isInPlace =
+      describeSmartEqLayer(measured) === describeSmartEqLayer(playing);
+    if (!isNew && isInPlace) {
       return { outcome: 'unchanged', gains, layer: measured };
     }
     // The ranges that actually moved, for the graph to light and the bubble
     // to name — not every range the write happened to carry.
-    const moved = movedRanges(report.regions, gains, written);
-    // Shut before the write, not after it: setting the flag in the promise
-    // body would leave a gap between deciding to write and being marked as
-    // writing, which is precisely the gap a race lives in.
-    isApplyingRef.current = true;
-    // Ours, so the song recorder keeps its loan through this write.
-    noteSmartEqWrite(measured);
-    setSmartEq(measured);
-    setSmartEqApi(measured)
-      .catch(() => {
-        // Reported nowhere on purpose: a write that fails from a loop nobody
-        // started should not raise the banner over the whole workspace.
-        // Measure again, or the next song, writes again.
-      })
-      .finally(() => {
-        isApplyingRef.current = false;
-        // Marked here and nowhere earlier: this is the moment the chain on
-        // disk actually changed, so it is the moment the sound did.
-        flashCorrection(moved);
-      });
+    const moved = isNew
+      ? movedRanges(report.regions, gains, gainsOf(before))
+      : [];
+    if (isInPlace) {
+      // The walk has already brought it here.
+      flashCorrection(moved);
+    } else {
+      // Ours, so the song recorder keeps its loan through it. Marked when it
+      // lands and nowhere earlier: that is the moment the chain on disk
+      // reaches the song's curve, so it is the moment the sound does.
+      live.land(measured, build, () => flashCorrection(moved), tap);
+    }
+    if (!isNew) {
+      return { outcome: 'unchanged', gains, layer: measured };
+    }
     // What just moved, phrased as a need — "Needs more deep bass" — so it is
     // the same voice the measurement underneath it speaks in.
     setSmartEqStatus(
       describeCorrectionNeed(
-        getSmartEqBands(layer),
+        getSmartEqBands(before),
         gains,
         tRef.current,
         moved,
@@ -653,11 +789,17 @@ const SmartEqEngine = () => {
 
   /**
    * A running mode's checkpoint: nothing until the measurement is done with
-   * the song, then the one write and the tap closed. The last song's
-   * correction plays on until then (Ivan, 2026-11-20: "not sure if measuring
-   * all the time is good").
+   * the song, then the take held, its curve landed and the tap closed (Ivan,
+   * 2026-11-20: "not sure if measuring all the time is good"). Until then the
+   * curve comes in a step at a time as it forms, under the FluidEQ Engine
+   * (Ivan, 2026-11-27: "continue to apply the EQ while measuring"); the
+   * last song's correction no longer plays on, it went with the last song.
    */
-  const applyReport = (report: IBalanceReport, controller: AbortController) => {
+  const applyReport = (
+    report: IBalanceReport,
+    controller: AbortController,
+    measurement: IMeasurement,
+  ) => {
     if (isHeldRef.current || controller.signal.aborted) {
       return;
     }
@@ -675,7 +817,10 @@ const SmartEqEngine = () => {
       return;
     }
     isHeldRef.current = true;
-    const { outcome, gains, layer } = writeHeld(report);
+    // A held song is measured no further: the take is this report, the
+    // moment it was ready, exactly as when nothing was put on before it.
+    measurement.hold();
+    const { outcome, gains, layer } = writeHeld(report, controller);
     heldSongsRef.current.set(previousSongRef.current, {
       report,
       outcome,
@@ -688,8 +833,10 @@ const SmartEqEngine = () => {
     showHeld(report, outcome, gains);
     listeningForRef.current = '';
     setSmartEqListening('');
-    // Closes the tap: a held song is heard no further.
-    controller.abort();
+    // Closes the tap, unless the song's curve is walking in on its music.
+    if (!live.isWalkingOn(controller)) {
+      controller.abort();
+    }
   };
 
   // Held on a ref so the measurement is not torn down and restarted on every
@@ -699,6 +846,8 @@ const SmartEqEngine = () => {
   applyReportRef.current = applyReport;
   const writeHeldRef = useRef(writeHeld);
   writeHeldRef.current = writeHeld;
+  const unformRef = useRef(unform);
+  unformRef.current = unform;
 
   /**
    * A mode chosen while a song is held: the evidence is of the record and as
@@ -733,6 +882,9 @@ const SmartEqEngine = () => {
       return undefined;
     }
 
+    // A session of its own forms afresh, and a walk left from the last one
+    // ended with it.
+    live.begin();
     const songs = heldSongsRef.current;
     if (remeasuredRef.current !== remeasures) {
       // Measure again: this song is heard afresh.
@@ -773,7 +925,6 @@ const SmartEqEngine = () => {
 
     const controller = new AbortController();
     continuousAbortRef.current = controller;
-    isApplyingRef.current = false;
     isHeldRef.current = false;
     startSmartEqPreview();
     // A fresh session has heard nothing yet, and saying otherwise would leave
@@ -791,8 +942,11 @@ const SmartEqEngine = () => {
         // where nothing does. See `songKey` above. Read here for the first
         // song; a later one still listening arrives by `restart`.
         halfLifeMs: songHalfLife(previousSongRef.current),
-        onReport: (report) => applyReportRef.current(report, controller),
+        onReport: (report) =>
+          applyReportRef.current(report, controller, measurement),
         onPreview: (preview) => showPreviewRef.current(preview),
+        // After the hold the tap is only the walk's cadence (`applyReport`).
+        onAfterTake: (isLast) => live.afterTake(controller, isLast),
       },
       tRef.current,
     );
@@ -801,8 +955,13 @@ const SmartEqEngine = () => {
     measurement.done.catch((error: unknown) => {
       // Aborting is how this ends, and an abort rejects: nothing to report.
       // Anything else is the tap on the source going away, which is worth a
-      // sentence — the mode is still switched on and now hears nothing.
-      if (error instanceof DOMException && error.name === 'AbortError') {
+      // sentence — the mode is still switched on and now hears nothing —
+      // unless the song was already held, when the tap was only carrying
+      // the last of its curve in and that has landed whole (`onAfterTake`).
+      if (
+        (error instanceof DOMException && error.name === 'AbortError') ||
+        isHeldRef.current
+      ) {
         return;
       }
       // Nothing is measuring any more, so nothing may say it is: the graph's
@@ -811,6 +970,8 @@ const SmartEqEngine = () => {
       if (measurementRef.current === measurement) {
         measurementRef.current = undefined;
       }
+      // And what its curve put on comes off with it.
+      unformRef.current();
       endSmartEqPreview();
       listeningForRef.current = '';
       setSmartEqListening('');
@@ -836,8 +997,10 @@ const SmartEqEngine = () => {
     // source no longer playing. So does a new song after a hold, whose tap is
     // closed (`session`), and Measure again (`remeasures`). The mode does
     // not: see the effect above. A song already held is never measured
-    // again by any of these but Measure again: see `heldSongsRef`.
+    // again by any of these but Measure again: see `heldSongsRef`. `live` is
+    // made once and never changes.
   }, [
+    live,
     isRunning,
     isContinuousOn,
     isSmartBypassed,

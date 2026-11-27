@@ -76,7 +76,13 @@ export const smartPhaseNote = (
     .sort((a, b) => a.confidence - b.confidence)
     .slice(0, 1)
     .map((region) => region.label);
-  return waiting.length > 0 && preview.heardMs > 0
-    ? t('autoEq.smart.note.waitingOn', { ranges: namesOf(waiting, t) })
+  if (waiting.length > 0 && preview.heardMs > 0) {
+    const ranges = namesOf(waiting, t);
+    return preview.isHeardForming
+      ? t('autoEq.smart.note.waitingOnLive', { ranges })
+      : t('autoEq.smart.note.waitingOn', { ranges });
+  }
+  return preview.isHeardForming
+    ? t('autoEq.smart.note.listeningLive')
     : t('autoEq.smart.note.listening');
 };

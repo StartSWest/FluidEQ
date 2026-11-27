@@ -81,6 +81,9 @@ export default {
     'What plays now keeps playing until this song’s correction holds.',
   'autoEq.smart.note.waitingOn':
     'Waiting on {ranges}. What plays now keeps playing until this song’s correction holds.',
+  'autoEq.smart.note.listeningLive': 'The correction comes in as it listens.',
+  'autoEq.smart.note.waitingOnLive':
+    'Waiting on {ranges}. The correction comes in as it listens.',
   'autoEq.smart.note.settling':
     'Checking the curve has stopped moving before it is written.',
   'autoEq.smart.note.held':

@@ -11,8 +11,9 @@ import { useSyncExternalStore } from 'react';
  * 2026-11-20, Direction D of the curve mockup).
  *
  * - `listening`: the tap is open and the curve is forming on the graph from
- *   every checkpoint, written nowhere. The last song's correction keeps
- *   playing.
+ *   every checkpoint; under the FluidEQ Engine it is also heard as it forms,
+ *   a step at a time (`smartEqLiveApply.ts`). Elsewhere what played before
+ *   keeps playing until the hold.
  * - `settling`: everything the record will give has been heard; waiting on
  *   the estimate to stand still (`CONVERGENCE_HOLDS`).
  * - `held`: written once, the tap closed, nothing measured until the next
@@ -52,6 +53,12 @@ export interface ISmartEqPreview {
   /** Low to high, for the dust, the foot's bars and the panel's bar. */
   regions: readonly ISmartEqPreviewRegion[];
   meanCoverage: number;
+  /**
+   * What plays walks toward the curve as it forms (`smartEqLiveApply.ts`:
+   * the FluidEQ Engine, and no kept sound of the song's playing), so the
+   * panel says the correction is coming in, not that what plays stays.
+   */
+  isHeardForming: boolean;
   /** Ranges the held record never reached, which the hold left alone. */
   missing: readonly string[];
   /** Counted up at every hold, so the graph plays its arrival once each. */
@@ -77,6 +84,7 @@ const IDLE: ISmartEqPreview = {
   outcome: undefined,
   regions: [],
   meanCoverage: 0,
+  isHeardForming: false,
   missing: [],
   holdId: 0,
   departing: undefined,

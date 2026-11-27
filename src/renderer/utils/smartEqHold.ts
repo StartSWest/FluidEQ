@@ -19,10 +19,13 @@ import type { ISmartEqPreviewRegion, TSmartEqPhase } from './smartEqPreview';
  * a decibel, all song long: the first correction five to twenty-five seconds
  * in and a dozen rewrites after it, each a reload on the engine's side, with
  * nothing on screen until each one landed. Now it holds: the curve forms on
- * the graph from every checkpoint, and is written once, when the measurement
- * would have finished as a one-shot — every range heard and still, or the
- * stall rule saying the rest of the record will never come. The rules that
- * decide it are the one-shot's, unchanged (`evaluateBalanceCapture`).
+ * the graph from every checkpoint, and the take is decided once, when the
+ * measurement would have finished as a one-shot — every range heard and
+ * still, or the stall rule saying the rest of the record will never come. The
+ * rules that decide it are the one-shot's, unchanged (`evaluateBalanceCapture`).
+ * Under the FluidEQ Engine what plays walks toward the forming curve until
+ * then, in steps too small to hear as steps (`smartEqLiveApply.ts`); those
+ * steps never reach the take, which is why the hold is the same either way.
  */
 
 /**

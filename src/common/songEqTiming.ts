@@ -96,10 +96,11 @@ export const listenedAt = (session: ISongEqSession, now: number) =>
  * The two are one: a correction measured for this song (`isMeasured`) is
  * taken off as the loan is, to flat. Left on, a song with nothing kept for it
  * played the last song's curve until it had been measured itself, a minute
- * later or never.
+ * later or never. So is the curve that was still forming for it when it ended
+ * (`formingKey`): it is as much this song's alone.
  */
-const close = (session: ISongEqSession): TSongEqEffect[] =>
-  session.hasLoan || session.isMeasured
+const close = (session: ISongEqSession, isForming: boolean): TSongEqEffect[] =>
+  session.hasLoan || session.isMeasured || isForming
     ? [
         {
           kind: 'applyLayer',
@@ -119,13 +120,20 @@ export const closeSession = (
   state: ISongEqRecorderState,
   session: ISongEqSession,
 ): [ISongEqRecorderState, TSongEqEffect[]] => {
-  let { liveLayer } = state;
+  let { liveLayer, formingKey } = state;
+  const isForming = formingKey === session.identity.key;
+  if (isForming) {
+    formingKey = undefined;
+  }
   if (session.hasLoan) {
     liveLayer = session.loanLayer;
-  } else if (session.isMeasured) {
+  } else if (session.isMeasured || isForming) {
     liveLayer = undefined;
   }
-  return [{ ...state, session: undefined, liveLayer }, close(session)];
+  return [
+    { ...state, session: undefined, liveLayer, formingKey },
+    close(session, isForming),
+  ];
 };
 
 /** Settle and grace, both of which are time passing rather than

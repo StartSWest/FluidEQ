@@ -82,6 +82,9 @@ export default {
     'इस गाने का सुधार तय होने तक जो अभी चल रहा है वही चलता रहेगा।',
   'autoEq.smart.note.waitingOn':
     'इंतज़ार: {ranges}। इस गाने का सुधार तय होने तक जो अभी चल रहा है वही चलता रहेगा।',
+  'autoEq.smart.note.listeningLive': 'सुनते समय सुधार धीरे-धीरे लागू होता है।',
+  'autoEq.smart.note.waitingOnLive':
+    'इंतज़ार: {ranges}। सुनते समय सुधार धीरे-धीरे लागू होता है।',
   'autoEq.smart.note.settling': 'लिखने से पहले जाँच रहा है कि कर्व रुक गया है।',
   'autoEq.smart.note.held': 'मापना रुक गया है। अगले गाने पर फिर से सुनेगा।',
   'autoEq.smart.note.heldMissing':

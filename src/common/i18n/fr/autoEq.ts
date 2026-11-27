@@ -83,6 +83,9 @@ export default {
     'Ce qui joue maintenant continue jusqu’à ce que la correction de cette chanson soit figée.',
   'autoEq.smart.note.waitingOn':
     'En attente : {ranges}. Ce qui joue maintenant continue jusqu’à ce que la correction de cette chanson soit figée.',
+  'autoEq.smart.note.listeningLive': 'La correction arrive pendant l’écoute.',
+  'autoEq.smart.note.waitingOnLive':
+    'En attente : {ranges}. La correction arrive pendant l’écoute.',
   'autoEq.smart.note.settling':
     'Vérifie que la courbe ne bouge plus avant de l’écrire.',
   'autoEq.smart.note.held':

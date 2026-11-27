@@ -34,6 +34,9 @@ jest.mock('renderer/utils/equalizerApi', () => ({
 }));
 jest.mock('renderer/audio/songEqSession', () => ({
   noteSmartEqWrite: () => undefined,
+  noteSmartEqForming: () => undefined,
+  noteSmartEqHeld: () => undefined,
+  isSongSoundLent: () => false,
 }));
 jest.mock('renderer/audio/nowPlayingIdentity', () => ({
   useNowPlayingIdentity: () => ({ identity: { key: 'song' }, isPlaying: true }),
@@ -63,6 +66,7 @@ const openTap = (done: Promise<never>) =>
     done,
     setSilent: () => undefined,
     restart: () => undefined,
+    hold: () => undefined,
   });
 
 describe('Smart correction over a tap that fails', () => {

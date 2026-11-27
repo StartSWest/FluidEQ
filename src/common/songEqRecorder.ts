@@ -234,6 +234,8 @@ export const reduceSongEq = (
             ...state,
             isAutoEqRunning: false,
             isSaveOn: false,
+            // Nothing forms any more, and the layer goes with the mode.
+            formingKey: undefined,
             session: session
               ? { ...session, hasLoan: false, loanLayer: undefined }
               : session,
@@ -292,6 +294,22 @@ export const reduceSongEq = (
       ];
     }
 
+    case 'forming': {
+      // `ownWrite`, and the song it is forming for — see `formingKey`.
+      const next = {
+        ...state,
+        liveLayer: event.layer,
+        formingKey: event.songKey,
+      };
+      if (!session) {
+        return [next, timed];
+      }
+      return [
+        { ...next, session: { ...session, written: event.layer } },
+        timed,
+      ];
+    }
+
     case 'matched': {
       if (
         // A song's kept correction plays only while Smart correction runs:
@@ -313,8 +331,12 @@ export const reduceSongEq = (
         // Nothing kept for this song: it starts flat, never on the last
         // song's curve (Ivan, 2026-11-26: "smart correction curve is only for
         // that song is carrying to all other songs"), unless this play has
-        // measured it already.
-        if (!state.liveLayer || session.isMeasured) {
+        // measured it already or what plays is its own curve forming.
+        if (
+          !state.liveLayer ||
+          session.isMeasured ||
+          state.formingKey === session.identity.key
+        ) {
           return [state, timed];
         }
         return [

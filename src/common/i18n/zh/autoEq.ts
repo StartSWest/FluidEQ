@@ -80,6 +80,8 @@ export default {
   'autoEq.smart.note.listening': '在这首歌的校正固定之前，当前的声音保持不变。',
   'autoEq.smart.note.waitingOn':
     '等待{ranges}。在这首歌的校正固定之前，当前的声音保持不变。',
+  'autoEq.smart.note.listeningLive': '校正会在聆听时逐步加入。',
+  'autoEq.smart.note.waitingOnLive': '等待{ranges}。校正会在聆听时逐步加入。',
   'autoEq.smart.note.settling': '写入前，正在确认曲线已不再变化。',
   'autoEq.smart.note.held': '测量已停止。下一首歌时会再次聆听。',
   'autoEq.smart.note.heldMissing':

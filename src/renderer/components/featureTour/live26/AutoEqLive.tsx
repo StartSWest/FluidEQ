@@ -96,6 +96,9 @@ const previewAt = (seconds: number): ISmartEqPreview => {
     isSilent: false,
     regions,
     meanCoverage: gathered,
+    // As on the FluidEQ Engine, the default: the correction comes in while
+    // it listens.
+    isHeardForming: true,
     missing: [],
     holdId: 0,
     departId: 0,

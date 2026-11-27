@@ -21,7 +21,11 @@ import {
   isBalanceCheckDue,
   shouldFinishBalanceCapture,
 } from '../utils/autoBalanceCapture';
-import { CONVERGENCE_CHECK_MS } from '../utils/autoBalanceTuning';
+import {
+  BALANCE_FRAME_INTERVAL_MS,
+  CONVERGENCE_CHECK_MS,
+  FRAME_MIN_PEAK_DBFS,
+} from '../utils/autoBalanceTuning';
 import { withHeldEvidence } from '../utils/heldEvidence';
 import { getPresenceLine, presenceAllowance } from '../utils/presenceThreshold';
 import { IRawSourceFrame, TRawSourceKind, openRawSource } from './rawSource';
@@ -69,6 +73,19 @@ export interface IMeasurementOptions extends IBalanceListenBounds {
    * curve the graph draws while it forms — see `ISmartEqPreviewReport`.
    */
   onPreview?: (preview: ISmartEqPreviewReport) => void;
+  /**
+   * Half a second of music heard after the take, for as long as the caller
+   * keeps the tap.
+   *
+   * Given, the take's end — a one-shot's own finish, or `hold` — leaves the
+   * tap open, and it closes on `signal` and never by itself. Nothing more is
+   * measured: what arrives is only the music's own cadence, which is what
+   * Smart correction walks the last of its curve in on
+   * (`smartEqLiveApply.ts`) instead of a timer. The tap going away by itself
+   * calls it one last time with `isLast`, so whatever was waiting on the next
+   * half second is done then rather than never.
+   */
+  onAfterTake?: (isLast: boolean) => void;
 }
 
 /**
@@ -110,6 +127,12 @@ export interface IMeasurement {
    * given (see `halfLifeMs`).
    */
   restart: (halfLifeMs?: number) => void;
+  /**
+   * The caller has its take: nothing more is measured. With `onAfterTake`
+   * the tap stays open as its cadence until `signal` aborts; without it this
+   * closes the tap, as an abort would.
+   */
+  hold: () => void;
 }
 
 /** What the graph draws of a running measurement. */
@@ -195,6 +218,11 @@ export const measureSource = (
   let lastProgress: IBalanceProgress | undefined;
   let isSilent = false;
   let settled = false;
+  /** The take is complete and the tap is kept only as `onAfterTake`'s cadence. */
+  let taken = false;
+  /** Music heard since the last `onAfterTake`, and when the last frame came. */
+  let afterTakeMs = 0;
+  let afterTakeFrameAt: number | undefined;
   let close: (() => void) | undefined;
   let resolveDone: (value: IBalanceResult) => void = () => undefined;
   let rejectDone: (reason: Error) => void = () => undefined;
@@ -224,6 +252,40 @@ export const measureSource = (
   function onAbort() {
     end(new DOMException('Measurement cancelled.', 'AbortError'));
   }
+
+  /** Nothing more is measured; the meters stop drawing a measurement. */
+  const take = () => {
+    taken = true;
+    publish({
+      presenceLevels: NO_LEVELS,
+      presenceTypical: NO_LEVELS,
+    });
+  };
+
+  /**
+   * After the take a frame is only time: music heard counts as the capture
+   * counts it (a late frame claims three intervals at most, and silence buys
+   * nothing), and every half second of it is one `onAfterTake`.
+   */
+  const keepTime = (frame: IRawSourceFrame) => {
+    const at = performance.now();
+    const elapsed =
+      afterTakeFrameAt === undefined
+        ? 0
+        : Math.min(
+            Math.max(at - afterTakeFrameAt, 0),
+            BALANCE_FRAME_INTERVAL_MS * 3,
+          );
+    afterTakeFrameAt = at;
+    if (frame.peakDb === undefined || frame.peakDb <= FRAME_MIN_PEAK_DBFS) {
+      return;
+    }
+    afterTakeMs += elapsed;
+    if (afterTakeMs >= CONVERGENCE_CHECK_MS) {
+      afterTakeMs = 0;
+      options.onAfterTake?.(false);
+    }
+  };
 
   const publishProgress = (progress: IBalanceProgress) => {
     lastPercent = progress.percent;
@@ -300,12 +362,22 @@ export const measureSource = (
     );
     options.onReport?.(report);
     if (!options.isContinuous && shouldFinishBalanceCapture(report)) {
-      end(buildBalanceResult(report));
+      if (options.onAfterTake) {
+        // The take is the answer; the tap stays for the caller's walk.
+        take();
+        resolveDone(buildBalanceResult(report));
+      } else {
+        end(buildBalanceResult(report));
+      }
     }
   };
 
   const onFrame = (frame: IRawSourceFrame) => {
     if (settled) {
+      return;
+    }
+    if (taken) {
+      keepTime(frame);
       return;
     }
     if (!state) {
@@ -354,7 +426,12 @@ export const measureSource = (
     openRawSource({
       kind: options.source,
       onFrame,
-      onLost: (reason) => end(new Error(t(reason))),
+      onLost: (reason) => {
+        if (taken && !settled) {
+          options.onAfterTake?.(true);
+        }
+        end(new Error(t(reason)));
+      },
     })
       .then((closeSource) => {
         if (settled) {
@@ -369,8 +446,10 @@ export const measureSource = (
 
   return {
     done,
+    // A taken measurement has nothing left to start again: a new record is
+    // a new measurement.
     restart: (nextHalfLifeMs) => {
-      if (settled) {
+      if (settled || taken) {
         return;
       }
       halfLifeMs = nextHalfLifeMs;
@@ -386,8 +465,18 @@ export const measureSource = (
         presenceTypical: NO_LEVELS,
       });
     },
+    hold: () => {
+      if (settled || taken) {
+        return;
+      }
+      if (options.onAfterTake) {
+        take();
+      } else {
+        onAbort();
+      }
+    },
     setSilent: (silent) => {
-      if (isSilent === silent || settled) {
+      if (isSilent === silent || settled || taken) {
         return;
       }
       isSilent = silent;

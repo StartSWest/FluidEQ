@@ -82,6 +82,9 @@ const autoEq = {
     '이 노래의 보정이 고정될 때까지 지금 소리가 그대로 재생됩니다.',
   'autoEq.smart.note.waitingOn':
     '{ranges} 기다리는 중. 이 노래의 보정이 고정될 때까지 지금 소리가 그대로 재생됩니다.',
+  'autoEq.smart.note.listeningLive': '듣는 동안 보정이 조금씩 적용됩니다.',
+  'autoEq.smart.note.waitingOnLive':
+    '{ranges} 기다리는 중. 듣는 동안 보정이 조금씩 적용됩니다.',
   'autoEq.smart.note.settling':
     '기록하기 전에 곡선이 멈췄는지 확인하는 중입니다.',
   'autoEq.smart.note.held': '측정이 끝났습니다. 다음 노래에서 다시 듣습니다.',

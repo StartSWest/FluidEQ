@@ -78,6 +78,8 @@ const autoEq = {
   'autoEq.smart.note.listening': '在這首歌的校正固定之前，目前的聲音保持不變。',
   'autoEq.smart.note.waitingOn':
     '等待{ranges}。在這首歌的校正固定之前，目前的聲音保持不變。',
+  'autoEq.smart.note.listeningLive': '校正會在聆聽時逐步加入。',
+  'autoEq.smart.note.waitingOnLive': '等待{ranges}。校正會在聆聽時逐步加入。',
   'autoEq.smart.note.settling': '寫入前，正在確認曲線已不再變化。',
   'autoEq.smart.note.held': '測量已停止。下一首歌時會再次聆聽。',
   'autoEq.smart.note.heldMissing':
