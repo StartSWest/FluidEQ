@@ -49,6 +49,12 @@ export interface ISongSoundSession {
    */
   isPresetOnly?: boolean;
   /**
+   * The ask that puts its saved sound on, while main has not answered it.
+   * Refused, the sound never went on: the song gives back what it borrowed
+   * and plays the listener's own (`applied` in `songSoundRecorder.ts`).
+   */
+  goingOn?: ISongSound;
+  /**
    * Something other than the listener's hand reached it — a profile loaded or
    * saved, a game's sound, an output switch: nothing is saved for it and
    * nothing lent to it for the rest of this play.

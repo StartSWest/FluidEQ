@@ -184,16 +184,21 @@ export const reduceSongSound = (
         sound !== undefined &&
         state.pending !== undefined &&
         sameSongSound(sound, state.pending);
+      // A song opened before the window knew its sound begins with the first
+      // one it hears.
+      const opened =
+        session && !session.baseline && !state.pending
+          ? { ...session, baseline: sound }
+          : session;
       const next: ISongSoundState = {
         ...state,
         live: sound,
         pending: isArrived ? undefined : state.pending,
-        // A song opened before the window knew its sound begins with the
-        // first one it hears.
+        // Heard, its saved sound is on: nothing is going on any more.
         session:
-          session && !session.baseline && !state.pending
-            ? { ...session, baseline: sound }
-            : session,
+          opened && isArrived && opened.goingOn === state.pending
+            ? { ...opened, goingOn: undefined }
+            : opened,
       };
       return [
         byHand(
@@ -238,18 +243,42 @@ export const reduceSongSound = (
       if (state.pending !== event.asked) {
         return [state, timed];
       }
-      const landed = event.landed ?? state.live;
+      if (
+        event.landed === undefined &&
+        session?.owner &&
+        session.goingOn === event.asked
+      ) {
+        // A song's or an album's sound main refused never went on, and the
+        // song plays what it borrowed from: given back, so main holds no
+        // loan nobody will end and the card names the listener's own. Ivan's
+        // window (2026-11-26) sent a preset alone to a main process started
+        // before main learnt to take one; the refusal was recorded as the
+        // album's sound landing as the K-pop that still played, and the card
+        // said "Changed · K-pop" with Restore Ballad over a sound nobody had
+        // touched.
+        return withTimed(
+          giveBack({ ...state, pending: undefined }, session, {
+            goingOn: undefined,
+          }),
+        );
+      }
+      const { landed } = event;
+      const settled =
+        session && session.goingOn === event.asked
+          ? { ...session, goingOn: undefined }
+          : session;
       return [
         {
           ...state,
           pending: undefined,
-          live: landed,
+          live: landed ?? state.live,
           // What a song was put on with is what landed, so the difference is
-          // not read as somebody's edit at its end.
+          // not read as somebody's edit at its end. Nothing landed is no new
+          // saved sound: a refused Back to saved leaves the change offered.
           session:
-            session && session.baseline === event.asked
-              ? { ...session, baseline: landed }
-              : session,
+            settled && landed && settled.baseline === event.asked
+              ? { ...settled, baseline: landed }
+              : settled,
         },
         timed,
       ];

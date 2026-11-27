@@ -358,7 +358,10 @@ export const matched = (
     return [base, []];
   }
   const cleared: ISongSoundState = { ...base, owed: undefined };
-  const lentTo = (next: ISongSoundState): ISongSoundState => ({
+  const lentTo = (
+    next: ISongSoundState,
+    effects: TSongSoundEffect[],
+  ): ISongSoundState => ({
     ...next,
     session: {
       ...session,
@@ -366,13 +369,18 @@ export const matched = (
       baseline: saved,
       handBack: before,
       isPresetOnly,
+      // Only an ask made here puts the saved sound on; one already playing
+      // under the loan held is asked for by nothing.
+      goingOn: effects.some(({ kind }) => kind === 'apply')
+        ? next.pending
+        : undefined,
     },
   });
   if (sameSongSound(before, sound)) {
     // The song's sound is the listener's own: it goes on as theirs is, lent
     // all the same (`lendAsOwn`), with nothing to announce.
     const [lent, effects] = lendAsOwn(cleared, before, isPresetOnly);
-    return [lentTo(lent), effects];
+    return [lentTo(lent, effects), effects];
   }
   const [lent, effects] = lend(
     cleared,
@@ -385,7 +393,7 @@ export const matched = (
     !session.baseline ||
     !sameSongSound(session.baseline, saved);
   return [
-    lentTo(lent),
+    lentTo(lent, effects),
     isNews
       ? [
           ...effects,
