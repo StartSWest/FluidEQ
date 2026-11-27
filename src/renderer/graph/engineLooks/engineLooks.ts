@@ -210,7 +210,13 @@ export const engineAnalysisStep = (
 // Invaders used, and the night sky its streaks (2026-11-27).
 // 10: the Skyline's filled towers carry a hairline of their own colour
 // inside each edge (`towerEdgeInk`, 2026-11-27).
-const LOOK_PACK_VERSION = 10;
+// 11: the Analyzer's hold is dashed along its line, as the page's canvas
+// dashes it, on both sides of the Brightness (`holdDashes.ts`), and its data
+// carries each hold's length along the line; Before & after parts its
+// two curves into a lift and a cut instead of stacking a before-body under
+// the reading (2026-11-27; written as 9 on its own branch, landed after the
+// removal and the Skyline's 9 and 10).
+const LOOK_PACK_VERSION = 11;
 
 const packs = new Map<GraphStyle, IScenePack>();
 

@@ -4,6 +4,8 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { floorInk } from '../../utils/windowInk';
+import { isLightWindow } from '../../utils/windowSide';
 import type { IAnalysisBand, IAnalysisPlot } from './analysisFrame';
 
 /**
@@ -15,14 +17,25 @@ import type { IAnalysisBand, IAnalysisPlot } from './analysisFrame';
  * corner figures, 3px above the floor (`_graphThemeChart.scss`), and the Cs
  * were printed in that same strip at 9px and a fifth of white's strength:
  * crossed by the names and too faint to find (Ivan, 2026-11-17: "the graph
- * note numbers need to be seen too"). Their baseline now stands 17px above a
- * figure's foot — the names' 3px, their 12px, and 2px of air over their
- * tops — so the two rows cannot meet at any width.
+ * note numbers need to be seen too").
+ *
+ * The frequency names' own box reaches 20px over the foot (12px type lifted
+ * 0.71em + 14px, `.chart-axis--inside-bottom`, measured in the window at 760
+ * and 1600 wide), so a baseline 17px up stood inside it: the energy view's
+ * BASS sat on "100 Hz" and MID on "500 Hz" with a pixel or two between them
+ * (Ivan, 2026-11-27: "put the sub, bass, mid a bit more up so they don't
+ * mess with the grid freq numbers"). The baseline now stands 26px up: the
+ * names' 20px and 6px of air, which capitals and figures, having no
+ * descenders, keep whole. The key over the row moves with it
+ * (`LEGEND_FLOOR`, `channelInk.ts`).
  *
  * A wave hanging from the top prints them under its top edge instead, where
  * there are no frequency names.
  */
-const FOOT_WORD_LIFT = 17;
+export const FOOT_WORD_LIFT = 26;
+
+/** How tall a word on the row stands over its baseline, at most. */
+export const FOOT_WORD_HEIGHT = 8;
 const HUNG_WORD_DROP = 3;
 
 /**
@@ -79,9 +92,33 @@ export const placeFootWord = (
 };
 
 /**
- * A word keyed in dark under its fill, as the scales' figures are
- * (`.chart-axis--inside text`), so it reads over a bright bar, a scene or a
- * light theme's paper alike.
+ * How solid the key under a word is, and how far toward black a dark
+ * window's is taken.
+ */
+export const FOOT_WORD_KEY_ALPHA = 0.75;
+export const FOOT_WORD_KEY_DARKER = 0.6;
+
+/**
+ * The key a word is set on: the window's floor, so it is the far end of the
+ * window's contrast from the ink every word here is written in (`readEdge`,
+ * `readInk`) - dark under light letters on a dark window, the light floor
+ * under dark ones on a light window - and the word reads over a bright bar
+ * or a quiet gap alike.
+ *
+ * It was a near-black written in, which suited the dark window alone: on the
+ * white one the ink turns dark too, and each name was dark letters in a dark
+ * outline, a blob where a C should be (Ivan, 2026-11-27: "notes not visible
+ * in white"). A dark window's floor is taken toward black, where the old key
+ * stood; a light window's is the floor itself, since even the share of
+ * darkening a light window keeps (`floorDarkening`) turned it into a grey
+ * smudge round each name over a deep bar.
+ */
+export const footWordKey = (): string =>
+  floorInk(FOOT_WORD_KEY_ALPHA, isLightWindow() ? 0 : FOOT_WORD_KEY_DARKER);
+
+/**
+ * A word set over the window's own key (`footWordKey`), the stroke painted
+ * under the fill, so it reads over whatever the view drew beneath it.
  */
 export const paintKeyedWord = (
   context: CanvasRenderingContext2D,
@@ -92,7 +129,7 @@ export const paintKeyedWord = (
 ): void => {
   context.lineJoin = 'round';
   context.lineWidth = 3;
-  context.strokeStyle = 'rgba(2, 8, 15, 0.75)';
+  context.strokeStyle = footWordKey();
   context.strokeText(text, x, y);
   context.fillStyle = ink;
   context.fillText(text, x, y);

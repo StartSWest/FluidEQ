@@ -14,7 +14,11 @@ import {
   readSurface,
   readTextInk,
 } from '../../utils/theme';
-import { windowFloor, windowLevelRamps } from '../../utils/windowInk';
+import {
+  windowFloor,
+  windowLevelRamps,
+  windowLoudnessRamps,
+} from '../../utils/windowInk';
 import { isLightWindow } from '../../utils/windowSide';
 import { getWindowTintSecondary } from '../../utils/windowTint';
 import { mateColours } from '../analysis/channelInk';
@@ -127,10 +131,24 @@ const ONE_ROLES: ReadonlyArray<readonly [string, TReadRole]> = [
   ...SURFACE_ROLES,
 ];
 
+/**
+ * The Spectrogram's ramps through the window's colours, their lightness
+ * carrying the level (`windowLoudnessRamps`), and the turned copy of the
+ * first the view paints a second reading in where the window has no
+ * secondary to build one from (`mateColours`).
+ */
+const loudnessRamps = () => windowLoudnessRamps();
+const loudnessMate = () => {
+  const ramps = loudnessRamps();
+  return ramps.mate ?? mateColours(ramps.colours);
+};
+
 /** Seven stops, and their turned copies. */
 const MANY_ROLES: ReadonlyArray<readonly [string, TReadRole]> = [
   ...numbered('stop', STOPS, getRainbowStops),
   ...numbered('mate', STOPS, () => mateColours(getRainbowStops())),
+  ...numbered('loud', LEVEL_STOPS, () => loudnessRamps().colours),
+  ...numbered('loud-mate', LEVEL_STOPS, loudnessMate),
   ...SURFACE_ROLES,
 ];
 
@@ -150,6 +168,14 @@ const OWN_ROLES: Readonly<Record<string, string>> = {
   'tower-0': 'skyline',
   'tower-1': 'skyline',
   'tower-2': 'skyline',
+  // The Spectrogram's own ramps: lightened and deepened copies of the stops
+  // no other look paints in, which would otherwise stand in for a stop.
+  ...Object.fromEntries(
+    Array.from({ length: LEVEL_STOPS }, (_, index) => [
+      [`loud-${index}`, 'spectrogram'],
+      [`loud-mate-${index}`, 'spectrogram'],
+    ]).flat(),
+  ),
 };
 
 /**

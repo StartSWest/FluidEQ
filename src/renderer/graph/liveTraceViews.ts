@@ -34,6 +34,7 @@ import {
 import {
   lookPaintColours,
   windowLevelRamps,
+  windowLoudnessRamps,
   windowMateColours,
   windowViewPalette,
 } from '../utils/windowInk';
@@ -175,9 +176,17 @@ export const drawMeasuringFrame = ({
   };
   // A raster of loudness with one colour to paint it in climbs a ramp made
   // of that colour, whatever Colour by says: a single colour across the
-  // axis or flat is a rectangle with holes in it (`windowLevelRamps`).
+  // axis or flat is a rectangle with holes in it (`windowLevelRamps`). With
+  // the window's several colours and Colour by level, it climbs through
+  // them, its lightness carrying the level (`windowLoudnessRamps`); a look's
+  // own colours, or another Colour by, are painted as they were chosen.
+  const own = lookRef.current.colours;
   const ramps = LEVEL_AS_COLOUR.has(chosen)
-    ? windowLevelRamps(lookRef.current.colours)
+    ? (windowLevelRamps(own) ??
+      (own.length === 0 &&
+      resolveGraphPalette(chosen, lookRef.current.palette) === 'level'
+        ? windowLoudnessRamps()
+        : undefined))
     : undefined;
   const viewPalette = ramps
     ? 'level'

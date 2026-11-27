@@ -8,9 +8,7 @@ import { STILL_ENOUGH, type IAnalysisReading } from '../analysis/analysisFrame';
 import {
   ANALYZER_FIGURES,
   HOLD_LINE_ALPHA,
-  HOLD_LINE_WIDTH,
   LIGHT_WINDOW_FILL_SHARE,
-  LIGHT_WINDOW_HOLD_DASH,
   PIP_ALPHA,
   PIP_RADIUS,
   advanceAnalyzer,
@@ -19,6 +17,12 @@ import {
   isPip,
   type IAnalyzerFigure,
 } from '../analysis/analyzerView';
+import {
+  HOLD_DASH,
+  HOLD_DASH_GAP,
+  HOLD_LINE_WIDTH,
+  holdLengths,
+} from '../analysis/holdDashes';
 import { spectrumEnergy } from '../analysis/spectrumPaint';
 import type { IEngineAnalysisLook } from './analysisLookTypes';
 import type { IEngineLookInput } from './engineLookInput';
@@ -37,9 +41,49 @@ import { setLookVector, sizeLookData } from './lookInput';
  *   uLook[11] the behind figure's
  *   texel (i, copy * 2)      x, the front curve's row, its hold's, 1 at a pip
  *   texel (i, copy * 2 + 1)  the same for the curve behind it
+ *   texel (i, copy * 2 + 4), (i, copy * 2 + 5)  in .x, how far along each of
+ *             those holds' lines the point stands (`holdLengths`)
  */
 
+const PITCH = HOLD_DASH + HOLD_DASH_GAP;
+
 const GLSL = `
+// How much of p the hold's dashed line covers (\`holdDashes.ts\`): the
+// canvas's own line dash, laid along the line from its first point, each
+// dash a stretch of the line with round ends. The nearest stretch of the
+// line is found as anDistances finds it, and how far along the line p
+// falls is read from the lengths row four rows below the curve's own.
+float analyzerHoldDash(vec2 p, int row, int seg) {
+  float reach = ${(HOLD_LINE_WIDTH * 0.5).toFixed(3)} + lookPixel();
+  int last = anPoints() - 1;
+  float best = 1e9;
+  float along = 0.0;
+  for (int k = -64; k <= 64; k++) {
+    int j = seg + k;
+    if (j < 0 || j >= last) {
+      continue;
+    }
+    vec4 a = anPoint(j, row);
+    vec4 b = anPoint(j + 1, row);
+    if (b.x < p.x - reach || a.x > p.x + reach) {
+      continue;
+    }
+    vec2 ab = b.xz - a.xz;
+    float span = dot(ab, ab);
+    float t = span > 0.0 ? clamp(dot(p - a.xz, ab) / span, 0.0, 1.0) : 0.0;
+    float d = length(p - (a.xz + ab * t));
+    if (d < best) {
+      best = d;
+      along = anPoint(j, row + 4).x + t * sqrt(span);
+    }
+  }
+  float phase = mod(along, ${PITCH.toFixed(1)});
+  float off = phase <= ${HOLD_DASH.toFixed(1)}
+    ? 0.0
+    : min(phase - ${HOLD_DASH.toFixed(1)}, ${PITCH.toFixed(1)} - phase);
+  return lookStroke(length(vec2(off, best)), ${HOLD_LINE_WIDTH.toFixed(3)});
+}
+
 vec4 analyzerFigure(vec4 picture, vec2 p, vec4 band, int row, int seg, bool mate, float energy, float halo, vec4 figure) {
   float haloWidth = halo > 0.0 ? anEdgeWidth() + 10.0 * halo : 0.0;
   float reach = max(max(figure.z, haloWidth), ${HOLD_LINE_WIDTH.toFixed(3)}) * 0.5 + lookPixel();
@@ -73,13 +117,10 @@ vec4 analyzerFigure(vec4 picture, vec2 p, vec4 band, int row, int seg, bool mate
   if (figure.y > 0.0) {
     picture = lookOver(picture, lookPaint(anEdgeInk(p, band, mate, energy), figure.y * lookStroke(d.x, figure.z)));
   }
-  // The hold, and a pip wherever the reading still touches it, in the
-  // window's strongest ink as the 2D view draws them (\`readInk\`): white on
-  // a dark window, near-black on a light one, where white was invisible.
-  float dash = onWhite
-    ? step(fract(p.x / ${(LIGHT_WINDOW_HOLD_DASH * 2).toFixed(1)}), 0.5)
-    : 1.0;
-  picture = lookOver(picture, lookPaint(uWindowInk, dash * figure.w * ${HOLD_LINE_ALPHA.toFixed(3)} * lookStroke(d.y, ${HOLD_LINE_WIDTH.toFixed(3)})));
+  // The hold's dashed line, and a pip wherever the reading still touches
+  // it, in the window's strongest ink as the 2D view draws them
+  // (\`readInk\`): white on a dark window, near-black on a light one.
+  picture = lookOver(picture, lookPaint(uWindowInk, figure.w * ${HOLD_LINE_ALPHA.toFixed(3)} * analyzerHoldDash(p, row, seg)));
   float pip = 0.0;
   for (int j = seg - 2; j <= seg + 3; j++) {
     vec4 point = anPoint(j, row);
@@ -127,6 +168,9 @@ const setFigure = (
     figure.hold,
   );
 
+/** The lengths along a hold's line, kept between frames. */
+let lengths = new Float64Array(0);
+
 const analyzerLook: IEngineAnalysisLook = {
   glsl: GLSL,
   step: (readings, state, input) => {
@@ -136,7 +180,22 @@ const analyzerLook: IEngineAnalysisLook = {
     // The curves drawn: the joined reading, or the left in front of the right.
     const pair = split && holds.behind ? split : undefined;
     const front = pair ? pair[0] : levels;
-    const data = sizeLookData(input, levels.length, 4);
+    const data = sizeLookData(input, levels.length, 8);
+    if (lengths.length !== levels.length) {
+      lengths = new Float64Array(levels.length);
+    }
+    // How far along each hold's line its points stand, four rows below the
+    // curves', for the dashes (`holdLengths`).
+    const writeLengths = (
+      row: number,
+      reading: IAnalysisReading,
+      hold: Float64Array,
+    ) => {
+      holdLengths(reading, hold, lengths);
+      for (let index = 0; index < lengths.length; index += 1) {
+        data[((row + 4) * levels.length + index) * 4] = lengths[index];
+      }
+    };
     const pips = (hold: Float64Array) => (index: number) =>
       isPip(hold[index], levels[index]) ? 1 : 0;
     readings.forEach((reading, copy) => {
@@ -147,6 +206,7 @@ const analyzerLook: IEngineAnalysisLook = {
         [front, holds.front],
         pips(holds.front),
       );
+      writeLengths(copy * 2, reading, holds.front);
       if (pair && holds.behind) {
         writeCurves(
           data,
@@ -155,6 +215,7 @@ const analyzerLook: IEngineAnalysisLook = {
           [pair[1], holds.behind],
           pips(holds.behind),
         );
+        writeLengths(copy * 2 + 1, reading, holds.behind);
       }
     });
     setLookVector(

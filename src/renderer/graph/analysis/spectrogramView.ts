@@ -69,12 +69,33 @@ export interface ISpectrogramStrip {
   mate: boolean;
 }
 
+/**
+ * The band a copy of the picture fills: the reading's, reaching on up to
+ * the top of the graph where the reading's reaches the plot's top.
+ *
+ * The plot's top stands a band handle's headroom under the graph's own top
+ * (`HANDLE_INSET`, `graphPaper.ts`), so a handle at +20 dB is drawn whole,
+ * and every view that draws a level keeps out of that strip: a reading at
+ * the top of the right-hand scale has to land on its line. This picture's
+ * height is time, not level, so it lands on no line and the strip was an
+ * empty band of floor over the oldest rows (Ivan, 2026-11-27: "some graph
+ * can be more top while making sure they are accurate with the grid dBs and
+ * numbers"). It now runs to the top; the scales and the EQ are untouched.
+ */
+export const spectrogramBand = (
+  reading: Pick<IAnalysisReading, 'band' | 'plot'>,
+): IAnalysisBand => {
+  const { band, plot } = reading;
+  return band.top <= plot.top && plot.top > 0 ? { ...band, top: 0 } : band;
+};
+
 /** The strips this frame draws: one, or the left above the right. */
 export const spectrogramStrips = (
   reading: IAnalysisReading,
   state: IAnalysisState,
 ): ISpectrogramStrip[] => {
-  const { band, split, levels } = reading;
+  const { split, levels } = reading;
+  const band = spectrogramBand(reading);
   const [left, right] = state.strips;
   if (split) {
     const [upper, lower] = halveBand(band);

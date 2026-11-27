@@ -8,6 +8,7 @@ import { halveBand } from '../analysis/analysisFrame';
 import {
   ROW_FADE_IN,
   advanceStrip,
+  spectrogramBand,
   spectrogramStrips,
   stripSize,
 } from '../analysis/spectrogramView';
@@ -122,7 +123,8 @@ const spectrogramLook: IEngineAnalysisLook = {
       strips[1]?.strip.height ?? 0,
     );
     readings.forEach((reading, copy) => {
-      const bands = first.split ? halveBand(reading.band) : [reading.band];
+      const whole = spectrogramBand(reading);
+      const bands = first.split ? halveBand(whole) : [whole];
       [0, 1].forEach((index) => {
         const band = bands[index];
         setLookVector(

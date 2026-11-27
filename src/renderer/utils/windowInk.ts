@@ -8,7 +8,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { useMemo } from 'react';
 import type { GraphPalette, ResolvedGraphPalette } from 'common/graphStyles';
-import { isOneColour, levelRamp } from './levelRamp';
+import { isOneColour, levelRamp, levelRampAcross } from './levelRamp';
 import { labToHex, parseCssColour, rgbToLab } from './oklab';
 import { getRainbowStops, useRainbowStops } from './rainbowPalette';
 import { readSurface, useLiveSurface, useRootHasClass } from './theme';
@@ -418,6 +418,29 @@ export const windowLevelRamps = (
   return {
     colours: levelRamp(colour, ground),
     mate: levelRamp(windowSecondary(), ground),
+  };
+};
+
+/**
+ * For the Spectrogram in the window's colours where `windowLevelRamps` has
+ * none to give - two or more of them, a Tint's second colour or a Plus
+ * scene's rainbow - and the look is coloured by level: a ramp through those
+ * colours whose lightness carries the level (`levelRampThrough`), and the
+ * second reading's through the secondary's walk. In Rainbow mode there is
+ * no second colour, and the view turns the first ramp for it.
+ */
+export const windowLoudnessRamps = (): ILevelRamps => {
+  const ground = asHex(
+    readSurface('--surface-base', FLOOR_FALLBACK),
+    FLOOR_FALLBACK,
+  );
+  const mateSet = windowMateColours('level');
+  return {
+    colours: levelRampAcross(windowColours(), ground),
+    mate:
+      mateSet && mateSet.length > 1
+        ? levelRampAcross(mateSet, ground)
+        : undefined,
   };
 };
 

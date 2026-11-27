@@ -19,7 +19,12 @@ import {
   type IBarView,
 } from './barRows';
 import { readNamedBands } from './octaveBands';
-import { footWordFont, footWordLine } from './footWords';
+import {
+  FOOT_WORD_HEIGHT,
+  footWordFont,
+  footWordLine,
+  paintKeyedWord,
+} from './footWords';
 
 /**
  * Energy bands: the whole record as five meters.
@@ -166,10 +171,13 @@ export const paintEnergyWords = (
     const middle = left + width / 2;
     context.font = footWordFont(700, 10);
     context.textBaseline = line.baseline;
-    context.globalAlpha = band.opacity * 0.85;
-    context.fillStyle = readInk(0.82);
+    // Keyed on the window's floor as the note names are (`paintKeyedWord`):
+    // bare, at four fifths of the ink, they were grey letters on a pale
+    // blue column on the white window, hard to find once lifted off the
+    // frequency names they used to lean on.
+    context.globalAlpha = band.opacity;
     if (fits(labels[index], width)) {
-      context.fillText(labels[index], middle, line.y);
+      paintKeyedWord(context, labels[index], middle, line.y, readInk(0.82));
     }
     const head = placeLevel(band, Math.max(bands[index], hold[index]));
     context.font = `600 ${FIGURE_PX}px system-ui, sans-serif`;
@@ -178,7 +186,11 @@ export const paintEnergyWords = (
     // Over the column's head, clear of its hold mark, or not at all: a
     // column near the top of its scale printed its figure off the plot, cut
     // in half, and pushed back inside it the figure sat on the hold mark.
-    const at = band.flipped ? head + FIGURE_PX : head - FIGURE_PX;
+    // And never on the column's name: a quiet column's head stands in the
+    // word row, and its figure is lifted clear of the name instead.
+    const at = band.flipped
+      ? Math.max(head + FIGURE_PX, line.y + FOOT_WORD_HEIGHT + 4)
+      : Math.min(head - FIGURE_PX, line.y - FOOT_WORD_HEIGHT - 4);
     const room = band.flipped
       ? at + FIGURE_PX <= band.bottom
       : at - FIGURE_PX >= band.top;

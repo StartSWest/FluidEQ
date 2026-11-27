@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { readInk } from '../../utils/theme';
 import { floorInk } from '../../utils/windowInk';
+import { FOOT_WORD_HEIGHT, FOOT_WORD_LIFT } from './footWords';
 import { noteLegendPlace } from './legendPlace';
 import {
   rampRgba,
@@ -136,12 +137,12 @@ export interface ILegendEntry {
 /**
  * Room left under the legend: clear of the graph's frequency names, which
  * stand inside the plot's foot, and of the row two views print above them —
- * the octave Cs of the note spectrum, the bands of the energy view — whose
- * baseline is 17px up and whose letters reach about 25 (`footWords.ts`). At
- * 20 the key stood on those letters. The same on every view, so the key
- * does not jump when the look changes.
+ * the octave Cs of the note spectrum, the bands of the energy view — with
+ * 4px of air over that row's letters (`footWords.ts`). At 20 the key stood
+ * on those letters. The same on every view, so the key does not jump when
+ * the look changes.
  */
-const LEGEND_FLOOR = 30;
+const LEGEND_FLOOR = FOOT_WORD_LIFT + FOOT_WORD_HEIGHT + 4;
 
 /**
  * How far in from the plot's left edge the key starts: clear of the gain

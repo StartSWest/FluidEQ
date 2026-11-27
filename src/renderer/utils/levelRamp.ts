@@ -77,14 +77,62 @@ const labOf = (colour: string): ILab | undefined => {
   return parsed ? rgbToLab(parsed.rgb) : undefined;
 };
 
+/** One stop of a ladder: its lightness, and the share of chroma it keeps. */
+interface IRung {
+  l: number;
+  chroma: number;
+}
+
+/**
+ * The five lightnesses a loudness ramp climbs, quiet to loud, for a colour
+ * of lightness `colourL` over a ground of lightness `groundL`, and which rung
+ * is the colour's own lightness: monotonic away from the ground, with the
+ * colour in the middle, where most of a song's readings sit, and the loud
+ * half spent leaving it, so loud passages stand out of the body of the
+ * picture instead of sharing its colour. Light or dark is the ground's own
+ * lightness, so the ramp cannot disagree with the floor it is drawn on.
+ */
+const ladderOf = (colourL: number, groundL: number): readonly IRung[] => {
+  if (groundL >= 0.5) {
+    const quiet = Math.min(0.97, groundL - QUIET_LIFT);
+    const deep = Math.max(DEEP_FLOOR, Math.min(colourL, quiet) - DEEP_DROP);
+    // The colour itself, unless it stands too near the ground or too near
+    // the deep end to be a step of its own: then the ramp's own middle of
+    // those two, so the stops still climb.
+    const body = Math.min(
+      quiet - MIN_STEP * 2,
+      Math.max(deep + MIN_STEP, colourL),
+    );
+    return [
+      { l: quiet, chroma: QUIET_CHROMA },
+      { l: (quiet + body) / 2, chroma: MIDDLE_CHROMA },
+      { l: body, chroma: 1 },
+      { l: (body + deep) / 2, chroma: (1 + DEEP_CHROMA) / 2 },
+      { l: deep, chroma: DEEP_CHROMA },
+    ];
+  }
+  const quiet = Math.max(0.03, groundL + QUIET_LIFT);
+  const hot = Math.min(0.97, Math.max(HOT_LIGHTNESS, colourL + MIN_STEP));
+  const body = Math.max(
+    quiet + MIN_STEP * 2,
+    Math.min(Math.max(HOT_LIGHTNESS, colourL + MIN_STEP) - MIN_STEP, colourL),
+  );
+  return [
+    { l: quiet, chroma: QUIET_CHROMA },
+    { l: Math.max(quiet + MIN_STEP, body - DUSK_DROP), chroma: DEEP_CHROMA },
+    { l: body, chroma: 1 },
+    { l: (body + hot) / 2, chroma: (1 + HOT_CHROMA) / 2 },
+    { l: hot, chroma: HOT_CHROMA },
+  ];
+};
+
+/** The ladder's middle rung, which is the colour where it can be. */
+const BODY_RUNG = 2;
+
 /**
  * `colour`'s loudness ramp over a window whose ground is `ground`: five
- * stops, quiet to loud, monotonic in lightness away from the ground, with
- * the colour itself in the middle, where most of a song's readings sit, and
- * the loud half spent leaving it, so loud passages stand out of the body of
- * the picture instead of sharing its colour. Light
- * or dark is the ground's own lightness, so the ramp cannot disagree with
- * the floor it is drawn on.
+ * stops, quiet to loud, climbing `ladderOf`'s lightnesses in that one hue,
+ * the middle stop the colour itself.
  */
 export const levelRampOf = (colour: string, ground: string): TLevelRamp => {
   const hue = labOf(colour);
@@ -92,36 +140,64 @@ export const levelRampOf = (colour: string, ground: string): TLevelRamp => {
   if (!hue || !floor) {
     return [colour];
   }
-  if (floor.l >= 0.5) {
-    const quiet = Math.min(0.97, floor.l - QUIET_LIFT);
-    const deep = Math.max(DEEP_FLOOR, Math.min(hue.l, quiet) - DEEP_DROP);
-    // The colour itself, unless it stands too near the ground or too near
-    // the deep end to be a step of its own: then the ramp's own middle of
-    // those two, so the stops still climb.
-    const body = Math.min(
-      quiet - MIN_STEP * 2,
-      Math.max(deep + MIN_STEP, hue.l),
-    );
-    const middle = (quiet + body) / 2;
-    return [
-      atLightness(hue, quiet, QUIET_CHROMA),
-      atLightness(hue, middle, MIDDLE_CHROMA),
-      body === hue.l ? colour : atLightness(hue, body, 1),
-      atLightness(hue, (body + deep) / 2, (1 + DEEP_CHROMA) / 2),
-      atLightness(hue, deep, DEEP_CHROMA),
-    ];
+  return ladderOf(hue.l, floor.l).map((rung, index) =>
+    index === BODY_RUNG && rung.l === hue.l
+      ? colour
+      : atLightness(hue, rung.l, rung.chroma),
+  );
+};
+
+/** `colours` read at `t` (0 to 1) in OKLab, straight between neighbours. */
+const labAlong = (colours: readonly ILab[], t: number): ILab => {
+  const at = Math.max(0, Math.min(1, t)) * (colours.length - 1);
+  const from = Math.floor(at);
+  const to = Math.min(colours.length - 1, from + 1);
+  const toward = at - from;
+  const [a, b] = [colours[from], colours[to]];
+  return {
+    l: a.l + (b.l - a.l) * toward,
+    a: a.a + (b.a - a.a) * toward,
+    b: a.b + (b.b - a.b) * toward,
+  };
+};
+
+/**
+ * A loudness ramp through several colours: each stop takes its hue from the
+ * colours read at its place on the ramp, the first colour quiet and the
+ * last loud, and its lightness from the ladder one colour of their average
+ * lightness would climb (`ladderOf`).
+ *
+ * For the Spectrogram in the window's colours when there are two or more of
+ * them: the Tint's second colour, a Plus scene's rainbow. Painted straight
+ * through those colours by level, a raster's loud and quiet differed in hue
+ * alone, and on a light window two light colours made a pastel wash where
+ * a passage and the silence after it looked the same (Ivan, 2026-11-27,
+ * Spectrogram on white: "let's improve all analyzers' colors", then "just
+ * that one"). Taking lightness from the ladder, the quiet end sinks into the
+ * ground and the loud end leaves it as far as the window allows, as the
+ * one-colour ramp has done since 2026-11-24, and the colours still say
+ * where on the ramp a reading stands.
+ */
+export const levelRampThrough = (
+  colours: readonly string[],
+  ground: string,
+): TLevelRamp => {
+  const labs = colours
+    .map(labOf)
+    .filter((lab): lab is ILab => lab !== undefined);
+  const floor = labOf(ground);
+  if (labs.length === 0 || !floor) {
+    return colours;
   }
-  const quiet = Math.max(0.03, floor.l + QUIET_LIFT);
-  const hot = Math.max(HOT_LIGHTNESS, hue.l + MIN_STEP);
-  const body = Math.max(quiet + MIN_STEP * 2, Math.min(hot - MIN_STEP, hue.l));
-  const dusk = Math.max(quiet + MIN_STEP, body - DUSK_DROP);
-  return [
-    atLightness(hue, quiet, QUIET_CHROMA),
-    atLightness(hue, dusk, DEEP_CHROMA),
-    body === hue.l ? colour : atLightness(hue, body, 1),
-    atLightness(hue, (body + Math.min(0.97, hot)) / 2, (1 + HOT_CHROMA) / 2),
-    atLightness(hue, Math.min(0.97, hot), HOT_CHROMA),
-  ];
+  const meanL = labs.reduce((sum, lab) => sum + lab.l, 0) / labs.length;
+  const ladder = ladderOf(meanL, floor.l);
+  return ladder.map((rung, index) =>
+    atLightness(
+      labAlong(labs, index / (ladder.length - 1)),
+      rung.l,
+      rung.chroma,
+    ),
+  );
 };
 
 /**
@@ -164,6 +240,24 @@ export const levelRamp = (colour: string, ground: string): TLevelRamp => {
     ramps.clear();
   }
   const built = levelRampOf(colour, ground);
+  ramps.set(key, built);
+  return built;
+};
+
+/** `levelRampThrough`, one array per set of colours and ground, as above. */
+export const levelRampAcross = (
+  colours: readonly string[],
+  ground: string,
+): TLevelRamp => {
+  const key = `${colours.join(',')}|${ground}|through`;
+  const known = ramps.get(key);
+  if (known) {
+    return known;
+  }
+  if (ramps.size >= REMEMBERED) {
+    ramps.clear();
+  }
+  const built = levelRampThrough(colours, ground);
   ramps.set(key, built);
   return built;
 };

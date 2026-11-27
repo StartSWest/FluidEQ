@@ -21,6 +21,7 @@ import {
   spectrumLine,
 } from './spectrumPaint';
 import { asMate } from './channelInk';
+import { HOLD_DASH, HOLD_DASH_GAP, HOLD_LINE_WIDTH } from './holdDashes';
 
 /**
  * The Analyzer: the spectrum of what is playing, with a peak hold over it.
@@ -70,15 +71,16 @@ const BLOOM_REACH = 0.012;
  * same decision, so the three views speak one language.
  */
 
-/** The hold's hairline: its width, and how solid it is within its figure. */
-export const HOLD_LINE_WIDTH = 1.25;
+/**
+ * How solid the hold's line is within its figure; its width and dashes are
+ * in `holdDashes.ts`, shared with the engine.
+ */
 export const HOLD_LINE_ALPHA = 0.9;
 
 /**
  * ON A LIGHT WINDOW the analyser is a measurement on paper (Ivan's pick B,
  * "Consola", 2026-11-18): the body a flat wash, the look's fill times this
- * share - the Analyzer's own 0.85 lands at 0.14 - from its peak to the floor,
- * and the hold a dashed line in the window's ink.
+ * share - the Analyzer's own 0.85 lands at 0.14 - from its peak to the floor.
  *
  * At the dark window's 0.85, faded toward the foot, the body was a solid
  * mountain of colour over half the plot on white, and the fade read as a
@@ -88,8 +90,6 @@ export const HOLD_LINE_ALPHA = 0.9;
  * by the window's ink.
  */
 export const LIGHT_WINDOW_FILL_SHARE = 0.165;
-/** The hold's dash on a light window, in CSS pixels: on, then off. */
-export const LIGHT_WINDOW_HOLD_DASH = 3;
 
 /** A high-water pip's radius, and how solid it is within its figure. */
 export const PIP_RADIUS = 1.6;
@@ -218,10 +218,13 @@ const paintHold = (
   context.globalAlpha = alpha;
   context.lineWidth = HOLD_LINE_WIDTH;
   context.lineJoin = 'round';
+  // Round ends, said here rather than left to whatever stroke came before:
+  // the engine draws the same dashes as capsules (`holdDashes.ts`).
+  context.lineCap = 'round';
   context.strokeStyle = readInk(HOLD_LINE_ALPHA);
-  if (isLightWindow()) {
-    context.setLineDash([LIGHT_WINDOW_HOLD_DASH, LIGHT_WINDOW_HOLD_DASH]);
-  }
+  // Dashed on both sides of the Brightness, from the line's first point.
+  context.setLineDash([HOLD_DASH, HOLD_DASH_GAP]);
+  context.lineDashOffset = 0;
   context.stroke(line);
   context.setLineDash([]);
   context.globalAlpha = 1;

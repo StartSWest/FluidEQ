@@ -13,6 +13,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { IAnalysisFrame } from '../../../../renderer/graph/analysis/analysisFrame';
 import { paintLegend } from '../../../../renderer/graph/analysis/channelInk';
 import {
+  FOOT_WORD_HEIGHT,
+  FOOT_WORD_LIFT,
+} from '../../../../renderer/graph/analysis/footWords';
+import {
   isSameLegendPlace,
   noteLegendFrame,
   takeLegendFrame,
@@ -64,10 +68,15 @@ describe("a measuring view's key", () => {
     // In the bottom half: the top of the plot is where the player's strip of
     // controls lives, and the key sat under the view picker's name there.
     expect(chip.y).toBeGreaterThan((44 + 300) / 2);
-    // Ending thirty pixels above the floor, over the frequency names inside
-    // the plot's foot and the note spectrum's Cs and the energy view's band
-    // names printed above them, whose letters reach about 25 (2026-11-17).
-    expect(chip.y + chip.height).toBe(300 - 30);
+    // Ending above the floor's lettering: the frequency names inside the
+    // plot's foot, and the note spectrum's Cs and the energy view's band
+    // names on their row over those (`FOOT_WORD_LIFT`, 26px since
+    // 2026-11-27), with 4px of air over that row's letters.
+    expect(chip.y + chip.height).toBe(
+      300 - (FOOT_WORD_LIFT + FOOT_WORD_HEIGHT + 4),
+    );
+    // Control: where it ended before the row was lifted, on the new row.
+    expect(300 - 30).toBeGreaterThan(chip.y + chip.height);
   });
 
   it('is left out where the view plays behind another drawing', () => {
