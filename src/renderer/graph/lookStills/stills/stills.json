@@ -1371,7 +1371,10 @@
       "stop-6",
       "stop-0",
       "stop-5",
-      "mate-1"
+      "text-faint",
+      "mate-1",
+      "mate-4",
+      "accent"
     ],
     "file": "slope-auto-dark-many.png"
   },
@@ -1397,10 +1400,7 @@
       "stop-0",
       "stop-5",
       "ink",
-      "accent",
-      "text-faint",
-      "floor",
-      "accent-light"
+      "mate-6"
     ],
     "file": "slope-auto-light-many.png"
   },

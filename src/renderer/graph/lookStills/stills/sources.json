@@ -1,5 +1,5 @@
 {
-  "hash": "b30ea9cdca69b44c6688bb46c578c737a540520aecd84471ebe696982b0f9284",
+  "hash": "ec17902fd4c466ad7495a56889324523759bf5cdc3504c98fcec6a37576019c0",
   "files": [
     {
       "file": "scripts/look-stills/choose.ts",
@@ -71,7 +71,7 @@
     },
     {
       "file": "src/common/customLooks.ts",
-      "hash": "028963786e4460b6f80b2537850257af160318a4ec0893139da6c3371ae2fed4"
+      "hash": "0d761cc21ebafdf1155dac4f05891c56bf12b0a57278fc9bc8cdd7fbacaab044"
     },
     {
       "file": "src/common/driver.ts",
@@ -507,11 +507,11 @@
     },
     {
       "file": "src/renderer/graph/LiveTraceCanvas.tsx",
-      "hash": "543d70831b2c87b496b776b69f6ef8e1ebb846b147eabb6a4d80251ace062b98"
+      "hash": "57f6bd67843b301ad4160c91705ed761edab4e419843d631e46021afdbdbfbca"
     },
     {
       "file": "src/renderer/graph/analysis/analysisFrame.ts",
-      "hash": "c509515071a9a27879d2d891301e2ffe8aa333d402af6088a8415c0791e6295c"
+      "hash": "6dff929c4fb2d27617198858ef001a723a99adc1ef0931d042b9cfef6d649aa2"
     },
     {
       "file": "src/renderer/graph/analysis/analyzerView.ts",
@@ -535,7 +535,7 @@
     },
     {
       "file": "src/renderer/graph/analysis/drawAnalysisView.ts",
-      "hash": "cb69611bd0e367bcbfc5af0def4cc50a06738f121177b8e03713f0c1eb04eaf2"
+      "hash": "c1b4f10b4278eb77b216ff20057b2acb5ea640d26e42168cc05ca68fe9dd28c5"
     },
     {
       "file": "src/renderer/graph/analysis/energyView.ts",
@@ -587,7 +587,7 @@
     },
     {
       "file": "src/renderer/graph/analysis/spectrumPaint.ts",
-      "hash": "7038d34129f66c9eb4883b150d534f1e6f38981877b49e462a2c1d62bae3550a"
+      "hash": "fdf37a23e973898ba424b2956e19bd54a8f8d1be99a9a1b74e70e2a484ea9550"
     },
     {
       "file": "src/renderer/graph/analysis/stereoReading.ts",
@@ -655,7 +655,7 @@
     },
     {
       "file": "src/renderer/graph/drawLiveTraceFrame.ts",
-      "hash": "c1aac78c131e0baf67c1fc0a25886e0f35e21a270c218a2cba62dc4673e203ad"
+      "hash": "69f4c007a8b039955b941790b3deaaea0a1a7fcecf4c8c137c0d95bbd0dc597d"
     },
     {
       "file": "src/renderer/graph/echoWaves.ts",
@@ -675,7 +675,7 @@
     },
     {
       "file": "src/renderer/graph/engineLooks/analysisLookInput.ts",
-      "hash": "922683be7336ea5f2d9b35cf3280212ec1b0dd986c886970e1b7f60569db294e"
+      "hash": "b705d64be1f3e97ecc48f25662579e227ed109e4910e2495cbd0934e4728ba52"
     },
     {
       "file": "src/renderer/graph/engineLooks/analyzerLook.ts",
@@ -807,7 +807,7 @@
     },
     {
       "file": "src/renderer/graph/engineLooks/lookTexture.ts",
-      "hash": "30f397f02ab9158aeb9601387fe6fbf4d5ce02206d037a0eaa6fe70d06588516"
+      "hash": "f703c0477803a9057a136f0000054a008e834d8deb5d682fab98bcb7dcc6afde"
     },
     {
       "file": "src/renderer/graph/engineLooks/loudnessLook.ts",
@@ -879,11 +879,11 @@
     },
     {
       "file": "src/renderer/graph/fillTextureTiles.ts",
-      "hash": "c5ef6db9d7c61d27d4173b3e09ea733887ecd50e9261db8c9e7cf3aac11beb9f"
+      "hash": "7eb67498faaf0b65111502b97aa47951e998e09083c29a720a697dcd6e86e5a2"
     },
     {
       "file": "src/renderer/graph/fillTextures.ts",
-      "hash": "f4a397a7a2405024b50b4fc6db8b65457f230193038ed2b2cb9629b7c77ae9be"
+      "hash": "c092a68d2079020e506406060414d9c4dff2f0dba2c71933a57811fa19bcb437"
     },
     {
       "file": "src/renderer/graph/frameCadence.ts",
@@ -971,7 +971,7 @@
     },
     {
       "file": "src/renderer/graph/liveTraceCurvePass.ts",
-      "hash": "2dd8e5221ae1cc5d4e971401b813c8ffeaf3e19ef972e63b0617e249b12c893a"
+      "hash": "ea3613de53ce0576ced2f52dbf34309406761b85fdc4aeb7d1f2d5e1d61c41fe"
     },
     {
       "file": "src/renderer/graph/liveTraceCurves.ts",
@@ -987,7 +987,7 @@
     },
     {
       "file": "src/renderer/graph/liveTraceFigureLayers.ts",
-      "hash": "e52c0a8895fca09de11c27cccaba047ead04c4434a4efb749013912047cc22f3"
+      "hash": "f284a480bd7494639e2b3b94a7c8067f92b1fa1a784eaff5c0c9084c7fd067e0"
     },
     {
       "file": "src/renderer/graph/liveTraceFigureShape.ts",
@@ -1019,7 +1019,7 @@
     },
     {
       "file": "src/renderer/graph/liveTraceSceneStates.ts",
-      "hash": "74eb44f4d45950dd9204a8136410f9bf8b224f4e3033f58ac1da877ad4116cfa"
+      "hash": "abb7b50f4b6b22d8b8e3e3585d72ccf5240a47e7b0892212fa0260dd7323d336"
     },
     {
       "file": "src/renderer/graph/liveTraceSignalLooks.ts",
@@ -1039,7 +1039,7 @@
     },
     {
       "file": "src/renderer/graph/liveTraceViews.ts",
-      "hash": "2b6006f232455eee9e24c313dede43a48df6b27a1747e6d709903dd8360069a7"
+      "hash": "49877b25b79b3f3faa2dc5ac2ef79d27dd6d9105212feccb18324e64a3763b49"
     },
     {
       "file": "src/renderer/graph/liveTraceWeatherScenes.ts",
@@ -1076,6 +1076,10 @@
     {
       "file": "src/renderer/graph/lookStills/stillSize.ts",
       "hash": "3b499b6b0b055312a4ae14f30025e85402c6b91825b859379a20fe988d726c8e"
+    },
+    {
+      "file": "src/renderer/graph/movedTexture.ts",
+      "hash": "898ce90ecbee6ff1b0e60ae2b2c01ff1728a5bc58a8d89b4bab2679eca4c0cda"
     },
     {
       "file": "src/renderer/graph/outputLevel.ts",
@@ -1167,7 +1171,7 @@
     },
     {
       "file": "src/renderer/graph/sceneViews/drawSceneView.ts",
-      "hash": "5fe01411bb5942597e4ae9e12c86e25f2f4642273b04440a3179e13f112bd16a"
+      "hash": "69f380f31dedfe57cd39231dd9d8029d8ba5bdd07db287f933f727870fa7a986"
     },
     {
       "file": "src/renderer/graph/sceneViews/fallingBlocks.ts",
@@ -1304,6 +1308,10 @@
     {
       "file": "src/renderer/graph/terraceValley.ts",
       "hash": "02205905872db538f0a453c98e997510b24770cfeb081ecf7228d0fdf093cc8c"
+    },
+    {
+      "file": "src/renderer/graph/textureMotion.ts",
+      "hash": "3c05b9ab6ee74a0754f0a4b618fa159b846f7045c81ab5dfe3ff426b40880b0b"
     },
     {
       "file": "src/renderer/graph/texturePictures.ts",
@@ -1447,11 +1455,11 @@
     },
     {
       "file": "src/renderer/utils/graphStorage.ts",
-      "hash": "1bdc880888138c7f54f060455e59e261f682e0904f8cb88c7abba409bd92ea61"
+      "hash": "e3959e98bbd86f77e27b21e8aa6444f5c5ee1af39fce63ff9d439787f96f56be"
     },
     {
       "file": "src/renderer/utils/graphStyle.ts",
-      "hash": "a830bec322ee8cf69666ba91a24e623d4a041ac4a6f058e3e2c3248c3a9173cc"
+      "hash": "92b8a3d4b79f84158a8f2e9c0131c9d1d741c155d012b4c4e9e4afe2bff70c7b"
     },
     {
       "file": "src/renderer/utils/graphViewSettings.ts",
@@ -1472,6 +1480,10 @@
     {
       "file": "src/renderer/utils/logger.ts",
       "hash": "c5604b97c2dd282950d7d981deb8d3973e3ca042ffecd5dea6fce02894fba275"
+    },
+    {
+      "file": "src/renderer/utils/lookHistory.ts",
+      "hash": "a820d397df24b9d7877d5776f62e5d8f17e268f2a4cef45403cd954de6a8b187"
     },
     {
       "file": "src/renderer/utils/memberScenes.ts",
