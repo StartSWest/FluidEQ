@@ -151,6 +151,19 @@ const gapOf = (element: HTMLElement) =>
   Number.parseFloat(getComputedStyle(element).columnGap) || 0;
 
 /**
+ * How far a part reaches outside its end, px: its negative margins. The
+ * window's three buttons stand in the bar's own padding, flush with the
+ * window's edge, and that much of them takes nothing from the end.
+ */
+const reachOf = (part: HTMLElement) => {
+  const style = getComputedStyle(part);
+  return (
+    Math.min(0, Number.parseFloat(style.marginLeft) || 0) +
+    Math.min(0, Number.parseFloat(style.marginRight) || 0)
+  );
+};
+
+/**
  * What an end's parts take side by side: every part in the flow and its gaps,
  * without the elastic `auto` margin between them — which is the room.
  */
@@ -162,7 +175,7 @@ const contentWidth = (end: HTMLElement) => {
       getComputedStyle(child).position !== 'absolute',
   );
   const widths = parts.reduce(
-    (total, part) => total + part.getBoundingClientRect().width,
+    (total, part) => total + part.getBoundingClientRect().width + reachOf(part),
     0,
   );
   return widths + Math.max(0, parts.length - 1) * gapOf(end);

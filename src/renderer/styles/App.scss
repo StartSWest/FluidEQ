@@ -536,11 +536,15 @@ select option {
   // laid out inside the padding box, so 18 on the left against 12 on the right
   // moves the middle of that box 3px right of the middle of the window — and
   // the meter with it. Measured, 723 against a window centre of 720, after
-  // everything else about the centring was right. The window controls take the
-  // extra 6px of inset; at 34px in a 74px bar nobody can see where they moved,
-  // and a spectrum 3px off centre is the sort of thing that is only ever seen
-  // once it cannot be unseen.
-  padding: 2px 18px;
+  // everything else about the centring was right. A spectrum 3px off centre is
+  // the sort of thing that is only ever seen once it cannot be unseen.
+  //
+  // Named, because the window's three buttons reach back across both: they
+  // stand in the corner, flush with the window's top and right edges
+  // (`.window-titlebar__controls`).
+  --titlebar-inset-block: 2px;
+  --titlebar-inset: 18px;
+  padding: var(--titlebar-inset-block) var(--titlebar-inset);
   // No card and no line: the window's own floor, running straight on into
   // the page. It was the transport bar's card, then a full-width strip with a
   // hairline under it (layout A), and the shell's four dividing hairlines —
@@ -853,7 +857,7 @@ select option {
   // measured: glyphs instead of words.
   .window-titlebar {
     gap: 8px;
-    padding-inline: 10px;
+    --titlebar-inset: 10px;
   }
 
   // "LIVE OUTPUT" goes, and its dot with it.
@@ -1189,6 +1193,9 @@ select option {
   min-width: max-content;
   align-items: center;
   justify-content: flex-end;
+  // The bar's full height, so the window's three buttons can fill it; every
+  // other part is still centred on the bar's middle line.
+  align-self: stretch;
   gap: 10px;
   // The large elastic gap between the right-hand tabs and the pet is titlebar,
   // not a control. Marking this whole flex row `no-drag` made that visibly
@@ -1199,18 +1206,43 @@ select option {
 
   // The elastic that gives the pet its room: whatever the window is wider than
   // this end needs, it goes here, between the names and the creature. Not
-  // counted by `useTitlebarRoom`, which sums children and not margins.
+  // counted by `useTitlebarRoom`, which sums children and only the negative
+  // margins of the window buttons standing in the bar's inset.
   .workspace-tabs-shell {
     margin-right: auto;
   }
 }
 
+// IN THE CORNER, as every Windows app has them (Ivan, 2026-11-27: "they have
+// too much top and right gap"). They stood 36px tall in the middle of a 74px
+// bar, 18px in from the window's edge: a strip of empty bar above, below and
+// beside them, and a close button that a pointer thrown into the corner of a
+// maximised window missed. Now they fill the bar from its top edge to its
+// bottom and touch the window's right edge, so they are centred with the rest
+// by construction, and close turns red right up to the corner.
+//
+// They reach back across the bar's padding with negative margins rather than
+// the padding going: the padding is equal either side because that is what
+// keeps the meter in the middle of the window. `useTitlebarRoom` counts the
+// negative margin, so the inset they stand in is not charged to the right end.
 .window-titlebar__controls {
   display: flex;
   flex-shrink: 0;
-  align-items: center;
-  gap: 3px;
+  align-self: stretch;
+  align-items: stretch;
+  gap: 0;
+  margin-block: calc(-1 * var(--titlebar-inset-block, 0px));
+  margin-right: calc(-1 * var(--titlebar-inset, 0px));
   -webkit-app-region: no-drag;
+
+  // Windows' own width; the height is the bar's. Square: the window's own
+  // corner rounds the last one.
+  > .window-control {
+    width: 46px;
+    height: auto;
+    border: 0;
+    border-radius: 0;
+  }
 }
 
 // ================================================ the instrument capsule ====
@@ -4926,7 +4958,7 @@ button.graph-legend {
   // themselves. These used to be spread over 1080, 900 and 760.
   //
   .window-titlebar {
-    padding-inline: 8px;
+    --titlebar-inset: 8px;
   }
 
   .window-titlebar__right {
@@ -4936,6 +4968,11 @@ button.graph-legend {
   .window-control {
     width: 34px;
     height: 34px;
+  }
+
+  // The bar's own three keep the bar's height (`.window-titlebar__controls`).
+  .window-titlebar__controls > .window-control {
+    width: 40px;
   }
 
   .workspace-header__tools-trigger {
@@ -4961,7 +4998,7 @@ button.graph-legend {
   // the bar, and making it smaller took away the one thing still saying what
   // this window is. It keeps its 44px.
 
-  .window-titlebar__controls,
+  // Not the window's three: those touch, as Windows' own do.
   .window-titlebar__transport {
     gap: 1px;
   }
@@ -4998,6 +5035,12 @@ button.graph-legend {
   .window-control {
     width: 26px;
     height: 32px;
+  }
+
+  // The window's three never under 32px across: a narrower target than that
+  // is a close button people miss.
+  .window-titlebar__controls > .window-control {
+    width: 34px;
   }
 
   // No squeeze on the tools trigger. At 34px wide with no padding its two

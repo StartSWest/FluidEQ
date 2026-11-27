@@ -422,3 +422,69 @@ describe('the titlebar giving up its parts in order, and taking them back', () =
     expect(renderHook(() => useTitlebarToolsShed()).result.current).toBe(false);
   });
 });
+
+// The window's three buttons stand in the bar's own padding, flush with the
+// window's edge (Ivan, 2026-11-27: "too much top and right gap"), by a
+// negative margin. That much of them takes nothing from the right end, or the
+// creature leaves 18px early on every window.
+describe('the window buttons standing in the corner', () => {
+  const TABS = 300;
+  const BUTTONS = 138;
+  const INSET = 18;
+
+  const mount = (reach: number, endWidth: number) => {
+    const bar = document.createElement('header');
+    const left = document.createElement('div');
+    const right = document.createElement('div');
+    const tabs = document.createElement('span');
+    const buttons = document.createElement('span');
+    buttons.style.marginRight = `${-reach}px`;
+    right.append(tabs, buttons);
+    bar.append(left, right);
+    document.body.append(bar);
+    const stub = (element: HTMLElement, width: number) => {
+      Object.defineProperty(element, 'offsetWidth', {
+        configurable: true,
+        get: () => width,
+      });
+      // eslint-disable-next-line no-param-reassign -- a stand-in for layout jsdom does not do
+      element.getBoundingClientRect = () =>
+        ({ width, right: width, left: 0 }) as DOMRect;
+    };
+    stub(bar, 2000);
+    // The left end down to its content, so only the right one can have room.
+    stub(left, 0);
+    stub(right, endWidth);
+    stub(tabs, TABS);
+    stub(buttons, BUTTONS);
+    return { bar, left, right };
+  };
+
+  beforeAll(() => {
+    window.ResizeObserver = jest.fn(() => ({
+      observe: jest.fn(),
+      unobserve: jest.fn(),
+      disconnect: jest.fn(),
+    })) as unknown as typeof ResizeObserver;
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it('counts the inset they reach into as room the end still has', () => {
+    // 10px beside what the end really holds: room, so nothing is crowded.
+    const { bar, left, right } = mount(INSET, TABS + BUTTONS - INSET + 10);
+    const stop = watchTitlebarRoom(bar, left, right);
+    expect(bar.hasAttribute('data-crowded')).toBe(false);
+    stop();
+  });
+
+  it('is crowded when the same end is short of what it holds', () => {
+    // Control: the same 10px short with no inset to stand in.
+    const { bar, left, right } = mount(0, TABS + BUTTONS - 10);
+    const stop = watchTitlebarRoom(bar, left, right);
+    expect(bar.hasAttribute('data-crowded')).toBe(true);
+    stop();
+  });
+});
