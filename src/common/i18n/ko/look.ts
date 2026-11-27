@@ -140,11 +140,7 @@ const look = {
     '{name}는 Windows, macOS, Linux용 무료 오픈 소스 시스템 전체 이퀄라이저입니다. 출력마다 한 번만 맞추면 헤드폰 보정, 사운드 커브, 곡마다의 소리를 기억하는 Auto EQ와 함께 올바른 튜닝이 올바른 기기를 스스로 따라갑니다. {run}',
   'support.game.postRun':
     '리듬 게임도 숨어 있는데, 방금 ×{peak}에서 {points}점을 냈어요.',
-  'support.game.postRunColour':
-    '리듬 게임도 숨어 있어요. 연속을 ×{top}까지 올려 {points}점을 냈고, 화면 전체가 색으로 빛났어요.',
   'support.game.postRunShort': '리듬 게임 포함: ×{peak}, {points}점.',
-  'support.game.postRunShortColour':
-    '리듬 게임 포함: ×{top}, {points}점, 화면이 색으로 빛나요.',
   'support.game.shareCardCopied': '복사됨 - 붙여넣기',
   'support.game.shareCopy': '텍스트 복사',
   'support.game.shareCopied': '복사됨',

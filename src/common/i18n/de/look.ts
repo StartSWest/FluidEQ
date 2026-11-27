@@ -159,12 +159,8 @@ const look: Partial<Dictionary> = {
     '{name} ist ein kostenloser, quelloffener systemweiter Equalizer für Windows, macOS und Linux. Stellen Sie jeden Ausgang einmal ein, mit Kopfhörerkorrektur, Klangkurven und einem Auto EQ, der sich den Klang jedes Songs merkt, und die richtige Abstimmung folgt dem richtigen Gerät von selbst. {run}',
   'support.game.postRun':
     'Außerdem steckt ein Rhythmusspiel darin, in dem ich gerade {points} Punkte bei ×{peak} geholt habe.',
-  'support.game.postRunColour':
-    'Außerdem steckt ein Rhythmusspiel darin: Ich habe die Serie auf ×{top} gebracht, {points} Punkte geholt, und die ganze Oberfläche leuchtete in Farbe auf.',
   'support.game.postRunShort':
     'Darin steckt ein Rhythmusspiel: {points} Punkte bei ×{peak}.',
-  'support.game.postRunShortColour':
-    'Darin steckt ein Rhythmusspiel: ×{top}, {points} Punkte, und die Oberfläche leuchtet in Farbe auf.',
   'support.game.shareCardCopied': 'Kopiert — einfach einfügen',
   'support.game.shareCopy': 'Text kopieren',
   'support.game.shareCopied': 'Kopiert',

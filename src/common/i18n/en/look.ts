@@ -155,12 +155,8 @@ const look = {
     '{name} is a free, open-source system-wide equaliser for Windows, macOS and Linux. Tune each output once, with headphone correction, voicing curves and an Auto EQ that remembers each song’s sound, and the right tuning follows the right device by itself. {run}',
   'support.game.postRun':
     'It also hides a beat game, where I just scored {points} points at ×{peak}.',
-  'support.game.postRunColour':
-    'It also hides a beat game: I ran the streak to ×{top} for {points} points and the whole interface lit up in colour.',
   'support.game.postRunShort':
     'It hides a beat game: {points} points at ×{peak}.',
-  'support.game.postRunShortColour':
-    'It hides a beat game: ×{top}, {points} points, and the interface lights up in colour.',
   'support.game.shareCardCopied': 'Copied — paste it in',
   'support.game.shareCopy': 'Copy text',
   'support.game.shareCopied': 'Copied',

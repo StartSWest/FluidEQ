@@ -157,12 +157,8 @@ const look: Partial<Dictionary> = {
     '{name}: бесплатный эквалайзер с открытым кодом для всей системы на Windows, macOS и Linux. Настройте каждый выход один раз, с коррекцией наушников, кривыми звучания и Auto EQ, который помнит звук каждой песни, и нужная настройка сама следует за нужным устройством. {run}',
   'support.game.postRun':
     'А ещё в нём спрятана ритм-игра, где я только что набрал {points} очков на ×{peak}.',
-  'support.game.postRunColour':
-    'А ещё в нём спрятана ритм-игра: я довёл серию до ×{top}, набрал {points} очков, и весь интерфейс засветился цветом.',
   'support.game.postRunShort':
     'В нём спрятана ритм-игра: {points} очков на ×{peak}.',
-  'support.game.postRunShortColour':
-    'В нём спрятана ритм-игра: ×{top}, {points} очков, и интерфейс светится цветом.',
   'support.game.shareCardCopied': 'Скопировано — вставьте',
   'support.game.shareCopy': 'Копировать текст',
   'support.game.shareCopied': 'Скопировано',

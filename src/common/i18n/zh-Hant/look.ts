@@ -131,11 +131,7 @@ const look = {
     '{name} 是免費開源的全系統等化器，支援 Windows、macOS 和 Linux。每個輸出只需調一次，帶有耳機校正、聲音曲線和記住每首歌聲音的 Auto EQ，正確的調音會自動跟著正確的裝置。{run}',
   'support.game.postRun':
     '它還藏著一個節奏遊戲，我剛在 ×{peak} 拿到 {points} 分。',
-  'support.game.postRunColour':
-    '它還藏著一個節奏遊戲：我把連擊打到 ×{top}，拿到 {points} 分，整個介面都亮起了色彩。',
   'support.game.postRunShort': '它藏著一個節奏遊戲：×{peak}，{points} 分。',
-  'support.game.postRunShortColour':
-    '它藏著一個節奏遊戲：×{top}，{points} 分，介面亮起色彩。',
   'support.game.shareCardCopied': '已複製-貼上到',
   'support.game.shareCopy': '複製文字',
   'support.game.shareCopied': '已複製',

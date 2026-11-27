@@ -63,7 +63,7 @@ const ShareScoreCard = ({
   // own full moment rather than for what the last one had left.
   const [copiedSeq, setCopiedSeq] = useState(0);
 
-  const text = buildShareText(t, score, multiplier, isEuphoric);
+  const text = buildShareText(t, score, multiplier);
   // The site, not a releases page. A share post is read by people who have
   // never seen FluidEQ: `fluideq.com` is a name they can read off a screenshot
   // and type back in, which a host and a repository path with `/releases/latest`
@@ -213,13 +213,7 @@ const ShareScoreCard = ({
                 window.open(
                   getShareUrl(
                     network.id,
-                    buildShareText(
-                      t,
-                      score,
-                      multiplier,
-                      isEuphoric,
-                      network.id,
-                    ),
+                    buildShareText(t, score, multiplier, network.id),
                     url,
                   ),
                   '_blank',

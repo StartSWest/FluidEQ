@@ -48,20 +48,6 @@ export const SHARE_NETWORKS: IShareNetwork[] = [
   { id: 'facebook', label: 'Facebook' },
 ];
 
-/**
- * The multiplier at which the run is at the ceiling.
- *
- * Named rather than written as a bare 10 in three places, because the card,
- * the text and the button that offers the share all have to agree about what
- * counts as euphoria — and if they ever disagree, someone posts a card saying
- * one thing under a sentence saying another.
- */
-export const EUPHORIA_MULTIPLIER = 10;
-
-/** Whether this run earned the full treatment. */
-export const isEuphoricRun = (multiplier: number): boolean =>
-  multiplier >= EUPHORIA_MULTIPLIER;
-
 /** Filename for the saved card. */
 export const getShareFileName = (score: number, euphoric = false): string =>
   `fluideq-${euphoric ? 'euphoria' : 'score'}-${Math.max(
@@ -85,28 +71,25 @@ export type ShareAudience = ShareNetwork | 'copy';
  * app has been introduced — a person who has never heard of FluidEQ needs to
  * know what it is before a number from it means anything.
  *
- * The multiplier is only claimed once it has been reached, because "×1" reads
- * worse than saying nothing. Colourful mode is described as what it is — a look
- * the run lights up — rather than as the headline it used to be.
+ * The streak named is the run's own, so "×10" is written only by a run that
+ * reached ×10. There is no colour line any more: every post used to say the
+ * streak ran to ×10 and "the whole interface lit up in colour", whatever the
+ * run, because the card passed Colourful mode's switch in as the reason, and
+ * that switch has been on for everyone since 2026-11-18. The game no longer
+ * unlocks anything (Ivan, 2026-11-27), so there is no reward to claim either.
  */
 const runClause = (
   t: Translate,
   score: number,
   multiplier: number,
-  euphoric: boolean,
   compact = false,
 ) => {
   const points = Math.max(0, Math.floor(score));
   const peak = Math.max(1, Math.floor(multiplier));
-  const top = Math.max(EUPHORIA_MULTIPLIER, peak);
-  if (compact) {
-    return euphoric
-      ? t('support.game.postRunShortColour', { top, points })
-      : t('support.game.postRunShort', { peak, points });
-  }
-  return euphoric
-    ? t('support.game.postRunColour', { top, points })
-    : t('support.game.postRun', { peak, points });
+  return t(compact ? 'support.game.postRunShort' : 'support.game.postRun', {
+    peak,
+    points,
+  });
 };
 
 /**
@@ -144,7 +127,6 @@ export const buildShareText = (
   t: Translate,
   score: number,
   multiplier: number,
-  euphoric = isEuphoricRun(multiplier),
   audience: ShareAudience = 'copy',
 ): string => {
   const post = (key: Parameters<Translate>[0], run: string) =>
@@ -153,28 +135,16 @@ export const buildShareText = (
     // 280 characters including a link that counts as 23 whatever its length,
     // and X counts a Chinese, Japanese or Korean character twice: this is the
     // one version written to a budget, in every language, at the longest
-    // score and multiplier either sentence can carry (`shareScore.test.ts`).
+    // score and multiplier the sentence can carry (`shareScore.test.ts`).
     // Everything that survives the cut is a thing the app does.
     case 'x':
-      return post(
-        'support.game.postX',
-        runClause(t, score, multiplier, euphoric, true),
-      );
+      return post('support.game.postX', runClause(t, score, multiplier, true));
     case 'linkedin':
-      return post(
-        'support.game.postLinkedIn',
-        runClause(t, score, multiplier, euphoric),
-      );
+      return post('support.game.postLinkedIn', runClause(t, score, multiplier));
     case 'facebook':
-      return post(
-        'support.game.postFacebook',
-        runClause(t, score, multiplier, euphoric),
-      );
+      return post('support.game.postFacebook', runClause(t, score, multiplier));
     default:
-      return post(
-        'support.game.postCopy',
-        runClause(t, score, multiplier, euphoric),
-      );
+      return post('support.game.postCopy', runClause(t, score, multiplier));
   }
 };
 

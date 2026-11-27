@@ -154,11 +154,7 @@ const look: Partial<Dictionary> = {
     '{name} は Windows・macOS・Linux 対応の無料オープンソースのシステム全体イコライザーです。出力ごとに一度調整するだけで、ヘッドホン補正、サウンドカーブ、曲ごとのサウンドを覚える Auto EQ とともに、正しい調整が正しい機器に自動でついていきます。{run}',
   'support.game.postRun':
     'リズムゲームも隠れていて、×{peak} で {points} 点を取りました。',
-  'support.game.postRunColour':
-    'リズムゲームも隠れていて、連続を ×{top} まで伸ばして {points} 点、画面全体が色づきました。',
   'support.game.postRunShort': 'リズムゲーム入り：×{peak} で {points} 点。',
-  'support.game.postRunShortColour':
-    'リズムゲーム入り：×{top}、{points} 点、画面が色づきます。',
   'support.game.shareCardCopied': 'コピーしました — 貼り付けてください',
   'support.game.shareCopy': 'テキストをコピー',
   'support.game.shareCopied': 'コピーしました',

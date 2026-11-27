@@ -17,13 +17,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
-  EUPHORIA_MULTIPLIER,
   SHARE_NETWORKS,
   buildShareText,
   carriesShareText,
   getShareFileName,
   getShareUrl,
-  isEuphoricRun,
 } from 'common/shareScore';
 import { LOCALES, loadLocale, translate, type Translate } from 'common/i18n';
 import { buildSupportConfig } from 'common/support';
@@ -54,12 +52,8 @@ const xLength = (text: string) =>
   }, 0);
 
 describe('buildShareText', () => {
-  // Colourful mode by what it does: the interface lights up in colour. It
-  // said "went rainbow" until the mode was renamed (Ivan, 2026-10-25).
-  it('says the interface lit up once the ceiling has been reached', () => {
+  it('puts the score after the sentence that introduces the app', () => {
     const text = buildShareText(english, 4200, 10);
-    expect(text).toContain('lit up in colour');
-    expect(text).not.toMatch(/rainbow/i);
     expect(text).toContain('4200');
     // The app leads and the run follows, in every version: a stranger has to
     // know what this is before a number from it means anything, so the score
@@ -67,11 +61,21 @@ describe('buildShareText', () => {
     expect(text.indexOf('equaliser')).toBeLessThan(text.indexOf('4200'));
   });
 
-  it('does not claim euphoria below the ceiling', () => {
-    expect(buildShareText(english, 900, 4)).toContain('×4');
-    expect(buildShareText(english, 900, 4).toLowerCase()).not.toContain(
-      'euphoria',
-    );
+  // Every post used to claim a ×10 streak and an interface that "lit up in
+  // colour", whatever the run: the card passed Colourful mode's switch in as
+  // the reason, and that switch is on for everyone. A run that reached ×10
+  // says so; the control, a run at ×4, says ×4 and never ×10.
+  it('names ×10 only for a run that reached it, and never a colour reward', () => {
+    AUDIENCES.forEach((audience) => {
+      const reached = buildShareText(english, 4200, 10, audience);
+      const short = buildShareText(english, 900, 4, audience);
+      expect([audience, reached.includes('×10')]).toEqual([audience, true]);
+      expect([audience, short.includes('×4')]).toEqual([audience, true]);
+      expect([audience, short.includes('×10')]).toEqual([audience, false]);
+      [reached, short].forEach((post) => {
+        expect(post).not.toMatch(/colou?r|lit up|lights up|rainbow|euphori/i);
+      });
+    });
   });
 
   it('fits X with the link attached', () => {
@@ -79,7 +83,7 @@ describe('buildShareText', () => {
     // silently truncates rather than refusing. A t.co link counts as 23.
     // The X version is the one written to a budget; the others are read
     // where there is no counter, and the copy button has no limit at all.
-    const text = buildShareText(english, 999999, 10, true, 'x');
+    const text = buildShareText(english, 999999, 10, 'x');
     expect(text.length + 1 + 23).toBeLessThanOrEqual(280);
   });
 
@@ -102,8 +106,8 @@ describe('the posts in every language', () => {
   const postsIn = (code: (typeof LOCALES)[number]['code']) => {
     const t: Translate = (key, vars) => translate(code, key, vars);
     return AUDIENCES.flatMap((audience) => [
-      buildShareText(t, 999999, 10, true, audience),
-      buildShareText(t, 12, 3, false, audience),
+      buildShareText(t, 999999, 10, audience),
+      buildShareText(t, 12, 3, audience),
     ]);
   };
 
@@ -128,7 +132,7 @@ describe('the posts in every language', () => {
   it('fits X with the link attached, as X counts characters', () => {
     LOCALES.forEach(({ code }) => {
       const t: Translate = (key, vars) => translate(code, key, vars);
-      const post = buildShareText(t, 999999, 10, true, 'x');
+      const post = buildShareText(t, 999999, 10, 'x');
       // The language rides along so a failure names it.
       expect([code, xLength(post) + 1 + 23 <= 280]).toEqual([code, true]);
     });
@@ -212,17 +216,6 @@ describe('getShareFileName', () => {
     // ".png" that is actually "-1.5.png" looks like a broken download.
     expect(getShareFileName(-3)).toBe('fluideq-score-0.png');
     expect(getShareFileName(12.9)).toBe('fluideq-score-12.png');
-  });
-});
-
-describe('isEuphoricRun', () => {
-  it('agrees with the game about where the ceiling is', () => {
-    // The card, the sentence and the button that offers the share all read
-    // this. If they ever disagree someone posts a rainbow card under a
-    // sentence that does not mention euphoria.
-    expect(EUPHORIA_MULTIPLIER).toBe(10);
-    expect(isEuphoricRun(9.99)).toBe(false);
-    expect(isEuphoricRun(10)).toBe(true);
   });
 });
 

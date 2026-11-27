@@ -149,11 +149,7 @@ const look: Partial<Dictionary> = {
     '{name} 是免费开源的全系统均衡器，支持 Windows、macOS 和 Linux。每个输出只需调一次，带有耳机校正、声音曲线和记住每首歌声音的 Auto EQ，正确的调音会自动跟随正确的设备。{run}',
   'support.game.postRun':
     '它还藏着一个节奏游戏，我刚在 ×{peak} 拿到 {points} 分。',
-  'support.game.postRunColour':
-    '它还藏着一个节奏游戏：我把连击打到 ×{top}，拿到 {points} 分，整个界面都亮起了色彩。',
   'support.game.postRunShort': '它藏着一个节奏游戏：×{peak}，{points} 分。',
-  'support.game.postRunShortColour':
-    '它藏着一个节奏游戏：×{top}，{points} 分，界面亮起色彩。',
   'support.game.shareCardCopied': '已复制 — 直接粘贴',
   'support.game.shareCopy': '复制文字',
   'support.game.shareCopied': '已复制',

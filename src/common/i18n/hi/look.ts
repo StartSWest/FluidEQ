@@ -155,12 +155,8 @@ const look: Partial<Dictionary> = {
     '{name} Windows, macOS और Linux के लिए मुफ़्त, ओपन-सोर्स, पूरे सिस्टम का इक्वलाइज़र है। हर आउटपुट को एक बार ट्यून करें, हेडफ़ोन सुधार, साउंड कर्व और हर गाने की आवाज़ याद रखने वाले Auto EQ के साथ, और सही ट्यूनिंग अपने आप सही डिवाइस के साथ चलती है। {run}',
   'support.game.postRun':
     'इसमें एक बीट गेम भी छिपा है, जिसमें मैंने अभी ×{peak} पर {points} अंक बनाए।',
-  'support.game.postRunColour':
-    'इसमें एक बीट गेम भी छिपा है: मैंने स्ट्रीक ×{top} तक पहुँचाई, {points} अंक बनाए और पूरा इंटरफ़ेस रंगों से जगमगा उठा।',
   'support.game.postRunShort':
     'इसमें एक बीट गेम छिपा है: ×{peak} पर {points} अंक।',
-  'support.game.postRunShortColour':
-    'इसमें एक बीट गेम छिपा है: ×{top}, {points} अंक, और इंटरफ़ेस रंगों से जगमगाता है।',
   'support.game.shareCardCopied': 'कॉपी हुआ — चिपका दें',
   'support.game.shareCopy': 'टेक्स्ट कॉपी करें',
   'support.game.shareCopied': 'कॉपी हो गया',

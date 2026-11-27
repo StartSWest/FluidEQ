@@ -156,12 +156,8 @@ const look: Partial<Dictionary> = {
     '{name} es un ecualizador para todo el sistema, gratis y de código abierto, para Windows, macOS y Linux. Ajusta cada salida una vez, con corrección de auriculares, curvas de sonido y un Auto EQ que recuerda el sonido de cada canción, y la afinación correcta sigue al dispositivo correcto por sí sola. {run}',
   'support.game.postRun':
     'También esconde un juego de ritmo, donde acabo de hacer {points} puntos a ×{peak}.',
-  'support.game.postRunColour':
-    'También esconde un juego de ritmo: llevé la racha a ×{top} con {points} puntos y toda la interfaz se iluminó de color.',
   'support.game.postRunShort':
     'Esconde un juego de ritmo: {points} puntos a ×{peak}.',
-  'support.game.postRunShortColour':
-    'Esconde un juego de ritmo: ×{top}, {points} puntos y la interfaz se ilumina de color.',
   'support.game.shareCardCopied': 'Copiada — pégala ahí',
   'support.game.shareCopy': 'Copiar texto',
   'support.game.shareCopied': 'Copiado',
