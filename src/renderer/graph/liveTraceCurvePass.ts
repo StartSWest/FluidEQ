@@ -17,7 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { toColumns } from 'common/graphShapes';
+import { type Projected, type ResolvedGraphPalette } from 'common/graphStyles';
 import { type RefObject } from 'react';
+import { heatColour } from './lookColours';
 import {
   getWaveTransform,
   type IEuphoriaPaint,
@@ -40,6 +42,7 @@ import {
 } from './liveTraceSignalLooks';
 import {
   paintCity,
+  outlineTowers,
   paintCrystals,
   paintField,
   paintStage,
@@ -82,7 +85,6 @@ import { type createRoadTripPaths } from './roadTrip';
 import { type createEchoWavePaths } from './echoWaves';
 import { type ILookTuning } from '../../common/customLooks';
 import { type IGraphMotionState } from './graphMotion';
-import { type ResolvedGraphPalette } from '../../common/graphStyles';
 import { type NightSurfaces } from './nightSurfaces';
 import { type IGhost, type ISpark } from './sawtoothScope';
 import type { ITexturePose } from './textureMotion';
@@ -214,6 +216,7 @@ interface IPaintCurvesInput {
   isEuphoric: boolean;
   fluidOwnColours: boolean;
   piecePaths: { path: Path2D; energy: number }[] | undefined;
+  figurePoints: Projected[];
   echoPaths: ReturnType<typeof createEchoWavePaths> | undefined;
   sawTrace: Path2D | undefined;
   sawtoothScopeRef: RefObject<{
@@ -303,6 +306,7 @@ const paintCurves = ({
   isEuphoric,
   fluidOwnColours,
   piecePaths,
+  figurePoints,
   echoPaths,
   sawTrace,
   sawtoothScopeRef,
@@ -574,6 +578,19 @@ const paintCurves = ({
       opacity,
       plot,
       texturePose,
+    });
+    outlineTowers({
+      cityPaths,
+      isFilled,
+      context,
+      figurePoints,
+      sceneBase,
+      sceneTop,
+      tuning,
+      basePaint,
+      heat: piecePaths?.map((piece) => heatColour(paintColours, piece.energy)),
+      ratio,
+      opacity,
     });
     paintEchoWaves({
       echoPaths,

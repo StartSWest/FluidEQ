@@ -19,6 +19,7 @@ import {
   CITY_INKS,
   cityInks,
   cityTowerColours,
+  towerEdgeInk,
 } from '../../../../renderer/graph/citySkyline';
 import LOOK_GLSL from '../../../../renderer/graph/engineLooks/lookGlsl';
 import ANALYSIS_GLSL from '../../../../renderer/graph/engineLooks/analysisGlsl';
@@ -180,6 +181,43 @@ describe("the Skyline's towers", () => {
     );
     // The street darkest, the sunlit roofs lightest.
     expect(contrast(towers[0], WHITE_FLOOR)).toBeGreaterThan(3);
+  });
+});
+
+describe("the Skyline's outlines", () => {
+  it('are a lighter tone of each tower on a dark window', () => {
+    root.style.setProperty('--surface-base', DARK_FLOOR);
+    cityTowerColours().forEach((tower) => {
+      const edge = towerEdgeInk(tower);
+      expect(luminance(channels(edge))).toBeGreaterThan(
+        luminance(channels(tower)),
+      );
+      // Clear of the tower it outlines, so the edge reads.
+      expect(contrast(edge, tower)).toBeGreaterThan(2);
+    });
+  });
+
+  it('are a darker tone of each tower on a light window', () => {
+    root.style.setProperty('--surface-base', WHITE_FLOOR);
+    setLightWindow(true);
+    cityTowerColours().forEach((tower) => {
+      const edge = towerEdgeInk(tower);
+      expect(luminance(channels(edge))).toBeLessThan(
+        luminance(channels(tower)),
+      );
+      expect(contrast(edge, tower)).toBeGreaterThan(2);
+    });
+  });
+
+  it("follow a palette's colour rather than a fixed ink", () => {
+    // The control: two towers of different colours get different edges, and
+    // neither is plain white or black.
+    const blue = towerEdgeInk('#2060c0');
+    const red = towerEdgeInk('#c02040');
+    expect(blue).not.toBe(red);
+    [blue, red].forEach((edge) => {
+      expect(edge).not.toMatch(/rgba\(255, 255, 255|rgba\(0, 0, 0/);
+    });
   });
 });
 

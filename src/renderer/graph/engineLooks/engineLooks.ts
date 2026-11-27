@@ -208,7 +208,9 @@ export const engineAnalysisStep = (
 // pale fill (`uLookTexturing.w`, 2026-11-27).
 // 9: the designed scenes lose the shake only the removed Bubbles, Pulse and
 // Invaders used, and the night sky its streaks (2026-11-27).
-const LOOK_PACK_VERSION = 9;
+// 10: the Skyline's filled towers carry a hairline of their own colour
+// inside each edge (`towerEdgeInk`, 2026-11-27).
+const LOOK_PACK_VERSION = 10;
 
 const packs = new Map<GraphStyle, IScenePack>();
 

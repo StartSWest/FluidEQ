@@ -10,6 +10,10 @@ import {
   CITY_DAY_INKS,
   CITY_INKS,
   type CitySkylineLayout,
+  TOWER_EDGE_DAY,
+  TOWER_EDGE_MIN_WIDTH,
+  TOWER_EDGE_NIGHT,
+  TOWER_EDGE_PIXELS,
 } from '../../citySkyline';
 import { GLOW_LAYERS } from '../../figureGlow';
 import type { IEngineLookInput } from '../engineLookInput';
@@ -28,9 +32,10 @@ import {
  * `createSkylineTowers`, painted by the page in `LiveTraceCanvas`): the
  * stars, the moon's halo, the moon and its craters, the halo round the
  * towers, the towers — each in its own colour where the palette gives one
- * a piece — the haze along the foot of the block, the windows where the
- * towers are filled, the beacons on the masts, and where they are not
- * filled, the towers' outlines. Each copy in that order, as the page
+ * a piece — with a hairline of their own colour inside each block's edge
+ * where they are filled (`towerEdgeInk`), the haze along the foot of the
+ * block, the windows where the towers are filled, the beacons on the masts,
+ * and where they are not filled, the towers' outlines. Each copy in that order, as the page
  * paints it.
  *
  *   uLook[8]  the floor, the towers, the pitch between them, the first one's
@@ -99,6 +104,14 @@ float skylinePane(int i, int fl, int c) {
   return mod(floor(mask / exp2(float(c))), 2.0);
 }
 
+// A tower's colour as its outline paints it (towerEdgeInk on the page):
+// a step toward white by night, toward black by day.
+vec3 skylineEdge(vec3 colour) {
+  return lookOnLight()
+    ? mix(colour, vec3(0.0), ${f(TOWER_EDGE_DAY)})
+    : mix(colour, vec3(1.0), ${f(TOWER_EDGE_NIGHT)});
+}
+
 vec4 skylineCopy(vec4 picture, vec2 p, int copy) {
   vec2 q = dsScene(p, copy);
   float floorY = uLook[8].x;
@@ -127,9 +140,15 @@ vec4 skylineCopy(vec4 picture, vec2 p, int copy) {
   int reach = min(${SIDE}, int(ceil(around / pitch)) + 1);
   float body = 0.0;
   float outline = 1e5;
+  // The outline over a filled tower: a band one device pixel wide just
+  // inside each block's edge, as the page strokes it (outlineTowers).
+  float band = lookPixel() * ${f(TOWER_EDGE_PIXELS)};
+  float edges = 0.0;
   float each[${SIDE * 2 + 1}];
+  float eachEdge[${SIDE * 2 + 1}];
   for (int k = 0; k < ${SIDE * 2 + 1}; k++) {
     each[k] = 0.0;
+    eachEdge[k] = 0.0;
     int i = near + k - ${SIDE};
     if (k - ${SIDE} < -reach || k - ${SIDE} > reach || i < 0 || i >= towers) {
       continue;
@@ -141,9 +160,13 @@ vec4 skylineCopy(vec4 picture, vec2 p, int copy) {
       }
       float sd = nightBox(q, block.xy + block.zw * 0.5, block.zw * 0.5);
       each[k] = max(each[k], lookFill(sd));
+      if (block.z >= ${f(TOWER_EDGE_MIN_WIDTH)}) {
+        eachEdge[k] = max(eachEdge[k], lookFill(sd) - lookFill(sd + band));
+      }
       outline = min(outline, abs(sd));
     }
     body = max(body, each[k]);
+    edges = max(edges, eachEdge[k]);
   }
   if (glowing) {
     vec3 glow = dsGlowPaint(q);
@@ -159,9 +182,11 @@ vec4 skylineCopy(vec4 picture, vec2 p, int copy) {
         int i = clamp(near + k - ${SIDE}, 0, max(0, towers - 1));
         vec3 own = texelFetch(uLookData, ivec2(i, HEAT_ROW), 0).rgb;
         picture = lookOver(picture, lookPaint(own, dsOpacity() * dsFillOpacity() * each[k]));
+        picture = lookOver(picture, lookPaint(skylineEdge(own), dsOpacity() * eachEdge[k]));
       }
     } else {
       picture = lookOver(picture, lookPaint(dsPaint(q), dsOpacity() * dsFillOpacity() * body));
+      picture = lookOver(picture, lookPaint(skylineEdge(dsPaint(q)), dsOpacity() * edges));
     }
   }
 

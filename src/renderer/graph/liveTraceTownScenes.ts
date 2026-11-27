@@ -17,8 +17,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { type RefObject } from 'react';
-import { setAlpha } from './liveTraceStyle';
-import { cityInks, type createCitySkylinePaths } from './citySkyline';
+import { createSkylineTowers, type PixelRect } from 'common/graphShapePieces';
+import { type Projected } from 'common/graphStyles';
+import { type ILookTuning } from '../../common/customLooks';
+import { setAlpha, toCanvasPaint } from './liveTraceStyle';
+import { isTraceGradient, type TracePaint } from './liveTracePaint';
+import {
+  cityInks,
+  type createCitySkylinePaths,
+  TOWER_EDGE_MIN_WIDTH,
+  TOWER_EDGE_PIXELS,
+  towerEdgeInk,
+} from './citySkyline';
 import { type NightSurfaces, paintMoonHalo } from './nightSurfaces';
 import { isLightWindow } from '../utils/windowSide';
 import { markFill } from './sceneViews/sceneFrame';
@@ -232,6 +242,87 @@ export const paintStage = ({
     context.stroke(figure);
     context.restore();
   }
+};
+
+interface IOutlineTowersInput {
+  cityPaths: ReturnType<typeof createCitySkylinePaths> | undefined;
+  isFilled: boolean;
+  context: CanvasRenderingContext2D;
+  figurePoints: Projected[];
+  sceneBase: number;
+  sceneTop: number;
+  tuning: ILookTuning;
+  basePaint: TracePaint;
+  /** Each tower's own colour, where the palette colours by the piece. */
+  heat: readonly string[] | undefined;
+  ratio: number;
+  opacity: number;
+}
+
+/**
+ * Each tower's outline over its fill: a band one device pixel wide just
+ * inside every block's edge, in the tower's own colour a step toward white
+ * by night and toward black by day (`towerEdgeInk`). Each block's rectangle
+ * inset by half the band and stroked the band wide, which is the band the
+ * engine's skyline takes off each block's coverage (`skylineLook.ts`) — a
+ * setback's ledge drawn by both. Filled only: outlined, the towers' edges
+ * are the figure already.
+ */
+export const outlineTowers = ({
+  cityPaths,
+  isFilled,
+  context,
+  figurePoints,
+  sceneBase,
+  sceneTop,
+  tuning,
+  basePaint,
+  heat,
+  ratio,
+  opacity,
+}: IOutlineTowersInput) => {
+  if (!cityPaths || !isFilled) {
+    return;
+  }
+  const band = TOWER_EDGE_PIXELS / ratio;
+  const half = band / 2;
+  const { towers } = createSkylineTowers(
+    figurePoints,
+    sceneBase,
+    tuning.columns,
+    tuning.gap,
+    sceneTop,
+  );
+  const outlineOf = (blocks: readonly PixelRect[]) => {
+    const path = new Path2D();
+    blocks.forEach(([x, y, width, height]) => {
+      if (width >= TOWER_EDGE_MIN_WIDTH && height > band) {
+        path.rect(x + half, y + half, width - band, height - band);
+      }
+    });
+    return path;
+  };
+  context.lineWidth = band;
+  context.lineJoin = 'miter';
+  setAlpha(context, opacity);
+  if (heat) {
+    towers.forEach((tower, index) => {
+      context.strokeStyle = towerEdgeInk(heat[index] ?? heat[0]);
+      context.stroke(outlineOf(tower.blocks));
+    });
+    return;
+  }
+  const edge: TracePaint = isTraceGradient(basePaint)
+    ? {
+        ...basePaint,
+        stops: basePaint.stops.map((stop) => ({
+          ...stop,
+          colour: towerEdgeInk(stop.colour),
+        })),
+      }
+    : towerEdgeInk(basePaint);
+  context.strokeStyle = toCanvasPaint(context, edge);
+  context.stroke(outlineOf(towers.flatMap((tower) => tower.blocks)));
 };
 
 interface IStrokeCityInput {

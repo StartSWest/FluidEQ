@@ -790,6 +790,7 @@ const drawLiveTraceFrame = (
     isEuphoric,
     fluidOwnColours,
     piecePaths,
+    figurePoints,
     echoPaths,
     sawTrace,
     sawtoothScopeRef,

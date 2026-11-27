@@ -4,6 +4,7 @@ import noise from 'common/seededNoise';
 import type { ISkyFrame } from './skyFrame';
 import { DAY_SUN } from './nightSurfaces';
 import { floorLifted } from '../utils/windowInk';
+import { parseCssColour } from '../utils/oklab';
 import { isLightWindow } from '../utils/windowSide';
 
 /**
@@ -55,6 +56,45 @@ const DAY_TOWER_LIFTS = [-0.38, -0.32, -0.26];
 
 export const cityTowerColours = (): readonly string[] =>
   floorLifted(isLightWindow() ? DAY_TOWER_LIFTS : TOWER_LIFTS);
+
+/**
+ * How far each tower's outline takes its own colour toward white on a dark
+ * window and toward black on a light one (Ivan, 2026-11-27: "make Skyline
+ * have borders on those buildings so it is more noticeable"). A tone of the
+ * tower, never a fixed ink, so the outline wears whatever the tower wears —
+ * the window's concrete, a palette's ramp, a tower's own heat colour. Mixed
+ * in the same gamma-encoded channels on the page and in the engine's
+ * `skylineLook.ts`, which reads these numbers, so the two draw one edge.
+ */
+export const TOWER_EDGE_NIGHT = 0.5;
+export const TOWER_EDGE_DAY = 0.5;
+
+/**
+ * The outline's width, in device pixels: a hairline just inside each block's
+ * edge, as sharp as the edge itself at any display scale.
+ */
+export const TOWER_EDGE_PIXELS = 1;
+
+/**
+ * The narrowest block that takes an outline, in CSS pixels: a mast is a
+ * pixel or two across, and outlined it turned into a hollow tube.
+ */
+export const TOWER_EDGE_MIN_WIDTH = 3;
+
+/** A tower colour as its outline paints it. */
+export const towerEdgeInk = (colour: string): string => {
+  const parsed = parseCssColour(colour);
+  if (!parsed) {
+    return colour;
+  }
+  const [toward, amount] = isLightWindow()
+    ? [0, TOWER_EDGE_DAY]
+    : [1, TOWER_EDGE_NIGHT];
+  const [red, green, blue] = parsed.rgb.map((channel) =>
+    Math.round((channel + (toward - channel) * amount) * 255),
+  );
+  return `rgba(${red}, ${green}, ${blue}, ${parsed.alpha})`;
+};
 export const CITY_MOON = '#f3efd8';
 export const CITY_WINDOW = '#ffdf9b';
 export const CITY_BEACON = '#ff4d4d';
