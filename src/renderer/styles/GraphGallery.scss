@@ -165,11 +165,38 @@ SPDX-License-Identifier: GPL-3.0-or-later
   height: 100%;
 }
 
-// A standard look's glyph sits in its tile rather than filling it.
+// A standard look's glyph sits in its tile rather than filling it; it stands
+// only where no still can be had (`GalleryLookStill`).
 .graph-gallery-picture--look .graph-gallery-picture__glyph {
   inset: 18%;
   width: 64%;
   height: 64%;
+}
+
+// A look's still (`GalleryLookStill`) is drawn for the picker's 16:9 plate
+// (`STILL_BOX`), and these tiles are narrower: it covers its tile as a
+// scene's picture covers the one beside it, in its own shape and centred,
+// so whatever shape the tile takes nothing is squeezed and no edge is bare.
+// The tile is the container whose sides the cover is reckoned from.
+.graph-gallery-picture--look {
+  container-type: size;
+
+  // Over a scene the crystal is frosted over its picture, bright in one
+  // place and dark in the next, and a still is the look as it draws on the
+  // window: there it stands on the window's own floor, as whole as the
+  // scene's picture beside it, never on whatever the glass lets through.
+  :root.is-scene-column & {
+    background: $surface-base;
+  }
+}
+
+.graph-gallery-still {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100cqw, 100cqh * 16 / 9);
+  height: max(100cqh, 100cqw * 9 / 16);
+  translate: -50% -50%;
 }
 
 // *** The credit: this look's name, who made it, its switches ****************

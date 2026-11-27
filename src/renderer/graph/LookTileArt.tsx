@@ -8,7 +8,6 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
-  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -22,16 +21,11 @@ import usePlayerTrace from '../player/playerTrace';
 import useReducedMotion from '../utils/useReducedMotion';
 import LiveTraceCanvas, { type ILiveTraceDriver } from './LiveTraceCanvas';
 import LookStillPainter from './LookStillPainter';
-import {
-  keepLookStill,
-  useLookStill,
-  useLookStillsUnavailable,
-  useStillTurn,
-} from './lookStillStore';
+import { usePlateStill } from './lookStillPlate';
+import { keepLookStill, useStillTurn } from './lookStillStore';
 import { stillSecondsOf } from './lookStillSong';
 import { drawnSizeOf } from './lookStills/drawnSize';
 import ShippedLookStill from './lookStills/ShippedLookStill';
-import { shippedStillOf, useStillWindow } from './lookStills/shippedStill';
 import { useTileGrid } from './LookStyleGrid';
 import type { ILookTileLoop } from './lookTileLoop';
 import { useTileSound } from './lookTileSound';
@@ -232,25 +226,20 @@ const LookTileArt = ({
   const sound = useTileSound();
   // Followed, not read once: Animations off stills every tile at once.
   const reduced = useReducedMotion();
-  const stillKey = useMemo(
-    () => `${JSON.stringify(look)}|${paintKey}`,
-    [look, paintKey],
-  );
-  const stillWindow = useStillWindow();
-  const shipped = shippedStillOf(look, stillWindow);
-  const still = useLookStill(stillKey);
   // The picture on the plate: this look's still in these colours, or until
   // that is painted the one shown before it. New window colours name new
   // stills, and a plate grown past its still asks for another: both are
   // painted behind the one on the plate, which never goes blank and keeps
   // the look live meanwhile.
-  const shownRef = useRef(still);
-  shownRef.current = still ?? shownRef.current;
-  const picture = shownRef.current;
-  const unavailable = useLookStillsUnavailable();
-  // A still that arrives after the tile is up fades in; one kept, or
-  // shipped, is simply there.
-  const [arriving] = useState(picture === undefined && shipped === undefined);
+  const {
+    stillKey,
+    stillWindow,
+    shipped,
+    still,
+    picture,
+    unavailable,
+    arriving,
+  } = usePlateStill(look, paintKey);
   const stillRef = useRef<HTMLElement | null>(null);
   const drawn = drawnSizeOf(look.style, box);
   // A shipped still serves every size: it is drawn for the plate's shape

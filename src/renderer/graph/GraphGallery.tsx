@@ -5,10 +5,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useState, type ReactNode } from 'react';
-import LookIcon from '../icons/LookIcon';
 import SceneLookIcon from '../icons/SceneLookIcon';
 import { useTranslation } from '../utils/I18nContext';
 import { isUnseenSceneVersion } from '../utils/seenSceneVersions';
+import GalleryLookStill from './GalleryLookStill';
 import LookPicker from './LookPicker';
 import SceneLikeButton from './SceneLikeButton';
 import { useLookGallery, type IGalleryEntry } from './lookGallery';
@@ -83,14 +83,15 @@ const GalleryPicture = ({
       />
     );
   }
+  // Its own picture per look, so a step puts each plate's new look up
+  // fresh, with the still it already has (`GalleryLookStill`).
   return (
     <span className="graph-gallery-picture graph-gallery-picture--look">
       {entry.look && (
-        <LookIcon
-          className="graph-gallery-picture__glyph"
-          style={entry.look.style}
-          palette={entry.look.palette}
-          colours={entry.look.colours}
+        <GalleryLookStill
+          key={entry.look.id}
+          look={entry.look}
+          isAsleep={isAsleep}
         />
       )}
     </span>

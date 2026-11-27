@@ -13,9 +13,8 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { useRainbowStops } from '../utils/rainbowPalette';
-import { useLiveSurface, useThemeShade } from '../utils/theme';
 import useReducedMotion from '../utils/useReducedMotion';
+import { useStillPaintKey } from './lookStillPlate';
 import { createLookTileLoop, type ILookTileLoop } from './lookTileLoop';
 import { createTileWatcher, type TWatchTile } from './lookTileWatcher';
 import { LookTileSoundScope } from './lookTileSound';
@@ -59,18 +58,6 @@ export const useTileGrid = (): ITileGrid =>
   useContext(TileGridContext) ?? RESTING;
 
 /**
- * The colours a still is drawn in: the window's rainbow, its accent, its
- * ink and its shade. A still kept from other colours is another picture.
- */
-const usePaintKey = () => {
-  const stops = useRainbowStops();
-  const accent = useLiveSurface('--accent', '');
-  const ink = useLiveSurface('--text-primary', '');
-  const shade = useThemeShade();
-  return `${stops.join(',')}|${accent}|${ink}|${shade}`;
-};
-
-/**
  * Everything the live tiles share - the loop, the scroller's observer, the
  * sound - for whatever lays them out: the grid below, and the Details
  * list's small pictures (`LookPickerDetails`). It adds no element.
@@ -87,7 +74,7 @@ export const LookTileScope = ({ children }: { children: ReactNode }) => {
     },
     [loop, watcher],
   );
-  const paintKey = usePaintKey();
+  const paintKey = useStillPaintKey();
   const value = useMemo<ITileGrid>(
     () => ({ loop, watch: watcher.watch, paintKey, wantSound }),
     [loop, watcher, paintKey, wantSound],
