@@ -141,7 +141,7 @@ const look: Partial<Dictionary> = {
     'カードを保存して投稿に添付してください。これらのサービスはリンクから画像を取り込めません。',
   'support.game.shareSave': 'カードを保存',
   'support.game.shareCopyCard': 'カードをコピー',
-  'support.game.cardScore': 'ビートゲームのスコア',
+  'support.game.cardScore': '私の Fluid スコアを超えてみて',
   'support.game.cardStreak': '連続',
   'support.game.cardTagline': 'Windows・macOS・Linux 対応の無料イコライザー',
   'support.game.postX':

@@ -118,7 +118,7 @@ const look = {
     '儲存卡片，然後將其附加到您的貼文中 - 這些網路都無法從連結中提取影像。',
   'support.game.shareSave': '儲存卡',
   'support.game.shareCopyCard': '影印卡',
-  'support.game.cardScore': '節奏遊戲分數',
+  'support.game.cardScore': '來挑戰我的 Fluid 分數',
   'support.game.cardStreak': '連擊',
   'support.game.cardTagline': '免費等化器，支援 Windows、macOS 和 Linux',
   'support.game.postX':

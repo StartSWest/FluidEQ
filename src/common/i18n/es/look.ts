@@ -143,7 +143,7 @@ const look: Partial<Dictionary> = {
     'Guarda la tarjeta y adjúntala a tu publicación: ninguna de estas redes puede sacar una imagen de un enlace.',
   'support.game.shareSave': 'Guardar tarjeta',
   'support.game.shareCopyCard': 'Copiar tarjeta',
-  'support.game.cardScore': 'Puntuación del juego de ritmo',
+  'support.game.cardScore': 'Supera mi puntuación Fluid',
   'support.game.cardStreak': 'racha',
   'support.game.cardTagline': 'Ecualizador gratis para Windows, macOS y Linux',
   'support.game.postX':

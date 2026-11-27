@@ -11,6 +11,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * drawn into a context that records what it is told.
  */
 
+import type { Dictionary, LocaleCode } from 'common/i18n';
+import deLook from 'common/i18n/de/look';
+import enLook from 'common/i18n/en/look';
+import esLook from 'common/i18n/es/look';
+import frLook from 'common/i18n/fr/look';
+import hiLook from 'common/i18n/hi/look';
+import itLook from 'common/i18n/it/look';
+import jaLook from 'common/i18n/ja/look';
+import koLook from 'common/i18n/ko/look';
+import ptLook from 'common/i18n/pt/look';
+import ruLook from 'common/i18n/ru/look';
+import zhHantLook from 'common/i18n/zh-Hant/look';
+import zhLook from 'common/i18n/zh/look';
 import {
   drawShareCard,
   type IShareCardWords,
@@ -20,8 +33,29 @@ import { LAGOON, setRainbowStops } from 'renderer/utils/rainbowPalette';
 /** The five colours the card used to be drawn in, whatever the window. */
 const OLD_SPECTRUM = ['#00e5ff', '#54ff8a', '#ffe66d', '#ff3cac', '#8b5cff'];
 
+/**
+ * Each language's part of the dictionary that holds the card's words — that
+ * part alone, because loading every whole dictionary cost this file 45 s. A
+ * Record over every locale, so a language added without its line here fails
+ * to compile.
+ */
+const CARD_WORDS: Record<LocaleCode, Partial<Dictionary>> = {
+  en: enLook,
+  es: esLook,
+  pt: ptLook,
+  fr: frLook,
+  de: deLook,
+  it: itLook,
+  ru: ruLook,
+  zh: zhLook,
+  'zh-Hant': zhHantLook,
+  ja: jaLook,
+  ko: koLook,
+  hi: hiLook,
+};
+
 const ENGLISH: IShareCardWords = {
-  scoreLabel: 'Beat game score',
+  scoreLabel: 'Beat my Fluid score',
   streak: 'streak',
   tagline: 'Free EQ for Windows, macOS and Linux',
 };
@@ -144,11 +178,11 @@ describe('the share card', () => {
     jest.restoreAllMocks();
   });
 
-  it('is about the score: what it is, the number, the streak and where to get the app', () => {
+  it('is about the score: the challenge, the number, the streak and where to get the app', () => {
     const recording = draw(176, 2, true);
     expect(recording.texts).toEqual(
       expect.arrayContaining([
-        'Beat game score',
+        'Beat my Fluid score',
         '176',
         '×2',
         'streak',
@@ -161,19 +195,37 @@ describe('the share card', () => {
 
   it('draws the words it is handed, so a reader in another language reads their own', () => {
     const recording = draw(176, 2, false, {
-      scoreLabel: 'Punktzahl im Rhythmusspiel',
+      scoreLabel: 'Schlagen Sie mein Fluid-Ergebnis',
       streak: 'Serie',
       tagline: 'Kostenloser EQ für Windows, macOS und Linux',
     });
     expect(recording.texts).toEqual(
       expect.arrayContaining([
-        'Punktzahl im Rhythmusspiel',
+        'Schlagen Sie mein Fluid-Ergebnis',
         'Serie',
         'Kostenloser EQ für Windows, macOS und Linux',
       ]),
     );
     // Control: the English it would otherwise carry is nowhere on it.
-    expect(recording.texts).not.toContain('Beat game score');
+    expect(recording.texts).not.toContain('Beat my Fluid score');
+  });
+
+  it('challenges whoever sees it in every language, keeping "Fluid" as the brand', () => {
+    // Ivan, 2026-11-27: the line over the number dares the reader to beat
+    // it, where it used to name the game. "Fluid" is the brand, so no
+    // language translates it away.
+    const labels = Object.entries(CARD_WORDS).map(
+      ([code, words]) => `${code}: ${words['support.game.cardScore']}`,
+    );
+    expect(labels).toContain('en: Beat my Fluid score');
+    labels.forEach((label) => {
+      expect(label).toMatch(/^[\w-]+: .*\bFluid\b/);
+    });
+    // Control: each language carries words of its own, not the English
+    // copied in.
+    expect(
+      labels.filter((label) => label.endsWith(': Beat my Fluid score')),
+    ).toEqual(['en: Beat my Fluid score']);
   });
 
   it('never says the app is for Windows alone', () => {

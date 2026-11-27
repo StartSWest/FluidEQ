@@ -60,7 +60,11 @@ const EDGE = 64;
 
 /** The words the card carries, in the reader's language. */
 export interface IShareCardWords {
-  /** Over the number: what it is a score of. */
+  /**
+   * Over the number: a challenge to whoever sees the card, "Beat my Fluid
+   * score" (Ivan, 2026-11-27), where it used to name the game the score was
+   * from. "Fluid" is the brand and stays in English in every language.
+   */
   scoreLabel: string;
   /** After "×3" in the pill. */
   streak: string;
@@ -143,7 +147,7 @@ const SCORE = { x: 70, baseline: 450, maxWidth: 600 };
 const FIGURE_HEIGHT = 0.72;
 
 /**
- * What it is, the number lit from above — white at its top into the
+ * The challenge, the number lit from above — white at its top into the
  * accent's light at its foot — and the streak in its pill under it.
  */
 const drawScore = (
@@ -175,8 +179,8 @@ const drawScore = (
   context.fillText(scoreText, SCORE.x - 10, SCORE.baseline);
   context.letterSpacing = '0px';
 
-  // What it is, a fixed step over the figures' tops, so a long score that
-  // had to shrink keeps its name beside it.
+  // The challenge, a fixed step over the figures' tops, so a long score that
+  // had to shrink keeps its words beside it.
   context.fillStyle = INK_MUTED;
   setFittedFont(context, words.scoreLabel, 600, 26, 18, SCORE.maxWidth);
   context.fillText(

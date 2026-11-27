@@ -127,7 +127,7 @@ const look = {
     '카드를 저장한 다음 게시물에 첨부하세요. 이러한 네트워크 중 어느 것도 링크에서 이미지를 가져올 수 없습니다.',
   'support.game.shareSave': '카드 저장',
   'support.game.shareCopyCard': '카드 복사',
-  'support.game.cardScore': '비트 게임 점수',
+  'support.game.cardScore': '내 Fluid 점수를 넘어 보세요',
   'support.game.cardStreak': '연속',
   'support.game.cardTagline': 'Windows, macOS, Linux용 무료 이퀄라이저',
   'support.game.postX':

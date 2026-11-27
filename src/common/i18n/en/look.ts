@@ -142,7 +142,7 @@ const look = {
     'Save the card, then attach it to your post — none of these networks can pull an image out of a link.',
   'support.game.shareSave': 'Save card',
   'support.game.shareCopyCard': 'Copy card',
-  'support.game.cardScore': 'Beat game score',
+  'support.game.cardScore': 'Beat my Fluid score',
   'support.game.cardStreak': 'streak',
   'support.game.cardTagline': 'Free EQ for Windows, macOS and Linux',
   'support.game.postX':

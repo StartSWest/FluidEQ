@@ -145,7 +145,7 @@ const look: Partial<Dictionary> = {
     "Salva la scheda e allegala al post: nessuna di queste reti può ricavare un'immagine da un link.",
   'support.game.shareSave': 'Salva scheda',
   'support.game.shareCopyCard': 'Copia scheda',
-  'support.game.cardScore': 'Punteggio del gioco ritmico',
+  'support.game.cardScore': 'Batti il mio punteggio Fluid',
   'support.game.cardStreak': 'serie',
   'support.game.cardTagline':
     'Equalizzatore gratuito per Windows, macOS e Linux',

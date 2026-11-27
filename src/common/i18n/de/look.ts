@@ -146,7 +146,7 @@ const look: Partial<Dictionary> = {
     'Speichern Sie die Karte und hängen Sie sie an Ihren Beitrag an – keines dieser Netzwerke kann ein Bild aus einem Link ziehen.',
   'support.game.shareSave': 'Karte speichern',
   'support.game.shareCopyCard': 'Karte kopieren',
-  'support.game.cardScore': 'Punktzahl im Rhythmusspiel',
+  'support.game.cardScore': 'Schlagen Sie mein Fluid-Ergebnis',
   'support.game.cardStreak': 'Serie',
   'support.game.cardTagline': 'Kostenloser EQ für Windows, macOS und Linux',
   'support.game.postX':

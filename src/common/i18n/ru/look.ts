@@ -143,7 +143,7 @@ const look: Partial<Dictionary> = {
     'Сохраните карточку и прикрепите её к записи: ни одна из этих сетей не может взять изображение из ссылки.',
   'support.game.shareSave': 'Сохранить карточку',
   'support.game.shareCopyCard': 'Копировать карточку',
-  'support.game.cardScore': 'Счёт в ритм-игре',
+  'support.game.cardScore': 'Побейте мой результат в Fluid',
   'support.game.cardStreak': 'серия',
   'support.game.cardTagline':
     'Бесплатный эквалайзер для Windows, macOS и Linux',

@@ -142,7 +142,7 @@ const look: Partial<Dictionary> = {
     'कार्ड सहेजें और उसे अपनी पोस्ट में जोड़ें — इनमें से कोई भी नेटवर्क लिंक से तस्वीर नहीं निकाल सकता।',
   'support.game.shareSave': 'कार्ड सहेजें',
   'support.game.shareCopyCard': 'कार्ड कॉपी करें',
-  'support.game.cardScore': 'बीट गेम स्कोर',
+  'support.game.cardScore': 'मेरा Fluid स्कोर पार करके दिखाइए',
   'support.game.cardStreak': 'स्ट्रीक',
   'support.game.cardTagline': 'Windows, macOS और Linux के लिए मुफ़्त EQ',
   'support.game.postX':

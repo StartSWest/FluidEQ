@@ -136,7 +136,7 @@ const look: Partial<Dictionary> = {
     '先保存卡片，再附加到你的帖子里：这些平台都无法从链接中取出图片。',
   'support.game.shareSave': '保存卡片',
   'support.game.shareCopyCard': '复制卡片',
-  'support.game.cardScore': '节奏游戏得分',
+  'support.game.cardScore': '来挑战我的 Fluid 分数',
   'support.game.cardStreak': '连击',
   'support.game.cardTagline': '免费均衡器，支持 Windows、macOS 和 Linux',
   'support.game.postX':

@@ -145,7 +145,7 @@ const look: Partial<Dictionary> = {
     "Enregistrez la carte puis joignez-la à votre publication : aucun de ces réseaux ne peut extraire une image d'un lien.",
   'support.game.shareSave': 'Enregistrer la carte',
   'support.game.shareCopyCard': 'Copier la carte',
-  'support.game.cardScore': 'Score du jeu de rythme',
+  'support.game.cardScore': 'Battez mon score Fluid',
   'support.game.cardStreak': 'série',
   'support.game.cardTagline': 'Égaliseur gratuit pour Windows, macOS et Linux',
   'support.game.postX':
