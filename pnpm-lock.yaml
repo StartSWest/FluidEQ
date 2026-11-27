@@ -14,9 +14,10 @@ overrides:
 
 patchedDependencies:
   '@huggingface/transformers@3.7.6': 4ba113edbe267abe76a580169922d01d263fff5f3c0651caaafb85a481399275
+  electronmon@2.0.4: 87db56187c54d79ccbdf8cf9093d0840dc8c4db5a6a2dfcf6b3c502419f25877
   music-metadata@11.14.0: 72bb58a6ec2f697221c65bd5cef07a65c4c916ba6702d21c37b62b3c8110b57b
   node-taglib-sharp@6.0.3: c9ed7f8a49be7960f45226d11fbc10eaf854b4153aa2a0ad40e2630a542cc0b6
-  watchboy@0.4.3: 38a0fe91b903b79e17cb6d8957dfa0b9b1034d76a72aa1cb24ef46db3efec659
+  watchboy@0.4.3: 901f3bf3d93f421b0d602e820dcbf4a60a7902c6bd481f9928cab60fa4565634
 
 importers:
 
@@ -175,7 +176,7 @@ importers:
         version: 4.0.0
       electronmon:
         specifier: ^2.0.4
-        version: 2.0.4
+        version: 2.0.4(patch_hash=87db56187c54d79ccbdf8cf9093d0840dc8c4db5a6a2dfcf6b3c502419f25877)
       eslint:
         specifier: 8.57.1
         version: 8.57.1
@@ -10757,12 +10758,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  electronmon@2.0.4:
+  electronmon@2.0.4(patch_hash=87db56187c54d79ccbdf8cf9093d0840dc8c4db5a6a2dfcf6b3c502419f25877):
     dependencies:
       chalk: 3.0.0
       import-from: 3.0.0
       runtime-required: 1.1.0
-      watchboy: 0.4.3(patch_hash=38a0fe91b903b79e17cb6d8957dfa0b9b1034d76a72aa1cb24ef46db3efec659)
+      watchboy: 0.4.3(patch_hash=901f3bf3d93f421b0d602e820dcbf4a60a7902c6bd481f9928cab60fa4565634)
 
   emittery@0.13.1: {}
 
@@ -14976,7 +14977,7 @@ snapshots:
     dependencies:
       makeerror: 1.0.12
 
-  watchboy@0.4.3(patch_hash=38a0fe91b903b79e17cb6d8957dfa0b9b1034d76a72aa1cb24ef46db3efec659):
+  watchboy@0.4.3(patch_hash=901f3bf3d93f421b0d602e820dcbf4a60a7902c6bd481f9928cab60fa4565634):
     dependencies:
       lodash.difference: 4.5.0
       micromatch: 4.0.8

@@ -1061,6 +1061,14 @@ app.on('before-quit', (event) => {
   // once FluidEQ is gone; the next launch writes it back.
   if (!pendingWritesFlushed) {
     event.preventDefault();
+    // Both said, because this is the one place the app holds its own quit
+    // back: a quit that never got past it left a process that went on
+    // working with no line anywhere saying it had been asked to end — and in
+    // development, electronmon asks only once, so that process keeps running
+    // the old main code through every later change.
+    log.info(
+      'FluidEQ is quitting: finishing its writes and turning the engine off first.',
+    );
     // The window's geometry joins the queue first, so the write the close
     // handler asks for later finds it on disk and has nothing left to do; and
     // a memory trace still recording is written rather than lost.
@@ -1071,6 +1079,7 @@ app.on('before-quit', (event) => {
       .catch((error) => log.error('Resetting the audio engine failed', error))
       .finally(() => {
         pendingWritesFlushed = true;
+        log.info('FluidEQ is quitting: writes done, closing.');
         app.quit();
       });
     return;

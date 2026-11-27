@@ -44,6 +44,7 @@ publicHoistPattern:
   - '*prettier*'
 patchedDependencies:
   '@huggingface/transformers@3.7.6': patches/@huggingface__transformers@3.7.6.patch
+  electronmon@2.0.4: patches/electronmon@2.0.4.patch
   music-metadata@11.14.0: patches/music-metadata@11.14.0.patch
   node-taglib-sharp@6.0.3: patches/node-taglib-sharp@6.0.3.patch
   watchboy@0.4.3: patches/watchboy@0.4.3.patch

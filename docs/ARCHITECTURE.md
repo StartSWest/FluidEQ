@@ -176,7 +176,7 @@ split across `src/main/ipc/` (one file per surface: `dspHost`, `filters`,
 | `release/build/`     | Installer output                                                                                                                       |
 | `assets/`            | Icons, NSIS scripts, models, licences, tour images, PowerShell helpers                                                                 |
 | `opra/`              | OPRA headphone database                                                                                                                |
-| `patches/`           | pnpm patches for `@huggingface/transformers` and `music-metadata`                                                                      |
+| `patches/`           | pnpm patches: `@huggingface/transformers`, `music-metadata`, `node-taglib-sharp`, and electronmon + watchboy (dev restarts)            |
 | `scripts/`           | `build-opra-database.ts` only                                                                                                          |
 | `docs/`              | User guide (generated), design briefs and specs, `superpowers/` plans and specs, `qa/` snapshots                                       |
 | `.github/workflows/` | `test.yml`, `weekly-build.yml`, `update-opra-database.yml`, `discussions-feed.yml`                                                     |

@@ -349,6 +349,24 @@ Everything worth knowing about them is available through commands:
   quick pick reverted with no message. If a change to `src/common` seems not to
   have taken effect, restart `pnpm dev` before believing anything else; the
   pattern list only takes effect when electronmon starts.
+- **A landing can overflow the dev restarter's watcher, and used to leave
+  main on the old code for hours.** electronmon watches the whole checkout
+  with one recursive `fs.watch` — worktrees and builds included — and a
+  landing that rewrites twenty files overflows Windows' change buffer, which
+  arrives as one change with no name. Unpatched, watchboy reported nothing
+  then, and dropped most of the files it was told about by name for being
+  older than the newest file seen; on 2026-11-26 main ran 15:00's code until
+  19:27 through two landings while the window hot-reloaded, and refused what
+  the new window sent. No quit was involved: none was asked for.
+  `patches/watchboy@0.4.3.patch` re-checks every watched file on a nameless
+  event and judges each by its own mtime (`devMainRestartWatch.test.ts`);
+  `patches/electronmon@2.0.4.patch` restarts main for a loaded file that
+  comes back after a removal, and prints `waiting: the app has not quit...`
+  for each change dropped while it waits on a quit
+  (`devMainRestartMonitor.test.ts`). Main logs `FluidEQ is quitting:` when
+  it holds a quit for its writes and again when it lets it go — a first line
+  with no second is a quit that stalled. A change to either patch reaches
+  `pnpm dev` only after `pnpm install` in that checkout and a restart.
 - **In dev, the Studio's chats outlive a main restart; a real quit ends
   them.** Under electronmon each chat's Claude Code runs beneath a helper
   started apart from main (`chatRelayBoot.cjs`, Electron as Node), through

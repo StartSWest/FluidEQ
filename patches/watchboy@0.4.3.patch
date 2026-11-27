@@ -1,8 +1,146 @@
 diff --git a/index.js b/index.js
-index c741263829040a395c37ff1207a7a24a719af39d..8001bca48fbcca95265c59a0dc42b330e5ed9a9b 100644
+index c741263..7e83226 100644
 --- a/index.js
 +++ b/index.js
-@@ -268,6 +268,21 @@ module.exports = (pattern, {
+@@ -122,7 +122,6 @@ module.exports = (pattern, {
+   cwd = process.cwd(),
+   persistent = true
+ } = {}) => {
+-  let lastMtimeMs = Date.now();
+ 
+   // support passing relative paths and '.'
+   cwd = path.resolve(cwd);
+@@ -137,6 +136,21 @@ module.exports = (pattern, {
+   const events = new EventEmitter();
+   const dirs = new Map();
+   const files = new Map();
++  // FluidEQ patch: each file's own last known mtime. The watcher used to keep
++  // one mtime for the whole tree and fire a change only for a file at least as
++  // new as the newest it had seen, so when a landing rewrote twenty files at
++  // once and their stats came back out of order, every file answered after a
++  // newer one was dropped -- in a probe, a third to most of each checkout.
++  // A file is changed when its mtime differs from its own last one.
++  const mtimes = new Map();
++  const mtimeOf = (abspath) => {
++    try {
++      return fs.statSync(abspath).mtimeMs;
++    } catch (e) {
++      // gone or unreadable already: its next event is reported as a change
++      return undefined;
++    }
++  };
+   const pending = {};
+   let state = STATE.STARTING;
+   let absolutePatterns;
+@@ -172,6 +186,27 @@ module.exports = (pattern, {
+ 
+       const { evname, evarg } = ref;
+ 
++      // FluidEQ patch: git rewrites a file by deleting it and creating it
++      // again, and a rescan of its folder that lands between the two drops
++      // the file as deleted. It was then reported as gone and, if nothing
++      // else touched the folder, never watched again: in a probe, one file of
++      // a twenty-file checkout every few landings. A file that is back by the
++      // time its removal is reported was replaced, which is a change.
++      if (evname === 'unlink' && !files.has(abspath)) {
++        const mtime = mtimeOf(abspath);
++        if (mtime !== undefined && shouldWatch(abspath, absolutePatterns)) {
++          delete pending[abspath];
++          const seen = mtimes.get(abspath);
++          files.set(abspath, path.posix.dirname(abspath));
++          mtimes.set(abspath, mtime);
++          if (seen !== mtime || isDarwin) {
++            events.emit('change', evarg);
++          }
++          return;
++        }
++        mtimes.delete(abspath);
++      }
++
+       if (evname !== 'change') {
+         delete pending[abspath];
+         return void events.emit(evname, evarg);
+@@ -202,15 +237,17 @@ module.exports = (pattern, {
+ 
+         // file no longer exists, should fire unlink
+         if (stat === null || evname === 'unlink') {
++          mtimes.delete(abspath);
+           return void events.emit('unlink', evarg);
+         }
+ 
++        const seen = mtimes.get(abspath);
++        mtimes.set(abspath, stat.mtimeMs);
++
+         // MacOS does not have accurate mtime values, so always fire a change
+-        if (lastMtimeMs <= stat.mtimeMs || isDarwin) {
++        if (seen !== stat.mtimeMs || isDarwin) {
+           events.emit('change', evarg);
+         }
+-
+-        lastMtimeMs = Math.max(stat.mtimeMs, lastMtimeMs);
+       }).catch(err => {
+         error(err, abspath);
+       });
+@@ -230,6 +267,7 @@ module.exports = (pattern, {
+   const removeFile = (abspath) => {
+     if (files.has(abspath)) {
+       files.delete(abspath);
++      // the mtime stays until the removal is reported: see `throttle`
+       throttle(abspath, 'unlink', { path: path.resolve(abspath) });
+     }
+   };
+@@ -250,16 +288,49 @@ module.exports = (pattern, {
+     }
+ 
+     files.set(abspath, path.posix.dirname(abspath));
++    const before = mtimes.get(abspath);
++    const mtime = mtimeOf(abspath);
++    mtimes.set(abspath, mtime);
++
++    // FluidEQ patch: found again before its removal was reported, so it was
++    // replaced (see `throttle`), not added.
++    const removal = pending[abspath];
++    if (removal && removal.evname === 'unlink') {
++      clearTimeout(removal.timer);
++      delete pending[abspath];
++      if (before !== mtime || isDarwin) {
++        events.emit('change', { path: path.resolve(abspath) });
++      }
++      return;
++    }
++
+     events.emit('add', { path: path.resolve(abspath) });
+   };
+ 
+-  const onDirChange = (abspath) => async (type, name) => {
++  const onDirChange = (abspath, recursive) => async (type, name) => {
+     // ignore all events before the app has finished starting
+     // this is aprticularly an issue on MacOS
+     if (type !== EV_DISCOVER && state === STATE.STARTING) {
+       return;
+     }
+ 
++    // FluidEQ patch: a recursive watcher with no name is Windows saying its
++    // change buffer overflowed (libuv reports ERROR_NOTIFY_ENUM_DIR as a
++    // nameless change): the changes since the last read are lost, names and
++    // all. This watcher sees the whole checkout, worktrees and builds
++    // included, so a landing that rewrites twenty files overflows it, and
++    // the watcher used to rescan the root's own entries and report nothing --
++    // electronmon never restarted main, which kept running the old code for
++    // hours while the window hot-reloaded the new (2026-11-26). Every known
++    // file is checked again instead; the mtime comparison in `throttle`
++    // reports exactly the ones that moved.
++    if (type !== EV_DISCOVER && !name && recursive === true) {
++      files.forEach((parent, file) => {
++        throttle(file, 'change', { path: path.resolve(file) });
++      });
++      return;
++    }
++
+     const changepath = name ? `${abspath}/${unixify(name)}` : abspath;
+ 
+     // this is a change for a known file, let throttle handle it
+@@ -268,6 +339,21 @@ module.exports = (pattern, {
        return;
      }
  
@@ -24,3 +162,14 @@ index c741263829040a395c37ff1207a7a24a719af39d..8001bca48fbcca95265c59a0dc42b330
      const stats = await stat(changepath);
  
      // this is a known directory that no longer exists, remove it
+@@ -393,10 +479,6 @@ module.exports = (pattern, {
+     const dir = unixifyAbs(cwd);
+     return watchDir(dir, { isRoot: true });
+   }).then(() => {
+-    // turns out time is linear (as least as we understand it now)
+-    // so we can keep track of a single mtimeMs to compare updates to
+-    lastMtimeMs = Date.now();
+-
+     // this is the most annoying part, but it seems that watching does not
+     // occur immediately, yet there is no event for whenan fs watcher is
+     // actually ready... some of the internal bits use process.nextTick,

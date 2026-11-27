@@ -1,0 +1,73 @@
+diff --git a/src/electronmon.js b/src/electronmon.js
+index fc1ed5b..994a9ad 100644
+--- a/src/electronmon.js
++++ b/src/electronmon.js
+@@ -118,13 +118,24 @@ module.exports = ({
+       process.once('SIGHUP', onTerm);
+       globalApp = app;
+ 
++      // FluidEQ patch: after a reset every later message is dropped, which is
++      // right while the app is on its way out -- a landing changes twenty
++      // files in the same instant, and asking twenty times would run the
++      // app's quit twenty times. It used to be dropped in silence, though, so
++      // an app that never quit (a quit held back or refused) kept running the
++      // old main process for hours with nothing anywhere to say so. Each
++      // change dropped now says what it was dropped for.
+       const send = app.send.bind(app);
++      let resetAt = null;
+       globalApp.send = (signal) => {
+-        send(signal);
++        if (resetAt !== null) {
++          log.info(`waiting: the app has not quit since its restart was asked for at ${resetAt.toLocaleTimeString()}`);
++          return;
++        }
+ 
++        send(signal);
+         if (signal === 'reset') {
+-          // app is being killed, ignore all future messages
+-          globalApp.send = () => {};
++          resetAt = new Date();
+         }
+       };
+ 
+@@ -169,10 +180,19 @@ module.exports = ({
+       const watcher = watch({ root: cwd, patterns });
+       globalWatcher = watcher;
+ 
+-      watcher.on('change', ({ path: fullpath }) => {
++      // FluidEQ patch: a file the app has loaded coming back after it was
++      // reported deleted is new code for main, the same as a change -- it
++      // used to be logged as a new file and nothing restarted. Only once the
++      // watcher is ready: its first scan reports every file as added.
++      let ready = false;
++      const onFile = (type, fullpath) => {
+         const relpath = path.relative(cwd, fullpath);
+         const filepath = path.resolve(cwd, relpath);
+-        const type = 'change';
++
++        if (type === 'add' && !(ready && appfiles[filepath])) {
++          log.verbose('watching new file:', relpath);
++          return;
++        }
+ 
+         if (overrideSignal === ERRORED) {
+           log.info(`file ${type}: ${relpath}`);
+@@ -191,14 +211,13 @@ module.exports = ({
+           log.info(`renderer file ${type}: ${relpath}`);
+           globalApp.send('reload');
+         }
+-      });
++      };
+ 
+-      watcher.on('add', ({ path: fullpath }) => {
+-        const relpath = path.relative(cwd, fullpath);
+-        log.verbose('watching new file:', relpath);
+-      });
++      watcher.on('change', ({ path: fullpath }) => onFile('change', fullpath));
++      watcher.on('add', ({ path: fullpath }) => onFile('add', fullpath));
+ 
+       watcher.once('ready', () => {
++        ready = true;
+         log.info('waiting for a change to restart it');
+         resolve();
+       });
