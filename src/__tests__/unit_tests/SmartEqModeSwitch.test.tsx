@@ -25,7 +25,7 @@ import {
 } from 'renderer/utils/equalizerApi';
 import { FluidEqProvider } from 'renderer/utils/FluidEqContext';
 import SmartEqEngine from 'renderer/SmartEqEngine';
-import { setSmartEqMode } from 'renderer/utils/smartEqMode';
+import { setContinuousEq } from 'renderer/utils/continuousEq';
 
 jest.mock('renderer/utils/equalizerApi', () => ({
   getEqualizerState: jest.fn(),
@@ -71,21 +71,19 @@ const withCorrection = () => {
 };
 
 /**
- * SWITCHING MODE MUST NEVER DROP THE CORRECTION.
+ * SWITCHING SMART CORRECTION ON MUST NEVER DROP THE CORRECTION.
  *
- * It used to, deliberately: the layer already applied was built for the old
- * reference, so clearing it stopped the new mode inheriting somebody else's
- * idea of right. The trouble is what that sounds like. Most corrections are
- * mostly cuts, because a record is more often too much of something than too
- * little, and removing them all in one config write raises the output by
- * however much they were holding down — instantly, with no ramp, on an
- * ordinary menu click. In front of an audience that is equipment and hearing.
- *
- * Every continuous mode is a closed loop over its own output, so an inherited
- * curve is measured, disagreed with, and moved. It costs convergence time.
- * Clearing costs a level jump, and only one of the two can be taken back.
+ * It used to, on a change of mode: the layer already applied was built for
+ * the old reference, so clearing it stopped the new one inheriting somebody
+ * else's idea of right. The trouble is what that sounds like. Most
+ * corrections are mostly cuts, because a record is more often too much of
+ * something than too little, and removing them all in one config write raises
+ * the output by however much they were holding down — instantly, with no
+ * ramp, on an ordinary click. In front of an audience that is equipment and
+ * hearing. There is one way of correcting now (Balance), and switching it on
+ * keeps whatever plays until its own answer replaces it.
  */
-describe('switching Smart EQ mode', () => {
+describe('switching Smart correction on', () => {
   beforeEach(() => {
     // The mode store reads localStorage, and the engine reaches the preload
     // bridge through the context. Neither exists in jsdom.
@@ -101,14 +99,14 @@ describe('switching Smart EQ mode', () => {
     });
     jest.clearAllMocks();
     mockedGetEqualizerState.mockResolvedValue(withCorrection());
-    setSmartEqMode('smart');
+    setContinuousEq(false);
   });
 
-  // Leaving a continuous mode stops its running measurement, which then
+  // Switching Smart correction off stops its running measurement, which then
   // settles the run's state: waited for here, or it settled after the case.
   afterEach(() =>
     act(async () => {
-      setSmartEqMode('smart');
+      setContinuousEq(false);
     }),
   );
 
@@ -122,27 +120,12 @@ describe('switching Smart EQ mode', () => {
     });
   };
 
-  it('never clears the layer on the way into a continuous mode', async () => {
+  it('never clears the layer on the way into Smart correction', async () => {
     await renderEngine();
     mockedSetSmartEq.mockClear();
 
     await act(async () => {
-      setSmartEqMode('balance');
-    });
-
-    expect(mockedSetSmartEq).not.toHaveBeenCalledWith(undefined);
-  });
-
-  it('does not clear it moving between two continuous modes either', async () => {
-    await renderEngine();
-
-    await act(async () => {
-      setSmartEqMode('target');
-    });
-    mockedSetSmartEq.mockClear();
-
-    await act(async () => {
-      setSmartEqMode('detail');
+      setContinuousEq(true);
     });
 
     expect(mockedSetSmartEq).not.toHaveBeenCalledWith(undefined);

@@ -256,7 +256,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.voicing':
     'Une chaîne toute prête pour le son, comme Musique ou un genre. Aucun ne laisse que vos bandes.',
   'help.eq.smart':
-    'Égalisation auto : le son enregistré de chaque chanson, le son de son album depuis la Bibliothèque, et la Correction intelligente par-dessus — Détail, Équilibre ou Cible.',
+    'Égalisation auto : le son enregistré de chaque chanson, le son de son album depuis la Bibliothèque, et la Correction intelligente par-dessus.',
   'help.eq.clear':
     'Remet chaque gain, et la Tonalité, à 0 dB et garde vos bandes. Demande d’abord.',
   'help.eq.saveEq':

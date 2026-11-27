@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useTranslation } from '../../utils/I18nContext';
 import { runSmartEq } from '../../utils/smartEqRun';
-import { getSmartEqMode, setSmartEqMode } from '../../utils/smartEqMode';
+import { setContinuousEq } from '../../utils/continuousEq';
 
 /**
  * One measurement of what plays, applied at once — Smart EQ's first mode, in
@@ -22,14 +22,11 @@ const AutoEqMeasureOnce = ({ isBalancing }: { isBalancing: boolean }) => {
       title={t('autoEq.smart.onceHint')}
       disabled={isBalancing}
       onClick={() => {
-        // A different mode starts through the engine's own transition, and
-        // asking it to run again would toggle the freshly started one back
-        // off.
-        if (getSmartEqMode() === 'smart') {
-          runSmartEq();
-        } else {
-          setSmartEqMode('smart');
-        }
+        // Once, instead of running: the running correction stops for it,
+        // as it always has, rather than measuring again over its answer the
+        // moment it is done.
+        setContinuousEq(false);
+        runSmartEq();
       }}
     >
       {t('autoEq.smart.once')}

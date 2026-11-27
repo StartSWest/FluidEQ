@@ -69,7 +69,6 @@ const autoEq = {
   'autoEq.smart.title': '스마트 보정',
   'autoEq.smart.hint':
     '각 노래를 소스에서 측정하고 그 보정을 노래별로 보관합니다. 어떤 프리셋 위에도 적용됩니다.',
-  'autoEq.smart.modes': '보정 방식',
   'autoEq.smart.waiting': '노래를 기다리는 중',
   'autoEq.smart.onceHint': '재생 중인 소리를 한 번 측정해 바로 적용',
   'autoEq.smart.once': '한 번 측정',

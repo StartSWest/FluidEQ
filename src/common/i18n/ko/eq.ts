@@ -725,18 +725,8 @@ const eq = {
   'eq.title': '파라메트릭 EQ',
   'eq.smart': '스마트 보정',
   'eq.smart.cancel': '취소',
-  'eq.smart.aria': '소스의 스마트 보정',
   'eq.smart.continuousAria':
     '음악이 재생되는 동안 스마트 보정이 계속 측정하고 조정하도록 유지',
-  'eq.smart.modeAria': '스마트 보정의 측정 방법 선택',
-  'eq.smart.mode.once.note': '한 번에 하나의 측정값 적용',
-  'eq.smart.mode.detail': '세부정보',
-  'eq.smart.mode.detail.note': '계속 측정함 · 최고점과 최저점만 측정',
-  'eq.smart.mode.balance': '잔액',
-  'eq.smart.mode.balance.note': '계속해서 측정하고 밝고 따뜻하게 유지해줍니다.',
-  'eq.smart.mode.target': '대상',
-  'eq.smart.mode.target.note':
-    '측정을 계속합니다. 모든 기록을 동일한 곡선으로 유지합니다.',
   'eq.layers.aria': '또한 이 출력을 형성합니다.',
   'eq.layers.addCorrection': '헤드폰 보정 추가',
   'eq.layers.changeCorrection': '헤드폰 보정 변경',

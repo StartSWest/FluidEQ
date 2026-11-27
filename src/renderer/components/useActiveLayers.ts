@@ -33,7 +33,6 @@ import {
   setLayerBypass,
   setVoicing as setVoicingApi,
 } from '../utils/equalizerApi';
-import { useSmartEqMode } from '../utils/smartEqMode';
 import { dspVoicingPresetId } from '../../common/dsp/presetVoicing';
 import { presetLayerName } from '../dsp/dspPresetCatalog';
 import { useUserDspPresetsState } from '../dsp/userDspPresets';
@@ -117,14 +116,6 @@ const useActiveLayers = () => {
     };
   }, [headset, headsetSource]);
   const isContinuousOn = useContinuousEq();
-  const smartEqMode = useSmartEqMode();
-  /** Which of the four wrote this layer, in the words the picker uses. */
-  const modeName = {
-    smart: t('eq.smart'),
-    detail: t('eq.smart.mode.detail'),
-    balance: t('eq.smart.mode.balance'),
-    target: t('eq.smart.mode.target'),
-  }[smartEqMode];
 
   const isBypassed = (layer: TApoLayer) => bypassed.includes(layer);
 
@@ -266,7 +257,6 @@ const useActiveLayers = () => {
     tone,
     setTone,
     eqCuts,
-    modeName,
     setLayerStrength,
     isContinuousOn,
     customFx,

@@ -68,7 +68,6 @@ export default {
   'autoEq.smart.title': '智能校正',
   'autoEq.smart.hint':
     '从音源测量每首歌，并为这首歌保留其校正。叠加在任何预设之上。',
-  'autoEq.smart.modes': '校正方式',
   'autoEq.smart.waiting': '等待歌曲',
   'autoEq.smart.onceHint': '对正在播放的内容测量一次，立即应用',
   'autoEq.smart.once': '测量一次',

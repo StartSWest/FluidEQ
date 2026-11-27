@@ -50,10 +50,6 @@ jest.mock('renderer/utils/continuousEq', () => ({
   useContinuousEq: () => true,
   setContinuousEq: () => undefined,
 }));
-jest.mock('renderer/utils/smartEqMode', () => ({
-  ...jest.requireActual('renderer/utils/smartEqMode'),
-  useSmartEqMode: () => 'target',
-}));
 jest.mock('renderer/audio/smartEqMeasurement', () => ({
   measureSource: jest.fn(),
 }));

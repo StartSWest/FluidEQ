@@ -258,7 +258,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.voicing':
     'Una cadena ya hecha para el sonido, como Música o un género. Ninguno deja solo tus bandas.',
   'help.eq.smart':
-    'EQ automático: el sonido guardado de cada canción, el sonido de su álbum desde la Biblioteca y, por encima, la Corrección inteligente: Detalle, Equilibrio u Objetivo.',
+    'EQ automático: el sonido guardado de cada canción, el sonido de su álbum desde la Biblioteca y, por encima, la Corrección inteligente.',
   'help.eq.clear':
     'Pone cada ganancia, y el Tono, a 0 dB y conserva tus bandas. Pregunta antes.',
   'help.eq.saveEq':

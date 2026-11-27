@@ -21,11 +21,6 @@ import type { IBalanceResult } from 'renderer/utils/autoBalanceCapture';
 import { setContinuousEq } from 'renderer/utils/continuousEq';
 import { setSmartEq as writeSmartEq } from 'renderer/utils/equalizerApi';
 import { FluidEqProviderWrapper } from 'renderer/utils/FluidEqContext';
-import {
-  getSmartEqMode,
-  setSmartEqMode,
-  type TSmartEqMode,
-} from 'renderer/utils/smartEqMode';
 import { setSmartEqRunning } from 'renderer/utils/smartEqRun';
 import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
 
@@ -98,7 +93,6 @@ const press = async (element: HTMLElement) => {
 };
 
 beforeEach(() => {
-  setSmartEqMode('smart');
   setContinuousEq(false);
   setSmartEqRunning(false);
   jest.clearAllMocks();
@@ -122,7 +116,6 @@ afterEach(async () => {
   await act(async () => {
     cleanup();
     setContinuousEq(false);
-    setSmartEqMode('smart');
     setSmartEqRunning(false);
   });
 });
@@ -150,14 +143,16 @@ it('runs one measurement from Measure once, and offers it again once that one en
   expect(measurements[1].options.signal?.aborted).toBe(false);
 });
 
-it('runs one measurement from Measure once after a continuous mode was stopped', async () => {
-  setSmartEqMode('detail');
-  setContinuousEq(false);
+it('stops Smart correction for Measure once, rather than measuring again over its answer', async () => {
+  setContinuousEq(true);
   renderPanel();
+  expect(measurements[0].options.isContinuous).toBe(true);
   await press(measureOnce());
-  expect(getSmartEqMode()).toBe('smart');
-  expect(mockMeasureSource).toHaveBeenCalledTimes(1);
-  expect(measurements[0].options.isContinuous).not.toBe(true);
+  expect(smartSwitch()).not.toBeChecked();
+  expect(measurements[0].options.signal?.aborted).toBe(true);
+  const once = measurements[measurements.length - 1];
+  expect(once.options.isContinuous).not.toBe(true);
+  expect(once.options.signal?.aborted).toBe(false);
 });
 
 it('starts a continuous measurement with Smart correction, stops it, and starts afresh', async () => {
@@ -184,32 +179,25 @@ it('starts a continuous measurement with Smart correction, stops it, and starts 
   expect(writeSmartEq).toHaveBeenCalledTimes(1);
 });
 
-it.each<[TSmartEqMode, string]>([
-  ['detail', 'eq.smart.mode.detail'],
-  ['balance', 'eq.smart.mode.balance'],
-  ['target', 'eq.smart.mode.target'],
-])('measures continuously in %s when it is picked', async (mode, name) => {
-  setSmartEqMode('balance');
+// One way of correcting, Balance (Ivan, 2026-11-27): switched on, the panel
+// offers no choice of how, and measures continuously.
+it('offers no choice of how it corrects, and measures continuously when on', async () => {
   renderPanel();
+  await press(smartSwitch());
   expect(smartSwitch()).toBeChecked();
-  await press(
-    screen.getByRole('radio', {
-      name: en(name as Parameters<typeof translate>[1]),
-    }),
-  );
-  expect(getSmartEqMode()).toBe(mode);
+  expect(screen.queryAllByRole('radio')).toHaveLength(0);
   const latest = measurements[measurements.length - 1];
   expect(latest?.options.isContinuous).toBe(true);
   expect(latest?.options.signal?.aborted).toBe(false);
 });
 
 it('can be switched off while its layer is bypassed', async () => {
-  setSmartEqMode('detail');
+  setContinuousEq(true);
   renderPanel(['smart']);
   // Nothing measures over a bypassed layer...
   expect(mockMeasureSource).not.toHaveBeenCalled();
   expect(smartSwitch()).toBeChecked();
-  // ...and the switch still turns the mode off.
+  // ...and the switch still turns it off.
   await press(smartSwitch());
   expect(smartSwitch()).not.toBeChecked();
 });

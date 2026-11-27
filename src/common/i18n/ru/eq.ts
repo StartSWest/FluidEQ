@@ -763,19 +763,8 @@ const eq: Partial<Dictionary> = {
   'eq.title': 'Параметрический эквалайзер',
   'eq.smart': 'Умная коррекция',
   'eq.smart.cancel': 'Отмена',
-  'eq.smart.aria': 'Умная коррекция по исходному сигналу',
   'eq.smart.continuousAria':
     'Продолжать измерять и подстраивать умную коррекцию во время музыки',
-  'eq.smart.modeAria': 'Выбрать, как измеряет умная коррекция',
-  'eq.smart.mode.once.note': 'Одно измерение, применяется сразу',
-  'eq.smart.mode.detail': 'Детали',
-  'eq.smart.mode.detail.note': 'Измеряет постоянно · только пики и провалы',
-  'eq.smart.mode.balance': 'Баланс',
-  'eq.smart.mode.balance.note':
-    'Измеряет постоянно · выравнивает яркость и теплоту',
-  'eq.smart.mode.target': 'Цель',
-  'eq.smart.mode.target.note':
-    'Продолжает измерять · каждую запись к одной кривой',
   'eq.layers.aria': 'Что ещё влияет на этот выход',
   'eq.layers.addCorrection': 'Добавить коррекцию наушников',
   'eq.layers.changeCorrection': 'Сменить коррекцию наушников',

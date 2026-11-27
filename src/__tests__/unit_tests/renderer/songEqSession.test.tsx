@@ -60,7 +60,7 @@ import {
   resetTransportSource,
   setTransportSource,
 } from 'renderer/audio/transportSource';
-import { setSmartEqMode } from 'renderer/utils/smartEqMode';
+import { setContinuousEq } from 'renderer/utils/continuousEq';
 import { setSongSoundParts } from 'renderer/audio/songSoundSession';
 
 jest.mock('renderer/utils/equalizerApi');
@@ -69,15 +69,13 @@ jest.mock('renderer/audio/nowPlayingIdentity');
 const mockUseNowPlayingIdentity = useNowPlayingIdentity as jest.Mock;
 
 /**
- * Switch an automatic mode on, the way the toolbar's own menu does — picking
- * one starts it, see `setSmartEqMode`.
+ * Switch Smart correction on, as its switch in the Auto EQ panel does.
  *
  * Every test that expects saving to be possible needs this: saving files the
- * layer an automatic mode refines, so the reducer refuses to turn it on
- * without one. `'smart'` is the one-shot, which is how these tests say "no
- * automatic mode running".
+ * layer Smart correction refines, so the reducer refuses to turn it on
+ * without it running.
  */
-const startAutoEq = () => setSmartEqMode('detail');
+const startAutoEq = () => setContinuousEq(true);
 
 const layerOf = (gain: number): ISmartEqSettings => ({
   filters: {
@@ -129,10 +127,10 @@ describe('songEqSession', () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
-    // The mode is module state too, and it is remembered — a test that left
-    // an automatic mode running would hand the next one a save switch the
+    // The switch is module state too, and it is remembered — a test that left
+    // Smart correction running would hand the next one a save switch the
     // reducer accepts, which is precisely the condition under test.
-    setSmartEqMode('smart');
+    setContinuousEq(false);
     // Song sounds on: a song keeps a correction only while it is
     // (`songsChanged`), and every save below is about a song that may.
     setSongSoundParts({ songs: true, albums: false });
@@ -160,7 +158,7 @@ describe('songEqSession', () => {
 
   afterEach(() => {
     jest.useRealTimers();
-    act(() => setSmartEqMode('smart'));
+    act(() => setContinuousEq(false));
     act(() => setSongSoundParts({ songs: false, albums: false }));
   });
 
@@ -168,7 +166,7 @@ describe('songEqSession', () => {
    * Song sounds is where a song keeps a sound: off, Smart correction saves
    * nothing into a song however much it measures (Ivan, 2026-11-26).
    */
-  it('saves nothing while Song sounds is off, with a mode running', () => {
+  it('saves nothing while Song sounds is off, with Smart correction running', () => {
     setSongSoundParts({ songs: false, albums: false });
     startAutoEq();
     renderHook(() => useSongEqSessionHost(), { wrapper });
@@ -187,7 +185,7 @@ describe('songEqSession', () => {
    * nothing to file and nothing turns it on; a mode running, it is on from
    * the start. The player's Song lamp can still turn it off for the run.
    */
-  it('saves only while an automatic mode is running, from the moment it runs', () => {
+  it('saves only while Smart correction is running, from the moment it runs', () => {
     setSongEqSaveOn(true);
     expect(getSongEqSaveOn()).toBe(false);
 
@@ -206,7 +204,7 @@ describe('songEqSession', () => {
    * one direction: saving would then outlive the mode that measures what it
    * files, or stay off for a run that should keep each song's correction.
    */
-  it('stops saving with the mode, and saves again each time a mode is switched on', () => {
+  it('stops saving with Smart correction, and saves again each time it is switched on', () => {
     startAutoEq();
     renderHook(() => useSongEqSessionHost(), { wrapper });
     act(() => {
@@ -216,7 +214,7 @@ describe('songEqSession', () => {
     expect(getSongEqSaveOn()).toBe(false);
 
     act(() => {
-      setSmartEqMode('smart');
+      setContinuousEq(false);
     });
     expect(getSongEqSaveOn()).toBe(false);
 

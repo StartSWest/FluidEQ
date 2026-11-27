@@ -29,10 +29,7 @@ import {
   tiltLevelAt,
   ISpectrumSample,
 } from 'renderer/utils/autoBalance';
-import {
-  REFERENCE_SLOPE_DB_PER_DECADE,
-  getReferenceShape,
-} from 'common/referenceCurve';
+import { REFERENCE_SLOPE_DB_PER_DECADE } from 'common/referenceCurve';
 import {
   LocaleCode,
   Translate,
@@ -298,7 +295,7 @@ describe('autoBalance', () => {
     it('leaves a record alone at its own tilt and lifts a duller one', () => {
       // Two records, one at the reference slope and one falling twice as fast.
       // Against a fitted line both are correct; against a held one only the
-      // first is, which is the whole point of the mode.
+      // first is, which is the whole point of Balance.
       const atReference = buildSpectrum(
         (frequency) => REFERENCE_SLOPE_DB_PER_DECADE * Math.log10(frequency),
       );
@@ -306,10 +303,10 @@ describe('autoBalance', () => {
         (frequency) =>
           REFERENCE_SLOPE_DB_PER_DECADE * 2 * Math.log10(frequency),
       );
-      const reference = { slope: REFERENCE_SLOPE_DB_PER_DECADE };
+      const slope = REFERENCE_SLOPE_DB_PER_DECADE;
 
-      const settled = buildBalancedGains(atReference, TEN_BAND, { reference });
-      const lifted = buildBalancedGains(duller, TEN_BAND, { reference });
+      const settled = buildBalancedGains(atReference, TEN_BAND, { slope });
+      const lifted = buildBalancedGains(duller, TEN_BAND, { slope });
       const top = TEN_BAND[TEN_BAND.length - 2].id;
       const bottom = TEN_BAND[1].id;
 
@@ -321,37 +318,16 @@ describe('autoBalance', () => {
   });
 
   /**
-   * The four modes, and the fact that they are four.
-   *
-   * Detail and the one-shot used to aim at exactly the same destination —
-   * `getReferenceShape` returns the bare fitted line for anything it does not
-   * recognise, and 'detail' was not one of the names it recognised. Two modes,
-   * one behaviour, and nothing on screen to say so.
+   * What Smart correction holds a record to: Balance's slope, the one way it
+   * corrects (`common/referenceCurve`).
    */
-  describe('what each mode is held to', () => {
-    const MODES = ['smart', 'detail', 'balance', 'target'];
+  describe('what Balance holds a record to', () => {
     // A modern master: falls about fifteen decibels per decade, nothing wrong.
     const goodMaster = (frequency: number) => -15 * Math.log10(frequency) + 40;
-    const gainsFor = (mode: string, levelAt: (f: number) => number) =>
+    const gainsFor = (levelAt: (f: number) => number) =>
       buildBalancedGains(buildSpectrum(levelAt), TEN_BAND, {
-        reference: getReferenceShape(mode),
+        slope: REFERENCE_SLOPE_DB_PER_DECADE,
       });
-    const at = (gains: Record<string, number>, frequency: number) =>
-      gains[`b${frequency}`] ?? 0;
-
-    it('gives all four of them different destinations', () => {
-      const shapes = MODES.map((mode) =>
-        TEN_BAND.map((filter) =>
-          at(
-            gainsFor(mode, goodMaster),
-            filter.id.slice(1) as unknown as number,
-          ),
-        ),
-      );
-      const asText = shapes.map((shape) => shape.join(','));
-
-      expect(new Set(asText).size).toBe(MODES.length);
-    });
 
     /**
      * The slope is the number that decides whether a good record is left alone,
@@ -363,7 +339,7 @@ describe('autoBalance', () => {
     it('leaves a good modern master closer to alone than the old slope did', () => {
       const worstUnder = (slope: number) => {
         const gains = buildBalancedGains(buildSpectrum(goodMaster), TEN_BAND, {
-          reference: { slope },
+          slope,
         });
         return Math.max(
           ...TEN_BAND.map((filter) => Math.abs(gains[filter.id] ?? 0)),
@@ -391,41 +367,25 @@ describe('autoBalance', () => {
     });
 
     /**
-     * Detail's whole promise, and the one the anchor would otherwise break: the
-     * solver keeps the level still by subtracting a weighted mean, so a lift in
-     * the mids is normally funded by a cut underneath it. Anchoring on the
-     * bottom is what stops that.
+     * The level held still, so raising one region is paid for by the rest —
+     * which is what makes adjusting any frequency compensate across the others
+     * rather than turning the record up.
      */
-    it('lifts the mids and highs under Detail without cutting the bass', () => {
-      const gains = gainsFor('detail', goodMaster);
+    it('keeps the level still', () => {
+      const gains = gainsFor(
+        (frequency) =>
+          // Dull: needs a real correction, so there is something to centre.
+          goodMaster(frequency) - 4 * Math.log10(frequency),
+      );
+      const mean =
+        TEN_BAND.reduce((total, filter) => total + (gains[filter.id] ?? 0), 0) /
+        TEN_BAND.length;
 
-      expect(at(gains, 32)).toBeGreaterThanOrEqual(-0.3);
-      expect(at(gains, 64)).toBeGreaterThanOrEqual(-0.3);
-      expect(at(gains, 2000)).toBeGreaterThan(at(gains, 64));
-      expect(at(gains, 4000)).toBeGreaterThan(at(gains, 64));
-    });
-
-    /**
-     * Every other mode holds the level still instead, so raising one region is
-     * paid for by the rest — which is what makes adjusting any frequency
-     * compensate across the others rather than turning the record up.
-     */
-    it('keeps the level still in the modes that are not Detail', () => {
-      ['smart', 'balance', 'target'].forEach((mode) => {
-        const gains = gainsFor(
-          mode,
-          (frequency) =>
-            // Dull: needs a real correction, so there is something to centre.
-            goodMaster(frequency) - 4 * Math.log10(frequency),
-        );
-        const mean =
-          TEN_BAND.reduce(
-            (total, filter) => total + (gains[filter.id] ?? 0),
-            0,
-          ) / TEN_BAND.length;
-
-        expect(Math.abs(mean)).toBeLessThan(1.5);
-      });
+      // The control: there is a correction to centre.
+      expect(
+        Math.max(...TEN_BAND.map((filter) => Math.abs(gains[filter.id] ?? 0))),
+      ).toBeGreaterThan(1);
+      expect(Math.abs(mean)).toBeLessThan(1.5);
     });
   });
 
@@ -435,7 +395,7 @@ describe('autoBalance', () => {
    * The failure this prevents is specific and was measured. A range accumulates
    * if it sits within 45 dB of the frame peak, which a solo passage clears
    * easily — so a guitar intro with no bass instrument in it reads as a record
-   * with no bass, and every mode drove 40 Hz and 50 Hz to +6 dB, their hard
+   * with no bass, and the correction drove 40 Hz and 50 Hz to +6 dB, their hard
    * limit, on material where a full mix is CUT by two to four.
    *
    * It cost volume as well as tone. Forty to fifty hertz is where music
@@ -456,7 +416,7 @@ describe('autoBalance', () => {
       boostAllowance?: (frequency: number) => number,
     ) =>
       buildBalancedGains(buildSpectrum(levelAt), TEN_BAND, {
-        reference: getReferenceShape('balance'),
+        slope: REFERENCE_SLOPE_DB_PER_DECADE,
         boostAllowance,
       });
 

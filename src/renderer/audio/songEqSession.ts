@@ -427,11 +427,11 @@ export const getSongEqSaveOn = (): boolean => state.isSaveOn;
  * The switch, and nothing more than the switch.
  *
  * Whether the request is honoured is the reducer's — `saveToggled` refuses it
- * without an automatic mode running. This used to START one instead, calling
- * `setSmartEqMode('detail')`, which was silently a no-op whenever a continuous
- * mode was already the one CHOSEN but switched off: saving then sat on with no
- * loop behind it, counted out its two minutes and committed nothing, which is
- * the "it will not save" this feature was reported for.
+ * without Smart correction running. This used to START it instead, through a
+ * call that was silently a no-op whenever it was already chosen but switched
+ * off: saving then sat on with no loop behind it, counted out its two minutes
+ * and committed nothing, which is the "it will not save" this feature was
+ * reported for.
  */
 export const setSongEqSaveOn = (isSaveOn: boolean): void => {
   if (isSaveOn === state.isSaveOn) {

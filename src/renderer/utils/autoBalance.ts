@@ -22,7 +22,6 @@ import {
   MIN_GAIN,
   NO_GAIN_FILTER_TYPES,
 } from 'common/constants';
-import { IReferenceShape } from 'common/referenceCurve';
 import { clamp } from './utils';
 import {
   BALANCE_MAX_FREQUENCY,
@@ -125,40 +124,6 @@ export const audibilityWeight = (frequency: number): number => {
   return AUDIBILITY_FLOOR + (1 - AUDIBILITY_FLOOR) * bell;
 };
 
-/** Where the bass ends, for anchoring: full weight below, none above. */
-const BASS_ANCHOR_FULL_HZ = 150;
-const BASS_ANCHOR_NONE_HZ = 400;
-
-/**
- * Weight for anchoring on the bottom instead of on loudness.
- *
- * Subtracting a weighted mean of the correction is what stops a run changing
- * the volume, and which frequencies carry the weight decides what is being held
- * still. Weighted by audibility it is the perceived level, which is what nearly
- * everything here wants.
- *
- * Detail does not. It exists to raise the mids and highs, and against a loudness
- * anchor a rise up there is paid for by a cut down here — so the one mode whose
- * whole promise is "without touching the bass" would be the one mode that
- * reliably took a decibel off it. Anchoring on the bass makes the bottom the
- * fixed point instead: it lands at zero and the lift goes upward from there.
- *
- * Flat below 150 Hz and gone by 400, with a raised cosine between, so no band
- * sits on a step and a filter near the boundary contributes part of itself.
- */
-export const bassWeight = (frequency: number): number => {
-  if (!(frequency > 0) || frequency <= BASS_ANCHOR_FULL_HZ) {
-    return 1;
-  }
-  if (frequency >= BASS_ANCHOR_NONE_HZ) {
-    return 0;
-  }
-  const t =
-    Math.log2(frequency / BASS_ANCHOR_FULL_HZ) /
-    Math.log2(BASS_ANCHOR_NONE_HZ / BASS_ANCHOR_FULL_HZ);
-  return 0.5 * (1 + Math.cos(Math.PI * t));
-};
-
 /**
  * How wide to smooth, at a given frequency, in octaves.
  *
@@ -216,13 +181,13 @@ export interface IAutoBalanceOptions {
   /** Bands below this confidence hold their current gain instead of guessing. */
   minConfidence?: number;
   /**
-   * What the record is held to, rather than what it is.
+   * The slope the record is held to, in dB per decade, rather than its own.
    *
-   * Empty means the reference is a line fitted to this record, which is the
-   * behaviour every caller had before there was a choice. See
-   * common/referenceCurve for the three shapes and what each overrides.
+   * Smart correction holds every record to Balance's
+   * (`REFERENCE_SLOPE_DB_PER_DECADE`, `smartEqSolve.ts`). Absent, the line is
+   * fitted to the record itself and only its bumps and dips are corrected.
    */
-  reference?: IReferenceShape;
+  slope?: number;
 }
 
 /**
@@ -243,7 +208,7 @@ export interface IAutoBalanceOptions {
  * The listener's own strength slider is what halves the result when they
  * want it halved — see `ISmartEqSettings.intensity`.
  */
-export const DEFAULTS: Required<IAutoBalanceOptions> = {
+export const DEFAULTS: Required<Omit<IAutoBalanceOptions, 'slope'>> = {
   strength: 1,
   maxBoost: 6,
   maxCut: 9,
@@ -251,7 +216,6 @@ export const DEFAULTS: Required<IAutoBalanceOptions> = {
   boostAllowance: () => 1,
   smoothingOctaves: smoothingOctavesAt,
   minConfidence: MIN_BAND_CONFIDENCE,
-  reference: {},
 };
 
 export const clamp01 = (value: number) => clamp(value, 0, 1);
@@ -263,11 +227,11 @@ export const clamp01 = (value: number) => clamp(value, 0, 1);
 /**
  * Turn a measured spectrum of the SOURCE into a gain for each band.
  *
- * A pure function of the spectrum and the mode: the same record measured
- * twice gives the same layer, and nothing about the layer already applied is
- * consulted, because none of it is in the measurement. The result is the
- * inverse of the smoothed deviation from the program's own tilt (or the
- * mode's held slope), centred so it changes tone rather than loudness. Bands
+ * A pure function of the spectrum: the same record measured twice gives the
+ * same layer, and nothing about the layer already applied is consulted,
+ * because none of it is in the measurement. The result is the inverse of the
+ * smoothed deviation from the held slope (or the program's own tilt, with no
+ * slope given), centred so it changes tone rather than loudness. Bands
  * whose region was never heard well enough come out at zero rather than at a
  * guess: with nothing measured there, no correction is the answer.
  *
@@ -286,8 +250,8 @@ export const buildBalancedGains = (
     boostAllowance,
     smoothingOctaves,
     minConfidence,
-    reference,
   } = { ...DEFAULTS, ...options };
+  const { slope: heldSlope } = options;
 
   const usable = spectrum
     .filter(
@@ -331,28 +295,18 @@ export const buildBalancedGains = (
   // by definition, so only its bumps and dips are corrected. A line at a fixed
   // slope says nothing of the sort, and a record duller than that slope is
   // lifted toward it — and stays lifted, because what it is compared against no
-  // longer moves when the music does. The shape on top is the rest of a target
-  // curve, when there is one. See `common/referenceCurve`.
+  // longer moves when the music does. See `common/referenceCurve`.
   //
   // Fitted to the record, which is all the measurement holds. It used to hold
   // this layer as well, and a line fitted through that absorbed whatever
   // straight line the layer contributed — the same record, measured from a
   // flat start and from a bent one, settled six to seven decibels apart. The
   // measurement is of the source now, so there is nothing to take back off.
-  const fit = fitSpectralTilt(usable, reference.slope);
-  const hasShape = Boolean(reference.shape?.length);
+  const fit = fitSpectralTilt(usable, heldSlope);
   const deviation = smoothSpectrum(
     usable.map((sample) => ({
       frequency: sample.frequency,
-      level:
-        sample.level -
-        tiltLevelAt(fit, sample.frequency) -
-        (hasShape
-          ? sampleSpectrumAt(
-              reference.shape as ISpectrumSample[],
-              sample.frequency,
-            )
-          : 0),
+      level: sample.level - tiltLevelAt(fit, sample.frequency),
       confidence: sample.confidence,
     })),
     smoothingOctaves,
@@ -409,10 +363,10 @@ export const buildBalancedGains = (
    */
   const isEdgeRolloff = deviation.map(() => false);
   /*
-   * Depth alone does not make a rolloff, and treating it as one broke the
-   * mode's whole point: a record twice as dark as the reference sits more than
+   * Depth alone does not make a rolloff, and treating it as one broke
+   * Balance's whole point: a record twice as dark as the reference sits more than
    * ten decibels under the line across its entire top end, and marking that as
-   * "not there" refused the very lift the mode exists to give. What separates a
+   * "not there" refused the very lift Balance exists to give. What separates a
    * cliff from a dark master is STEEPNESS — a real rolloff falls at twenty-plus
    * decibels an octave, a dark record at three to seven — so a candidate run is
    * only believed if it falls toward the edge that fast.
@@ -643,9 +597,7 @@ export const buildBalancedGains = (
    * correction doing nothing but lifting the top.
    */
   const anchorWeightOf = (entry: (typeof raw)[number]) =>
-    (reference.anchor === 'bass'
-      ? bassWeight(entry.filter.frequency)
-      : audibilityWeight(entry.filter.frequency)) * entry.confidence;
+    audibilityWeight(entry.filter.frequency) * entry.confidence;
   /** Read twice — once to decide the anchor, once to bound the gain. */
   const allowanceOf = (entry: (typeof raw)[number]) =>
     boostAllowance ? clamp01(boostAllowance(entry.filter.frequency)) : 1;
@@ -796,11 +748,7 @@ export const buildBalancedGains = (
    * has refused is neither counted nor moved — which is also what stops the
    * gated-band ratchet this would otherwise reintroduce. The clamps mean one
    * pass may not fully centre it; the loop finishes the job, which is what a
-   * loop is for.
-   *
-   * The weights are the anchor's own, so Detail keeps its designed shape: its
-   * anchor weighs the bass, a bass-weighted mean of zero pins the bass at zero,
-   * and the lift above survives intact.
+   * loop is for. The weights are the anchor's own.
    */
   const levelled = raw.filter(
     (entry) => entry.isSolvable && allowanceOf(entry) > 0,

@@ -69,7 +69,6 @@ export default {
   'autoEq.smart.title': 'स्मार्ट सुधार',
   'autoEq.smart.hint':
     'हर गाने को स्रोत से मापता है और उसका सुधार उसी गाने के लिए रखता है। किसी भी प्रीसेट के ऊपर।',
-  'autoEq.smart.modes': 'यह कैसे सुधारता है',
   'autoEq.smart.waiting': 'गाने का इंतज़ार',
   'autoEq.smart.onceHint': 'जो बज रहा है उसका एक माप, एक ही बार में लागू',
   'autoEq.smart.once': 'एक बार मापें',

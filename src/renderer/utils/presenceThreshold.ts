@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useSyncExternalStore } from 'react';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { REFERENCE_SLOPE_DB_PER_DECADE } from 'common/referenceCurve';
-import { TSmartEqMode, getSmartEqMode } from './smartEqMode';
 
 /**
  * How much signal a range must show before its correction is trusted.
@@ -27,7 +26,7 @@ import { TSmartEqMode, getSmartEqMode } from './smartEqMode';
  * WHAT THIS FIXES. A range is measured if it sits within 45 dB of the frame
  * peak, which a solo passage clears easily — so a guitar intro with no bass
  * instrument in it reads as a record with no bass, and the correction answers
- * by boosting. Measured on a synthetic solo guitar, every mode drove 40 Hz and
+ * by boosting. Measured on a synthetic solo guitar, the correction drove 40 Hz and
  * 50 Hz to +6 dB, their hard limit, where the same material inside a full mix
  * is CUT by two to four. Nine decibels wrong, in the worst direction, pinned at
  * the cap.
@@ -58,12 +57,6 @@ import { TSmartEqMode, getSmartEqMode } from './smartEqMode';
  * something nobody could hear anyway. Boosts are what run away, because a range
  * with no signal in it reports a deficit forever and nothing arrives to
  * contradict it, and boosts are what cost headroom.
- *
- * WHAT THE COLOURS MEAN NEVER CHANGES. Red is the floor and green is full
- * trust, in every mode. The mode moves the lines; it does not redefine them.
- * Colour that means one thing in Detail and another in Target is a graph that
- * has to be re-read every time somebody switches, which is the opposite of a
- * thing you can glance at.
  */
 
 /** Chart decibels, which is the axis the live trace is drawn against. */
@@ -90,48 +83,16 @@ const expectedLevelDb = (centreFrequency: number): number =>
     Math.log10(centreFrequency / PROGRAMME_PEAK_HZ);
 
 /**
- * How far each mode lets a range fall before disbelieving it, and how long it
- * takes to believe it again.
+ * How far a range may fall under the tilt model before it is disbelieved, and
+ * how long it takes to believe it again, in dB.
  *
- * A bigger margin puts the floor lower, so the mode corrects more readily. A
- * wider ramp spreads the two lines apart, so trust arrives more gradually.
- *
- * The ladder matches what the modes are for. The one-shot is a repair somebody
- * asked for once and cannot take back on the next pass, so it is the most
- * cautious: high floor, wide ramp. Target promises that every record arrives at
- * the same signature, which it cannot do while declining to correct, so its
- * lines sit low and close together.
+ * A bigger margin puts the floor lower, so the correction trusts a range more
+ * readily; a wider ramp spreads the two lines apart, so trust arrives more
+ * gradually. Balance's pair, from when each way of correcting kept its own:
+ * the one-shot repair sat higher and wider (10 and 14), Target lower and
+ * closer (15 and 8), and Detail held its bass back (8 and 12 under 150 Hz).
  */
-const MODE_MARGINS: Record<TSmartEqMode, { floor: number; ramp: number }> = {
-  smart: { floor: 10, ramp: 14 },
-  detail: { floor: 12, ramp: 10 },
-  balance: { floor: 12, ramp: 10 },
-  target: { floor: 15, ramp: 8 },
-};
-
-/**
- * Detail is merely stricter about the bass, no longer deaf to it.
- *
- * The first version pinned the bass floor to the ceiling of the plot — no
- * boost, ever — on the argument that a mode promising "without touching the
- * bottom" should be seen to keep it. That over-reached: the promise is about
- * not CUTTING the bass to fund the lift, and the anchor already keeps it. An
- * outright wall meant a genuine bass resonance dip could never be repaired in
- * Detail at all, which read as the mode being broken in its lowest two bands.
- *
- * So the bass keeps a tighter margin than the rest of the spectrum — its floor
- * sits four decibels higher, its ramp is wider — and earns correction the same
- * way everything else does, just more slowly and on stronger evidence.
- */
-const DETAIL_BASS_CEILING_HZ = 150;
-const DETAIL_BASS_MARGINS = { floor: 8, ramp: 12 };
-
-const marginsFor = (mode: TSmartEqMode, centreFrequency: number) => {
-  if (mode === 'detail' && centreFrequency <= DETAIL_BASS_CEILING_HZ) {
-    return DETAIL_BASS_MARGINS;
-  }
-  return MODE_MARGINS[mode] ?? MODE_MARGINS.smart;
-};
+const MARGINS = { floor: 12, ramp: 10 };
 
 const clampDb = (db: number) =>
   Math.max(PRESENCE_MIN_DB, Math.min(PRESENCE_MAX_DB, db));
@@ -169,13 +130,12 @@ export const PRESENCE_AUTO_TRAVEL_DB = 8;
 /** Where the tilt model alone puts an edge, before the music is consulted. */
 export const modelThresholdDb = (
   edge: TPresenceEdge,
-  mode: TSmartEqMode,
   centreFrequency: number,
 ): number => {
   if (!(centreFrequency > 0)) {
     return edge === 'floor' ? PRESENCE_MIN_DB : PRESENCE_MAX_DB;
   }
-  const { floor, ramp } = marginsFor(mode, centreFrequency);
+  const { floor, ramp } = MARGINS;
   const floorDb = expectedLevelDb(centreFrequency) - floor;
   return clampDb(
     Math.round((edge === 'floor' ? floorDb : floorDb + ramp) * 10) / 10,
@@ -195,19 +155,18 @@ export const modelThresholdDb = (
  */
 export const defaultThresholdDb = (
   edge: TPresenceEdge,
-  mode: TSmartEqMode,
   centreFrequency: number,
   typicalDb?: number,
 ): number => {
-  const model = modelThresholdDb(edge, mode, centreFrequency);
+  const model = modelThresholdDb(edge, centreFrequency);
   if (typicalDb === undefined || !Number.isFinite(typicalDb)) {
     return model;
   }
-  const { floor } = marginsFor(mode, centreFrequency);
-  // The floor is what tracks; the full line rides above it at the mode's own
-  // ramp width, so the gap somebody has judged does not change underneath them.
+  const { floor } = MARGINS;
+  // The floor is what tracks; the full line rides above it at the ramp's own
+  // width, so the gap somebody has judged does not change underneath them.
   const trackedFloor = typicalDb - floor;
-  const modelFloor = modelThresholdDb('floor', mode, centreFrequency);
+  const modelFloor = modelThresholdDb('floor', centreFrequency);
   const bounded = Math.max(
     modelFloor - PRESENCE_AUTO_TRAVEL_DB,
     Math.min(modelFloor, trackedFloor),
@@ -215,13 +174,7 @@ export const defaultThresholdDb = (
   return clampDb(Math.round((bounded + (model - modelFloor)) * 10) / 10);
 };
 
-/**
- * Keyed by mode, range and edge, because each mode keeps its own pair.
- *
- * Dragging a line in Target says something about Target. Detail has a different
- * appetite for correction and a different promise to keep, and inheriting a
- * number set for another mode would break both quietly.
- */
+/** Keyed by range and edge. */
 // Renamed with the change from positions to displacements. An old absolute
 // read as an offset would be nonsense — a line stored at -15 would become
 // fifteen decibels BELOW wherever the music put it — and there is no way to
@@ -229,10 +182,29 @@ export const defaultThresholdDb = (
 // attempt one.
 const STORAGE_KEY = 'fluideq.presenceOffsets';
 
-const keyOf = (mode: TSmartEqMode, label: string, edge: TPresenceEdge) =>
-  `${mode}:${label}:${edge}`;
+const keyOf = (label: string, edge: TPresenceEdge) => `${label}:${edge}`;
 
 type TLines = Record<string, number>;
+
+/**
+ * A stored key as it is read now, or undefined for one that no longer means
+ * anything.
+ *
+ * Each way of correcting used to keep its own pair (`mode:range:edge`). Only
+ * Balance is left (`common/referenceCurve`), so Balance's lines are the ones
+ * kept and the other ways' are dropped: a line dragged for Detail was set
+ * against Detail's margins, and carried over it would sit somewhere nobody put
+ * it.
+ */
+const keptKey = (key: string): string | undefined => {
+  const parts = key.split(':');
+  if (parts.length === 2) {
+    return key;
+  }
+  return parts.length === 3 && parts[0] === 'balance'
+    ? `${parts[1]}:${parts[2]}`
+    : undefined;
+};
 
 const read = (): TLines => {
   try {
@@ -247,14 +219,19 @@ const read = (): TLines => {
     // Anything that is not a number in range is dropped rather than trusted: a
     // stored NaN would silently disable the gate for that range.
     return Object.fromEntries(
-      Object.entries(parsed as Record<string, unknown>).filter(
-        ([, value]) =>
-          typeof value === 'number' &&
-          Number.isFinite(value) &&
-          // A displacement, so it spans the axis in both directions.
-          value >= PRESENCE_MIN_DB - PRESENCE_MAX_DB &&
-          value <= PRESENCE_MAX_DB - PRESENCE_MIN_DB,
-      ) as Array<[string, number]>,
+      Object.entries(parsed as Record<string, unknown>).flatMap(
+        ([stored, value]): Array<[string, number]> => {
+          const key = keptKey(stored);
+          return key !== undefined &&
+            typeof value === 'number' &&
+            Number.isFinite(value) &&
+            // A displacement, so it spans the axis in both directions.
+            value >= PRESENCE_MIN_DB - PRESENCE_MAX_DB &&
+            value <= PRESENCE_MAX_DB - PRESENCE_MIN_DB
+            ? [[key, value]]
+            : [];
+        },
+      ),
     );
   } catch {
     return {};
@@ -295,10 +272,9 @@ export const getPresenceLine = (
   label: string,
   centreFrequency: number,
   typicalDb?: number,
-  mode: TSmartEqMode = getSmartEqMode(),
 ): number => {
-  const auto = defaultThresholdDb(edge, mode, centreFrequency, typicalDb);
-  const offset = lines[keyOf(mode, label, edge)] ?? 0;
+  const auto = defaultThresholdDb(edge, centreFrequency, typicalDb);
+  const offset = lines[keyOf(label, edge)] ?? 0;
   return clampDb(auto + offset);
 };
 
@@ -319,17 +295,10 @@ export const setPresenceLine = (
   db: number,
   centreFrequency: number,
   typicalDb?: number,
-  mode: TSmartEqMode = getSmartEqMode(),
 ) => {
   const next = clampDb(db);
   const otherEdge: TPresenceEdge = edge === 'floor' ? 'full' : 'floor';
-  const other = getPresenceLine(
-    otherEdge,
-    label,
-    centreFrequency,
-    typicalDb,
-    mode,
-  );
+  const other = getPresenceLine(otherEdge, label, centreFrequency, typicalDb);
 
   const pushed =
     edge === 'floor'
@@ -341,12 +310,12 @@ export const setPresenceLine = (
   // the absolute would freeze it, which is exactly the half of the behaviour a
   // drag is not meant to destroy.
   const autoOf = (which: TPresenceEdge) =>
-    defaultThresholdDb(which, mode, centreFrequency, typicalDb);
+    defaultThresholdDb(which, centreFrequency, typicalDb);
 
   lines = {
     ...lines,
-    [keyOf(mode, label, edge)]: next - autoOf(edge),
-    [keyOf(mode, label, otherEdge)]: clampDb(pushed) - autoOf(otherEdge),
+    [keyOf(label, edge)]: next - autoOf(edge),
+    [keyOf(label, otherEdge)]: clampDb(pushed) - autoOf(otherEdge),
   };
   persist();
   notify();
@@ -361,12 +330,9 @@ export const setPresenceLine = (
  * the same thing afterwards, and a later change to how defaults are derived
  * reaches both.
  */
-export const resetPresenceRange = (
-  label: string,
-  mode: TSmartEqMode = getSmartEqMode(),
-) => {
-  const floorKey = keyOf(mode, label, 'floor');
-  const fullKey = keyOf(mode, label, 'full');
+export const resetPresenceRange = (label: string) => {
+  const floorKey = keyOf(label, 'floor');
+  const fullKey = keyOf(label, 'full');
   if (lines[floorKey] === undefined && lines[fullKey] === undefined) {
     return;
   }
@@ -396,16 +362,9 @@ export const movePresenceRange = (
   deltaDb: number,
   centreFrequency: number,
   typicalDb?: number,
-  mode: TSmartEqMode = getSmartEqMode(),
 ) => {
-  const floor = getPresenceLine(
-    'floor',
-    label,
-    centreFrequency,
-    typicalDb,
-    mode,
-  );
-  const full = getPresenceLine('full', label, centreFrequency, typicalDb, mode);
+  const floor = getPresenceLine('floor', label, centreFrequency, typicalDb);
+  const full = getPresenceLine('full', label, centreFrequency, typicalDb);
   const room = Math.max(
     PRESENCE_MIN_DB - floor,
     Math.min(PRESENCE_MAX_DB - full, deltaDb),
@@ -417,33 +376,17 @@ export const movePresenceRange = (
   // both lines go on tracking the record after the pair has been moved.
   lines = {
     ...lines,
-    [keyOf(mode, label, 'floor')]:
-      (lines[keyOf(mode, label, 'floor')] ?? 0) + room,
-    [keyOf(mode, label, 'full')]:
-      (lines[keyOf(mode, label, 'full')] ?? 0) + room,
+    [keyOf(label, 'floor')]: (lines[keyOf(label, 'floor')] ?? 0) + room,
+    [keyOf(label, 'full')]: (lines[keyOf(label, 'full')] ?? 0) + room,
   };
   persist();
   notify();
 };
 
-/**
- * Whether this range has been moved in this mode, so nothing offers a dead
- * reset.
- *
- * Per range AND per mode, which is the same separation the store itself keeps.
- * A range dragged in Target has nothing to say about the same range in Detail:
- * those modes want different things from it, which is why they hold different
- * numbers, and a reset that crossed the boundary would undo work in one mode to
- * tidy another.
- */
-export const hasCustomPresenceRange = (
-  label: string,
-  mode: TSmartEqMode = getSmartEqMode(),
-): boolean =>
-  lines[keyOf(mode, label, 'floor')] !== undefined ||
-  lines[keyOf(mode, label, 'full')] !== undefined;
-
-/** Every mode at once, for a preferences-level "put it all back". */
+/** Whether this range has been moved, so nothing offers a dead reset. */
+export const hasCustomPresenceRange = (label: string): boolean =>
+  lines[keyOf(label, 'floor')] !== undefined ||
+  lines[keyOf(label, 'full')] !== undefined;
 
 /**
  * How much of a boost a range has earned, from 0 to 1.

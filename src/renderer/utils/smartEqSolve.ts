@@ -10,7 +10,7 @@ import {
   buildSmartEqSettings,
   confineSmartEqResponse,
 } from 'common/smartEqContinuous';
-import { getReferenceShape } from 'common/referenceCurve';
+import { REFERENCE_SLOPE_DB_PER_DECADE } from 'common/referenceCurve';
 import { getPresenceLine, presenceAllowance } from './presenceThreshold';
 import { getCorrectionLimit } from './correctionLimit';
 import { buildBalancedGains } from './autoBalance';
@@ -18,7 +18,6 @@ import type {
   IBalanceRegionReport,
   IBalanceReport,
 } from './autoBalanceCapture';
-import type { TSmartEqMode } from './smartEqMode';
 
 /**
  * A measured record turned into Smart EQ's gains, and the gains into the
@@ -95,20 +94,18 @@ const allowanceFrom =
   };
 
 /**
- * The whole answer for a measured spectrum: the mode's destination, the
+ * The whole answer for a measured spectrum: Balance's slope, the
  * presence lines' allowance, the limit line, and nothing else. Undefined when
  * the measurement cannot support an answer at all (too narrow a trusted span
  * for the tilt fit).
  */
 export const solveSmartEq = (
   report: Pick<IBalanceReport, 'samples' | 'regions'>,
-  mode: TSmartEqMode,
 ): Record<string, number> | undefined => {
   const gains = buildBalancedGains(report.samples, SMART_EQ_LAYOUT, {
-    // The mode's curve, whatever else is switched on. Which mode is chosen
-    // decides the destination and nothing else does — see
-    // `getReferenceShape`.
-    reference: getReferenceShape(mode),
+    // Every record held to the one slope, whatever else is switched on — see
+    // `common/referenceCurve`.
+    slope: REFERENCE_SLOPE_DB_PER_DECADE,
     // A range nothing is playing in cannot be lifted, however loudly it
     // reports a deficit. See the presence lines on the plot.
     boostAllowance: allowanceFrom(report.regions),

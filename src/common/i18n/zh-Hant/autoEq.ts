@@ -66,7 +66,6 @@ const autoEq = {
   'autoEq.smart.title': '智慧校正',
   'autoEq.smart.hint':
     '從音源測量每首歌，並為這首歌保留其校正。疊加在任何預設之上。',
-  'autoEq.smart.modes': '校正方式',
   'autoEq.smart.waiting': '等待歌曲',
   'autoEq.smart.onceHint': '對正在播放的內容測量一次，立即套用',
   'autoEq.smart.once': '測量一次',

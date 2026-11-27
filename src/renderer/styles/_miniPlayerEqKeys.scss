@@ -157,22 +157,22 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// ================================================= Smart EQ's split key ====
+// ======================================================= Smart EQ's key ====
 //
 // ONE PILL, DRAWN ONCE (Ivan, 2026-09-22: "needs to be integrated, not two
-// separated things"): the switch and the caret that chooses how it listens
-// share one face, divided by a hairline. On, it takes Smart EQ's own blue —
-// the colour its line on the curve is drawn in.
+// separated things"). It held the switch and a caret that chose how Smart
+// correction listened; there is one way now (2026-11-27), and the switch
+// fills the pill. On, it takes Smart EQ's own blue — the colour its line on
+// the curve is drawn in.
 .mini-player .player-split {
   @include player-pill;
   gap: 0;
   padding: 0;
   overflow: hidden;
-  // The housing is not a control; its halves are.
+  // The housing is not a control; the switch in it is.
   cursor: default;
 
-  > .button.player-split__main,
-  > .button.player-split__caret {
+  > .button.player-split__main {
     &,
     &:hover:not(:disabled),
     &:active:not(:disabled) {
@@ -191,24 +191,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   > .button.player-split__main {
-    padding: 0 10px 0 12px;
-  }
-
-  > .button.player-split__caret {
-    position: relative;
-    min-width: 0;
-    padding: 0 9px 0 8px;
-
-    &::after {
-      position: absolute;
-      top: 8px;
-      bottom: 8px;
-      left: 0;
-      width: 1px;
-      background: var(--player-glass-edge);
-      content: '';
-      pointer-events: none;
-    }
+    padding: 0 12px;
   }
 
   &:has(> .player-split__main[aria-pressed='true']:not(:disabled)) {

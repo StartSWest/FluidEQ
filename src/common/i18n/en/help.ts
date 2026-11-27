@@ -253,7 +253,7 @@ const help = {
   'help.eq.voicing':
     'A ready-made chain for the sound, such as Music or a genre. None leaves only your own bands.',
   'help.eq.smart':
-    'Auto EQ: each song’s saved sound, its album’s sound from the Library, and Smart correction on top — Detail, Balance or Target.',
+    'Auto EQ: each song’s saved sound, its album’s sound from the Library, and Smart correction on top.',
   'help.eq.clear':
     'Sets every gain, and the Tone, to 0 dB and keeps your bands. Asks first.',
   'help.eq.saveEq':

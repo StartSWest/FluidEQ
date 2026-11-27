@@ -68,7 +68,7 @@ const songWindow = (index: number, record: TRecord): Float32Array => {
 };
 
 const curveOf = (report: IBalanceReport) => {
-  const gains = solveSmartEq(report, 'target');
+  const gains = solveSmartEq(report);
   return gains ? smartEqResponse(SMART_EQ_LAYOUT, gains) : undefined;
 };
 

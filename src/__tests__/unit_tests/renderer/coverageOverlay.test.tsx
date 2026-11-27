@@ -48,9 +48,6 @@ jest.mock('../../../renderer/utils/presenceThreshold', () => ({
   presenceAllowance: () => 0.5,
   usePresenceLines: () => undefined,
 }));
-jest.mock('../../../renderer/utils/smartEqMode', () => ({
-  useSmartEqMode: () => undefined,
-}));
 
 const showOverlay = (isResponseHidden = false) =>
   render(

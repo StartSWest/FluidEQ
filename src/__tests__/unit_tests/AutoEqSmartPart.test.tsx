@@ -24,15 +24,10 @@ import playFor from '__tests__/utils/playerReports';
 import AutoEqSmartPart from 'renderer/eq/autoEq/AutoEqSmartPart';
 import useAutoEqButton from 'renderer/eq/autoEq/useAutoEqButton';
 import { setContinuousEq } from 'renderer/utils/continuousEq';
-import {
-  getSmartEqMode,
-  isContinuousMode,
-  setSmartEqMode,
-} from 'renderer/utils/smartEqMode';
 
 /**
- * Smart correction, inside Auto EQ's panel: Smart EQ's continuous modes, which
- * keep each song's correction whenever they run. It replaced the toolbar's
+ * Smart correction, inside Auto EQ's panel, which keeps each song's
+ * correction whenever it runs. It replaced the toolbar's
  * "Save for this song" tick (Auto EQ, 2026-11-20): saving follows the
  * measurement, while Song sounds is on, and the song is saved the moment its
  * correction is done (2026-11-26) — the panel says so then, and counts
@@ -118,7 +113,6 @@ describe('Smart correction in Auto EQ', () => {
     jest.setSystemTime(0);
     resetSongEqSession();
     resetTransportSource();
-    setSmartEqMode('smart');
     setContinuousEq(false);
     setSongSoundParts({ songs: true, albums: false });
     mockUseNowPlayingIdentity.mockReturnValue({
@@ -129,30 +123,26 @@ describe('Smart correction in Auto EQ', () => {
 
   afterEach(() => {
     act(() => {
-      setSmartEqMode('smart');
       setContinuousEq(false);
       setSongSoundParts({ songs: false, albums: false });
     });
     jest.useRealTimers();
   });
 
-  it('starts a continuous mode when switched on, and saves each song from the start', () => {
+  it('starts measuring when switched on, and saves each song from the start', () => {
     render(<Harness />);
-    // The precondition, asserted rather than assumed: the one-shot
-    // measurement is what "nothing running" looks like.
-    expect(isContinuousMode(getSmartEqMode())).toBe(false);
+    // The precondition, asserted rather than assumed.
     expect(smartSwitch()).not.toBeChecked();
 
     fireEvent.click(smartSwitch());
 
-    expect(isContinuousMode(getSmartEqMode())).toBe(true);
     expect(smartSwitch()).toBeChecked();
     // No tick to find and press: saving is on with the measurement.
     expect(getSongEqSaveOn()).toBe(true);
   });
 
   it('stops measuring and saving when switched off', () => {
-    setSmartEqMode('detail');
+    setContinuousEq(true);
     render(<Harness />);
     expect(getSongEqSaveOn()).toBe(true);
 
@@ -166,7 +156,7 @@ describe('Smart correction in Auto EQ', () => {
   });
 
   it('says what it is waiting for when nothing is playing', () => {
-    setSmartEqMode('detail');
+    setContinuousEq(true);
     render(<Harness />);
     expect(
       screen.getByText(translate('en', 'autoEq.smart.waiting')),
@@ -180,7 +170,7 @@ describe('Smart correction in Auto EQ', () => {
       identity: songNamed('counting'),
       isPlaying: true,
     });
-    setSmartEqMode('detail');
+    setContinuousEq(true);
     render(<Harness />);
     await playFor(SONG_EQ_SETTLE_MS + 100_000);
     // No countdown to a save (Ivan, 2026-11-26: "remove the concept of
@@ -195,7 +185,7 @@ describe('Smart correction in Auto EQ', () => {
       identity: songNamed('saving'),
       isPlaying: true,
     });
-    setSmartEqMode('detail');
+    setContinuousEq(true);
     render(<Harness />);
     await playFor(SONG_EQ_SETTLE_MS + 1000);
     act(() => {
@@ -212,7 +202,7 @@ describe('Smart correction in Auto EQ', () => {
       identity: songNamed('off'),
       isPlaying: true,
     });
-    setSmartEqMode('detail');
+    setContinuousEq(true);
     render(<Harness />);
     await playFor(SONG_EQ_SETTLE_MS + 1000);
     act(() => {

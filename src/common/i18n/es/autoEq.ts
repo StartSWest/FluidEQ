@@ -71,7 +71,6 @@ export default {
   'autoEq.smart.title': 'Corrección inteligente',
   'autoEq.smart.hint':
     'Mide cada canción desde la fuente y guarda su corrección para esa canción. Por encima de cualquier preset.',
-  'autoEq.smart.modes': 'Cómo corrige',
   'autoEq.smart.waiting': 'Esperando una canción',
   'autoEq.smart.onceHint': 'Una medición de lo que suena, aplicada de una vez',
   'autoEq.smart.once': 'Medir una vez',

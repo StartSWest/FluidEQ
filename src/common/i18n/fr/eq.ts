@@ -774,20 +774,8 @@ const eq: Partial<Dictionary> = {
   'eq.title': 'Égaliseur paramétrique',
   'eq.smart': 'Correction intelligente',
   'eq.smart.cancel': 'Annuler',
-  'eq.smart.aria': 'Correction intelligente à partir de la source',
   'eq.smart.continuousAria':
     'Continuer à mesurer et ajuster la correction intelligente pendant la lecture',
-  'eq.smart.modeAria': 'Choisir comment la correction intelligente mesure',
-  'eq.smart.mode.once.note': 'Une mesure, appliquée en une fois',
-  'eq.smart.mode.detail': 'Détail',
-  'eq.smart.mode.detail.note':
-    'Continue de mesurer · bosses et creux seulement',
-  'eq.smart.mode.balance': 'Équilibre',
-  'eq.smart.mode.balance.note':
-    'Continue de mesurer · uniformise aussi brillance et chaleur',
-  'eq.smart.mode.target': 'Cible',
-  'eq.smart.mode.target.note':
-    'Continue à mesurer · chaque enregistrement sur la même courbe',
   'eq.layers.aria': 'Autres traitements appliqués à cette sortie',
   'eq.layers.addCorrection': 'Ajouter une correction de casque',
   'eq.layers.changeCorrection': 'Changer la correction de casque',

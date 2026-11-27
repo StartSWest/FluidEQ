@@ -68,7 +68,6 @@ export default {
   'autoEq.smart.title': 'Умная коррекция',
   'autoEq.smart.hint':
     'Измеряет каждую песню по исходному сигналу и сохраняет её коррекцию для этой песни. Поверх любого пресета.',
-  'autoEq.smart.modes': 'Как корректирует',
   'autoEq.smart.waiting': 'Ожидание песни',
   'autoEq.smart.onceHint': 'Одно измерение того, что играет, применяется сразу',
   'autoEq.smart.once': 'Измерить один раз',

@@ -210,16 +210,6 @@ export const PlayerPictureSound = ({ face }: { face: 'tone' | 'bands' }) => {
             <span className="player-led__lamp" />
             {t('player.eq.smart')}
           </button>
-          <button
-            type="button"
-            className="button small subtle player-led player-split__caret"
-            aria-label={t('eq.smart.modeAria')}
-          >
-            <PlayerIcon
-              name="caret"
-              className="player-icon player-icon--caret"
-            />
-          </button>
         </span>
         <button
           type="button"

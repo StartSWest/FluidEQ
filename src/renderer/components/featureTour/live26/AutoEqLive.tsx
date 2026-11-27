@@ -13,11 +13,6 @@ import type {
   ISmartEqPreview,
   ISmartEqPreviewRegion,
 } from '../../../utils/smartEqPreview';
-import {
-  CONTINUOUS_MODES,
-  SMART_EQ_MODE_NAME,
-} from '../../../utils/smartEqMode';
-import SegmentedControl from '../../../widgets/SegmentedControl';
 import Switch from '../../../widgets/Switch';
 import useTourFrames from '../useTourFrames';
 
@@ -210,15 +205,6 @@ export default function AutoEqLive() {
                 ariaLabel={t('autoEq.smart.title')}
               />
             </div>
-            <SegmentedControl
-              name={t('autoEq.smart.modes')}
-              value="balance"
-              options={CONTINUOUS_MODES.map((entry) => ({
-                value: entry,
-                label: t(SMART_EQ_MODE_NAME[entry]),
-              }))}
-              onChange={nothing}
-            />
             <AutoEqSmartStatusView
               preview={previewAt(moment.into)}
               onAgain={nothing}

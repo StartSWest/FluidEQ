@@ -25,7 +25,6 @@ import {
   presenceAllowance,
   usePresenceLines,
 } from '../utils/presenceThreshold';
-import { useSmartEqMode } from '../utils/smartEqMode';
 import { useSmartEqPreview } from '../utils/smartEqPreview';
 
 /**
@@ -82,9 +81,8 @@ const CoverageOverlay = ({
   const isMeasuring =
     preview.phase === 'listening' || preview.phase === 'settling';
   const coverage = isMeasuring ? preview.regions : undefined;
-  // The tint reads the presence lines, which one store holds per mode.
+  // The tint reads the presence lines.
   usePresenceLines();
-  useSmartEqMode();
   const lastCoverage = useRef<typeof coverage>(undefined);
 
   const isGone = isResponseHidden || !coverage?.length;

@@ -168,8 +168,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// SMART: one key with its lamp, in capitals, quiet until it is on; the caret
-// that chooses how it listens is the same key's other half.
+// SMART: one key with its lamp, in capitals, quiet until it is on.
 .mini-player .player-sound__head .player-split {
   @include sound-key;
   gap: 0;
@@ -183,29 +182,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
   cursor: default;
   @include tracking(0.04em);
 
-  > .button.player-split__main,
-  > .button.player-split__caret {
+  > .button.player-split__main {
+    gap: 6px;
+    padding: 0 10px;
+
     &,
     &:hover:not(:disabled),
     &:active:not(:disabled) {
       min-height: 28px;
       font: inherit;
       text-transform: inherit;
-    }
-  }
-
-  > .button.player-split__main {
-    gap: 6px;
-    padding: 0 9px 0 10px;
-  }
-
-  > .button.player-split__caret {
-    padding: 0 7px;
-
-    &::after {
-      top: 7px;
-      bottom: 7px;
-      background: var(--border-subtle);
     }
   }
 

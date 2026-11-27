@@ -68,7 +68,6 @@ export default {
   'autoEq.smart.title': 'Smart correction',
   'autoEq.smart.hint':
     'Measures each song from the source and keeps its correction for that song. On top of any preset.',
-  'autoEq.smart.modes': 'How it corrects',
   'autoEq.smart.waiting': 'Waiting for a song',
   'autoEq.smart.onceHint': 'One measurement of what plays, applied at once',
   'autoEq.smart.once': 'Measure once',

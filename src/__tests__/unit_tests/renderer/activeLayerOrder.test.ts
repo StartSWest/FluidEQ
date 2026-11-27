@@ -67,7 +67,6 @@ const everything: TLayerListInputs = {
   setSmartEq: nothing,
   tone: { bass: 2, mid: 0, treble: 0 },
   setTone: nothing,
-  modeName: 'Smart',
   setLayerStrength: nothing,
   isContinuousOn: false,
   customFx: as<TLayerListInputs['customFx']>({ fileName: 'custom.txt' }),

@@ -18,14 +18,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useContinuousEq } from './continuousEq';
 import { useFluidEqLayers } from './FluidEqContext';
-import { isContinuousMode, useSmartEqMode } from './smartEqMode';
 
 /**
- * Whether one of the automatic modes is chosen, switched on, and free to run.
+ * Whether Smart correction is switched on and free to run.
  *
- * All three are load-bearing and all three are the user's own switches: which
- * mode the button is, whether it has been pressed, and whether the Smart layer
- * is bypassed from the chips on the other side of the screen. The loop in
+ * Both are load-bearing and both are the user's own switches: whether it has
+ * been switched on, and whether the Smart layer is bypassed from the chips on
+ * the other side of the screen. The loop in
  * `SmartEqEngine` stands down for any of them.
  *
  * Deliberately NOT including the other two conditions that loop also waits on
@@ -40,13 +39,8 @@ import { isContinuousMode, useSmartEqMode } from './smartEqMode';
  */
 const useIsAutoEqRunning = (): boolean => {
   const { bypassed } = useFluidEqLayers();
-  const smartEqMode = useSmartEqMode();
   const isContinuousOn = useContinuousEq();
-  return (
-    isContinuousMode(smartEqMode) &&
-    isContinuousOn &&
-    !bypassed.includes('smart')
-  );
+  return isContinuousOn && !bypassed.includes('smart');
 };
 
 export default useIsAutoEqRunning;

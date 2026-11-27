@@ -771,19 +771,8 @@ const eq: Partial<Dictionary> = {
   'eq.title': 'EQ paramétrico',
   'eq.smart': 'Corrección inteligente',
   'eq.smart.cancel': 'Cancelar',
-  'eq.smart.aria': 'Corrección inteligente a partir de la fuente',
   'eq.smart.continuousAria':
     'Mantener la corrección inteligente midiendo y ajustando mientras suena la música',
-  'eq.smart.modeAria': 'Elegir cómo mide la corrección inteligente',
-  'eq.smart.mode.once.note': 'Una medición, aplicada de una vez',
-  'eq.smart.mode.detail': 'Detalle',
-  'eq.smart.mode.detail.note': 'Sigue midiendo · solo picos y huecos',
-  'eq.smart.mode.balance': 'Equilibrio',
-  'eq.smart.mode.balance.note':
-    'Sigue midiendo · también iguala brillo y calidez',
-  'eq.smart.mode.target': 'Objetivo',
-  'eq.smart.mode.target.note':
-    'Sigue midiendo · cada grabación a la misma curva',
   'eq.layers.aria': 'Otros ajustes que afectan a esta salida',
   'eq.layers.addCorrection': 'Añadir una corrección de auriculares',
   'eq.layers.changeCorrection': 'Cambiar la corrección de auriculares',

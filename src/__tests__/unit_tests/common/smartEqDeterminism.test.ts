@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { IFilter } from 'common/constants';
 import { gainAtFrequency, getTFCoefficients } from 'common/response';
-import { getReferenceShape } from 'common/referenceCurve';
+import { REFERENCE_SLOPE_DB_PER_DECADE } from 'common/referenceCurve';
 import { getSmartEqBands, getSmartEqLayout } from 'common/smartEq';
 import { buildBalancedGains } from 'renderer/utils/autoBalance';
 
@@ -77,13 +77,9 @@ const WRONG_START = (band: IFilter) => {
 const measure = (level: (frequency: number) => number) =>
   AXIS.map((frequency) => ({ frequency, level: level(frequency) }));
 
-const solve = (
-  level: (frequency: number) => number,
-  mode: string,
-  bands: IFilter[],
-) => {
+const solve = (level: (frequency: number) => number, bands: IFilter[]) => {
   const gains = buildBalancedGains(measure(level), bands, {
-    reference: getReferenceShape(mode),
+    slope: REFERENCE_SLOPE_DB_PER_DECADE,
   });
   return layout.map((band) => gains[band.id] ?? 0);
 };
@@ -100,35 +96,32 @@ const responseOf = (gains: number[]) => {
 };
 
 describe('the same sound, from anywhere', () => {
-  describe.each(['smart', 'detail', 'balance', 'target'])('in %s', (mode) => {
-    describe.each(RECORDS)('on %s', (name, level) => {
-      it('solves the same layer whatever the bands it is handed hold', () => {
-        const fromNothing = solve(level, mode, getSmartEqBands(undefined));
-        const fromBent = solve(
-          level,
-          mode,
-          layout.map((band) => ({ ...band, gain: WRONG_START(band) })),
-        );
-        expect(fromBent).toEqual(fromNothing);
-      });
+  describe.each(RECORDS)('on %s', (name, level) => {
+    it('solves the same layer whatever the bands it is handed hold', () => {
+      const fromNothing = solve(level, getSmartEqBands(undefined));
+      const fromBent = solve(
+        level,
+        layout.map((band) => ({ ...band, gain: WRONG_START(band) })),
+      );
+      expect(fromBent).toEqual(fromNothing);
+    });
 
-      it('solves the same layer twice running', () => {
-        const first = solve(level, mode, layout);
-        const second = solve(level, mode, layout);
-        expect(second).toEqual(first);
-        expect(responseOf(second)).toEqual(responseOf(first));
-      });
+    it('solves the same layer twice running', () => {
+      const first = solve(level, layout);
+      const second = solve(level, layout);
+      expect(second).toEqual(first);
+      expect(responseOf(second)).toEqual(responseOf(first));
+    });
 
-      it('is a layer about the record, not a memory of one', () => {
-        // The one property a residual loop could never have: the answer for
-        // this record is the answer, and no other record played before it
-        // can move it. Solving a different record first changes nothing about
-        // solving this one after.
-        const other = RECORDS.find(([otherName]) => otherName !== name);
-        expect(other).toBeDefined();
-        solve((other as (typeof RECORDS)[number])[1], mode, layout);
-        expect(solve(level, mode, layout)).toEqual(solve(level, mode, layout));
-      });
+    it('is a layer about the record, not a memory of one', () => {
+      // The one property a residual loop could never have: the answer for
+      // this record is the answer, and no other record played before it
+      // can move it. Solving a different record first changes nothing about
+      // solving this one after.
+      const other = RECORDS.find(([otherName]) => otherName !== name);
+      expect(other).toBeDefined();
+      solve((other as (typeof RECORDS)[number])[1], layout);
+      expect(solve(level, layout)).toEqual(solve(level, layout));
     });
   });
 });

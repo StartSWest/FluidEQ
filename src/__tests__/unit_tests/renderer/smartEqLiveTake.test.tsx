@@ -103,10 +103,6 @@ jest.mock('renderer/utils/continuousEq', () => ({
   useContinuousEq: () => !mockMode.isOnce,
   setContinuousEq: () => undefined,
 }));
-jest.mock('renderer/utils/smartEqMode', () => ({
-  ...jest.requireActual('renderer/utils/smartEqMode'),
-  useSmartEqMode: () => (mockMode.isOnce ? 'smart' : 'target'),
-}));
 
 let deliver: ((frame: IHostAnalysis) => void) | undefined;
 let now = 0;

@@ -773,19 +773,8 @@ const eq = {
   'eq.title': 'Parametric EQ',
   'eq.smart': 'Smart correction',
   'eq.smart.cancel': 'Cancel',
-  'eq.smart.aria': 'Smart correction from the source',
   'eq.smart.continuousAria':
     'Keep Smart correction measuring and adjusting while music plays',
-  'eq.smart.modeAria': 'Choose how Smart correction measures',
-  'eq.smart.mode.once.note': 'One measurement, applied at once',
-  'eq.smart.mode.detail': 'Detail',
-  'eq.smart.mode.detail.note': 'Keeps measuring · peaks and dips only',
-  'eq.smart.mode.balance': 'Balance',
-  'eq.smart.mode.balance.note':
-    'Keeps measuring · also evens out bright and warm',
-  'eq.smart.mode.target': 'Target',
-  'eq.smart.mode.target.note':
-    'Keeps measuring · every record to the same curve',
   'eq.layers.aria': 'Also shaping this output',
   'eq.layers.addCorrection': 'Add a headphone correction',
   'eq.layers.changeCorrection': 'Change the headphone correction',

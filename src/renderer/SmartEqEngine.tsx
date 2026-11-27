@@ -52,7 +52,6 @@ import {
 } from './audio/smartEqMeasurement';
 import type { TRawSourceKind } from './audio/rawSource';
 import { useContinuousEq } from './utils/continuousEq';
-import { isContinuousMode, useSmartEqMode } from './utils/smartEqMode';
 import {
   CONTINUOUS_HALF_LIFE_MS,
   IBalanceReport,
@@ -105,9 +104,9 @@ import {
  * follows from that. The measurement is of the sound before FluidEQ touches
  * it (`audio/rawSource.ts`): the record, with none of the bands, no voicing,
  * no rack and no Smart EQ layer in it. A solve is therefore a pure function
- * of the record and the mode, and a solve REPLACES the layer rather than
- * adding to it. The same record gives the same layer whatever was applied
- * before, whatever was played before, and whichever mode was on before — and
+ * of the record, and a solve REPLACES the layer rather than adding to it.
+ * The same record gives the same layer whatever was applied before and
+ * whatever was played before — and
  * the listener's own bands, voicing and rack sit on top of it as the taste
  * they are, never measured and never corrected.
  *
@@ -145,7 +144,6 @@ const SmartEqEngine = () => {
   const { isRunning } = useSmartEqRun();
   const isContinuousOn = useContinuousEq();
   const isSmartBypassed = bypassed.includes('smart');
-  const smartEqMode = useSmartEqMode();
   /**
    * Which tap hears the source. The Library plays through FluidEQ's own host,
    * whose input tap is the decoded file; everything else is heard through the
@@ -303,19 +301,16 @@ const SmartEqEngine = () => {
    */
   const listeningForRef = useRef('');
   /**
-   * Which reference the loop is holding records to, and which tap it should
-   * open, read from refs: the callbacks inside a measurement are held for as
-   * long as it runs, so reading these through state would give them whatever
-   * was current when it started.
+   * Which tap the loop should open, read from a ref: the callbacks inside a
+   * measurement are held for as long as it runs, so reading it through state
+   * would give them whatever was current when it started.
    */
-  const referenceModeRef = useRef(smartEqMode);
-  referenceModeRef.current = smartEqMode;
   const sourceKindRef = useRef(sourceKind);
   sourceKindRef.current = sourceKind;
 
-  /** The whole answer for a report, under the mode chosen now. */
+  /** The whole answer for a report. */
   const solve = (report: Pick<IBalanceReport, 'samples' | 'regions'>) =>
-    solveSmartEq(report, referenceModeRef.current);
+    solveSmartEq(report);
 
   /** The solved gains as the layer to write, keeping the listener's strength. */
   const layerOf = (
@@ -437,30 +432,12 @@ const SmartEqEngine = () => {
   };
 
   /**
-   * The one-shot, reachable from an effect.
+   * The one-shot, reachable from the store's control (`registerSmartEqControl`).
    *
    * `autoBalance` is rebuilt every render and closes over half the component,
-   * so naming it as a dependency would re-run the mode-change effect constantly
-   * — and that effect exists precisely to fire once, on a change.
+   * so the control, registered once, reaches it through this ref.
    */
   const runAutoBalanceRef = useRef(() => {});
-  const previousModeRef = useRef(smartEqMode);
-  useEffect(() => {
-    if (previousModeRef.current === smartEqMode) {
-      return;
-    }
-    previousModeRef.current = smartEqMode;
-    if (!isContinuousMode(smartEqMode)) {
-      // The one-shot runs the moment it is chosen, like the other three do.
-      runAutoBalanceRef.current();
-    }
-    // A continuous mode needs no setting up. Everything heard so far is of
-    // the record and is as true under the new mode as under the old; only
-    // the destination changes, and the loop reads that from a ref. It keeps
-    // whatever layer is applied until its next settled solve and replaces it
-    // then — the one transition that cannot make the output jump, since
-    // nothing is cleared.
-  }, [smartEqMode]);
 
   /**
    * The running continuous session, so the manual button can end it.
@@ -749,7 +726,7 @@ const SmartEqEngine = () => {
    * It used to refuse while a write was in flight, which once kept two
    * checkpoints of an older loop from both writing; every write now goes out
    * in the order it was decided and the last one wins, and the refusal could
-   * only drop a newer answer — a mode chosen while the hold was landing.
+   * only drop a newer answer.
    */
   const writeHeld = (
     report: IBalanceReport,
@@ -869,31 +846,6 @@ const SmartEqEngine = () => {
   writeHeldRef.current = writeHeld;
   const unformRef = useRef(unform);
   unformRef.current = unform;
-
-  /**
-   * A mode chosen while a song is held: the evidence is of the record and as
-   * true under one destination as another, so the held report is solved
-   * again at once rather than heard again.
-   */
-  useEffect(() => {
-    const held = heldSongsRef.current.get(previousSongRef.current);
-    if (!isHeldRef.current || !held || !isContinuousMode(smartEqMode)) {
-      return;
-    }
-    const { outcome, gains, layer } = writeHeld(held.report);
-    heldSongsRef.current.set(previousSongRef.current, {
-      ...held,
-      outcome,
-      gains,
-    });
-    showHeld(held.report, outcome, gains);
-    // A new answer for the song: saved for it again.
-    if (layer && outcome === 'written') {
-      noteSmartEqHeld(layer);
-    }
-    // Only the mode: everything else the write reads is current through refs.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- see above
-  }, [smartEqMode]);
 
   useEffect(() => {
     // Switching the Smart EQ layer off stops it: a loop writing a layer that
@@ -1016,10 +968,9 @@ const SmartEqEngine = () => {
     // The tap restarts the measurement, because a different tap is a
     // different sound and everything heard through the old one is of a
     // source no longer playing. So does a new song after a hold, whose tap is
-    // closed (`session`), and Measure again (`remeasures`). The mode does
-    // not: see the effect above. A song already held is never measured
-    // again by any of these but Measure again: see `heldSongsRef`. `live` is
-    // made once and never changes.
+    // closed (`session`), and Measure again (`remeasures`). A song already
+    // held is never measured again by any of these but Measure again: see
+    // `heldSongsRef`. `live` is made once and never changes.
   }, [
     live,
     isRunning,

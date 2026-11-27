@@ -257,7 +257,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.voicing':
     'Eine fertige Kette für den Klang, etwa Musik oder ein Genre. Keine lässt nur Ihre Bänder übrig.',
   'help.eq.smart':
-    'Auto-EQ: der gespeicherte Klang jedes Songs, der Klang seines Albums aus der Bibliothek und darüber die Smart-Korrektur – Detail, Balance oder Ziel.',
+    'Auto-EQ: der gespeicherte Klang jedes Songs, der Klang seines Albums aus der Bibliothek und darüber die Smart-Korrektur.',
   'help.eq.clear':
     'Stellt jede Verstärkung und den Klang auf 0 dB und behält Ihre Bänder. Fragt vorher.',
   'help.eq.saveEq':

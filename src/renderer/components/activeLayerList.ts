@@ -141,7 +141,6 @@ export type TLayerListInputs = Pick<
   voicingProfile: IVoicingProfile | undefined;
   presetName: string | undefined;
   setVoicingStrength: (intensity: number) => void;
-  modeName: string;
   setLayerStrength: (
     key: string,
     apply: (intensity: number) => void,
@@ -210,7 +209,6 @@ export const collectLayers = ({
   tone,
   setTone,
   eqCuts,
-  modeName,
   setLayerStrength,
   isContinuousOn,
   customFx,
@@ -476,20 +474,13 @@ export const collectLayers = ({
       key: 'smart',
       icon: 'smart',
       label: t('eq.layers.smart'),
-      // Which mode wrote it, and nothing else.
-      //
-      // Four modes write this one layer, so the chip naming none of them could
-      // not say why the correction looks the way it does — and that matters,
-      // because Detail and Target disagree about what a record should sound
-      // like.
-      //
       // What the correction is *doing* used to be here as well and has moved to
       // the bubble on the button. This row is a list of what is applied, read
-      // at a glance; a sentence that changes as the mode works belongs with the
+      // at a glance; a sentence that changes as it works belongs with the
       // thing that is working, and having it in both places made the row shift
       // under the eye while nothing about the layer had actually changed. The
       // pip beside it already says whether it is running.
-      name: modeName,
+      name: t('eq.smart'),
       clearHint: t('eq.layers.clearSmart'),
       /*
        * A strength, arriving last of the four and for the opposite reason to

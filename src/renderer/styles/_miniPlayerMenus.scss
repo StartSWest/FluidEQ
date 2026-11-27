@@ -68,36 +68,3 @@ SPDX-License-Identifier: GPL-3.0-or-later
     background: $selected-accent;
   }
 }
-
-// A choice named and described: the tick in the glyph column, level with
-// the name rather than centred on both lines.
-.player-menu__item--two {
-  align-items: start;
-}
-
-.player-menu__tick {
-  margin-top: 2px;
-  visibility: hidden;
-
-  [aria-checked='true'] > & {
-    visibility: visible;
-  }
-}
-
-.player-menu__two {
-  display: grid;
-  gap: 1px;
-  min-width: 0;
-
-  b {
-    color: $text-primary;
-    font-weight: $weight-semibold;
-  }
-
-  small {
-    margin: 0;
-    color: $text-faint;
-    text-align: left;
-    white-space: normal;
-  }
-}

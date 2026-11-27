@@ -70,7 +70,6 @@ export default {
   'autoEq.smart.title': 'Correction intelligente',
   'autoEq.smart.hint':
     'Mesure chaque chanson à la source et garde sa correction pour cette chanson. Par-dessus n’importe quel préréglage.',
-  'autoEq.smart.modes': 'Façon de corriger',
   'autoEq.smart.waiting': 'En attente d’une chanson',
   'autoEq.smart.onceHint': 'Une mesure de ce qui joue, appliquée en une fois',
   'autoEq.smart.once': 'Mesurer une fois',
