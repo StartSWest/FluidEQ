@@ -175,8 +175,8 @@ const SHIPPED_STILL_FILES: Readonly<Record<string, IShippedStillFile>> = {
     url: analyzerAutoDarkMany,
     roles: [
       'stop-2',
-      'stop-1',
       'stop-3',
+      'stop-1',
       'stop-4',
       'stop-6',
       'stop-5',
@@ -327,32 +327,22 @@ const SHIPPED_STILL_FILES: Readonly<Record<string, IShippedStillFile>> = {
       'stop-6',
       'stop-5',
       'stop-0',
-      'mate-1',
-      'mate-2',
-      'mate-3',
-      'mate-4',
     ],
   },
-  'compare auto dark one': { url: compareAutoDarkOne, roles: ['stop', 'mate'] },
+  'compare auto dark one': { url: compareAutoDarkOne, roles: ['stop'] },
   'compare auto light many': {
     url: compareAutoLightMany,
     roles: [
       'stop-2',
       'stop-3',
       'stop-4',
-      'stop-1',
       'stop-6',
+      'stop-1',
       'stop-5',
       'stop-0',
-      'mate-1',
-      'mate-2',
-      'mate-3',
     ],
   },
-  'compare auto light one': {
-    url: compareAutoLightOne,
-    roles: ['stop', 'mate'],
-  },
+  'compare auto light one': { url: compareAutoLightOne, roles: ['stop'] },
   'echo auto dark many': {
     url: echoAutoDarkMany,
     roles: [
@@ -391,9 +381,13 @@ const SHIPPED_STILL_FILES: Readonly<Record<string, IShippedStillFile>> = {
       'stop-5',
       'stop-6',
       'ink',
+      'floor',
     ],
   },
-  'energy auto dark one': { url: energyAutoDarkOne, roles: ['stop', 'ink'] },
+  'energy auto dark one': {
+    url: energyAutoDarkOne,
+    roles: ['stop', 'ink', 'floor'],
+  },
   'energy auto light many': {
     url: energyAutoLightMany,
     roles: [
@@ -402,12 +396,16 @@ const SHIPPED_STILL_FILES: Readonly<Record<string, IShippedStillFile>> = {
       'stop-3',
       'stop-4',
       'stop-0',
-      'stop-5',
       'stop-6',
+      'stop-5',
       'ink',
+      'floor',
     ],
   },
-  'energy auto light one': { url: energyAutoLightOne, roles: ['stop', 'ink'] },
+  'energy auto light one': {
+    url: energyAutoLightOne,
+    roles: ['stop', 'floor', 'ink', 'level-0'],
+  },
   'fallblocks auto dark many': {
     url: fallblocksAutoDarkMany,
     roles: [
@@ -724,11 +722,12 @@ const SHIPPED_STILL_FILES: Readonly<Record<string, IShippedStillFile>> = {
       'stop-6',
       'ink',
       'edge',
+      'floor',
     ],
   },
   'notes auto dark one': {
     url: notesAutoDarkOne,
-    roles: ['stop', 'ink', 'edge'],
+    roles: ['stop', 'ink', 'edge', 'floor'],
   },
   'notes auto light many': {
     url: notesAutoLightMany,
@@ -741,12 +740,13 @@ const SHIPPED_STILL_FILES: Readonly<Record<string, IShippedStillFile>> = {
       'stop-5',
       'stop-6',
       'ink',
+      'floor',
       'edge',
     ],
   },
   'notes auto light one': {
     url: notesAutoLightOne,
-    roles: ['stop', 'ink', 'edge'],
+    roles: ['stop', 'ink', 'floor', 'edge'],
   },
   'phase auto dark many': {
     url: phaseAutoDarkMany,
@@ -850,10 +850,6 @@ const SHIPPED_STILL_FILES: Readonly<Record<string, IShippedStillFile>> = {
       'stop-6',
       'stop-0',
       'stop-5',
-      'text-faint',
-      'mate-1',
-      'mate-4',
-      'accent',
     ],
   },
   'slope auto dark one': { url: slopeAutoDarkOne, roles: ['stop'] },
@@ -868,7 +864,6 @@ const SHIPPED_STILL_FILES: Readonly<Record<string, IShippedStillFile>> = {
       'stop-0',
       'stop-5',
       'ink',
-      'mate-6',
     ],
   },
   'slope auto light one': { url: slopeAutoLightOne, roles: ['stop', 'ink'] },
@@ -903,15 +898,7 @@ const SHIPPED_STILL_FILES: Readonly<Record<string, IShippedStillFile>> = {
   'sparkbars auto light one': { url: sparkbarsAutoLightOne, roles: ['stop'] },
   'spectrogram auto dark many': {
     url: spectrogramAutoDarkMany,
-    roles: [
-      'stop-3',
-      'stop-4',
-      'stop-2',
-      'stop-5',
-      'stop-6',
-      'stop-1',
-      'stop-0',
-    ],
+    roles: ['loud-2', 'loud-3', 'loud-1', 'loud-4', 'loud-0'],
   },
   'spectrogram auto dark one': {
     url: spectrogramAutoDarkOne,
@@ -919,15 +906,7 @@ const SHIPPED_STILL_FILES: Readonly<Record<string, IShippedStillFile>> = {
   },
   'spectrogram auto light many': {
     url: spectrogramAutoLightMany,
-    roles: [
-      'stop-4',
-      'stop-3',
-      'stop-2',
-      'stop-5',
-      'stop-6',
-      'stop-1',
-      'stop-0',
-    ],
+    roles: ['loud-2', 'loud-3', 'loud-1', 'loud-4', 'loud-0'],
   },
   'spectrogram auto light one': {
     url: spectrogramAutoLightOne,

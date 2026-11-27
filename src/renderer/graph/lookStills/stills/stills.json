@@ -57,8 +57,8 @@
     "colours": "many",
     "roles": [
       "stop-2",
-      "stop-1",
       "stop-3",
+      "stop-1",
       "stop-4",
       "stop-6",
       "stop-5",
@@ -306,11 +306,7 @@
       "stop-1",
       "stop-6",
       "stop-5",
-      "stop-0",
-      "mate-1",
-      "mate-2",
-      "mate-3",
-      "mate-4"
+      "stop-0"
     ],
     "file": "compare-auto-dark-many.png"
   },
@@ -319,7 +315,7 @@
     "palette": "auto",
     "side": "dark",
     "colours": "one",
-    "roles": ["stop", "mate"],
+    "roles": ["stop"],
     "file": "compare-auto-dark-one.png"
   },
   {
@@ -331,13 +327,10 @@
       "stop-2",
       "stop-3",
       "stop-4",
-      "stop-1",
       "stop-6",
+      "stop-1",
       "stop-5",
-      "stop-0",
-      "mate-1",
-      "mate-2",
-      "mate-3"
+      "stop-0"
     ],
     "file": "compare-auto-light-many.png"
   },
@@ -346,7 +339,7 @@
     "palette": "auto",
     "side": "light",
     "colours": "one",
-    "roles": ["stop", "mate"],
+    "roles": ["stop"],
     "file": "compare-auto-light-one.png"
   },
   {
@@ -411,7 +404,8 @@
       "stop-0",
       "stop-5",
       "stop-6",
-      "ink"
+      "ink",
+      "floor"
     ],
     "file": "energy-auto-dark-many.png"
   },
@@ -420,7 +414,7 @@
     "palette": "auto",
     "side": "dark",
     "colours": "one",
-    "roles": ["stop", "ink"],
+    "roles": ["stop", "ink", "floor"],
     "file": "energy-auto-dark-one.png"
   },
   {
@@ -434,9 +428,10 @@
       "stop-3",
       "stop-4",
       "stop-0",
-      "stop-5",
       "stop-6",
-      "ink"
+      "stop-5",
+      "ink",
+      "floor"
     ],
     "file": "energy-auto-light-many.png"
   },
@@ -445,7 +440,7 @@
     "palette": "auto",
     "side": "light",
     "colours": "one",
-    "roles": ["stop", "ink"],
+    "roles": ["stop", "floor", "ink", "level-0"],
     "file": "energy-auto-light-one.png"
   },
   {
@@ -996,7 +991,8 @@
       "stop-5",
       "stop-6",
       "ink",
-      "edge"
+      "edge",
+      "floor"
     ],
     "file": "notes-auto-dark-many.png"
   },
@@ -1005,7 +1001,7 @@
     "palette": "auto",
     "side": "dark",
     "colours": "one",
-    "roles": ["stop", "ink", "edge"],
+    "roles": ["stop", "ink", "edge", "floor"],
     "file": "notes-auto-dark-one.png"
   },
   {
@@ -1022,6 +1018,7 @@
       "stop-5",
       "stop-6",
       "ink",
+      "floor",
       "edge"
     ],
     "file": "notes-auto-light-many.png"
@@ -1031,7 +1028,7 @@
     "palette": "auto",
     "side": "light",
     "colours": "one",
-    "roles": ["stop", "ink", "edge"],
+    "roles": ["stop", "ink", "floor", "edge"],
     "file": "notes-auto-light-one.png"
   },
   {
@@ -1242,11 +1239,7 @@
       "stop-4",
       "stop-6",
       "stop-0",
-      "stop-5",
-      "text-faint",
-      "mate-1",
-      "mate-4",
-      "accent"
+      "stop-5"
     ],
     "file": "slope-auto-dark-many.png"
   },
@@ -1271,8 +1264,7 @@
       "stop-4",
       "stop-0",
       "stop-5",
-      "ink",
-      "mate-6"
+      "ink"
     ],
     "file": "slope-auto-light-many.png"
   },
@@ -1337,15 +1329,7 @@
     "palette": "auto",
     "side": "dark",
     "colours": "many",
-    "roles": [
-      "stop-3",
-      "stop-4",
-      "stop-2",
-      "stop-5",
-      "stop-6",
-      "stop-1",
-      "stop-0"
-    ],
+    "roles": ["loud-2", "loud-3", "loud-1", "loud-4", "loud-0"],
     "file": "spectrogram-auto-dark-many.png"
   },
   {
@@ -1361,15 +1345,7 @@
     "palette": "auto",
     "side": "light",
     "colours": "many",
-    "roles": [
-      "stop-4",
-      "stop-3",
-      "stop-2",
-      "stop-5",
-      "stop-6",
-      "stop-1",
-      "stop-0"
-    ],
+    "roles": ["loud-2", "loud-3", "loud-1", "loud-4", "loud-0"],
     "file": "spectrogram-auto-light-many.png"
   },
   {
