@@ -329,27 +329,36 @@ it('opens the sound only once a tile plays, and keeps it open across tiles', () 
   expect(listening[listening.length - 1]).toBe(true);
 });
 
-// The demo song takes a few frames to start, so it starts as the pointer
-// comes into the grid, ahead of the tile it is heading for.
-it('opens the sound as the pointer comes into the grid, before any tile plays', () => {
-  grid();
+const gridArea = () => {
   const area = document.querySelector('.look-picker__grid--styles');
   if (!area) {
     throw new Error('No grid.');
   }
-  fireEvent.pointerEnter(area);
+  return area;
+};
+
+// The demo song takes a few frames to start, so it starts as the pointer
+// moves over the grid, ahead of the tile it is heading for - a move, as a
+// grid opened under a resting pointer is never entered.
+it('opens the sound as the pointer moves over the grid, before any tile plays', () => {
+  grid();
+  expect(listening.every((open) => !open)).toBe(true);
+  fireEvent.pointerMove(gridArea());
   expect(listening[listening.length - 1]).toBe(true);
   expect(mounted.size).toBe(0);
 });
 
-it('opens no sound for a pointer in the grid under reduced motion, where no tile moves', () => {
+it('opens the sound as the keyboard comes into the grid', () => {
+  grid();
+  fireEvent.focus(gridArea());
+  expect(listening[listening.length - 1]).toBe(true);
+});
+
+it('opens no sound for a pointer or the keyboard in the grid under reduced motion, where no tile moves', () => {
   reduced = true;
   grid();
-  const area = document.querySelector('.look-picker__grid--styles');
-  if (!area) {
-    throw new Error('No grid.');
-  }
-  fireEvent.pointerEnter(area);
+  fireEvent.pointerMove(gridArea());
+  fireEvent.focus(gridArea());
   expect(listening.every((open) => !open)).toBe(true);
 });
 

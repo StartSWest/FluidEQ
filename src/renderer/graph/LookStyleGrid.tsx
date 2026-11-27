@@ -100,12 +100,19 @@ export const LookTileScope = ({ children }: { children: ReactNode }) => {
 };
 
 /**
- * The grid itself. Its sound opens as the pointer comes into the grid, a
- * gap or a tile's edge ahead of the tile it is heading for: with no music
- * playing the tiles move to the quiet demo song, which takes a few frames to
- * start, and started on the tile itself the first one hovered stood still
- * that long. Still never for a grid nobody points into, and never under
- * reduced motion, where no tile moves.
+ * The grid itself. Its sound opens on the first sign that somebody is
+ * heading for a tile - the pointer moving anywhere over the grid, or the
+ * keyboard's focus coming into it - a gap or a tile's edge ahead of the tile
+ * itself: with no music playing the tiles move to the quiet demo song, which
+ * takes a few frames to start, and started on the tile the first one hovered
+ * stood still that long. A move, not an entry: a grid opened under a
+ * resting pointer is entered by nothing.
+ *
+ * Never with the grid alone. Opened with the picker (Ivan, 2026-11-27:
+ * "this needs to feel instant"), the silent demo song and its analysis cost
+ * the picker harness's renderer 88-96% of a core with the picker merely
+ * open, against 22-25% without - the cost a98b22206 took away at Ivan's
+ * word. And never under reduced motion, where no tile moves.
  */
 const LookStyleGridArea = ({ children }: { children: ReactNode }) => {
   const { wantSound } = useTileGrid();
@@ -113,7 +120,8 @@ const LookStyleGridArea = ({ children }: { children: ReactNode }) => {
   return (
     <div
       className="look-picker__grid look-picker__grid--styles"
-      onPointerEnter={reduced ? undefined : wantSound}
+      onPointerMove={reduced ? undefined : wantSound}
+      onFocus={reduced ? undefined : wantSound}
     >
       {children}
     </div>
