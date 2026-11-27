@@ -30,9 +30,9 @@ import {
   fillTexturePattern,
   lookTexturePaint,
   printTexture,
-  PICTURE_ALPHA,
-  TEXTURE_ALPHA,
+  textureAlphaOf,
 } from './fillTextures';
+import type { ITexturePose } from './textureMotion';
 import { type createPulsePaths } from './pulseMonitor';
 import { type ILookTuning } from '../../common/customLooks';
 
@@ -301,6 +301,8 @@ interface IPaintFillTextureInput {
   curveFigure: Path2D;
   opacity: number;
   plot: { left: number; right: number; top: number; bottom: number };
+  /** Where the music has moved the look's texture, where it moves. */
+  texturePose: ITexturePose | undefined;
 }
 
 /**
@@ -314,6 +316,7 @@ export const paintFillTexture = ({
   curveFigure,
   opacity,
   plot,
+  texturePose,
 }: IPaintFillTextureInput) => {
   /**
    * The pattern inside the fill, printed on the glass.
@@ -330,18 +333,13 @@ export const paintFillTexture = ({
    * chose a picture chose its colours too.
    */
   if (isFilled && tuning.texture !== 'none') {
-    const pattern = fillTexturePattern(
-      context,
-      lookTexturePaint(tuning, ratio, plot),
-    );
+    const paint = lookTexturePaint(tuning, ratio, plot, texturePose);
+    const pattern = fillTexturePattern(context, paint);
     if (pattern) {
       context.save();
       context.globalCompositeOperation =
         tuning.texture === 'image' ? 'source-atop' : 'overlay';
-      setAlpha(
-        context,
-        opacity * (tuning.texture === 'image' ? PICTURE_ALPHA : TEXTURE_ALPHA),
-      );
+      setAlpha(context, opacity * textureAlphaOf(paint));
       printTexture(
         context,
         curveFigure,

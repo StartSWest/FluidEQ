@@ -256,6 +256,7 @@ describe("the editor's Texture buttons", () => {
           fit="tile"
           pictureSize={192}
           patternSize={16}
+          moves={false}
           onChange={jest.fn()}
         />
       </I18nProvider>,

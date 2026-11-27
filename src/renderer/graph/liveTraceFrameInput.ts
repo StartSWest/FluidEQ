@@ -50,6 +50,7 @@ import { type IDashTrails } from './dashTrails';
 import { type ITerraceJumper } from './terraceJumper';
 import { type IBolt } from './bubbleStorm';
 import { type IAccentState } from './graphAccents';
+import { type ITextureMotion } from './textureMotion';
 import { type NightSurfaces } from './terraceNight';
 
 // What a frame of the live graph is drawn from: the component's refs, the
@@ -193,6 +194,8 @@ export interface IDrawLiveTraceFrameInput {
     shakeStrength: number;
   }>;
   accentStateRef: RefObject<IAccentState>;
+  /** Where the music has carried the look's texture (`textureMotion.ts`). */
+  textureMotionRef: RefObject<ITextureMotion>;
   shownOpacityRef: RefObject<number>;
   shownStrokeWidthRef: RefObject<number>;
   seaCanvasRef: RefObject<HTMLCanvasElement | null>;

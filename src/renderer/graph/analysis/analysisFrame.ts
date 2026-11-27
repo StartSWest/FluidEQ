@@ -8,6 +8,7 @@ import type { ILookTuning } from 'common/customLooks';
 import type { TLegendKey } from 'common/graphAnalysis';
 import type { ResolvedGraphPalette } from 'common/graphStyles';
 import { rampAt } from '../lookColours';
+import type { ITexturePose } from '../textureMotion';
 
 /**
  * What every measuring view is handed, and what it keeps between frames.
@@ -58,6 +59,11 @@ export interface IAnalysisReading {
   deltaMs: number;
   playing: boolean;
   tuning: ILookTuning;
+  /**
+   * Where the music has moved the look's texture this frame, where it moves
+   * (`textureMotion.ts`); absent while it lies still.
+   */
+  texturePose?: ITexturePose;
   colours: readonly string[];
   /**
    * The right channel's copy of those stops, turned round the wheel.

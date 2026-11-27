@@ -48,6 +48,7 @@ import { drawMeasuringFrame, drawSceneViewFrame } from './liveTraceViews';
 import { noteLegendFrame } from './analysis/legendPlace';
 import drawDesignedFrame from './liveTraceDesignedFrame';
 import { IDrawLiveTraceFrameInput } from './liveTraceFrameInput';
+import { lookTexturePose } from './textureMotion';
 
 // One frame of the live graph, drawn from the component's refs: the canvas
 // sized and cleared, the curve eased toward the music, the look's scenery
@@ -142,6 +143,7 @@ const drawLiveTraceFrame = (
     pumpRef,
     bubbleStormRef,
     accentStateRef,
+    textureMotionRef,
     shownOpacityRef,
     shownStrokeWidthRef,
     seaCanvasRef,
@@ -246,6 +248,17 @@ const drawLiveTraceFrame = (
   const easing = easeTraceToward(eased, data, rise, fall);
   let { moving } = easing;
   const { rising } = easing;
+  // Where the music carries the look's texture, from the window's one
+  // hearing of it (`textureMotion.ts`): worked out once here, and handed to
+  // whichever painter below prints the texture, the page's or the engine's.
+  const texture = lookTexturePose(
+    textureMotionRef.current,
+    tuning,
+    fresh?.sound,
+    deltaMs,
+  );
+  const texturePose = texture.pose;
+  moving = moving || texture.moving;
 
   // The plot's own edges, taken from the scales rather than from props, so
   // everything measured against them follows a resize without being told.
@@ -395,6 +408,7 @@ const drawLiveTraceFrame = (
     return drawMeasuringFrame({
       chosen,
       tuning,
+      texturePose,
       computedRef,
       lookRef,
       figureBands,
@@ -439,6 +453,7 @@ const drawLiveTraceFrame = (
       data,
       projected,
       tuning,
+      texturePose,
       lookRef,
       sceneViewRef,
       isEngineTaking,
@@ -827,6 +842,7 @@ const drawLiveTraceFrame = (
     chosen,
     projected,
     tuning,
+    texturePose,
     motionRef,
     isFilled,
     bubbleStormRef,

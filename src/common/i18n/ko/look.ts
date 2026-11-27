@@ -21,6 +21,9 @@ const look = {
   'look.texture.fit.cover': '전체 그림',
   'look.texture.fit.tile': '바둑판식',
   'look.texture.tileSize': '타일 크기',
+  'look.texture.motion': '음악에 맞춰 움직임',
+  'look.texture.motionHint':
+    '음악이 고조되거나 비트가 칠 때 더 빠르게, 조금씩 흐릅니다. 동작 줄이기 중에는 멈춥니다.',
   'look.texture.tooBig':
     '사진이 너무 커서 보관할 수 없습니다. 더 작은 것을 시도해 보세요.',
   'look.texture.unreadable': '해당 파일을 그림으로 읽을 수 없습니다.',

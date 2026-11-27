@@ -110,5 +110,5 @@ export const readAnalysisLookInput = (
   input.mateInkCount = writeInks(input.mateInks, first.mate);
   // The scale's rules follow the window's ink, as the 2D views' `readInk`.
   writeWindowInk(input);
-  writeLookTexture(input, tuning, first.ratio, plot);
+  writeLookTexture(input, tuning, first.ratio, plot, first.texturePose);
 };

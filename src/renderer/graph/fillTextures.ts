@@ -19,6 +19,13 @@ import {
 } from './texturePictures';
 import { isLightWindow } from '../utils/windowSide';
 import { TILE, type TTileInk, drawTile, makeCanvas } from './fillTextureTiles';
+import type { ITexturePose } from './textureMotion';
+import {
+  coverAreaOf,
+  movedPlacement,
+  movedTileTransform,
+  pixelAt,
+} from './movedTexture';
 
 /**
  * The pattern that goes inside a filled figure.
@@ -126,6 +133,7 @@ const tileOf = (key: ITileKey): ITile | null => {
 const tilePattern = (
   context: CanvasRenderingContext2D,
   key: ITileKey,
+  pose?: ITexturePose,
 ): CanvasPattern | undefined => {
   const { scale } = key;
   const tile = tileOf(key);
@@ -134,11 +142,23 @@ const tilePattern = (
   }
   if (tile.pattern === undefined) {
     tile.pattern = context.createPattern(tile.canvas, 'repeat');
-    if (tile.pattern) {
-      placeOn(tile.pattern, new DOMMatrix([1 / scale, 0, 0, 1 / scale, 0, 0]));
-    }
   }
-  return tile.pattern ?? undefined;
+  const { pattern } = tile;
+  if (!pattern) {
+    return undefined;
+  }
+  // Laid for every print, still or moved: one pattern serves every drawing
+  // of this tile in the window, and the graph's may be moving while the
+  // editor's preview of the same tile is not.
+  placeOn(
+    pattern,
+    new DOMMatrix(
+      pose
+        ? movedTileTransform(tile.canvas.width, scale, pose)
+        : [1 / scale, 0, 0, 1 / scale, 0, 0],
+    ),
+  );
+  return pattern;
 };
 
 /**
@@ -155,6 +175,7 @@ const placedPatterns = new WeakMap<ImageBitmap, CanvasPattern | null>();
 const placedPattern = (
   context: CanvasRenderingContext2D,
   placement: ITexturePlacement,
+  motion?: { pose: ITexturePose; pixel: number },
 ): CanvasPattern | undefined => {
   const { bitmap } = placement;
   let pattern = placedPatterns.get(bitmap);
@@ -166,15 +187,18 @@ const placedPattern = (
     placedPatterns.set(bitmap, pattern);
   }
   if (pattern) {
+    const place = motion
+      ? movedPlacement(placement, motion.pose, motion.pixel)
+      : placement;
     placeOn(
       pattern,
       new DOMMatrix([
-        placement.width / bitmap.width,
+        place.width / bitmap.width,
         0,
         0,
-        placement.height / bitmap.height,
-        placement.x,
-        placement.y,
+        place.height / bitmap.height,
+        place.x,
+        place.y,
       ]),
     );
   }
@@ -235,6 +259,12 @@ export interface ITexturePaint {
   area: ITextureArea;
   /** The colour a pattern is printed in (`patternInk`). */
   ink: TTileInk;
+  /**
+   * Where the music has moved it this frame (`textureMotion.ts`); absent
+   * while the look's texture lies still, which prints exactly as it did
+   * before the texture could move.
+   */
+  pose?: ITexturePose;
 }
 
 /**
@@ -265,6 +295,7 @@ export const lookTexturePaint = (
   >,
   scale: number,
   area: ITextureArea,
+  pose?: ITexturePose,
 ): ITexturePaint => ({
   texture: tuning.texture,
   image: tuning.textureImage,
@@ -273,6 +304,7 @@ export const lookTexturePaint = (
   size: tuning.texture === 'image' ? tuning.textureSize : tuning.patternSize,
   area,
   ink: patternInk(),
+  ...(pose ? { pose } : {}),
 });
 
 const tileScale = (scale: number) => Math.max(1, Math.min(4, scale));
@@ -290,39 +322,41 @@ export const fillTexturePattern = (
   context: CanvasRenderingContext2D,
   paint: ITexturePaint,
 ): CanvasPattern | undefined => {
-  const { texture, image, scale, fit, size, area, ink } = paint;
+  const { texture, image, scale, fit, size, area, ink, pose } = paint;
   if (texture === 'none') {
     return undefined;
   }
   if (texture === 'image') {
     const placement = image
-      ? placePicture({ image, fit, size, scale, area })
+      ? placePicture({ image, fit, size, scale, area: coverAreaOf(area, pose) })
       : undefined;
-    return placement ? placedPattern(context, placement) : undefined;
+    return placement
+      ? placedPattern(
+          context,
+          placement,
+          pose ? { pose, pixel: pixelAt(scale) } : undefined,
+        )
+      : undefined;
   }
-  return tilePattern(context, { texture, scale: tileScale(scale), size, ink });
+  return tilePattern(
+    context,
+    { texture, scale: tileScale(scale), size, ink },
+    pose,
+  );
 };
 
-/**
- * The texture as the engine prints it (`engineLooks/lookTexture.ts`): the
- * same device pixels the page's pattern is made of, and where they lie. A
- * pattern's tile is turned into a bitmap the first time it is asked for;
- * until it is, the same pattern's last bitmap at another size stands in,
- * stretched to this one, and nothing is returned only when there is none.
- *
- * Always the white tile: the engine reads only a tile's coverage and is told
- * the ink beside it (`IEngineLookTexture.ink`), so switching the window's side
- * sends it no new bitmap.
- */
-export const texturePlacement = (
+/** Where the engine's copy of the texture lies while it lies still. */
+const stillPlacement = (
   paint: ITexturePaint,
 ): ITexturePlacement | undefined => {
-  const { texture, image, scale, fit, size, area } = paint;
+  const { texture, image, scale, fit, size, area, pose } = paint;
   if (texture === 'none') {
     return undefined;
   }
   if (texture === 'image') {
-    return image ? placePicture({ image, fit, size, scale, area }) : undefined;
+    return image
+      ? placePicture({ image, fit, size, scale, area: coverAreaOf(area, pose) })
+      : undefined;
   }
   const key: ITileKey = {
     texture,
@@ -370,6 +404,28 @@ export const texturePlacement = (
 };
 
 /**
+ * The texture as the engine prints it (`engineLooks/lookTexture.ts`): the
+ * same device pixels the page's pattern is made of, and where they lie —
+ * moved by the music, where it moves, by the page's own rule
+ * (`movedPlacement`). A pattern's tile is turned into a bitmap the first
+ * time it is asked for; until it is, the same pattern's last bitmap at
+ * another size stands in, stretched to this one, and nothing is returned
+ * only when there is none.
+ *
+ * Always the white tile: the engine reads only a tile's coverage and is told
+ * the ink beside it (`IEngineLookTexture.ink`), so switching the window's side
+ * sends it no new bitmap.
+ */
+export const texturePlacement = (
+  paint: ITexturePaint,
+): ITexturePlacement | undefined => {
+  const still = stillPlacement(paint);
+  return still && paint.pose
+    ? { ...still, ...movedPlacement(still, paint.pose, pixelAt(paint.scale)) }
+    : still;
+};
+
+/**
  * How strongly a pattern prints on the fill it sits in.
  *
  * Painted in `overlay`, in white on a dark window and black on a light one
@@ -379,6 +435,18 @@ export const texturePlacement = (
  */
 export const TEXTURE_ALPHA = 0.32;
 export const PICTURE_ALPHA = 0.5;
+
+/**
+ * How strongly this texture prints before the fill's own opacity, on the
+ * page and the engine alike: its kind's strength, glinting with the music
+ * where it moves (`ITexturePose.strength`).
+ */
+export const textureAlphaOf = (
+  paint: Pick<ITexturePaint, 'texture' | 'pose'>,
+): number => {
+  const alpha = paint.texture === 'image' ? PICTURE_ALPHA : TEXTURE_ALPHA;
+  return paint.pose ? alpha * paint.pose.strength : alpha;
+};
 
 /**
  * One tile as a picture, for the style editor's own buttons.

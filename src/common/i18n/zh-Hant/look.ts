@@ -21,6 +21,9 @@ const look = {
   'look.texture.fit.cover': '整張圖片',
   'look.texture.fit.tile': '並排',
   'look.texture.tileSize': '並排大小',
+  'look.texture.motion': '隨音樂而動',
+  'look.texture.motionHint':
+    '隨音樂漸強和每個節拍輕輕流動。減少動態效果時保持靜止。',
   'look.texture.tooBig': '那張照片太大了，無法保留。嘗試較小的一個。',
   'look.texture.unreadable': '該檔案無法作為圖片讀取。',
   'look.channels': '頻道',

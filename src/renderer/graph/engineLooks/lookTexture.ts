@@ -6,12 +6,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { ILookTuning } from 'common/customLooks';
 import {
-  PICTURE_ALPHA,
-  TEXTURE_ALPHA,
   lookTexturePaint,
+  textureAlphaOf,
   texturePlacement,
 } from '../fillTextures';
 import type { ITextureArea } from '../texturePictures';
+import type { ITexturePose } from '../textureMotion';
 import type { IEngineLookInput } from './engineLookInput';
 
 /**
@@ -24,6 +24,11 @@ import type { IEngineLookInput } from './engineLookInput';
  * their shaders (`lookTextured`), from the same device pixels the page's
  * pattern is made of — a tile, or a picture redrawn at the size it lies at
  * (`texturePictures.ts`) — which travel to the engine once per change.
+ *
+ * Where the look's texture moves with the music, `pose` is this frame's
+ * (`textureMotion.ts`): it moves the rectangle one copy lies in and the
+ * strength it prints at, by the page's own rule, so the shader is the one it
+ * always was and costs what it always did.
  *
  * Nothing while the texture is not ready yet: the engine draws the figure
  * plain for those frames, as the page does, and the page's next frame after
@@ -42,24 +47,24 @@ export const writeLookTexture = (
   >,
   scale: number,
   area: ITextureArea,
+  pose?: ITexturePose,
 ): void => {
   if (!tuning.filled || tuning.texture === 'none') {
     input.texture = undefined;
     return;
   }
-  const paint = lookTexturePaint(tuning, scale, area);
+  const paint = lookTexturePaint(tuning, scale, area, pose);
   const placement = texturePlacement(paint);
   if (!placement) {
     input.texture = undefined;
     return;
   }
-  const isPicture = tuning.texture === 'image';
   input.texture = {
     key: placement.key,
     bitmap: placement.bitmap,
-    mode: isPicture ? 2 : 1,
+    mode: tuning.texture === 'image' ? 2 : 1,
     ink: paint.ink,
-    strength: isPicture ? PICTURE_ALPHA : TEXTURE_ALPHA,
+    strength: textureAlphaOf(paint),
     x: placement.x,
     y: placement.y,
     width: placement.width,

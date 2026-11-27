@@ -12,7 +12,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * a size of its own.
  */
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import en from 'common/i18n/en';
 import {
   MAX_PATTERN_SIZE,
@@ -44,6 +44,7 @@ const show = (props: Partial<Parameters<typeof LookTextureRow>[0]> = {}) => {
     fit = 'tile',
     pictureSize = 192,
     patternSize = 16,
+    moves = false,
   } = props;
   const image = 'image' in props ? props.image : picture;
   render(
@@ -54,6 +55,7 @@ const show = (props: Partial<Parameters<typeof LookTextureRow>[0]> = {}) => {
         fit={fit}
         pictureSize={pictureSize}
         patternSize={patternSize}
+        moves={moves}
         onChange={onChange}
       />
     </I18nProvider>,
@@ -169,5 +171,36 @@ describe("a pattern's tile size", () => {
   it('is not offered on a plain fill', () => {
     show({ texture: 'none' });
     expect(tileSlider()).toBeNull();
+  });
+});
+
+describe('moving with the music', () => {
+  const motionSwitch = () =>
+    screen.queryByRole('checkbox', { name: en['look.texture.motion'] });
+
+  it.each([
+    ['a pattern', { texture: 'dots' }],
+    ['a tiled picture', {}],
+    ['a picture over the plot', { fit: 'cover' }],
+  ] as const)('is offered for %s, off until switched on', (_, props) => {
+    const onChange = show(props);
+    const toggle = motionSwitch() as HTMLElement;
+    expect(toggle).not.toBeNull();
+    fireEvent.click(toggle);
+    expect(onChange).toHaveBeenLastCalledWith({ textureMotion: true });
+  });
+
+  it('switches off what is on', () => {
+    const onChange = show({ texture: 'grid', moves: true });
+    fireEvent.click(motionSwitch() as HTMLElement);
+    expect(onChange).toHaveBeenLastCalledWith({ textureMotion: false });
+  });
+
+  it('is not offered on a plain fill or before a picture is chosen', () => {
+    show({ texture: 'none' });
+    expect(motionSwitch()).toBeNull();
+    cleanup();
+    show({ image: undefined });
+    expect(motionSwitch()).toBeNull();
   });
 });

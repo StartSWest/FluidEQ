@@ -38,6 +38,9 @@ const look: Partial<Dictionary> = {
   'look.texture.fit.cover': 'Картинка целиком',
   'look.texture.fit.tile': 'Плиткой',
   'look.texture.tileSize': 'Размер плитки',
+  'look.texture.motion': 'Двигается с музыкой',
+  'look.texture.motionHint':
+    'Слегка дрейфует, быстрее, когда музыка нарастает, и на каждой доле. Стоит на месте, пока движение уменьшено.',
   'look.texture.tooBig':
     'Эта картинка слишком большая, чтобы её сохранить. Выберите поменьше.',
   'look.texture.unreadable': 'Не удалось прочитать этот файл как картинку.',

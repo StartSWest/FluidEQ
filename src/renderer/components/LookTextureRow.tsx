@@ -23,12 +23,18 @@ import { useTranslation } from '../utils/I18nContext';
 import { useLightWindow } from '../utils/windowSide';
 import { patternInkOn, texturePreviewUrl } from '../graph/fillTextures';
 import { TextureError, tileFromFile } from '../graph/textureUpload';
+import Switch from '../widgets/Switch';
 import { SettingRow, SettingSlider } from './LookDesignerParts';
 
 type TTexturePatch = Partial<
   Pick<
     ILookTuning,
-    'texture' | 'textureImage' | 'textureFit' | 'textureSize' | 'patternSize'
+    | 'texture'
+    | 'textureImage'
+    | 'textureFit'
+    | 'textureSize'
+    | 'patternSize'
+    | 'textureMotion'
   >
 >;
 
@@ -40,6 +46,8 @@ interface ILookTextureRowProps {
   pictureSize: number;
   /** A pattern's tile side, a setting of its own (`PATTERN_TILE`). */
   patternSize: number;
+  /** Whether the texture moves with the music (`textureMotion.ts`). */
+  moves: boolean;
   onChange: (next: TTexturePatch) => void;
 }
 
@@ -122,6 +130,7 @@ const LookTextureRow = ({
   fit,
   pictureSize,
   patternSize,
+  moves,
   onChange,
 }: ILookTextureRowProps): ReactNode => {
   const { t } = useTranslation();
@@ -291,6 +300,27 @@ const LookTextureRow = ({
             onChange={(value) => onChange(tileSize.patch(value))}
           />
         </SettingRow>
+      ) : null}
+      {/* Wherever there is a texture to move: a pattern, or a picture once
+        one is chosen. Off by default and on every look saved before. */}
+      {texture !== 'none' && (texture !== 'image' || isPicture) ? (
+        <div className="look-designer__row look-designer__row--switch">
+          <div className="look-designer__caption">
+            <label htmlFor="look-designer-texture-motion">
+              {t('look.texture.motion')}
+            </label>
+            <Switch
+              id="look-designer-texture-motion"
+              ariaLabel={t('look.texture.motion')}
+              isOn={moves}
+              isDisabled={false}
+              handleToggle={() => onChange({ textureMotion: !moves })}
+            />
+          </div>
+          <span className="look-designer__hint">
+            {t('look.texture.motionHint')}
+          </span>
+        </div>
       ) : null}
     </>
   );

@@ -36,6 +36,9 @@ const look = {
   'look.texture.fit.cover': 'Whole picture',
   'look.texture.fit.tile': 'Tiled',
   'look.texture.tileSize': 'Tile size',
+  'look.texture.motion': 'Moves with the music',
+  'look.texture.motionHint':
+    'Drifts a little, faster as the music builds and on each beat. Still while motion is reduced.',
   'look.texture.tooBig':
     'That picture is too large to keep. Try a smaller one.',
   'look.texture.unreadable': 'That file could not be read as a picture.',

@@ -16,12 +16,12 @@ import {
   type IAnalysisPlot,
 } from '../analysis/analysisFrame';
 import {
-  PICTURE_ALPHA,
-  TEXTURE_ALPHA,
   fillTexturePattern,
   lookTexturePaint,
   printTexture,
+  textureAlphaOf,
 } from '../fillTextures';
+import type { ITexturePose } from '../textureMotion';
 import {
   clampUnit,
   type ISceneDrawn,
@@ -196,6 +196,8 @@ export interface ISceneViewRequest {
   /** Each point's column in CSS pixels. */
   columns: readonly (readonly [number, number])[];
   tuning: ILookTuning;
+  /** Where the music has moved the look's texture, where it moves. */
+  texturePose?: ITexturePose;
   /** The look's palette as resolved: `auto` has become the form's own. */
   resolvedPalette: ResolvedGraphPalette;
   /** The look's own stops, if it has any. */
@@ -277,20 +279,18 @@ const printSceneTexture = (
   frame: ISceneFrame,
   tuning: ILookTuning,
   body: Path2D,
+  pose: ITexturePose | undefined,
 ): void => {
   const { context, ratio, plot } = frame;
-  const pattern = fillTexturePattern(
-    context,
-    lookTexturePaint(tuning, ratio, plot),
-  );
+  const paint = lookTexturePaint(tuning, ratio, plot, pose);
+  const pattern = fillTexturePattern(context, paint);
   if (!pattern) {
     return;
   }
   const isPicture = tuning.texture === 'image';
   context.save();
   context.globalCompositeOperation = isPicture ? 'source-atop' : 'overlay';
-  context.globalAlpha =
-    frame.look.opacity * (isPicture ? PICTURE_ALPHA : TEXTURE_ALPHA);
+  context.globalAlpha = frame.look.opacity * textureAlphaOf(paint);
   printTexture(
     context,
     body,
@@ -388,7 +388,7 @@ const drawSceneView = (request: ISceneViewRequest): boolean => {
   };
   const drawn = DRAW[request.style](frame, request.state);
   if (drawn.body && frame.look.textured) {
-    printSceneTexture(frame, request.tuning, drawn.body);
+    printSceneTexture(frame, request.tuning, drawn.body, request.texturePose);
   }
   return drawn.moving || read.moving;
 };

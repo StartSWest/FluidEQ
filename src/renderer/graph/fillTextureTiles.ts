@@ -17,6 +17,36 @@ import { PATTERN_TILE, type TFillTexture } from '../../common/graphTextures';
  */
 export const TILE = PATTERN_TILE;
 
+/** A texture that is a pattern drawn here, not none and not a picture. */
+export type TPatternTexture = Exclude<TFillTexture, 'none' | 'image'>;
+
+/**
+ * How far apart each pattern's strokes lie, across them, as a share of its
+ * tile, read off `drawTile` below: the dots' rows in one column 8 units
+ * apart; the hatch's lines 16/3 units apart along an edge and so 16/3/√2
+ * across; the cross-hatch's 8/√2; rules, pinstripes and the grid every 4;
+ * the weave's runs every 2.5; scales and chevrons in rows of 8; and the
+ * grain, a speck in a twentieth of the tile, about one in every 8 units
+ * along a line. A texture moving with the music counts its travel in these
+ * (`textureMotion.ts`), so the finest pattern's lines pass a pixel no more
+ * often than the dots' do: counted in the tile, an 8 px hatch swept six
+ * lines a second past each pixel, and on the white window the flash meter
+ * read it a third higher than the same hatch standing still. Change a
+ * pattern's spacing above and its share here with it.
+ */
+export const PATTERN_SPACING: Record<TPatternTexture, number> = {
+  hatch: 16 / 3 / Math.SQRT2 / TILE,
+  crosshatch: 8 / Math.SQRT2 / TILE,
+  rules: 4 / TILE,
+  pinstripe: 4 / TILE,
+  dots: 8 / TILE,
+  grid: 4 / TILE,
+  weave: 2.5 / TILE,
+  scales: 8 / TILE,
+  chevron: 8 / TILE,
+  static: 8 / TILE,
+};
+
 export const makeCanvas = (side: number): HTMLCanvasElement => {
   const canvas = document.createElement('canvas');
   canvas.width = side;

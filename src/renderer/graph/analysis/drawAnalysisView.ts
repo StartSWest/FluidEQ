@@ -13,6 +13,7 @@ import {
 } from 'common/graphAnalysis';
 import type { ResolvedGraphPalette } from 'common/graphStyles';
 import type { IChartPointData } from '../ChartController';
+import type { ITexturePose } from '../textureMotion';
 import { getLineGainAtFrequency } from '../utils';
 import {
   ANALYSIS_RANGE_DB,
@@ -93,6 +94,8 @@ export interface IAnalysisReadRequest {
   deltaMs: number;
   playing: boolean;
   tuning: ILookTuning;
+  /** Where the music has moved the look's texture, where it moves. */
+  texturePose?: ITexturePose;
   /** The graph's display slope in dB per octave, from its View menu. */
   tilt: number;
   colours: readonly string[];
@@ -395,6 +398,7 @@ export const readAnalysisView = (
     deltaMs: copy === 0 ? request.deltaMs : 0,
     playing: request.playing,
     tuning,
+    ...(request.texturePose ? { texturePose: request.texturePose } : {}),
     colours: request.colours,
     mate,
     palette: request.palette,

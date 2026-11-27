@@ -38,6 +38,9 @@ const look: Partial<Dictionary> = {
   'look.texture.fit.cover': '画像全体',
   'look.texture.fit.tile': '並べて表示',
   'look.texture.tileSize': 'タイルのサイズ',
+  'look.texture.motion': '音楽に合わせて動く',
+  'look.texture.motionHint':
+    '音楽の盛り上がりと各ビートに合わせて、わずかに流れます。動きを減らす設定中は止まります。',
   'look.texture.tooBig':
     'この画像は大きすぎて保存できません。小さいものをお試しください。',
   'look.texture.unreadable': 'このファイルは画像として読み込めませんでした。',

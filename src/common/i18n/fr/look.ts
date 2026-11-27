@@ -38,6 +38,9 @@ const look: Partial<Dictionary> = {
   'look.texture.fit.cover': 'Image entière',
   'look.texture.fit.tile': 'En mosaïque',
   'look.texture.tileSize': 'Taille des tuiles',
+  'look.texture.motion': 'Bouge avec la musique',
+  'look.texture.motionHint':
+    'Dérive un peu, plus vite quand la musique monte et à chaque temps. Immobile tant que le mouvement est réduit.',
   'look.texture.tooBig':
     'Cette image est trop lourde pour être conservée. Essayez-en une plus petite.',
   'look.texture.unreadable': 'Ce fichier n’a pas pu être lu comme une image.',

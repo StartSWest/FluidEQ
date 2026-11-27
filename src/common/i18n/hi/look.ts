@@ -38,6 +38,9 @@ const look: Partial<Dictionary> = {
   'look.texture.fit.cover': 'पूरी तस्वीर',
   'look.texture.fit.tile': 'टाइल में',
   'look.texture.tileSize': 'टाइल का आकार',
+  'look.texture.motion': 'संगीत के साथ चलता है',
+  'look.texture.motionHint':
+    'संगीत के उठने और हर बीट पर थोड़ा तेज़, धीरे-धीरे बहता है। गति कम होने पर स्थिर रहता है।',
   'look.texture.tooBig':
     'यह तस्वीर सहेजने के लिए बहुत बड़ी है। कोई छोटी आज़माएँ।',
   'look.texture.unreadable': 'यह फ़ाइल तस्वीर के रूप में नहीं पढ़ी जा सकी।',

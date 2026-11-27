@@ -102,6 +102,7 @@ import { type IGraphMotionState } from './graphMotion';
 import { type ResolvedGraphPalette } from '../../common/graphStyles';
 import { type NightSurfaces } from './terraceNight';
 import { type IGhost, type ISpark } from './sawtoothScope';
+import type { ITexturePose } from './textureMotion';
 
 // The live graph's pass over its curves: for each copy of the figure, the
 // scenery behind it, the figure itself and whatever the look draws over it,
@@ -172,6 +173,8 @@ interface IPaintCurvesInput {
     | 'wave-lattice';
   projected: [number, number][];
   tuning: ILookTuning;
+  /** Where the music has moved the look's texture, where it moves. */
+  texturePose: ITexturePose | undefined;
   motionRef: RefObject<IGraphMotionState>;
   isFilled: boolean;
   bubbleStormRef: RefObject<{
@@ -292,6 +295,7 @@ const paintCurves = ({
   chosen,
   projected,
   tuning,
+  texturePose,
   motionRef,
   isFilled,
   bubbleStormRef,
@@ -776,6 +780,7 @@ const paintCurves = ({
       curveFigure,
       opacity,
       plot,
+      texturePose,
     });
     paintBubbles({ bubblePaths, context, canvasPaint, opacity });
     paintEchoWaves({

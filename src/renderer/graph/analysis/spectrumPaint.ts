@@ -5,11 +5,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import {
-  PICTURE_ALPHA,
-  TEXTURE_ALPHA,
   fillTexturePattern,
   lookTexturePaint,
   printTexture,
+  textureAlphaOf,
 } from '../fillTextures';
 import { rampAt } from '../lookColours';
 import {
@@ -303,22 +302,19 @@ export const paintTexture = (
   figure: Path2D,
   alpha: number,
 ): void => {
-  const { context, tuning, ratio, plot } = frame;
+  const { context, tuning, ratio, plot, texturePose } = frame;
   if (tuning.texture === 'none') {
     return;
   }
-  const pattern = fillTexturePattern(
-    context,
-    lookTexturePaint(tuning, ratio, plot),
-  );
+  const paint = lookTexturePaint(tuning, ratio, plot, texturePose);
+  const pattern = fillTexturePattern(context, paint);
   if (!pattern) {
     return;
   }
   context.save();
   context.globalCompositeOperation =
     tuning.texture === 'image' ? 'source-atop' : 'overlay';
-  context.globalAlpha =
-    alpha * (tuning.texture === 'image' ? PICTURE_ALPHA : TEXTURE_ALPHA);
+  context.globalAlpha = alpha * textureAlphaOf(paint);
   printTexture(context, figure, pattern, context.getTransform());
   context.restore();
 };

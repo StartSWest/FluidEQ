@@ -38,6 +38,9 @@ const look: Partial<Dictionary> = {
   'look.texture.fit.cover': 'Immagine intera',
   'look.texture.fit.tile': 'Affiancata',
   'look.texture.tileSize': 'Dimensione riquadro',
+  'look.texture.motion': 'Si muove con la musica',
+  'look.texture.motionHint':
+    'Scorre un poco, più veloce quando la musica cresce e a ogni battito. Ferma mentre il movimento è ridotto.',
   'look.texture.tooBig':
     'Questa immagine è troppo grande da conservare. Provane una più piccola.',
   'look.texture.unreadable':

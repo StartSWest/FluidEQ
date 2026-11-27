@@ -428,6 +428,9 @@ const LiveTraceCanvas = ({
    * which is the difference between a setting and a restart.
    */
   const accentStateRef = useRef(scenes.accent);
+  // Where the music has carried the look's texture, kept per graph like the
+  // peaks: a new look picks the travel up where the last one left it.
+  const textureMotionRef = useRef(scenes.textureMotion);
   // How hard the halo is being driven, carried between frames.
   const pumpRef = useRef(0);
   // The trace coming forward and going back — see the constant above. Opacity
@@ -528,6 +531,7 @@ const LiveTraceCanvas = ({
           pumpRef,
           bubbleStormRef,
           accentStateRef,
+          textureMotionRef,
           shownOpacityRef,
           shownStrokeWidthRef,
           seaCanvasRef,

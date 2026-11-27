@@ -184,6 +184,15 @@ export interface ILookTuning {
    * ignores the field and draws 16.
    */
   patternSize: number;
+  /**
+   * Whether the texture moves with the music (`textureMotion.ts`): drifts
+   * as fast as the music has built up, a little further on each kick, and
+   * glints with the hats and cymbals.
+   * Absent on every look saved before the switch, which reads as off, the
+   * way those looks always drew; an older FluidEQ ignores the field and
+   * draws the texture still.
+   */
+  textureMotion: boolean;
   /** One figure for both channels, or one for each. */
   channels: TGraphChannels;
   // No slope: it was here until 2026-11-16 and is now the graph's own, in
@@ -432,6 +441,8 @@ export const getDefaultTuning = (style: GraphStyle): ILookTuning => {
     textureFit: 'tile',
     textureSize: TEXTURE_TILE,
     patternSize: PATTERN_TILE,
+    // Still unless asked for: a texture is a background to the reading.
+    textureMotion: false,
     channels: 'joined',
   };
 };
@@ -544,6 +555,7 @@ export const normalizeTuning = (
         defaults.patternSize,
       ),
     ),
+    textureMotion: readBoolean(source.textureMotion, defaults.textureMotion),
     channels: isGraphChannels(source.channels)
       ? source.channels
       : defaults.channels,

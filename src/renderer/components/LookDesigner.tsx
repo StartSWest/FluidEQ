@@ -637,6 +637,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
             fit={tuning.textureFit}
             pictureSize={tuning.textureSize}
             patternSize={tuning.patternSize}
+            moves={tuning.textureMotion}
             onChange={tune}
           />
         ) : null}

@@ -45,6 +45,7 @@ import { GraphLookTransition } from './graphLookTransition';
 import { createAnalysisState } from './analysis/analysisFrame';
 import { createSceneViewState } from './sceneViews/drawSceneView';
 import { createAccentState } from './graphAccents';
+import { createTextureMotion } from './textureMotion';
 
 // Every scene's state as the live graph first holds it.
 
@@ -87,6 +88,7 @@ const createSceneStates = () => ({
   sceneView: createSceneViewState(),
   legend: legendWords(() => ''),
   accent: createAccentState(),
+  textureMotion: createTextureMotion(),
 });
 
 export default createSceneStates;

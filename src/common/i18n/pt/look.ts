@@ -38,6 +38,9 @@ const look: Partial<Dictionary> = {
   'look.texture.fit.cover': 'Imagem inteira',
   'look.texture.fit.tile': 'Lado a lado',
   'look.texture.tileSize': 'Tamanho do bloco',
+  'look.texture.motion': 'Move-se com a música',
+  'look.texture.motionHint':
+    'Desliza um pouco, mais rápido quando a música cresce e a cada batida. Parada enquanto o movimento está reduzido.',
   'look.texture.tooBig':
     'Essa imagem é grande demais para guardar. Tente uma menor.',
   'look.texture.unreadable': 'Não foi possível ler esse arquivo como imagem.',

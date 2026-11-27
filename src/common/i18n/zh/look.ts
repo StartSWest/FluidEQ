@@ -38,6 +38,9 @@ const look: Partial<Dictionary> = {
   'look.texture.fit.cover': '整张图片',
   'look.texture.fit.tile': '平铺',
   'look.texture.tileSize': '平铺大小',
+  'look.texture.motion': '随音乐而动',
+  'look.texture.motionHint':
+    '随音乐渐强和每个节拍轻轻流动。减少动态效果时保持静止。',
   'look.texture.tooBig': '这张图片太大，无法保存。请换一张小一些的。',
   'look.texture.unreadable': '无法将该文件读取为图片。',
   'look.channels': '声道',

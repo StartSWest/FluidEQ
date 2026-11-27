@@ -62,6 +62,7 @@ import { getGraphAnalyserSlope } from '../utils/graphScaleSettings';
 import { type IAnalysisChannels } from './analysis/useAnalysisChannels';
 import { type IEngineLookInput } from './engineLooks/engineLookInput';
 import { writeLookTexture } from './engineLooks/lookTexture';
+import type { ITexturePose } from './textureMotion';
 import { type GraphLookTransition } from './graphLookTransition';
 
 // The live graph's looks that draw themselves and leave the frame: the
@@ -82,6 +83,8 @@ const LEVEL_AS_COLOUR: ReadonlySet<TAnalysisStyle> = new Set<TAnalysisStyle>([
 interface IDrawMeasuringFrameInput {
   chosen: TAnalysisStyle;
   tuning: ILookTuning;
+  /** Where the music has moved the look's texture, where it moves. */
+  texturePose: ITexturePose | undefined;
   computedRef: RefObject<CSSStyleDeclaration | null>;
   lookRef: RefObject<IResolvedLook>;
   figureBands: () => IAnalysisBand[];
@@ -131,6 +134,7 @@ interface IDrawMeasuringFrameInput {
 export const drawMeasuringFrame = ({
   chosen,
   tuning,
+  texturePose,
   computedRef,
   lookRef,
   figureBands,
@@ -214,6 +218,7 @@ export const drawMeasuringFrame = ({
     deltaMs: motionDeltaMs,
     playing: playingRef.current,
     tuning,
+    ...(texturePose ? { texturePose } : {}),
     tilt: getGraphAnalyserSlope(),
     colours: viewColours,
     mateColours: ramps ? ramps.mate : mateColours,
@@ -295,6 +300,8 @@ interface IDrawSceneViewFrameInput {
   data: readonly IChartPointData[];
   projected: [number, number][];
   tuning: ILookTuning;
+  /** Where the music has moved the look's texture, where it moves. */
+  texturePose: ITexturePose | undefined;
   lookRef: RefObject<IResolvedLook>;
   sceneViewRef: RefObject<ISceneViewState>;
   isEngineTaking: boolean;
@@ -324,6 +331,7 @@ export const drawSceneViewFrame = ({
   data,
   projected,
   tuning,
+  texturePose,
   lookRef,
   sceneViewRef,
   isEngineTaking,
@@ -354,6 +362,7 @@ export const drawSceneViewFrame = ({
     live: data,
     columns: projected,
     tuning,
+    ...(texturePose ? { texturePose } : {}),
     resolvedPalette: resolveGraphPalette(chosen, lookRef.current.palette),
     colours: lookRef.current.colours,
     glow: document.documentElement.classList.contains('is-euphoric')
@@ -369,7 +378,7 @@ export const drawSceneViewFrame = ({
     if (read) {
       const input = engineInputFor(chosen);
       readLookInput(input, read.reading);
-      writeLookTexture(input, tuning, ratio, plot);
+      writeLookTexture(input, tuning, ratio, plot, texturePose);
       moved = step(read.reading, sceneViewRef.current, input) || read.moving;
     }
     if (isHanding) {

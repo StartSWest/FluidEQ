@@ -160,6 +160,7 @@ describe('normalizeTuning', () => {
       textureFit: 'tile',
       textureSize: 192,
       patternSize: 16,
+      textureMotion: false,
       channels: 'joined',
     });
   });
@@ -680,6 +681,7 @@ describe('every stored setting is validated', () => {
     'accentFilled',
     'accentBehind',
     'border',
+    'textureMotion',
   ] as (keyof ILookTuning)[])('refuses a non-boolean for %s', (key) => {
     // A form with no lit tips answers false whatever is asked, so the check
     // is that nothing here ever produces a non-boolean.
@@ -786,6 +788,8 @@ describe('every stored setting is validated', () => {
       'accentFilled',
       'accentBehind',
       'border',
+      // Whether the texture moves with the music (textureMotion.test.ts).
+      'textureMotion',
       // Neither a number nor a boolean: one of a fixed list of behaviours,
       // checked by the test below rather than by the tables above.
       'accentStyle',
