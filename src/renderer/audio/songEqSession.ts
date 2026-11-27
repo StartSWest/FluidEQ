@@ -34,7 +34,8 @@ import {
   lookupSongEq,
   setSmartEq as setSmartEqApi,
 } from 'renderer/utils/equalizerApi';
-import { useFluidEqLayers } from 'renderer/utils/FluidEqContext';
+import { useFluidEqShell } from 'renderer/utils/FluidEqContext';
+import { useFluidEqSmartEq } from 'renderer/utils/fluidEqSmartEq';
 import useIsAutoEqRunning from 'renderer/utils/autoEqRunning';
 import { useNowPlayingIdentity } from './nowPlayingIdentity';
 import { useTransportSources } from './transportSource';
@@ -457,12 +458,16 @@ export const resetSongEqSession = (): void => {
 
 /* --- the host --- */
 
+/**
+ * The recorder's window side: what it is told of the output, the song, the
+ * Smart layer and the switches. Called by `SongEqSessionHost` alone, which
+ * draws nothing: the Smart layer changes up to twice a second while a song is
+ * measured, and as a hook of the window's root this redrew the whole window
+ * with every change.
+ */
 export const useSongEqSessionHost = (): void => {
-  const {
-    smartEq,
-    activeDeviceId,
-    setSmartEq: setLiveSmartEq,
-  } = useFluidEqLayers();
+  const { activeDeviceId, setSmartEq: setLiveSmartEq } = useFluidEqShell();
+  const smartEq = useFluidEqSmartEq();
   const { identity, isPlaying } = useNowPlayingIdentity();
   const isAutoEqRunning = useIsAutoEqRunning();
 

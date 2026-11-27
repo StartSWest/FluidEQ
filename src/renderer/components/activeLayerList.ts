@@ -22,6 +22,7 @@ import { isVoicingActive } from 'common/voicing';
 import type { IVoicingProfile } from 'common/voicing';
 import type { IDriverProfile } from 'common/driver';
 import { hasSmartEqCorrection } from 'common/smartEq';
+import type { ISmartEqSettings } from 'common/smartEq';
 import { hasHeadphoneCorrection } from '../../common/headphone';
 import type { IFluidEqContext } from '../utils/FluidEqContext';
 import { setContinuousEq } from '../utils/continuousEq';
@@ -118,7 +119,6 @@ export type TLayerListInputs = Pick<
   | 'eqBandDesign'
   | 'voicing'
   | 'setVoicing'
-  | 'smartEq'
   | 'setSmartEq'
   | 'tone'
   | 'setTone'
@@ -126,6 +126,8 @@ export type TLayerListInputs = Pick<
   | 'customFx'
   | 'refreshState'
 > & {
+  /** The Smart layer, from its own context (`fluidEqSmartEq.ts`). */
+  smartEq: ISmartEqSettings | undefined;
   t: Translate;
   isBypassed: (layer: TApoLayer) => boolean;
   driverProfile: IDriverProfile | undefined;

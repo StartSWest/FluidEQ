@@ -24,6 +24,7 @@ import {
   confidenceAt,
   createDustField,
   drawDust,
+  gainPixelsOf,
   responseAt,
   smoothstep,
 } from './smartEqDustDraw';
@@ -138,8 +139,9 @@ const SmartEqDust = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const boxRef = useRef({ width, height, plotLeft, plotRight, plotBottom });
   boxRef.current = { width, height, plotLeft, plotRight, plotBottom };
-  const yScaleRef = useRef(yScale);
-  yScaleRef.current = yScale;
+  const yOf = useMemo(() => gainPixelsOf(yScale), [yScale]);
+  const yOfRef = useRef(yOf);
+  yOfRef.current = yOf;
 
   const [low, high] = xScale.domain().map(Number);
   const [rangeLeft, rangeRight] = xScale.range().map(Number);
@@ -283,13 +285,11 @@ const SmartEqDust = ({
         box.plotBottom,
       );
       context.clip();
-      const scale = yScaleRef.current;
-      const yOf = (db: number) => Number(scale(db));
       if (departAt !== undefined) {
-        drawDust(context, field, departing, LAYER_PAINT, yOf, ys);
+        drawDust(context, field, departing, LAYER_PAINT, yOfRef.current, ys);
       }
       if (!isDustDone) {
-        drawDust(context, field, frame, paintOfWindow(), yOf, ys);
+        drawDust(context, field, frame, paintOfWindow(), yOfRef.current, ys);
       }
       context.restore();
       request = requestAnimationFrame(tick);

@@ -327,6 +327,49 @@ const lineYAt = (ys: Float64Array, position: number) => {
 /** The stroke's width, which a closed bead's diameter matches. */
 const LINE_WIDTH = 2.2;
 
+/** The part of a d3 linear scale this reads: its stops and itself. */
+interface IPiecewiseScale {
+  (value: number): number | undefined;
+  domain: () => readonly unknown[];
+  range: () => readonly unknown[];
+}
+
+/**
+ * The gain axis as a function the dust can call on every point of every
+ * frame: the axis's own straight piece around 0 dB worked out directly, and
+ * the axis itself for anything past it.
+ *
+ * The EQ's gain axis is a d3 scale of 23 stops (`eqGainScale`: ±20 dB
+ * straight across the middle, ±20 to ±60 compressed into each end), and a
+ * call to it finds its piece by bisection and interpolates through d3's
+ * generic machinery. The dust asks it for 240 slices and 720 points sixty
+ * times a second, and those calls were two thirds of the dust's time on the
+ * main thread (the dev window, 2026-11-27: 78 of 118 ms in 12 s). Every
+ * point sits within a few decibels of a curve inside ±20 dB, which is one
+ * straight piece, so this is the same line through the same two stops.
+ */
+export const gainPixelsOf = (scale: IPiecewiseScale) => {
+  const call = (db: number) => Number(scale(db));
+  const domain = scale.domain().map(Number);
+  const range = scale.range().map(Number);
+  const piece = domain.findIndex(
+    (stop, index) =>
+      index < domain.length - 1 && stop <= 0 && domain[index + 1] >= 0,
+  );
+  if (piece < 0 || domain.length !== range.length) {
+    return call;
+  }
+  const low = domain[piece];
+  const high = domain[piece + 1];
+  const start = range[piece];
+  const slope = (range[piece + 1] - start) / (high - low);
+  if (!Number.isFinite(slope)) {
+    return call;
+  }
+  return (db: number) =>
+    db >= low && db <= high ? start + (db - low) * slope : call(db);
+};
+
 export const drawDust = (
   context: CanvasRenderingContext2D,
   field: IDustField,

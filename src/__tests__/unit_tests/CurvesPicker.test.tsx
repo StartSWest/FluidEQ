@@ -4,6 +4,7 @@ import {
   AutoEqFormat,
   FilterTypeEnum,
   getDefaultFilterWithId,
+  type ISmartEqSettings,
 } from 'common/constants';
 import CurvesPicker from 'renderer/components/CurvesPicker';
 import { holdRackForApo, rackHeldForApo } from 'renderer/dsp/rackHeldForApo';
@@ -69,9 +70,9 @@ const smartEqLayer = (intensity: number) => {
   return { filters: { [filter.id]: filter }, intensity };
 };
 
-const renderCurves = (value: IFluidEqContext) =>
+const renderCurves = (value: IFluidEqContext, smartEq?: ISmartEqSettings) =>
   render(
-    <FluidEqProviderWrapper value={value}>
+    <FluidEqProviderWrapper value={value} smartEq={smartEq}>
       <CurvesPicker />
     </FluidEqProviderWrapper>,
   );
@@ -118,12 +119,14 @@ describe('Curves, the applied layers', () => {
    */
   it('shows a dot of each layer, hollow for one switched off', () => {
     const band = shapedBand();
-    renderCurves({
-      ...defaultFluidEqContext,
-      filters: { [band.id]: band },
-      smartEq: smartEqLayer(1),
-      bypassed: ['eq'],
-    });
+    renderCurves(
+      {
+        ...defaultFluidEqContext,
+        filters: { [band.id]: band },
+        bypassed: ['eq'],
+      },
+      smartEqLayer(1),
+    );
 
     const dots = Array.from(
       curves()?.querySelectorAll<HTMLElement>('.active-layers__dots > i') ?? [],
@@ -290,11 +293,13 @@ describe('Curves, the applied layers', () => {
   });
 
   it('keeps the Smart correction chip and strength control visible at zero', () => {
-    renderCurves({
-      ...defaultFluidEqContext,
-      smartEq: smartEqLayer(0),
-      refreshState: mockRefreshState,
-    });
+    renderCurves(
+      {
+        ...defaultFluidEqContext,
+        refreshState: mockRefreshState,
+      },
+      smartEqLayer(0),
+    );
     openCurves();
 
     expect(screen.getAllByText('Smart correction')).toHaveLength(2);

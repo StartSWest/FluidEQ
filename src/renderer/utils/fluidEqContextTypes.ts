@@ -104,7 +104,12 @@ export interface IRefreshStateOptions {
   revealBands?: boolean;
 }
 
-export interface IFluidEqContext extends IState {
+/**
+ * Without the Smart layer, which has a context of its own
+ * (`fluidEqSmartEq.ts`): left in through `IState` it would type-check as
+ * there and always read as nothing.
+ */
+export interface IFluidEqContext extends Omit<IState, 'smartEq'> {
   /**
    * The endpoint everything on screen is currently tuning.
    *
@@ -170,13 +175,6 @@ export interface IFluidEqContext extends IState {
   voicing?: IVoicingSettings;
   driver?: IDriverSettings;
   /**
-   * What Smart EQ measured, as its own layer.
-   *
-   * Undefined means nothing measured, or a correction of 0 dB everywhere —
-   * which amounts to the same thing and is stored as the same thing.
-   */
-  smartEq?: ISmartEqSettings;
-  /**
    * Layers switched off without being thrown away.
    *
    * Read from the state rather than held here, because the config is what
@@ -236,7 +234,9 @@ export interface IFluidEqContext extends IState {
  * narrowest of the three that has what they use: this one changes when the
  * equaliser is switched, fails or loads; `IFluidEqLayers` when a layer, a mode
  * or the band count does; the whole context with every band edit, the preamp,
- * the selection and the hover.
+ * the selection and the hover. The Smart layer is in none of them: it changes
+ * by itself while the music plays, and has a context of its own
+ * (`fluidEqSmartEq.ts`).
  */
 export type IFluidEqShell = Pick<
   IFluidEqContext,
@@ -283,7 +283,6 @@ export type IFluidEqLayers = IFluidEqShell &
     | 'headsetSource'
     | 'voicing'
     | 'driver'
-    | 'smartEq'
     | 'tone'
     | 'headphone'
     | 'customFx'

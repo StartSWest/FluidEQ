@@ -117,11 +117,10 @@ describe('songEqSession', () => {
     const context: IFluidEqContext = {
       ...defaultFluidEqContext,
       activeDeviceId: 'device-a',
-      smartEq: contextSmartEq,
       setSmartEq: setSmartEqSpy,
     };
     return (
-      <FluidEqProviderWrapper value={context}>
+      <FluidEqProviderWrapper value={context} smartEq={contextSmartEq}>
         <SongEqClock />
         {children}
       </FluidEqProviderWrapper>

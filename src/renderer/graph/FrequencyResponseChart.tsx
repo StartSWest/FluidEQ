@@ -51,6 +51,7 @@ import {
   FilterActionEnum,
   useFluidEqContext,
 } from 'renderer/utils/FluidEqContext';
+import { useFluidEqSmartEq } from 'renderer/utils/fluidEqSmartEq';
 import { setFrequency, setGain, setQuality } from 'renderer/utils/equalizerApi';
 import { useCurrentEngine } from '../utils/audioEngineContext';
 import {
@@ -637,11 +638,11 @@ const FrequencyResponseChart = ({
     voicing,
     driver,
     headphone,
-    smartEq,
     tone,
     bypassed,
     customFx,
   } = useFluidEqContext();
+  const smartEq = useFluidEqSmartEq();
   const currentEngine = useCurrentEngine();
   // Under the FluidEQ Engine's automatic preamp the gain is live and moves at
   // display rate on loud passages, so it never enters this component's state:

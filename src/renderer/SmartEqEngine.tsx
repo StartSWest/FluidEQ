@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useEffect, useRef, useState } from 'react';
+import { startTransition, useEffect, useRef, useState } from 'react';
 import type { ISmartEqSettings } from 'common/constants';
 import {
   SMART_EQ_MAX_FREQUENCY,
@@ -32,6 +32,7 @@ import {
   describeCorrectionShape,
 } from './utils/autoBalanceNarration';
 import { useFluidEqContext } from './utils/FluidEqContext';
+import { useFluidEqSmartEq } from './utils/fluidEqSmartEq';
 import { useTranslation } from './utils/I18nContext';
 import { setSmartEq as setSmartEqApi } from './utils/equalizerApi';
 import {
@@ -124,8 +125,8 @@ import {
  * itself before asking for a tap (see `continuousAbortRef`).
  */
 const SmartEqEngine = () => {
-  const { smartEq, setSmartEq, getBandSetGeneration, bypassed } =
-    useFluidEqContext();
+  const { setSmartEq, getBandSetGeneration, bypassed } = useFluidEqContext();
+  const smartEq = useFluidEqSmartEq();
   /**
    * The language, on a ref, and the ref is the point.
    *
@@ -224,8 +225,20 @@ const SmartEqEngine = () => {
   const songHalfLife = (key: string | undefined) =>
     key === undefined ? CONTINUOUS_HALF_LIFE_MS : undefined;
   const previousSongRef = useRef(songKey);
+  /**
+   * The Smart layer as it plays: what the window holds, or a step shown a
+   * moment ago that the window has not drawn yet (`show` below). Taken from
+   * the window only when the window's layer moves, so a render for anything
+   * else while a step waits to be drawn does not put the layer before it back
+   * — the walk would then measure its next step from a layer no longer
+   * playing, and step twice as far.
+   */
   const smartEqRef = useRef(smartEq);
-  smartEqRef.current = smartEq;
+  const windowSmartEqRef = useRef(smartEq);
+  if (windowSmartEqRef.current !== smartEq) {
+    windowSmartEqRef.current = smartEq;
+    smartEqRef.current = smartEq;
+  }
   const setSmartEqRef = useRef(setSmartEq);
   setSmartEqRef.current = setSmartEq;
   const engine = useCurrentEngine();
@@ -239,13 +252,21 @@ const SmartEqEngine = () => {
    * `utils/smartEqLiveApply.ts`. Every write a measurement makes goes through
    * it. The ref mirrors what is shown at once, so a step half a second later
    * steps from it whether or not the window has drawn since.
+   *
+   * Shown as a transition. The engine has the step already (`smartEqLive`
+   * writes it first); what is left is the graph drawing its Smart line and the
+   * output curve 0.5 dB nearer, and drawn urgently that was one block of the
+   * main thread a step — about once a second while a song is measured — that
+   * every frame of the graph waited behind (measured 2026-11-27 in the app
+   * harness: a long task at every step). As a transition React draws it in
+   * slices between frames; a newer step simply replaces it.
    */
   const [live] = useState(() =>
     createSmartEqLive({
       playing: () => smartEqRef.current,
       show: (layer) => {
         smartEqRef.current = layer;
-        setSmartEqRef.current(layer);
+        startTransition(() => setSmartEqRef.current(layer));
       },
       canWalk,
       songKey: () => previousSongRef.current,

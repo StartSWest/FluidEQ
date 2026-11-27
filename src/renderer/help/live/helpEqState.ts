@@ -72,7 +72,6 @@ const helpEqState = (selected: readonly string[] = []): IFluidEqContext => ({
   setPreAmp: nothing,
   setConvolution: nothing,
   setVoicing: nothing,
-  smartEq: undefined,
   setSmartEq: nothing,
   setTone: nothing,
   selectedFilterId: selected[0] ?? '',

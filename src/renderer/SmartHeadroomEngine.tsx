@@ -24,6 +24,7 @@ import {
 import meterUrl from './audio/headroom-meter.worklet';
 import { useCurrentEngine } from './utils/audioEngineContext';
 import { useFluidEqContext } from './utils/FluidEqContext';
+import { useFluidEqSmartEq } from './utils/fluidEqSmartEq';
 import { sendSmartHeadroomMeasurement } from './utils/equalizerApi';
 import ApoHeadroomSupervisor from './utils/apoHeadroomSupervisor';
 import { useOutputEditor } from './utils/outputEditor';
@@ -52,11 +53,11 @@ const SmartHeadroomEngine = () => {
     driver,
     headphone,
     voicing,
-    smartEq,
     convolution,
     customFx,
     bypassed,
   } = chain;
+  const smartEq = useFluidEqSmartEq();
   /**
    * Each part of the chain as it stood at the last edit that counted, and its
    * text.

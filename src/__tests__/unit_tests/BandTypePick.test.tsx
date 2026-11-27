@@ -73,7 +73,6 @@ jest.mock('renderer/utils/FluidEqContext', () => ({
     getBandSetGeneration: () => 0,
     bandSetReplacement: 0,
     activeDeviceId: 'device-a',
-    smartEq: undefined,
     setSmartEq: jest.fn(),
   })),
 }));

@@ -23,6 +23,7 @@ import { AutoEqFormat, OPRA_SOURCE_ID, TApoLayer } from 'common/constants';
 import { getVoicingProfile } from 'common/voicing';
 import { getDriverProfile } from 'common/driver';
 import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqSmartEq } from '../utils/fluidEqSmartEq';
 import { useContinuousEq } from '../utils/continuousEq';
 import { useTranslation } from '../utils/I18nContext';
 import {
@@ -67,7 +68,6 @@ const useActiveLayers = () => {
     driver,
     headphone,
     setHeadphone,
-    smartEq,
     customFx,
     headset,
     headsetSource,
@@ -82,6 +82,7 @@ const useActiveLayers = () => {
     eqCuts,
     setGlobalError,
   } = useFluidEqContext();
+  const smartEq = useFluidEqSmartEq();
   const { t } = useTranslation();
   // A correction kept in My curves goes by the name it has there, read from
   // the list each time, so renaming it renames the chip (Ivan, 2026-10-25).

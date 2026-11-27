@@ -67,6 +67,7 @@ import {
   IRefreshStateOptions,
 } from './fluidEqContextTypes';
 import filterReducer from './filterReducer';
+import { FluidEqSmartEqContext } from './fluidEqSmartEq';
 
 export { FilterActionEnum } from './fluidEqContextTypes';
 export type {
@@ -86,6 +87,8 @@ const FluidEqLayersContext = createContext<IFluidEqLayers | undefined>(
 
 export interface IFluidEqProviderWrapperProps {
   value: IFluidEqContext;
+  /** The Smart layer, carried apart from `value` — see `fluidEqSmartEq.ts`. */
+  smartEq?: ISmartEqSettings;
   children: ReactNode;
 }
 
@@ -94,7 +97,8 @@ interface IFluidEqProviderProps {
 }
 
 /**
- * All three contexts from one value — see `IFluidEqShell` for why three.
+ * All three contexts from one value — see `IFluidEqShell` for why three —
+ * and the Smart layer's beside them.
  *
  * The narrow two are memoised field by field, so they keep their identity for
  * as long as what they carry does, however often `value` itself is rebuilt.
@@ -102,6 +106,7 @@ interface IFluidEqProviderProps {
  */
 export const FluidEqProviderWrapper = ({
   value,
+  smartEq,
   children,
 }: IFluidEqProviderWrapperProps) => {
   const {
@@ -138,7 +143,6 @@ export const FluidEqProviderWrapper = ({
     headsetSource,
     voicing,
     driver,
-    smartEq,
     tone,
     headphone,
     customFx,
@@ -230,7 +234,6 @@ export const FluidEqProviderWrapper = ({
       headsetSource,
       voicing,
       driver,
-      smartEq,
       tone,
       headphone,
       customFx,
@@ -258,7 +261,6 @@ export const FluidEqProviderWrapper = ({
       headsetSource,
       voicing,
       driver,
-      smartEq,
       tone,
       headphone,
       customFx,
@@ -284,7 +286,9 @@ export const FluidEqProviderWrapper = ({
     <FluidEqShellContext.Provider value={shell}>
       <FluidEqLayersContext.Provider value={layers}>
         <FluidEqContext.Provider value={value}>
-          {children}
+          <FluidEqSmartEqContext.Provider value={smartEq}>
+            {children}
+          </FluidEqSmartEqContext.Provider>
         </FluidEqContext.Provider>
       </FluidEqLayersContext.Provider>
     </FluidEqShellContext.Provider>
@@ -697,7 +701,6 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
       headsetSource,
       voicing,
       driver,
-      smartEq,
       tone,
       setTone,
       headphone,
@@ -753,7 +756,6 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
       headsetSource,
       voicing,
       driver,
-      smartEq,
       tone,
       headphone,
       customFx,
@@ -781,7 +783,9 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   );
 
   return (
-    <FluidEqProviderWrapper value={value}>{children}</FluidEqProviderWrapper>
+    <FluidEqProviderWrapper value={value} smartEq={smartEq}>
+      {children}
+    </FluidEqProviderWrapper>
   );
 };
 

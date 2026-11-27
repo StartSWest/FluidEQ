@@ -78,7 +78,7 @@ import {
 } from './utils/graphStyle';
 import { reportError } from './utils/logger';
 import { useSystemMediaSource } from './audio/useSystemMediaSource';
-import { useSongEqSessionHost } from './audio/songEqSession';
+import SongEqSessionHost from './audio/SongEqSessionHost';
 import useCaptureBridge from './audio/useCaptureBridge';
 import usePageMark from './utils/usePageMark';
 import { useNoticeClaim } from './utils/noticeTurn';
@@ -471,10 +471,6 @@ const AppContent = () => {
   // the sound is Spotify's or a browser's, and the curve on screen is shaping
   // it just the same.
   useSystemMediaSource();
-  // The Smart EQ song-memory recorder: same lifetime and the same reason as
-  // the line above it. A recording must not end because somebody switched
-  // tabs, so this is hosted here rather than inside the EQ page.
-  useSongEqSessionHost();
 
   // What Help's entries open: its own menu's, and the actions menu's while
   // the titlebar has no room for Help's button.
@@ -981,6 +977,12 @@ const AppContent = () => {
         {windowMode === 'player' && (
           <MiniPlayer onOpenPage={openPageFromPlayer} />
         )}
+        {/* The Smart EQ song-memory recorder, for the life of the window: a
+            recording must not end because somebody switched tabs. A
+            component, so that the Smart layer's steps redraw nothing else
+            (`SongEqSessionHost`); last, so its effects still run after every
+            other part of the window's, as they did as this root's own hook. */}
+        <SongEqSessionHost />
       </main>
     </AudioEngineContext.Provider>
   );

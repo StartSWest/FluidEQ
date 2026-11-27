@@ -9,6 +9,7 @@ import type { IFiltersMap } from '../../common/constants';
 import { useCurrentEngine } from '../utils/audioEngineContext';
 import { useEnginePreampAudible } from '../utils/enginePreamp';
 import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqSmartEq } from '../utils/fluidEqSmartEq';
 import { dspPresetVoicing } from '../../common/dsp/presetVoicing';
 import { usePresetEditSession } from '../eq/ownPresets/presetEditSession';
 import { draftCurveOf } from '../eq/ownPresets/presetEditBands';
@@ -68,11 +69,11 @@ const useResponseCurves = (): IResponseCurves => {
     voicing: playingVoicing,
     driver,
     headphone,
-    smartEq,
     tone,
     bypassed: playingBypassed,
     customFx,
   } = useFluidEqContext();
+  const smartEq = useFluidEqSmartEq();
   // A preset being edited is drawn from its draft in the same frame as the
   // handle that moved it, not a round trip later through the window's
   // layers, and drawn whatever its chip said: the first write of the draft

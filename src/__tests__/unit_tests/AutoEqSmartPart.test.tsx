@@ -43,11 +43,6 @@ jest.mock('renderer/audio/nowPlayingIdentity');
 
 const mockUseNowPlayingIdentity = useNowPlayingIdentity as jest.Mock;
 
-/** Stands in for the live `smartEq` a real FluidEqProvider would hold. */
-const mockLive: { smartEq: ISmartEqSettings | undefined } = {
-  smartEq: undefined,
-};
-
 jest.mock('renderer/utils/FluidEqContext', () => ({
   ...jest.requireActual('renderer/utils/FluidEqContext'),
   ...jest.requireActual('__tests__/utils/fluidEqHookMocks').eqHooksFrom(() => ({
@@ -56,7 +51,6 @@ jest.mock('renderer/utils/FluidEqContext', () => ({
     isBlockingError: false,
     bypassed: [],
     activeDeviceId: 'device-a',
-    smartEq: mockLive.smartEq,
     setSmartEq: jest.fn(),
   })),
 }));
@@ -127,7 +121,6 @@ describe('Smart correction in Auto EQ', () => {
     setSmartEqMode('smart');
     setContinuousEq(false);
     setSongSoundParts({ songs: true, albums: false });
-    mockLive.smartEq = undefined;
     mockUseNowPlayingIdentity.mockReturnValue({
       identity: undefined,
       isPlaying: false,

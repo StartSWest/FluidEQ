@@ -78,8 +78,8 @@ const renderPanel = (bypassed: 'smart'[] = []) => {
         ...defaultFluidEqContext,
         filters: {},
         bypassed,
-        smartEq: { filters: { [band.id]: band } },
       }}
+      smartEq={{ filters: { [band.id]: band } }}
     >
       <SmartEqEngine />
       <Panel />

@@ -120,7 +120,6 @@ jest.mock('renderer/utils/FluidEqContext', () => ({
     convolution: undefined,
     voicing: undefined,
     driver: mockWorld.driver,
-    smartEq: undefined,
     setGlobalError: jest.fn(),
     setPreAmp: (value: number) => mockDisplayedPreAmps.push(value),
     dispatchFilter: jest.fn(),

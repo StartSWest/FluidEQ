@@ -45,25 +45,29 @@ const mockSetLayer = (layer: ISmartEqSettings | undefined) => {
   mockLayerListeners.forEach((listener) => listener());
 };
 
-// The layer the window holds, as a store: what is written shows, and the next
-// step is taken from it.
-jest.mock('renderer/utils/FluidEqContext', () => {
+// The layer the window holds, as a store, through the Smart layer's own
+// context (`fluidEqSmartEq.ts`): what is written shows, and the next step is
+// taken from it.
+jest.mock('renderer/utils/fluidEqSmartEq', () => {
   const { useSyncExternalStore } = jest.requireActual('react');
   return {
-    useFluidEqContext: () => ({
-      smartEq: useSyncExternalStore(
+    useFluidEqSmartEq: () =>
+      useSyncExternalStore(
         (listener: () => void) => {
           mockLayerListeners.add(listener);
           return () => mockLayerListeners.delete(listener);
         },
         () => mockLayer,
       ),
-      setSmartEq: mockSetLayer,
-      getBandSetGeneration: () => 0,
-      bypassed: [],
-    }),
   };
 });
+jest.mock('renderer/utils/FluidEqContext', () => ({
+  useFluidEqContext: () => ({
+    setSmartEq: mockSetLayer,
+    getBandSetGeneration: () => 0,
+    bypassed: [],
+  }),
+}));
 jest.mock('renderer/utils/I18nContext', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
@@ -243,6 +247,11 @@ beforeEach(() => {
 afterEach(() => {
   jest.restoreAllMocks();
 });
+
+// Each case plays a record through the real measurement, most of them twice:
+// 2.4 to 4.5 s on a quiet machine, which Jest's 5 s default failed whenever
+// the machine was busy (2026-11-27).
+jest.setTimeout(30000);
 
 describe('Smart correction put on while it measures', () => {
   it('holds the same take at the same moment as end-only, and lands on its curve', async () => {

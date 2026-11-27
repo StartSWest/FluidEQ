@@ -32,6 +32,7 @@ import {
 } from '../utils/equalizerApi';
 import MenuIcon from '../icons/MenuIcon';
 import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useFluidEqSmartEq } from '../utils/fluidEqSmartEq';
 import { useContinuousEq } from '../utils/continuousEq';
 import { useTranslation } from '../utils/I18nContext';
 import { useCurrentEngine } from '../utils/audioEngineContext';
@@ -165,12 +166,12 @@ const ConfigInspector = () => {
     filters,
     voicing,
     driver,
-    smartEq,
     customFx,
     convolution,
     preAmp,
     refreshState,
   } = useFluidEqContext();
+  const smartEq = useFluidEqSmartEq();
   const isContinuousOn = useContinuousEq();
   const [state, setState] = useState<IApoConfigTreeState>({
     status: 'loading',

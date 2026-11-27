@@ -20,7 +20,6 @@ import { measureSource } from 'renderer/audio/smartEqMeasurement';
 
 jest.mock('renderer/utils/FluidEqContext', () => ({
   useFluidEqContext: () => ({
-    smartEq: undefined,
     setSmartEq: () => undefined,
     getBandSetGeneration: () => 0,
     bypassed: [],

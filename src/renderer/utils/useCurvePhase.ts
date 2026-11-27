@@ -5,13 +5,22 @@ import {
   TPhaseScope,
 } from '../../common/curveComparison';
 import { ErrorDescription } from '../../common/errors';
+import { getSmartEqFilters, getSmartEqGraphicEq } from '../../common/smartEq';
 import { useFluidEqContext } from './FluidEqContext';
+import { useFluidEqSmartEq } from './fluidEqSmartEq';
 import { getCurveComparison, setCurveComparison } from './curveComparisonApi';
 import { subscribeAudioEngineChanged } from './audioEngineEvents';
 import { readOutputEditor, useOutputEditor } from './outputEditor';
 
 export default function useCurvePhase() {
   const state = useFluidEqContext();
+  // Main's answer reads the Smart layer only for whether it adds bands or a
+  // sampled curve at all (`bandPhaseScopes`, `hasSampledCurveLayers`), the
+  // same two questions asked here. Keyed on its gains, every step of the
+  // correction coming in asked main again and redrew the EQ mode card.
+  const smartEq = useFluidEqSmartEq();
+  const hasSmartBands = getSmartEqFilters(smartEq).length > 0;
+  const hasSmartCurve = getSmartEqGraphicEq(smartEq).length > 0;
   const { editor } = useOutputEditor();
   const [status, setStatus] = useState<ICurveComparisonStatus>();
   const mounted = useRef(true);
@@ -67,7 +76,8 @@ export default function useCurvePhase() {
     state.driver,
     state.headphone,
     state.voicing,
-    state.smartEq,
+    hasSmartBands,
+    hasSmartCurve,
     state.bypassed,
     state.curveEqMode,
     state.curveBandQ,

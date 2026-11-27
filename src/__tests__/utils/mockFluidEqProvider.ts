@@ -54,7 +54,6 @@ const defaultFluidEqContext: IFluidEqContext = {
   setPreAmp: (_newValue: number) => {},
   setConvolution: () => {},
   setVoicing: () => {},
-  smartEq: undefined,
   setSmartEq: () => {},
   setTone: () => {},
   selectedFilterId: '',
