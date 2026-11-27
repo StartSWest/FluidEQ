@@ -124,7 +124,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     padding: 0;
     border-radius: $radius-xs;
 
-    &:hover .look-picker__art :is(img, .look-picker__clip) {
+    &:hover .look-picker__art :is(img, .look-picker__clip, .look-still) {
       scale: 1.04;
     }
   }
@@ -214,6 +214,25 @@ SPDX-License-Identifier: GPL-3.0-or-later
     from {
       opacity: 0;
     }
+  }
+
+  // A standard look's shipped still (`ShippedLookStill`): what it draws in
+  // fixed inks, then each of the window's colours through its mask, added.
+  // Summed in a group of their own, so the colours add up to the look before
+  // the picture is laid on the plate, never onto the plate itself.
+  .look-still {
+    isolation: isolate;
+  }
+
+  .look-still__layer {
+    position: absolute;
+    inset: 0;
+    background-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
+
+  .look-still__layer--colour {
+    mix-blend-mode: plus-lighter;
   }
 
   // The live drawing's or the painter's box, sized in the component: the

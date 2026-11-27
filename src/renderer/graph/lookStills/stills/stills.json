@@ -1,0 +1,1832 @@
+[
+  {
+    "style": "afterglow",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-1",
+      "stop-2",
+      "stop-3",
+      "stop-4",
+      "stop-0",
+      "stop-0",
+      "stop-6",
+      "stop-6",
+      "stop-5",
+      "stop-5"
+    ],
+    "file": "afterglow-auto-dark-many.png"
+  },
+  {
+    "style": "afterglow",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "stop"],
+    "file": "afterglow-auto-dark-one.png"
+  },
+  {
+    "style": "afterglow",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-1",
+      "stop-3",
+      "stop-4",
+      "stop-0",
+      "stop-6",
+      "stop-5"
+    ],
+    "file": "afterglow-auto-light-many.png"
+  },
+  {
+    "style": "afterglow",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "afterglow-auto-light-one.png"
+  },
+  {
+    "style": "analyzer",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-1",
+      "stop-3",
+      "stop-4",
+      "stop-6",
+      "stop-5",
+      "stop-0",
+      "ink"
+    ],
+    "file": "analyzer-auto-dark-many.png"
+  },
+  {
+    "style": "analyzer",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "ink"],
+    "file": "analyzer-auto-dark-one.png"
+  },
+  {
+    "style": "analyzer",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-3",
+      "stop-4",
+      "stop-6",
+      "stop-1",
+      "stop-5",
+      "stop-0",
+      "ink"
+    ],
+    "file": "analyzer-auto-light-many.png"
+  },
+  {
+    "style": "analyzer",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop", "ink"],
+    "file": "analyzer-auto-light-one.png"
+  },
+  {
+    "style": "average",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-6",
+      "stop-3",
+      "stop-2",
+      "stop-1",
+      "stop-4",
+      "stop-5",
+      "stop-0",
+      "ink"
+    ],
+    "file": "average-auto-dark-many.png"
+  },
+  {
+    "style": "average",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "ink"],
+    "file": "average-auto-dark-one.png"
+  },
+  {
+    "style": "average",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-6",
+      "stop-2",
+      "stop-3",
+      "stop-1",
+      "stop-4",
+      "stop-0",
+      "stop-5",
+      "ink"
+    ],
+    "file": "average-auto-light-many.png"
+  },
+  {
+    "style": "average",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop", "ink"],
+    "file": "average-auto-light-one.png"
+  },
+  {
+    "style": "bars3d",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-1",
+      "stop-2",
+      "stop-3",
+      "stop-4",
+      "stop-6",
+      "stop-5",
+      "stop-0"
+    ],
+    "file": "bars3d-auto-dark-many.png"
+  },
+  {
+    "style": "bars3d",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "stop"],
+    "file": "bars3d-auto-dark-one.png"
+  },
+  {
+    "style": "bars3d",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-1",
+      "stop-3",
+      "stop-4",
+      "stop-0",
+      "stop-6",
+      "stop-5"
+    ],
+    "file": "bars3d-auto-light-many.png"
+  },
+  {
+    "style": "bars3d",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "bars3d-auto-light-one.png"
+  },
+  {
+    "style": "bouncedots",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-1",
+      "stop-2",
+      "stop-3",
+      "stop-4",
+      "stop-0",
+      "stop-6",
+      "stop-5"
+    ],
+    "file": "bouncedots-auto-dark-many.png"
+  },
+  {
+    "style": "bouncedots",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "stop"],
+    "file": "bouncedots-auto-dark-one.png"
+  },
+  {
+    "style": "bouncedots",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-1",
+      "stop-0",
+      "stop-4",
+      "stop-3",
+      "stop-6",
+      "stop-5"
+    ],
+    "file": "bouncedots-auto-light-many.png"
+  },
+  {
+    "style": "bouncedots",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "bouncedots-auto-light-one.png"
+  },
+  {
+    "style": "braid",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-1",
+      "stop-2",
+      "stop-3",
+      "stop-4",
+      "stop-6",
+      "stop-0",
+      "stop-5"
+    ],
+    "file": "braid-auto-dark-many.png"
+  },
+  {
+    "style": "braid",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "braid-auto-dark-one.png"
+  },
+  {
+    "style": "braid",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-1",
+      "stop-4",
+      "stop-3",
+      "stop-0",
+      "stop-6",
+      "stop-5"
+    ],
+    "file": "braid-auto-light-many.png"
+  },
+  {
+    "style": "braid",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "braid-auto-light-one.png"
+  },
+  {
+    "style": "bubbles",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-3",
+      "stop-0",
+      "stop-6",
+      "stop-1",
+      "stop-5",
+      "stop-4"
+    ],
+    "file": "bubbles-auto-dark-many.png"
+  },
+  {
+    "style": "bubbles",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "bubbles-auto-dark-one.png"
+  },
+  {
+    "style": "bubbles",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-0",
+      "stop-6",
+      "stop-3",
+      "stop-1",
+      "stop-5",
+      "stop-4"
+    ],
+    "file": "bubbles-auto-light-many.png"
+  },
+  {
+    "style": "bubbles",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "bubbles-auto-light-one.png"
+  },
+  {
+    "style": "compare",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-3",
+      "stop-2",
+      "stop-4",
+      "stop-1",
+      "stop-6",
+      "stop-5",
+      "stop-0",
+      "mate-1",
+      "mate-2",
+      "mate-3",
+      "mate-4"
+    ],
+    "file": "compare-auto-dark-many.png"
+  },
+  {
+    "style": "compare",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "mate"],
+    "file": "compare-auto-dark-one.png"
+  },
+  {
+    "style": "compare",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-3",
+      "stop-4",
+      "stop-1",
+      "stop-6",
+      "stop-5",
+      "stop-0",
+      "mate-1",
+      "mate-2",
+      "mate-3"
+    ],
+    "file": "compare-auto-light-many.png"
+  },
+  {
+    "style": "compare",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop", "mate"],
+    "file": "compare-auto-light-one.png"
+  },
+  {
+    "style": "ecg",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": ["stop-0"],
+    "file": "ecg-auto-dark-many.png"
+  },
+  {
+    "style": "ecg",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "ecg-auto-dark-one.png"
+  },
+  {
+    "style": "ecg",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": ["stop-0", "ink"],
+    "file": "ecg-auto-light-many.png"
+  },
+  {
+    "style": "ecg",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop", "ink"],
+    "file": "ecg-auto-light-one.png"
+  },
+  {
+    "style": "echo",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-1",
+      "stop-2",
+      "stop-3",
+      "stop-4",
+      "stop-0",
+      "stop-5",
+      "stop-6"
+    ],
+    "file": "echo-auto-dark-many.png"
+  },
+  {
+    "style": "echo",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "echo-auto-dark-one.png"
+  },
+  {
+    "style": "echo",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-1",
+      "stop-3",
+      "stop-4",
+      "stop-0",
+      "stop-5",
+      "stop-6",
+      "ink"
+    ],
+    "file": "echo-auto-light-many.png"
+  },
+  {
+    "style": "echo",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop", "ink"],
+    "file": "echo-auto-light-one.png"
+  },
+  {
+    "style": "energy",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-1",
+      "stop-3",
+      "stop-4",
+      "stop-0",
+      "stop-5",
+      "stop-6",
+      "ink"
+    ],
+    "file": "energy-auto-dark-many.png"
+  },
+  {
+    "style": "energy",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "ink"],
+    "file": "energy-auto-dark-one.png"
+  },
+  {
+    "style": "energy",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-1",
+      "stop-3",
+      "stop-4",
+      "stop-0",
+      "stop-5",
+      "stop-6",
+      "ink"
+    ],
+    "file": "energy-auto-light-many.png"
+  },
+  {
+    "style": "energy",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop", "ink"],
+    "file": "energy-auto-light-one.png"
+  },
+  {
+    "style": "fallblocks",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-3",
+      "stop-1",
+      "stop-0",
+      "stop-2",
+      "stop-4",
+      "stop-5",
+      "stop-6"
+    ],
+    "file": "fallblocks-auto-dark-many.png"
+  },
+  {
+    "style": "fallblocks",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "fallblocks-auto-dark-one.png"
+  },
+  {
+    "style": "fallblocks",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-0",
+      "stop-3",
+      "stop-1",
+      "stop-4",
+      "stop-5",
+      "stop-6"
+    ],
+    "file": "fallblocks-auto-light-many.png"
+  },
+  {
+    "style": "fallblocks",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "fallblocks-auto-light-one.png"
+  },
+  {
+    "style": "fibers",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-1",
+      "stop-2",
+      "stop-3",
+      "stop-4",
+      "stop-0",
+      "stop-6",
+      "stop-5"
+    ],
+    "file": "fibers-auto-dark-many.png"
+  },
+  {
+    "style": "fibers",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "stop"],
+    "file": "fibers-auto-dark-one.png"
+  },
+  {
+    "style": "fibers",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-1",
+      "stop-3",
+      "stop-4",
+      "stop-0",
+      "stop-6",
+      "stop-5"
+    ],
+    "file": "fibers-auto-light-many.png"
+  },
+  {
+    "style": "fibers",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "fibers-auto-light-one.png"
+  },
+  {
+    "style": "glitchbars",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-1",
+      "stop-2",
+      "stop-3",
+      "stop-4",
+      "stop-0",
+      "stop-6",
+      "stop-5"
+    ],
+    "file": "glitchbars-auto-dark-many.png"
+  },
+  {
+    "style": "glitchbars",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "glitchbars-auto-dark-one.png"
+  },
+  {
+    "style": "glitchbars",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-1",
+      "stop-3",
+      "stop-4",
+      "stop-0",
+      "stop-6",
+      "stop-5"
+    ],
+    "file": "glitchbars-auto-light-many.png"
+  },
+  {
+    "style": "glitchbars",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "glitchbars-auto-light-one.png"
+  },
+  {
+    "style": "halftone",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-1",
+      "stop-2",
+      "stop-0",
+      "stop-3",
+      "stop-4",
+      "stop-5",
+      "stop-6"
+    ],
+    "file": "halftone-auto-dark-many.png"
+  },
+  {
+    "style": "halftone",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "halftone-auto-dark-one.png"
+  },
+  {
+    "style": "halftone",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-0",
+      "stop-1",
+      "stop-3",
+      "stop-4",
+      "stop-5",
+      "stop-6"
+    ],
+    "file": "halftone-auto-light-many.png"
+  },
+  {
+    "style": "halftone",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "halftone-auto-light-one.png"
+  },
+  {
+    "style": "halo",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-3",
+      "stop-1",
+      "stop-2",
+      "stop-4",
+      "stop-0",
+      "stop-6",
+      "stop-5"
+    ],
+    "file": "halo-auto-dark-many.png"
+  },
+  {
+    "style": "halo",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "halo-auto-dark-one.png"
+  },
+  {
+    "style": "halo",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-3",
+      "stop-1",
+      "stop-6",
+      "stop-4",
+      "stop-0",
+      "stop-5",
+      "ink"
+    ],
+    "file": "halo-auto-light-many.png"
+  },
+  {
+    "style": "halo",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop", "ink"],
+    "file": "halo-auto-light-one.png"
+  },
+  {
+    "style": "horizon",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-0",
+      "stop-0",
+      "stop-3",
+      "stop-3",
+      "stop-6",
+      "stop-4",
+      "stop-2",
+      "stop-1",
+      "stop-5"
+    ],
+    "file": "horizon-auto-dark-many.png"
+  },
+  {
+    "style": "horizon",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "stop"],
+    "file": "horizon-auto-dark-one.png"
+  },
+  {
+    "style": "horizon",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-3",
+      "stop-0",
+      "stop-6",
+      "stop-2",
+      "stop-1",
+      "stop-4",
+      "stop-5"
+    ],
+    "file": "horizon-auto-light-many.png"
+  },
+  {
+    "style": "horizon",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "horizon-auto-light-one.png"
+  },
+  {
+    "style": "invaders",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-1",
+      "stop-2",
+      "stop-3",
+      "stop-4",
+      "stop-5",
+      "stop-0",
+      "stop-6"
+    ],
+    "file": "invaders-auto-dark-many.png"
+  },
+  {
+    "style": "invaders",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "invaders-auto-dark-one.png"
+  },
+  {
+    "style": "invaders",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-1",
+      "stop-4",
+      "stop-3",
+      "stop-0",
+      "stop-5",
+      "stop-6"
+    ],
+    "file": "invaders-auto-light-many.png"
+  },
+  {
+    "style": "invaders",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "invaders-auto-light-one.png"
+  },
+  {
+    "style": "ledbars",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-2",
+      "stop-3",
+      "stop-1",
+      "stop-4",
+      "stop-4",
+      "stop-0",
+      "stop-0",
+      "stop-5",
+      "stop-6"
+    ],
+    "file": "ledbars-auto-dark-many.png"
+  },
+  {
+    "style": "ledbars",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "stop"],
+    "file": "ledbars-auto-dark-one.png"
+  },
+  {
+    "style": "ledbars",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-1",
+      "stop-0",
+      "stop-3",
+      "stop-4",
+      "stop-5",
+      "stop-6"
+    ],
+    "file": "ledbars-auto-light-many.png"
+  },
+  {
+    "style": "ledbars",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "ledbars-auto-light-one.png"
+  },
+  {
+    "style": "ledwall",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-3",
+      "stop-2",
+      "stop-1",
+      "stop-1",
+      "stop-4",
+      "stop-0",
+      "stop-0",
+      "stop-5",
+      "stop-6"
+    ],
+    "file": "ledwall-auto-dark-many.png"
+  },
+  {
+    "style": "ledwall",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "stop"],
+    "file": "ledwall-auto-dark-one.png"
+  },
+  {
+    "style": "ledwall",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-1",
+      "stop-0",
+      "stop-3",
+      "stop-4",
+      "stop-5",
+      "stop-6"
+    ],
+    "file": "ledwall-auto-light-many.png"
+  },
+  {
+    "style": "ledwall",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "ledwall-auto-light-one.png"
+  },
+  {
+    "style": "loudness",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": ["stop-0", "mate-0", "ink"],
+    "file": "loudness-auto-dark-many.png"
+  },
+  {
+    "style": "loudness",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "mate", "ink"],
+    "file": "loudness-auto-dark-one.png"
+  },
+  {
+    "style": "loudness",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": ["stop-0", "mate-0", "ink"],
+    "file": "loudness-auto-light-many.png"
+  },
+  {
+    "style": "loudness",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop", "mate", "ink"],
+    "file": "loudness-auto-light-one.png"
+  },
+  {
+    "style": "midside",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-3",
+      "stop-2",
+      "stop-1",
+      "stop-4",
+      "stop-6",
+      "stop-5",
+      "stop-0",
+      "mate-4",
+      "mate-3",
+      "mate-2",
+      "mate-1",
+      "mate-6",
+      "mate-5",
+      "mate-0"
+    ],
+    "file": "midside-auto-dark-many.png"
+  },
+  {
+    "style": "midside",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "mate"],
+    "file": "midside-auto-dark-one.png"
+  },
+  {
+    "style": "midside",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-3",
+      "stop-4",
+      "stop-1",
+      "stop-6",
+      "stop-5",
+      "stop-0",
+      "mate-4",
+      "mate-2",
+      "mate-3",
+      "mate-1",
+      "mate-6",
+      "mate-5",
+      "mate-0"
+    ],
+    "file": "midside-auto-light-many.png"
+  },
+  {
+    "style": "midside",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop", "mate"],
+    "file": "midside-auto-light-one.png"
+  },
+  {
+    "style": "neonbars",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-1",
+      "stop-2",
+      "stop-3",
+      "stop-4",
+      "stop-6",
+      "stop-0",
+      "stop-5"
+    ],
+    "file": "neonbars-auto-dark-many.png"
+  },
+  {
+    "style": "neonbars",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "stop"],
+    "file": "neonbars-auto-dark-one.png"
+  },
+  {
+    "style": "neonbars",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-1",
+      "stop-3",
+      "stop-4",
+      "stop-0",
+      "stop-6",
+      "stop-5"
+    ],
+    "file": "neonbars-auto-light-many.png"
+  },
+  {
+    "style": "neonbars",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "neonbars-auto-light-one.png"
+  },
+  {
+    "style": "notes",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-1",
+      "stop-2",
+      "stop-3",
+      "stop-4",
+      "stop-0",
+      "stop-5",
+      "stop-6",
+      "ink",
+      "edge"
+    ],
+    "file": "notes-auto-dark-many.png"
+  },
+  {
+    "style": "notes",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "ink", "edge"],
+    "file": "notes-auto-dark-one.png"
+  },
+  {
+    "style": "notes",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-1",
+      "stop-4",
+      "stop-3",
+      "stop-0",
+      "stop-5",
+      "stop-6",
+      "ink",
+      "edge"
+    ],
+    "file": "notes-auto-light-many.png"
+  },
+  {
+    "style": "notes",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop", "ink", "edge"],
+    "file": "notes-auto-light-one.png"
+  },
+  {
+    "style": "phase",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": ["stop-6", "stop-1", "stop-4", "ink", "stop-5", "stop-0"],
+    "file": "phase-auto-dark-many.png"
+  },
+  {
+    "style": "phase",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "ink"],
+    "file": "phase-auto-dark-one.png"
+  },
+  {
+    "style": "phase",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": ["stop-6", "stop-1", "stop-4", "ink", "stop-0", "stop-5"],
+    "file": "phase-auto-light-many.png"
+  },
+  {
+    "style": "phase",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop", "ink"],
+    "file": "phase-auto-light-one.png"
+  },
+  {
+    "style": "pixelbars",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-1",
+      "stop-0",
+      "stop-0",
+      "stop-2",
+      "stop-3",
+      "stop-3",
+      "stop-5",
+      "stop-6",
+      "stop-4"
+    ],
+    "file": "pixelbars-auto-dark-many.png"
+  },
+  {
+    "style": "pixelbars",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "stop"],
+    "file": "pixelbars-auto-dark-one.png"
+  },
+  {
+    "style": "pixelbars",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-3",
+      "stop-1",
+      "stop-0",
+      "stop-4",
+      "stop-5",
+      "stop-6"
+    ],
+    "file": "pixelbars-auto-light-many.png"
+  },
+  {
+    "style": "pixelbars",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "pixelbars-auto-light-one.png"
+  },
+  {
+    "style": "rta",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-1",
+      "stop-2",
+      "stop-3",
+      "stop-4",
+      "stop-0",
+      "stop-5",
+      "stop-6",
+      "ink"
+    ],
+    "file": "rta-auto-dark-many.png"
+  },
+  {
+    "style": "rta",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "ink"],
+    "file": "rta-auto-dark-one.png"
+  },
+  {
+    "style": "rta",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-1",
+      "stop-3",
+      "stop-4",
+      "stop-0",
+      "stop-5",
+      "stop-6",
+      "ink"
+    ],
+    "file": "rta-auto-light-many.png"
+  },
+  {
+    "style": "rta",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop", "ink"],
+    "file": "rta-auto-light-one.png"
+  },
+  {
+    "style": "scope",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": ["stop-0", "ink"],
+    "file": "scope-auto-dark-many.png"
+  },
+  {
+    "style": "scope",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "ink"],
+    "file": "scope-auto-dark-one.png"
+  },
+  {
+    "style": "scope",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": ["stop-0", "ink"],
+    "file": "scope-auto-light-many.png"
+  },
+  {
+    "style": "scope",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop", "ink"],
+    "file": "scope-auto-light-one.png"
+  },
+  {
+    "style": "skyline",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": ["tower-1", "tower-1", "tower-0"],
+    "file": "skyline-auto-dark-many.png"
+  },
+  {
+    "style": "skyline",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["tower-1", "tower-1", "tower-0"],
+    "file": "skyline-auto-dark-one.png"
+  },
+  {
+    "style": "skyline",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": ["tower-1", "tower-1"],
+    "file": "skyline-auto-light-many.png"
+  },
+  {
+    "style": "skyline",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["tower-1", "tower-1"],
+    "file": "skyline-auto-light-one.png"
+  },
+  {
+    "style": "slope",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-1",
+      "stop-2",
+      "stop-3",
+      "stop-4",
+      "stop-6",
+      "stop-0",
+      "stop-5",
+      "mate-1",
+      "edge"
+    ],
+    "file": "slope-auto-dark-many.png"
+  },
+  {
+    "style": "slope",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "slope-auto-dark-one.png"
+  },
+  {
+    "style": "slope",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-1",
+      "stop-6",
+      "stop-3",
+      "stop-4",
+      "stop-0",
+      "stop-5",
+      "ink",
+      "mate-6"
+    ],
+    "file": "slope-auto-light-many.png"
+  },
+  {
+    "style": "slope",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop", "ink"],
+    "file": "slope-auto-light-one.png"
+  },
+  {
+    "style": "sparkbars",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-3",
+      "stop-2",
+      "stop-1",
+      "stop-4",
+      "stop-6",
+      "stop-0",
+      "stop-5"
+    ],
+    "file": "sparkbars-auto-dark-many.png"
+  },
+  {
+    "style": "sparkbars",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "stop"],
+    "file": "sparkbars-auto-dark-one.png"
+  },
+  {
+    "style": "sparkbars",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-3",
+      "stop-4",
+      "stop-6",
+      "stop-1",
+      "stop-0",
+      "stop-5"
+    ],
+    "file": "sparkbars-auto-light-many.png"
+  },
+  {
+    "style": "sparkbars",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "sparkbars-auto-light-one.png"
+  },
+  {
+    "style": "spectrogram",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-3",
+      "stop-4",
+      "stop-2",
+      "stop-5",
+      "stop-6",
+      "stop-1",
+      "stop-0"
+    ],
+    "file": "spectrogram-auto-dark-many.png"
+  },
+  {
+    "style": "spectrogram",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["level-2", "level-1", "level-3", "level-3", "level-4", "level-0"],
+    "file": "spectrogram-auto-dark-one.png"
+  },
+  {
+    "style": "spectrogram",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-4",
+      "stop-3",
+      "stop-2",
+      "stop-5",
+      "stop-6",
+      "stop-1",
+      "stop-0"
+    ],
+    "file": "spectrogram-auto-light-many.png"
+  },
+  {
+    "style": "spectrogram",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["level-2", "level-3", "level-3", "level-1", "level-4", "level-0"],
+    "file": "spectrogram-auto-light-one.png"
+  },
+  {
+    "style": "spectrumwave",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-1",
+      "stop-2",
+      "stop-3",
+      "stop-4",
+      "stop-6",
+      "stop-0",
+      "stop-5"
+    ],
+    "file": "spectrumwave-auto-dark-many.png"
+  },
+  {
+    "style": "spectrumwave",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "spectrumwave-auto-dark-one.png"
+  },
+  {
+    "style": "spectrumwave",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-1",
+      "stop-3",
+      "stop-4",
+      "stop-6",
+      "stop-0",
+      "stop-5"
+    ],
+    "file": "spectrumwave-auto-light-many.png"
+  },
+  {
+    "style": "spectrumwave",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "spectrumwave-auto-light-one.png"
+  },
+  {
+    "style": "synthwave",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-1",
+      "stop-2",
+      "stop-5",
+      "floor",
+      "stop-6",
+      "stop-3",
+      "stop-4",
+      "stop-0"
+    ],
+    "file": "synthwave-auto-dark-many.png"
+  },
+  {
+    "style": "synthwave",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "floor"],
+    "file": "synthwave-auto-dark-one.png"
+  },
+  {
+    "style": "synthwave",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-1",
+      "stop-2",
+      "floor",
+      "stop-5",
+      "stop-6",
+      "stop-3",
+      "stop-4",
+      "stop-0"
+    ],
+    "file": "synthwave-auto-light-many.png"
+  },
+  {
+    "style": "synthwave",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop", "floor"],
+    "file": "synthwave-auto-light-one.png"
+  },
+  {
+    "style": "terrace",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-1",
+      "stop-2",
+      "stop-0",
+      "stop-3",
+      "stop-4",
+      "stop-5",
+      "stop-6"
+    ],
+    "file": "terrace-auto-dark-many.png"
+  },
+  {
+    "style": "terrace",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "terrace-auto-dark-one.png"
+  },
+  {
+    "style": "terrace",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-1",
+      "stop-0",
+      "stop-3",
+      "stop-4",
+      "stop-5",
+      "stop-6"
+    ],
+    "file": "terrace-auto-light-many.png"
+  },
+  {
+    "style": "terrace",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "terrace-auto-light-one.png"
+  },
+  {
+    "style": "tide",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-0",
+      "stop-1",
+      "stop-3",
+      "stop-4",
+      "stop-2",
+      "stop-5",
+      "stop-6"
+    ],
+    "file": "tide-auto-dark-many.png"
+  },
+  {
+    "style": "tide",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "stop"],
+    "file": "tide-auto-dark-one.png"
+  },
+  {
+    "style": "tide",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-0",
+      "stop-1",
+      "stop-3",
+      "stop-4",
+      "stop-2",
+      "stop-6",
+      "stop-5"
+    ],
+    "file": "tide-auto-light-many.png"
+  },
+  {
+    "style": "tide",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "tide-auto-light-one.png"
+  },
+  {
+    "style": "towers",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-1",
+      "stop-3",
+      "stop-2",
+      "stop-4",
+      "stop-0",
+      "stop-6",
+      "stop-5"
+    ],
+    "file": "towers-auto-dark-many.png"
+  },
+  {
+    "style": "towers",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop"],
+    "file": "towers-auto-dark-one.png"
+  },
+  {
+    "style": "towers",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "stop-2",
+      "stop-1",
+      "stop-3",
+      "stop-6",
+      "stop-4",
+      "stop-0",
+      "stop-5",
+      "ink"
+    ],
+    "file": "towers-auto-light-many.png"
+  },
+  {
+    "style": "towers",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop", "ink"],
+    "file": "towers-auto-light-one.png"
+  },
+  {
+    "style": "truss",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": ["stop-0", "stop-0"],
+    "file": "truss-auto-dark-many.png"
+  },
+  {
+    "style": "truss",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["stop", "stop"],
+    "file": "truss-auto-dark-one.png"
+  },
+  {
+    "style": "truss",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": ["stop-0", "stop-0", "ink"],
+    "file": "truss-auto-light-many.png"
+  },
+  {
+    "style": "truss",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["stop", "stop", "ink"],
+    "file": "truss-auto-light-one.png"
+  },
+  {
+    "style": "waterfall",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "many",
+    "roles": [
+      "stop-6",
+      "floor",
+      "stop-4",
+      "stop-3",
+      "stop-2",
+      "stop-5",
+      "stop-1"
+    ],
+    "file": "waterfall-auto-dark-many.png"
+  },
+  {
+    "style": "waterfall",
+    "palette": "auto",
+    "side": "dark",
+    "colours": "one",
+    "roles": ["level-2", "floor", "stop", "stop"],
+    "file": "waterfall-auto-dark-one.png"
+  },
+  {
+    "style": "waterfall",
+    "palette": "auto",
+    "side": "light",
+    "colours": "many",
+    "roles": [
+      "floor",
+      "stop-6",
+      "stop-4",
+      "stop-2",
+      "stop-3",
+      "stop-5",
+      "stop-1"
+    ],
+    "file": "waterfall-auto-light-many.png"
+  },
+  {
+    "style": "waterfall",
+    "palette": "auto",
+    "side": "light",
+    "colours": "one",
+    "roles": ["level-2", "floor", "stop", "stop"],
+    "file": "waterfall-auto-light-one.png"
+  }
+]

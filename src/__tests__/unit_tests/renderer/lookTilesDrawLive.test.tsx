@@ -173,12 +173,15 @@ const row = (id: string): IStyleRow =>
     family: 'scenes',
     yours: false,
     search: id,
+    // A palette no still is shipped in: these tiles paint theirs, which is
+    // what this file is about (`lookTilesShippedStill.test.tsx` has the rest).
     look: {
       id,
       style: 'truss',
       palette: 'signal',
       label: id,
       isCustom: false,
+      colours: [],
     },
   }) as unknown as IStyleRow;
 
@@ -324,6 +327,30 @@ it('opens the sound only once a tile plays, and keeps it open across tiles', () 
   point(1);
   leave(1);
   expect(listening[listening.length - 1]).toBe(true);
+});
+
+// The demo song takes a few frames to start, so it starts as the pointer
+// comes into the grid, ahead of the tile it is heading for.
+it('opens the sound as the pointer comes into the grid, before any tile plays', () => {
+  grid();
+  const area = document.querySelector('.look-picker__grid--styles');
+  if (!area) {
+    throw new Error('No grid.');
+  }
+  fireEvent.pointerEnter(area);
+  expect(listening[listening.length - 1]).toBe(true);
+  expect(mounted.size).toBe(0);
+});
+
+it('opens no sound for a pointer in the grid under reduced motion, where no tile moves', () => {
+  reduced = true;
+  grid();
+  const area = document.querySelector('.look-picker__grid--styles');
+  if (!area) {
+    throw new Error('No grid.');
+  }
+  fireEvent.pointerEnter(area);
+  expect(listening.every((open) => !open)).toBe(true);
 });
 
 it('keeps its picture until there is a sound to draw', () => {

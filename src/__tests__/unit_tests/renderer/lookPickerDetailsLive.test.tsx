@@ -156,7 +156,15 @@ const style = (id: string): IStyleRow =>
     family: 'analysis',
     yours: false,
     search: id,
-    look: { id, style: 'analyzer', palette: 'signal', label: id },
+    // A palette no still is shipped in, so the rows show their painted ones.
+    look: {
+      id,
+      style: 'analyzer',
+      palette: 'signal',
+      label: id,
+      isCustom: false,
+      colours: [],
+    },
   }) as unknown as IStyleRow;
 
 const STYLES = [style('analyzer'), style('spectrogram')];

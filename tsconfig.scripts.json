@@ -16,8 +16,9 @@
     ".erb/configs/**/*.ts",
     "scripts/**/*.ts"
   ],
-  // The help captures' harness is the window's own code, built for a browser
-  // with the app's loaders: its stylesheet imports and its DOM library are
-  // the renderer's, and tsconfig.json checks it with the renderer.
-  "exclude": ["scripts/help-captures/harness"]
+  // The help captures' and the look stills' harnesses are the window's own
+  // code, built for a browser with the app's loaders: their stylesheet imports
+  // and their DOM library are the renderer's, and tsconfig.json checks them
+  // with the renderer.
+  "exclude": ["scripts/help-captures/harness", "scripts/look-stills/harness"]
 }

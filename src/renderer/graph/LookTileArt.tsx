@@ -13,7 +13,6 @@ import {
   useState,
 } from 'react';
 import type { IResolvedLook } from 'common/customLooks';
-import type { GraphStyle } from 'common/graphStyles';
 import {
   LiveAudioStandIn,
   type IAudioStandIn,
@@ -21,7 +20,6 @@ import {
 import LookIcon from '../icons/LookIcon';
 import usePlayerTrace from '../player/playerTrace';
 import useReducedMotion from '../utils/useReducedMotion';
-import { PANEL_MIN_DEPTH, PANEL_MIN_WIDTH } from './analysis/loudnessPanel';
 import LiveTraceCanvas, { type ILiveTraceDriver } from './LiveTraceCanvas';
 import LookStillPainter from './LookStillPainter';
 import {
@@ -31,6 +29,9 @@ import {
   useStillTurn,
 } from './lookStillStore';
 import { stillSecondsOf } from './lookStillSong';
+import { drawnSizeOf } from './lookStills/drawnSize';
+import ShippedLookStill from './lookStills/ShippedLookStill';
+import { shippedStillOf, useStillWindow } from './lookStills/shippedStill';
 import { useTileGrid } from './LookStyleGrid';
 import type { ILookTileLoop } from './lookTileLoop';
 import { useTileSound } from './lookTileSound';
@@ -42,38 +43,6 @@ import { useTileSound } from './lookTileSound';
  * cost. Past it the picture is visibly soft or cramped, and is painted again.
  */
 const STILL_SIZE_TOLERANCE = 0.25;
-
-interface IDrawnSize {
-  width: number;
-  height: number;
-  /** How much larger than the plate it is drawn; shrunk back by as much. */
-  scale: number;
-}
-
-/**
- * The size a look is drawn at for a plate of `box`: the plate's own, unless
- * the look cannot draw itself that small. Stereo & loudness draws nothing
- * in a box under its panel's floor (`loudnessPanel.ts`) - a blank tile, at
- * rest and live - so it is drawn at that floor and shrunk to the plate.
- */
-const drawnSizeOf = (
-  style: GraphStyle,
-  box: { width: number; height: number },
-): IDrawnSize => {
-  if (style !== 'loudness' || box.width === 0 || box.height === 0) {
-    return { ...box, scale: 1 };
-  }
-  const scale = Math.max(
-    1,
-    PANEL_MIN_WIDTH / box.width,
-    PANEL_MIN_DEPTH / box.height,
-  );
-  return {
-    width: Math.ceil(box.width * scale),
-    height: Math.ceil(box.height * scale),
-    scale,
-  };
-};
 
 /**
  * The look drawn live, small, on the sound the grid holds: its frames drawn
@@ -228,8 +197,17 @@ const usePlate = () => {
  * its tile is the one that plays (`playing`: the pointer or the keyboard on
  * it, `onePlaying.ts`), and a still of it otherwise - every other tile, under
  * reduced motion (the pointed one too, as before), before the sound is
- * there, in a picture of the picker with no capture behind it. Stills are
- * painted, one at a time, for the tiles in the picker's scroller.
+ * there, in a picture of the picker with no capture behind it.
+ *
+ * A standard look's still is shipped with the app (`ShippedLookStill`,
+ * `lookStills/stillRoles.ts`) and is on its plate in the picker's first
+ * frame, in the window's colours (Ivan, 2026-11-26: "we cannot paint all the
+ * standard viz, it is too slow to draw ... just the single frame we load,
+ * and then on hover we load and play the full thing"). Painting each one at
+ * runtime - the demo song played offline and ninety drawings a look, one look
+ * at a time - left most of the grid empty for seconds. Only a look the
+ * member made or coloured still has its still painted here, one at a time,
+ * for the tiles in the picker's scroller.
  *
  * NOTHING BLINKS (Ivan's standing rule: nothing in the UI moves or flickers
  * as data arrives). The plate holds its size from the first frame. A tile
@@ -258,6 +236,8 @@ const LookTileArt = ({
     () => `${JSON.stringify(look)}|${paintKey}`,
     [look, paintKey],
   );
+  const stillWindow = useStillWindow();
+  const shipped = shippedStillOf(look, stillWindow);
   const still = useLookStill(stillKey);
   // The picture on the plate: this look's still in these colours, or until
   // that is painted the one shown before it. New window colours name new
@@ -268,14 +248,18 @@ const LookTileArt = ({
   shownRef.current = still ?? shownRef.current;
   const picture = shownRef.current;
   const unavailable = useLookStillsUnavailable();
-  // A still that arrives after the tile is up fades in; one kept is simply
-  // there.
-  const [arriving] = useState(picture === undefined);
-  const stillRef = useRef<HTMLImageElement>(null);
+  // A still that arrives after the tile is up fades in; one kept, or
+  // shipped, is simply there.
+  const [arriving] = useState(picture === undefined && shipped === undefined);
+  const stillRef = useRef<HTMLElement | null>(null);
   const drawn = drawnSizeOf(look.style, box);
+  // A shipped still serves every size: it is drawn for the plate's shape
+  // and laid on it whole.
   const fits =
-    still !== undefined &&
-    Math.abs(still.width - drawn.width) <= drawn.width * STILL_SIZE_TOLERANCE;
+    shipped !== undefined ||
+    (still !== undefined &&
+      Math.abs(still.width - drawn.width) <=
+        drawn.width * STILL_SIZE_TOLERANCE);
   // Live the moment the sound is there, never waiting on a still (Ivan,
   // 2026-11-24: "the standard viz needs to load faster, instant if
   // possible"). A tile used to go live only once its still was painted -
@@ -325,7 +309,11 @@ const LookTileArt = ({
       stillRef.current.style.visibility =
         shown && liveShownRef.current ? 'hidden' : '';
     }
-  }, [shown, picture]);
+  }, [shown, picture, shipped]);
+  // The still on the plate, shipped or painted, whichever element it is.
+  const holdStill = useCallback((element: HTMLElement | null) => {
+    stillRef.current = element;
+  }, []);
   const hideStill = useCallback(() => {
     liveShownRef.current = true;
     setDrawnOnce(true);
@@ -358,16 +346,23 @@ const LookTileArt = ({
 
   return (
     <span ref={ref} className="look-tile-art">
-      {picture && (
+      {shipped && (
+        <ShippedLookStill
+          ref={holdStill}
+          file={shipped}
+          roles={stillWindow.roles}
+        />
+      )}
+      {!shipped && picture && (
         <img
-          ref={stillRef}
+          ref={holdStill}
           className={`look-tile-art__still${arriving ? ' is-arriving' : ''}`}
           src={picture.url}
           alt=""
           draggable={false}
         />
       )}
-      {!picture && unavailable && !shown && (
+      {!shipped && !picture && unavailable && !shown && (
         <LookIcon
           className="look-picker__drawing"
           style={look.style}

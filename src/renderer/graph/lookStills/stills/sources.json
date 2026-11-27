@@ -1,0 +1,1577 @@
+{
+  "hash": "9c3603eebd3e2b9c223bb338482ad600eb261cc5524af45e88b4b94069ce1080",
+  "files": [
+    {
+      "file": "scripts/look-stills/choose.ts",
+      "hash": "73d8b82c7870ed39cf9ae169f9065af8a66c63ea58608538fc317fee65336fc5"
+    },
+    {
+      "file": "scripts/look-stills/fit.ts",
+      "hash": "f996b208135f1a3531cd2ff3e7572d61280593aeba5d00cfb8b74ff2d0b2cf72"
+    },
+    {
+      "file": "scripts/look-stills/harness/bridge.ts",
+      "hash": "556cab8a6e16fca1f9e984bd18d8212d2748d67e35be1d086bf4d5c8b6852f87"
+    },
+    {
+      "file": "scripts/look-stills/harness/composeStill.tsx",
+      "hash": "d84ee780639ddda768f5dec8dbda6baaf47f9cb97b42228c064daaa01764f288"
+    },
+    {
+      "file": "scripts/look-stills/harness/index.tsx",
+      "hash": "3848ef1b3b201db4e055a5b424e7fc032200f9973b636e36396bffce0cf46d40"
+    },
+    {
+      "file": "scripts/look-stills/harness/index.tsx",
+      "hash": "3848ef1b3b201db4e055a5b424e7fc032200f9973b636e36396bffce0cf46d40"
+    },
+    {
+      "file": "scripts/look-stills/harness/paintLook.tsx",
+      "hash": "38ccdafc1482c475aec30553aa211182e55905e2c7760363d127c6c13c585acd"
+    },
+    {
+      "file": "scripts/look-stills/harness/stillWindow.ts",
+      "hash": "b10fe32c564c398869140ff773cf22bfc6f28fb0ef0b24d4171610d51729edb5"
+    },
+    {
+      "file": "scripts/look-stills/linear.ts",
+      "hash": "451bf66b6fb7164fc29731c0dfa49a766359e9442d9d617e6a15c4713a8da44a"
+    },
+    {
+      "file": "scripts/look-stills/plate.ts",
+      "hash": "d6bf8ed8e4650b4f0ba0819407ac247e6efce02a0c41cd4716c6d52cebc0f5c0"
+    },
+    {
+      "file": "src/common/bandQuality.ts",
+      "hash": "995a65f26d71b4ecd56eec5f0ec60ebf6ed0c9e1e277b6c1d1b574edb49a084a"
+    },
+    {
+      "file": "src/common/bassNotes.ts",
+      "hash": "0c3228071ddca5c43d978b9ef6ded32cfcf37cc8f18dd7af060679445cbb3423"
+    },
+    {
+      "file": "src/common/branding.ts",
+      "hash": "53c020833bb8d284cb72475dc699979b1c443cb800b5352fee3f4da66023ae69"
+    },
+    {
+      "file": "src/common/channels.ts",
+      "hash": "8a9db688d8f8106b8adc250b7e11c10f3588e03b2763bef33f5208e3ded2b740"
+    },
+    {
+      "file": "src/common/coalescedRequest.ts",
+      "hash": "7a3c24c84253feef6c99faeec8bda71c37563785d0157e30c815fc8274ba660b"
+    },
+    {
+      "file": "src/common/constants.ts",
+      "hash": "3039521be3778f9eeb37652584e520f1eba1258064ea939b693e6444c7beb593"
+    },
+    {
+      "file": "src/common/correctionRange.ts",
+      "hash": "50df62e4377fb995273699b631a99bb2ab3f87ae78640f079cf7c8467d1873eb"
+    },
+    {
+      "file": "src/common/customLooks.ts",
+      "hash": "f3207b8efc657738a80a9f69997c3d59b7715d7b78b69a748e23b6afb4d327a8"
+    },
+    {
+      "file": "src/common/driver.ts",
+      "hash": "ed0cbfd3cfcb791a12d2085f05b17e6eb23c312d86f0c4a1b1efcc9fb627d0ad"
+    },
+    {
+      "file": "src/common/drumNet.ts",
+      "hash": "f720fed3e14f7bd5144190502596672168c55a01bbf5df7ca4b1ff12c721eaeb"
+    },
+    {
+      "file": "src/common/drumNetFeatures.ts",
+      "hash": "d9423d895193c7a7caf8229371394837fb8f6a887ebfa3e4cb230973843fa6a7"
+    },
+    {
+      "file": "src/common/dsp/analysisWire.ts",
+      "hash": "b75275536704af36b31d69a66b72a58de8e0233894d7f48c517d1e0ae445d7db"
+    },
+    {
+      "file": "src/common/dsp/bassPunchPresets.ts",
+      "hash": "093163aebadbf796bb5e6621016c76c61e86cac9f60174bd9eb226d1f5321674"
+    },
+    {
+      "file": "src/common/dsp/chain.ts",
+      "hash": "b737ccc37c939b51b391d6f45e2e1705c8593f93e5e58f3d0f54bcb8f8cebe18"
+    },
+    {
+      "file": "src/common/dsp/chainDefaults.ts",
+      "hash": "00d1c885d8d268914261ecbed29ad1b8e1d1000f55e502639a68b89cc3d2250a"
+    },
+    {
+      "file": "src/common/dsp/chainWire.ts",
+      "hash": "6f9901179ba47fae1c02d92fe86b96738ccf9e5afa94cc654155686041f30cee"
+    },
+    {
+      "file": "src/common/dsp/crossfadeShape.ts",
+      "hash": "64de3407711c8f5a4832cbd74bf078f452bd814163b17fc9d3c4716083a6c045"
+    },
+    {
+      "file": "src/common/dsp/deEsser.ts",
+      "hash": "fb2bd4942274a351410e5c402ad77d71a266acf0abf58679002517d62f3f283f"
+    },
+    {
+      "file": "src/common/dsp/deEsserClamp.ts",
+      "hash": "6c9b3fc56b6390aaa92cf93d847e3875d11d9aec739ad231cdea6d74987749b2"
+    },
+    {
+      "file": "src/common/dsp/deEsserPresets.ts",
+      "hash": "c2c3528475ec873e932a1438c02da5af6fc0993842fb81c2fc9edcacdc495fb5"
+    },
+    {
+      "file": "src/common/dsp/dynamicsStage.ts",
+      "hash": "1df0429b70ca4eada74175daa11d452ede66d58b221ec2b484ade8d80fec7b8a"
+    },
+    {
+      "file": "src/common/dsp/dynamicsWire.ts",
+      "hash": "eb49b580ec8daf00c2d77fe72989ea1382dfc320c5f25fd8399a6e24ee1a4146"
+    },
+    {
+      "file": "src/common/dsp/eqModel.ts",
+      "hash": "c84dfbbbab7ee4c56588fb112648785a37d89c7849d26b5ca389c73d9edea11a"
+    },
+    {
+      "file": "src/common/dsp/fft.ts",
+      "hash": "1e3bdde75305cfb4f3241ab4b56e431f6db034b8e5ac754bfd8f9b30eb1083e5"
+    },
+    {
+      "file": "src/common/dsp/footsteps.ts",
+      "hash": "26d2ffa5da59a48849596425d7e4fb12b2674686e806c41ee28d1fd3ab352350"
+    },
+    {
+      "file": "src/common/dsp/footstepsClamp.ts",
+      "hash": "101749cc7f42a70bc81702a4bd081543ad1037d8a1f989e6648b72744245ef48"
+    },
+    {
+      "file": "src/common/dsp/noiseProfile.ts",
+      "hash": "0715c5affe0684cb290b8138bee1477300b33c097a5d046c7da9225eefb9ea15"
+    },
+    {
+      "file": "src/common/dsp/presetCurveClamp.ts",
+      "hash": "7cd4c0e2cda01060b8fd94c6e25fbc72cca2442c85600c578d5562ddebffdecf"
+    },
+    {
+      "file": "src/common/dsp/presetTone.ts",
+      "hash": "5ab720e0bdfe14b167fd11ec94c1684143e0cb9f80c08fcc6591b87932cc8008"
+    },
+    {
+      "file": "src/common/dsp/presetVoicing.ts",
+      "hash": "11562eb83b51bc43b7d365c628eb23e9c9bdf00242b84f383780bb1ba0c856de"
+    },
+    {
+      "file": "src/common/dsp/roomSpeakers.ts",
+      "hash": "b598c81eadfea2614fd90f8468b141dfbff95ec9f36259609b8f4284217804fa"
+    },
+    {
+      "file": "src/common/dsp/sourceAnalysis.ts",
+      "hash": "a0207590a91ba2c336deb6197919744ca7a9d9ad45648a4bdddd1e544ff499b7"
+    },
+    {
+      "file": "src/common/energyLevels.ts",
+      "hash": "c907184a92e07bcefabba7fec95e8c804213674812408be801ffd6ce06dd84a9"
+    },
+    {
+      "file": "src/common/energyPulse.ts",
+      "hash": "1aa6eed91ffcc3400c21f693abc6ff26a754b84a55a76ee0781b18e815c930c6"
+    },
+    {
+      "file": "src/common/eqMode.ts",
+      "hash": "bdbe508e2292673be5167926fa617b366cf1c4c8c6d12ca83c1dbe199e699fe2"
+    },
+    {
+      "file": "src/common/eqShape.ts",
+      "hash": "7db8499a854738f03ffee56b74390e07d92487ef28785a6d556d9334a59ada6b"
+    },
+    {
+      "file": "src/common/errors.ts",
+      "hash": "ea2e2d5546133d562cc26430ba202ce02fad5f915e3100c76f5ad11da52bc18e"
+    },
+    {
+      "file": "src/common/filterDesign.ts",
+      "hash": "f3d3b1be59dc8dc1d1f8435424364119f06d6791fda2a3223969d9e772592b2e"
+    },
+    {
+      "file": "src/common/graphAccents.ts",
+      "hash": "e3dc013fdf9da47df346e7c9dcdc0683bb56d47fa9ba8a9ca8269b8ed49d3af9"
+    },
+    {
+      "file": "src/common/graphAnalysis.ts",
+      "hash": "385b6b6a6a926db5c03981d0771d7c36cd746f9a1b56bff8bc48a5556705d801"
+    },
+    {
+      "file": "src/common/graphChannels.ts",
+      "hash": "bce82d1d6ebcce95e04c8c89c1b838f36f831a7fc685aab1310e96a8fa97fbcd"
+    },
+    {
+      "file": "src/common/graphColumns.ts",
+      "hash": "cc2b485058c07428370b5a1c9304a91841ff8d2d4a1d61b8b912396745cbffb0"
+    },
+    {
+      "file": "src/common/graphEcho.ts",
+      "hash": "bc331c743e53ff3407efd9e3479e6a27d835dc966ce0219a310ef7e8b29b12bd"
+    },
+    {
+      "file": "src/common/graphInvaders.ts",
+      "hash": "218394eb05af23e34ce883ad0a4b90f35251ea3a866940fe74f6a4f68fa1826f"
+    },
+    {
+      "file": "src/common/graphPulse.ts",
+      "hash": "82a4cd17cf128783f431f8b1d552b48ef61f3996ddd6e628dbb08d3de7986e72"
+    },
+    {
+      "file": "src/common/graphRoad.ts",
+      "hash": "569e50cffd3f574504ce3a7ed96f84a8f144366c307235d60cd5db4cffcd874f"
+    },
+    {
+      "file": "src/common/graphSawtooth.ts",
+      "hash": "b9d390d09dcb450a828ed9af4bd15afc568fc7e26c4b388bf2e7923aefee0161"
+    },
+    {
+      "file": "src/common/graphSceneViews.ts",
+      "hash": "e673d87a2df732c69f3c31beb34c172ee2a70f4861950c8362c87dc685af6c4c"
+    },
+    {
+      "file": "src/common/graphScenes.ts",
+      "hash": "08b2d1a657426ef0459387d8955c99ff9ce49035875d7e2e9e70d838a367c99c"
+    },
+    {
+      "file": "src/common/graphShapeForms.ts",
+      "hash": "ebaffc6da1ea0dc3f2a8f868a6dc24ea3741eae456db26838e3cdb2d89c3d66d"
+    },
+    {
+      "file": "src/common/graphShapeMarks.ts",
+      "hash": "55dea24249daf74790e72e64a14d9743940276f1e5efaffe6781ed34404ed32b"
+    },
+    {
+      "file": "src/common/graphShapePieces.ts",
+      "hash": "f51d22cb0688e8ebf08bf203fb6a8be17ba5de9b7ca9b00e8ad125eaf914e6e4"
+    },
+    {
+      "file": "src/common/graphShapeWaves.ts",
+      "hash": "286ba0065095b8327c8db392b43d63da5a14f7abc904ab460d7fe41cabed953a"
+    },
+    {
+      "file": "src/common/graphShapes.ts",
+      "hash": "3cea53b9a4d4a8579e598831bdfb72271efe66d76944170a015357a894035e84"
+    },
+    {
+      "file": "src/common/graphStalactites.ts",
+      "hash": "0a5b659d76947fb29dbea6958460cabebced76a9a88f70bd9caedb18a7e0e0b7"
+    },
+    {
+      "file": "src/common/graphStems.ts",
+      "hash": "7fa7482e4bf2a8208b0b49b49ff4db635bd0d1e3b496c85b4e33f217624b00bd"
+    },
+    {
+      "file": "src/common/graphStyleForms.ts",
+      "hash": "3becbadf7c9845346feb4e1886123dd5a4c05faadc096beccb201e1db7631aaa"
+    },
+    {
+      "file": "src/common/graphStyles.ts",
+      "hash": "d1ffbccb031c0fde8da3b70e7344229a9501178c31a83da6648f4808e366b3c0"
+    },
+    {
+      "file": "src/common/graphTerrace.ts",
+      "hash": "7b844535a7837d7ca13f999bcd594c0d76ae9e7877a4fbaf41836d827dae3e50"
+    },
+    {
+      "file": "src/common/graphTextures.ts",
+      "hash": "5411d8a33478e2626950eebe16320c3b581adfcf37c0336d947105b0c872bac1"
+    },
+    {
+      "file": "src/common/graphTruss.ts",
+      "hash": "0213171d1f9d7bc1ed452466223d513849708ee28cb8634e55796ab746883871"
+    },
+    {
+      "file": "src/common/i18n/index.ts",
+      "hash": "6a3b151dcb61a39bd5a144b589fa98933e0a3a222d158a646c1fa870b4472360"
+    },
+    {
+      "file": "src/common/ipcRequestId.ts",
+      "hash": "9b1758477cd368c5beb5b7dc29e5fb1e8ade76dbf066416de9c17eb02a4b6fe5"
+    },
+    {
+      "file": "src/common/lookGradient.ts",
+      "hash": "25e6f39aa384deef93af2affa773c482095e5cacec6b5b7379210b1cda3f4688"
+    },
+    {
+      "file": "src/common/memberGlslWork.ts",
+      "hash": "7b73dae59dd81c6a648fd54a90de41ccf3ba6930bec93143827d1ce2f1c711e4"
+    },
+    {
+      "file": "src/common/memberSceneRules.ts",
+      "hash": "9369a7e92034996d93bf3002056ce1823949543974cff9f4196058f825ff0a6d"
+    },
+    {
+      "file": "src/common/memberScenes.ts",
+      "hash": "a23c9a78f5adc3b03373cf5a2b9a91186fd9b7a13af673e3abf373d2ff380647"
+    },
+    {
+      "file": "src/common/response.ts",
+      "hash": "a9fc4ad54130cb656e2138c667c4dcf6594e9336992583cd2cdfb0bc38c5dc4b"
+    },
+    {
+      "file": "src/common/rhythmClock.ts",
+      "hash": "7e41d213c7a8841562c273679574db1b05ce6c86c24fdb2b4357808b794b44ff"
+    },
+    {
+      "file": "src/common/rhythmDrums.ts",
+      "hash": "17dd9358a56496eab487fcca0b8f6ee0f7b51754002884602d52b8e111d676c7"
+    },
+    {
+      "file": "src/common/rhythmKit.ts",
+      "hash": "ba562073e3a3ee05400aeacc77ba96ea235ddb16fbf20d2bdacae2bf2184a891"
+    },
+    {
+      "file": "src/common/rhythmPattern.ts",
+      "hash": "0674b831472d711c4c50a82d35231df79c102c4ee80570763623b3677067cd6b"
+    },
+    {
+      "file": "src/common/rhythmSection.ts",
+      "hash": "3ef3d002b8e897114ad6ff377c1592ad3a86c5d333bd2a79eacf553235f403d6"
+    },
+    {
+      "file": "src/common/rhythmSpectrum.ts",
+      "hash": "a570199946cd9ef43a678bdba646b9609ac2a4d52395d73860c11bc3ee69590d"
+    },
+    {
+      "file": "src/common/rhythmTempo.ts",
+      "hash": "b4def861300881c3f97d064c814774c0c55aaf2c4c5bd927977400439630268c"
+    },
+    {
+      "file": "src/common/sceneAmbient.ts",
+      "hash": "b08b5f456fb39b2b30cbad78e976b2eeb1ceffacfa0ff084b9eb32a0d20af592"
+    },
+    {
+      "file": "src/common/sceneCamera.ts",
+      "hash": "2fb4844543c26117db535861c6d235af1a3d155ad6dfbf96873e21397a096e60"
+    },
+    {
+      "file": "src/common/sceneDaylight.ts",
+      "hash": "0177c010b582ac91c28582cf3c2289834fed0d5e8efc534f89c986df7cb5a888"
+    },
+    {
+      "file": "src/common/sceneFailureLog.ts",
+      "hash": "956cfc37677a0ec4e0b1650abf7eeb266c228e80cde8a90c5424b15f47160dc6"
+    },
+    {
+      "file": "src/common/scenePacks.ts",
+      "hash": "7725279e5de5eff6c65c58ef52ea3bb07f4fa08c408dafcb9c78dfc378a8477d"
+    },
+    {
+      "file": "src/common/scenePerformance.ts",
+      "hash": "d1a88b32fe1d486116bd5fb21d24f03f051edc6b7cea2df262f8a9ad27552b09"
+    },
+    {
+      "file": "src/common/sceneResponse.ts",
+      "hash": "348f0c3b17c389e2523bd6c6e42665529b7889105ae8ee47af6267ec0125e736"
+    },
+    {
+      "file": "src/common/sceneRhythm.ts",
+      "hash": "f4beac313e36d2294444707e17814f8bc95d889170b6ceb08c59fbf091bc6f94"
+    },
+    {
+      "file": "src/common/sceneWorld.ts",
+      "hash": "ff7d8643dee2c50f12088a788c02b33cef85b3505326119a099440fd7bbe9105"
+    },
+    {
+      "file": "src/common/sceneWorldCost.ts",
+      "hash": "cfadd6c7cf01ad9dfaf7a36a23c668527ef7b00620553808e5d7fdf521838403"
+    },
+    {
+      "file": "src/common/sceneWorldNodes.ts",
+      "hash": "f607a5df29f835856bb4d6d78f061caedd90112490a5433c243a9cd369c8ccc4"
+    },
+    {
+      "file": "src/common/sceneWorldRead.ts",
+      "hash": "b193d854e726abd77bd9959e8de88ff7e566c05f91d4c9da0f0dd270d13aa591"
+    },
+    {
+      "file": "src/common/sceneWorldValues.ts",
+      "hash": "620345dcab8cf1c7c1c913e6bfb71ceb75e1936ea61b133a561dd99ca18313cf"
+    },
+    {
+      "file": "src/common/seededNoise.ts",
+      "hash": "d56d0f77b1eac1d416096e90466c6839f8ee7fc146257734d8d95fececaed8ab"
+    },
+    {
+      "file": "src/common/smartEq.ts",
+      "hash": "2df47fdf86c87cbefe029fc9e8867c8fa55472fc937df2807d92b1f94f4a20b2"
+    },
+    {
+      "file": "src/common/smoothing.ts",
+      "hash": "022fac2094a995927df5d40192ca4655ec632c36bc49f8500611f1b40cc022dd"
+    },
+    {
+      "file": "src/common/soundHops.ts",
+      "hash": "a7c854bec846c58716523f765ef21100513bb363aa3709931de0331fda65ccf2"
+    },
+    {
+      "file": "src/common/spectrumEnergy.ts",
+      "hash": "7563b999e467d0627fedf28f01009e437ff8ccc7f806c4131765818406d16387"
+    },
+    {
+      "file": "src/common/textDigest.ts",
+      "hash": "6936062a74833d4839305035625f809e9a8dd802db404fff2fa2bad5f2d2bacc"
+    },
+    {
+      "file": "src/common/tone.ts",
+      "hash": "8cf818f967c83d021d6034812e0f8db32b661ce622b2cae1ec871510cda86d22"
+    },
+    {
+      "file": "src/common/utils.ts",
+      "hash": "3f8e8bc9c6dad3e5ab0f92fc618309a2a25b5c5f86a17fbec3b3764a118fa71f"
+    },
+    {
+      "file": "src/common/voiceReading.ts",
+      "hash": "6595d67acf05088fa2700e6159829d589863df053090866771d60357f4f6956f"
+    },
+    {
+      "file": "src/common/voicing.ts",
+      "hash": "77719ce98e9928d14c686df3f99491e5b0de2f5c5891a9444824b5c42f1a0c1a"
+    },
+    {
+      "file": "src/common/waveformStyles.ts",
+      "hash": "fe4fa7a30f73451ae081153048565a026b3d18227a8f41a6651685e14fdbc4b6"
+    },
+    {
+      "file": "src/common/worldExpression.ts",
+      "hash": "2a91af1a7290ff2faddb8bb6e1e3829558033f98d18a5d9e669db009319dde3e"
+    },
+    {
+      "file": "src/common/worldExpressionLexicon.ts",
+      "hash": "7e55c2f0c06d93f290c0bcabecd33c0e5324cdd12be9cee9c865316e0a0f8d20"
+    },
+    {
+      "file": "src/common/worldModelCheck.ts",
+      "hash": "87b2e7dcea63afe20c3e4857e3699e9259a2237a37299e7340681304410bbe5a"
+    },
+    {
+      "file": "src/common/worldModelImages.ts",
+      "hash": "f739f3d9ab319942992850348f009bc5962e6c34676a3128ca0272e3165e2975"
+    },
+    {
+      "file": "src/common/worldModelParts.ts",
+      "hash": "cfb20d9d1ddd1f226cf91a21069391ead247fa01060f8bd3bd54e1f6a83d7888"
+    },
+    {
+      "file": "src/renderer/audio/LiveAudioContext.tsx",
+      "hash": "407309900db21475f4d8eb561643e340bd9577750b174f2a2f77a8379e778b7e"
+    },
+    {
+      "file": "src/renderer/audio/SceneAudioContext.tsx",
+      "hash": "efd8c59aef241f8bc2b3c5e58facf8c189df83f46877737f9ed2a5c8cc8dc3b8"
+    },
+    {
+      "file": "src/renderer/audio/liveFrameStore.ts",
+      "hash": "6c6fc1bb6f0a23adf2ad3d9cf10a67f8a5b08905d45b7106b0847703c6f1d4bb"
+    },
+    {
+      "file": "src/renderer/dsp/meterStore.ts",
+      "hash": "aa83ac3f0affd64e94aa61d8ec6377e8faf899d2e27761a321c4194a0a867518"
+    },
+    {
+      "file": "src/renderer/dsp/presetToneStore.ts",
+      "hash": "6153dd5542ca53ba72d78795779b57c1f4190fdcd01152ec7fe2119ebf234a1e"
+    },
+    {
+      "file": "src/renderer/dsp/rackPlacement.ts",
+      "hash": "7a86684200e25d256de2a7156509ce66354972e18d9528f9638a9194e4e6ac14"
+    },
+    {
+      "file": "src/renderer/dsp/roomTelemetry.ts",
+      "hash": "9eb5f9d74b07eab616168440e92aea378a03d0d8cbad1dfa32f48ea568d2cd4d"
+    },
+    {
+      "file": "src/renderer/dsp/sourceAnalysis.ts",
+      "hash": "789e525624a010667fdb26fdc81d02b26d27f370e24a3c84c74124e3a5f887db"
+    },
+    {
+      "file": "src/renderer/dsp/store.ts",
+      "hash": "a6dcbe6b505368267ede38e465ee6cca6a5a521117671eaf0afdd1793854af78"
+    },
+    {
+      "file": "src/renderer/dsp/systemChain.ts",
+      "hash": "760e43b9a751f254ca542139c367c2d020c390372aa8a892b8a83dabaa4e9779"
+    },
+    {
+      "file": "src/renderer/dsp/telemetryStore.ts",
+      "hash": "04c0bfabcac79f102d7ff3dbcb7a7f65f643b74a3a4af1ff9347272edb3f5281"
+    },
+    {
+      "file": "src/renderer/graph/ChartController.tsx",
+      "hash": "89151763404a4c639db328962dff7b35eef2700b5632d325145caac9d217644c"
+    },
+    {
+      "file": "src/renderer/graph/LiveTraceCanvas.tsx",
+      "hash": "543d70831b2c87b496b776b69f6ef8e1ebb846b147eabb6a4d80251ace062b98"
+    },
+    {
+      "file": "src/renderer/graph/analysis/analysisFrame.ts",
+      "hash": "c509515071a9a27879d2d891301e2ffe8aa333d402af6088a8415c0791e6295c"
+    },
+    {
+      "file": "src/renderer/graph/analysis/analyzerView.ts",
+      "hash": "a3669d27083361e9919b8fa528683f1165ade5d44234b7efcc4f1d9fda8fc6fe"
+    },
+    {
+      "file": "src/renderer/graph/analysis/averageView.ts",
+      "hash": "ce42ecb5b97946521619153f0900311ae7c68279039940569c97a7e11a895a49"
+    },
+    {
+      "file": "src/renderer/graph/analysis/barRows.ts",
+      "hash": "0b21deb33d304ab50aa8b349751c272ffb6c57475a8bb0101ade0dba50792a7b"
+    },
+    {
+      "file": "src/renderer/graph/analysis/channelInk.ts",
+      "hash": "b0b6aa84088990733f1361623e4798c4504384bc325eb3fb8dc36c9a2134e578"
+    },
+    {
+      "file": "src/renderer/graph/analysis/compareView.ts",
+      "hash": "38d051e4d856f026602ceadab2a91c97d84ef250d84224d9bb66fc0a37a329e1"
+    },
+    {
+      "file": "src/renderer/graph/analysis/drawAnalysisView.ts",
+      "hash": "cb69611bd0e367bcbfc5af0def4cc50a06738f121177b8e03713f0c1eb04eaf2"
+    },
+    {
+      "file": "src/renderer/graph/analysis/energyView.ts",
+      "hash": "9f104f25d0557a75b6030ff8005a80c07de39fadc756c63892e374fdd2daa77f"
+    },
+    {
+      "file": "src/renderer/graph/analysis/footWords.ts",
+      "hash": "b042248caa543efa4dc18fe6c97205001ef4cea3542403467af6e0cf57008ca1"
+    },
+    {
+      "file": "src/renderer/graph/analysis/legendPlace.ts",
+      "hash": "f06394b838dbce5574212e9f2660642aacfd117c935af8c24770936361dab048"
+    },
+    {
+      "file": "src/renderer/graph/analysis/loudnessPanel.ts",
+      "hash": "63efa7b39e87c0910f8956268366f0954c24772062eb343c177c09d78976a89d"
+    },
+    {
+      "file": "src/renderer/graph/analysis/loudnessView.ts",
+      "hash": "58b70e8584c85d7026f067212bf2274537775433ba921bdcd4499084564a67f4"
+    },
+    {
+      "file": "src/renderer/graph/analysis/midSideView.ts",
+      "hash": "a9fdefb6bb8b7f5e85c645ee2e39a3258d87a4c7c69d8b678dec248180b23fa0"
+    },
+    {
+      "file": "src/renderer/graph/analysis/notesView.ts",
+      "hash": "d785720c3e21cc1824e6d03666f80ba4d67688ae63e55113236f8e2eb0b96a8b"
+    },
+    {
+      "file": "src/renderer/graph/analysis/octaveBands.ts",
+      "hash": "d235b3fa055d4dc58fc7f699914cf8fa69cd5bf21d7bdd6ac637fe0fbe3cda1e"
+    },
+    {
+      "file": "src/renderer/graph/analysis/phaseView.ts",
+      "hash": "9c45eb212529ce16900abe65e8ffe60c49d00cf94137efc01fe24c26fe2dd2b9"
+    },
+    {
+      "file": "src/renderer/graph/analysis/rtaView.ts",
+      "hash": "a466cf55afa2b737ff48c9211693c52b0618a2e5eac9eb884b3702742aec47b0"
+    },
+    {
+      "file": "src/renderer/graph/analysis/scopeView.ts",
+      "hash": "eee3817ac249b86d4cb636e971f7360a3ac2e780d920c79e0984297011a3c14b"
+    },
+    {
+      "file": "src/renderer/graph/analysis/spectrogramView.ts",
+      "hash": "c9bc423cfbc645b3a3c8c03986233ef6462e8be36de48321fd6159f00f15def8"
+    },
+    {
+      "file": "src/renderer/graph/analysis/spectrumPaint.ts",
+      "hash": "60383f02f591248fe4f2d19fdbc6e42a63500f094d5c5bb6f4ded4007a59414b"
+    },
+    {
+      "file": "src/renderer/graph/analysis/stereoReading.ts",
+      "hash": "0071146730854443d584ece75c3d03dc4ea028e9acd7e2b3613f1dbda9cba457"
+    },
+    {
+      "file": "src/renderer/graph/analysis/useAnalysisChannels.ts",
+      "hash": "c09920850410143f53d154e4a36f8d67655f9ff919c0315ad563d9c9cf131adf"
+    },
+    {
+      "file": "src/renderer/graph/analysis/waterfallView.ts",
+      "hash": "d43078002164bf6e4802d32dbed01084b9544c7674e3ae8f354cfe9b848d0485"
+    },
+    {
+      "file": "src/renderer/graph/bonfire.ts",
+      "hash": "73deb4ad1bdd04ad17a0f84dcafc87cc5b9c8826b208c8c048de3d9fe4dab301"
+    },
+    {
+      "file": "src/renderer/graph/braidStage.ts",
+      "hash": "bade6b64f4c3e813566da3c86f0528f1979539aaa3b02505b9669dc13b59bdd7"
+    },
+    {
+      "file": "src/renderer/graph/bridgeFireworks.ts",
+      "hash": "26374c399f4fb0bed486c4a03120aaee5b8e5b14d25b4276c391ff1a9ddd19c3"
+    },
+    {
+      "file": "src/renderer/graph/bubbleMotes.ts",
+      "hash": "5ded4ed005a95ab7cabf38b69ef4dee9a6693d66a532a38677e7b0c84253acee"
+    },
+    {
+      "file": "src/renderer/graph/bubblePaths.ts",
+      "hash": "1d6f6a3fa465dfec0b603ede1c9f115e16a110d4dc9c9ee6aeb56f403e6e3cfb"
+    },
+    {
+      "file": "src/renderer/graph/bubbleStorm.ts",
+      "hash": "cbe666fd872433024c6186abf36ef8a6769ca5b8a2326126670fba547a4ec572"
+    },
+    {
+      "file": "src/renderer/graph/caveDrips.ts",
+      "hash": "be19bd6fc3c73a96b7d25692eaa05e46a37c2d4623cda3eadf26d749e838b495"
+    },
+    {
+      "file": "src/renderer/graph/citySkyline.ts",
+      "hash": "95afe03e26f0c29ec8772755ac41ae0b9801b4a254014a53cf23d4a1e7ec04a4"
+    },
+    {
+      "file": "src/renderer/graph/countryFence.ts",
+      "hash": "7718bfe492915460f82f47c29a207713a6a9b6dde16e2c9c3bd5d425e1e73b83"
+    },
+    {
+      "file": "src/renderer/graph/crystalSpikes.ts",
+      "hash": "36d42a5e24dc237060a1096c9c53a9158aa3fb68acd1e759abe91abe620f1140"
+    },
+    {
+      "file": "src/renderer/graph/dashTrails.ts",
+      "hash": "661274d5bcec6ce265ed1ad6d9011e97443efece3b21f3c629353008e235df1d"
+    },
+    {
+      "file": "src/renderer/graph/defaultOutputKey.ts",
+      "hash": "be5ac7758a43390719eb49f23053e96b155f381507a63b52b071e194079d4112"
+    },
+    {
+      "file": "src/renderer/graph/dotPaths.ts",
+      "hash": "453ed29d8fe3ee76640908aa8b87d2d124f83a64d67d6bfdefeb2734c76afecb"
+    },
+    {
+      "file": "src/renderer/graph/drawLiveTraceFrame.ts",
+      "hash": "c1aac78c131e0baf67c1fc0a25886e0f35e21a270c218a2cba62dc4673e203ad"
+    },
+    {
+      "file": "src/renderer/graph/echoWaves.ts",
+      "hash": "d62a93358893e89635c7ed021cb71a3415700cf03182d4e5b49bb7d7d677f956"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/EngineLookLayer.tsx",
+      "hash": "8fc29f08d7631cd85ad587ffd34974c19dd56bc6bf7a2cbaa1323d0a13c80c47"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/afterglowLook.ts",
+      "hash": "3182a96da69e27f5fbb8eb1c22aa3bb6dd884a12006ee5b71dc7eb8536ae4ced"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/analysisGlsl.ts",
+      "hash": "1a053b479fb4be121d254e690f42ed31b7dda7e167eec99b1b23c65510d1249e"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/analysisLookInput.ts",
+      "hash": "922683be7336ea5f2d9b35cf3280212ec1b0dd986c886970e1b7f60569db294e"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/analyzerLook.ts",
+      "hash": "57b293769d9266ed67e0340acc39d5e1373fcc79c315fefb27cca619a74efd0a"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/averageLook.ts",
+      "hash": "29d183f2cb8fad9ea7d2ecc9b72fa27ba60ddff4f9840c958df3a357a42d7311"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/bars3dLook.ts",
+      "hash": "843fa4a53dbb95519cbcea2c6dcc3364d28e4ae215c02bab2c80df984b29a16d"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/barsLook.ts",
+      "hash": "4a29bf7c6e25bd7203ce544604a524341a4497033024629497824328235e7cd4"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/bouncingDotsLook.ts",
+      "hash": "9ab6a5b4826064fc03bbed6e3d88621ad1a569ae9fae092d72db07d98676802f"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/compareLook.ts",
+      "hash": "1b36dc2334aa9fcdb513f35815b9a9eaea671a44e7930b39195502aa02342b68"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/designed/bubblesLook.ts",
+      "hash": "d9b72b5b51aaa9549316032457683871d4561e19fceb737d92f57dbd4ef8d9fe"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/designed/designedGlsl.ts",
+      "hash": "a78c72516c8295b91737cc921b11ebb9aa501c34302a370d15912422135d845c"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/designed/designedInput.ts",
+      "hash": "83704dc02b72fe63d25f6689160ed3d2bc0aa9581c930496075d2638e54609f4"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/designed/designedLooks.ts",
+      "hash": "b7768633f42812e3832af3e9ccc55d85943b5780ac3da8d52a04e4a99ebf0950"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/designed/echoLook.ts",
+      "hash": "e502ecf5cc304df6ef58b7386b7f209ad41c44abf5218b4191f4dc07246e9929"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/designed/invadersLook.ts",
+      "hash": "dbb9152a5c4b81b3450034c23ef4c557c32ea03436e6d7c8ca56f7e8b5e33211"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/designed/nightSky.ts",
+      "hash": "41a0924965c5bd793594fec9198fda9719f7482ff91c61738ab1e9b6d3522ef5"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/designed/pulseLook.ts",
+      "hash": "87daceae6f8eec31be8b896fd5472e5be11178723fdead8afa6bc05ef2ab92ba"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/designed/skylineLook.ts",
+      "hash": "13c0653569b12a09e49d35cf9046f95542e8a6e82863b55b5fd94330c73ebf8c"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/designed/slopeLook.ts",
+      "hash": "4932425d01a8b552f27b20042b4b0b0612f939724064606fc64425b2e2b85b73"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/designed/terraceLook.ts",
+      "hash": "78b1140af413be427720b60f93e4381282d063d11ce587dec83c19914f59ca03"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/designed/trussLook.ts",
+      "hash": "05a2192ac191a2aa9c1f0fb4a45a54e58ab8f41c6d37ed558dc6f64c464c3b18"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/engineLookHealth.ts",
+      "hash": "09c716232740ed6bd588fa03e312fe1d086e9334542c1d174df88296406d4675"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/engineLookInput.ts",
+      "hash": "c64fea787a564d4f9ef338e5b14d3a5acaa60e6e797a6010203b7140614392fd"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/engineLooks.ts",
+      "hash": "56c16c0212348610b4b44e454632b716a011b340e360bd4b0e8c94d829869035"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/fallingBlocksLook.ts",
+      "hash": "3bb89b890db27f43e66264a00f9dc3b2388d27db2a65bfd68abc8e558a92390b"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/fibersLook.ts",
+      "hash": "ee41a8ef54d5075e3c8b2b1ebfe8b56f6872f303a00403fa940675d4f3f5e27c"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/glassTowersLook.ts",
+      "hash": "e6ee605c0bc760c15b21515319cdc845f002b72e2883530408b1db0b64bfe8bd"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/glitchBarsLook.ts",
+      "hash": "798b1ace68635466b98f6a50f315f6b93f81161025d820b0b7e3e6d3eea818f4"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/halftoneLook.ts",
+      "hash": "9835a740aa5398631f664a44ed914dcdecd8e2b31c5cef87b18496996aa04d3f"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/haloLook.ts",
+      "hash": "2e20421c5bea2018240ace2334fe6d48ef00ebecb207cfc3ba2f286015307487"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/horizonLook.ts",
+      "hash": "9f3efab28165ce12677dfba28e37bf2a721bee77ae896e485166b740dee0282d"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/ledBarsLook.ts",
+      "hash": "8eca7942cbc1457c91ef0327604ad446a02863f3ce4adc43a0f384f6d3552d75"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/ledWallLook.ts",
+      "hash": "7b1230c3b46d866ec0c402c9a047dbe52216c19eeb514b9ed47eaa27dee99df0"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/lookGlsl.ts",
+      "hash": "0a73962e45fd6a275d8a0b2905b2534d2eefe7c8b1e289e4e431fabf128a24e8"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/lookInput.ts",
+      "hash": "306f0628aacce6871dec5ab8ecf0e5662a59fec1981c7cec6745b773a967de6e"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/lookTexture.ts",
+      "hash": "58a66cbd75fb388c2f119ecdb37ca035ede013a7eeb7cf1053c94ae40b8874be"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/loudnessLook.ts",
+      "hash": "fca2bb217f216b46d769af87dc9dc3cb4d1bda155c383924a8670e5dc000aba2"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/midSideLook.ts",
+      "hash": "c7983e6a3f109c5e424b818a18f59ccee840e1772f05fac7887c1f7b8c78527f"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/mirrorBarsLook.ts",
+      "hash": "84a6bd70618e9e89f78440195eb49e3d7109f41e53491cdc13009bf362a7a569"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/neonBarsLook.ts",
+      "hash": "dc05abb43826e25aaed7591ec11fb6ae547137549971913cd83e2816b7367694"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/phaseLook.ts",
+      "hash": "99855f9f97de51e925a30ed59362b2513f4766d8b8fd2336047df3e08093ab0e"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/pixelBarsLook.ts",
+      "hash": "4b9d29502278abccc4729dd53cc2a805d534eba6a99e5221c33f63ee9ba3ae8e"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/scopeLook.ts",
+      "hash": "e568568a32da1fafcb782dcd93342d0d75b1b2aa17b8285a913692dd03b13796"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/silkWavesLook.ts",
+      "hash": "1cafe118a4f0351874f844d407bfedea478576ed29a1b49f31b5716800b6a220"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/sparkBarsLook.ts",
+      "hash": "6542138e3b0675e162e96cf92d63ea0e6499effcc8ef11159f11e4ebfc008a54"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/spectrogramLook.ts",
+      "hash": "7c9c2b83ebc96d3c3fb82ee391a259ee474e10b0646d4c272805b3833219c106"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/spectrumWaveLook.ts",
+      "hash": "6b7ae73fb854a98d6ff4fb96e9c51eaf208c41ad721384d6e4a6013ba1ae6c45"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/synthwaveLook.ts",
+      "hash": "67a52be298eda22c5d357153434eb95f47dbd9a7cb46d81a61d725352c40cfeb"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/textureOnce.ts",
+      "hash": "2b5db4fae32c5194de4b2b159d8e04d63bb0ce04e6ccd8d120a189bf795b2a45"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/tideLook.ts",
+      "hash": "43df875a71eecddb959f1dfbf1f624e5529fc132377745979d9c7fcf27f778c6"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/useLeavingEngineLook.ts",
+      "hash": "e54c622f9d9af26b21c807f52ff2586342665c4a0caee727ca6354d8ad24c237"
+    },
+    {
+      "file": "src/renderer/graph/engineLooks/waterfallLook.ts",
+      "hash": "a728d86c8822e670ff5abe4733b3893993c27525aa2500530d7c07d93c223a5b"
+    },
+    {
+      "file": "src/renderer/graph/figureGlow.ts",
+      "hash": "109320fe3535be540061afa656a6659e67085edcf0fbb1fc598a321c390722ac"
+    },
+    {
+      "file": "src/renderer/graph/fillTextureTiles.ts",
+      "hash": "f16d5bbdfd73d3037a35b293d66b426361255be706522e6d93fc5c08987ddaf0"
+    },
+    {
+      "file": "src/renderer/graph/fillTextures.ts",
+      "hash": "d685998ec189fe8fd0e90b79e58be221b9ead0395b079e02671634c1ccdc3e0b"
+    },
+    {
+      "file": "src/renderer/graph/frameCadence.ts",
+      "hash": "0d77a573d998deee9c1a8d2a599a002cddb598b6e121c9bce2b0336b98b8a5f0"
+    },
+    {
+      "file": "src/renderer/graph/graphAccentPaint.ts",
+      "hash": "348d5d3b0bbb490c9850ff717fca95ebe47b3b4454699e35970cdecc1798d321"
+    },
+    {
+      "file": "src/renderer/graph/graphAccents.ts",
+      "hash": "90e208455ade291ccf9f5287ed8b91d6705e1c4229961c141f1a89e194f71e13"
+    },
+    {
+      "file": "src/renderer/graph/graphFrequencyRanges.ts",
+      "hash": "45c9a183e76f791ed5261cab6a07b31d0d720c3469745cd25bc7d471be08c601"
+    },
+    {
+      "file": "src/renderer/graph/graphLabelInk.ts",
+      "hash": "8643e8c30c63b73114c4e80292cd8c9df4448dec94dd1a25d895b378506e3547"
+    },
+    {
+      "file": "src/renderer/graph/graphLookTransition.ts",
+      "hash": "ce524f8be7d47c7e4046b13acc4640b3da6b37c1110213656acaa86be21c8b96"
+    },
+    {
+      "file": "src/renderer/graph/graphMotion.ts",
+      "hash": "43f03de7b3fecdf02f594fe5bf45f9c7faec5c834b228aa628060c28c6087a45"
+    },
+    {
+      "file": "src/renderer/graph/graphMotionPacing.ts",
+      "hash": "f4bc312087161f643bb78f0f61537f43d68296b9217db50653a32b9c43746521"
+    },
+    {
+      "file": "src/renderer/graph/graphSlices.ts",
+      "hash": "ac6d31c55a72705cd04fbdf40e5f2d1b983f0f284d18315799542576bd42ba8f"
+    },
+    {
+      "file": "src/renderer/graph/invaderCabinet.ts",
+      "hash": "e5744f38818299bb6fbc0f33b48e932ccb1b177aaade3c0b58ea822199c9eeb5"
+    },
+    {
+      "file": "src/renderer/graph/invaderInks.ts",
+      "hash": "2adf434957751f169b27d458b2c23b70ec58bc1d76ce10b0fad9c8f3dcb35a6b"
+    },
+    {
+      "file": "src/renderer/graph/invaderWreck.ts",
+      "hash": "d5e368deaf6da04787a805167dc7da3cfa527041c12c119d7388b77bcbb16fc2"
+    },
+    {
+      "file": "src/renderer/graph/liveCaptureGraph.ts",
+      "hash": "3b609d0e68bde5872c350ee12b40e5f13da650f45830939a76d69e39cabe121b"
+    },
+    {
+      "file": "src/renderer/graph/liveCapturePump.ts",
+      "hash": "6bee91a33d4a41ecb281e2f32616b0743c1f923094c06fada8e0934a8dd6c971"
+    },
+    {
+      "file": "src/renderer/graph/liveFrameReader.ts",
+      "hash": "a4a49107761986463f01536f3c660c18043b82e96ac68755d73b359bcef70574"
+    },
+    {
+      "file": "src/renderer/graph/liveGraphBand.ts",
+      "hash": "847c8dc03df349f58c28ae11c245297dafdf44df227b31964f37b2d06a7482ab"
+    },
+    {
+      "file": "src/renderer/graph/liveSound.ts",
+      "hash": "06adaedd03f1ad70309e6a341c0f2b0149621517078e7d3397393b4fca3adad8"
+    },
+    {
+      "file": "src/renderer/graph/liveSpectrumFrames.ts",
+      "hash": "928c3fa0247b542250218865b1d2462f6a7ef4e97c3afca46e882953a0948821"
+    },
+    {
+      "file": "src/renderer/graph/liveTraceArcadeScenes.ts",
+      "hash": "a51fd2aba8d6e7732b714a5f588d535aa9ef343405e7c8cd314bbbc822ff9c00"
+    },
+    {
+      "file": "src/renderer/graph/liveTraceCaveScene.ts",
+      "hash": "dc5c6b1b76aae7b32322300d332c37ed3576af61a94e1dbcdd863c702563dc40"
+    },
+    {
+      "file": "src/renderer/graph/liveTraceChrome.ts",
+      "hash": "951e761d78289c9a723f461fa8513e8020b463435fad993f3116a62692a3774e"
+    },
+    {
+      "file": "src/renderer/graph/liveTraceCurvePass.ts",
+      "hash": "2dd8e5221ae1cc5d4e971401b813c8ffeaf3e19ef972e63b0617e249b12c893a"
+    },
+    {
+      "file": "src/renderer/graph/liveTraceCurves.ts",
+      "hash": "8f83c3602db177249f7bf17f83307069152bf8d9a85e51d3c993980fab0340aa"
+    },
+    {
+      "file": "src/renderer/graph/liveTraceDesignedFrame.ts",
+      "hash": "22d47ea5c7731a17678f83c549ba90c968449221c6874a54868e2dcc3d63fcfe"
+    },
+    {
+      "file": "src/renderer/graph/liveTraceFenceScene.ts",
+      "hash": "3a632b7949f5ed991934d4ee3a39ed1b330f235a01f44e0f65e53a0a775fb17b"
+    },
+    {
+      "file": "src/renderer/graph/liveTraceFigureLayers.ts",
+      "hash": "c08a6748af20a3593e984e8bc6e5796ed789bf74cdcd0012c881247aadf61dfa"
+    },
+    {
+      "file": "src/renderer/graph/liveTraceFigureShape.ts",
+      "hash": "846dbac1562ee5045a9d92fd30af2a358e4dddae5c55cc1f44b38d31bc876df8"
+    },
+    {
+      "file": "src/renderer/graph/liveTraceInstrumentLayouts.ts",
+      "hash": "4568cfaef39e83a5f6839eec5d9d097f95c76f96f95481efaf56a4b3fed4d29a"
+    },
+    {
+      "file": "src/renderer/graph/liveTraceInvasionScene.ts",
+      "hash": "dc671f062deb262dda7da286c0d269aaa37ae26139319e8b7bcb809d6adc93dd"
+    },
+    {
+      "file": "src/renderer/graph/liveTracePaint.ts",
+      "hash": "dd9c8972aa47202e00064072855e7323c5b788103baba64d20bd7e0f4de5dfc7"
+    },
+    {
+      "file": "src/renderer/graph/liveTracePresentation.ts",
+      "hash": "c4778848ac8cc86e63b44a0f17a95bbb44eedf1d7c614f6e4062d242327af2bf"
+    },
+    {
+      "file": "src/renderer/graph/liveTraceRoadScene.ts",
+      "hash": "a501ea31e09984d43dc940ab1380b53404f58ed92bc2b5f40ecc48fdcf50a8fa"
+    },
+    {
+      "file": "src/renderer/graph/liveTraceSceneLayouts.ts",
+      "hash": "3908721dbe841fd8e3e4862aa54adfeac0c10ac7c144722bce217d46937d5e60"
+    },
+    {
+      "file": "src/renderer/graph/liveTraceSceneStates.ts",
+      "hash": "74eb44f4d45950dd9204a8136410f9bf8b224f4e3033f58ac1da877ad4116cfa"
+    },
+    {
+      "file": "src/renderer/graph/liveTraceSignalLooks.ts",
+      "hash": "71aea87683e515d52d77e127783908afd9a5148df2ba2811cfff261346aee9b9"
+    },
+    {
+      "file": "src/renderer/graph/liveTraceStyle.ts",
+      "hash": "aa8dd6e24a8a6abe49d7f39af0d658bd1b8042c7dd5c6ea990d861c20c1af7b0"
+    },
+    {
+      "file": "src/renderer/graph/liveTraceTownScenes.ts",
+      "hash": "1e08cf1e87dce5e358d4cfbc09d6d09366514d8d38f6f024ebb3891c40e11784"
+    },
+    {
+      "file": "src/renderer/graph/liveTraceTrussScene.ts",
+      "hash": "36b20bea6b56ab70cabec507576b8430cd59823565eab5bf2eb8192b5ac3b3cd"
+    },
+    {
+      "file": "src/renderer/graph/liveTraceViews.ts",
+      "hash": "2b6006f232455eee9e24c313dede43a48df6b27a1747e6d709903dd8360069a7"
+    },
+    {
+      "file": "src/renderer/graph/liveTraceWeatherScenes.ts",
+      "hash": "d97832bafb518c622997f3bcb6a4ed559cc8b8a09816eb589b6303178ad73ec2"
+    },
+    {
+      "file": "src/renderer/graph/lookColours.ts",
+      "hash": "eb86fd504b9e4fce6898bfce4adce2415e18cd1e918eb00f1ea64e36a2f61123"
+    },
+    {
+      "file": "src/renderer/graph/lookPreview.ts",
+      "hash": "55cd77199517578020a19c01073c3f091ed6942be30efe6edfe8ed5648749c1d"
+    },
+    {
+      "file": "src/renderer/graph/lookStillSong.ts",
+      "hash": "01de0e41915ffa796a821e88de7a42907ba5bfc92e43c9b344448f59c0cf8146"
+    },
+    {
+      "file": "src/renderer/graph/lookStills/ShippedLookStill.tsx",
+      "hash": "d6e1d1a2a3c54081d6ce5e22ef2ff136f6eb0d8b5904caaed9a5224b1da54a0e"
+    },
+    {
+      "file": "src/renderer/graph/lookStills/drawnSize.ts",
+      "hash": "f15baff43164e01a640e5b47443283e4ddbc304c34d2fbc9e581c657215f2432"
+    },
+    {
+      "file": "src/renderer/graph/lookStills/stillFetch.ts",
+      "hash": "70b5e2f89cc3bff9cc4e28ae3fdf8ee157b9354b9005cb8bb1cfa0304a5de851"
+    },
+    {
+      "file": "src/renderer/graph/lookStills/stillRoles.ts",
+      "hash": "b155c0ea1ad654e449c6c8f9ace4037d6b0a6962397c0ce6596ab5ef63bec69c"
+    },
+    {
+      "file": "src/renderer/graph/lookStills/stillSize.ts",
+      "hash": "3b499b6b0b055312a4ae14f30025e85402c6b91825b859379a20fe988d726c8e"
+    },
+    {
+      "file": "src/renderer/graph/outputLevel.ts",
+      "hash": "cd3f8218e8e873838e53d0077f7369b063323f0dc950fc0e7b9ee0395e2939e5"
+    },
+    {
+      "file": "src/renderer/graph/pixelRects.ts",
+      "hash": "2d8fd2cf53fae2c0dc66aeb2b70477b889cf85b36db9c96ea13da3f2937dc2cd"
+    },
+    {
+      "file": "src/renderer/graph/pulseMonitor.ts",
+      "hash": "257833475dd09fcc35921979f3f7b537e4bc5c312c55e9c1b9c9ce93dc33fb85"
+    },
+    {
+      "file": "src/renderer/graph/rainstorm.ts",
+      "hash": "03e4b381ac15f6db12762961cf54279313dab4afcc14a982330958d679049762"
+    },
+    {
+      "file": "src/renderer/graph/roadTrip.ts",
+      "hash": "944d44c4939c6b2198c2891fc4b64a4de5e15cfc1eae73e6d58892bdb7aa373e"
+    },
+    {
+      "file": "src/renderer/graph/sawtoothScope.ts",
+      "hash": "18d867fef154a871974567475a5b55f566257db70f767498268ff3e4cf388cca"
+    },
+    {
+      "file": "src/renderer/graph/sceneBlurScale.ts",
+      "hash": "6f880d5e5612202791e64d3797419de568a6e4842cf2a4e73c1bd8e0e211cef9"
+    },
+    {
+      "file": "src/renderer/graph/sceneCanvasHold.ts",
+      "hash": "c603078240d2c67f45dfaa87915cd168f70e9eed27707bc517f5816302cfed89"
+    },
+    {
+      "file": "src/renderer/graph/sceneDaylight.ts",
+      "hash": "ed57c82e7b072f532ccc10510e9df21a29719c894231975a759f3e3ac456ccab"
+    },
+    {
+      "file": "src/renderer/graph/sceneHealth.ts",
+      "hash": "db5c12299adfc72ff43fd6b40d8892bbc349bcd0318757b6fe657e9f7568540f"
+    },
+    {
+      "file": "src/renderer/graph/sceneInk.ts",
+      "hash": "54a0e9fb8c1b0dd6bab31b3a6d66f733316507be332885980b35d7b9d6cb326f"
+    },
+    {
+      "file": "src/renderer/graph/sceneLinkTurns.ts",
+      "hash": "b75fd9b12894dc997f835a02908db8b358a627ce06d1040337a1ebad01f03764"
+    },
+    {
+      "file": "src/renderer/graph/sceneMotionSpeed.ts",
+      "hash": "c8b5d9d1ed46f68b8d0ea6f328cc2e2e286549f0e8ae52f4c675b2a3f0aea153"
+    },
+    {
+      "file": "src/renderer/graph/sceneMusicFrame.ts",
+      "hash": "b2e83022a5d9ae29a9ba28dbf17965e842f35228793ce40691e49b8d51a35708"
+    },
+    {
+      "file": "src/renderer/graph/sceneProgramInputs.ts",
+      "hash": "da6202ccccd9542bf23ddc3e916a032561e385bf42c95b46f5c30efb143ba38d"
+    },
+    {
+      "file": "src/renderer/graph/sceneRest.ts",
+      "hash": "0f0ac27e911eead1928a21df8593d5e7866cd333e837f8e4598cadab1e765c9e"
+    },
+    {
+      "file": "src/renderer/graph/sceneRules.ts",
+      "hash": "e452945443f183e3ee0ce90e2ccff0e54c19847fa75453b907430208d1838fab"
+    },
+    {
+      "file": "src/renderer/graph/sceneTuner.ts",
+      "hash": "1fa63ddbe7af9bc822d0f253f5e1d7993ac503afc0a095d22519254ced842c9d"
+    },
+    {
+      "file": "src/renderer/graph/sceneUniforms.ts",
+      "hash": "46cdc614ce93ea7b99da88f18fa3263d538151601c06efb76a0aac6c2f9bd35a"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/afterglow.ts",
+      "hash": "d9c1239e6ee6bf3b8554e34685c9198da56069c7543ec6eeeffd4f01ba9bb161"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/bars3d.ts",
+      "hash": "11e0875ec44d063364298b790b19ee30ac47c153a9a3f18726d81f98802cb29e"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/bouncingDots.ts",
+      "hash": "da784150fe892f7c7f5d535db071666f57091041bbe774bc28ed04b36f336ef4"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/drawSceneView.ts",
+      "hash": "ae501ace2f12c1b4177904c43d3108ecdd084aa4635c47aef4cc19e28f276cd5"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/fallingBlocks.ts",
+      "hash": "0dbe110f90cc39a03f84d9934b215c6b57d9cdbe2e1120f735544c0dfd798c78"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/fibers.ts",
+      "hash": "2af9f27fe42778ddb6d45f58cb56b7c0a8bcd134c431a83622b4c0a72b026ae5"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/glassTowers.ts",
+      "hash": "721d32ae5a889fad7948b38618c1bcafe7959cb61bcd62354d5470e8b1e6bdfb"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/glitchBars.ts",
+      "hash": "46789e86fc43aebba1b2ea0a3c3f834adc78e75671865b6eca6120516e5c66d7"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/halftone.ts",
+      "hash": "4e101c654c83ab27a52862093e45f5ea3d268e9992253280ce57e2f45c1efb74"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/halo.ts",
+      "hash": "302996a439c8751eb62af31b987d84b67dca20cee5a6d546e4886b85bcabea35"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/horizon.ts",
+      "hash": "6d5230ed6a4358efc56bcd64845eadf8c140687ace1cca77bd32f933a7c39a78"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/ledBars.ts",
+      "hash": "a1b41fdcb04f65aa9d1a96c18798f2316d575b7b8dd24399aeedeabe7e8ae156"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/ledWall.ts",
+      "hash": "dda207df29f99b719ceb60cb3bc515b69af53a9c0e7e8c8259cf670cd21638ea"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/mirrorBars.ts",
+      "hash": "386f6f5a1968cf696373b19100c1cf4aa3ede20fef6ac46a8c3ba9efbd767ce6"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/neonBars.ts",
+      "hash": "1c12b83e127d405d2ba3b4f339e352360bc2d4ce7ad7f7d8328d5102fb6e6cc3"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/pixelBars.ts",
+      "hash": "36f607ca12b41d80090a145ed8f65d896ee3449a84de8267abf5dc3c8e204863"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/sceneBloom.ts",
+      "hash": "aed7b5aeb43e5ce9f26f57dc72987beffc0c387b1ff5f61b272f9b9dbd1f16ff"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/sceneFrame.ts",
+      "hash": "0405658ce749cd259f09141fee78c3c99f587efbc139aa6189fb41dd9e6fa818"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/sceneInks.ts",
+      "hash": "3b4c7cb57cc054b4640af4804c3139838f76ae2a5e25d163fe9e87ef7a20b3af"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/sceneMusic.ts",
+      "hash": "a15981690b94c714803889ec97229e9d73236e27af517038f9891a6b6313cbcd"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/scenePieces.ts",
+      "hash": "4c015032c0d0c66ec3469cda2e937baad815246eeea7a20d33771e56e0a5f99a"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/silkWaves.ts",
+      "hash": "27efefc0dfb72ddd9e1e76c9d2d7f598b0e110ea4454241b5a2038bc10b2620d"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/sparkBars.ts",
+      "hash": "4330f2746cb9f6b2d0c7742c4d8921913aff4435853281559d643f22c9a760f5"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/spectrumWave.ts",
+      "hash": "c01e585c1b1f9cdc0469de3712e09cfc1abb8a50238244e7dc59d229acb4e226"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/synthwave.ts",
+      "hash": "811ae4082acd598fa6175cc278cbeccbc261ba74217b1964b17803a24beefafe"
+    },
+    {
+      "file": "src/renderer/graph/sceneViews/tide.ts",
+      "hash": "6f3c2105cbf3ceefc87871fece99534c254a8f10a4e122c975e14a06b80a73f3"
+    },
+    {
+      "file": "src/renderer/graph/sceneWarmup.ts",
+      "hash": "7873ffaf74592fd6a5eaeac658988875be7a2f4d6fbe3c870f06d64fbcb8bf24"
+    },
+    {
+      "file": "src/renderer/graph/sceneWorkerClient.ts",
+      "hash": "4a567695afc6e9c7bd09062cf58b3bbe4e70a8cb4468ad42fc7ed98c019c5930"
+    },
+    {
+      "file": "src/renderer/graph/silentFloor.ts",
+      "hash": "9bf51c5a0f804f43691a6197cdf4204b4a2929acf52d56af7f54b9cb452ba63b"
+    },
+    {
+      "file": "src/renderer/graph/slopeField.ts",
+      "hash": "637862b7d7c721ebe8bf12916628bf2637697fd935a59851b1245143d8983e9f"
+    },
+    {
+      "file": "src/renderer/graph/slopeFlow.ts",
+      "hash": "3118e2af74d702e2e893e7ea87e0104af89cb10f939c282590aa53f6cbf2063b"
+    },
+    {
+      "file": "src/renderer/graph/spaceInvasion.ts",
+      "hash": "59f53bfeac3d89c4c35cb912cac854f518678effc7c331b5cfe1f05b16cc17f7"
+    },
+    {
+      "file": "src/renderer/graph/spaceInvasionLayout.ts",
+      "hash": "142af1f30bdd4ee29374cea267049f24ecffed7bd2d6e3dd934e33ee8c19bdd0"
+    },
+    {
+      "file": "src/renderer/graph/stereoImage.ts",
+      "hash": "95e64538aea3027477d52c1b4db67b57cef2c8660d2a6f729fb581692311f990"
+    },
+    {
+      "file": "src/renderer/graph/stoneArcade.ts",
+      "hash": "773824887c5714d807c51212d9d2ae3b42984c97cc6f83bc86676d6abf9faa83"
+    },
+    {
+      "file": "src/renderer/graph/terraceJumper.ts",
+      "hash": "eec383d2fdf2dac211aac086679df7b79f6788051002e10fb2ace1b81918220f"
+    },
+    {
+      "file": "src/renderer/graph/terraceNight.ts",
+      "hash": "1836fbc8894ec8e630ce92322c30549bd925344f1653d46b67891f2e31fc5fdb"
+    },
+    {
+      "file": "src/renderer/graph/terraceValley.ts",
+      "hash": "02205905872db538f0a453c98e997510b24770cfeb081ecf7228d0fdf093cc8c"
+    },
+    {
+      "file": "src/renderer/graph/texturePictures.ts",
+      "hash": "302e33139492c1be5cfb7cedd7c24de2e286244fb031f00e12227dcb76cc0b51"
+    },
+    {
+      "file": "src/renderer/graph/traceEasing.ts",
+      "hash": "08ab35961cc9a24fc761132264f22d9da03c605fee7ee08cb820dc46db785401"
+    },
+    {
+      "file": "src/renderer/graph/traceStretch.ts",
+      "hash": "e2e51d4221c3b308c68475b07943858eb3bc2d0e4a21bf7d5b9a23ceba62a554"
+    },
+    {
+      "file": "src/renderer/graph/trussBridge.ts",
+      "hash": "1bf2b60a0a3206fc9eba0653d00fe4b6edbb2da1ae630178334b6def5de1b118"
+    },
+    {
+      "file": "src/renderer/graph/trussBridgeLayout.ts",
+      "hash": "bda122ebe69c845b8e0692107cc482cd2d9a7488a937e64922a41128a8ce316d"
+    },
+    {
+      "file": "src/renderer/graph/useLiveOutputSpectrum.ts",
+      "hash": "1b7dcc3d8dd6ff3cb45065225aa4e12f4e34d0f7ccad4abc9b3fb2a49e1e22df"
+    },
+    {
+      "file": "src/renderer/graph/useSceneRunner.ts",
+      "hash": "addf2ff9c21d980bed40087c1b768153048a2745a0264d8771a68ad53b8bb176"
+    },
+    {
+      "file": "src/renderer/graph/utils.ts",
+      "hash": "3c496cb688f4ce24687263f4c9630302eacdf86d57f174c43dc0c03c6d0d0ddc"
+    },
+    {
+      "file": "src/renderer/graph/warpTunnel.ts",
+      "hash": "bf809cfa9a0cde8e6adb77ec73ee172419d0fdb8c6409bbf15c4c7238654c522"
+    },
+    {
+      "file": "src/renderer/player/playerTrace.ts",
+      "hash": "9828c4abef3147a1af7b3a331ea6aaae9034ff29ed66ffa6ced6b0087a7198ae"
+    },
+    {
+      "file": "src/renderer/remoteAudio/useSenderSpectrum.ts",
+      "hash": "0b0e14baf0fb609b1b12696d73bbd4feb292983b8db939efd4792813a1dc1233"
+    },
+    {
+      "file": "src/renderer/studio/publishDemoAudio.ts",
+      "hash": "62b3a0d68babf70b4e3833c21f1f41e24a6d790f548aae28cf75378752ea8f32"
+    },
+    {
+      "file": "src/renderer/styles/color.ts",
+      "hash": "0efb20678d6343d0ec4d1c3ea233df178fec9e4963450b64acf54d4c7ccfece6"
+    },
+    {
+      "file": "src/renderer/utils/FluidEqContext.tsx",
+      "hash": "f5710f155cc195adc04ed1e4cad4ab8a133fdf15026a08aa2fb806d7877be584"
+    },
+    {
+      "file": "src/renderer/utils/I18nContext.tsx",
+      "hash": "07218b95da1a36e2d5dbde1c7046f77dd8339a048c04f347fde4178147cfa68a"
+    },
+    {
+      "file": "src/renderer/utils/audioEngineApi.ts",
+      "hash": "480b76cc9abf5c18ed403aee8f9ae423dff769bab0737e1d05de4e347bc4f70c"
+    },
+    {
+      "file": "src/renderer/utils/autoBalance.ts",
+      "hash": "d9e1a50c64ceeb56dae01c552d19e80c467d2f907a50d4751a6ae29eaefbf49f"
+    },
+    {
+      "file": "src/renderer/utils/autoBalanceCapture.ts",
+      "hash": "d569f07a62739e443cff186648a6559f606b488165c86376915fc5126c30d026"
+    },
+    {
+      "file": "src/renderer/utils/autoBalanceReport.ts",
+      "hash": "e95ed725b092f50aa2d0b211d674f8addc007d43733dac9bc9c6407771841eb2"
+    },
+    {
+      "file": "src/renderer/utils/autoBalanceSpectrum.ts",
+      "hash": "0fa56dafa455d056b9b1940746481e71b83c89d1e4b9f8c96dcfd4e2d498d003"
+    },
+    {
+      "file": "src/renderer/utils/autoBalanceTuning.ts",
+      "hash": "736f55f95259ab2532a65931b0bab73a532d41df19c63eb50e93eec3c961df2d"
+    },
+    {
+      "file": "src/renderer/utils/bandReveal.ts",
+      "hash": "6b01c8d3d3331ec31338e985fd5dd7560c068086d6cfca72d97041b12102dbe6"
+    },
+    {
+      "file": "src/renderer/utils/batteryPower.ts",
+      "hash": "2efbe3e521cca8b6fe66c1006c242070731728ac2d953f5121d49104b3f19e2d"
+    },
+    {
+      "file": "src/renderer/utils/canvasLoss.ts",
+      "hash": "c787a17cb92756ee7b29091e02a7bae69e646256229723adbda39933d80d02b1"
+    },
+    {
+      "file": "src/renderer/utils/codeInk.ts",
+      "hash": "d97d61094116be7fd9a07fff42ea8e556ee88bd9ceff7f578e07665034f5ec44"
+    },
+    {
+      "file": "src/renderer/utils/crashRecovery.ts",
+      "hash": "ac0e8108229e5eea855356c952c46906b5136be7a03d61347532117c4c232ab9"
+    },
+    {
+      "file": "src/renderer/utils/customLooks.ts",
+      "hash": "99224dd79a9c3453e1ef2adbcc5930fef143fb65568cad2f047e5f9b8a6e2ef9"
+    },
+    {
+      "file": "src/renderer/utils/equalizerApi.ts",
+      "hash": "3ce8a3063df3bad2d18badea867bf917a9f6849e0873b81665c18faf515ca1ec"
+    },
+    {
+      "file": "src/renderer/utils/equalizerEditApi.ts",
+      "hash": "68921f386c1b3fcb54738a3a4c9b72480ebd024aa115eabb43af795396b330a2"
+    },
+    {
+      "file": "src/renderer/utils/filterReducer.ts",
+      "hash": "9165194b2c340632bafc453976c4deed73c2d48ae37442dd9d93177c17611185"
+    },
+    {
+      "file": "src/renderer/utils/fluidEqContextTypes.ts",
+      "hash": "d19b17f9da82956373437922551974abe012d72d861149824e928d4f82d72254"
+    },
+    {
+      "file": "src/renderer/utils/framePace.ts",
+      "hash": "f96ffd6a3b9540f42153262bb6af8ca787d6212e956360651d848469725cbb9a"
+    },
+    {
+      "file": "src/renderer/utils/graphModeAnnouncement.ts",
+      "hash": "64380f65f78257cdbeb7a1feaf9b4afb347ddf7de310f77b99770a4772baa0c9"
+    },
+    {
+      "file": "src/renderer/utils/graphOverlaySettings.ts",
+      "hash": "5ad745fc4af8882afe5717846f279b8503581e4e94cca16b2f49612676a64d5a"
+    },
+    {
+      "file": "src/renderer/utils/graphScaleSettings.ts",
+      "hash": "bf99745b6ad1b7334ff461339c737f62db748bc94a5a846a3765f8642a55633f"
+    },
+    {
+      "file": "src/renderer/utils/graphStorage.ts",
+      "hash": "1bdc880888138c7f54f060455e59e261f682e0904f8cb88c7abba409bd92ea61"
+    },
+    {
+      "file": "src/renderer/utils/graphStyle.ts",
+      "hash": "a830bec322ee8cf69666ba91a24e623d4a041ac4a6f058e3e2c3248c3a9173cc"
+    },
+    {
+      "file": "src/renderer/utils/graphViewSettings.ts",
+      "hash": "f596eaf94705cbe702076603be90a7e4ca04002c930ecc3fcbbbe65903af49d5"
+    },
+    {
+      "file": "src/renderer/utils/graphWaveOrientation.ts",
+      "hash": "c6a055ef16d957240452daeefb6e969cda7f8a36dec62118a1176dbcaa732ac2"
+    },
+    {
+      "file": "src/renderer/utils/ipcRequest.ts",
+      "hash": "d92d619afb3d57e1f11d6abe63a663e835a2df068ff0129a59c37c483b9e44db"
+    },
+    {
+      "file": "src/renderer/utils/levelRamp.ts",
+      "hash": "d6db0cd37489a84b7458f99585d40be4414bfd2968c393174083be88947dda6f"
+    },
+    {
+      "file": "src/renderer/utils/logger.ts",
+      "hash": "c5604b97c2dd282950d7d981deb8d3973e3ca042ffecd5dea6fce02894fba275"
+    },
+    {
+      "file": "src/renderer/utils/memberScenes.ts",
+      "hash": "8a8c9f331497d01450e32bf165ccd99005f5671da05eb995a657dea96d990b29"
+    },
+    {
+      "file": "src/renderer/utils/motionPreference.ts",
+      "hash": "4480681e14e33d8c66289e6a66cfb838e49cc06c11fc2a8c09a3697e0ff866c6"
+    },
+    {
+      "file": "src/renderer/utils/observeShown.ts",
+      "hash": "9613c363de956f5914770787df86a7e98c1761361e3227028e62db864a391870"
+    },
+    {
+      "file": "src/renderer/utils/oklab.ts",
+      "hash": "461887cc435663ab02ef9117b262dcb8d687df4abf95c0ff3ed484c3cf31b007"
+    },
+    {
+      "file": "src/renderer/utils/outputEditor.ts",
+      "hash": "91da4783769e8c82773fdf784da71649eeb999b3de59729fd804f5dcf3fd57f6"
+    },
+    {
+      "file": "src/renderer/utils/rainbowPalette.ts",
+      "hash": "acb7a556483e9c1fd49f69a1a3f84ab2d97140c641680fd7e25a25bbeef38051"
+    },
+    {
+      "file": "src/renderer/utils/recentMap.ts",
+      "hash": "caf6ad27d7ff7afa89c8490e4bf30f4666d8001b3a518b6dbba0c64e52e8495f"
+    },
+    {
+      "file": "src/renderer/utils/sceneAccentRamp.ts",
+      "hash": "7252649d188f3c26b80fe7ac58388b3747f34c07462177b69366eb54eab32bd9"
+    },
+    {
+      "file": "src/renderer/utils/sceneDaylightSetting.ts",
+      "hash": "731003733d90369e4f41aae0d48d9294bd24c9462289d837f873065d597f9a4d"
+    },
+    {
+      "file": "src/renderer/utils/sceneFailureLog.ts",
+      "hash": "7d06f7464c5f269275ecdbf239a26a1f40c5417fa304f9b96354156797340c7d"
+    },
+    {
+      "file": "src/renderer/utils/scenePacks.ts",
+      "hash": "d46123cb2f8682fb525edad61bb6e865496855e2a03b7aeece93b509873c2aff"
+    },
+    {
+      "file": "src/renderer/utils/scenePerformanceStore.ts",
+      "hash": "0aefcc9941d834af8415d7550f7a37c1c353c1609a56ffd64442a81cec40a116"
+    },
+    {
+      "file": "src/renderer/utils/theme.ts",
+      "hash": "1f08fba39d64b385ea860af57caeb640a72d0c1e5962dd51458666e40d9bc55e"
+    },
+    {
+      "file": "src/renderer/utils/themeInk.ts",
+      "hash": "36f81b818960f2ac9574923bcbb576fbc37e25dea437f92b986c9d94dc1ae886"
+    },
+    {
+      "file": "src/renderer/utils/themeShade.ts",
+      "hash": "a776fb6888fe0b7acce083d4a4eb7579bd87eae5fbf726120dda30c77dbea9ab"
+    },
+    {
+      "file": "src/renderer/utils/useSmoothFrames.ts",
+      "hash": "4205066649302b8900f52cd9a2f0534e543f4d41638a5ae0530d31dac6c84032"
+    },
+    {
+      "file": "src/renderer/utils/useStoreSelector.ts",
+      "hash": "0da3a9d3e41ce363f1347b0afb2409cfc27c0be23a7244c63d9faaf6a9674987"
+    },
+    {
+      "file": "src/renderer/utils/utils.ts",
+      "hash": "66745a6dc4d2414c087776e4b44eb2681a80de0977e714fc1d9b912af45fe750"
+    },
+    {
+      "file": "src/renderer/utils/windowFill.ts",
+      "hash": "a54c06c4c192e0786929e0cc07213627df95c057cdc644bdcfa91e226ecf826c"
+    },
+    {
+      "file": "src/renderer/utils/windowInk.ts",
+      "hash": "4efc603784196510688bed5a55a3673068c60d45e1df83444ee5a63a6d85e11f"
+    },
+    {
+      "file": "src/renderer/utils/windowLight.ts",
+      "hash": "e9a1bbfbe86527f3d611dc98af1f40669f44a6768454ef096b6334d5fb72bc85"
+    },
+    {
+      "file": "src/renderer/utils/windowSide.ts",
+      "hash": "e49eaf0ee46c76e47585949608b8fd608007ac3fc48d07f73c91b8aca8dcde7a"
+    },
+    {
+      "file": "src/renderer/utils/windowTint.ts",
+      "hash": "d9a88c31256298e9ecffe624639ecfde96cf37f690fbbe1b52172bbb57c954b9"
+    },
+    {
+      "file": "src/renderer/utils/windowTokens.ts",
+      "hash": "161a9f5f644130d6b6255cd407848cec3842efeeb4e399a1ada2b9831dfecc8c"
+    },
+    {
+      "file": "src/renderer/waveformPaint.ts",
+      "hash": "dfa973b4a7522ab04a78c246a1ed817a38f9d8f2a9ac01b9f7430af8d11dfc1e"
+    }
+  ]
+}

@@ -41,6 +41,8 @@ import {
 import { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import LookPickerBody from './LookPickerBody';
 import LookPickerWindow from './LookPickerWindow';
+import { shippedStillOf, useStillKind } from './lookStills/shippedStill';
+import { fetchShippedStills } from './lookStills/stillFetch';
 import {
   freshnessOf,
   isStylePlace,
@@ -164,6 +166,18 @@ const LookPicker = ({
       ),
     [customLooks, palette, usable, members, t],
   );
+  // The standard looks' stills fetched while the picker is still shut, in
+  // the colours the window wears, so its first frame finds every one in
+  // memory and paints the whole grid at once (`ShippedLookStill`).
+  const stillKind = useStillKind();
+  useEffect(() => {
+    fetchShippedStills(
+      styleRows.flatMap((row) => {
+        const file = shippedStillOf(row.look, stillKind);
+        return file ? [file] : [];
+      }),
+    );
+  }, [styleRows, stillKind]);
   // Rebuilt whenever a gallery list changes, open or not: the marks, sorts
   // and categories are the gallery's word, and the Scenes tab and this
   // window read the same lists (`useGalleryFinder`).

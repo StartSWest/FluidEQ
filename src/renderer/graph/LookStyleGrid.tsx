@@ -15,6 +15,7 @@ import {
 } from 'react';
 import { useRainbowStops } from '../utils/rainbowPalette';
 import { useLiveSurface, useThemeShade } from '../utils/theme';
+import useReducedMotion from '../utils/useReducedMotion';
 import { createLookTileLoop, type ILookTileLoop } from './lookTileLoop';
 import { createTileWatcher, type TWatchTile } from './lookTileWatcher';
 import { LookTileSoundScope } from './lookTileSound';
@@ -35,10 +36,11 @@ interface ITileGrid {
   /** The window's colours, as part of what names a still. */
   paintKey: string;
   /**
-   * A tile is about to play: the sound is opened from now until the grid
-   * closes. Never before - a grid nobody points at holds no capture and runs
-   * no demo song - and not closed between two tiles, or a pointer moving
-   * across the grid would start the demo song again at every tile.
+   * A tile is about to play, or the pointer has come into the grid: the
+   * sound is opened from now until the grid closes. Never before - a grid
+   * nobody points at holds no capture and runs no demo song - and not closed
+   * between two tiles, or a pointer moving across the grid would start the
+   * demo song again at every tile.
    */
   wantSound: () => void;
 }
@@ -97,10 +99,31 @@ export const LookTileScope = ({ children }: { children: ReactNode }) => {
   );
 };
 
+/**
+ * The grid itself. Its sound opens as the pointer comes into the grid, a
+ * gap or a tile's edge ahead of the tile it is heading for: with no music
+ * playing the tiles move to the quiet demo song, which takes a few frames to
+ * start, and started on the tile itself the first one hovered stood still
+ * that long. Still never for a grid nobody points into, and never under
+ * reduced motion, where no tile moves.
+ */
+const LookStyleGridArea = ({ children }: { children: ReactNode }) => {
+  const { wantSound } = useTileGrid();
+  const reduced = useReducedMotion();
+  return (
+    <div
+      className="look-picker__grid look-picker__grid--styles"
+      onPointerEnter={reduced ? undefined : wantSound}
+    >
+      {children}
+    </div>
+  );
+};
+
 const LookStyleGrid = ({ children }: { children: ReactNode }) => (
-  <div className="look-picker__grid look-picker__grid--styles">
-    <LookTileScope>{children}</LookTileScope>
-  </div>
+  <LookTileScope>
+    <LookStyleGridArea>{children}</LookStyleGridArea>
+  </LookTileScope>
 );
 
 export default LookStyleGrid;
