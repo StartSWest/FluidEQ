@@ -133,7 +133,12 @@ it('halves nothing by accident: the chat reads a third less at its start', () =>
   // and for every scene, so never a skill. 80,000 until 2026-11-18, when
   // every scene was asked for its day's window colours beside its night's
   // (`windowColoursDay`, 4b891baa1): about 400 more, again for every scene.
-  expect(CHAT.length).toBeLessThan(81000);
+  // 81,000 until 2026-11-26, when the three shapes that make a scene slow to
+  // compile on Windows joined it (`aiPromptCraft.ts`, cbec8dc8a): about
+  // 2,200 more, and for every scene, because Ivan asked that every scene a
+  // member's AI writes be written fast ("update system prompt to always do
+  // that optimization"), never only when a skill is loaded.
+  expect(CHAT.length).toBeLessThan(84000);
   // The control: everything else the chat is told is still there.
   [
     'WHAT THE SCENE RECEIVES',

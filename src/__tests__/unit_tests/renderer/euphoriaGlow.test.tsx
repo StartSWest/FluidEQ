@@ -53,7 +53,9 @@ describe('the Colourful look on the root', () => {
   it('is on from the first frame, with no run at all', () => {
     render(<EuphoriaGlow />);
     expect(isRootEuphoric()).toBe(true);
-    expect(root.classList.contains('has-pet-joy')).toBe(true);
+    // `has-pet-joy` went with the SVG pet on 2026-11-26: nothing reads it,
+    // and the fur pet takes her joy from the music, not from the root.
+    expect(root.classList.contains('has-pet-joy')).toBe(false);
     expect(root.style.getPropertyValue('--pet-joy')).toBe('1');
   });
 

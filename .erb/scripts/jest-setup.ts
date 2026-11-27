@@ -37,6 +37,39 @@ if (
   });
 }
 
+// `Path2D`, which jsdom does not have and every Chromium does. The fur pet
+// (2026-11-26) gathers each level of her tufts into one path and fills it in
+// one call (`furCoat.ts`), so any suite whose drawing reaches her — the share
+// card's recorded context among them — threw before it could record a thing.
+// A path that keeps nothing: the drawings are judged by what reaches the
+// context, and a suite that needs the geometry defines its own over this.
+if (!('Path2D' in globalThis)) {
+  class RecordlessPath2D {
+    addPath(): void {}
+
+    arc(): void {}
+
+    arcTo(): void {}
+
+    bezierCurveTo(): void {}
+
+    closePath(): void {}
+
+    ellipse(): void {}
+
+    lineTo(): void {}
+
+    moveTo(): void {}
+
+    quadraticCurveTo(): void {}
+
+    rect(): void {}
+
+    roundRect(): void {}
+  }
+  Object.assign(globalThis, { Path2D: RecordlessPath2D });
+}
+
 /**
  * `ResizeObserver`, which jsdom does not implement and Electron always has.
  *
