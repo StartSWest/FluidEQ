@@ -31,7 +31,7 @@ import isOwnAnimationEnd from '../utils/ownAnimationEnd';
 import { useRainbowStops } from '../utils/rainbowPalette';
 import { useLiveSurface } from '../utils/theme';
 import DialogFrame from './DialogFrame';
-import { drawShareCard, loadCardBackdrop } from './shareCardArt';
+import { drawShareCard } from './shareCardArt';
 import '../styles/ShareScore.scss';
 
 interface IShareScoreCardProps {
@@ -71,32 +71,35 @@ const ShareScoreCard = ({
   // downloads ever move.
   const url = OFFICIAL_SITE_URL;
 
-  // Drawn at once on its own gradient, and again over the artwork once that
-  // is decoded — the first card of a session waits on nothing. Drawn again
-  // when the window's colours change under it, since every colour on the
-  // card is the window's.
+  // Drawn again when the window's colours change under it, since every
+  // colour on the card is the window's, and when the language does.
   const stops = useRainbowStops();
   const accent = useLiveSurface('--accent', '');
+  // The words drawn on the card, in the reader's language; a change of
+  // language draws it again.
+  const scoreLabel = t('support.game.cardScore');
+  const streak = t('support.game.cardStreak');
+  const tagline = t('support.game.cardTagline');
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) {
-      return undefined;
-    }
-    let isCurrent = true;
-    drawShareCard(canvas, score, multiplier, url, isEuphoric, undefined);
-    loadCardBackdrop()
-      .then((artwork) =>
-        isCurrent
-          ? drawShareCard(canvas, score, multiplier, url, isEuphoric, artwork)
-          : undefined,
-      )
-      .catch(() => {
-        // The card on its own gradient is a whole card; nothing to recover.
+    if (canvas) {
+      drawShareCard(canvas, score, multiplier, url, isEuphoric, {
+        scoreLabel,
+        streak,
+        tagline,
       });
-    return () => {
-      isCurrent = false;
-    };
-  }, [isEuphoric, multiplier, score, url, stops, accent]);
+    }
+  }, [
+    isEuphoric,
+    multiplier,
+    score,
+    url,
+    stops,
+    accent,
+    scoreLabel,
+    streak,
+    tagline,
+  ]);
 
   const save = useCallback(() => {
     const canvas = canvasRef.current;

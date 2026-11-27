@@ -9,27 +9,8 @@ it under the terms of the GNU General Public License version 3 or later.
 import { useId } from 'react';
 import { BRAND_MARK } from 'common/branding';
 import { ThemeWaveGradient, useLagoonWave } from '../icons/BrandMark';
+import SQUIRCLE from './brandSquircle';
 import '../styles/SignalBrand.scss';
-
-/**
- * The app icon's outline, a superellipse (n = 5) in the 48-unit tile: the
- * icon file's own shape (`assets/icon.svg`), which a rounded square only
- * approximates — its sides stay straight longer and its corners turn later.
- */
-const SQUIRCLE = (() => {
-  const steps = 96;
-  const radius = 22.6;
-  const points: string[] = [];
-  for (let i = 0; i < steps; i += 1) {
-    const angle = (i / steps) * Math.PI * 2;
-    const cos = Math.cos(angle);
-    const sin = Math.sin(angle);
-    const x = 24 + Math.sign(cos) * Math.abs(cos) ** 0.4 * radius;
-    const y = 24 + Math.sign(sin) * Math.abs(sin) ** 0.4 * radius;
-    points.push(`${x.toFixed(2)} ${y.toFixed(2)}`);
-  }
-  return `M${points.join('L')}Z`;
-})();
 
 /**
  * The logo in the header, alive: "Signal" (Ivan chose it on 2026-09-25 from

@@ -5,30 +5,49 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The share card in the window's colours (Ivan, 2026-10-25: "no rainbow
- * colors make more modern like the app is now", "change it to score or
- * something"). jsdom has no canvas, so the card is drawn into a context
- * that records what it is told.
+ * The share card, "Signature" (Ivan, 2026-11-27): the header's brand, the
+ * score, the pet mid-jump, all in the window's colours, in the reader's
+ * language, with no shadow anywhere. jsdom has no canvas, so the card is
+ * drawn into a context that records what it is told.
  */
 
-import { artworkFilter, drawShareCard } from 'renderer/components/shareCardArt';
+import {
+  drawShareCard,
+  type IShareCardWords,
+} from 'renderer/components/shareCardArt';
 import { LAGOON, setRainbowStops } from 'renderer/utils/rainbowPalette';
 
 /** The five colours the card used to be drawn in, whatever the window. */
 const OLD_SPECTRUM = ['#00e5ff', '#54ff8a', '#ffe66d', '#ff3cac', '#8b5cff'];
 
+const ENGLISH: IShareCardWords = {
+  scoreLabel: 'Beat game score',
+  streak: 'streak',
+  tagline: 'Free EQ for Windows, macOS and Linux',
+};
+
 interface IRecording {
   texts: string[];
   colours: string[];
   filters: string[];
+  fonts: { font: string; text: string }[];
+  /** Every property set that would cast a shadow, by name. */
+  shadows: string[];
 }
 
-/** A 2D context that keeps every text, colour and filter it is handed. */
+/** A 2D context that keeps every text, colour, font and filter it is handed. */
 const recordingCanvas = (): {
   canvas: HTMLCanvasElement;
   recording: IRecording;
+  context: CanvasRenderingContext2D;
 } => {
-  const recording: IRecording = { texts: [], colours: [], filters: [] };
+  const recording: IRecording = {
+    texts: [],
+    colours: [],
+    filters: [],
+    fonts: [],
+    shadows: [],
+  };
   const gradient = () => ({
     addColorStop: (_offset: number, colour: string) => {
       recording.colours.push(colour);
@@ -39,11 +58,18 @@ const recordingCanvas = (): {
     get: (target, key) => {
       switch (key) {
         case 'fillText':
-          return (text: string) => recording.texts.push(text);
+          return (text: string) => {
+            recording.texts.push(text);
+            recording.fonts.push({ font: String(target.font), text });
+          };
         case 'measureText':
-          return (text: string) => ({ width: text.length * 10 });
+          return (text: string) => ({
+            width:
+              text.length * (parseFloat(String(target.font).split(' ')[1]) / 2),
+          });
         case 'createLinearGradient':
         case 'createRadialGradient':
+        case 'createConicGradient':
           return gradient;
         default:
           return key in target ? target[key] : () => undefined;
@@ -51,15 +77,21 @@ const recordingCanvas = (): {
     },
     set: (target, key, value) => {
       if (
-        (key === 'fillStyle' ||
-          key === 'strokeStyle' ||
-          key === 'shadowColor') &&
+        (key === 'fillStyle' || key === 'strokeStyle') &&
         typeof value === 'string'
       ) {
         recording.colours.push(value);
       }
       if (key === 'filter') {
         recording.filters.push(String(value));
+      }
+      if (
+        typeof key === 'string' &&
+        key.startsWith('shadow') &&
+        value !== 0 &&
+        value !== 'transparent'
+      ) {
+        recording.shadows.push(key);
       }
       Reflect.set(target, key, value);
       return true;
@@ -69,7 +101,35 @@ const recordingCanvas = (): {
   jest
     .spyOn(canvas, 'getContext')
     .mockReturnValue(context as unknown as CanvasRenderingContext2D);
-  return { canvas, recording };
+  return {
+    canvas,
+    recording,
+    context: context as unknown as CanvasRenderingContext2D,
+  };
+};
+
+const draw = (
+  score: number,
+  multiplier: number,
+  euphoric: boolean,
+  words: IShareCardWords = ENGLISH,
+) => {
+  const recorded = recordingCanvas();
+  drawShareCard(
+    recorded.canvas,
+    score,
+    multiplier,
+    'https://fluideq.com',
+    euphoric,
+    words,
+  );
+  return recorded.recording;
+};
+
+/** The px size of the font the last `text` was set in. */
+const sizeOf = (recording: IRecording, text: string): number => {
+  const drawn = recording.fonts.filter((entry) => entry.text === text).pop();
+  return drawn ? parseFloat(drawn.font.split(' ')[1]) : NaN;
 };
 
 const setAccent = (accent: string, light: string) => {
@@ -84,19 +144,54 @@ describe('the share card', () => {
     jest.restoreAllMocks();
   });
 
-  it('is about the score, and names no rainbow', () => {
-    const { canvas, recording } = recordingCanvas();
-    drawShareCard(canvas, 176, 2, 'https://fluideq.com', true, undefined);
+  it('is about the score: what it is, the number, the streak and where to get the app', () => {
+    const recording = draw(176, 2, true);
     expect(recording.texts).toEqual(
-      expect.arrayContaining(['SCORE', '176', '×2', 'STREAK', 'fluideq.com']),
+      expect.arrayContaining([
+        'Beat game score',
+        '176',
+        '×2',
+        'streak',
+        'Free EQ for Windows, macOS and Linux',
+        'fluideq.com',
+      ]),
     );
     expect(recording.texts.join(' ')).not.toMatch(/rainbow/i);
   });
 
+  it('draws the words it is handed, so a reader in another language reads their own', () => {
+    const recording = draw(176, 2, false, {
+      scoreLabel: 'Punktzahl im Rhythmusspiel',
+      streak: 'Serie',
+      tagline: 'Kostenloser EQ für Windows, macOS und Linux',
+    });
+    expect(recording.texts).toEqual(
+      expect.arrayContaining([
+        'Punktzahl im Rhythmusspiel',
+        'Serie',
+        'Kostenloser EQ für Windows, macOS und Linux',
+      ]),
+    );
+    // Control: the English it would otherwise carry is nowhere on it.
+    expect(recording.texts).not.toContain('Beat game score');
+  });
+
+  it('never says the app is for Windows alone', () => {
+    draw(90, 3, false).texts.forEach((text) => {
+      expect(text).not.toMatch(/for Windows$/);
+    });
+  });
+
+  it('shrinks a long score to fit rather than clipping it', () => {
+    const short = draw(90, 3, false);
+    const long = draw(123456789012, 3, false);
+    expect(sizeOf(short, '90')).toBe(240);
+    expect(sizeOf(long, '123456789012')).toBeLessThan(240);
+  });
+
   it('is drawn in the window’s accent', () => {
     setAccent('#e0b04a', '#ffe2a0');
-    const { canvas, recording } = recordingCanvas();
-    drawShareCard(canvas, 90, 3, 'https://fluideq.com', false, undefined);
+    const recording = draw(90, 3, false);
     expect(recording.colours).toContain('#e0b04a');
     expect(recording.colours).toContain('#ffe2a0');
   });
@@ -112,8 +207,7 @@ describe('the share card', () => {
       '#44b866',
     ];
     setRainbowStops(gold);
-    const { canvas, recording } = recordingCanvas();
-    drawShareCard(canvas, 90, 10, 'https://fluideq.com', true, undefined);
+    const recording = draw(90, 10, true);
     expect(recording.colours).toEqual(
       expect.arrayContaining([gold[0], gold[2], gold[4], gold[6]]),
     );
@@ -122,36 +216,29 @@ describe('the share card', () => {
     });
   });
 
-  it('keeps Lagoon’s run out of a card drawn with the mode off', () => {
-    const { canvas, recording } = recordingCanvas();
-    drawShareCard(canvas, 90, 3, 'https://fluideq.com', false, undefined);
+  it('keeps Colourful mode’s palette out of a card drawn with the mode off', () => {
+    const recording = draw(90, 3, false);
     expect(recording.colours).not.toContain(LAGOON[6]);
   });
 
-  it('turns the artwork to the window’s colour when it has it', () => {
+  it('draws the music wave in the window’s colours, not a picture of another', () => {
     setAccent('#e0b04a', '#ffe2a0');
-    const { canvas, recording } = recordingCanvas();
-    const artwork = document.createElement('img');
-    drawShareCard(canvas, 90, 3, 'https://fluideq.com', false, artwork);
-    expect(recording.filters).toEqual([artworkFilter('#e0b04a')]);
-  });
-});
-
-describe('the artwork’s turn', () => {
-  it('leaves the cyan it was painted for alone', () => {
-    expect(artworkFilter('#32e1eb')).toBe('none');
-  });
-
-  it('turns it round the wheel to the accent', () => {
-    // #e0b04a sits at 41° in HSL, the artwork's cyan at 183°.
-    expect(artworkFilter('#e0b04a')).toBe('hue-rotate(-142deg)');
+    const recording = draw(90, 3, false);
+    // The ribbon's strands are the accent at a strength; no picture is
+    // turned round the wheel to get there.
+    expect(
+      recording.colours.some((colour) =>
+        colour.startsWith('rgba(224, 176, 74,'),
+      ),
+    ).toBe(true);
+    expect(recording.filters.join(' ')).not.toMatch(/hue-rotate|grayscale/);
   });
 
-  it('drains it on a monochrome window, where any hue would be a guess', () => {
-    expect(artworkFilter('#d8dadc')).toBe('grayscale(1)');
-  });
-
-  it('draws it as painted when the accent cannot be read', () => {
-    expect(artworkFilter('color-mix(in srgb, red, blue)')).toBe('none');
+  it('casts no shadow anywhere (Ivan: "no dropshadow always clean")', () => {
+    expect(draw(344, 3, true).shadows).toEqual([]);
+    // Control: the recorder does catch one.
+    const { context, recording } = recordingCanvas();
+    context.shadowBlur = 28;
+    expect(recording.shadows).toEqual(['shadowBlur']);
   });
 });

@@ -4,25 +4,29 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { PRODUCT_NAME } from 'common/branding';
-import backdropUrl from '../../../assets/brand/share-card-backdrop.jpg';
-import type { TRgb } from '../pet/furFace';
-import { drawFurPet, furPalette } from '../pet/furPaint';
-import { REST_POSE } from '../pet/petChoreography';
-import { parseCssColour } from '../utils/oklab';
-import { getRainbowStops } from '../utils/rainbowPalette';
-import { readAccent, readAccentLight } from '../utils/theme';
+import { drawBrand, tailStartFor } from './shareCardBrand';
+import {
+  alphaOf,
+  hexOf,
+  type IShareCardInks,
+  readShareCardInks,
+} from './shareCardInks';
+import { drawCheeringPet } from './shareCardPet';
+import drawSoundField from './shareCardWaves';
 
 /**
- * THE SHARE CARD, DRAWN (Ivan, 2026-10-25: "no rainbow colors make more
- * modern like the app is now", "change it to score or something").
+ * THE SHARE CARD, DRAWN: "Signature" (Ivan picked it on 2026-11-27 from three,
+ * "B with a music wave bg", after "make the share card amazing with the new
+ * FluidEQ typography and the pet").
  *
- * Dark glass over a picture of sound: the wordmark, the creature on a light
- * of the accent, the score on a pane of glass under a SCORE pill, and where
- * to get the app along the foot. Every colour is the window's — its accent,
- * and with Colourful mode on the palette that mode is in — and the artwork
- * behind is turned round the colour wheel to the accent, so a gold window
- * shares a gold card.
+ * The header's brand across the top — the logo as the app icon and "FluidEQ"
+ * in the broad pen — with the Q's tail running on across the whole card as
+ * the sound. Under it the score, as large as the card allows, on the left;
+ * the pet mid-jump on the right; where to get the app along the foot. Behind
+ * everything a music wave drawn in light (`shareCardWaves.ts`). Every colour is the window's: the
+ * header's run from the accent's greener end to the second colour, the
+ * accent's light, the pet's fur, and Colourful mode's palette in the light
+ * round her while that mode is on.
  *
  * Canvas rather than rendering the DOM to an image: turning a live element
  * into a PNG means a third-party rasteriser or an SVG foreignObject round
@@ -31,7 +35,8 @@ import { readAccent, readAccentLight } from '../utils/theme';
  *
  * The card is always dark, whatever the window's Brightness: it is a picture
  * for somebody else's feed, so its inks are fixed light ones rather than the
- * theme's, which on a light window are dark and vanished on this ground.
+ * theme's, which on a light window are dark and vanished on this ground. No
+ * shadow anywhere (Ivan, 2026-11-19): depth is light and layering.
  */
 
 /**
@@ -47,151 +52,44 @@ const CARD_SCALE = 2;
 const FONT_STACK =
   '-apple-system, BlinkMacSystemFont, "Segoe UI", Ubuntu, Cantarell, "Noto Sans", "DejaVu Sans", sans-serif';
 
-const INK = '#e6f2f9';
-const INK_MUTED = '#9fb8c8';
-const PET_INK = '#06131d';
-/** Her own mint (`--pet-tone` on an untinted window). */
-const PET_TONE: TRgb = [74, 211, 220];
+const INK = '#eef7fc';
+const INK_MUTED = 'rgba(214, 233, 247, 0.66)';
 
-/**
- * The accent the artwork was painted for (`share-card-backdrop.jpg`, made
- * with GPT image generation for this card): the theme's own cyan. The
- * artwork is turned by however far the window's accent stands from it.
- */
-const ARTWORK_ACCENT = '#32e1eb';
+/** The card's margin, left and right. */
+const EDGE = 64;
 
-/** Under this saturation the window is monochrome and so is the artwork. */
-const GREY_SATURATION = 0.15;
-
-interface IHueSaturation {
-  hue: number;
-  saturation: number;
+/** The words the card carries, in the reader's language. */
+export interface IShareCardWords {
+  /** Over the number: what it is a score of. */
+  scoreLabel: string;
+  /** After "×3" in the pill. */
+  streak: string;
+  /** Along the foot, before the site: what FluidEQ is and where it runs. */
+  tagline: string;
 }
 
-/** HSL's hue and saturation — the space CSS's `hue-rotate` turns in. */
-const hueSaturationOf = (colour: string): IHueSaturation | undefined => {
-  const parsed = parseCssColour(colour);
-  if (!parsed) {
-    return undefined;
-  }
-  const [red, green, blue] = parsed.rgb;
-  const max = Math.max(red, green, blue);
-  const min = Math.min(red, green, blue);
-  const chroma = max - min;
-  const lightness = (max + min) / 2;
-  if (chroma === 0) {
-    return { hue: 0, saturation: 0 };
-  }
-  let hue: number;
-  if (max === red) {
-    hue = ((green - blue) / chroma) % 6;
-  } else if (max === green) {
-    hue = (blue - red) / chroma + 2;
-  } else {
-    hue = (red - green) / chroma + 4;
-  }
-  return {
-    hue: (hue * 60 + 360) % 360,
-    saturation: chroma / (1 - Math.abs(2 * lightness - 1)),
-  };
-};
-
-/** The filter that puts the artwork in the window's colour. */
-export const artworkFilter = (accent: string): string => {
-  const own = hueSaturationOf(accent);
-  const painted = hueSaturationOf(ARTWORK_ACCENT);
-  if (!own || !painted) {
-    return 'none';
-  }
-  if (own.saturation < GREY_SATURATION) {
-    return 'grayscale(1)';
-  }
-  const turn = Math.round(own.hue - painted.hue);
-  return turn === 0 ? 'none' : `hue-rotate(${turn}deg)`;
-};
-
-let backdrop: Promise<HTMLImageElement> | undefined;
-
 /**
- * The artwork, decoded once for every card after it. Rejects where it
- * cannot be decoded — a test DOM loads no images — and the card is then
- * drawn on its own gradient, which is also what it shows until this lands.
- */
-export const loadCardBackdrop = (): Promise<HTMLImageElement> => {
-  if (!backdrop) {
-    const image = new Image();
-    if (typeof image.decode !== 'function') {
-      return Promise.reject(new Error('Images cannot be decoded here'));
-    }
-    image.src = backdropUrl;
-    const decoding = image.decode().then(() => image);
-    // A failed decode is forgotten, so the next card tries again.
-    decoding.catch(() => {
-      backdrop = undefined;
-    });
-    backdrop = decoding;
-  }
-  return backdrop;
-};
-
-/**
- * Keep long scores inside their pane without making ordinary runs look
- * timid. The card is drawn from real scores, so a layout tuned only against
- * "100" eventually turns a strong run into clipped digits.
+ * `text` at `weight`, as large as `preferred` px or as small as `minimum` px,
+ * whichever keeps it inside `maximumWidth`. The card is drawn from real
+ * scores and in twelve languages, so nothing on it is tuned against one
+ * string alone.
  */
 const setFittedFont = (
   context: CanvasRenderingContext2D,
   text: string,
   weight: number,
-  preferredSize: number,
-  minimumSize: number,
+  preferred: number,
+  minimum: number,
   maximumWidth: number,
-) => {
-  context.font = `${weight} ${preferredSize}px ${FONT_STACK}`;
-  const measuredWidth = context.measureText(text).width;
+): number => {
+  context.font = `${weight} ${preferred}px ${FONT_STACK}`;
+  const measured = context.measureText(text).width;
   const size = Math.max(
-    minimumSize,
-    Math.min(preferredSize, (preferredSize * maximumWidth) / measuredWidth),
+    minimum,
+    Math.min(preferred, (preferred * maximumWidth) / Math.max(1, measured)),
   );
   context.font = `${weight} ${size}px ${FONT_STACK}`;
-};
-
-/**
- * The creature, drawn by the same painter the app draws her with
- * (`furPaint.ts`), standing still with her eyes open, so she cannot look
- * like a different animal on the card than in the app. Rasterising the live
- * canvas was the alternative, and would have caught her mid-blink.
- */
-const drawPet = (
-  context: CanvasRenderingContext2D,
-  centreX: number,
-  centreY: number,
-  size: number,
-  euphoric: boolean,
-  eyeInk: string,
-) => {
-  const ink = parseCssColour(eyeInk);
-  const speaker: TRgb = ink
-    ? [ink.rgb[0] * 255, ink.rgb[1] * 255, ink.rgb[2] * 255]
-    : [126, 245, 232];
-  const pad = size * 0.3;
-  context.save();
-  context.translate(centreX - size / 2 - pad, centreY - size / 2 - pad);
-  drawFurPet(context, {
-    art: size,
-    pad,
-    ratio: 1,
-    palette: furPalette(PET_TONE, speaker),
-    pose: REST_POSE,
-    joy: euphoric ? 1 : 0,
-    waveTravel: 0.25,
-    star: 0,
-    starScale: 1,
-    starTurn: 0,
-    press: 0,
-    mood: '',
-  });
-  context.restore();
+  return size;
 };
 
 /** A run of colours as a left-to-right gradient across `from`..`to`. */
@@ -208,203 +106,167 @@ const gradientAcross = (
   return gradient;
 };
 
-interface ICardInks {
-  accent: string;
-  light: string;
-  /** The wordmark's and the pill's run: the accent, or the mode's palette. */
-  run: readonly string[];
-}
-
-const inksOf = (euphoric: boolean): ICardInks => {
-  const accent = readAccent(1, ARTWORK_ACCENT);
-  const light = readAccentLight(1, '#a9faff');
-  if (euphoric) {
-    const stops = getRainbowStops();
-    return { accent, light, run: [stops[0], stops[2], stops[4], stops[6]] };
-  }
-  return { accent, light, run: [light, accent] };
-};
-
+/** Night, the window's light where she jumps, and the music wave. */
 const drawBackground = (
   context: CanvasRenderingContext2D,
-  artwork: HTMLImageElement | undefined,
-  accent: string,
+  inks: IShareCardInks,
+  seed: number,
 ) => {
   const ground = context.createLinearGradient(0, 0, CARD_WIDTH, CARD_HEIGHT);
-  ground.addColorStop(0, '#04090f');
-  ground.addColorStop(0.55, '#07111b');
-  ground.addColorStop(1, '#0b1928');
+  ground.addColorStop(0, '#040a12');
+  ground.addColorStop(0.6, '#061321');
+  ground.addColorStop(1, '#0a1c2c');
   context.fillStyle = ground;
   context.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
-  if (artwork) {
-    context.save();
-    context.filter = artworkFilter(accent);
-    context.drawImage(artwork, 0, 0, CARD_WIDTH, CARD_HEIGHT);
-    context.restore();
-  }
-  // A shade on the right, so the score stands on calm ground.
-  const shade = context.createLinearGradient(560, 0, CARD_WIDTH, 0);
-  shade.addColorStop(0, 'rgba(3, 9, 15, 0)');
-  shade.addColorStop(1, 'rgba(3, 9, 15, 0.55)');
-  context.fillStyle = shade;
-  context.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
-};
-
-/** The wordmark as the titlebar draws it: the wave and the name in one sweep. */
-const drawWordmark = (context: CanvasRenderingContext2D, inks: ICardInks) => {
+  // The window's light, gathered where she jumps and fading to the corner.
   context.save();
-  context.strokeStyle = gradientAcross(context, 64, 142, inks.run);
-  context.lineWidth = 5;
-  context.lineCap = 'round';
-  context.beginPath();
-  context.moveTo(64, 74);
-  context.bezierCurveTo(76, 48, 89, 48, 102, 74);
-  context.bezierCurveTo(115, 100, 128, 100, 142, 74);
-  context.stroke();
-
-  context.font = `700 40px ${FONT_STACK}`;
-  context.textAlign = 'left';
-  const nameWidth = context.measureText(PRODUCT_NAME).width;
-  context.fillStyle = gradientAcross(context, 160, 160 + nameWidth, [
-    '#ffffff',
-    '#e6fbff',
-    ...inks.run,
-  ]);
-  context.fillText(PRODUCT_NAME, 160, 88);
-  context.fillStyle = INK_MUTED;
-  context.font = `700 16px ${FONT_STACK}`;
-  context.letterSpacing = '4px';
-  context.fillText('BEAT GAME', 162, 114);
+  context.globalCompositeOperation = 'lighter';
+  [
+    { x: 900, y: 360, radius: 420, colour: inks.accent, alpha: 0.14 },
+    { x: 1150, y: 600, radius: 360, colour: inks.active, alpha: 0.08 },
+    { x: 120, y: 80, radius: 360, colour: inks.start, alpha: 0.06 },
+  ].forEach(({ x, y, radius, colour, alpha }) => {
+    const light = context.createRadialGradient(x, y, 0, x, y, radius);
+    light.addColorStop(0, alphaOf(colour, alpha));
+    light.addColorStop(1, alphaOf(colour, 0));
+    context.fillStyle = light;
+    context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+  });
   context.restore();
+  drawSoundField(context, inks, seed);
 };
 
-const PANE = { x: 640, y: 96, width: 470, height: 380 };
+/** The score's left edge, and how wide it may grow before it shrinks. */
+const SCORE = { x: 70, baseline: 450, maxWidth: 600 };
 
-/** The score on a pane of glass, under its pill. */
+/** How far a figure's top stands over its baseline, as a share of the size. */
+const FIGURE_HEIGHT = 0.72;
+
+/**
+ * What it is, the number lit from above — white at its top into the
+ * accent's light at its foot — and the streak in its pill under it.
+ */
 const drawScore = (
   context: CanvasRenderingContext2D,
-  inks: ICardInks,
+  inks: IShareCardInks,
+  words: IShareCardWords,
   score: number,
   multiplier: number,
-  euphoric: boolean,
 ) => {
-  const { x, y, width, height } = PANE;
   context.save();
-  context.fillStyle = 'rgba(10, 24, 36, 0.62)';
+  context.textAlign = 'left';
+  context.textBaseline = 'alphabetic';
+  // Display weight, which this size carries (`$weight-display`, above
+  // ~20px only), set a little tight: at 240px the figures' own spacing reads
+  // as gaps.
+  const scoreText = String(Math.max(0, Math.floor(score)));
+  context.letterSpacing = '-4px';
+  const size = setFittedFont(context, scoreText, 900, 240, 96, SCORE.maxWidth);
+  const light = context.createLinearGradient(
+    0,
+    SCORE.baseline - size * FIGURE_HEIGHT,
+    0,
+    SCORE.baseline,
+  );
+  light.addColorStop(0, '#ffffff');
+  light.addColorStop(0.55, '#ffffff');
+  light.addColorStop(1, hexOf(inks.light));
+  context.fillStyle = light;
+  context.fillText(scoreText, SCORE.x - 10, SCORE.baseline);
+  context.letterSpacing = '0px';
+
+  // What it is, a fixed step over the figures' tops, so a long score that
+  // had to shrink keeps its name beside it.
+  context.fillStyle = INK_MUTED;
+  setFittedFont(context, words.scoreLabel, 600, 26, 18, SCORE.maxWidth);
+  context.fillText(
+    words.scoreLabel,
+    SCORE.x,
+    SCORE.baseline - size * FIGURE_HEIGHT - 28,
+  );
+
+  // "×3 streak" in a pill of the header's run.
+  const times = `×${Math.max(1, Math.floor(multiplier))}`;
+  const pill = { x: SCORE.x, y: 478, height: 48, padding: 18, gap: 9 };
+  context.font = `700 30px ${FONT_STACK}`;
+  const timesWidth = context.measureText(times).width;
+  setFittedFont(context, words.streak, 600, 22, 14, 260);
+  const streakWidth = context.measureText(words.streak).width;
+  const width = pill.padding * 2 + timesWidth + pill.gap + streakWidth;
   context.beginPath();
-  context.roundRect(x, y, width, height, 28);
+  context.roundRect(pill.x, pill.y, width, pill.height, pill.height / 2);
+  context.fillStyle = gradientAcross(context, pill.x, pill.x + width, [
+    alphaOf(inks.start, 0.22),
+    alphaOf(inks.accent, 0.16),
+    alphaOf(inks.active, 0.2),
+  ]);
   context.fill();
-  const rim = context.createLinearGradient(x, y, x, y + height);
-  rim.addColorStop(0, readAccentLight(0.32, 'rgba(169, 250, 255, 0.32)'));
-  rim.addColorStop(1, readAccentLight(0.06, 'rgba(169, 250, 255, 0.06)'));
-  context.strokeStyle = rim;
+  context.strokeStyle = gradientAcross(context, pill.x, pill.x + width, [
+    alphaOf(inks.start, 0.6),
+    alphaOf(inks.active, 0.5),
+  ]);
   context.lineWidth = 1.5;
   context.stroke();
-  context.restore();
-
-  const centre = x + width / 2;
-  context.save();
-  context.textAlign = 'center';
-
-  // The pill names what the card is about: the score. With Colourful mode on
-  // it is filled with the mode's palette, as the mode's own badge is.
-  context.font = `700 18px ${FONT_STACK}`;
-  context.letterSpacing = '4px';
-  const label = 'SCORE';
-  const pillWidth = context.measureText(label).width + 48;
-  const pillLeft = centre - pillWidth / 2;
-  context.beginPath();
-  context.roundRect(pillLeft, y + 40, pillWidth, 40, 20);
-  if (euphoric) {
-    context.fillStyle = gradientAcross(
-      context,
-      pillLeft,
-      pillLeft + pillWidth,
-      inks.run,
-    );
-    context.fill();
-    context.fillStyle = PET_INK;
-  } else {
-    context.fillStyle = readAccent(0.14, 'rgba(50, 225, 235, 0.14)');
-    context.fill();
-    context.strokeStyle = readAccentLight(0.45, 'rgba(169, 250, 255, 0.45)');
-    context.lineWidth = 1;
-    context.stroke();
-    context.fillStyle = inks.light;
-  }
-  // The letter spacing trails the last letter too; half of it back centres
-  // the word in its pill.
-  context.fillText(label, centre + 2, y + 67);
-  context.letterSpacing = '0px';
-
-  const scoreText = String(Math.max(0, Math.floor(score)));
-  context.save();
-  context.shadowColor = readAccent(0.45, 'rgba(50, 225, 235, 0.45)');
-  context.shadowBlur = 28;
-  context.fillStyle = '#ffffff';
-  setFittedFont(context, scoreText, 900, 150, 84, width - 70);
-  context.fillText(scoreText, centre, y + 240);
-  context.restore();
-
-  // "×2 STREAK", centred as one line.
-  const times = `×${Math.max(1, Math.floor(multiplier))}`;
-  context.font = `700 44px ${FONT_STACK}`;
-  const timesWidth = context.measureText(times).width;
-  context.font = `700 18px ${FONT_STACK}`;
-  context.letterSpacing = '3px';
-  const streakWidth = context.measureText('STREAK').width;
-  const left = centre - (timesWidth + 14 + streakWidth) / 2;
-  context.textAlign = 'left';
-  context.letterSpacing = '0px';
-  context.font = `700 44px ${FONT_STACK}`;
-  context.fillStyle = euphoric ? inks.run[1] : inks.accent;
-  context.fillText(times, left, y + 316);
-  context.font = `700 18px ${FONT_STACK}`;
-  context.letterSpacing = '3px';
-  context.fillStyle = INK_MUTED;
-  context.fillText('STREAK', left + timesWidth + 14, y + 310);
+  const middle = pill.y + pill.height / 2;
+  context.font = `700 30px ${FONT_STACK}`;
+  context.fillStyle = hexOf(inks.light);
+  context.fillText(times, pill.x + pill.padding, middle + 11);
+  setFittedFont(context, words.streak, 600, 22, 14, 260);
+  context.fillStyle = INK;
+  context.fillText(
+    words.streak,
+    pill.x + pill.padding + timesWidth + pill.gap,
+    middle + 8,
+  );
   context.restore();
 };
 
 /**
- * Where to get it, on a strip of the same glass. Somebody who has never
- * heard of FluidEQ sees the picture and can act on it; drawn on the image
- * rather than left to the link preview, because the image is what gets
- * reposted and screenshotted.
+ * What FluidEQ is and where to get it. Somebody who has never heard of it
+ * sees the picture and can act on it; drawn on the image rather than left to
+ * the link preview, because the image is what gets reposted and
+ * screenshotted. The site is the larger of the two: at the 300px a chat
+ * shows the card at, it is the one thing on the foot still read.
  */
-const drawFooter = (
+const drawFoot = (
   context: CanvasRenderingContext2D,
-  inks: ICardInks,
+  inks: IShareCardInks,
+  words: IShareCardWords,
   siteUrl: string,
 ) => {
+  const baseline = 596;
   context.save();
-  context.fillStyle = 'rgba(3, 9, 15, 0.7)';
-  context.beginPath();
-  context.roundRect(52, 548, CARD_WIDTH - 104, 58, 18);
-  context.fill();
-  context.strokeStyle = readAccentLight(0.14, 'rgba(169, 250, 255, 0.14)');
-  context.lineWidth = 1;
-  context.stroke();
-  context.textAlign = 'left';
-  context.fillStyle = INK;
-  context.font = `600 24px ${FONT_STACK}`;
-  context.fillText('Free system-wide EQ for Windows', 82, 586);
   const displayUrl = siteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  context.font = `700 34px ${FONT_STACK}`;
   context.textAlign = 'right';
-  context.fillStyle = inks.light;
-  context.font = `700 28px ${FONT_STACK}`;
-  context.fillText(displayUrl, CARD_WIDTH - 82, 587);
+  context.fillStyle = hexOf(inks.light);
+  context.fillText(displayUrl, CARD_WIDTH - EDGE, baseline);
+  const urlWidth = context.measureText(displayUrl).width;
+  context.textAlign = 'left';
+  context.fillStyle = INK_MUTED;
+  setFittedFont(
+    context,
+    words.tagline,
+    600,
+    24,
+    16,
+    CARD_WIDTH - EDGE - SCORE.x - urlWidth - 48,
+  );
+  context.fillText(words.tagline, SCORE.x, baseline - 1);
   context.restore();
 };
 
-/** Paint the card; `artwork` undefined draws it on its own gradient. */
+/** The brand's place: its logo's top left, the word's height. */
+const BRAND = { x: EDGE, y: 50, wordHeight: 74 };
+
+/** Paint the card. */
 export const drawShareCard = (
   canvas: HTMLCanvasElement,
   score: number,
   multiplier: number,
   siteUrl: string,
   euphoric: boolean,
-  artwork: HTMLImageElement | undefined,
+  words: IShareCardWords,
 ) => {
   const context = canvas.getContext('2d');
   if (!context) {
@@ -413,20 +275,20 @@ export const drawShareCard = (
   canvas.width = CARD_WIDTH * CARD_SCALE;
   canvas.height = CARD_HEIGHT * CARD_SCALE;
   context.scale(CARD_SCALE, CARD_SCALE);
-  const inks = inksOf(euphoric);
+  // Read on the card's first pixel, which the background then paints over.
+  const inks = readShareCardInks(context, euphoric);
 
-  drawBackground(context, artwork, inks.accent);
-  drawWordmark(context, inks);
-
-  // The creature on a soft light of the accent, half the frame: she is the
-  // most recognisable thing the app has.
-  const glow = context.createRadialGradient(270, 300, 10, 270, 300, 210);
-  glow.addColorStop(0, readAccent(0.22, 'rgba(50, 225, 235, 0.22)'));
-  glow.addColorStop(1, readAccent(0, 'rgba(50, 225, 235, 0)'));
-  context.fillStyle = glow;
-  context.fillRect(40, 80, 460, 440);
-  drawPet(context, 270, 300, 230, euphoric, inks.light);
-
-  drawScore(context, inks, score, multiplier, euphoric);
-  drawFooter(context, inks, siteUrl);
+  // The music on the card — the wave behind and the Q's tail — is picked by
+  // the score, so two runs never post the same picture.
+  const seed = (Math.max(0, Math.floor(score)) % 97) + 1;
+  drawBackground(context, inks, seed);
+  drawBrand(context, inks, {
+    ...BRAND,
+    tailLength: CARD_WIDTH - 40 - tailStartFor(BRAND.x, BRAND.wordHeight),
+    sway: 22,
+    seed,
+  });
+  drawScore(context, inks, words, score, multiplier);
+  drawCheeringPet(context, inks, 900, 548, 420, CARD_SCALE);
+  drawFoot(context, inks, words, siteUrl);
 };
