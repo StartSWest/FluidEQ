@@ -5,7 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { CSSProperties, ReactNode } from 'react';
-import { PRODUCT_NAME } from 'common/branding';
 import Chevron from '../../icons/Chevron';
 import LookIcon from '../../icons/LookIcon';
 import SceneLookIcon from '../../icons/SceneLookIcon';
@@ -14,6 +13,7 @@ import { formatDuration } from '../../library/player/NowPlayingBar';
 import Marquee from '../../player/Marquee';
 import PlayerIcon from '../../player/PlayerIcon';
 import PlayerSource from '../../player/PlayerSource';
+import { PlayerWordmarkStill } from '../../player/PlayerWordmark';
 import SeekRange from '../../player/SeekRange';
 import { useTranslation } from '../../utils/I18nContext';
 import SignalBrandMark from '../SignalBrandMark';
@@ -82,7 +82,7 @@ const PictureTitle = () => {
       </div>
       <span className="player-title__handle">
         <span className="player-title__line" />
-        <span className="player-title__name">{PRODUCT_NAME}</span>
+        <PlayerWordmarkStill />
         <span className="player-title__line" />
       </span>
       <div className="player-title__controls">

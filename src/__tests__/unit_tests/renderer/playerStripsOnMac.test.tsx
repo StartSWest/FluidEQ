@@ -9,6 +9,11 @@ import { render, screen } from '@testing-library/react';
 import FoldStrip from 'renderer/player/FoldStrip';
 import PlayerTitleStrip from 'renderer/player/PlayerTitleStrip';
 
+// The name's tail listens to the live sound; nothing plays here.
+jest.mock('renderer/audio/LiveAudioContext', () => ({
+  ...jest.requireActual('renderer/audio/LiveAudioContext'),
+  useLiveAudioFrameListener: () => undefined,
+}));
 jest.mock('renderer/player/PlayerMarkMenu', () => ({
   __esModule: true,
   default: () => null,

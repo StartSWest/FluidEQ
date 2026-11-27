@@ -237,9 +237,11 @@ $pulse-edge: 0.0004;
 // the accent, and the window's second colour at the Q — the whole word in one
 // run that the logo begins (Ivan, 2026-11-26: "white to primary to sec in the
 // hole word", then the logo's colour in place of white). The tail runs on in
-// the second colour.
+// the second colour. The tail carries the stops itself as well, so it keeps
+// them in any bar it is laid in (the amp's header has no `.header-wordmark`).
 .wordmark-letters,
-.header-wordmark {
+.header-wordmark,
+.header-wordmark__tail {
   --wordmark-from: var(--accent-start);
   --wordmark-mid: var(--accent);
   --wordmark-to: var(--active);

@@ -4,12 +4,12 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { PRODUCT_NAME } from 'common/branding';
 import TrafficLightSlot from '../components/TrafficLightSlot';
 import { useTranslation } from '../utils/I18nContext';
 import runsOnMac from '../utils/platform';
 import PlayerIcon from './PlayerIcon';
 import PlayerMarkMenu, { type TPlayerPage } from './PlayerMarkMenu';
+import PlayerWordmark from './PlayerWordmark';
 import WindowModeSwitch from './WindowModeSwitch';
 import { setWindowPinned, useWindowMode } from './windowModeStore';
 
@@ -54,7 +54,7 @@ const PlayerTitleStrip = ({ onFold, onOpenPage }: IPlayerTitleStripProps) => {
       </div>
       <span className="player-title__handle" aria-hidden="true">
         <span className="player-title__line" />
-        <span className="player-title__name">{PRODUCT_NAME}</span>
+        <PlayerWordmark />
         <span className="player-title__line" />
       </span>
       <div className="player-title__controls">

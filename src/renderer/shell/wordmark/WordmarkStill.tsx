@@ -17,13 +17,42 @@ import { TAIL_POINTS, tailOffsets, tailOutline } from './wordmarkTail';
 
 const { box, tailWidth } = WORDMARK_SHAPE;
 
-/** The tail at rest: the still flourish, as the header draws it in silence. */
-const REST_TAIL = tailOutline(
-  tailOffsets(new Array<number>(TAIL_POINTS).fill(0)),
-  TAIL_FLOURISH_PX,
-  12,
-  (tailWidth * WORDMARK_HEIGHT_PX) / box.height,
-);
+interface IWordmarkRestTailProps {
+  /** The tail's length from the Q, px. */
+  length: number;
+  /** The word's drawn height, px, which sets the pen's width at the Q. */
+  wordHeight: number;
+}
+
+/**
+ * The Q's tail at rest, the still flourish the live tail settles into in
+ * silence: for a picture of a bar, which never shows the reader's own
+ * playing. Laid in the word's box, as the live tail is.
+ */
+export function WordmarkRestTail({
+  length,
+  wordHeight,
+}: IWordmarkRestTailProps) {
+  const tailInk = `wordmark-still-${useId().replace(/:/g, '')}`;
+  const outline = tailOutline(
+    tailOffsets(new Array<number>(TAIL_POINTS).fill(0)),
+    length,
+    12,
+    Math.max(1.5, (tailWidth * wordHeight) / box.height),
+  );
+  return (
+    <svg
+      className="header-wordmark__tail"
+      style={tailBoxStyle(length)}
+      aria-hidden="true"
+    >
+      <defs>
+        <TailInk id={tailInk} />
+      </defs>
+      <path d={outline} fill={`url(#${tailInk})`} />
+    </svg>
+  );
+}
 
 /**
  * The header's name as a picture of it: the word, its version and the tail
@@ -31,7 +60,6 @@ const REST_TAIL = tailOutline(
  * which never shows the reader's own playing.
  */
 export default function WordmarkStill() {
-  const tailInk = `wordmark-still-${useId().replace(/:/g, '')}`;
   return (
     <div className="header-wordmark">
       <span className="header-wordmark__word">
@@ -41,16 +69,10 @@ export default function WordmarkStill() {
             {WORDMARK_VERSION}
           </span>
         )}
-        <svg
-          className="header-wordmark__tail"
-          style={tailBoxStyle(TAIL_FLOURISH_PX)}
-          aria-hidden="true"
-        >
-          <defs>
-            <TailInk id={tailInk} />
-          </defs>
-          <path d={REST_TAIL} fill={`url(#${tailInk})`} />
-        </svg>
+        <WordmarkRestTail
+          length={TAIL_FLOURISH_PX}
+          wordHeight={WORDMARK_HEIGHT_PX}
+        />
       </span>
     </div>
   );

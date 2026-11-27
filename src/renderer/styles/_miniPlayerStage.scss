@@ -62,8 +62,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // ============================================================ the header ===
 //
 // THE HANDLE THE WINDOW IS DRAGGED BY: a strip of the amp's floor with the
-// name in small capitals between two double rules in its middle (the one
-// amp, Ivan 2026-10-25: "the title in the center and the side 2 lines"). The
+// name between two double rules in its middle (the one amp, Ivan 2026-10-25:
+// "the title in the center and the side 2 lines"), the name in the main
+// window's broad pen since 2026-11-27 (`PlayerWordmark`). The
 // mark and its menu at the left, the window's own buttons at the right. No
 // rule under it in any mode (Ivan, 2026-10-25: "let's remove the header
 // border on the rest of the modes too", then "I like it more like that").
@@ -139,12 +140,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
     }
   }
 
-  // The name and its double rules in a stronger ink over the picture ("also
-  // the title and the lines more visible").
-  .player-title__name {
-    color: var(--player-text);
-  }
-
+  // The double rules in a stronger ink over the picture ("also the title and
+  // the lines more visible"). The name wears the logo's gradient there too.
   .player-title__line {
     border-color: color-mix(in srgb, var(--player-text) 55%, transparent);
     opacity: 1;
@@ -270,14 +267,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
   opacity: 0.8;
 }
 
-.player-title__name {
+// The name in the main window's broad pen (`PlayerWordmark`, which sets its
+// height and the room its tail runs on into), in the main window's gradient
+// (`SignalBrand.scss`). The tail is laid over that room out of the flow, so
+// the music moving it never moves the rules.
+.player-title__wordmark {
+  position: relative;
+  display: block;
   flex: none;
-  color: var(--player-text-soft);
-  font-size: 10px;
-  font-weight: $weight-bold;
-  text-transform: uppercase;
-  white-space: nowrap;
-  @include tracking(0.32em);
 }
 
 // THE MARK IS THE APP HEADER'S OWN (Ivan, 2026-10-25: "the top menu icon
