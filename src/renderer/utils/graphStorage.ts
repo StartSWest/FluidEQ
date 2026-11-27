@@ -45,6 +45,13 @@ import { isPremiumLookId } from 'common/scenePacks';
 export const STORAGE_KEY = 'fluideq-graph-style';
 
 /**
+ * The looks played before the selection, newest first (`lookHistory.ts`).
+ * Beside the selection, so a delete right after a restart still has the
+ * look that came before to go back to.
+ */
+export const LOOK_HISTORY_KEY = 'fluideq-graph-look-history';
+
+/**
  * The graph's view settings, remembered.
  *
  * These used to be deliberately forgotten, on the reasoning that a mode which

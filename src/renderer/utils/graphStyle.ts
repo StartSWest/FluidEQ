@@ -21,6 +21,7 @@ import {
   DEFAULT_GRAPH_LOOK,
   DEFAULT_GRAPH_LOOK_ID,
   GRAPH_FORM_LOOKS,
+  GRAPH_LOOKS,
   GRAPH_PALETTES,
   GraphPalette,
   GraphStyle,
@@ -57,6 +58,7 @@ import {
   type IUsableScene,
 } from './scenePacks';
 import type { TDrawableScene } from '../graph/SceneCanvas';
+import { forgetLooks, noteLookChange, takeLookToReturnTo } from './lookHistory';
 
 import {
   lookFamilyOf,
@@ -226,6 +228,18 @@ const persistSelection = () => {
   } catch {
     // Not worth failing a choice over.
   }
+};
+
+/**
+ * Put `next` on the graph. Every change of selection comes through here, so
+ * the look it leaves is always the newest one played before
+ * (`lookHistory.ts`), which is where a delete of `next` goes back to.
+ */
+const select = (next: string) => {
+  noteLookChange(selectedId, next);
+  selectedId = next;
+  persistSelection();
+  refresh();
 };
 
 /**
@@ -445,9 +459,7 @@ const stepLook = (direction: 1 | -1, allowed: (id: string) => boolean) => {
   if (next === undefined) {
     return;
   }
-  selectedId = next;
-  persistSelection();
-  refresh();
+  select(next);
 };
 
 /**
@@ -483,9 +495,7 @@ export const setGraphLook = (id: string) => {
   if (next === selectedId) {
     return;
   }
-  selectedId = next;
-  persistSelection();
-  refresh();
+  select(next);
 };
 
 /**
@@ -499,15 +509,46 @@ export const setLookDraft = (next: ICustomLook | null) => {
   refresh();
 };
 
+/**
+ * Whether a look played before can go back on: one of the listener's own
+ * still saved, a scene that can play right now (not removed, unpublished,
+ * locked or set aside this session), or a standard look this version still
+ * has. A scene that cannot play would put its trouble card on the graph in
+ * place of a look, which is not going back to anything.
+ */
+const canReturnTo = (id: string): boolean => {
+  if (isCustomLookId(id)) {
+    return getCustomLook(id) !== undefined;
+  }
+  if (isPremiumLookId(id)) {
+    return getUsableScene(packIdOfLook(id)) !== undefined;
+  }
+  if (isMemberLookId(id)) {
+    return getUsableMemberScene(id) !== undefined;
+  }
+  return GRAPH_LOOKS.some((look) => look.id === id);
+};
+
+const isDeletedCustomLook = (id: string) =>
+  isCustomLookId(id) && !getCustomLook(id);
+
 // A look can change or vanish underneath the selection while it is being
 // drawn, so the drawing has to be rebuilt when the list does. A deleted look
 // also has to give the selection somewhere to land: leaving it pointing at
 // nothing works — the resolver falls back — but it would silently re-point at
 // the first look the next time somebody cycled, from an id that no longer
 // means anything.
+//
+// It lands on the look played before it (Ivan, 2026-11-27: "jump back to the
+// previous one instead of jumping to Analyzer always"), straight there and in
+// one change, so nothing is drawn on the way. The Analyzer, the look a first
+// launch draws, only when nothing played before can go back on.
 subscribeCustomLooks(() => {
-  if (isCustomLookId(selectedId) && !getCustomLook(selectedId)) {
-    selectedId = DEFAULT_GRAPH_LOOK_ID;
+  forgetLooks(isDeletedCustomLook);
+  if (isDeletedCustomLook(selectedId)) {
+    selectedId = canonicalLookId(
+      takeLookToReturnTo(canReturnTo) ?? DEFAULT_GRAPH_LOOK_ID,
+    );
     persistSelection();
   }
   refresh();

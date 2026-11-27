@@ -199,12 +199,22 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
   // mixed because they stepped to the next shape would be the opposite of
   // helpful. The tuning does go, because it belongs to the geometry — see
   // `rebaseDraftLook`.
+  //
+  // Not on the panel's way out. A Delete, a Save or an Import moves the
+  // selection as it closes the panel, and followed, the draft re-formed on
+  // the look the selection went to and was drawn there for the length of the
+  // exit: a deleted look's colours flashed on the Analyzer's form (where a
+  // delete used to land) before the Analyzer itself came in, and the leaving
+  // panel changed its rows as it went. Reopened mid-exit, it follows again.
   const selectedLookId = useSelectedLookId();
   useEffect(() => {
+    if (isClosing) {
+      return;
+    }
     const custom = getCustomLook(selectedLookId);
     const style = custom ? custom.style : getGraphLook(selectedLookId).style;
     setDraft((current) => rebaseDraftLook(current, style));
-  }, [selectedLookId]);
+  }, [selectedLookId, isClosing]);
 
   // Straight onto the real chart, every keystroke of it — and into storage with
   // it, so the work survives a reload. Only for a look that is not saved yet:
@@ -314,6 +324,10 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
   };
 
   const handleDelete = () => {
+    // Off the graph in the same press, rather than drawn through the
+    // panel's exit: the look is gone, and the look the selection goes back
+    // to (`graphStyle.ts`) is the next thing drawn.
+    setLookDraft(null);
     deleteCustomLook(draft.id);
     clearLookDraft();
     onClose();
