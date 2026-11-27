@@ -81,17 +81,13 @@ afterEach(() => {
 });
 
 describe("the amp's name", () => {
-  it('is the broad pen where the spaced capitals were, between the two rules', () => {
+  it('is the broad pen where the spaced capitals were, beside the mark, with one rule after it', () => {
     const { container } = render(
       <PlayerTitleStrip onFold={jest.fn()} onOpenPage={jest.fn()} />,
     );
     const handle = container.querySelector('.player-title__handle');
     const parts = [...(handle?.children ?? [])].map((part) => part.className);
-    expect(parts).toEqual([
-      'player-title__line',
-      'player-title__wordmark',
-      'player-title__line',
-    ]);
+    expect(parts).toEqual(['player-title__wordmark', 'player-title__line']);
     // No letters as text: the old name was "FluidEQ" set in capitals.
     expect(handle?.textContent).toBe('');
     expect(container.querySelector('.player-title__name')).toBeNull();

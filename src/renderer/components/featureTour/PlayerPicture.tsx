@@ -81,7 +81,6 @@ const PictureTitle = () => {
         </div>
       </div>
       <span className="player-title__handle">
-        <span className="player-title__line" />
         <PlayerWordmarkStill />
         <span className="player-title__line" />
       </span>

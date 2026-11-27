@@ -25,9 +25,10 @@ interface IPlayerTitleStripProps {
  * The amp's header, and the handle the window is dragged by (the Stage, Ivan
  * 2026-09-27: "we need a nicer header with title and handler look").
  *
- * Nothing in its middle but the name between two double rules, which says
- * "drag here" the way the ridges on a piece of hardware do (the one amp, Ivan
- * 2026-10-25), and is all header — the visualizer's controls are on the
+ * Nothing in its middle but the name, beside the mark as in the main window
+ * (Ivan, 2026-11-27: "les t put it left"), and a double rule from it to the
+ * buttons, which says "drag here" the way the ridges on a piece of hardware
+ * do (the one amp, Ivan 2026-10-25), and is all header — the visualizer's controls are on the
  * picture (`PlayerHero`) so the strip stays clean to drag. At its ends the
  * only buttons in it: the FluidEQ mark, which opens the menu that stands in
  * for the app's tab strip (`PlayerMarkMenu`), and the window's own — Always
@@ -53,7 +54,6 @@ const PlayerTitleStrip = ({ onFold, onOpenPage }: IPlayerTitleStripProps) => {
         <PlayerMarkMenu onFold={onFold} onOpenPage={onOpenPage} />
       </div>
       <span className="player-title__handle" aria-hidden="true">
-        <span className="player-title__line" />
         <PlayerWordmark />
         <span className="player-title__line" />
       </span>

@@ -62,9 +62,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // ============================================================ the header ===
 //
 // THE HANDLE THE WINDOW IS DRAGGED BY: a strip of the amp's floor with the
-// name between two double rules in its middle (the one amp, Ivan 2026-10-25:
-// "the title in the center and the side 2 lines"), the name in the main
-// window's broad pen since 2026-11-27 (`PlayerWordmark`). The
+// name in the main window's broad pen beside the mark, as the main window
+// has it, and a double rule from it to the buttons (Ivan, 2026-11-27: "les t
+// put it left"; it stood centred between two rules from 2026-10-25). The
 // mark and its menu at the left, the window's own buttons at the right. No
 // rule under it in any mode (Ivan, 2026-10-25: "let's remove the header
 // border on the rest of the modes too", then "I like it more like that").
@@ -250,17 +250,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 .player-title__handle {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 10px;
   min-width: 0;
   cursor: grab;
 }
 
-// The double rule either side of the name, as long as the strip allows.
+// The double rule after the name, out to the buttons.
 .player-title__line {
   flex: 1 1 0;
   min-width: 8px;
-  max-width: 120px;
   height: 5px;
   border-top: 1px solid var(--rule-major);
   border-bottom: 1px solid var(--rule-major);
@@ -270,7 +268,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // The name in the main window's broad pen (`PlayerWordmark`, which sets its
 // height and the room its tail runs on into), in the main window's gradient
 // (`SignalBrand.scss`). The tail is laid over that room out of the flow, so
-// the music moving it never moves the rules.
+// the music moving it never moves the rule.
 .player-title__wordmark {
   position: relative;
   display: block;
