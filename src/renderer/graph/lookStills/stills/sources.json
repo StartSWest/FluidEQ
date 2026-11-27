@@ -1,5 +1,5 @@
 {
-  "hash": "9c3603eebd3e2b9c223bb338482ad600eb261cc5524af45e88b4b94069ce1080",
+  "hash": "4aabc8cfc2e4c35851484717d46297a3c4b810cc37974f4d791da36922bdce2a",
   "files": [
     {
       "file": "scripts/look-stills/choose.ts",
@@ -71,7 +71,7 @@
     },
     {
       "file": "src/common/customLooks.ts",
-      "hash": "f3207b8efc657738a80a9f69997c3d59b7715d7b78b69a748e23b6afb4d327a8"
+      "hash": "028963786e4460b6f80b2537850257af160318a4ec0893139da6c3371ae2fed4"
     },
     {
       "file": "src/common/driver.ts",
@@ -279,7 +279,7 @@
     },
     {
       "file": "src/common/graphTextures.ts",
-      "hash": "5411d8a33478e2626950eebe16320c3b581adfcf37c0336d947105b0c872bac1"
+      "hash": "1bc3e4c2a16a0647b0a4fadfc2d613292c91d2aa2de5f3b979344844b24fbfd8"
     },
     {
       "file": "src/common/graphTruss.ts",
@@ -587,7 +587,7 @@
     },
     {
       "file": "src/renderer/graph/analysis/spectrumPaint.ts",
-      "hash": "60383f02f591248fe4f2d19fdbc6e42a63500f094d5c5bb6f4ded4007a59414b"
+      "hash": "7038d34129f66c9eb4883b150d534f1e6f38981877b49e462a2c1d62bae3550a"
     },
     {
       "file": "src/renderer/graph/analysis/stereoReading.ts",
@@ -807,7 +807,7 @@
     },
     {
       "file": "src/renderer/graph/engineLooks/lookTexture.ts",
-      "hash": "58a66cbd75fb388c2f119ecdb37ca035ede013a7eeb7cf1053c94ae40b8874be"
+      "hash": "7371c4d4deea0c9eb818d7ecf773acf6e90bbb59451396b8cdb67fbb17a591e7"
     },
     {
       "file": "src/renderer/graph/engineLooks/loudnessLook.ts",
@@ -879,11 +879,11 @@
     },
     {
       "file": "src/renderer/graph/fillTextureTiles.ts",
-      "hash": "f16d5bbdfd73d3037a35b293d66b426361255be706522e6d93fc5c08987ddaf0"
+      "hash": "4e5581bdeb5c15b78f2855973916a56f24027273acde8daebaac57f21bfd9935"
     },
     {
       "file": "src/renderer/graph/fillTextures.ts",
-      "hash": "d685998ec189fe8fd0e90b79e58be221b9ead0395b079e02671634c1ccdc3e0b"
+      "hash": "a94e3f7101f55e7ab169b87d70913488798fd2b691f9d0fafcf21e7e4189b21a"
     },
     {
       "file": "src/renderer/graph/frameCadence.ts",
@@ -987,7 +987,7 @@
     },
     {
       "file": "src/renderer/graph/liveTraceFigureLayers.ts",
-      "hash": "c08a6748af20a3593e984e8bc6e5796ed789bf74cdcd0012c881247aadf61dfa"
+      "hash": "e52c0a8895fca09de11c27cccaba047ead04c4434a4efb749013912047cc22f3"
     },
     {
       "file": "src/renderer/graph/liveTraceFigureShape.ts",
@@ -1167,7 +1167,7 @@
     },
     {
       "file": "src/renderer/graph/sceneViews/drawSceneView.ts",
-      "hash": "ae501ace2f12c1b4177904c43d3108ecdd084aa4635c47aef4cc19e28f276cd5"
+      "hash": "5fe01411bb5942597e4ae9e12c86e25f2f4642273b04440a3179e13f112bd16a"
     },
     {
       "file": "src/renderer/graph/sceneViews/fallingBlocks.ts",

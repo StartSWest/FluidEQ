@@ -1370,9 +1370,7 @@
       "stop-4",
       "stop-6",
       "stop-0",
-      "stop-5",
-      "mate-1",
-      "edge"
+      "stop-5"
     ],
     "file": "slope-auto-dark-many.png"
   },
@@ -1397,8 +1395,7 @@
       "stop-4",
       "stop-0",
       "stop-5",
-      "ink",
-      "mate-6"
+      "ink"
     ],
     "file": "slope-auto-light-many.png"
   },
