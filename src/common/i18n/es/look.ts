@@ -146,6 +146,22 @@ const look: Partial<Dictionary> = {
   'support.game.cardScore': 'Puntuación del juego de ritmo',
   'support.game.cardStreak': 'racha',
   'support.game.cardTagline': 'Ecualizador gratis para Windows, macOS y Linux',
+  'support.game.postX':
+    '{name} es un ecualizador para todo el sistema, gratis y de código abierto, para Windows, macOS y Linux. Ajusta una salida una vez y todas sus apps la siguen. {run}',
+  'support.game.postLinkedIn':
+    '{name} es un ecualizador para todo el sistema, gratis y de código abierto, para Windows, macOS y Linux. Cada ajuste pertenece a la salida en la que se hizo, así que la afinación correcta sigue al dispositivo correcto sin cambiar nada a mano: una medición publicada de tus auriculares exactos, curvas de sonido seleccionadas y un Auto EQ que recuerda el sonido que le diste a cada canción, todo dibujado sobre la respuesta en vivo. {run}',
+  'support.game.postFacebook':
+    'Si tus auriculares suenan mal en la mitad de las apps que usas, esto lo arregla de una vez. {name} es un ecualizador para todo el sistema, gratis y de código abierto, para Windows, macOS y Linux. Ajusta cada salida una vez, con una corrección para tu modelo exacto de auriculares, curvas de sonido y un Auto EQ que recuerda el sonido de cada canción, y sigue a ese dispositivo por sí solo. {run}',
+  'support.game.postCopy':
+    '{name} es un ecualizador para todo el sistema, gratis y de código abierto, para Windows, macOS y Linux. Ajusta cada salida una vez, con corrección de auriculares, curvas de sonido y un Auto EQ que recuerda el sonido de cada canción, y la afinación correcta sigue al dispositivo correcto por sí sola. {run}',
+  'support.game.postRun':
+    'También esconde un juego de ritmo, donde acabo de hacer {points} puntos a ×{peak}.',
+  'support.game.postRunColour':
+    'También esconde un juego de ritmo: llevé la racha a ×{top} con {points} puntos y toda la interfaz se iluminó de color.',
+  'support.game.postRunShort':
+    'Esconde un juego de ritmo: {points} puntos a ×{peak}.',
+  'support.game.postRunShortColour':
+    'Esconde un juego de ritmo: ×{top}, {points} puntos y la interfaz se ilumina de color.',
   'support.game.shareCardCopied': 'Copiada — pégala ahí',
   'support.game.shareCopy': 'Copiar texto',
   'support.game.shareCopied': 'Copiado',

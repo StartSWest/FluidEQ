@@ -145,6 +145,22 @@ const look = {
   'support.game.cardScore': 'Beat game score',
   'support.game.cardStreak': 'streak',
   'support.game.cardTagline': 'Free EQ for Windows, macOS and Linux',
+  'support.game.postX':
+    '{name} is a free, open-source system-wide equaliser for Windows, macOS and Linux. Tune an output once and every app follows, with headphone correction and voicing curves. {run}',
+  'support.game.postLinkedIn':
+    '{name} is a free, open-source system-wide equaliser for Windows, macOS and Linux. Every setting belongs to the output it was made on, so the right tuning follows the right device with nothing to switch by hand: a published measurement for your exact headphones, curated voicing curves, and an Auto EQ that remembers the sound you gave each song, all drawn over the live response. {run}',
+  'support.game.postFacebook':
+    'If your headphones sound wrong in half the apps you use, this fixes it once. {name} is a free, open-source system-wide equaliser for Windows, macOS and Linux. Tune each output once, with a correction for your exact headphone model, voicing curves and an Auto EQ that remembers each song’s sound, and it follows that device around by itself. {run}',
+  'support.game.postCopy':
+    '{name} is a free, open-source system-wide equaliser for Windows, macOS and Linux. Tune each output once, with headphone correction, voicing curves and an Auto EQ that remembers each song’s sound, and the right tuning follows the right device by itself. {run}',
+  'support.game.postRun':
+    'It also hides a beat game, where I just scored {points} points at ×{peak}.',
+  'support.game.postRunColour':
+    'It also hides a beat game: I ran the streak to ×{top} for {points} points and the whole interface lit up in colour.',
+  'support.game.postRunShort':
+    'It hides a beat game: {points} points at ×{peak}.',
+  'support.game.postRunShortColour':
+    'It hides a beat game: ×{top}, {points} points, and the interface lights up in colour.',
   'support.game.shareCardCopied': 'Copied — paste it in',
   'support.game.shareCopy': 'Copy text',
   'support.game.shareCopied': 'Copied',

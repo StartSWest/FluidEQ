@@ -139,6 +139,21 @@ const look: Partial<Dictionary> = {
   'support.game.cardScore': '节奏游戏得分',
   'support.game.cardStreak': '连击',
   'support.game.cardTagline': '免费均衡器，支持 Windows、macOS 和 Linux',
+  'support.game.postX':
+    '{name} 是免费开源的全系统均衡器，支持 Windows、macOS 和 Linux。一个输出只需调一次，上面的所有应用都会跟随。{run}',
+  'support.game.postLinkedIn':
+    '{name} 是免费开源的全系统均衡器，支持 Windows、macOS 和 Linux。每项设置都属于创建它的输出，所以正确的调音会自动跟随正确的设备，无需手动切换：为你的耳机型号发布的测量数据、精选的声音曲线，以及记住每首歌声音的 Auto EQ，全部绘制在实时响应之上。{run}',
+  'support.game.postFacebook':
+    '如果你的耳机在一半的应用里听起来不对，这个能一次解决。{name} 是免费开源的全系统均衡器，支持 Windows、macOS 和 Linux。每个输出只需调一次，带有针对你耳机型号的校正、声音曲线和记住每首歌声音的 Auto EQ，它会自动跟随那个设备。{run}',
+  'support.game.postCopy':
+    '{name} 是免费开源的全系统均衡器，支持 Windows、macOS 和 Linux。每个输出只需调一次，带有耳机校正、声音曲线和记住每首歌声音的 Auto EQ，正确的调音会自动跟随正确的设备。{run}',
+  'support.game.postRun':
+    '它还藏着一个节奏游戏，我刚在 ×{peak} 拿到 {points} 分。',
+  'support.game.postRunColour':
+    '它还藏着一个节奏游戏：我把连击打到 ×{top}，拿到 {points} 分，整个界面都亮起了色彩。',
+  'support.game.postRunShort': '它藏着一个节奏游戏：×{peak}，{points} 分。',
+  'support.game.postRunShortColour':
+    '它藏着一个节奏游戏：×{top}，{points} 分，界面亮起色彩。',
   'support.game.shareCardCopied': '已复制 — 直接粘贴',
   'support.game.shareCopy': '复制文字',
   'support.game.shareCopied': '已复制',

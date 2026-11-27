@@ -149,6 +149,22 @@ const look: Partial<Dictionary> = {
   'support.game.cardScore': 'Punktzahl im Rhythmusspiel',
   'support.game.cardStreak': 'Serie',
   'support.game.cardTagline': 'Kostenloser EQ für Windows, macOS und Linux',
+  'support.game.postX':
+    '{name} ist ein kostenloser, quelloffener systemweiter Equalizer für Windows, macOS und Linux. Stellen Sie einen Ausgang einmal ein, und jede App darauf folgt. {run}',
+  'support.game.postLinkedIn':
+    '{name} ist ein kostenloser, quelloffener systemweiter Equalizer für Windows, macOS und Linux. Jede Einstellung gehört zu dem Ausgang, auf dem sie entstand, also folgt die richtige Abstimmung dem richtigen Gerät, ohne dass Sie etwas umschalten: eine veröffentlichte Messung Ihres genauen Kopfhörers, ausgewählte Klangkurven und ein Auto EQ, der sich den Klang jedes Songs merkt, alles über dem Live-Frequenzgang gezeichnet. {run}',
+  'support.game.postFacebook':
+    'Wenn Ihr Kopfhörer in der Hälfte Ihrer Apps falsch klingt, behebt das hier es ein für alle Mal. {name} ist ein kostenloser, quelloffener systemweiter Equalizer für Windows, macOS und Linux. Stellen Sie jeden Ausgang einmal ein, mit einer Korrektur für Ihr genaues Kopfhörermodell, Klangkurven und einem Auto EQ, der sich den Klang jedes Songs merkt, und er folgt diesem Gerät von selbst. {run}',
+  'support.game.postCopy':
+    '{name} ist ein kostenloser, quelloffener systemweiter Equalizer für Windows, macOS und Linux. Stellen Sie jeden Ausgang einmal ein, mit Kopfhörerkorrektur, Klangkurven und einem Auto EQ, der sich den Klang jedes Songs merkt, und die richtige Abstimmung folgt dem richtigen Gerät von selbst. {run}',
+  'support.game.postRun':
+    'Außerdem steckt ein Rhythmusspiel darin, in dem ich gerade {points} Punkte bei ×{peak} geholt habe.',
+  'support.game.postRunColour':
+    'Außerdem steckt ein Rhythmusspiel darin: Ich habe die Serie auf ×{top} gebracht, {points} Punkte geholt, und die ganze Oberfläche leuchtete in Farbe auf.',
+  'support.game.postRunShort':
+    'Darin steckt ein Rhythmusspiel: {points} Punkte bei ×{peak}.',
+  'support.game.postRunShortColour':
+    'Darin steckt ein Rhythmusspiel: ×{top}, {points} Punkte, und die Oberfläche leuchtet in Farbe auf.',
   'support.game.shareCardCopied': 'Kopiert — einfach einfügen',
   'support.game.shareCopy': 'Text kopieren',
   'support.game.shareCopied': 'Kopiert',

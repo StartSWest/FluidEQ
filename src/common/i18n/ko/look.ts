@@ -130,6 +130,21 @@ const look = {
   'support.game.cardScore': '비트 게임 점수',
   'support.game.cardStreak': '연속',
   'support.game.cardTagline': 'Windows, macOS, Linux용 무료 이퀄라이저',
+  'support.game.postX':
+    '{name}는 Windows, macOS, Linux용 무료 오픈 소스 시스템 전체 이퀄라이저입니다. 출력을 한 번 맞추면 그 위의 모든 앱이 따라갑니다. {run}',
+  'support.game.postLinkedIn':
+    '{name}는 Windows, macOS, Linux용 무료 오픈 소스 시스템 전체 이퀄라이저입니다. 모든 설정은 만들어진 출력에 속하므로, 손으로 바꿀 필요 없이 올바른 튜닝이 올바른 기기를 따라갑니다. 내 헤드폰 그대로의 공개 측정, 엄선된 사운드 커브, 곡마다의 소리를 기억하는 Auto EQ를 모두 실시간 응답 위에 그립니다. {run}',
+  'support.game.postFacebook':
+    '쓰는 앱의 절반에서 헤드폰 소리가 이상하다면, 이것으로 한 번에 해결됩니다. {name}는 Windows, macOS, Linux용 무료 오픈 소스 시스템 전체 이퀄라이저입니다. 출력마다 한 번만 맞추면 헤드폰 모델에 맞춘 보정, 사운드 커브, 곡마다의 소리를 기억하는 Auto EQ와 함께 그 기기를 스스로 따라갑니다. {run}',
+  'support.game.postCopy':
+    '{name}는 Windows, macOS, Linux용 무료 오픈 소스 시스템 전체 이퀄라이저입니다. 출력마다 한 번만 맞추면 헤드폰 보정, 사운드 커브, 곡마다의 소리를 기억하는 Auto EQ와 함께 올바른 튜닝이 올바른 기기를 스스로 따라갑니다. {run}',
+  'support.game.postRun':
+    '리듬 게임도 숨어 있는데, 방금 ×{peak}에서 {points}점을 냈어요.',
+  'support.game.postRunColour':
+    '리듬 게임도 숨어 있어요. 연속을 ×{top}까지 올려 {points}점을 냈고, 화면 전체가 색으로 빛났어요.',
+  'support.game.postRunShort': '리듬 게임 포함: ×{peak}, {points}점.',
+  'support.game.postRunShortColour':
+    '리듬 게임 포함: ×{top}, {points}점, 화면이 색으로 빛나요.',
   'support.game.shareCardCopied': '복사됨 - 붙여넣기',
   'support.game.shareCopy': '텍스트 복사',
   'support.game.shareCopied': '복사됨',

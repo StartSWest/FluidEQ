@@ -25,6 +25,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { PRODUCT_NAME } from './branding';
+import type { Translate } from './i18n';
 
 export type ShareNetwork = 'x' | 'linkedin' | 'facebook';
 
@@ -89,6 +90,7 @@ export type ShareAudience = ShareNetwork | 'copy';
  * the run lights up — rather than as the headline it used to be.
  */
 const runClause = (
+  t: Translate,
   score: number,
   multiplier: number,
   euphoric: boolean,
@@ -99,13 +101,12 @@ const runClause = (
   const top = Math.max(EUPHORIA_MULTIPLIER, peak);
   if (compact) {
     return euphoric
-      ? `It hides a beat game: ×${top}, ${points} points, and the interface lights up in colour.`
-      : `It hides a beat game: ${points} points at ×${peak}.`;
+      ? t('support.game.postRunShortColour', { top, points })
+      : t('support.game.postRunShort', { peak, points });
   }
-  if (euphoric) {
-    return `It also hides a beat game: I ran the streak to ×${top} for ${points} points and the whole interface lit up in colour.`;
-  }
-  return `It also hides a beat game, where I just scored ${points} points at ×${peak}.`;
+  return euphoric
+    ? t('support.game.postRunColour', { top, points })
+    : t('support.game.postRun', { peak, points });
 };
 
 /**
@@ -130,35 +131,50 @@ const runClause = (
  * and a stranger reading a post has no way to know whether that is a lot; what
  * sells the app is that the tuning follows the device on its own.
  *
+ * Free, open source, and on Windows, macOS and Linux, in every language
+ * (2026-11-27): the posts said "for Windows" in English whatever the
+ * reader's language, and named a Smart EQ the app had since renamed Auto EQ
+ * and turned into a memory of each song's sound.
+ *
  * The address is NOT written into the words. Every path that uses this text
  * appends the URL after it, so a site named in the sentence came out as
  * "fluideq.com https://fluideq.com" in the composer.
  */
 export const buildShareText = (
+  t: Translate,
   score: number,
   multiplier: number,
   euphoric = isEuphoricRun(multiplier),
   audience: ShareAudience = 'copy',
 ): string => {
-  const run = runClause(score, multiplier, euphoric);
+  const post = (key: Parameters<Translate>[0], run: string) =>
+    t(key, { name: PRODUCT_NAME, run });
   switch (audience) {
     // 280 characters including a link that counts as 23 whatever its length,
-    // so this is the one version written to a budget: 247 at the longest score
-    // and multiplier either sentence can carry. Everything that survives the
-    // cut is a thing the app does.
+    // and X counts a Chinese, Japanese or Korean character twice: this is the
+    // one version written to a budget, in every language, at the longest
+    // score and multiplier either sentence can carry (`shareScore.test.ts`).
+    // Everything that survives the cut is a thing the app does.
     case 'x':
-      return `${PRODUCT_NAME} is a free, open-source system-wide equaliser for Windows. Tune an output once and every app on it follows, with headphone correction, voicing curves and Smart EQ. ${runClause(
-        score,
-        multiplier,
-        euphoric,
-        true,
-      )}`;
+      return post(
+        'support.game.postX',
+        runClause(t, score, multiplier, euphoric, true),
+      );
     case 'linkedin':
-      return `${PRODUCT_NAME} is a free, open-source system-wide equaliser for Windows 10 and 11. Every setting belongs to the output it was made on, so the right tuning follows the right device with nothing to switch by hand: a published measurement for your exact headphones, curated voicing curves, and a Smart EQ built from a measurement of your own sound, all drawn over the live response. ${run}`;
+      return post(
+        'support.game.postLinkedIn',
+        runClause(t, score, multiplier, euphoric),
+      );
     case 'facebook':
-      return `If your headphones sound wrong in half the apps you use, this fixes it once. ${PRODUCT_NAME} is a free, open-source system-wide equaliser for Windows. Tune each output once, with a correction for your exact headphone model, voicing curves and a Smart EQ measured from your own sound, and it follows that device around by itself. ${run}`;
+      return post(
+        'support.game.postFacebook',
+        runClause(t, score, multiplier, euphoric),
+      );
     default:
-      return `${PRODUCT_NAME} is a free, open-source system-wide equaliser for Windows. Tune each output once, with headphone correction, voicing curves and a Smart EQ measured from your own sound, and the right tuning follows the right device by itself. ${run}`;
+      return post(
+        'support.game.postCopy',
+        runClause(t, score, multiplier, euphoric),
+      );
   }
 };
 

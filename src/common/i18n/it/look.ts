@@ -149,6 +149,22 @@ const look: Partial<Dictionary> = {
   'support.game.cardStreak': 'serie',
   'support.game.cardTagline':
     'Equalizzatore gratuito per Windows, macOS e Linux',
+  'support.game.postX':
+    '{name} è un equalizzatore per tutto il sistema, gratuito e open source, per Windows, macOS e Linux. Regola un’uscita una volta e tutte le app su di essa la seguono. {run}',
+  'support.game.postLinkedIn':
+    '{name} è un equalizzatore per tutto il sistema, gratuito e open source, per Windows, macOS e Linux. Ogni impostazione appartiene all’uscita su cui è stata fatta, così la taratura giusta segue il dispositivo giusto senza cambiare nulla a mano: una misura pubblicata delle tue cuffie esatte, curve di suono scelte e un Auto EQ che ricorda il suono che hai dato a ogni brano, tutto disegnato sulla risposta dal vivo. {run}',
+  'support.game.postFacebook':
+    'Se le tue cuffie suonano male in metà delle app che usi, questo lo risolve una volta per tutte. {name} è un equalizzatore per tutto il sistema, gratuito e open source, per Windows, macOS e Linux. Regola ogni uscita una volta, con una correzione per il tuo modello esatto di cuffie, curve di suono e un Auto EQ che ricorda il suono di ogni brano, e segue quel dispositivo da solo. {run}',
+  'support.game.postCopy':
+    '{name} è un equalizzatore per tutto il sistema, gratuito e open source, per Windows, macOS e Linux. Regola ogni uscita una volta, con la correzione delle cuffie, curve di suono e un Auto EQ che ricorda il suono di ogni brano, e la taratura giusta segue il dispositivo giusto da sola. {run}',
+  'support.game.postRun':
+    'Nasconde anche un gioco ritmico, dove ho appena fatto {points} punti a ×{peak}.',
+  'support.game.postRunColour':
+    'Nasconde anche un gioco ritmico: ho portato la serie a ×{top} con {points} punti e tutta l’interfaccia si è accesa di colore.',
+  'support.game.postRunShort':
+    'Nasconde un gioco ritmico: {points} punti a ×{peak}.',
+  'support.game.postRunShortColour':
+    'Nasconde un gioco ritmico: ×{top}, {points} punti, e l’interfaccia si accende di colore.',
   'support.game.shareCardCopied': 'Copiata — incollala',
   'support.game.shareCopy': 'Copia testo',
   'support.game.shareCopied': 'Copiato',

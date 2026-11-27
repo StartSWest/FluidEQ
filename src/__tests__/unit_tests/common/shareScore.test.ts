@@ -25,15 +25,39 @@ import {
   getShareUrl,
   isEuphoricRun,
 } from 'common/shareScore';
+import { LOCALES, loadLocale, translate, type Translate } from 'common/i18n';
 import { buildSupportConfig } from 'common/support';
 
 const REPO = 'https://github.com/StartSWest/FluidEQ';
+
+const english: Translate = (key, vars) => translate('en', key, vars);
+
+const AUDIENCES = ['x', 'linkedin', 'facebook', 'copy'] as const;
+
+/**
+ * A post's length as X counts it: these code points count one, every other
+ * (Chinese, Japanese and Korean among them) two, per X's own text library.
+ */
+const X_SINGLE = [
+  [0, 4351],
+  [8192, 8205],
+  [8208, 8223],
+  [8242, 8247],
+];
+const xLength = (text: string) =>
+  [...text].reduce((total, character) => {
+    const point = character.codePointAt(0) ?? 0;
+    return (
+      total +
+      (X_SINGLE.some(([from, to]) => point >= from && point <= to) ? 1 : 2)
+    );
+  }, 0);
 
 describe('buildShareText', () => {
   // Colourful mode by what it does: the interface lights up in colour. It
   // said "went rainbow" until the mode was renamed (Ivan, 2026-10-25).
   it('says the interface lit up once the ceiling has been reached', () => {
-    const text = buildShareText(4200, 10);
+    const text = buildShareText(english, 4200, 10);
     expect(text).toContain('lit up in colour');
     expect(text).not.toMatch(/rainbow/i);
     expect(text).toContain('4200');
@@ -44,8 +68,10 @@ describe('buildShareText', () => {
   });
 
   it('does not claim euphoria below the ceiling', () => {
-    expect(buildShareText(900, 4)).toContain('×4');
-    expect(buildShareText(900, 4).toLowerCase()).not.toContain('euphoria');
+    expect(buildShareText(english, 900, 4)).toContain('×4');
+    expect(buildShareText(english, 900, 4).toLowerCase()).not.toContain(
+      'euphoria',
+    );
   });
 
   it('fits X with the link attached', () => {
@@ -53,19 +79,79 @@ describe('buildShareText', () => {
     // silently truncates rather than refusing. A t.co link counts as 23.
     // The X version is the one written to a budget; the others are read
     // where there is no counter, and the copy button has no limit at all.
-    const text = buildShareText(999999, 10, true, 'x');
+    const text = buildShareText(english, 999999, 10, true, 'x');
     expect(text.length + 1 + 23).toBeLessThanOrEqual(280);
   });
 
   it('never posts a fractional or negative score', () => {
-    expect(buildShareText(-5, 1)).toContain('0 points');
-    expect(buildShareText(12.7, 1)).toContain('12 points');
+    expect(buildShareText(english, -5, 1)).toContain('0 points');
+    expect(buildShareText(english, 12.7, 1)).toContain('12 points');
   });
 
   it('never posts a multiplier below one', () => {
     // Zero would be read as having scored nothing, which is not what a run
     // with no streak yet means.
-    expect(buildShareText(10, 0)).toContain('×1');
+    expect(buildShareText(english, 10, 0)).toContain('×1');
+  });
+});
+
+describe('the posts in every language', () => {
+  // Every language but English is its own chunk; load them all first.
+  beforeAll(() => Promise.all(LOCALES.map(({ code }) => loadLocale(code))));
+
+  const postsIn = (code: (typeof LOCALES)[number]['code']) => {
+    const t: Translate = (key, vars) => translate(code, key, vars);
+    return AUDIENCES.flatMap((audience) => [
+      buildShareText(t, 999999, 10, true, audience),
+      buildShareText(t, 12, 3, false, audience),
+    ]);
+  };
+
+  it('says FluidEQ runs on Windows, macOS and Linux, never Windows alone', () => {
+    LOCALES.forEach(({ code }) => {
+      postsIn(code).forEach((post) => {
+        expect(post).toContain('Windows');
+        expect(post).toContain('macOS');
+        expect(post).toContain('Linux');
+        expect(post).not.toMatch(/for Windows(?! *,)|Windows 10 and 11/);
+      });
+    });
+  });
+
+  it('is written in the reader’s language, not English', () => {
+    // Control: English carries its own sentence, and German does not.
+    expect(postsIn('en')[0]).toContain('equaliser');
+    expect(postsIn('de').join(' ')).not.toContain('equaliser');
+    expect(postsIn('de')[0]).toContain('Equalizer');
+  });
+
+  it('fits X with the link attached, as X counts characters', () => {
+    LOCALES.forEach(({ code }) => {
+      const t: Translate = (key, vars) => translate(code, key, vars);
+      const post = buildShareText(t, 999999, 10, true, 'x');
+      // The language rides along so a failure names it.
+      expect([code, xLength(post) + 1 + 23 <= 280]).toEqual([code, true]);
+    });
+    // Control: a CJK character counts two, as X has it.
+    expect(xLength('均衡器')).toBe(6);
+  });
+
+  it('leaves no placeholder unfilled and names no feature the app renamed', () => {
+    LOCALES.forEach(({ code }) => {
+      postsIn(code).forEach((post) => {
+        expect(post).not.toMatch(/\{\w+\}/);
+        expect(post).not.toContain('Smart EQ');
+        expect(post).toContain('FluidEQ');
+      });
+    });
+  });
+
+  it('uses no em or en dash in any language', () => {
+    LOCALES.forEach(({ code }) => {
+      postsIn(code).forEach((post) => {
+        expect(post).not.toMatch(/[–—]/);
+      });
+    });
   });
 });
 

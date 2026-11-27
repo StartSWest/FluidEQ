@@ -144,6 +144,21 @@ const look: Partial<Dictionary> = {
   'support.game.cardScore': 'ビートゲームのスコア',
   'support.game.cardStreak': '連続',
   'support.game.cardTagline': 'Windows・macOS・Linux 対応の無料イコライザー',
+  'support.game.postX':
+    '{name} は Windows・macOS・Linux 対応の無料オープンソースのシステム全体イコライザー。出力を一度調整すれば、その上のすべてのアプリが従います。{run}',
+  'support.game.postLinkedIn':
+    '{name} は Windows・macOS・Linux 対応の無料オープンソースのシステム全体イコライザーです。すべての設定は作られた出力に属するので、正しい調整が手動の切り替えなしで正しい機器についていきます。あなたのヘッドホンそのものの公開測定、厳選されたサウンドカーブ、そして曲ごとのサウンドを覚える Auto EQ を、すべてライブの特性の上に描きます。{run}',
+  'support.game.postFacebook':
+    'アプリの半分でヘッドホンの音がおかしいなら、これで一度に直ります。{name} は Windows・macOS・Linux 対応の無料オープンソースのシステム全体イコライザーです。出力ごとに一度調整するだけで、ヘッドホンの機種に合わせた補正、サウンドカーブ、曲ごとのサウンドを覚える Auto EQ が、その機器に自動でついていきます。{run}',
+  'support.game.postCopy':
+    '{name} は Windows・macOS・Linux 対応の無料オープンソースのシステム全体イコライザーです。出力ごとに一度調整するだけで、ヘッドホン補正、サウンドカーブ、曲ごとのサウンドを覚える Auto EQ とともに、正しい調整が正しい機器に自動でついていきます。{run}',
+  'support.game.postRun':
+    'リズムゲームも隠れていて、×{peak} で {points} 点を取りました。',
+  'support.game.postRunColour':
+    'リズムゲームも隠れていて、連続を ×{top} まで伸ばして {points} 点、画面全体が色づきました。',
+  'support.game.postRunShort': 'リズムゲーム入り：×{peak} で {points} 点。',
+  'support.game.postRunShortColour':
+    'リズムゲーム入り：×{top}、{points} 点、画面が色づきます。',
   'support.game.shareCardCopied': 'コピーしました — 貼り付けてください',
   'support.game.shareCopy': 'テキストをコピー',
   'support.game.shareCopied': 'コピーしました',

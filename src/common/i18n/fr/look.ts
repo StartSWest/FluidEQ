@@ -148,6 +148,22 @@ const look: Partial<Dictionary> = {
   'support.game.cardScore': 'Score du jeu de rythme',
   'support.game.cardStreak': 'série',
   'support.game.cardTagline': 'Égaliseur gratuit pour Windows, macOS et Linux',
+  'support.game.postX':
+    '{name} est un égaliseur pour tout le système, gratuit et open source, pour Windows, macOS et Linux. Réglez une sortie une fois et toutes ses applis suivent. {run}',
+  'support.game.postLinkedIn':
+    '{name} est un égaliseur pour tout le système, gratuit et open source, pour Windows, macOS et Linux. Chaque réglage appartient à la sortie où il a été fait, donc le bon réglage suit le bon appareil sans rien changer à la main : une mesure publiée de votre casque exact, des courbes de son choisies et un Auto EQ qui retient le son que vous avez donné à chaque morceau, le tout dessiné sur la réponse en direct. {run}',
+  'support.game.postFacebook':
+    'Si votre casque sonne mal dans la moitié de vos applis, ceci règle le problème une fois pour toutes. {name} est un égaliseur pour tout le système, gratuit et open source, pour Windows, macOS et Linux. Réglez chaque sortie une fois, avec une correction pour votre modèle exact de casque, des courbes de son et un Auto EQ qui retient le son de chaque morceau, et il suit cet appareil tout seul. {run}',
+  'support.game.postCopy':
+    '{name} est un égaliseur pour tout le système, gratuit et open source, pour Windows, macOS et Linux. Réglez chaque sortie une fois, avec la correction du casque, des courbes de son et un Auto EQ qui retient le son de chaque morceau, et le bon réglage suit le bon appareil tout seul. {run}',
+  'support.game.postRun':
+    'Il cache aussi un jeu de rythme, où je viens de faire {points} points à ×{peak}.',
+  'support.game.postRunColour':
+    'Il cache aussi un jeu de rythme : j’ai poussé la série à ×{top} pour {points} points et toute l’interface s’est illuminée en couleur.',
+  'support.game.postRunShort':
+    'Il cache un jeu de rythme : {points} points à ×{peak}.',
+  'support.game.postRunShortColour':
+    'Il cache un jeu de rythme : ×{top}, {points} points, et l’interface s’illumine en couleur.',
   'support.game.shareCardCopied': 'Copiée — collez-la',
   'support.game.shareCopy': 'Copier le texte',
   'support.game.shareCopied': 'Copié',
