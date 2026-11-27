@@ -501,7 +501,31 @@ const tick = (now: number) => {
  * nothing has been drawn yet — the scene's first picture, or its first after
  * being out of sight — so that one is not a refresh late.
  */
+/**
+ * The look's texture as last sent (`IEngineLookTexture`): the page sends its
+ * pixels once per key, so each frame that names the key alone is given them
+ * back here. Kept across a lost context, which builds the look's GL again
+ * and uploads from this.
+ */
+let keptTexture: { key: string; bitmap: ImageBitmap } | undefined;
+
+const keepTexture = (request: TDrawRequest): void => {
+  const texture = request.frame.look?.texture;
+  if (!texture) {
+    return;
+  }
+  if (texture.bitmap) {
+    if (keptTexture && keptTexture.bitmap !== texture.bitmap) {
+      keptTexture.bitmap.close();
+    }
+    keptTexture = { key: texture.key, bitmap: texture.bitmap };
+  } else if (keptTexture?.key === texture.key) {
+    texture.bitmap = keptTexture.bitmap;
+  }
+};
+
 const draw = (request: TDrawRequest): TSceneWorkerReply => {
+  keepTexture(request);
   latest = request;
   latestAt = performance.now();
   if (pacingFrame === undefined) {

@@ -59,6 +59,7 @@ vec4 mirrorCopy(vec2 p, vec4 stand, vec4 picture) {
     vec3 ink = lookInkMode() == 3 ? lookInk(lookHeatT(bar.x)) : lookInk(t);
     picture = lookOver(picture, lookPaint(ink, opacity * lookShape(d)));
     if (lookFilled()) {
+      lookBody(lookFill(d));
       // The gloss across the middle, where a rounded surface catches light.
       float along = lookAlong(p.y, middle - reach * 0.7, middle + reach * 0.7);
       float gloss = along < 0.5 ? mix(0.0, 0.24, along / 0.5) : mix(0.24, 0.0, (along - 0.5) / 0.5);

@@ -72,6 +72,7 @@ vec4 waveCopy(vec2 p, vec4 stand, vec4 picture) {
     // The fill, from the line to the floor, fading to nothing at the floor.
     float fill = clamp(min((p.y - lineY) * -up, (floorY - p.y) * -up) / lookPixel() + 0.5, 0.0, 1.0);
     picture = lookOver(picture, lookPaint(lookInk(t), lookOpacity() * 0.74 * fill));
+    lookBody(fill);
     float along = lookAlong(p.y, headY, floorY);
     float erase = along < 0.45 ? mix(0.0, 0.35, along / 0.45) : mix(0.35, 0.95, (along - 0.45) / 0.55);
     picture *= 1.0 - erase * fill;

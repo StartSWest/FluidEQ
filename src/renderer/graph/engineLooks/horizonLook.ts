@@ -67,6 +67,7 @@ vec4 horizonCopy(vec2 p, int copy, vec4 stand, vec4 picture) {
         : (mode == 3 ? lookInk(lookHeatT(bar.x)) : lookInk(t));
       picture = lookOver(picture, lookPaint(ink, opacity * lookShape(d)));
       if (lookFilled()) {
+        lookBody(lookFill(d));
         float tipTop = up < 0.0 ? floorY - height : floorY + height - 1.5;
         float tip = lookFill(lookBox(p, vec2(left, tipTop), vec2(left + body, tipTop + min(1.5, height)), 0.0));
         picture = lookOver(picture, lookSheen(0.45 * opacity * tip));

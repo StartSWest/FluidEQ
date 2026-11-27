@@ -6,10 +6,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
   type TFillTexture,
+  type TTextureFit,
   TEXTURE_TILE,
-  isTextureImage,
 } from '../../common/graphTextures';
-import { recallRecent, rememberRecent } from '../utils/recentMap';
+import {
+  type ITextureArea,
+  type ITexturePlacement,
+  announceTextureReady,
+  placePicture,
+} from './texturePictures';
+import { TILE, drawTile, makeCanvas } from './fillTextureTiles';
 
 /**
  * The pattern that goes inside a filled figure.
@@ -24,9 +30,6 @@ import { recallRecent, rememberRecent } from '../utils/recentMap';
  * thicker than the vertical ones.
  */
 
-/** The side of a tile in CSS pixels. Small enough to read as a material. */
-const TILE = 16;
-
 interface ITileKey {
   texture: TFillTexture;
   scale: number;
@@ -34,219 +37,46 @@ interface ITileKey {
 
 const keyOf = ({ texture, scale }: ITileKey) => `${texture}|${scale}`;
 
-const tiles = new Map<string, CanvasPattern | undefined>();
+/**
+ * One tile of a named pattern at a display scale, drawn once and kept: the
+ * canvas it is drawn on, the page's pattern made from it, and the copy the
+ * engine is handed (`texturePlacement`), each made the first time asked.
+ */
+interface ITile {
+  canvas: HTMLCanvasElement;
+  pattern?: CanvasPattern | null;
+  bitmap?: ImageBitmap | 'loading';
+}
+
+const tiles = new Map<string, ITile | null>();
 
 /**
- * Pictures somebody dropped on the style editor, by their data URI.
- *
- * Decoding is asynchronous and a frame cannot wait for it, so the first draw
- * that asks for a picture starts the decode and paints flat; the frame after
- * the decode finishes finds it here. No timer is involved — the draw loop is
- * already running at display rate, and the image's own load event is the
- * signal.
- *
- * At most `KEPT_PICTURES` of them, the ones drawn most recently. Every picture
- * ever dropped used to stay for the session, decoded and keyed by its whole
- * data URI; far fewer than that are ever on screen at once, and one let go is
- * decoded again the first time it is drawn.
+ * Where each pattern lies in the window's CSS pixels: what `printTexture`
+ * maps into a figure's own space for one fill and puts back after it.
  */
-const pictures = new Map<string, HTMLImageElement | 'loading' | 'failed'>();
-const KEPT_PICTURES = 16;
+const patternPlaces = new WeakMap<CanvasPattern, DOMMatrix>();
 
-const makeCanvas = (side: number): HTMLCanvasElement => {
-  const canvas = document.createElement('canvas');
-  canvas.width = side;
-  canvas.height = side;
-  return canvas;
+const placeOn = (pattern: CanvasPattern, place: DOMMatrix): void => {
+  patternPlaces.set(pattern, place);
+  pattern.setTransform(place);
 };
 
-/**
- * One tile of a named pattern, drawn white on nothing.
- *
- * White rather than the figure's colour because the tile is cached across
- * every look on screen and tinted at paint time through `globalAlpha` and the
- * composite operation — building one tile per colour would mean a new canvas
- * every time a gradient moved.
- */
-const drawTile = (
-  context: CanvasRenderingContext2D,
-  texture: TFillTexture,
-  side: number,
-): void => {
-  const unit = side / TILE;
-  context.strokeStyle = '#ffffff';
-  context.fillStyle = '#ffffff';
-  context.lineCap = 'butt';
-
-  const diagonals = (step: number, back: boolean) => {
-    context.lineWidth = Math.max(1, unit);
-    context.beginPath();
-    for (let offset = -side; offset <= side * 2; offset += step * unit) {
-      if (back) {
-        context.moveTo(offset, 0);
-        context.lineTo(offset - side, side);
-      } else {
-        context.moveTo(offset, 0);
-        context.lineTo(offset + side, side);
-      }
-    }
-    context.stroke();
-  };
-
-  switch (texture) {
-    case 'hatch':
-      diagonals(6, false);
-      break;
-    case 'crosshatch':
-      diagonals(8, false);
-      diagonals(8, true);
-      break;
-    case 'rules':
-      context.lineWidth = Math.max(1, unit);
-      context.beginPath();
-      for (let y = unit * 0.5; y < side; y += unit * 4) {
-        context.moveTo(0, y);
-        context.lineTo(side, y);
-      }
-      context.stroke();
-      break;
-    case 'pinstripe':
-      context.lineWidth = Math.max(1, unit);
-      context.beginPath();
-      for (let x = unit * 0.5; x < side; x += unit * 4) {
-        context.moveTo(x, 0);
-        context.lineTo(x, side);
-      }
-      context.stroke();
-      break;
-    case 'dots': {
-      const radius = unit * 1.1;
-      for (let y = unit * 2; y < side; y += unit * 8) {
-        for (let x = unit * 2; x < side; x += unit * 8) {
-          context.beginPath();
-          context.arc(x, y, radius, 0, Math.PI * 2);
-          context.fill();
-        }
-      }
-      // The half-offset row is what stops a dot field reading as a grid.
-      for (let y = unit * 6; y < side; y += unit * 8) {
-        for (let x = unit * 6; x < side; x += unit * 8) {
-          context.beginPath();
-          context.arc(x, y, radius, 0, Math.PI * 2);
-          context.fill();
-        }
-      }
-      break;
-    }
-    case 'grid':
-      context.lineWidth = Math.max(1, unit);
-      context.beginPath();
-      for (let step = unit * 0.5; step < side; step += unit * 4) {
-        context.moveTo(0, step);
-        context.lineTo(side, step);
-        context.moveTo(step, 0);
-        context.lineTo(step, side);
-      }
-      context.stroke();
-      break;
-    case 'weave': {
-      /**
-       * Basket weave: quadrants of parallel runs turned through a right
-       * angle from their neighbours, which is what the eye reads as
-       * over-and-under.
-       *
-       * Two crossed bars was the first attempt and it did not weave. Tiled
-       * across a fill the bars lined up into a staircase, which drew as a
-       * second copy of the chevron three buttons along.
-       */
-      const half = side / 2;
-      context.lineWidth = Math.max(1, unit);
-      const runs = (originX: number, originY: number, vertical: boolean) => {
-        context.beginPath();
-        for (let step = unit * 1.5; step < half; step += unit * 2.5) {
-          if (vertical) {
-            context.moveTo(originX + step, originY + unit * 0.5);
-            context.lineTo(originX + step, originY + half - unit * 0.5);
-          } else {
-            context.moveTo(originX + unit * 0.5, originY + step);
-            context.lineTo(originX + half - unit * 0.5, originY + step);
-          }
-        }
-        context.stroke();
-      };
-      runs(0, 0, false);
-      runs(half, 0, true);
-      runs(0, half, true);
-      runs(half, half, false);
-      break;
-    }
-    case 'scales': {
-      // Overlapping arcs, the row below offset by half a scale. Half the
-      // tile across: at a quarter it tiled into a net rather than scales,
-      // and was indistinguishable from the chevron beside it.
-      context.lineWidth = Math.max(1, unit * 1.1);
-      const radius = unit * 8;
-      context.beginPath();
-      for (let y = 0; y <= side; y += radius * 2) {
-        for (let x = 0; x <= side + radius; x += radius * 2) {
-          context.moveTo(x - radius, y);
-          context.arc(x, y, radius, Math.PI, 0, true);
-        }
-        for (let x = radius; x <= side + radius; x += radius * 2) {
-          context.moveTo(x - radius, y + radius);
-          context.arc(x, y + radius, radius, Math.PI, 0, true);
-        }
-      }
-      context.stroke();
-      break;
-    }
-    case 'chevron': {
-      context.lineWidth = Math.max(1, unit * 1.4);
-      context.lineJoin = 'miter';
-      const step = unit * 8;
-      context.beginPath();
-      for (let y = -step; y < side + step; y += step) {
-        for (let x = 0; x <= side; x += step) {
-          context.moveTo(x, y + step * 0.5);
-          context.lineTo(x + step * 0.5, y);
-          context.lineTo(x + step, y + step * 0.5);
-        }
-      }
-      context.stroke();
-      break;
-    }
-    case 'static': {
-      /**
-       * Film grain, not random noise.
-       *
-       * The pattern repeats across the whole fill, so a tile whose speckle
-       * came from `Math.random` would show the eye the same clump over and
-       * over — the seeded walk below spreads them evenly enough that the
-       * repeat does not announce itself.
-       */
-      // Modulo rather than the usual `>>> 0`: the product stays under 2^53,
-      // so the arithmetic is exact and the tile is the same on every run.
-      let seed = 0x2f6e2b1;
-      const next = () => {
-        seed = (seed * 1664525 + 1013904223) % 4294967296;
-        return seed / 4294967295;
-      };
-      // A twentieth of the tile carries a speck. At a hundredth the grain
-      // was invisible at every size it is actually seen at, which is not a
-      // texture but an expensive way of drawing nothing.
-      const count = Math.round(side * side * 0.05);
-      for (let index = 0; index < count; index += 1) {
-        const x = next() * side;
-        const y = next() * side;
-        context.globalAlpha = 0.45 + next() * 0.55;
-        context.fillRect(x, y, unit, unit);
-      }
-      context.globalAlpha = 1;
-      break;
-    }
-    default:
-      break;
+const tileOf = (texture: TFillTexture, scale: number): ITile | null => {
+  const key = keyOf({ texture, scale });
+  const held = tiles.get(key);
+  if (held !== undefined) {
+    return held;
   }
+  const side = Math.max(2, Math.round(TILE * scale));
+  const canvas = makeCanvas(side);
+  const tileContext = canvas.getContext('2d');
+  let tile: ITile | null = null;
+  if (tileContext) {
+    drawTile(tileContext, texture, side);
+    tile = { canvas };
+  }
+  tiles.set(key, tile);
+  return tile;
 };
 
 /**
@@ -261,53 +91,97 @@ const tilePattern = (
   texture: TFillTexture,
   scale: number,
 ): CanvasPattern | undefined => {
-  const key = keyOf({ texture, scale });
-  const cached = tiles.get(key);
-  if (cached !== undefined || tiles.has(key)) {
-    return cached;
+  const tile = tileOf(texture, scale);
+  if (!tile) {
+    return undefined;
   }
-  const side = Math.max(2, Math.round(TILE * scale));
-  const canvas = makeCanvas(side);
-  const tileContext = canvas.getContext('2d');
-  let pattern: CanvasPattern | undefined;
-  if (tileContext) {
-    drawTile(tileContext, texture, side);
-    pattern = context.createPattern(canvas, 'repeat') ?? undefined;
-    pattern?.setTransform(new DOMMatrix([1 / scale, 0, 0, 1 / scale, 0, 0]));
+  if (tile.pattern === undefined) {
+    tile.pattern = context.createPattern(tile.canvas, 'repeat');
+    if (tile.pattern) {
+      placeOn(tile.pattern, new DOMMatrix([1 / scale, 0, 0, 1 / scale, 0, 0]));
+    }
   }
-  tiles.set(key, pattern);
-  return pattern;
+  return tile.pattern ?? undefined;
 };
 
 /**
- * A dropped picture as a repeating pattern, once it has decoded.
- *
- * Returns nothing on the frames before that, and the figure is simply
- * painted flat until it is ready.
+ * The page's pattern for each redrawn picture, made once from its bitmap.
+ * Keyed by the bitmap itself, so a pattern goes when its picture does.
  */
-const picturePattern = (
+const placedPatterns = new WeakMap<ImageBitmap, CanvasPattern | null>();
+
+/**
+ * A placed picture as a pattern, mapped from its device pixels onto the CSS
+ * pixels it lies over: one to one when the redraw is the size asked for, and
+ * stretched only while a stand-in covers a resize (`placePicture`).
+ */
+const placedPattern = (
   context: CanvasRenderingContext2D,
-  source: string,
+  placement: ITexturePlacement,
 ): CanvasPattern | undefined => {
-  const held = recallRecent(pictures, source);
-  if (held === 'failed' || held === 'loading') {
-    return undefined;
+  const { bitmap } = placement;
+  let pattern = placedPatterns.get(bitmap);
+  if (pattern === undefined) {
+    pattern = context.createPattern(
+      bitmap,
+      placement.repeat ? 'repeat' : 'no-repeat',
+    );
+    placedPatterns.set(bitmap, pattern);
   }
-  if (held === undefined) {
-    const remember = (state: HTMLImageElement | 'loading' | 'failed') =>
-      rememberRecent(pictures, source, state, KEPT_PICTURES);
-    if (!isTextureImage(source)) {
-      remember('failed');
-      return undefined;
-    }
-    remember('loading');
-    const image = new Image();
-    image.onload = () => remember(image);
-    image.onerror = () => remember('failed');
-    image.src = source;
-    return undefined;
+  if (pattern) {
+    placeOn(
+      pattern,
+      new DOMMatrix([
+        placement.width / bitmap.width,
+        0,
+        0,
+        placement.height / bitmap.height,
+        placement.x,
+        placement.y,
+      ]),
+    );
   }
-  return context.createPattern(held, 'repeat') ?? undefined;
+  return pattern ?? undefined;
+};
+
+/**
+ * Prints `pattern` inside `figure` by filling the figure itself, while the
+ * texture still lies where `windowSpace` puts it.
+ *
+ * The figure is in whatever space the context is in now — a wave drawn
+ * under its height slider's scale, a scene's own — and the texture belongs
+ * in the window's, or its tiles stretch into rectangles. It used to get
+ * there by clipping to the figure and filling the whole plot in the window's
+ * space: a clip mask of the figure built every frame and every pixel of the
+ * plot painted through it, a second pass as large as the plot for what is
+ * often a few bars. Here the pattern's own matrix is moved into the figure's
+ * space for the one fill and put back after it, so only the figure's pixels
+ * are painted and no mask is built. A figure squashed flat has no inverse
+ * and nothing to print in.
+ */
+export const printTexture = (
+  context: CanvasRenderingContext2D,
+  figure: Path2D,
+  pattern: CanvasPattern,
+  windowSpace: DOMMatrix,
+): void => {
+  const place = patternPlaces.get(pattern);
+  const toFigure = context.getTransform().inverse();
+  const invertible = [
+    toFigure.a,
+    toFigure.b,
+    toFigure.c,
+    toFigure.d,
+    toFigure.e,
+    toFigure.f,
+  ].every(Number.isFinite);
+  if (!place || !invertible) {
+    return;
+  }
+  pattern.setTransform(toFigure.multiply(windowSpace).multiply(place));
+  context.fillStyle = pattern;
+  context.fill(figure);
+  pattern.setTransform(place);
 };
 
 export interface ITexturePaint {
@@ -316,27 +190,86 @@ export interface ITexturePaint {
   image?: string;
   /** The display's device ratio, so a hairline stays a hairline. */
   scale: number;
+  /** How a picture lies: once over `area`, or tiled `size` pixels tall. */
+  fit: TTextureFit;
+  size: number;
+  /** The plot, in the CSS pixels the texture is printed in. */
+  area: ITextureArea;
 }
+
+const tileScale = (scale: number) => Math.max(1, Math.min(4, scale));
 
 /**
  * The pattern to lay over a filled figure, or nothing if there is none.
  *
- * The caller clips to the figure and fills the plot with this — never the
- * other way round. Filling the pattern into the figure's own path would tie
- * the tile's origin to the figure, and a bar moving by a pixel would drag its
- * whole texture with it.
+ * The caller clips to the figure and fills the plot with this, or fills the
+ * figure with it where the two share a space — never a pattern tied to the
+ * figure's own box, or a bar moving by a pixel would drag its whole texture
+ * with it. A canvas pattern lies in the space it is painted in, not in the
+ * shape's.
  */
 export const fillTexturePattern = (
   context: CanvasRenderingContext2D,
-  { texture, image, scale }: ITexturePaint,
+  paint: ITexturePaint,
 ): CanvasPattern | undefined => {
+  const { texture, image, scale, fit, size, area } = paint;
   if (texture === 'none') {
     return undefined;
   }
   if (texture === 'image') {
-    return image ? picturePattern(context, image) : undefined;
+    const placement = image
+      ? placePicture({ image, fit, size, scale, area })
+      : undefined;
+    return placement ? placedPattern(context, placement) : undefined;
   }
-  return tilePattern(context, texture, Math.max(1, Math.min(4, scale)));
+  return tilePattern(context, texture, tileScale(scale));
+};
+
+/**
+ * The texture as the engine prints it (`engineLooks/lookTexture.ts`): the
+ * same device pixels the page's pattern is made of, and where they lie. A
+ * pattern's tile is turned into a bitmap the first time it is asked for, and
+ * nothing is returned until it is.
+ */
+export const texturePlacement = (
+  paint: ITexturePaint,
+): ITexturePlacement | undefined => {
+  const { texture, image, scale, fit, size, area } = paint;
+  if (texture === 'none') {
+    return undefined;
+  }
+  if (texture === 'image') {
+    return image ? placePicture({ image, fit, size, scale, area }) : undefined;
+  }
+  const ratio = tileScale(scale);
+  const tile = tileOf(texture, ratio);
+  if (!tile) {
+    return undefined;
+  }
+  if (tile.bitmap === undefined) {
+    tile.bitmap = 'loading';
+    createImageBitmap(tile.canvas, { premultiplyAlpha: 'premultiply' })
+      .then((bitmap) => {
+        tile.bitmap = bitmap;
+        announceTextureReady();
+        return undefined;
+      })
+      .catch(() => {
+        tile.bitmap = undefined;
+      });
+  }
+  if (tile.bitmap === 'loading') {
+    return undefined;
+  }
+  return {
+    key: `tile|${keyOf({ texture, scale: ratio })}`,
+    bitmap: tile.bitmap,
+    x: 0,
+    y: 0,
+    width: tile.canvas.width / ratio,
+    height: tile.canvas.height / ratio,
+    repeat: true,
+  };
 };
 
 /**
@@ -382,7 +315,6 @@ export const texturePreviewUrl = (texture: TFillTexture): string => {
 /** Clears the cached tiles. For tests, which build a fresh canvas each run. */
 export const resetFillTextures = (): void => {
   tiles.clear();
-  pictures.clear();
   previews.clear();
 };
 

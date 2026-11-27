@@ -52,17 +52,57 @@ export const isFillTexture = (value: unknown): value is TFillTexture =>
   typeof value === 'string' && FILL_TEXTURES.includes(value as TFillTexture);
 
 /**
- * How large a picture may be once it has been made into a tile.
+ * How a picture lies in the figure (Ivan, 2026-11-26: "allow different
+ * picture repeat sizes so the user can choose the whole picture or tiled").
  *
- * A custom look lives in the browser's own storage with every other look, and
- * that store is a few megabytes for everything the app keeps there. A tile is
- * repeated across the fill, so nothing is gained by holding more of it than a
- * couple of hundred pixels square: the editor redraws whatever is dropped on
- * it at `TEXTURE_TILE` and encodes it, and this is the ceiling that keeps one
- * look from filling the store.
+ * `tile` repeats it across the plot at `textureSize` pixels tall, which is
+ * how every look drew a picture before the choice existed; `cover` lays it
+ * over the whole plot once, keeping its shape and cutting what overhangs, as
+ * a wallpaper set to fill does.
+ */
+export type TTextureFit = 'tile' | 'cover';
+
+export const TEXTURE_FITS: readonly TTextureFit[] = ['cover', 'tile'];
+
+export const isTextureFit = (value: unknown): value is TTextureFit =>
+  typeof value === 'string' && TEXTURE_FITS.includes(value as TTextureFit);
+
+/**
+ * The height a tiled picture repeats at, in CSS pixels.
+ *
+ * Pixels rather than a share of the plot, because the patterns beside it are
+ * a fixed 16 pixels at every size too, and because the 192 every picture was
+ * drawn at before this choice is then the default exactly — a look saved
+ * before it opens tiled at the size it always had. 32 is about the smallest
+ * a photograph still reads at; 640 is past the docked graph's whole height.
+ */
+export const MIN_TEXTURE_SIZE = 32;
+export const MAX_TEXTURE_SIZE = 640;
+
+/**
+ * The tile every picture was stored and drawn at before the fit choice: a
+ * square of this side, and still the default tile height.
  */
 export const TEXTURE_TILE = 192;
+
+/**
+ * How large a stored picture may be.
+ *
+ * A custom look lives in the browser's own storage with every other look, and
+ * that store is a few megabytes for everything the app keeps there; this is
+ * the ceiling that keeps one look from filling it. It is also what every
+ * version before the fit choice accepts (`isTextureImage`), so a picture
+ * stored under it opens in an older FluidEQ too — tiled, at its own size.
+ */
 export const MAX_TEXTURE_BYTES = 120 * 1024;
+
+/**
+ * The longest side a picture is kept at. Laid over the whole plot it is
+ * stretched across a window two thousand pixels wide, and at 1280 it stays
+ * sharp there at the strength a picture is printed (`PICTURE_ALPHA`); the
+ * byte ceiling above brings it down further when it has to.
+ */
+export const TEXTURE_PICTURE_SIDE = 1280;
 
 /** Whether a stored picture is one this app wrote: a data URI, nothing else. */
 export const isTextureImage = (value: unknown): value is string =>

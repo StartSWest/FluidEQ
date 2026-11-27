@@ -100,6 +100,7 @@ import { useRainbowStops } from '../utils/rainbowPalette';
 import createSceneStates from './liveTraceSceneStates';
 import drawLiveTraceFrame from './drawLiveTraceFrame';
 import { noteGraphFrame } from './graphLabelInk';
+import { onTextureReady } from './texturePictures';
 
 interface ILiveTraceCanvasProps {
   /**
@@ -576,6 +577,11 @@ const LiveTraceCanvas = ({
     isEnabled: !isDriven,
     target: canvasRef,
   });
+
+  // A texture lands asynchronously (decoded, redrawn at its size: see
+  // `texturePictures.ts`), and a settled figure through a pause would not be
+  // drawn again until the music moved: the frame it lands for is drawn now.
+  useEffect(() => onTextureReady(kickFrames), [kickFrames]);
 
   /** The engine's phase with the look, and a frame drawn for the change. */
   const handleEnginePhase = useCallback(

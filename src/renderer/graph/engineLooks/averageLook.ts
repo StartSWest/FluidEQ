@@ -96,7 +96,9 @@ vec4 averageChannel(vec4 picture, vec2 p, int copy, int row, int seg, bool mate,
   vec4 ink = averageRibbon(anUp(band, p.y), mate);
   picture = lookOver(picture, lookPaint(ink.rgb, ink.a * presence * ribbon));
   if (lookFilled()) {
-    picture = anBody(picture, p, band, mate, heat.x, anFillOpacity() * ${f(AVERAGE_RIBBON_BODY)}, min(ribbon, anBodyCover(p, band, at.x, d.x)));
+    // The texture goes in the ribbon, as the 2D view prints it: the ribbon
+    // is the reading here.
+    picture = anTexturedBody(picture, p, band, mate, heat.x, anFillOpacity() * ${f(AVERAGE_RIBBON_BODY)}, min(ribbon, anBodyCover(p, band, at.x, d.x)));
   }
   // The slow reading's rule, the instant's hairline, the dashed mark.
   picture = lookOver(picture, lookPaint(anEdgeInk(p, band, mate, heat.y), presence * lookStroke(d.y, slowWidth)));

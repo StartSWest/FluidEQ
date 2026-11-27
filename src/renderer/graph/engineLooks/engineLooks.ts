@@ -126,6 +126,21 @@ const LOOKS: Partial<Record<GraphStyle, IEngineLookEntry>> = {
   towers: entry(glassTowersLook),
 };
 
+/**
+ * A scene look's shader with the style editor's texture printed last, over
+ * the body it marked (`lookBody`), as the page prints a scene's texture
+ * after the scene has drawn (`drawSceneView`): the look's own entry is
+ * renamed and called by one that prints over what it returns.
+ */
+const withTexture = (glsl: string): string =>
+  `${glsl.replace('vec4 sceneColour(vec2 uv)', 'vec4 lookSceneColour(vec2 uv)')}
+vec4 sceneColour(vec2 uv) {
+  lookBodyCover = 0.0;
+  vec4 picture = lookSceneColour(uv);
+  return lookTextured(picture, lookPoint(uv), lookBodyCover, lookOpacity());
+}
+`;
+
 /** The shader a look is drawn with, after the parts every look shares. */
 const shaderOf = (style: GraphStyle): string | undefined => {
   if (isAnalysisStyle(style)) {
@@ -137,12 +152,14 @@ const shaderOf = (style: GraphStyle): string | undefined => {
     return `${LOOK_GLSL}${designed}`;
   }
   const look = LOOKS[style];
-  return look ? `${LOOK_GLSL}${look.glsl}` : undefined;
+  return look ? `${LOOK_GLSL}${withTexture(look.glsl)}` : undefined;
 };
 
 /**
- * Whether the engine draws `style` with `tuning`: a texture printed in the
- * body is still the 2D canvas's, so a look wearing one stays there.
+ * Whether the engine draws `style` with `tuning`. The measuring views and
+ * the scenes print the look's texture in their shaders (`lookTextured`,
+ * `lookTexture.ts`); a designed look's texture is still the page's, printed
+ * in the figure the page cuts it from, so one wearing a texture stays there.
  */
 export const isEngineLookStyle = (
   style: GraphStyle,
@@ -152,7 +169,7 @@ export const isEngineLookStyle = (
   >,
 ): boolean =>
   shaderOf(style) !== undefined &&
-  !(tuning.filled && tuning.texture !== 'none') &&
+  !(tuning.filled && tuning.texture !== 'none' && isDesignedLookStyle(style)) &&
   // A designed scene's border, and lit peaks hidden behind its figure, are
   // the page's general painter's, cut against the figure's own path: with
   // either on, the scene stays on the page whole. Lit peaks in front are
@@ -188,7 +205,10 @@ export const engineAnalysisStep = (
 // tips deepen there (`lookSheen`); the LED wall's, the falling blocks' and
 // Silk's sparks take the look's colour; Echo's and Pulse's haze of light is
 // left out by day (2026-11-24).
-const LOOK_PACK_VERSION = 6;
+// 7: the measuring views print the style editor's texture — a pattern or a
+// picture, tiled or over the whole plot — in their bodies (`lookTextured`),
+// and a look wearing one is drawn here instead of on the page (2026-11-26).
+const LOOK_PACK_VERSION = 7;
 
 const packs = new Map<GraphStyle, IScenePack>();
 

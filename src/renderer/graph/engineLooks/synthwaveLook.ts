@@ -168,6 +168,8 @@ vec4 synthCopy(vec2 p, int c, vec4 picture) {
     vec4 rockTop = vec4(lookInk(0.35), 0.55 * opacity);
     vec4 rock = mix(rockTop, uLook[8], t);
     picture = lookOver(picture, lookPaint(rock.rgb, rock.a * inside));
+    // The mountains are the body (synthwave.ts).
+    lookBody(inside);
   }
   float edgeD = 1e4;
   for (int n = -1; n <= 1; n++) {

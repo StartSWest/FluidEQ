@@ -61,6 +61,7 @@ import { type IChartPointData } from './ChartController';
 import { getGraphAnalyserSlope } from '../utils/graphScaleSettings';
 import { type IAnalysisChannels } from './analysis/useAnalysisChannels';
 import { type IEngineLookInput } from './engineLooks/engineLookInput';
+import { writeLookTexture } from './engineLooks/lookTexture';
 import { type GraphLookTransition } from './graphLookTransition';
 
 // The live graph's looks that draw themselves and leave the frame: the
@@ -368,6 +369,7 @@ export const drawSceneViewFrame = ({
     if (read) {
       const input = engineInputFor(chosen);
       readLookInput(input, read.reading);
+      writeLookTexture(input, tuning, ratio, plot);
       moved = step(read.reading, sceneViewRef.current, input) || read.moving;
     }
     if (isHanding) {

@@ -46,6 +46,19 @@ uniform float uLookPass;
 uniform sampler2D uLookBloom;
 uniform float uLookBloomStrength;
 uniform vec3 uWindowInk;
+uniform sampler2D uLookTexture;
+uniform vec4 uLookTexturing;
+uniform vec4 uLookTextureRect;
+
+// How much of this pixel the drawing's solid body covers: what a scene
+// collects as its body path on the page (the union of its solid pieces),
+// marked by each look where it paints one (lookBody) and printed with the
+// texture once the look has painted everything (engineLooks.ts, withTexture).
+float lookBodyCover = 0.0;
+
+void lookBody(float cover) {
+  lookBodyCover = max(lookBodyCover, cover);
+}
 
 vec2 lookPoint(vec2 uv) {
   return vec2(uv.x, 1.0 - uv.y) * uLook[0].xy;
@@ -206,6 +219,34 @@ vec4 lookMark(float a) {
 // white floor (sceneFrame.ts, glowComposite).
 vec4 lookGlow(vec4 picture, vec4 light) {
   return lookOnLight() ? lookOver(picture, light) : min(picture + light, vec4(1.0));
+}
+
+// The style editor's texture printed into what is painted at p, over the
+// share cover of a filled body at the fill's opacity strength, as the 2D
+// figures print it (fillTextures.ts): a picture laid over what is there and
+// keeping its alpha (the canvas's source-atop), a pattern's white tile in
+// the canvas's overlay, which lightens and darkens the fill beneath it.
+// uLookTexturing: mode (0 none, 1 pattern, 2 picture), strength, 1 where it
+// repeats; uLookTextureRect: where one copy lies, x, y, width, height.
+vec4 lookTextured(vec4 picture, vec2 p, float cover, float strength) {
+  int mode = int(uLookTexturing.x + 0.5);
+  if (mode == 0 || cover <= 0.0 || lookBloomPass()) {
+    return picture;
+  }
+  vec2 uv = (p - uLookTextureRect.xy) / max(vec2(1e-3), uLookTextureRect.zw);
+  if (uLookTexturing.z < 0.5 && (any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0))))) {
+    return picture;
+  }
+  vec4 tile = texture(uLookTexture, uv);
+  float k = clamp(uLookTexturing.y * strength, 0.0, 1.0) * clamp(cover, 0.0, 1.0);
+  if (mode == 2) {
+    return vec4(tile.rgb * k * picture.a + picture.rgb * (1.0 - tile.a * k), picture.a);
+  }
+  float a = tile.a * k;
+  vec3 under = picture.a > 0.0 ? picture.rgb / picture.a : vec3(0.0);
+  vec3 blended = min(vec3(1.0), 2.0 * under);
+  vec3 colour = vec3(a * (1.0 - picture.a)) + picture.rgb * (1.0 - a) + a * picture.a * blended;
+  return vec4(colour, a + picture.a * (1.0 - a));
 }
 
 // A rectangle from lo to hi rounded by r: its signed distance, in CSS pixels.

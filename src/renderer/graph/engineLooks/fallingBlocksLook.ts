@@ -68,6 +68,7 @@ vec4 paintBlock(vec2 p, vec2 at, float cell, vec3 ink, vec4 picture) {
   float d = lookBox(p, at, at + vec2(cell), 0.0);
   picture = lookOver(picture, lookPaint(ink, opacity * lookShape(d)));
   if (lookFilled()) {
+    lookBody(lookFill(d));
     float bevel = uLook[7].x;
     float lit = max(inRect(p, at, vec2(cell, bevel)), inRect(p, at + vec2(0.0, bevel), vec2(bevel, cell - bevel)));
     float shade = max(inRect(p, at + vec2(bevel, cell - bevel), vec2(cell - bevel, bevel)),

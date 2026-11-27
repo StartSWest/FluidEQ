@@ -34,6 +34,10 @@ const look: Partial<Dictionary> = {
   'look.texture.static': 'Grana',
   'look.texture.image': 'Immagine',
   'look.texture.replace': 'Cambia immagine',
+  'look.texture.fit': 'Adattamento',
+  'look.texture.fit.cover': 'Immagine intera',
+  'look.texture.fit.tile': 'Affiancata',
+  'look.texture.tileSize': 'Dimensione riquadro',
   'look.texture.tooBig':
     'Questa immagine è troppo grande da conservare. Provane una più piccola.',
   'look.texture.unreadable':

@@ -154,6 +154,8 @@ vec4 sceneColour(vec2 uv) {
     }
     picture = lookOver(picture, lookPaint(ink, opacity * shape));
     if (lookFilled()) {
+      // Every lit lamp and held peak is the body (ledWall.ts).
+      lookBody(lookFill(d));
       picture = lookOver(picture, ledLens(q, radius) * opacity);
     }
   }

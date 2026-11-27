@@ -129,6 +129,8 @@ vec4 tideCopy(vec2 p, int copy, vec4 picture) {
     bool across = p.x >= uLook[1].x && p.x <= uLook[1].y;
     if (lookFilled() && across) {
       float water = clamp(min((p.y - y) * -up, (footY - p.y) * -up) / lookPixel() + 0.5, 0.0, 1.0);
+      // Every swell's water is the body (tide.ts).
+      lookBody(water);
       float along = lookAlong(p.y, swell.y, footY);
       if (lookInkMode() == 1) {
         float t = (p.x - uLook[1].x) / max(1.0, uLook[1].y - uLook[1].x);

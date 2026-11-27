@@ -86,6 +86,36 @@ export interface IEngineLookInput {
   lines?: IEngineLookLines;
   /** Strokes in their own colours the look lays over its picture, if any. */
   strokes?: IEngineLookStrokes;
+  /**
+   * The style editor's texture, printed in the figure's body where the 2D
+   * view prints it (`lookTexture.ts`, `uLookTexture`). Absent for none.
+   */
+  texture?: IEngineLookTexture;
+}
+
+/**
+ * A pattern's tile or a picture, with where one copy of it lies.
+ *
+ * The pixels travel to the engine's worker once per `key`: the page sets
+ * `bitmap` on every frame, and the worker client sends it only when the key
+ * is one it has not sent (`sceneWorkerClient.ts`); the worker keeps the last
+ * one it was given and hands it back to every frame of that key
+ * (`sceneRenderer.worker.ts`). A megapixel copied into every frame's message
+ * would cost more than the look it decorates.
+ */
+export interface IEngineLookTexture {
+  key: string;
+  bitmap?: ImageBitmap;
+  /** 1 a pattern, printed in overlay; 2 a picture, printed over the fill. */
+  mode: 1 | 2;
+  /** How strongly it prints before the fill's own opacity (`PICTURE_ALPHA`). */
+  strength: number;
+  /** Where one copy lies, in the look's CSS pixels, and whether it repeats. */
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  repeat: boolean;
 }
 
 /**

@@ -34,6 +34,10 @@ const look: Partial<Dictionary> = {
   'look.texture.static': 'グレイン',
   'look.texture.image': '画像',
   'look.texture.replace': '画像を変更',
+  'look.texture.fit': '配置',
+  'look.texture.fit.cover': '画像全体',
+  'look.texture.fit.tile': '並べて表示',
+  'look.texture.tileSize': 'タイルのサイズ',
   'look.texture.tooBig':
     'この画像は大きすぎて保存できません。小さいものをお試しください。',
   'look.texture.unreadable': 'このファイルは画像として読み込めませんでした。',

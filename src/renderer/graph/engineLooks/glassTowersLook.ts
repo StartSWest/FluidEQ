@@ -94,6 +94,9 @@ vec4 towersCopy(vec2 p, vec4 stand, vec4 pool, vec4 picture) {
     float shape = lookShape(towerShape(p, left, width, floorY, up, tower.x * reach));
     vec3 ink = lookInkMode() == 3 ? lookInk(lookHeatT(tower.x)) : whole;
     picture = lookOver(picture, lookPaint(ink, opacity * shape));
+    if (lookFilled()) {
+      lookBody(shape);
+    }
   }
   if (here < 0 || here >= count) {
     return picture;

@@ -128,6 +128,10 @@ vec4 fibersCopy(vec2 p, vec4 stand, vec4 picture) {
   }
   picture = lookGlow(picture, lookPaint(lookLightInk(t, 0.2), 0.12 * opacity * halo));
   picture = lookOver(picture, lookPaint(lookLightInk(t, lookFilled() ? 0.55 : 0.4), opacity * tips));
+  // The tips alone are the body (fibers.ts): the threads are lines.
+  if (lookFilled()) {
+    lookBody(tips);
+  }
   return lookOver(picture, lookPaint(lookLightInk(t, 0.4), 0.5 * held));
 }
 

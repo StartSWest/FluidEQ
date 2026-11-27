@@ -57,7 +57,7 @@ vec4 compareChannel(vec4 picture, vec2 p, int copy, int row, int seg, bool mate,
   picture = lookOver(picture, lookPaint(anEdgeInk(p, band, beforeMate, heat.y), uLook[10].y * lookStroke(d.y, uLook[10].z)));
   // After: the reading itself, with the look's full edge.
   if (lookFilled()) {
-    picture = anBody(picture, p, band, mate, heat.x, anFillOpacity(), anBodyCover(p, band, at.x, d.x));
+    picture = anTexturedBody(picture, p, band, mate, heat.x, anFillOpacity(), anBodyCover(p, band, at.x, d.x));
   }
   return lookOver(picture, lookPaint(anEdgeInk(p, band, mate, heat.x), presence * lookStroke(d.x, anEdgeWidth())));
 }

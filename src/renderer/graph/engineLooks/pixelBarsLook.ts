@@ -115,6 +115,10 @@ vec4 pixelCopy(vec2 p, vec4 stand, vec4 picture) {
       alpha = opacity * 0.45;
     }
   }
+  // Every lit, dimmed, top and held square is the body (pixelBars.ts).
+  if (lookFilled()) {
+    lookBody(square);
+  }
   return lookOver(picture, lookPaint(ink, alpha * square));
 }
 

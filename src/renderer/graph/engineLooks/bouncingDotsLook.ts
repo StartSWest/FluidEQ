@@ -97,6 +97,7 @@ vec4 dotsCopy(vec2 p, vec4 stand, vec4 picture) {
     vec3 ink = lookInkMode() == 3 ? lookInk(lookHeatT(ball.y)) : lookInk(t);
     picture = lookOver(picture, lookPaint(ink, opacity * lookShape(d)));
     if (lookFilled()) {
+      lookBody(lookFill(d));
       vec2 shineAt = vec2(e.x - e.z * 0.3, e.y - e.w * 0.32);
       float shine = lookFill(length(p - shineAt) - e.w * 0.28);
       picture = lookOver(picture, lookSheen(0.55 * opacity * shine));

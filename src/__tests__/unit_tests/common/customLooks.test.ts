@@ -27,6 +27,7 @@ import {
   isFilledGraphStyle,
 } from 'common/graphStyles';
 import { ACCENT_STYLES, hasGraphAccent } from 'common/graphShapes';
+import { MAX_TEXTURE_SIZE, MIN_TEXTURE_SIZE } from 'common/graphTextures';
 import { DEFAULT_GRAPH_TILT, isGraphTilt } from 'common/graphAnalysis';
 import {
   CUSTOM_LOOK_PREFIX,
@@ -151,6 +152,8 @@ describe('normalizeTuning', () => {
       borderWidth: DEFAULT_BORDER_WIDTH,
       texture: 'none',
       textureImage: undefined,
+      textureFit: 'tile',
+      textureSize: 192,
       channels: 'joined',
     });
   });
@@ -649,6 +652,7 @@ describe('every stored setting is validated', () => {
     ['borderWidth', MIN_BORDER_WIDTH, MAX_BORDER_WIDTH],
     ['gap', MIN_BAR_GAP, MAX_BAR_GAP],
     ['accentWidth', MIN_ACCENT_WIDTH, MAX_ACCENT_WIDTH],
+    ['textureSize', MIN_TEXTURE_SIZE, MAX_TEXTURE_SIZE],
   ];
 
   it.each(NUMERIC)('clamps %s to its range', (key, min, max) => {
@@ -782,6 +786,8 @@ describe('every stored setting is validated', () => {
       // a fill, the picture behind the pattern, and one figure or two.
       'texture',
       'textureImage',
+      // How a picture lies (customLooksTextureFit.test.ts).
+      'textureFit',
       'channels',
     ]);
     Object.keys(getDefaultTuning('bars')).forEach((key) => {

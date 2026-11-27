@@ -93,6 +93,9 @@ vec4 glitchPicture(vec2 p, vec4 stand, vec4 picture) {
     vec3 ink = lookInkMode() == 3 ? lookInk(lookHeatT(level)) : lookInk(t);
     picture = lookOver(picture, lookPaint(ink, opacity * lookShape(d)));
     picture = lookOver(picture, lookPaint(lookLightInk(t, 0.55), opacity * lookFill(cap)));
+    if (lookFilled()) {
+      lookBody(lookFill(d));
+    }
     if (lookFilled() && fract(p.y / 3.0) >= 2.0 / 3.0) {
       // A dark scanline every three pixels across the bars.
       picture = lookOver(picture, vec4(0.0, 0.0, 0.0, 0.42 * opacity * lookFill(d)));

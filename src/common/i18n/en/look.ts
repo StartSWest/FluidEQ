@@ -32,6 +32,10 @@ const look = {
   'look.texture.static': 'Grain',
   'look.texture.image': 'Picture',
   'look.texture.replace': 'Change picture',
+  'look.texture.fit': 'Fit',
+  'look.texture.fit.cover': 'Whole picture',
+  'look.texture.fit.tile': 'Tiled',
+  'look.texture.tileSize': 'Tile size',
   'look.texture.tooBig':
     'That picture is too large to keep. Try a smaller one.',
   'look.texture.unreadable': 'That file could not be read as a picture.',

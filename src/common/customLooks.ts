@@ -40,7 +40,12 @@ import {
 } from './graphShapes';
 import {
   type TFillTexture,
+  type TTextureFit,
+  MAX_TEXTURE_SIZE,
+  MIN_TEXTURE_SIZE,
+  TEXTURE_TILE,
   isFillTexture,
+  isTextureFit,
   isTextureImage,
 } from './graphTextures';
 import { type TGraphChannels, isGraphChannels } from './graphChannels';
@@ -150,14 +155,25 @@ export interface ILookTuning {
    */
   texture: TFillTexture;
   /**
-   * A picture somebody dropped on the editor, as a small square tile.
+   * A picture somebody dropped on the editor.
    *
    * Held only while `texture` is the picture one, and only ever as a data URI
-   * this app wrote: the editor redraws whatever is chosen at a fixed tile size
-   * before encoding it, so a look cannot carry a photograph into storage that
-   * every other look then has to share space with.
+   * this app wrote: the editor redraws whatever is chosen, at its own shape
+   * and at most `TEXTURE_PICTURE_SIDE` across, and encodes it under
+   * `MAX_TEXTURE_BYTES`, so a look cannot carry a photograph into storage
+   * that every other look then has to share space with. Pictures stored
+   * before the fit choice are 192-pixel squares.
    */
   textureImage?: string;
+  /**
+   * How the picture lies in the figure: once over the whole plot, or tiled.
+   * Absent on every look saved before the choice, which reads as `tile`, the
+   * way those looks always drew; an older FluidEQ ignores the field and
+   * tiles.
+   */
+  textureFit: TTextureFit;
+  /** A tiled picture's height in CSS pixels; 192 before the choice existed. */
+  textureSize: number;
   /** One figure for both channels, or one for each. */
   channels: TGraphChannels;
   // No slope: it was here until 2026-11-16 and is now the graph's own, in
@@ -401,6 +417,10 @@ export const getDefaultTuning = (style: GraphStyle): ILookTuning => {
     // Plain unless asked for, like the frame: a pattern nobody chose is
     // noise inside a reading.
     texture: 'none',
+    // Tiled at the size every picture had before the choice, so a look
+    // saved then reads exactly as it drew.
+    textureFit: 'tile',
+    textureSize: TEXTURE_TILE,
     channels: 'joined',
   };
 };
@@ -494,6 +514,17 @@ export const normalizeTuning = (
     textureImage: isTextureImage(source.textureImage)
       ? source.textureImage
       : undefined,
+    textureFit: isTextureFit(source.textureFit)
+      ? source.textureFit
+      : defaults.textureFit,
+    textureSize: Math.round(
+      readNumber(
+        source.textureSize,
+        MIN_TEXTURE_SIZE,
+        MAX_TEXTURE_SIZE,
+        defaults.textureSize,
+      ),
+    ),
     channels: isGraphChannels(source.channels)
       ? source.channels
       : defaults.channels,

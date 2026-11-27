@@ -8,6 +8,7 @@ import {
   PICTURE_ALPHA,
   TEXTURE_ALPHA,
   fillTexturePattern,
+  printTexture,
 } from '../fillTextures';
 import { rampAt } from '../lookColours';
 import {
@@ -289,12 +290,12 @@ export const beamPaint = (
 };
 
 /**
- * Print the look's pattern inside a figure.
- *
- * Clipped to the figure in the figure's own space and then filled across the
- * plot in the WINDOW's space, so a tile stays square however tall or short
- * the wave is drawn — painted inside the figure's geometry it stretches into
- * rectangles the moment the height slider moves.
+ * Print the look's pattern inside a figure, filled into the figure itself
+ * (`printTexture`) in the plot's own space, where the figure is laid out:
+ * the tile stays square however tall or short the wave is drawn. The
+ * measuring views are drawn by the engine wherever it runs, which prints
+ * the same texture in its shaders (`lookTextured`); this is their page
+ * fallback.
  */
 export const paintTexture = (
   frame: IAnalysisFrame,
@@ -309,23 +310,19 @@ export const paintTexture = (
     texture: tuning.texture,
     image: tuning.textureImage,
     scale: ratio,
+    fit: tuning.textureFit,
+    size: tuning.textureSize,
+    area: plot,
   });
   if (!pattern) {
     return;
   }
   context.save();
-  context.clip(figure);
   context.globalCompositeOperation =
     tuning.texture === 'image' ? 'source-atop' : 'overlay';
   context.globalAlpha =
     alpha * (tuning.texture === 'image' ? PICTURE_ALPHA : TEXTURE_ALPHA);
-  context.fillStyle = pattern;
-  context.fillRect(
-    plot.left,
-    plot.top,
-    plot.right - plot.left,
-    plot.bottom - plot.top,
-  );
+  printTexture(context, figure, pattern, context.getTransform());
   context.restore();
 };
 

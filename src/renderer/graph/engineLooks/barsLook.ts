@@ -64,6 +64,9 @@ vec4 barsRow(vec4 picture, vec2 p, int copy, int row, bool mate, float strength,
   }
   if (lookFilled()) {
     picture = lookOver(picture, anPiecePaint(p, band, mate, uLook[7].w, anFillOpacity()) * presence * body);
+    // Each row's texture, at the fill's opacity and the row's strength
+    // (barRows.ts, paintTexture).
+    picture = lookTextured(picture, p, body, anFillOpacity() * strength);
   } else {
     picture = lookOver(picture, lookPaint(anEdgeInk(p, band, mate, heat), presence * body));
   }

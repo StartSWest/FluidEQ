@@ -103,6 +103,7 @@ vec4 haloCopy(vec2 p, int copy, vec4 picture) {
   }
   if (lookFilled()) {
     picture = lookOver(picture, lookPaint(shapeInk, 0.95 * opacity * shape));
+    lookBody(shape);
   } else {
     // In outline the ring is the line through the rays' tips.
     float frac = u - floor(u) - 0.5;

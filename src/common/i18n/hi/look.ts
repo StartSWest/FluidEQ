@@ -34,6 +34,10 @@ const look: Partial<Dictionary> = {
   'look.texture.static': 'दाना',
   'look.texture.image': 'तस्वीर',
   'look.texture.replace': 'तस्वीर बदलें',
+  'look.texture.fit': 'फ़िट',
+  'look.texture.fit.cover': 'पूरी तस्वीर',
+  'look.texture.fit.tile': 'टाइल में',
+  'look.texture.tileSize': 'टाइल का आकार',
   'look.texture.tooBig':
     'यह तस्वीर सहेजने के लिए बहुत बड़ी है। कोई छोटी आज़माएँ।',
   'look.texture.unreadable': 'यह फ़ाइल तस्वीर के रूप में नहीं पढ़ी जा सकी।',

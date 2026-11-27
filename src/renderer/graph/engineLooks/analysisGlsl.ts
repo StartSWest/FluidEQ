@@ -254,6 +254,13 @@ vec4 anBody(vec4 picture, vec2 p, vec4 band, bool mate, float energy, float alph
   return picture * (1.0 - anFootFade(p, band) * cover);
 }
 
+// A body that carries the look's texture, as paintSpectrum prints one where
+// it is not told textured: false: filled, faded, and then printed, at
+// the fill's own opacity (paintTexture).
+vec4 anTexturedBody(vec4 picture, vec2 p, vec4 band, bool mate, float energy, float alpha, float cover) {
+  return lookTextured(anBody(picture, p, band, mate, energy, alpha, cover), p, cover, alpha);
+}
+
 // A reading's outline (spectrumInk): the ramp the body stands in, at full
 // strength, or Rainbow's sweep where it is the edge.
 vec3 anEdgeInk(vec2 p, vec4 band, bool mate, float energy) {

@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { SCENE_VERTEX_SOURCE } from 'common/sceneUniformContract';
 import { linkProgram, setNearestClamped } from '../glProgram';
 import type { IEngineLookHistory, IEngineLookInput } from './engineLookInput';
+import { createLookTextureGl } from './lookTextureGl';
 import { createLookLines, type ILookLines } from './lookLines';
 import { createLookStrokes, type ILookStrokes } from './lookStrokes';
 import { createLookSprites, type ILookSprites } from './lookSprites';
@@ -192,6 +193,9 @@ export const createLookGl = (
   let historyKey = '';
   let historyPrinted: number[] = [];
 
+  // The style editor's texture (`lookTextureGl.ts`).
+  const fillTexture = createLookTextureGl(gl, program);
+
   const uploadHistory = (kept: IEngineLookHistory) => {
     if (!historyAt) {
       return;
@@ -307,6 +311,7 @@ export const createLookGl = (
     if (input.history) {
       uploadHistory(input.history);
     }
+    fillTexture.upload(input.texture);
   };
 
   /** The lit shapes, small, blurred: left in `front`'s texture. */
@@ -449,6 +454,7 @@ export const createLookGl = (
       strokes?.dispose();
       gl.deleteTexture(data);
       gl.deleteTexture(history);
+      fillTexture.dispose();
       if (blur) {
         gl.deleteProgram(blur);
       }

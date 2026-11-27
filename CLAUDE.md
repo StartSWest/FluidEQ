@@ -1665,6 +1665,19 @@ Out-String` (or any other capture) is what actually waits for it and shows
   breaks one plays its shader, and the reasons travel as codes
   (`worldNotes.ts`) that the Studio says in the member's language and the
   agent door in English.
+- **A look's texture is printed by the engine, so every scene look marks its
+  body** (Ivan, 2026-11-26: "the picture background performance sucks",
+  "the patterns are slow"). A texture used to take a look off the engine and
+  draw it whole on the page — 26-33 ms a frame in software raster against 7
+  plain. Now the measuring views texture their bodies where `paintSpectrum`
+  and `barRows` do (`anTexturedBody`, `lookTextured`), and each scene look
+  calls `lookBody(cover)` wherever it paints a piece its page drawing adds to
+  `body`; `withTexture` (`engineLooks.ts`) prints over that once the look
+  has painted. A new scene look, or a new solid piece in one, that does not
+  mark it shows no texture on the engine and nothing fails. Only designed
+  looks keep a texture on the page. A picture is decoded once and redrawn at
+  the device pixels it covers (`texturePictures.ts`), and travels to the
+  worker once per key (`textureOnce.ts`) — never a bitmap in every frame.
 - **A model is checked the way three's `GLTFLoader` reads it, never the way
   the format says a file is written** (`worldModelCheck.ts` and its two
   parts, vendored to the server). The loader keeps the LAST JSON chunk and

@@ -71,6 +71,7 @@ vec4 sparkCopy(vec2 p, vec4 stand, vec4 picture) {
     vec3 ink = lookInkMode() == 3 ? lookInk(lookHeatT(bar.x)) : lookInk(t);
     picture = lookOver(picture, lookPaint(ink, opacity * lookShape(d)));
     if (lookFilled()) {
+      lookBody(lookFill(d));
       // Dark at the foot: the fire is at the top.
       float along = lookAlong(p.y, floorY, headY);
       float dark = along < 0.6 ? mix(0.55, 0.0, along / 0.6) : 0.0;

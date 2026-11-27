@@ -9,6 +9,7 @@ import { parseCssColour } from '../../utils/oklab';
 import { rampAt } from '../lookColours';
 import { placeLevel, type IAnalysisReading } from '../analysis/analysisFrame';
 import type { IEngineLookInput } from './engineLookInput';
+import { writeLookTexture } from './lookTexture';
 import {
   setLookBands,
   setLookVector,
@@ -109,4 +110,5 @@ export const readAnalysisLookInput = (
   input.mateInkCount = writeInks(input.mateInks, first.mate);
   // The scale's rules follow the window's ink, as the 2D views' `readInk`.
   writeWindowInk(input);
+  writeLookTexture(input, tuning, first.ratio, plot);
 };

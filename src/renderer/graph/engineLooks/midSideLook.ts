@@ -45,7 +45,7 @@ vec4 sceneColour(vec2 uv) {
       picture = lookOver(picture, lookPaint(anEdgeInk(p, band, true, uLook[7].z), uLook[8].y * lookStroke(d.y, uLook[8].z)));
     }
     if (lookFilled()) {
-      picture = anBody(picture, p, band, false, uLook[7].y, anFillOpacity(), anBodyCover(p, band, at.x, d.x));
+      picture = anTexturedBody(picture, p, band, false, uLook[7].y, anFillOpacity(), anBodyCover(p, band, at.x, d.x));
     }
     // The mid's edge is stroked at whatever its body left the canvas's alpha
     // at: whole where it was filled, the copy's presence where it was not.

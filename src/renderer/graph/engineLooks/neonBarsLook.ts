@@ -103,6 +103,7 @@ vec4 neonPaintCopy(vec2 p, vec4 stand, vec4 picture) {
       float footT = abs(up) < 1e-3 ? 0.0 : clamp((p.y - copy.floorY) / up, 0.0, 1.0);
       float dark = footT < 0.5 ? mix(0.55, 0.1, footT / 0.5) : mix(0.1, 0.0, (footT - 0.5) / 0.5);
       float solid = lookFill(neonTube(p, left, width, copy.floorY, copy.up, height));
+      lookBody(solid);
       picture = lookOver(picture, vec4(0.0, 0.0, 0.0, dark * opacity * solid));
       if (height > width) {
         float end = width * 0.5;

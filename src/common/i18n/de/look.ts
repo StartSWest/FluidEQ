@@ -34,6 +34,10 @@ const look: Partial<Dictionary> = {
   'look.texture.static': 'Korn',
   'look.texture.image': 'Bild',
   'look.texture.replace': 'Bild ändern',
+  'look.texture.fit': 'Anpassung',
+  'look.texture.fit.cover': 'Ganzes Bild',
+  'look.texture.fit.tile': 'Gekachelt',
+  'look.texture.tileSize': 'Kachelgröße',
   'look.texture.tooBig':
     'Dieses Bild ist zu groß zum Speichern. Wählen Sie ein kleineres.',
   'look.texture.unreadable':

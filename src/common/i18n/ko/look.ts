@@ -17,6 +17,10 @@ const look = {
   'look.texture.static': '입자',
   'look.texture.image': '그림',
   'look.texture.replace': '사진 변경',
+  'look.texture.fit': '맞춤',
+  'look.texture.fit.cover': '전체 그림',
+  'look.texture.fit.tile': '바둑판식',
+  'look.texture.tileSize': '타일 크기',
   'look.texture.tooBig':
     '사진이 너무 커서 보관할 수 없습니다. 더 작은 것을 시도해 보세요.',
   'look.texture.unreadable': '해당 파일을 그림으로 읽을 수 없습니다.',

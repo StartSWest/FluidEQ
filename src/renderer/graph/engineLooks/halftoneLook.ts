@@ -68,6 +68,9 @@ vec4 halftoneCopy(vec2 p, vec4 screen, int copy, vec4 picture) {
         ? lookInk(rows > 1.0 ? float(l) / (rows - 1.0) : 1.0)
         : (mode == 3 ? lookInk(lookHeatT(level)) : lookInk(t));
       picture = lookOver(picture, lookPaint(ink, opacity * cover));
+      if (lookFilled()) {
+        lookBody(cover);
+      }
     }
   }
   if (column >= 0 && column < count) {

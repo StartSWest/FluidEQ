@@ -116,6 +116,7 @@ vec4 bars3dCopy(vec2 p, vec4 stand, vec4 picture) {
     float side = blockSide(p, b.left, w, floorY, head, up);
     picture = lookOver(picture, lookPaint(paint, opacity * lookShape(side)));
     if (filled) {
+      lookBody(lookFill(side));
       picture = lookOver(picture, vec4(0.0, 0.0, 0.0, 0.42 * opacity * lookFill(side)));
     }
   }
@@ -126,7 +127,11 @@ vec4 bars3dCopy(vec2 p, vec4 stand, vec4 picture) {
     Block b = blockAt(k, reach);
     float head = floorY + up * b.height;
     vec3 lit = lookInkMode() == 3 ? lookLightInk(lookHeatT(b.level), 0.45) : lookLightInk(t, 0.45);
-    picture = lookOver(picture, lookPaint(lit, opacity * lookShape(blockTop(p, b.left, w, head, up))));
+    float topFace = lookShape(blockTop(p, b.left, w, head, up));
+    picture = lookOver(picture, lookPaint(lit, opacity * topFace));
+    if (filled) {
+      lookBody(topFace);
+    }
   }
   for (int k = here - 1; k <= here; k++) {
     if (k < 0 || k >= count) {
@@ -138,6 +143,8 @@ vec4 bars3dCopy(vec2 p, vec4 stand, vec4 picture) {
     float front = blockFront(p, b.left, w, floorY, head);
     picture = lookOver(picture, lookPaint(paint, opacity * lookShape(front)));
     if (filled) {
+      // Front, top and side are the body (bars3d.ts).
+      lookBody(lookFill(front));
       // A little light down the fronts, where the view catches them.
       float across = (p.x - uLook[1].x) / max(1.0, uLook[1].y - uLook[1].x);
       float sheen = mix(0.06, 0.02, clamp(across, 0.0, 1.0));

@@ -19,6 +19,7 @@ import {
   PICTURE_ALPHA,
   TEXTURE_ALPHA,
   fillTexturePattern,
+  printTexture,
 } from '../fillTextures';
 import {
   clampUnit,
@@ -266,34 +267,39 @@ const DRAW: Record<
 const asFraction = (gain: number) => (gain - MIN_GAIN) / (MAX_GAIN - MIN_GAIN);
 
 /**
- * The look's texture, printed in the body a filled scene drew: clipped to
- * the body and laid in the window's own pixels, so a tile stays square, in
+ * The look's texture, printed in the body a filled scene drew (`printTexture`):
+ * laid in the window's own pixels, so a tile stays square, in
  * `overlay` so one tile serves every colour — as every other filled form
  * prints it (`LiveTraceCanvas`).
  */
-const printTexture = (
+const printSceneTexture = (
   frame: ISceneFrame,
   tuning: ILookTuning,
   body: Path2D,
 ): void => {
-  const { context, ratio, window } = frame;
+  const { context, ratio, plot } = frame;
   const pattern = fillTexturePattern(context, {
     texture: tuning.texture,
     image: tuning.textureImage,
     scale: ratio,
+    fit: tuning.textureFit,
+    size: tuning.textureSize,
+    area: plot,
   });
   if (!pattern) {
     return;
   }
   const isPicture = tuning.texture === 'image';
   context.save();
-  context.clip(body);
-  context.setTransform(ratio, 0, 0, ratio, 0, 0);
   context.globalCompositeOperation = isPicture ? 'source-atop' : 'overlay';
   context.globalAlpha =
     frame.look.opacity * (isPicture ? PICTURE_ALPHA : TEXTURE_ALPHA);
-  context.fillStyle = pattern;
-  context.fillRect(0, 0, window.width, window.height);
+  printTexture(
+    context,
+    body,
+    pattern,
+    new DOMMatrix([ratio, 0, 0, ratio, 0, 0]),
+  );
   context.restore();
 };
 
@@ -385,7 +391,7 @@ const drawSceneView = (request: ISceneViewRequest): boolean => {
   };
   const drawn = DRAW[request.style](frame, request.state);
   if (drawn.body && frame.look.textured) {
-    printTexture(frame, request.tuning, drawn.body);
+    printSceneTexture(frame, request.tuning, drawn.body);
   }
   return drawn.moving || read.moving;
 };

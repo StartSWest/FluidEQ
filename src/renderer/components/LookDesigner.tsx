@@ -620,9 +620,9 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
           <LookTextureRow
             texture={tuning.texture}
             image={tuning.textureImage}
-            onChange={({ texture, textureImage }) =>
-              tune({ texture, textureImage })
-            }
+            fit={tuning.textureFit}
+            size={tuning.textureSize}
+            onChange={tune}
           />
         ) : null}
 

@@ -28,6 +28,7 @@ import { GLOW_LAYERS, HALO_SCALE } from './figureGlow';
 import { setAlpha } from './liveTraceStyle';
 import {
   fillTexturePattern,
+  printTexture,
   PICTURE_ALPHA,
   TEXTURE_ALPHA,
 } from './fillTextures';
@@ -332,23 +333,23 @@ export const paintFillTexture = ({
       texture: tuning.texture,
       image: tuning.textureImage,
       scale: ratio,
+      fit: tuning.textureFit,
+      size: tuning.textureSize,
+      area: plot,
     });
     if (pattern) {
       context.save();
-      context.clip(curveFigure);
-      context.setTransform(ratio, 0, 0, ratio, 0, 0);
       context.globalCompositeOperation =
         tuning.texture === 'image' ? 'source-atop' : 'overlay';
       setAlpha(
         context,
         opacity * (tuning.texture === 'image' ? PICTURE_ALPHA : TEXTURE_ALPHA),
       );
-      context.fillStyle = pattern;
-      context.fillRect(
-        plot.left,
-        plot.top,
-        plot.right - plot.left,
-        plot.bottom - plot.top,
+      printTexture(
+        context,
+        curveFigure,
+        pattern,
+        new DOMMatrix([ratio, 0, 0, ratio, 0, 0]),
       );
       context.restore();
     }

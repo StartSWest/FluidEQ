@@ -2,6 +2,7 @@ import type { ISceneEditReport } from 'common/sceneEdit';
 import type { IScenePack } from 'common/scenePacks';
 import textDigest from 'common/textDigest';
 import type { ISceneFrame } from './sceneGl';
+import { createTextureOnce } from './engineLooks/textureOnce';
 import type { ISceneCostReading } from './sceneHealth';
 import type { TSceneProbeRect } from './sceneInk';
 import { sceneProgramKey, takeLinkTurn } from './sceneLinkTurns';
@@ -306,6 +307,8 @@ export const createSceneWorkerClient = (
   let probeId = 0;
   const loads = new Map<number, (result: TSceneBuildResult) => void>();
   const send = (request: TSceneWorkerRequest) => worker.postMessage(request);
+  // A look's texture travels once per key (`textureOnce.ts`).
+  const withTextureOnce = createTextureOnce();
   const cancelLoads = () => {
     loads.forEach((resolve) => resolve({ kind: 'cancelled' }));
     loads.clear();
@@ -487,7 +490,7 @@ export const createSceneWorkerClient = (
           // Which box this frame is for, so the worker can say when a frame
           // for the box that is there now has reached the canvas.
           turn: holding.sending(),
-          frame,
+          frame: withTextureOnce(frame),
           width: drawn.width,
           height: drawn.height,
           output,

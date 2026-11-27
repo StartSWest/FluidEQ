@@ -34,6 +34,10 @@ const look: Partial<Dictionary> = {
   'look.texture.static': 'Grão',
   'look.texture.image': 'Imagem',
   'look.texture.replace': 'Trocar imagem',
+  'look.texture.fit': 'Ajuste',
+  'look.texture.fit.cover': 'Imagem inteira',
+  'look.texture.fit.tile': 'Lado a lado',
+  'look.texture.tileSize': 'Tamanho do bloco',
   'look.texture.tooBig':
     'Essa imagem é grande demais para guardar. Tente uma menor.',
   'look.texture.unreadable': 'Não foi possível ler esse arquivo como imagem.',

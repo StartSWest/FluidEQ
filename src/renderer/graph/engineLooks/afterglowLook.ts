@@ -95,6 +95,9 @@ vec4 afterglowCopy(vec2 p, vec4 stand, vec4 picture) {
   float shape = lookShape(lookBox(p, vec2(left, barTop), vec2(right, barTop + height), 0.0));
   vec3 ink = lookInkMode() == 3 ? lookInk(lookHeatT(bar.x)) : lookInk(t);
   picture = lookOver(picture, lookPaint(ink, opacity * shape));
+  if (lookFilled()) {
+    lookBody(shape);
+  }
   picture = lookOver(picture, lookPaint(lookLightInk(t, 0.55 + lookPulse() * 0.3), 0.95 * tops));
   float heldHeight = bar.y * reach;
   if (lookAccents() && heldHeight - height > 3.0) {

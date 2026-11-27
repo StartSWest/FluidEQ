@@ -113,6 +113,10 @@ vec4 ledBarsBoard(vec2 p, vec4 board, bool ghostOnly, vec4 picture) {
     ink = lookInk(t);
   }
   picture = lookOver(picture, lookPaint(ink, opacity * lookShape(d)));
+  // Every lit, hot and held segment is the body (ledBars.ts).
+  if (lookFilled()) {
+    lookBody(lookFill(d));
+  }
   if (lookFilled() && !isHeld) {
     float shineY = board.y < 0.0 ? y + 0.5 : y + cell - 1.5;
     float shine = lookFill(lookBox(p, vec2(left + 1.0, shineY),

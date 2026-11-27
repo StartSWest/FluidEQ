@@ -34,6 +34,10 @@ const look: Partial<Dictionary> = {
   'look.texture.static': 'Зерно',
   'look.texture.image': 'Картинка',
   'look.texture.replace': 'Заменить картинку',
+  'look.texture.fit': 'Размещение',
+  'look.texture.fit.cover': 'Картинка целиком',
+  'look.texture.fit.tile': 'Плиткой',
+  'look.texture.tileSize': 'Размер плитки',
   'look.texture.tooBig':
     'Эта картинка слишком большая, чтобы её сохранить. Выберите поменьше.',
   'look.texture.unreadable': 'Не удалось прочитать этот файл как картинку.',

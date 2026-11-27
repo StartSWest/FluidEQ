@@ -60,9 +60,14 @@ vec4 analyzerFigure(vec4 picture, vec2 p, vec4 band, int row, int seg, bool mate
       float alpha = anFillOpacity() * figure.x * ${LIGHT_WINDOW_FILL_SHARE.toFixed(3)};
       if (cover > 0.0 && alpha > 0.0) {
         picture = lookOver(picture, anFillPaint(p, band, mate, energy, alpha) * cover);
+        // The front figure alone carries the texture, as in the 2D view;
+        // the channel behind is told apart by its colours.
+        picture = mate ? picture : lookTextured(picture, p, cover, alpha);
       }
-    } else {
+    } else if (mate) {
       picture = anBody(picture, p, band, mate, energy, anFillOpacity() * figure.x, cover);
+    } else {
+      picture = anTexturedBody(picture, p, band, mate, energy, anFillOpacity() * figure.x, cover);
     }
   }
   if (figure.y > 0.0) {

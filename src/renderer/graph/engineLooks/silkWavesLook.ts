@@ -87,6 +87,7 @@ vec4 sceneColour(vec2 uv) {
         float hi = max(crest, echo);
         float ribbon = clamp(min(p.y - lo, hi - p.y) / lookPixel() + 0.5, 0.0, 1.0);
         light += lookPaint(silkInk(p, stand, loudness, 0.0), opacity * 0.24 * ribbon);
+        lookBody(ribbon);
       }
       float glow = lookStroke(d, weight * uLook[11].y);
       light += lookPaint(silkInk(p, stand, loudness, 0.0), uLook[11].x * glow);
