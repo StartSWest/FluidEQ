@@ -69,7 +69,7 @@ import {
   fillWaveformTexels,
   parseAccent,
 } from './sceneUniforms';
-import { blurredScale } from './sceneBlurScale';
+import { blurredScale, drawnScale } from './sceneBlurScale';
 
 export type { ISceneRunnerOptions, ISceneSource } from './sceneRunnerTypes';
 export type { ISceneTuning } from './sceneTuner';
@@ -492,7 +492,7 @@ export default function useSceneRunner({
         ? 1
         : blurredScale(blurPxRef.current, ratio * pixelCap);
       const isBlurred = blurCap < 1;
-      scale = Math.min(scale, blurCap);
+      scale = drawnScale(scale, blurCap);
       const drawn = {
         width: Math.max(1, Math.round(output.width * scale)),
         height: Math.max(1, Math.round(output.height * scale)),

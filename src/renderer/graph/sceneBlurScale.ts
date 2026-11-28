@@ -37,3 +37,15 @@ export const blurredScale = (
   const scale = 1 / (SAMPLE_SPACING_PER_BLUR_PX * blurPx * pixelsPerCssPx);
   return Math.min(1, Math.max(BLURRED_SCALE_FLOOR, scale));
 };
+
+/**
+ * The scale a frame is drawn at: the ladder's own, held to what survives a
+ * blur only while there is one (`blurCap` under 1). Since e8929dd65 the cap
+ * was taken whatever the blur, and `blurredScale` answers 1 with none, so
+ * every frame was held to the panel's own size and Auto's and Full's
+ * supersample (up to twice each way) was never drawn: two minutes of Best
+ * on Ivan's NVIDIA card stayed at 1.00 (FluidWallpapers' graphics session,
+ * 2026-11-28), against Ivan's rule that Full forces full antialiasing.
+ */
+export const drawnScale = (ladderScale: number, blurCap: number): number =>
+  blurCap < 1 ? Math.min(ladderScale, blurCap) : ladderScale;
