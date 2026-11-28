@@ -7,11 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useRef } from 'react';
 import { MAX_GAIN, MIN_GAIN, PREAMP_MIN_GAIN } from 'common/constants';
 import { TONE_MAX_DB } from 'common/tone';
-import EqModeTriggerFace from '../eqMode/EqModeTriggerFace';
 import { TONE_CONTROLS } from '../../eq/useTone';
-import Chevron from '../../icons/Chevron';
-import MenuIcon from '../../icons/MenuIcon';
-import VoicingIcon from '../../icons/VoicingIcon';
 import LibraryCoverArt from '../../library/LibraryCoverArt';
 import { formatDuration } from '../../library/player/NowPlayingBar';
 import { bandLabel } from '../../player/MiniBands';
@@ -34,6 +30,11 @@ import {
   PICTURE_QUEUE_LEFT_MS,
   PICTURE_TONE,
 } from './playerPictureData';
+import {
+  PictureBandsTools,
+  PictureSoundHead,
+  PictureToneTools,
+} from './PlayerPictureSoundRows';
 
 /**
  * The lower half of the Compact player's picture in What's New
@@ -99,34 +100,7 @@ const PictureBands = () => {
           </div>
         </div>
       </div>
-      <div className="player-eq__foot player-sound__foot">
-        <span className="eq-mode is-subtle quick-layouts">
-          <button
-            type="button"
-            className="button small subtle eq-mode__main quick-layouts__trigger"
-            aria-label={t('eq.quickLayouts')}
-          >
-            <MenuIcon name="layout" className="eq-toolbar__icon" />
-            <span className="band-designs__current">
-              {t('eq.bandCount', { count: PICTURE_BANDS.length })}
-            </span>
-            <Chevron />
-          </button>
-        </span>
-        <div className="eq-toolbar__option">
-          <button
-            type="button"
-            className="eq-mode-trigger"
-            aria-label={t('eq.mode')}
-          >
-            <EqModeTriggerFace customized={false} end={<Chevron />} />
-          </button>
-        </div>
-        <button type="button" className="button small subtle clear-eq-trigger">
-          <MenuIcon name="reset" className="eq-toolbar__icon" />
-          <span className="eq-toolbar__word">{t('eq.clear')}</span>
-        </button>
-      </div>
+      <PictureBandsTools />
     </>
   );
 };
@@ -135,121 +109,63 @@ const PictureBands = () => {
 const PictureTone = () => {
   const { t } = useTranslation();
   return (
-    <div className="player-tone">
-      <ToneKnob
-        name={t('sidebar.preamp')}
-        label={
-          <button
-            type="button"
-            className="player-tone__auto is-on"
-            aria-pressed
-          >
-            {t('sidebar.preamp')}
-            <span className="player-tone__auto-tag">{t('player.eq.auto')}</span>
-          </button>
-        }
-        value={PICTURE_PREAMP_DB}
-        min={PREAMP_MIN_GAIN}
-        max={MAX_GAIN}
-        centre={0}
-        isDisabled
-        step={0.1}
-        unit={t('sidebar.autoLabel')}
-        defaultValue={0}
-        handleChange={nothingAsync}
-      />
-      {TONE_CONTROLS.map(({ knob, labelKey }) => (
+    <>
+      <div className="player-tone">
         <ToneKnob
-          key={knob}
-          name={t(labelKey)}
-          value={PICTURE_TONE[knob]}
-          min={-TONE_MAX_DB}
-          max={TONE_MAX_DB}
-          isDisabled={false}
+          name={t('sidebar.preamp')}
+          label={
+            <button
+              type="button"
+              className="player-tone__auto is-on"
+              aria-pressed
+            >
+              {t('sidebar.preamp')}
+              <span className="player-tone__auto-tag">
+                {t('player.eq.auto')}
+              </span>
+            </button>
+          }
+          value={PICTURE_PREAMP_DB}
+          min={PREAMP_MIN_GAIN}
+          max={MAX_GAIN}
+          centre={0}
+          isDisabled
           step={0.1}
-          unit="dB"
+          unit={t('sidebar.autoLabel')}
           defaultValue={0}
           handleChange={nothingAsync}
         />
-      ))}
-    </div>
+        {TONE_CONTROLS.map(({ knob, labelKey }) => (
+          <ToneKnob
+            key={knob}
+            name={t(labelKey)}
+            value={PICTURE_TONE[knob]}
+            min={-TONE_MAX_DB}
+            max={TONE_MAX_DB}
+            isDisabled={false}
+            step={0.1}
+            unit="dB"
+            defaultValue={0}
+            handleChange={nothingAsync}
+          />
+        ))}
+      </div>
+      <PictureToneTools />
+    </>
   );
 };
 
 /** Sound, open on its Tone or its EQ's bands. */
-export const PlayerPictureSound = ({ face }: { face: 'tone' | 'bands' }) => {
-  const { t } = useTranslation();
-  return (
-    <section className="player-eq player-sound">
-      <div className="player-eq__keys player-sound__head">
-        <button type="button" className="player-sound__fold" aria-expanded>
-          <PlayerIcon name="sound" className="player-icon player-sound__mark" />
-          <span className="player-sound__name">{t('player.sound.title')}</span>
-          <PlayerIcon
-            name="fold"
-            className="player-icon player-sound__chevron"
-          />
-        </button>
-        <div className="rich-pick voicing-pick">
-          <button
-            type="button"
-            className="rich-pick__trigger"
-            aria-label={t('dsp.presets')}
-          >
-            <VoicingIcon className="rich-pick__glyph" />
-            <span className="rich-pick__label">{t('dsp.eqPreset.custom')}</span>
-            <Chevron className="rich-pick__caret" />
-          </button>
-        </div>
-        <span className="player-split">
-          <button
-            type="button"
-            className="button small subtle player-led player-split__main"
-            aria-pressed={false}
-          >
-            <span className="player-led__lamp" />
-            {t('player.eq.smart')}
-          </button>
-        </span>
-        <button
-          type="button"
-          className="player-sound__power"
-          aria-pressed
-          aria-label={t('sidebar.systemEq')}
-        >
-          <PlayerIcon name="power" />
-        </button>
+export const PlayerPictureSound = ({ face }: { face: 'tone' | 'bands' }) => (
+  <section className="player-eq player-sound">
+    <PictureSoundHead face={face} />
+    <div className="player-sound__drawer">
+      <div className="player-sound__body">
+        {face === 'tone' ? <PictureTone /> : <PictureBands />}
       </div>
-      <div className="player-sound__drawer">
-        <div className="player-sound__body">
-          <div className="player-sound__tabs">
-            <span className="player-eq__faces" role="group">
-              <button
-                type="button"
-                className="player-eq__face"
-                aria-pressed={face === 'tone'}
-              >
-                {t('eq.tone')}
-              </button>
-              <button
-                type="button"
-                className="player-eq__face"
-                aria-pressed={face === 'bands'}
-              >
-                {t('player.sound.bands', { count: PICTURE_BANDS.length })}
-              </button>
-            </span>
-            <span className="player-sound__state">
-              <span className="player-sound__lamp" />
-              {t('player.sound.on')}
-            </span>
-          </div>
-          {face === 'tone' ? <PictureTone /> : <PictureBands />}
-        </div>
-      </div>
-    </section>
-  );
-};
+    </div>
+  </section>
+);
 
 const shelfTab = (
   icon: TPlayerIconName,

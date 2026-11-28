@@ -136,7 +136,8 @@ const help = {
   'help.player.look': '播放器上的風格或場景。按它可以從所有選項中進行選擇。',
   'help.player.bands':
     '向上或向下拖曳頻段以增強或減弱它。它的頻率寫在它的下面。',
-  'help.player.tone': '音調顯示低音、中音和高音旋鈕；旁邊的分頁，每個頻段。',
+  'help.player.tone':
+    '「你的 EQ」顯示所有頻段；「音色」顯示低音、中音和高音旋鈕。每個分頁都會顯示目前的內容。',
   'help.player.upNext':
     '接下來是播放清單，每個清單都包含有多少個播放清單，以及佇列中剩餘的時間。',
   'help.player.songsName': '歌曲',
@@ -155,7 +156,7 @@ const help = {
     '歌曲的來源：媒體庫、線上媒體、卡拉 OK、另一臺電腦或此 PC 上的其他程式。按下它會在完整的應用程式中開啟該頁面。',
   'help.player.heart': '將歌曲從庫新增到您的收藏夾，或將其刪除。',
   'help.player.soundFold':
-    '將聲音控制向下折疊到這一行，這樣可以保留預設、智慧校正和開關，然後再次開啟它們。',
+    '將聲音控制收合到這一行，「你的 EQ」、「音色」、預設和開關仍留在手邊；再按一次即可展開。',
   'help.player.mode': '開啟 EQ 模式：EQ 和曲線的應用強度、頻帶 Q、相位和高音。',
   'help.player.save': 'Keep Up next 作為自己的播放清單。',
   'help.player.queueFold':

@@ -139,6 +139,46 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
+// A PICKER THAT IS ITS WORDS (Ivan, 2026-11-27: "for dropdowns ... c
+// quiet", from the mockups): no face and no edge at rest, a step of light
+// under the pointer and while its menu is open. The preset, the visualizer,
+// Smart, the band layout, EQ mode and Clear EQ all wear it, so no key on the
+// amp is boxed while its neighbour is not.
+@mixin player-quiet($height: 32px) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: $height;
+  height: $height;
+  padding: 0 8px;
+  border: 0;
+  border-radius: $radius-m;
+  background: none;
+  box-shadow: none;
+  color: var(--player-text);
+  font-size: 12.5px;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover:not(:disabled),
+  &[aria-expanded='true'] {
+    border-color: transparent;
+    background: color-mix(in srgb, var(--player-text) 9%, transparent);
+    color: var(--player-text);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.4;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
 // A key that says what it does with its glyph alone: round, bare on the
 // glass, lit under the pointer.
 @mixin player-round($size: 30px, $glyph: 16px) {

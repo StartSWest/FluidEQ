@@ -206,6 +206,22 @@ $pet-hop-duration: 520ms;
   }
 }
 
+// On the amp's picture, beside the song (`SupportPetPerched`): her square,
+// standing on the row's foot with the song's words, taking no pointer.
+.support-pet--perched {
+  width: 56px;
+  height: 56px;
+  border: 0;
+  cursor: default;
+  pointer-events: none;
+
+  &:hover,
+  &:focus-visible {
+    border-color: transparent;
+    background: transparent;
+  }
+}
+
 @keyframes pet-hop {
   @include pet-hop-keyframes;
 }

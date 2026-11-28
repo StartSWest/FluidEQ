@@ -80,6 +80,9 @@ const FILLED = {
   stop: 'M7.6 6h8.8A1.6 1.6 0 0 1 18 7.6v8.8a1.6 1.6 0 0 1-1.6 1.6H7.6A1.6 1.6 0 0 1 6 16.4V7.6A1.6 1.6 0 0 1 7.6 6z',
   previous: 'M6 5h2.3v14H6zM19.5 5.2v13.6L9.3 12z',
   next: 'M15.7 5H18v14h-2.3zM4.5 5.2v13.6L14.7 12z',
+  // Smart correction: a large spark and a small one beside it.
+  spark:
+    'M10 3l1.9 5.1L17 10l-5.1 1.9L10 17l-1.9-5.1L3 10l5.1-1.9zM18 13.5l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9z',
   // The player glyph's play key, filled inside the stroked deck.
   playerKey: 'M7.2 9.6v4.8l4-2.4z',
 } as const;

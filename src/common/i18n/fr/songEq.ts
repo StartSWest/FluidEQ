@@ -18,8 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 /** Smart correction’s song memory — its progress, and the notice. */
 export default {
-  'songEq.saveAria':
-    'Mémoriser la correction intelligente pour ce qui est en train de jouer',
   'songEq.noticeTitle':
     'Utilisation de l’égalisation enregistrée pour cette chanson',
   'songEq.noticeBody': '{title} — appris sur {plays} lectures',

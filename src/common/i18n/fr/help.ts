@@ -151,7 +151,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.bands':
     'Faites glisser une bande vers le haut ou le bas pour l’amplifier ou l’atténuer. Sa fréquence est écrite en dessous.',
   'help.player.tone':
-    'Tonalité affiche les boutons Graves, Médiums et Aigus ; l’onglet d’à côté, toutes les bandes.',
+    'Votre égaliseur affiche toutes les bandes ; Tonalité, les boutons Graves, Médiums et Aigus. Chaque onglet indique ce qu’il contient.',
   'help.player.upNext':
     'À suivre et Playlists, chacun avec son nombre, et le temps qu’il reste dans la file.',
   'help.player.songsName': 'Les morceaux',
@@ -171,7 +171,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.heart':
     'Ajoute un morceau de la Bibliothèque à vos Favoris, ou l’en retire.',
   'help.player.soundFold':
-    'Replie les réglages du son sur cette ligne, qui garde à portée le préréglage, la correction intelligente et l’interrupteur, et les rouvre.',
+    'Replie les réglages du son sur cette ligne, qui garde à portée Votre égaliseur, Tonalité, le préréglage et l’interrupteur, et les rouvre.',
   'help.player.mode':
     'Ouvre le Mode EQ : la force avec laquelle votre EQ et les courbes s’appliquent, leur Q de bande, leur phase et leurs aigus.',
   'help.player.save': 'Garde À suivre comme une playlist à part entière.',

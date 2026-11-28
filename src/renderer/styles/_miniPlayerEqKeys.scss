@@ -8,9 +8,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'theme' as *;
 @use 'miniPlayerParts' as *;
 
-// The equalizer's page on the sheet: its head row and its foot.
+// The equalizer's section in the amp: its head row, and Smart's split key.
+// Each control's face is the sound section's (`_miniPlayerSound.scss`).
 
-// The page itself: the sheet is its face, so it draws none of its own.
+// The section itself: the pane is its face, so it draws none of its own.
 .player-eq {
   display: flex;
   flex: 1 1 auto;
@@ -20,20 +21,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
   min-height: 0;
 }
 
-// FluidEQ's switch and what it switches along the head, Smart EQ and the
-// preset at its right end; the choice of face, the band layout, EQ mode and
-// Clear EQ along the foot. THEY NEVER BREAK IN TWO (Ivan, 2026-09-22): a
-// control fallen under the one it belongs beside has stopped being part of a
-// row. They give up their WORDS instead as the room runs out
-// (`_miniPlayerEqRows.scss`); every one keeps its name on its `title`.
-.player-eq__keys,
-.player-eq__foot {
+// THE HEAD NEVER BREAKS IN TWO (Ivan, 2026-09-22): a control fallen under
+// the one it belongs beside has stopped being part of a row. It gives up its
+// WORDS instead as the room runs out (`_miniPlayerEqRows.scss`); every
+// control keeps its name on its `title`.
+.player-eq__keys {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
   gap: 6px;
   min-width: 0;
-  // NOTHING IN A ROW SHRINKS, AND NO WORD IN IT BREAKS. Both are what make
+  // NOTHING IN THE ROW SHRINKS, AND NO WORD IN IT BREAKS. Both are what make
   // the row overflow when it is too narrow, which is the only signal
   // `useRowFit` has that it must give a word up.
   white-space: nowrap;
@@ -46,17 +44,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // these controls at its own scale, where a 24px glyph sits beside 13px
   // text, and dropped in here it set the key's height (harness, 2026-09-22).
   svg {
-    max-width: 15px;
-    max-height: 15px;
+    max-width: 16px;
+    max-height: 16px;
   }
 
-  // AND NO LABEL INSIDE A KEY COMPRESSES TO AN ELLIPSIS, or the row never
+  // AND NO LABEL INSIDE A TAB COMPRESSES TO AN ELLIPSIS, or the row never
   // overflows and `useRowFit` takes no step while the words are eaten.
-  .band-designs__current,
-  .eq-mode-trigger__summary,
-  .player-led__value {
-    flex: none;
+  .eq-layer-tabs__meta {
     overflow: visible;
+    max-width: none;
   }
 
   // For the one layout in which `useRowFit` reads what the row's content
@@ -66,117 +62,31 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// Smart EQ and the preset stand at the right of the head.
-.player-eq__keys > .player-split {
-  margin-left: auto;
-}
-
-// The band layout, EQ mode and Clear EQ stand at the right of the foot.
-.player-eq__foot > .player-eq__faces + * {
-  margin-left: auto;
-}
-
-// THE EQ PAGE'S OWN PICKERS AND BUTTONS, as pills on the glass. Along the
-// head they are the pill; along the foot they are plain until the pointer
-// is on them, because the foot is under what the page is for. The app's own
-// class names stay: the controls are the page's controls, not copies.
-.mini-player .player-eq__keys {
-  .rich-pick__trigger,
-  .button.small.subtle:not(.player-led) {
-    @include player-pill;
-  }
-}
-
-.mini-player .player-eq__foot {
-  .eq-mode-trigger,
-  .button.small.subtle {
-    @include player-plain;
-  }
-}
-
-.mini-player {
-  // Lit while OPEN, and only then. The page's picker also lights itself
-  // whenever a preset is applied (`.is-active`), and here that put a lit key
-  // beside Smart EQ — a dropdown reading as a switch. Its state is its name.
-  .rich-pick__trigger[aria-expanded='true'],
-  .eq-mode-trigger[aria-expanded='true'],
-  .quick-layouts.is-open .quick-layouts__trigger {
-    background: var(--player-chosen);
-    color: var(--player-text);
-  }
-
-  .rich-pick__trigger.is-active:not([aria-expanded='true']) {
-    background: var(--player-key-wash);
-    color: var(--player-text);
-  }
-
-  .rich-pick__glyph,
-  .eq-toolbar__icon {
-    color: var(--player-text-soft);
-  }
-
-  .eq-mode-trigger__summary {
-    color: var(--player-text-soft);
-  }
-}
-
 // The preset keeps its name here, always (Ivan, 2026-09-21): a lone star
 // says nothing about what is applied.
 .mini-player .voicing-pick .rich-pick__trigger span {
   display: inline;
 }
 
-// ============================================================ the power ====
-//
-// The app's own switch, and beside it what it switches and whether it is on
-// — the side bar's two lines, at the head's size.
-.player-eq__power {
-  display: inline-flex;
-  flex: none;
-}
-
-.player-eq__name {
-  display: grid;
-  gap: 1px;
-  min-width: 0;
-  line-height: 1.25;
-
-  b {
-    color: var(--player-text);
-    font-size: 15px;
-    font-weight: $weight-semibold;
-  }
-}
-
-.player-eq__state {
+.mini-player .rich-pick__glyph {
   color: var(--player-text-soft);
-  font-size: 11.5px;
-
-  &.is-off {
-    color: var(--player-text-dim);
-  }
 }
 
 // ======================================================= Smart EQ's key ====
 //
-// ONE PILL, DRAWN ONCE (Ivan, 2026-09-22: "needs to be integrated, not two
+// ONE KEY, DRAWN ONCE (Ivan, 2026-09-22: "needs to be integrated, not two
 // separated things"). It held the switch and a caret that chose how Smart
 // correction listened; there is one way now (2026-11-27), and the switch
-// fills the pill. On, it takes Smart EQ's own blue — the colour its line on
-// the curve is drawn in.
+// fills the key. Its face and its colours are the sound section's; here,
+// only that the switch draws none of its own.
 .mini-player .player-split {
-  @include player-pill;
-  gap: 0;
-  padding: 0;
-  overflow: hidden;
-  // The housing is not a control; the switch in it is.
-  cursor: default;
+  display: inline-flex;
+  align-items: center;
 
   > .button.player-split__main {
     &,
     &:hover:not(:disabled),
     &:active:not(:disabled) {
-      min-height: 32px;
       border: 0;
       border-radius: 0;
       background: none;
@@ -189,78 +99,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
       background: var(--player-hover);
     }
   }
-
-  > .button.player-split__main {
-    padding: 0 12px;
-  }
-
-  &:has(> .player-split__main[aria-pressed='true']:not(:disabled)) {
-    background: color-mix(in srgb, var(--player-curve-smart) 20%, transparent);
-    box-shadow: inset 0 0 0 1px
-      color-mix(in srgb, var(--player-curve-smart) 45%, transparent);
-    color: color-mix(in srgb, var(--player-curve-smart), #{$ink} 70%);
-
-    .player-led__lamp {
-      background: var(--player-curve-smart);
-    }
-  }
-
-  // Measuring: the lamp breathes while Smart EQ listens.
-  &.is-running .player-led__lamp {
-    animation: player-lamp-breathe 1.2s ease-in-out infinite;
-  }
 }
 
+// Smart's spark breathes while it listens (`_miniPlayerSound.scss`).
 @keyframes player-lamp-breathe {
   50% {
     opacity: 0.35;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .player-split.is-running .player-led__lamp {
-    animation: none;
-  }
-}
-
-// ====================================================== the two faces ======
-//
-// The two views of the equaliser — the faders, or the tone dials — as one
-// segmented switch in the glass's well. Neither is a recommendation, so
-// neither wears the loud style (Ivan, 2026-09-22).
-.player-eq__faces {
-  @include player-well;
-  display: inline-flex;
-  flex: none;
-  gap: 2px;
-  padding: 3px;
-  border-radius: $radius-pill;
-}
-
-.player-eq__face {
-  height: 26px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: $radius-pill;
-  background: none;
-  color: var(--player-text-soft);
-  font-size: 12px;
-  font-weight: $weight-semibold;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: $transition-control;
-
-  &:hover:not([aria-pressed='true']) {
-    color: var(--player-text);
-  }
-
-  &[aria-pressed='true'] {
-    background: var(--player-chosen);
-    box-shadow: inset 0 1px 0 var(--player-glass-lip);
-    color: var(--player-text);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
   }
 }

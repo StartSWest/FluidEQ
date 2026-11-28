@@ -147,7 +147,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.bands':
     'Arraste uma banda para cima ou para baixo para reforçá-la ou cortá-la. A frequência dela fica escrita embaixo.',
   'help.player.tone':
-    'Tom mostra os controles Graves, Médios e Agudos; a aba ao lado, todas as bandas.',
+    'Seu EQ mostra todas as bandas; Tom, os controles Graves, Médios e Agudos. Cada aba mostra o que tem agora.',
   'help.player.upNext':
     'A seguir e Playlists, cada uma com quantos itens tem, e o tempo que falta na fila.',
   'help.player.songsName': 'As músicas',
@@ -167,7 +167,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.heart':
     'Adiciona uma música da Biblioteca aos seus Favoritos, ou a tira de lá.',
   'help.player.soundFold':
-    'Recolhe os controles de som até esta linha, que deixa à mão o preset, a Correção inteligente e o botão, e os abre de novo.',
+    'Recolhe os controles de som até esta linha, que deixa à mão Seu EQ, Tom, o preset e o botão, e os abre de novo.',
   'help.player.mode':
     'Abre o Modo EQ: com que força seu EQ e as curvas atuam, o Q de banda, a fase e os agudos deles.',
   'help.player.save': 'Guarda A seguir como uma playlist própria.',

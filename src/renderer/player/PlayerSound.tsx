@@ -4,92 +4,124 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useId, useMemo, useRef } from 'react';
-import { NO_GAIN_FILTER_TYPES } from 'common/constants';
-import {
-  setSongEqSaveOn,
-  useSongEqRecording,
-  useSongEqSaveOn,
-} from '../audio/songEqSession';
+import { type KeyboardEvent, useId, useRef } from 'react';
+import { hasTone } from 'common/tone';
 import BandLayoutMenu from '../components/BandLayoutMenu';
 import ClearEqButton from '../components/ClearEqButton';
-import EqModeSelect from '../components/EqModeSelect';
+import CurvesPicker from '../components/CurvesPicker';
+import EqPageModeSelect from '../components/eqMode/EqPageModeSelect';
 import VoicingQuickPick from '../components/VoicingQuickPick';
-import useIsAutoEqRunning from '../utils/autoEqRunning';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import SaveEqMenu from '../eq/autoEq/SaveEqMenu';
+import EqToolGroup from '../eq/EqToolGroup';
+import { cutCorners, isToneInUse } from '../eq/toneCuts';
+import MenuIcon from '../icons/MenuIcon';
+import { useFluidEqContext, useFluidEqLayers } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import useEqualizerPower from '../utils/useEqualizerPower';
 import MiniBands from './MiniBands';
+import PlayerAddBand from './PlayerAddBand';
 import PlayerIcon from './PlayerIcon';
 import PlayerTone from './PlayerTone';
+import PlayerToolRow from './PlayerToolRow';
 import SmartEqKey from './SmartEqKey';
 import { type TPlayerSoundFace, usePlayerSound } from './playerLayout';
 import useRowNeed from './useRowNeed';
 
+/** Your EQ first and the Tone after it, as the EQ page's tabs stand. */
+const FACES: readonly TPlayerSoundFace[] = ['bands', 'tone'];
+
+const FACE_ICON: Record<TPlayerSoundFace, 'eqBars' | 'waveform'> = {
+  bands: 'eqBars',
+  tone: 'waveform',
+};
+
 /**
- * Under the faders: the layout, the EQ mode and Clear. A component of its own
- * so its words are fitted from the moment it is drawn — the row exists only
- * while the faders are the face, and a fit set up beside it would have been
- * watching nothing whenever the section opened on the tone knobs.
+ * Under the faders, the EQ page's Your EQ tools in the page's order (Ivan,
+ * 2026-11-27: "same order as in the full app"): BANDS — how many, Add,
+ * Clear, Save EQ; VIEW — the curves and the EQ mode; Smart at the end, where
+ * the page keeps Auto EQ.
  */
-const SoundFoot = () => {
-  const footRef = useRef<HTMLDivElement>(null);
-  useRowNeed(footRef, 'soundFoot', 2);
+const BandsTools = () => {
+  const { t } = useTranslation();
   return (
-    <div className="player-eq__foot player-sound__foot" ref={footRef}>
-      <BandLayoutMenu />
-      <EqModeSelect />
-      <ClearEqButton />
-    </div>
+    <PlayerToolRow>
+      <EqToolGroup caption={t('eq.tools.bands')}>
+        <BandLayoutMenu formatLabel={String} />
+        <PlayerAddBand />
+        <ClearEqButton label={t('eq.tools.clear')} />
+        <SaveEqMenu />
+      </EqToolGroup>
+      <span className="eq-layer-tabs__rule" aria-hidden="true" />
+      <EqToolGroup caption={t('eq.tools.view')}>
+        <CurvesPicker />
+        <EqPageModeSelect />
+      </EqToolGroup>
+      <SmartEqKey />
+    </PlayerToolRow>
   );
 };
 
 /**
  * SOUND (Ivan, 2026-10-25): the one amp's equalizer, as a section that folds
- * to its header. The header keeps what is reached for most — the preset,
- * Smart EQ and FluidEQ's own switch — whether it is open or not; open, the
- * tone knobs or the faders, and whether the equalizer is on beside their
- * tabs. Which engine is shaping the sound is the foot's to say (`PlayerFoot`).
+ * to its head. The head is the EQ page's tabs — Your EQ with its band count,
+ * the Tone with whether it is on — then the preset and FluidEQ's own switch,
+ * and the fold at its right end, as Up next's is (Ivan, 2026-11-27: "instead
+ * of having sound", "we save space for your EQ and tone there"). Open: the
+ * faders or the tone dials, and under them that tab's tools.
  *
  * No curve screen above the faders: the picture at the top of the amp is
- * already one (Ivan: "dont show double graph"). The Stage equalizer's row
- * classes are kept (`player-eq__keys`, `__foot`, `__faces`), so these rows
- * wear the same keys and give up the same words as room runs out.
+ * already one (Ivan: "dont show double graph").
  */
 const PlayerSound = () => {
   const { t } = useTranslation();
   const { filters } = useFluidEqContext();
+  const { tone, eqCuts } = useFluidEqLayers();
   const power = useEqualizerPower();
-  const isMeasuring = useIsAutoEqRunning();
-  const isSaveOn = useSongEqSaveOn();
-  const recording = useSongEqRecording();
   const { sound, setSound } = usePlayerSound();
   const headRef = useRef<HTMLDivElement>(null);
-  const tabsRef = useRef<HTMLDivElement>(null);
+  const tabRefs = useRef<Partial<Record<TPlayerSoundFace, HTMLButtonElement>>>(
+    {},
+  );
   const bodyId = useId();
-  // A long preset name or a long language gives words up first; what the
-  // rows still need past that, the amp's width makes room for.
-  useRowNeed(headRef, 'soundHead', 1);
-  useRowNeed(tabsRef, 'soundTabs');
+  // The tabs give up what they hold, then their words, before the amp's
+  // width has to rise for the head (`_miniPlayerEqRows.scss`).
+  useRowNeed(headRef, 'soundHead', 2);
 
-  const bandCount = useMemo(
-    () =>
-      Object.values(filters).filter(
-        (band) => !NO_GAIN_FILTER_TYPES.includes(band.type),
-      ).length,
-    [filters],
-  );
+  const isToneOn = isToneInUse(tone, eqCuts);
+  const label: Record<TPlayerSoundFace, string> = {
+    bands: t('eq.tabs.bands'),
+    tone: t('eq.tone'),
+  };
+  // What each tab holds, as the page's tabs say it: every band, and On, Off
+  // or where the cuts stand when they are all the Tone is doing.
+  const meta: Record<TPlayerSoundFace, string> = {
+    bands: String(Object.keys(filters).length),
+    tone: isToneOn
+      ? ((hasTone(tone) ? undefined : cutCorners(eqCuts)) ??
+        t('eq.tabs.toneOn'))
+      : t('eq.tabs.toneOff'),
+  };
 
-  const face = (value: TPlayerSoundFace, label: string) => (
-    <button
-      type="button"
-      className="player-eq__face"
-      aria-pressed={sound.face === value}
-      onClick={() => setSound({ face: value })}
-    >
-      {label}
-    </button>
-  );
+  // A tab opens the drawer too: picking what to see is asking to see it.
+  const open = (face: TPlayerSoundFace) => {
+    setSound({ face, isOpen: true });
+    tabRefs.current[face]?.focus();
+  };
+  const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    const at = FACES.indexOf(sound.face);
+    const step: Record<string, number> = {
+      ArrowRight: (at + 1) % FACES.length,
+      ArrowLeft: (at + FACES.length - 1) % FACES.length,
+      Home: 0,
+      End: FACES.length - 1,
+    };
+    const next = step[event.key];
+    if (next === undefined) {
+      return;
+    }
+    event.preventDefault();
+    open(FACES[next]);
+  };
 
   return (
     <section
@@ -97,25 +129,40 @@ const PlayerSound = () => {
       aria-label={t('player.eq.aria')}
     >
       <div className="player-eq__keys player-sound__head" ref={headRef}>
-        <button
-          type="button"
-          className="player-sound__fold"
-          aria-expanded={sound.isOpen}
-          aria-controls={bodyId}
-          title={
-            sound.isOpen ? t('player.sound.fold') : t('player.sound.unfold')
-          }
-          onClick={() => setSound({ isOpen: !sound.isOpen })}
+        <div
+          className="eq-layer-tabs__list player-sound__tabs"
+          role="tablist"
+          aria-label={t('eq.tabs.aria')}
         >
-          <PlayerIcon name="sound" className="player-icon player-sound__mark" />
-          <span className="player-sound__name">{t('player.sound.title')}</span>
-          <PlayerIcon
-            name="fold"
-            className="player-icon player-sound__chevron"
-          />
-        </button>
+          {FACES.map((face) => (
+            <button
+              key={face}
+              ref={(element) => {
+                tabRefs.current[face] = element ?? undefined;
+              }}
+              type="button"
+              role="tab"
+              className="eq-layer-tabs__tab"
+              aria-selected={sound.isOpen && sound.face === face}
+              aria-controls={bodyId}
+              tabIndex={sound.face === face ? 0 : -1}
+              title={label[face]}
+              onClick={() => open(face)}
+              onKeyDown={onKeyDown}
+            >
+              <MenuIcon name={FACE_ICON[face]} className="eq-toolbar__icon" />
+              <span className="eq-layer-tabs__word">{label[face]}</span>
+              <span
+                className={`eq-layer-tabs__meta${
+                  face === 'tone' && !isToneOn ? ' is-off' : ''
+                }`}
+              >
+                {meta[face]}
+              </span>
+            </button>
+          ))}
+        </div>
         <VoicingQuickPick />
-        <SmartEqKey />
         <button
           type="button"
           className="player-sound__power"
@@ -129,57 +176,42 @@ const PlayerSound = () => {
         >
           <PlayerIcon name="power" />
         </button>
+        <button
+          type="button"
+          className="player-shelf__key player-sound__fold"
+          aria-expanded={sound.isOpen}
+          aria-controls={bodyId}
+          aria-label={
+            sound.isOpen ? t('player.sound.fold') : t('player.sound.unfold')
+          }
+          title={
+            sound.isOpen ? t('player.sound.fold') : t('player.sound.unfold')
+          }
+          onClick={() => setSound({ isOpen: !sound.isOpen })}
+        >
+          <PlayerIcon
+            name="fold"
+            className="player-icon player-sound__chevron"
+          />
+        </button>
       </div>
       {/* A drawer that slides shut on the head and open again (Ivan,
           2026-10-25: "add nice animation on collapse expand"): the body stays
           laid out so it has a height to slide from, and is inert while shut,
           so nothing in it can be reached by the keyboard. */}
-      <div className="player-sound__drawer" id={bodyId} inert={!sound.isOpen}>
+      <div
+        className="player-sound__drawer"
+        id={bodyId}
+        role="tabpanel"
+        inert={!sound.isOpen}
+      >
         <div className="player-sound__body">
-          <div className="player-sound__tabs" ref={tabsRef}>
-            <span className="player-eq__faces" role="group">
-              {face('tone', t('eq.tone'))}
-              {face('bands', t('player.sound.bands', { count: bandCount }))}
-            </span>
-            {/* Only while Smart correction keeps measuring: saving a song
-                files the layer that measurement refines. Lit from the start
-                of every run, because Auto EQ keeps each song's correction
-                (`autoEqChanged` in `songEqRecorder.ts`); a press stops saving
-                for this run. */}
-            {isMeasuring && (
-              <button
-                type="button"
-                className={`button small subtle player-led${
-                  recording.isSaved ? ' is-saving' : ''
-                }`}
-                aria-pressed={isSaveOn}
-                title={t('songEq.saveAria')}
-                onClick={() => setSongEqSaveOn(!isSaveOn)}
-              >
-                <span className="player-led__lamp" aria-hidden="true" />
-                {t('player.eq.song')}
-                <span className="player-led__meter" aria-hidden="true">
-                  {/* Full once the song's correction is saved: it is saved
-                    the moment Smart correction is done with it. */}
-                  <span style={{ width: recording.isSaved ? '100%' : '0%' }} />
-                </span>
-              </button>
-            )}
-            <span
-              className={`player-sound__state${
-                power.isEnabled ? '' : ' is-off'
-              }`}
-            >
-              <span className="player-sound__lamp" aria-hidden="true" />
-              {power.isEnabled ? t('player.sound.on') : t('player.sound.off')}
-            </span>
-          </div>
           {sound.face === 'tone' ? (
             <PlayerTone />
           ) : (
             <>
               <MiniBands />
-              <SoundFoot />
+              <BandsTools />
             </>
           )}
         </div>

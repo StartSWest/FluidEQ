@@ -3,7 +3,6 @@
 import type { Dictionary } from '../en';
 
 const songEq = {
-  'songEq.saveAria': '재생 중인 항목의 스마트 보정을 기억합니다',
   'songEq.noticeTitle': '이 노래에 저장된 EQ 사용하기',
   'songEq.noticeBody': '{title} — {plays} 플레이를 통해 학습했습니다.',
   'songEq.noticeBodyOnce': '{title} — 한 번 학습됨',

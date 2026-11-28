@@ -188,7 +188,7 @@ describe('the compact player, its scene not building', () => {
     const api = bridge(true);
     mockScene = ready(MEMBER_LOOK, 1);
     const { rerender, getByTestId } = render(
-      <PlayerAmp onOpenPage={() => undefined} />,
+      <PlayerAmp onOpenPage={() => undefined} hasContributed={false} />,
     );
     expect(getByTestId('stage')).toHaveAttribute('data-scene', 'yes');
     await act(async () => stage().onTrouble('compile'));
@@ -197,14 +197,14 @@ describe('the compact player, its scene not building', () => {
     expect(mockRefuse).not.toHaveBeenCalled();
     // The kept copy is a new revision: the player draws it by itself.
     mockScene = ready(MEMBER_LOOK, 2);
-    rerender(<PlayerAmp onOpenPage={() => undefined} />);
+    rerender(<PlayerAmp onOpenPage={() => undefined} hasContributed={false} />);
     expect(getByTestId('stage')).toHaveAttribute('data-scene', 'yes');
   });
 
   it('says why through the graph’s notice when no better copy is found', async () => {
     bridge(false);
     mockScene = ready(MEMBER_LOOK, 1);
-    render(<PlayerAmp onOpenPage={() => undefined} />);
+    render(<PlayerAmp onOpenPage={() => undefined} hasContributed={false} />);
     await act(async () => stage().onTrouble('compile'));
     expect(mockRefuse).toHaveBeenCalledWith(MEMBER_LOOK, NAMES, 'compile');
   });
@@ -215,7 +215,7 @@ describe('the compact player, its scene not building', () => {
   it('asks nothing for a scene too heavy or a machine that cannot draw, and says why', async () => {
     const api = bridge(true);
     mockScene = ready(MEMBER_LOOK, 1);
-    render(<PlayerAmp onOpenPage={() => undefined} />);
+    render(<PlayerAmp onOpenPage={() => undefined} hasContributed={false} />);
     await act(async () => stage().onTrouble('heavy'));
     expect(mockRefuse).toHaveBeenLastCalledWith(MEMBER_LOOK, NAMES, 'heavy');
     await act(async () => stage().onTrouble('unavailable'));
@@ -230,11 +230,13 @@ describe('the compact player, its scene not building', () => {
   it('puts right a newer version behind the one playing, for a member’s look only', async () => {
     const api = bridge(true);
     mockScene = ready('premium:aurora', 1);
-    const { rerender } = render(<PlayerAmp onOpenPage={() => undefined} />);
+    const { rerender } = render(
+      <PlayerAmp onOpenPage={() => undefined} hasContributed={false} />,
+    );
     await act(async () => stage().onVersionFailed?.());
     expect(api.recoverMemberScene).not.toHaveBeenCalled();
     mockScene = ready(MEMBER_LOOK, 1);
-    rerender(<PlayerAmp onOpenPage={() => undefined} />);
+    rerender(<PlayerAmp onOpenPage={() => undefined} hasContributed={false} />);
     await act(async () => stage().onVersionFailed?.());
     expect(api.recoverMemberScene).toHaveBeenCalledWith(MEMBER_LOOK);
     expect(mockRefuse).not.toHaveBeenCalled();

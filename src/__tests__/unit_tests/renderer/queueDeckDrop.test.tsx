@@ -173,7 +173,7 @@ describe('the amp’s queue', () => {
     render(
       <LibraryProvider>
         <Publisher />
-        <PlayerAmp onOpenPage={() => undefined} />
+        <PlayerAmp onOpenPage={() => undefined} hasContributed={false} />
       </LibraryProvider>,
     );
     // The summary, and then how long is left: the store sums it, since the

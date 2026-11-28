@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 /** Smart correction’s song memory — its progress, and the notice. */
 export default {
-  'songEq.saveAria': 'Запоминать умную коррекцию для того, что сейчас играет',
   'songEq.noticeTitle': 'Для этой песни используется сохранённый EQ',
   // Phrased as a label rather than a count, so the numeral never has to agree
   // with the noun: `{plays} прослушиваний` is right for 0 and 5+ and wrong for

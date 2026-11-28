@@ -58,3 +58,14 @@ export const cutNames = (cuts: IEqCuts | undefined, t: Translate): string[] =>
 export const clearEqCuts = async (cuts: IEqCuts | undefined) => {
   await Promise.all(activeCuts(cuts).map((cut) => setEqCut(cut, 0)));
 };
+
+/**
+ * Reset Tone, on the EQ page and in the amp alike: the three dials flat and
+ * every cut off, written together.
+ */
+export const resetToneAndCuts = async (
+  resetAllTone: () => Promise<void>,
+  cuts: IEqCuts | undefined,
+) => {
+  await Promise.all([resetAllTone(), clearEqCuts(cuts)]);
+};

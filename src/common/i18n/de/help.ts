@@ -151,7 +151,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.bands':
     'Ziehen Sie ein Band nach oben oder unten, um es anzuheben oder abzusenken. Seine Frequenz steht darunter.',
   'help.player.tone':
-    'Klang zeigt die Regler Bass, Mitten und Höhen, der Reiter daneben jedes Band.',
+    'Ihr EQ zeigt jedes Band, Klang die Regler Bass, Mitten und Höhen. Jeder Reiter zeigt, was er gerade enthält.',
   'help.player.upNext':
     '„Als Nächstes“ und Playlists, jeweils mit ihrer Anzahl, und die Zeit, die in der Warteschlange noch bleibt.',
   'help.player.songsName': 'Die Songs',
@@ -172,7 +172,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.heart':
     'Fügt einen Song aus der Bibliothek zu Ihren Favoriten hinzu oder entfernt ihn wieder.',
   'help.player.soundFold':
-    'Klappt die Klangregler bis auf diese Zeile ein, in der Preset, Smart-Korrektur und der Schalter griffbereit bleiben, und öffnet sie wieder.',
+    'Klappt die Klangregler bis auf diese Zeile ein, in der Ihr EQ, Klang, Preset und der Schalter griffbereit bleiben, und öffnet sie wieder.',
   'help.player.mode':
     'Öffnet den EQ-Modus: wie stark Ihr EQ und die Kurven wirken, ihr Band-Q, ihre Phase und ihre Höhen.',
   'help.player.save': 'Speichert „Als Nächstes“ als eigene Playlist.',

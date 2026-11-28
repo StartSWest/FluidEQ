@@ -149,7 +149,7 @@ const help = {
   'help.player.bands':
     'Drag a band up or down to boost or cut it. Its frequency is written under it.',
   'help.player.tone':
-    'Tone shows the Bass, Mid and Treble dials; the tab beside it, every band.',
+    'Your EQ shows every band; Tone, the Bass, Mid and Treble dials. Each says what it holds now.',
   'help.player.upNext':
     'Up next and Playlists, each with how many it holds, and the time left in the queue.',
   'help.player.songsName': 'The songs',
@@ -170,7 +170,7 @@ const help = {
   'help.player.heart':
     'Adds a song from the Library to your Favourites, or takes it out.',
   'help.player.soundFold':
-    'Folds the sound controls down to this row, which keeps the preset, Smart correction and the switch at hand, and opens them again.',
+    'Folds the sound controls down to this row, which keeps Your EQ, Tone, the preset and the switch at hand, and opens them again.',
   'help.player.mode':
     'Opens EQ mode: how strongly your EQ and the curves apply, their band Q, phase and treble.',
   'help.player.save': 'Keeps Up next as a playlist of its own.',

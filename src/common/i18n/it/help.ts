@@ -150,7 +150,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.bands':
     'Trascina una banda in su o in giù per rinforzarla o tagliarla. La sua frequenza è scritta sotto.',
   'help.player.tone':
-    'Tono mostra le manopole Bassi, Medi e Alti; la scheda accanto, tutte le bande.',
+    'Il tuo EQ mostra tutte le bande; Tono, le manopole Bassi, Medi e Alti. Ogni scheda dice cosa contiene ora.',
   'help.player.upNext':
     'In coda e Playlist, ciascuna con il suo numero, e il tempo che resta nella coda.',
   'help.player.songsName': 'I brani',
@@ -171,7 +171,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.heart':
     'Aggiunge un brano della Libreria ai tuoi Preferiti, o lo toglie.',
   'help.player.soundFold':
-    'Comprime i controlli del suono fino a questa riga, che tiene a portata di mano il preset, la Correzione intelligente e l’interruttore, e li riapre.',
+    'Comprime i controlli del suono fino a questa riga, che tiene a portata di mano Il tuo EQ, Tono, il preset e l’interruttore, e li riapre.',
   'help.player.mode':
     'Apre la Modalità EQ: quanto forte agiscono il tuo EQ e le curve, il loro Q di banda, la fase e gli alti.',
   'help.player.save': 'Tiene In coda come una playlist a sé.',

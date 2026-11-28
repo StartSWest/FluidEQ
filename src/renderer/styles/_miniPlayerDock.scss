@@ -19,7 +19,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // controls inside the graph with a soft gradient into solid at the bottom").
 .player-dock {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   padding: 10px 14px;
   border-bottom: 1px solid var(--player-rule);
   background: var(--player-pane);
@@ -35,38 +35,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
   );
 }
 
-// THE KEYS AND SELECTS ARE GLASS IN THE BACKDROP (Ivan, 2026-10-25: "all
-// these buttons and selects need blur bg, so they blend more"): their solid
-// faces stood on the picture as tiles cut out of it. Each is a small pane of
-// frost with a little of the field in it, edged in the header keys' own
-// hairline, so the picture shows through blurred. Play keeps its fill — the
-// one filled key — and the power keeps its lit face while on.
-.mini-player.is-backdrop {
-  .player-dock__key,
-  .player-dock__look .look-picker__trigger,
-  .player-sound__head .rich-pick__trigger,
-  .player-sound__head .player-split,
-  .player-sound__power:not([aria-pressed='true']),
-  .player-sound .player-eq__faces {
-    border-color: color-mix(in srgb, var(--player-text) 14%, transparent);
-    background: color-mix(in srgb, var(--surface-field) 38%, transparent);
-    backdrop-filter: blur(14px) saturate(1.2);
-  }
-
-  // The same glass on the preset's key while a preset is chosen, and on the
-  // power key while it is on, which keep their own edge and ink to say so
-  // (Ivan, 2026-10-25: "not all buttons same bg and blur as the others"):
-  // their own rules for those states laid a solid face back over the glass.
-  .player-sound__head .rich-pick__trigger.is-active:not([aria-expanded='true']),
-  .player-sound__power[aria-pressed='true'] {
-    background: color-mix(in srgb, var(--surface-field) 38%, transparent);
-    backdrop-filter: blur(14px) saturate(1.2);
-  }
-
-  .player-dock__key:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--surface-field) 58%, transparent);
-  }
-}
+// NOTHING ON THE AMP WEARS A PANE OF ITS OWN BUT PLAY (Ivan, 2026-11-27,
+// from the mockups: the bare transport, the quiet pickers). The frosted tiles
+// every key and select stood on since 2026-10-25 went with their edges: the
+// keys are their glyphs, the pickers their words, and the light comes under
+// the one the pointer is on (`_miniPlayerSound.scss`, `player-quiet`).
 
 // In the Backdrop the transport stands on the frost that rises through it
 // into the panes (`.player-stage::before`), with no rule where it meets them.
@@ -106,34 +79,32 @@ SPDX-License-Identifier: GPL-3.0-or-later
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 14px;
 }
 
+// The keys round play are their glyphs alone, with a round step of light
+// under the one the pointer is on (Ivan, 2026-11-27: "for buttons a").
 .player-dock__key {
   display: grid;
   flex: none;
-  width: 38px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   place-items: center;
   padding: 0;
-  border: 1px solid var(--border-subtle);
-  border-radius: $radius-l;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--surface-field), #{$white} 4%),
-    var(--surface-field)
-  );
+  border: 0;
+  border-radius: 50%;
+  background: none;
   color: var(--player-text-muted);
   cursor: pointer;
   transition: $transition-control;
 
   .player-icon {
-    width: 16px;
-    height: 16px;
+    width: 19px;
+    height: 19px;
   }
 
   &:hover:not(:disabled) {
-    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    background: color-mix(in srgb, var(--player-text) 10%, transparent);
     color: var(--player-text);
   }
 
@@ -152,15 +123,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // 2026-11-24). Under the pointer the face steps away from its glyph
 // (`--player-play-hover-fill`: lighter under the dark window's dark glyph,
 // deeper under a white window's white one).
+//
+// A disc, 4px taller than the rounded key it replaced, and the dock's gap 1px
+// shorter above and below it (`.player-dock`), so the transport stays the 129px
+// `PLAYER_PICTURE_HEIGHT` counts and every scene keeps its shape.
 .player-dock__play {
   display: grid;
   flex: none;
-  width: 58px;
-  height: 46px;
+  width: 50px;
+  height: 50px;
   place-items: center;
   padding: 0;
   border: 0;
-  border-radius: 14px;
+  border-radius: 50%;
   background: linear-gradient(180deg, var(--accent-light), var(--accent));
   color: var(--player-play-ink);
   cursor: pointer;
@@ -169,8 +144,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
     background 160ms ease;
 
   .player-icon {
-    width: 20px;
-    height: 20px;
+    width: 21px;
+    height: 21px;
   }
 
   &:hover:not(:disabled) {
@@ -259,30 +234,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   .look-picker__trigger {
-    display: inline-flex;
+    @include player-quiet(30px);
     flex: none;
-    align-items: center;
-    gap: 6px;
-    height: 30px;
-    padding: 0 9px 0 8px;
-    border: 1px solid var(--border-subtle);
-    border-radius: $radius-l;
-    background: var(--surface-field);
-    box-shadow: none;
-    color: var(--player-text);
-    font-size: 12.5px;
-    font-weight: $weight-semibold;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: $transition-control;
-
-    &:hover:not(:disabled) {
-      border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-    }
-
-    &:focus-visible {
-      @include focus-ring;
-    }
 
     .arrow {
       width: 9px;
@@ -292,8 +245,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   .dropdown--open > .look-picker__trigger {
-    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-    background: var(--player-chosen);
+    background: color-mix(in srgb, var(--player-text) 9%, transparent);
   }
 
   .graph-look-option {

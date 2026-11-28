@@ -8,6 +8,7 @@ import useIsAutoEqRunning from '../utils/autoEqRunning';
 import { toggleContinuousEq, useContinuousEq } from '../utils/continuousEq';
 import { useTranslation } from '../utils/I18nContext';
 import { cancelSmartEq, useSmartEqRun } from '../utils/smartEqRun';
+import PlayerIcon from './PlayerIcon';
 
 /**
  * Smart EQ, as the equalizer deck's second key: Smart correction's switch.
@@ -44,7 +45,7 @@ const SmartEqKey = () => {
           toggleContinuousEq();
         }}
       >
-        <span className="player-led__lamp" aria-hidden="true" />
+        <PlayerIcon name="spark" className="player-icon player-split__spark" />
         {t('player.eq.smart')}
         {isBalancing && (
           <span className="player-led__value">{t('eq.smart.cancel')}</span>

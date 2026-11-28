@@ -8,12 +8,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'theme' as *;
 @use 'miniPlayerParts' as *;
 
-// The lamp keys — Smart EQ, and Save for this song while it measures — and
-// the bare glyph keys.
+// The keys that are lit while on — Smart's split key — and the bare glyph
+// keys.
 
 // ============================================================ lamp keys ====
 //
-// A pill with a lamp in it that is its state. `button small subtle`
+// A pill lit while it is on. `button small subtle`
 // underneath, so it disables and takes focus as every quiet button in the
 // app does; its face is the amp's pill, and on it is lit.
 .mini-player,
@@ -27,43 +27,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-.player-led__lamp {
-  flex: none;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--player-lamp-off);
-  transition: background 160ms ease;
-
-  [aria-pressed='true']:not(:disabled) > & {
-    background: var(--player-lamp);
-  }
-}
-
 // What a key is set to, quieter than its name beside it.
 .player-led__value {
   color: var(--player-text-muted);
   font-weight: $weight-medium;
-}
-
-// A small meter inside a key: how far the song has been listened to.
-.player-led__meter {
-  position: relative;
-  width: 26px;
-  height: 3px;
-  overflow: hidden;
-  border-radius: 2px;
-  background: var(--player-track);
-
-  span {
-    position: absolute;
-    inset: 0 auto 0 0;
-    background: var(--player-lamp);
-  }
-}
-
-.button.is-saving .player-led__lamp {
-  background: var(--player-lamp-warm);
 }
 
 // ========================================================== glyph keys =====

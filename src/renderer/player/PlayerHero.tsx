@@ -47,6 +47,8 @@ import type { IGraphScenePack } from './useGraphScenePack';
 import usePlayerSource from './usePlayerSource';
 import switchVisFullScreen from './visFullScreen';
 import SongSoundChip from '../components/SongSoundChip';
+import { SupportPetPerched } from '../SupportPet';
+import { usePlayerPetShown } from './playerPet';
 
 interface IPlayerHeroProps {
   /** The Plus visualizer drawn behind the panel, when there is one. */
@@ -57,6 +59,8 @@ interface IPlayerHeroProps {
   trouble: ISceneTrouble | undefined;
   onRetry: (lookId: string) => void;
   onOpenPage: (page: TPlayerPage) => void;
+  /** A supporter's pet hears the music (`SupportPet`). */
+  hasContributed: boolean;
 }
 
 /**
@@ -76,8 +80,10 @@ const PlayerHero = ({
   trouble,
   onRetry,
   onOpenPage,
+  hasContributed,
 }: IPlayerHeroProps) => {
   const { t } = useTranslation();
+  const isPetShown = usePlayerPetShown();
   const heroRef = useRef<HTMLElement>(null);
   const viewRef = useRef<HTMLDivElement>(null);
   const isFull = usePlayerVisFull();
@@ -316,6 +322,9 @@ const PlayerHero = ({
             <PlayerIcon name="heart" />
           </button>
         )}
+        {/* The pet, sitting beside the song unless the amp's menu hides her
+            (Ivan, 2026-11-27, "B"). */}
+        {isPetShown && <SupportPetPerched hasContributed={hasContributed} />}
       </div>
     </section>
   );

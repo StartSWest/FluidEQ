@@ -51,8 +51,9 @@ import {
 } from '../utils/equalizerApi';
 import { FilterActionEnum, useFluidEqLayers } from '../utils/FluidEqContext';
 import useTone from './useTone';
-import { clearEqCuts, cutCorners, isToneInUse } from './toneCuts';
+import { cutCorners, isToneInUse, resetToneAndCuts } from './toneCuts';
 import { bandLayoutDefaults } from './bandLayoutDefaults';
+import freeBandFrequency from './freeBandFrequency';
 import { hasTone } from '../../common/tone';
 import { clamp } from '../utils/utils';
 import { BAND_MENU_EVENT } from '../components/BandMenu';
@@ -281,7 +282,7 @@ const useEqPageActions = (bands: TEqPageBands) => {
   const isToneTabInUse = isToneInUse(tone, eqCuts);
   const resetToneTab = async () => {
     try {
-      await Promise.all([resetAllTone(), clearEqCuts(eqCuts)]);
+      await resetToneAndCuts(resetAllTone, eqCuts);
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }
@@ -482,24 +483,11 @@ const useEqPageActions = (bands: TEqPageBands) => {
       .find(Boolean);
 
     if (!explicitSelectedFilter) {
-      const occupiedFrequencies = new Set(
-        frequencySortedFilters.map((filter) => filter.frequency),
+      const frequency = freeBandFrequency(
+        new Set(frequencySortedFilters.map((filter) => filter.frequency)),
       );
-      let frequency = 1000;
-      while (occupiedFrequencies.has(frequency) && frequency <= MAX_FREQUENCY) {
-        frequency += 1;
-      }
-      if (frequency > MAX_FREQUENCY) {
-        frequency = 999;
-        while (
-          occupiedFrequencies.has(frequency) &&
-          frequency >= MIN_FREQUENCY
-        ) {
-          frequency -= 1;
-        }
-        if (frequency < MIN_FREQUENCY) {
-          return;
-        }
+      if (frequency === undefined) {
+        return;
       }
       try {
         const id = await addEqualizerSlider(frequency);

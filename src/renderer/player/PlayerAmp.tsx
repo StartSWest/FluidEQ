@@ -61,8 +61,10 @@ import useMusicDrop from './useMusicDrop';
  */
 const PlayerAmp = ({
   onOpenPage,
+  hasContributed,
 }: {
   onOpenPage: (page: TPlayerPage) => void;
+  hasContributed: boolean;
 }) => {
   const { t } = useTranslation();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -200,6 +202,7 @@ const PlayerAmp = ({
                 trouble={trouble}
                 onRetry={onRetry}
                 onOpenPage={onOpenPage}
+                hasContributed={hasContributed}
               />
               <PlayerDock />
             </div>

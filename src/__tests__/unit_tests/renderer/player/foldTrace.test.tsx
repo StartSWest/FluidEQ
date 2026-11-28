@@ -111,7 +111,9 @@ beforeEach(() => {
 
 describe('the folded line and a standard look', () => {
   it('draws the look behind the line, before the line in the page', () => {
-    const { container } = render(<PlayerAmp onOpenPage={() => undefined} />);
+    const { container } = render(
+      <PlayerAmp onOpenPage={() => undefined} hasContributed={false} />,
+    );
     const trace = traceIn(container);
     expect(trace).not.toBeNull();
     // Between the amp's floor and the line, so the line's floor lies over it.
@@ -121,7 +123,9 @@ describe('the folded line and a standard look', () => {
 
   it('leaves a Plus scene alone behind the line', () => {
     mockScene = READY;
-    const { container } = render(<PlayerAmp onOpenPage={() => undefined} />);
+    const { container } = render(
+      <PlayerAmp onOpenPage={() => undefined} hasContributed={false} />,
+    );
     expect(screen.getByTestId('stage')).toHaveAttribute('data-scene', 'yes');
     expect(traceIn(container)).toBeNull();
   });
@@ -130,19 +134,25 @@ describe('the folded line and a standard look', () => {
   // scene that cannot play here gets no standard look in its place.
   it('draws no standard look behind the line for a chosen scene that cannot play', () => {
     mockChosen = 'premium:aurora';
-    const { container } = render(<PlayerAmp onOpenPage={() => undefined} />);
+    const { container } = render(
+      <PlayerAmp onOpenPage={() => undefined} hasContributed={false} />,
+    );
     expect(traceIn(container)).toBeNull();
   });
 
   it('draws nothing while a scene is on its way', () => {
     mockScene = { state: 'loading' };
-    const { container } = render(<PlayerAmp onOpenPage={() => undefined} />);
+    const { container } = render(
+      <PlayerAmp onOpenPage={() => undefined} hasContributed={false} />,
+    );
     expect(traceIn(container)).toBeNull();
   });
 
   it('leaves the look to the top panel while the player is unfolded', () => {
     mockFolded = false;
-    const { container } = render(<PlayerAmp onOpenPage={() => undefined} />);
+    const { container } = render(
+      <PlayerAmp onOpenPage={() => undefined} hasContributed={false} />,
+    );
     expect(screen.getByTestId('hero')).toBeInTheDocument();
     expect(traceIn(container)).toBeNull();
   });

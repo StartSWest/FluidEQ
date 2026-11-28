@@ -284,7 +284,11 @@ $hero-side: 14px;
   bottom: 10px;
   left: $hero-side;
   display: grid;
-  grid-template-columns: 76px minmax(0, 1fr) auto;
+  // The art and the words, then whatever stands at the row's end — the
+  // heart for a Library song, the pet — each a column as wide as itself.
+  grid-template-columns: 76px minmax(0, 1fr);
+  grid-auto-columns: auto;
+  grid-auto-flow: column;
   align-items: end;
   gap: 14px;
 }

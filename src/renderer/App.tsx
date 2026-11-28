@@ -975,7 +975,10 @@ const AppContent = () => {
         <NoticeDock />
         {/* Drawn at the foot of the document, over the app it puts away. */}
         {windowMode === 'player' && (
-          <MiniPlayer onOpenPage={openPageFromPlayer} />
+          <MiniPlayer
+            onOpenPage={openPageFromPlayer}
+            hasContributed={dialogs.hasContributed}
+          />
         )}
         {/* The Smart EQ song-memory recorder, for the life of the window: a
             recording must not end because somebody switched tabs. A

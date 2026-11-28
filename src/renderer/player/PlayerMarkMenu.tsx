@@ -19,6 +19,7 @@ import useIsSceneLook from '../utils/useIsSceneLook';
 import AnchoredMenu from '../widgets/AnchoredMenu';
 import Switch from '../widgets/Switch';
 import PlayerIcon from './PlayerIcon';
+import { setPlayerPetShown, usePlayerPetShown } from './playerPet';
 import useMenuDismiss from './useMenuDismiss';
 import {
   setWindowMode,
@@ -69,6 +70,34 @@ const PinPreference = () => {
           isDisabled={false}
           handleToggle={() => setWindowPinned(!isPinned).catch(() => undefined)}
           ariaLabel={t('player.menu.alwaysOnTop')}
+        />
+      </span>
+    </div>
+  );
+};
+
+/**
+ * The pet on the amp's picture, shown or hidden (Ivan, 2026-11-27: "add
+ * option to show and hide pet in the menu of the amp"): a switch, a
+ * yes-or-no about what the amp shows, under Always on top.
+ */
+const PetPreference = () => {
+  const { t } = useTranslation();
+  const isShown = usePlayerPetShown();
+  const id = useId();
+  return (
+    <div className="menu-preference">
+      <MenuPreferenceIcon name="pet" />
+      <label htmlFor={id} className="menu-preference__label">
+        {t('player.menu.showPet')}
+      </label>
+      <span className="menu-preference__switch">
+        <Switch
+          id={id}
+          isOn={isShown}
+          isDisabled={false}
+          handleToggle={() => setPlayerPetShown(!isShown)}
+          ariaLabel={t('player.menu.showPet')}
         />
       </span>
     </div>
@@ -162,6 +191,7 @@ export const PlayerMarkMenuItems = ({
         {/* How the amp looks above, how its window behaves below. */}
         <div className="actions-menu__prefs-rule" aria-hidden="true" />
         <PinPreference />
+        <PetPreference />
       </div>
       <hr className="player-menu__rule" />
       <button

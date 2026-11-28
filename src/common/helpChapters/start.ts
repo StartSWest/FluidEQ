@@ -295,25 +295,24 @@ const START_CHAPTERS = [
         still: 'help/player-sound.png',
         controls: [
           {
-            target: '.player-sound__fold',
-            name: 'player.sound.title',
-            text: 'help.player.soundFold',
+            target: '.player-sound__tabs',
+            name: 'eq.tabs.bands',
+            text: 'help.player.tone',
           },
           {
             target: '.voicing-pick',
             name: 'dsp.presets',
             text: 'help.eq.voicing',
           },
-          { target: '.player-split', name: 'eq.smart', text: 'help.eq.smart' },
           {
             target: '.player-sound__power',
             name: 'sidebar.systemEq',
             text: 'help.window.systemEq',
           },
           {
-            target: '.player-eq__faces',
-            name: 'eq.tone',
-            text: 'help.player.tone',
+            target: '.player-sound__fold',
+            name: 'player.sound.title',
+            text: 'help.player.soundFold',
           },
           {
             target: '.player-bands > :first-child',
@@ -331,14 +330,19 @@ const START_CHAPTERS = [
             text: 'help.eq.layouts',
           },
           {
+            target: '.clear-eq-trigger',
+            name: 'eq.clear',
+            text: 'help.eq.clear',
+          },
+          {
             target: '.eq-mode-trigger',
             name: 'eq.mode',
             text: 'help.player.mode',
           },
           {
-            target: '.clear-eq-trigger',
-            name: 'eq.clear',
-            text: 'help.eq.clear',
+            target: '.player-split',
+            name: 'eq.smart',
+            text: 'help.eq.smart',
           },
         ],
       },

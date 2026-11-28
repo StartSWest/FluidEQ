@@ -9,41 +9,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'miniPlayerParts' as *;
 
 // SOUND (`PlayerSound`): the amp's equalizer as a section that folds to its
-// header. Its rows are the Stage equalizer's own (`player-eq__keys`,
-// `__foot`, `__faces`, `_miniPlayerEqKeys.scss`), and so are the words they
-// give up as room runs out; their keys are drawn here as the approved one
-// amp draws them (Ivan, 2026-10-25): small rounded keys on the pane, edged
-// in the theme's own hairline.
-
-// A key on the pane: the preset, Smart EQ, the band layout, EQ mode, Clear EQ.
-@mixin sound-key($height: 30px) {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: $height;
-  height: $height;
-  padding: 0 10px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 9px;
-  background: var(--surface-field);
-  box-shadow: none;
-  color: var(--player-text);
-  font-size: 12.5px;
-  font-weight: $weight-semibold;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: $transition-control;
-
-  &:hover:not(:disabled) {
-    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-    background: var(--surface-field);
-    color: var(--player-text);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-}
+// head. The head is the EQ page's tabs, Your EQ then the Tone, with the
+// preset, the power and the fold at its right; the bottom row is the EQ
+// page's tool row (`PlayerToolRow`). Both wear the page's own classes
+// (`_eqLayerTabs.scss`), so they look and give up their words as the page's
+// do (Ivan, 2026-11-27: "same style as in the app").
 
 // Its own height, whatever the window's: the picture and the queue share the
 // room that is left (`.player-body`). The equalizer page this borrows from
@@ -56,68 +26,45 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // ============================================================ the head =====
 .player-sound__head {
-  gap: 8px;
-  padding: 8px 12px 8px 10px;
+  gap: 6px;
+  padding: 6px 10px 6px 14px;
 
-  // The fold at the left; the preset, Smart EQ and the power at the right,
-  // together. The Stage's row pushed Smart EQ alone to the right.
-  > .player-sound__fold + * {
+  // The tabs at the left; the preset, the power and the fold at the right.
+  > .player-sound__tabs + * {
     margin-left: auto;
   }
-
-  > .player-split {
-    margin-left: 0;
-  }
 }
 
-.player-sound__fold {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 7px;
-  min-height: 30px;
-  padding: 0 6px 0 4px;
-  border: 0;
-  border-radius: $radius-m;
-  background: none;
-  color: var(--player-text);
-  font-size: 13.5px;
-  font-weight: $weight-bold;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: $transition-control;
-
-  &:hover {
-    background: var(--player-hover);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-
-  .player-sound__mark {
-    width: 15px;
-    height: 15px;
-    color: var(--player-ink);
-  }
-
-  // One caret that turns over as the drawer shuts, rather than two that
-  // swap: it moves with the drawer.
-  .player-sound__chevron {
-    width: 11px;
-    height: 11px;
-    color: var(--player-text-soft);
-    transition: transform 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
-  }
+// The page's tabs at the head's height on the dark window, where the open
+// one is underlined at the row's foot, which is the head's own. The white
+// window's sunken selector keeps the page's own height.
+:root:not([data-window-ink='dark'])
+  .mini-player
+  .player-sound__tabs.eq-layer-tabs__list {
+  height: 36px;
+  gap: 18px;
 }
 
-.player-sound.is-folded .player-sound__chevron {
-  transform: rotate(180deg);
+// Folded, no tab is open, and none is drawn open: the line under the one
+// last shown would say its face is in view.
+.player-sound.is-folded .player-sound__tabs .eq-layer-tabs__tab::after {
+  background: transparent;
+}
+
+// One caret that turns over as the drawer shuts, as Up next's does: it moves
+// with the drawer.
+.player-sound__chevron {
+  transition: transform 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  .player-sound.is-folded & {
+    transform: rotate(180deg);
+  }
 }
 
 // The preset: its glyph in the accent, its name, its caret.
 .mini-player .player-sound__head .rich-pick__trigger {
-  @include sound-key;
+  @include player-quiet(30px);
+  font-size: 13px;
 
   .rich-pick__glyph {
     width: 13px;
@@ -126,11 +73,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-.mini-player .player-sound__head .rich-pick__trigger[aria-expanded='true'],
+// A preset applied is said by its name, never by a face: lit, it read as a
+// switch beside Smart.
 .mini-player
   .player-sound__head
-  .rich-pick__trigger.is-active:not([aria-expanded='true']) {
-  background: var(--surface-field);
+  .rich-pick__trigger.is-active:not([aria-expanded='true']):not(:hover) {
+  background: none;
   color: var(--player-text);
 }
 
@@ -168,19 +116,21 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// SMART: one key with its lamp, in capitals, quiet until it is on.
-.mini-player .player-sound__head .player-split {
-  @include sound-key;
+// SMART (Ivan, 2026-11-27: "smart eq ... spark", from the mockups): its
+// spark and its word in the row's quiet type. On, the whole key takes Smart
+// correction's own blue, the colour its line is drawn in on the curve. It was
+// SMART in capitals beside a grey dot, and read as a label rather than a key.
+.mini-player .player-sound .player-split {
+  @include player-quiet(30px);
   gap: 0;
   padding: 0;
   overflow: hidden;
-  background: transparent;
-  color: var(--player-text-soft);
-  font-size: 11.5px;
-  font-weight: $weight-bold;
-  text-transform: uppercase;
   cursor: default;
-  @include tracking(0.04em);
+
+  // The housing is not a control and lights nothing; the switch in it does.
+  &:hover:not(:disabled) {
+    background: none;
+  }
 
   > .button.player-split__main {
     gap: 6px;
@@ -189,50 +139,64 @@ SPDX-License-Identifier: GPL-3.0-or-later
     &,
     &:hover:not(:disabled),
     &:active:not(:disabled) {
-      min-height: 28px;
+      min-height: 30px;
       font: inherit;
-      text-transform: inherit;
     }
   }
 
-  .player-led__lamp {
-    width: 6px;
-    height: 6px;
-    background: var(--player-text-soft);
-    opacity: 0.5;
+  .player-split__spark {
+    width: 15px;
+    height: 15px;
+    color: var(--player-text-soft);
+    transition: color 160ms ease;
   }
 
-  // SMART and its lamp alone, as the approved amp draws the key: how it
-  // listens is its caret's menu to say, and named on the key it pushed the
-  // preset off the row (Ivan, 2026-10-25: "the button not good").
+  // The word alone: a Cancel named on the key pushed the row wider than the
+  // amp (Ivan, 2026-10-25); the spark breathing says it is measuring.
   .player-led__value {
     display: none;
   }
 
-  &:has(> .player-split__main[aria-pressed='true']:not(:disabled)) {
-    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
-    background: transparent;
+  // On: one face, the key's. The switch's own pressed face, the amp's lit
+  // key, would paint a second colour inside it.
+  > .button.player-split__main[aria-pressed='true']:not(:disabled) {
+    background: none;
     box-shadow: none;
-    color: var(--accent-light);
+  }
 
-    .player-led__lamp {
-      background: var(--accent);
-      opacity: 1;
+  &:has(> .player-split__main[aria-pressed='true']:not(:disabled)) {
+    background: color-mix(in srgb, var(--player-curve-smart) 22%, transparent);
+    color: var(--player-text);
+
+    .player-split__spark {
+      color: var(--player-curve-smart);
     }
+  }
+
+  // Measuring: the spark breathes while Smart correction listens.
+  &.is-running .player-split__spark {
+    animation: player-lamp-breathe 1.2s ease-in-out infinite;
   }
 }
 
-// FluidEQ on or off, as the power sign: lit in the accent while on.
+@media (prefers-reduced-motion: reduce) {
+  .mini-player .player-sound .player-split.is-running .player-split__spark {
+    animation: none;
+  }
+}
+
+// FluidEQ on or off, as the power sign on a round key: bare while off, lit
+// in the accent while on.
 .player-sound__power {
   display: grid;
   flex: none;
   width: 32px;
-  height: 30px;
+  height: 32px;
   place-items: center;
   padding: 0;
-  border: 1px solid var(--border-subtle);
-  border-radius: 9px;
-  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  background: none;
   color: var(--player-text-soft);
   cursor: pointer;
   transition: $transition-control;
@@ -242,14 +206,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
     height: 15px;
   }
 
-  &[aria-pressed='true'] {
-    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-    background: color-mix(in srgb, var(--accent) 14%, transparent);
-    color: var(--accent);
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--player-text) 9%, transparent);
+    color: var(--player-text);
   }
 
-  &:hover:not(:disabled) {
-    border-color: color-mix(in srgb, var(--accent) 70%, transparent);
+  &[aria-pressed='true'],
+  &[aria-pressed='true']:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+    color: var(--accent-light);
   }
 
   &:disabled {
@@ -303,82 +268,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @media (prefers-reduced-motion: reduce) {
   .player-sound__drawer,
   .player-sound__body,
-  .player-sound__fold .player-sound__chevron {
+  .player-sound__chevron {
     transition: none;
-  }
-}
-
-// The two faces at the left, and whether the equalizer is on at the right,
-// the song's save between them while Smart EQ measures.
-.player-sound__tabs {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-// The faces as tabs in a well, the chosen one raised out of it.
-// THE FACES ON THE PANE, as the keys beside them are (Ivan, 2026-10-25: "too
-// dark for light theme"): the keys' own face and hairline for the track, and
-// the chosen face as the app's segmented switches mark theirs (`.segmented`
-// in `_dspEq.scss`) — a step of mist under the accent's word. They stood in
-// the theme's well with the chosen one on the block colour, and a well is
-// kept darker than the floor at every Brightness, so at the light end the
-// pair read as a dark slab on a light pane.
-.mini-player .player-sound .player-eq__faces {
-  gap: 2px;
-  padding: 2px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 9px;
-  background: var(--surface-field);
-  box-shadow: none;
-}
-
-.mini-player .player-sound .player-eq__face {
-  height: auto;
-  padding: 5px 12px;
-  border-radius: 7px;
-  color: var(--player-text-soft);
-  font-size: 12.5px;
-
-  &:hover:not([aria-pressed='true']) {
-    background: color-mix(in srgb, $edge-tint 5%, transparent);
-    color: var(--player-text);
-  }
-
-  &[aria-pressed='true'] {
-    background: color-mix(in srgb, $edge-tint 12%, transparent);
-    box-shadow: none;
-    color: $secondary-light;
-  }
-}
-
-.player-sound__state {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 6px;
-  margin-left: auto;
-  color: var(--accent-light);
-  font-size: 11.5px;
-  font-weight: $weight-bold;
-  white-space: nowrap;
-
-  &.is-off {
-    color: var(--player-text-soft);
-  }
-}
-
-.player-sound__lamp {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-
-  .is-off > & {
-    background: var(--player-text-soft);
-    box-shadow: none;
-    opacity: 0.5;
   }
 }
 
@@ -552,31 +443,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
   opacity: 1;
 }
 
-// =========================================================== the foot ======
+// ======================================================= the bottom row ====
 //
-// The band layout and EQ mode at the left, Clear EQ at the right, each a
-// small key on the pane.
-.mini-player .player-sound__foot {
-  gap: 6px;
+// The EQ page's tool row (`PlayerToolRow`) under the faders or the dials, at
+// the start of the row rather than its end, with none of the page's own
+// height, padding or rule along its foot: the section's pane is its ground.
+.mini-player .player-sound__tools.eq-layer-tabs {
+  height: 34px;
+  padding: 0;
+  border-bottom: 0;
 
-  // The triggers alone: the band layout's menu opens in place, and its own
-  // buttons keep the EQ page's faces.
-  .button.quick-layouts__trigger,
-  .eq-mode-trigger,
-  .button.clear-eq-trigger {
-    @include sound-key(28px);
-    gap: 6px;
-    border-radius: $radius-m;
-    background: transparent;
-    color: var(--player-text-muted);
-    font-size: 12px;
-
-    svg {
-      color: var(--player-text-soft);
-    }
-  }
-
-  .button.clear-eq-trigger {
-    margin-left: auto;
+  .eq-layer-tabs__slot {
+    justify-content: flex-start;
   }
 }

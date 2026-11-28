@@ -168,6 +168,41 @@ export function SupportPetHero({
   );
 }
 
+/**
+ * Her size sitting on the amp's picture: about 52 px from ear tips to feet,
+ * a head taller than the titlebar's, so she reads beside the song's title.
+ */
+const PERCHED_PET_ART = 72;
+
+/**
+ * The same creature sitting on the amp's picture beside the song (Ivan,
+ * 2026-11-27, "B"), hearing the same music. Decorative: the amp's menu is
+ * where she is shown or hidden, and the picture under her stays the thing a
+ * press reaches.
+ */
+export function SupportPetPerched({
+  hasContributed,
+}: {
+  hasContributed: boolean;
+}) {
+  const { hearing, isListening, isPaused, readMusic } = usePetAudio();
+  return (
+    <div
+      className={`support-pet support-pet--perched${isListening ? ' is-listening' : ''}`}
+      aria-hidden="true"
+    >
+      {hearing}
+      <PetCanvas
+        art={PERCHED_PET_ART}
+        readMusic={readMusic}
+        isCelebrating={hasContributed}
+        isListening={isListening}
+        isPaused={isPaused}
+      />
+    </div>
+  );
+}
+
 interface ISupportPetProps {
   hasContributed: boolean;
   onOpen: () => void;

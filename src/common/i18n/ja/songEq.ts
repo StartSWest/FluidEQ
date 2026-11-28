@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 /** Smart correction’s song memory — its progress, and the notice. */
 export default {
-  'songEq.saveAria': '今流れているものへのスマート補正を記憶する',
   'songEq.noticeTitle': 'この曲の保存済み EQ を使用中',
   'songEq.noticeBody': '{title} — {plays} 回の再生で学習',
   'songEq.noticeBodyOnce': '{title} — 1 回で学習',

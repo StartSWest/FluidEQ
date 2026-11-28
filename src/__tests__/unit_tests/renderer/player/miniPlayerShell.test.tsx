@@ -43,7 +43,9 @@ describe('the player window', () => {
   // The amp's stylesheet applies under that word alone, so an amp that
   // measured itself before it was said measured under the full app's.
   it('says it is the amp on the document’s root before the amp measures itself, and takes the word back', () => {
-    const { unmount } = render(<MiniPlayer onOpenPage={() => undefined} />);
+    const { unmount } = render(
+      <MiniPlayer onOpenPage={() => undefined} hasContributed={false} />,
+    );
     expect(mockMeasured).toEqual(['']);
     expect(document.documentElement.dataset.amp).toBe('');
     unmount();
@@ -55,7 +57,9 @@ describe('the player window', () => {
     const { result } = renderHook(() => useWindowTintMode());
     // The control: the full app wears the mode chosen for it.
     expect(result.current).toBe('tint');
-    const { unmount } = render(<MiniPlayer onOpenPage={() => undefined} />);
+    const { unmount } = render(
+      <MiniPlayer onOpenPage={() => undefined} hasContributed={false} />,
+    );
     expect(result.current).toBe('cover');
     unmount();
     expect(result.current).toBe('tint');
@@ -67,7 +71,9 @@ describe('the player window', () => {
     const heard: string[] = [];
     const listen = (event: KeyboardEvent) => heard.push(event.key);
     window.addEventListener('keydown', listen);
-    const { unmount } = render(<MiniPlayer onOpenPage={() => undefined} />);
+    const { unmount } = render(
+      <MiniPlayer onOpenPage={() => undefined} hasContributed={false} />,
+    );
     const inside = screen.getByRole('button', { name: 'inside the amp' });
     fireEvent.keyDown(inside, { key: 'Delete' });
     fireEvent.keyDown(inside, { key: 'a', ctrlKey: true });

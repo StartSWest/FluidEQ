@@ -87,14 +87,20 @@ const AmpMark = () => {
  */
 const MiniPlayer = ({
   onOpenPage,
+  hasContributed,
 }: {
   onOpenPage: (page: TPlayerPage) => void;
+  /** Whether the pet on the picture hears the music (`SupportPet`). */
+  hasContributed: boolean;
 }) => {
   const host = usePlayerHost();
   return (
     <>
       <AmpMark />
-      {createPortal(<PlayerAmp onOpenPage={onOpenPage} />, host)}
+      {createPortal(
+        <PlayerAmp onOpenPage={onOpenPage} hasContributed={hasContributed} />,
+        host,
+      )}
     </>
   );
 };
