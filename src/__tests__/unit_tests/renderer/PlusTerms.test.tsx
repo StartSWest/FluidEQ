@@ -97,11 +97,12 @@ describe('the Plus terms', () => {
   });
 
   /**
-   * Plus is not sold any more (credits replaced it): the panel has no
-   * upgrade and the terms are only ever read, never agreed to on the way to
-   * a Plus checkout. Paying for credits agrees beside the packs instead.
+   * Plus lives only inside Scenes (Ivan, 2026-11-28: "no plus elsewere in
+   * the app"): the account panel has no Plus at all, and its terms are only
+   * ever read here. Getting Plus agrees beside its plans in the Get Plus
+   * sheet, as paying for credits agrees beside the packs.
    */
-  it('offer no Plus upgrade, and open read-only with the published edition', async () => {
+  it('offer no Plus in the account panel, and open read-only with the published edition', async () => {
     render(<AccountDialog onClose={jest.fn()} />);
     expect(screen.queryByText(/^account\.plus\./)).toBeNull();
     await userEvent.click(screen.getByRole('button', { name: 'terms.link' }));

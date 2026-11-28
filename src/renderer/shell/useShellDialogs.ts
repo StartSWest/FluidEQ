@@ -28,6 +28,11 @@ import {
 } from '../account/accountPanel';
 import { onFeatureTourRequest } from '../components/featureTour/featureTourRequests';
 import { subscribePlusTabRequests } from '../plus/plusTabRequest';
+import { openPlusPlace } from '../plus/plusNavigation';
+import {
+  plusSheetOpen,
+  subscribePlusReturns,
+} from '../plus/plusSubscriptionStore';
 import type { TWorkspaceTab } from '../workspaceTabs';
 
 /**
@@ -74,6 +79,20 @@ const useShellDialogs = (
       subscribePlusTabRequests(() => {
         setAccountDialogPage(undefined);
         selectTopWorkspaceTab('community');
+      }),
+    [selectTopWorkspaceTab],
+  );
+  // Back from Stripe's checkout or portal through "Back to FluidEQ", with no
+  // Get Plus sheet open to say how it went: Plus's own page, in Scenes, says
+  // it. A cancelled checkout changed nothing, so it moves nobody.
+  useEffect(
+    () =>
+      subscribePlusReturns((returned) => {
+        if (returned !== 'cancelled' && !plusSheetOpen()) {
+          openPlusPlace('plus');
+          setAccountDialogPage(undefined);
+          selectTopWorkspaceTab('community');
+        }
       }),
     [selectTopWorkspaceTab],
   );

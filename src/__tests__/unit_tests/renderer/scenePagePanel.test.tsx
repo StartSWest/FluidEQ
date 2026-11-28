@@ -211,10 +211,13 @@ describe('the panel beside the stage', () => {
     expect(panel.getByText('plus.official.badge')).toHaveClass(
       'community__role',
     );
-    // A fact said as a line with its mark, not a stretched pill.
-    expect(panel.getByText('store.scene.yours')).toHaveClass(
+    // A fact said as a line with its mark, not a stretched pill. Played
+    // through Plus, not got with a credit: included, never "yours for good"
+    // (Ivan, 2026-11-28: owned wins, and only owned).
+    expect(panel.getByText('subscription.included')).toHaveClass(
       'gallery-included',
     );
+    expect(panel.queryByText('store.scene.yours')).toBeNull();
     expect(panel.getByText('store.official.fine')).toBeInTheDocument();
     // FluidEQ's own scenes are Plus looks, not member scenes.
     expect(

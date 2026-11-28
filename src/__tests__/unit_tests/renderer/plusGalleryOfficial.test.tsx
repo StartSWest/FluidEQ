@@ -214,8 +214,10 @@ it('lists official scenes by FluidEQ with a heart and no adds count, beside memb
   renderGallery();
   await screen.findByRole('button', { name: 'Aurora' });
   const card = officialCard();
-  // Plus owns every scene while it lasts.
-  expect(card.getByText('store.scene.yours')).toBeInTheDocument();
+  // Plus plays every scene while it lasts and keeps none for good: the line
+  // says what a credit would do, and Add is there because Plus plays it.
+  expect(card.getByText('store.scene.keep')).toBeInTheDocument();
+  expect(card.queryByText('store.scene.yours')).toBeNull();
   expect(
     card.getByRole('button', { name: 'plus.card.by:FluidEQ' }),
   ).toBeInTheDocument();
@@ -295,7 +297,7 @@ it('shows official details with likes but no adds or reports', async () => {
   renderGallery();
   await userEvent.click(await screen.findByRole('button', { name: 'Aurora' }));
   expect(await screen.findByTestId('official-preview')).toBeInTheDocument();
-  expect(screen.getByText('store.scene.yours')).toBeInTheDocument();
+  expect(screen.getByText('subscription.included')).toBeInTheDocument();
   expect(screen.getByText('plus.scene.likes')).toBeInTheDocument();
   expect(screen.getByText('plus.scene.week')).toBeInTheDocument();
   expect(screen.queryByText('plus.scene.adds')).not.toBeInTheDocument();

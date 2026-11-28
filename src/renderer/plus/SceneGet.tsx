@@ -13,6 +13,8 @@ import { useTranslation } from '../utils/I18nContext';
 import BuySceneDialog from './BuySceneDialog';
 import { creditsText } from './credits';
 import { addGalleryScene } from './galleryActions';
+import GetPlusButton from './GetPlusButton';
+import { plusOnSale, usePlusSubscription } from './plusSubscriptionStore';
 import { TASTE_SECONDS } from './SceneTaste';
 
 interface ISceneGetProps {
@@ -20,6 +22,11 @@ interface ISceneGetProps {
   name: string;
   /** `button small` on the scene's page, `button small subtle` on a card. */
   className: string;
+  /**
+   * What it says instead of "Get · 1 credit": "Keep it forever · 1 credit"
+   * for a Plus member, who plays the scene already.
+   */
+  label?: string;
 }
 
 /**
@@ -27,7 +34,12 @@ interface ISceneGetProps {
  * dialog, and once the scene is bought puts it in the looks at once — a
  * scene paid for and then still to be added was one step too many.
  */
-export default function SceneGet({ scene, name, className }: ISceneGetProps) {
+export default function SceneGet({
+  scene,
+  name,
+  className,
+  label,
+}: ISceneGetProps) {
   const { t, locale } = useTranslation();
   const [open, setOpen] = useState(false);
   return (
@@ -38,9 +50,10 @@ export default function SceneGet({ scene, name, className }: ISceneGetProps) {
         onClick={() => setOpen(true)}
       >
         <Glyph name="credit" />
-        {t('store.get', {
-          credits: creditsText(t, locale, SCENE_PRICE_CREDITS),
-        })}
+        {label ??
+          t('store.get', {
+            credits: creditsText(t, locale, SCENE_PRICE_CREDITS),
+          })}
       </button>
       {open && (
         <BuySceneDialog
@@ -80,6 +93,7 @@ export function SceneLockedVeil({
   tasted: boolean;
 }) {
   const { t } = useTranslation();
+  const plus = usePlusSubscription();
   return (
     <span className={`gallery-preview__plus${tasted ? ' is-tasted' : ''}`}>
       <Glyph name="credit" />
@@ -90,6 +104,14 @@ export function SceneLockedVeil({
       </span>
       {tasted && (
         <SceneGet scene={scene} name={name} className="button small" />
+      )}
+      {/* The other way in, quiet beside the credit: Plus plays this one
+          and every other. */}
+      {tasted && plus && plusOnSale(plus) && (
+        <GetPlusButton
+          label={t('subscription.get')}
+          className="button small subtle"
+        />
       )}
     </span>
   );

@@ -13,6 +13,8 @@ import {
   setBrowseFilters,
   usePlusNavigation,
 } from './plusNavigation';
+import PlusChoiceStrip from './PlusChoiceStrip';
+import PlusLapseCard from './PlusLapseCard';
 import StarterCard from './StarterCard';
 
 interface IGalleryViewProps {
@@ -79,6 +81,10 @@ export default function GalleryView({ me }: IGalleryViewProps) {
       {/* The starter credits, while they wait to be claimed: where they
           are spent (`StarterCard`). */}
       {me !== undefined && <StarterCard accountId={me} />}
+      {/* What stopped when Plus ended, and otherwise, for an account without
+          it, the two ways a scene is had: a credit or Plus. */}
+      <PlusLapseCard />
+      <PlusChoiceStrip />
 
       <GalleryList
         list={list}

@@ -16,3 +16,5 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'galleryRows';
 @use 'galleryStore';
 @use 'galleryStorePacks';
+// Plus, the scene subscription, over the store's packs it borrows from.
+@use 'galleryPlus';

@@ -1,0 +1,790 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'libraryTokens' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// Plus, the scene subscription, inside Scenes and nowhere else (Ivan,
+// 2026-11-28): its emblem, its row in the rail, its page, the gallery's
+// "credits or Plus" strip, the card it leaves when it ends, the mark on a
+// scene's picture, a scene page's two ways, and the Get Plus sheet. Plus's one
+// colour of its own is the emblem's band - the wordmark's, from the accent's
+// start through the accent to the purple of the active state - and the Plus
+// side of every pair leans toward that purple, the credits side toward the
+// accent, so the two read apart at a glance on every surface.
+
+// ---------------------------------------------------------------- the emblem
+
+.plus-mark {
+  display: block;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+}
+
+.plus-mark__start {
+  stop-color: var(--accent-start);
+}
+
+.plus-mark__middle {
+  stop-color: var(--accent);
+}
+
+.plus-mark__end {
+  stop-color: var(--active);
+}
+
+// Cut out of the tile in the colour type takes on the accent: the dark
+// window's ink on a dark window, white on a white one.
+.plus-mark__cross {
+  fill: none;
+  stroke: $on-accent;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+// The Plus side of a pair: a border and a wash toward the purple.
+@mixin plus-side($wash: 10%) {
+  border: 1px solid color-mix(in srgb, $active 42%, transparent);
+  background: linear-gradient(
+    105deg,
+    color-mix(
+      in srgb,
+      var(--accent-start) calc(#{$wash} * 0.7),
+      $surface-panel
+    ),
+    color-mix(in srgb, $active $wash, $surface-panel)
+  );
+}
+
+// The credits side: the accent, as the store's own coins and packs.
+@mixin credits-side($wash: 7%) {
+  border: 1px solid color-mix(in srgb, $secondary-default 38%, transparent);
+  background: color-mix(in srgb, $secondary-default $wash, $surface-panel);
+}
+
+// ---------------------------------------------------------------- the rail
+
+// The emblem is its own tile: no tile drawn under it, lit or not.
+.community__channel-mark.plus-rail-row__mark {
+  background: none;
+
+  .plus-mark {
+    width: 22px;
+    height: 22px;
+  }
+
+  .community__channel.is-active & {
+    background: none;
+    box-shadow: none;
+  }
+}
+
+.plus-rail-row__state {
+  color: $text-accent;
+  font-size: $text-small;
+  font-weight: $weight-bold;
+  white-space: nowrap;
+
+  &.is-member {
+    color: $text-muted;
+    font-weight: $weight-semibold;
+  }
+}
+
+// ---------------------------------------------------------------- a card
+
+// On the picture's foot, where the category and "New" never stand; the
+// picture keeps a dark plate under it in both windows, as those two do, and
+// no blur (`.gallery-card__tag`).
+.gallery-card__plus {
+  position: absolute;
+  bottom: 7px;
+  left: 7px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 9px 0 3px;
+  color: rgba($white, 0.94);
+  border: 1px solid color-mix(in srgb, $active 60%, transparent);
+  border-radius: $radius-pill;
+  background: rgba($black, 0.74);
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  pointer-events: none;
+
+  .plus-mark {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// ---------------------------------------------------------------- the strip
+
+.plus-choice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+  padding: 10px 10px 10px 16px;
+  border: 1px solid color-mix(in srgb, $active 28%, transparent);
+  border-radius: $radius-l;
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, $secondary-default 6%, $surface-panel),
+    color-mix(in srgb, $active 9%, $surface-panel)
+  );
+}
+
+.plus-choice__way {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+
+  > svg {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    color: $secondary-light;
+  }
+
+  .plus-mark {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+.plus-choice__words {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.4;
+  text-wrap: pretty;
+
+  b {
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-bold;
+  }
+}
+
+.plus-choice__or {
+  color: $text-faint;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  @include tracking(0.12em);
+}
+
+.plus-choice__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.plus-choice__hide {
+  display: grid;
+  width: $control-height-xs;
+  height: $control-height-xs;
+  padding: 0;
+  place-items: center;
+  color: $text-muted;
+  border: 0;
+  border-radius: $radius-s;
+  background: transparent;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover {
+    color: $text-primary;
+    background: $hover-accent;
+  }
+
+  &:focus-visible {
+    @include focus-outline(-2px);
+  }
+}
+
+// A narrow gallery: each way on its own line, "or" between them, the
+// buttons under both.
+@container plus (max-width: 640px) {
+  .plus-choice {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .plus-choice__actions {
+    margin-left: 0;
+  }
+}
+
+// ---------------------------------------------------------------- when it ends
+
+.plus-lapse {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 16px 20px;
+  padding: 16px 18px;
+  border-radius: $radius-l;
+  @include plus-side(9%);
+}
+
+.plus-lapse__words {
+  display: grid;
+  flex: 1 1 260px;
+  min-width: 0;
+  align-content: start;
+  gap: 8px;
+}
+
+.plus-lapse__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-bold;
+
+  .plus-mark {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+.plus-lapse__body {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.5;
+}
+
+.plus-lapse__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.plus-lapse__scenes {
+  display: grid;
+  flex: 2 1 420px;
+  min-width: 0;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  align-content: start;
+  gap: 12px;
+}
+
+.plus-lapse__scene {
+  display: grid;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  background: $surface-card;
+
+  .button {
+    justify-self: start;
+    margin: 6px 10px 10px;
+  }
+}
+
+.plus-lapse__name {
+  padding: 8px 10px 0;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-bold;
+  @include truncate;
+}
+
+.plus-lapse__more {
+  align-self: center;
+  color: $text-muted;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}
+
+// ---------------------------------------------------------------- a scene's page
+
+.scene-ways {
+  display: grid;
+  gap: 10px;
+}
+
+.scene-ways__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.scene-ways__way {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: $radius-m;
+  @include credits-side;
+
+  .button {
+    justify-self: start;
+    margin-top: 2px;
+  }
+}
+
+.scene-ways__way--plus {
+  @include plus-side(11%);
+}
+
+.scene-ways__name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-bold;
+
+  > svg {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    color: $secondary-light;
+  }
+}
+
+.scene-ways__body {
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+.gallery-included.scene-ways__included .plus-mark {
+  width: 16px;
+  height: 16px;
+}
+
+.scene-ways__keep {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  color: $text-muted;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  font-size: $text-small;
+  line-height: 1.45;
+
+  .button {
+    justify-self: start;
+  }
+}
+
+// ---------------------------------------------------------------- Plus's page
+
+.plus-page {
+  gap: 18px;
+  padding: 0 12px 0 4px;
+}
+
+.plus-page__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  padding-top: 6px;
+}
+
+.plus-page__emblem.plus-mark {
+  width: 52px;
+  height: 52px;
+}
+
+.plus-page__heading {
+  display: grid;
+  flex: 1 1 260px;
+  min-width: 0;
+  gap: 2px;
+}
+
+.plus-page__title {
+  margin: 0;
+  color: $text-primary;
+  font-size: 1.45rem;
+  font-weight: $weight-bold;
+  letter-spacing: -0.01em;
+}
+
+.plus-page__lead {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+}
+
+.plus-page__manage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px 12px;
+}
+
+.plus-page__said {
+  color: $text-muted;
+  font-size: $text-small;
+
+  &.is-failed {
+    color: $ink-caution;
+  }
+}
+
+.plus-page__wait {
+  margin: 48px auto;
+}
+
+.plus-page__new {
+  display: grid;
+  gap: $spacing-m;
+}
+
+.plus-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  padding: 16px 18px;
+  border-radius: $radius-l;
+  @include plus-side(9%);
+}
+
+.plus-status__mark.plus-mark {
+  width: 30px;
+  height: 30px;
+}
+
+.plus-status__words {
+  display: grid;
+  flex: 1 1 260px;
+  min-width: 0;
+  gap: 4px;
+}
+
+.plus-status__title {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-bold;
+}
+
+.plus-status__note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.5;
+
+  svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+  }
+}
+
+.plus-status__note--warn {
+  color: $ink-caution;
+}
+
+.plus-status__chip {
+  padding: 3px 12px;
+  color: $on-accent;
+  border-radius: $radius-pill;
+  background: $secondary-default;
+  font-size: $text-small;
+  font-weight: $weight-bold;
+}
+
+// The plans side by side, each its own way in, as the packs are each their
+// own row: the one that saves wears the accent's ring.
+.plus-offer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 14px;
+}
+
+.plus-offer__plan {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 16px 18px;
+  border-radius: $radius-xl;
+  background: linear-gradient(90deg, $studio-surface, transparent 92%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, $edge-tint 9%, transparent);
+
+  &.is-saving {
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, $secondary-default 14%, transparent),
+      color-mix(in srgb, $active 6%, transparent)
+    );
+    box-shadow: inset 0 0 0 1.5px $secondary-light;
+  }
+
+  .button {
+    justify-self: start;
+    margin-top: 10px;
+  }
+}
+
+.plus-offer__name {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-bold;
+}
+
+.plus-offer__price {
+  color: $text-primary;
+  font-size: 1.2rem;
+  font-weight: $weight-bold;
+  letter-spacing: -0.01em;
+}
+
+.plus-offer__note {
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+.plus-offer__saving {
+  position: absolute;
+  top: -9px;
+  right: 16px;
+  padding: 2px 9px;
+  color: $surface-base;
+  border-radius: $radius-2xs;
+  background: $secondary-light;
+  font-size: $text-small;
+  font-weight: $weight-bold;
+}
+
+// Credits and Plus, a line each, side by side.
+.plus-ways {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 12px;
+}
+
+.plus-ways__way {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: $radius-l;
+  @include credits-side(5%);
+
+  > svg {
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    color: $secondary-light;
+  }
+
+  .plus-mark {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+.plus-ways__way--plus {
+  @include plus-side(8%);
+}
+
+.plus-ways__words {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+.plus-ways__name {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-bold;
+}
+
+// ---------------------------------------------------------------- the sheet
+
+.dialog-frame.plus-sheet {
+  @include dialog.size(880px, 720px);
+}
+
+// The newest scenes, tilted, behind the rail's words.
+.plus-sheet__pictures {
+  overflow: hidden;
+}
+
+.plus-sheet__mosaic {
+  position: absolute;
+  inset: -12% -18%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 104px;
+  gap: 6px;
+  transform: rotate(-8deg);
+  opacity: 0.9;
+
+  .gallery-picture {
+    height: 100%;
+    aspect-ratio: auto;
+    border-radius: $radius-s;
+  }
+}
+
+.plus-sheet__heading {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  line-height: 1.3;
+}
+
+.plus-sheet__lead {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.5;
+}
+
+.plus-compare {
+  display: grid;
+  gap: 8px;
+}
+
+.plus-compare__title {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-bold;
+}
+
+.plus-compare__columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: 8px;
+}
+
+.plus-compare__way {
+  display: grid;
+  align-content: start;
+  gap: 3px;
+  padding: 10px 14px;
+  color: $text-muted;
+  border-radius: $radius-m;
+  font-size: $text-small;
+  line-height: 1.45;
+  @include credits-side(5%);
+}
+
+.plus-compare__way--plus {
+  @include plus-side(8%);
+}
+
+.plus-compare__name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-bold;
+
+  > svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+    color: $secondary-light;
+  }
+
+  .plus-mark {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.plus-sheet__facts {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+  list-style: none;
+
+  li {
+    display: flex;
+    gap: 10px;
+  }
+
+  svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+    margin-top: 2px;
+    color: $secondary-light;
+  }
+}
+
+// A way into Plus carries the emblem as a credit's way carries the coin
+// (`.coin-action`): the same spacing, so the two read as a pair.
+.button.plus-get,
+.button.plus-pay {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.button.plus-pay .plus-mark {
+  width: 20px;
+  height: 20px;
+}
+
+.plus-get .plus-mark {
+  width: 16px;
+  height: 16px;
+}
+
+.plus-sheet__done {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 24px 10px;
+  text-align: center;
+
+  .plus-sheet__done-mark {
+    width: 56px;
+    height: 56px;
+  }
+}

@@ -22,7 +22,9 @@ import { FLUIDEQ_MAKER, type IMakerRef } from './plusNavigation';
 import SceneGet, { officialLine } from './SceneGet';
 import { galleryCameraOf } from './sceneMoveGestures';
 import { useMoveTip } from './SceneMoveTip';
-import { useOwnsLook } from './sceneStore';
+import PlusMark from './PlusMark';
+import { plusMarksScenes, usePlusSubscription } from './plusSubscriptionStore';
+import { useKeepsLook, useOwnsLook } from './sceneStore';
 import type { TGalleryLocalScene } from './useGalleryLocalScenes';
 
 interface IGalleryCardProps {
@@ -57,9 +59,14 @@ export default function GalleryCard({
 }: IGalleryCardProps) {
   const { t, locale } = useTranslation();
   const owned = useOwnsLook(scene.lookId);
+  // Kept for good - its own, or got with a credit - as against playing only
+  // while Plus lasts: only a kept scene says "Yours for good", and only one
+  // that is not wears the Plus mark (owned wins).
+  const keeps = useKeepsLook(scene.lookId);
+  const withPlus = plusMarksScenes(usePlusSubscription()) && !keeps;
   // FluidEQ's own count no adds (`ScenePage`), so their line says whether
   // the scene is this account's or what getting it does.
-  const officialLabel = officialLine(t, owned);
+  const officialLabel = officialLine(t, keeps);
   const adding = useAddingScenes().has(scene.lookId);
   const name = resolveSceneName(scene, locale);
   const own = scene.authorId === me;
@@ -129,6 +136,16 @@ export default function GalleryCard({
         )}
         {isNewVersion && (
           <span className="gallery-card__new">{t('plus.version.new')}</span>
+        )}
+        {/* On the picture's foot, where the category and "New" never stand. */}
+        {withPlus && (
+          <span
+            className="gallery-card__plus"
+            title={t('subscription.included')}
+          >
+            <PlusMark />
+            {t('subscription.name')}
+          </span>
         )}
       </button>
       <div className="gallery-card__body">

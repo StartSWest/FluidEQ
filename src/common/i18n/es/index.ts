@@ -55,6 +55,7 @@ import studioPalette from './studioPalette';
 import studioStarter from './studioStarter';
 import plus from './plus';
 import store from './store';
+import subscription from './subscription';
 import creator from './creator';
 import termsNotice from './termsNotice';
 import engineHealth from './engineHealth';
@@ -121,6 +122,7 @@ const es: Partial<Dictionary> = {
   ...studioStarter,
   ...plus,
   ...store,
+  ...subscription,
   ...creator,
   ...termsNotice,
   ...engineHealth,

@@ -304,6 +304,30 @@ export const useOwnsLook = (lookId: string): boolean =>
     () => ownsLookNow(lookId),
   );
 
+/**
+ * Whether the look is this account's for good — its own, or got with a
+ * credit — whatever Plus does: the same rule with Plus left out. A scene that
+ * plays only through Plus stops when Plus ends, so it never says "Yours for
+ * good" and wears the Plus mark instead (Ivan's pick, 2026-11-28: owned
+ * wins).
+ */
+export const keepsLookNow = (lookId: string): boolean => {
+  const owner = ownerNow();
+  return mayPlayLook({
+    lookId,
+    accountId: owner || undefined,
+    plus: false,
+    store: state.owner === owner ? state.store : undefined,
+  });
+};
+
+export const useKeepsLook = (lookId: string): boolean =>
+  useSyncExternalStore(
+    subscribe,
+    () => keepsLookNow(lookId),
+    () => keepsLookNow(lookId),
+  );
+
 const subscribeLamps = (listener: () => void) => {
   const stopBoth = subscribeBoth(listener);
   const stopScenes = subscribeMemberScenes(listener);
