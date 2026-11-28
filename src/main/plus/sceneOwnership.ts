@@ -19,6 +19,7 @@ import {
   STARTER_CREDITS,
 } from '../../common/sceneStore';
 import type { IAccountConfig } from '../../common/accountConfig';
+import type { ILibraryFields } from '../../common/subscription';
 import type { IEntitlement } from '../account/entitlement';
 import type { IAccountSession } from '../account/session';
 import type { IEncryptedJsonStore } from '../encryptedJsonStore';
@@ -35,8 +36,8 @@ import {
 
 /**
  * Which scenes the signed-in account may play: the ones it bought, its own
- * whether published or not, and — until the cutover ends Plus — every other
- * scene while it is a Plus member (`mayPlayLook`).
+ * whether published or not, and every other scene while it has Plus, the
+ * scene subscription (`mayPlayLook`, `account/entitlementRecord.ts`).
  *
  * Every gate in main asks `owns(lookId)`, the graph's load, the desktop
  * background and the desk lights alike, so a scene is one answer wherever it
@@ -68,6 +69,15 @@ export const isSceneStoreRecord = (
 /** As the membership: an event asks again once the last answer is this old. */
 export const SCENE_STORE_STALE_AFTER_MS = 4 * 60 * 60 * 1000;
 
+/** One answer the server gave `my_store`, heard as it landed. */
+export interface IStoreAnswer {
+  accountId: string;
+  store: ISceneStore;
+  /** What it said of Plus (`common/subscription.ts`). */
+  library: ILibraryFields;
+  at: number;
+}
+
 export interface ISceneOwnership {
   /** Whether this account may play this look anywhere, right now. */
   owns(lookId: string): boolean;
@@ -88,6 +98,12 @@ export interface ISceneOwnership {
    * (nothing is owed then) and never on a refresh while nothing is owed.
    */
   onCreditsArrived(listener: (credits: number) => void): () => void;
+  /**
+   * Hear every answer the server gives, as it lands, for the account it was
+   * asked for: the store, and what the same answer said of Plus. Never a
+   * stored copy and never an answer rebuilt here after a buy.
+   */
+  onAnswer(listener: (answer: IStoreAnswer) => void): () => void;
   refreshIfDue(reason: string): Promise<void>;
   refreshNow(): Promise<TSceneStoreOutcome>;
   buy(scene: { authorId: string; sceneId: string }): Promise<TBuyOutcome>;
@@ -176,6 +192,7 @@ export const createSceneOwnership = ({
 
   const announce = () => listeners.forEach((listener) => listener());
   const arrivals = new Set<(credits: number) => void>();
+  const answers = new Set<(answer: IStoreAnswer) => void>();
 
   const adopt = (userId: string, next: ISceneStore) => {
     // The balance the checkout opened from has moved: the payment is
@@ -236,7 +253,20 @@ export const createSceneOwnership = ({
         : { ok: false, reason: answer.reason };
     }
     adopt(userId, answer.store);
-    return answer;
+    const heard: IStoreAnswer = {
+      accountId: userId,
+      store: answer.store,
+      library: answer.library,
+      at: now(),
+    };
+    answers.forEach((listener) => {
+      try {
+        listener(heard);
+      } catch (error) {
+        logger?.warn(`A listener to the store failed: ${String(error)}`);
+      }
+    });
+    return { ok: true, store: answer.store };
   };
 
   const refreshNow = (): Promise<TSceneStoreOutcome> => {
@@ -329,6 +359,12 @@ export const createSceneOwnership = ({
       arrivals.add(listener);
       return () => {
         arrivals.delete(listener);
+      };
+    },
+    onAnswer: (listener) => {
+      answers.add(listener);
+      return () => {
+        answers.delete(listener);
       };
     },
     refreshIfDue,
@@ -434,6 +470,7 @@ export const createSceneOwnership = ({
       offEntitlement();
       offIdentity();
       listeners.clear();
+      answers.clear();
     },
   };
 };

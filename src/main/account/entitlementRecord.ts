@@ -5,14 +5,21 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { PLUS_OFFLINE_GRACE_DAYS } from '../../common/plusTerms';
-import { GIFT_PLAN, MAKER_PLAN, PLUS_TRIAL_PLAN } from '../../common/pastPlans';
+import { libraryPlanOfRow } from '../../common/subscription';
 
 /**
- * What a membership record means, whenever it is asked: the record's shape,
- * the server's row read into one, and the grace rule. Nothing here keeps
- * state or reaches a network, so a test can walk the clock across every
- * boundary without a server or a store; when to ask, and what to keep, is
+ * What a Plus record means, whenever it is asked: the record's shape, the
+ * server's row read into one, and the grace rule. Nothing here keeps state
+ * or reaches a network, so a test can walk the clock across every boundary
+ * without a server or a store; when to ask, and what to keep, is
  * `entitlement.ts`.
+ *
+ * Plus is the scene subscription (premium 0122), and a row is Plus only
+ * under its two plans (`libraryPlanOfRow`). The membership that carried the
+ * name before it — Buy Me a Coffee, trials, gifts, months earned by
+ * publishing — is gone and nobody holds it (Ivan, 2026-11-27), so no other
+ * plan is read as anything: an old row still on the server, like the one an
+ * admin account kept from 2026-10-20, reads as no Plus at all.
  */
 
 /**
@@ -21,10 +28,10 @@ import { GIFT_PLAN, MAKER_PLAN, PLUS_TRIAL_PLAN } from '../../common/pastPlans';
  * Long enough for a fortnight away from the internet, or a payment provider
  * having a very bad weekend, with room to spare. Short enough that a cancelled
  * monthly subscription stops inside one billing cycle. Measured from when the
- * server last CONFIRMED the subscription, not from when the period ends — a
- * token that expires while the machine is offline is precisely the case this
- * exists to cover. The number is the one the Plus terms promise, from the
- * same constant.
+ * server last CONFIRMED the subscription — a token that expires while the
+ * machine is offline is precisely the case this exists to cover — and never
+ * from later than the period's end (`resolveEntitlementState`). The number
+ * is the one the Plus terms promise, from the same constant.
  */
 export const ENTITLEMENT_GRACE_MS =
   PLUS_OFFLINE_GRACE_DAYS * 24 * 60 * 60 * 1000;
@@ -99,42 +106,45 @@ export const resolveEntitlementState = (
   record: IEntitlementRecord | undefined,
   now: number,
 ): IEntitlementStatus => {
-  if (!record || !PAID_STATUSES.has(record.status)) {
+  if (
+    !record ||
+    !PAID_STATUSES.has(record.status) ||
+    libraryPlanOfRow(record.plan) === undefined
+  ) {
     return NONE;
   }
-  // A clock set backwards would otherwise buy another fortnight of grace for
-  // free. The confirmation cannot have happened later than now.
-  const verifiedAt = Math.min(record.verifiedAt, now);
-  // A trial, a gift and a month earned by publishing are all this server's
-  // own grant: no card, no merchant, nothing that could renew them. The
-  // grace below exists for a renewal this app may have missed while it was
-  // offline, and none of the three has one to miss — a gift whose date has
-  // passed kept Plus alive for another fortnight and offered a merchant
-  // page that has never heard of the account.
-  const granted =
-    record.plan === PLUS_TRIAL_PLAN ||
-    record.plan === MAKER_PLAN ||
-    record.plan === GIFT_PLAN;
   const shared = {
     plan: record.plan,
     periodEndsAt: record.periodEndsAt,
-    renewing: !granted && !record.cancelAtPeriodEnd,
+    renewing: !record.cancelAtPeriodEnd,
   };
   if (record.periodEndsAt > now) {
     return { state: 'active', ...shared };
   }
-  // A membership cancelled to end with this period ended with it. The grace
-  // below is for a renewal the app may have missed, and this one was never
-  // going to renew. Nor can anything this server granted, whatever flag was
-  // stored: a fortnight of grace over an earned month would leave Plus on
-  // for two weeks after the app had already said it had ended.
-  if (granted || record.cancelAtPeriodEnd) {
+  // A subscription cancelled to end with this period ended with it. The
+  // grace below is for a renewal the app may have missed, and this one was
+  // never going to renew.
+  if (record.cancelAtPeriodEnd) {
     return NONE;
   }
   // The period we last saw has ended. If the server was heard from recently
   // enough, the likeliest explanation is that it renewed while we were not
   // listening — so it stays on, with a visible end to that assumption.
-  const graceEndsAt = verifiedAt + ENTITLEMENT_GRACE_MS;
+  //
+  // Counted from the confirmation, but never from later than the period's
+  // end. A read made after the period ended confirms nothing paid: the row
+  // simply has not moved. Counted from such a read, the grace started again
+  // at every answer, so a row the server never moved past its period — an
+  // old membership's, ended 2026-10-20 and still `active`, read on
+  // 2026-11-27 — stayed "in grace" for as long as the server could be
+  // reached, which read as already subscribed. Stripe moves the period at
+  // the renewal itself, card retries included (`past_due`), so the only
+  // renewal a period's end can still be hiding is a notice on its way, and
+  // fourteen days from that end is long past any delivery Stripe retries.
+  // The same bound keeps a clock set backwards from buying another
+  // fortnight: the period ended no later than now.
+  const graceEndsAt =
+    Math.min(record.verifiedAt, record.periodEndsAt) + ENTITLEMENT_GRACE_MS;
   return graceEndsAt > now ? { state: 'grace', graceEndsAt, ...shared } : NONE;
 };
 
@@ -171,7 +181,8 @@ export const readEntitlementRow = (
     status,
     periodEndsAt,
     verifiedAt: now,
-    plan: typeof row.plan === 'string' ? row.plan : 'plus',
+    // A row without a plan names none, so it is not Plus.
+    plan: typeof row.plan === 'string' ? row.plan : '',
     cancelAtPeriodEnd: row.cancel_at_period_end === true,
   };
 };

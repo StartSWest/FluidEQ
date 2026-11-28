@@ -52,10 +52,31 @@ export type {
  */
 export const ENTITLEMENT_STALE_AFTER_MS = 4 * 60 * 60 * 1000;
 
+/**
+ * What one read of the row came to, for the account it was asked for while
+ * that account is still the one signed in: `answered` with the row it gave
+ * (undefined for none), or `unreachable` — no network, or the server failing
+ * (5xx). A refusal (4xx) is neither: the server was heard and said nothing
+ * about Plus. Plus's ending is decided on these (`subscriptionAccount.ts`),
+ * and a read that never left this computer (no token) is not one.
+ */
+export type TEntitlementRead =
+  | {
+      kind: 'answered';
+      accountId: string;
+      record: IEntitlementRecord | undefined;
+      at: number;
+    }
+  | { kind: 'unreachable'; accountId: string; at: number };
+
 export interface IEntitlement {
   status(): IEntitlementStatus;
+  /** The row this computer keeps for the signed-in account, as last confirmed. */
+  record(): IEntitlementRecord | undefined;
   /** Hear about changes. Returns the unsubscribe. */
   subscribe(listener: (status: IEntitlementStatus) => void): () => void;
+  /** Hear every read of the row as it lands (`TEntitlementRead`). */
+  onRead(listener: (read: TEntitlementRead) => void): () => void;
   /** Announce that something happened; a check follows only if one is due. */
   checkIfDue(reason: string): Promise<void>;
   /** A check regardless of when the last one was — for a Refresh button. */
@@ -163,10 +184,9 @@ export const createEntitlement = (
   /**
    * When access ended, while nothing has been heard from the server since.
    * Until then every event asks, whatever the staleness rule says: that
-   * moment is when the server's answer is most likely to have changed — a
-   * maker's next banked month starts the moment the old one stops, a trial
-   * that ended may have been paid for, and a subscription may have renewed
-   * while this app was not listening.
+   * moment is when the server's answer is most likely to have changed: a
+   * subscription may have renewed while this app was not listening, or been
+   * taken again in FluidWallpapers.
    *
    * A moment rather than a flag, and cleared where an answer is ADOPTED
    * rather than where one is asked for. Cleared on the ask, a server that
@@ -183,6 +203,17 @@ export const createEntitlement = (
   };
 
   const listeners = new Set<(status: IEntitlementStatus) => void>();
+  const readers = new Set<(read: TEntitlementRead) => void>();
+
+  const heard = (read: TEntitlementRead) => {
+    readers.forEach((reader) => {
+      try {
+        reader(read);
+      } catch (error) {
+        logger?.warn(`A listener to the Plus row failed: ${String(error)}`);
+      }
+    });
+  };
 
   const announce = (current: IEntitlementStatus) => {
     lastAnnounced = JSON.stringify(current);
@@ -200,11 +231,9 @@ export const createEntitlement = (
       return;
     }
     announce(current);
-    // Whatever it was. A maker can have another month banked behind the one
-    // that just ran out — and behind a SUBSCRIPTION that just ran out, which
-    // is the commoner of the two — and the server starts it the moment it is
-    // asked. The staleness rule would otherwise sit on "no Plus" for up to
-    // four hours with a month of theirs waiting there.
+    // Whatever it was. A period that ran out has most likely renewed, and
+    // the staleness rule would otherwise sit on "no Plus" for up to four
+    // hours with a paid period waiting there.
     if (current.state === 'none' && had) {
       accessEndedAt = now();
     }
@@ -268,6 +297,9 @@ export const createEntitlement = (
       });
     } catch (error) {
       logger?.warn(`Entitlement check could not reach the server: ${error}`);
+      if (current()) {
+        heard({ kind: 'unreachable', accountId, at: now() });
+      }
       return status();
     }
     if (!current()) {
@@ -279,6 +311,9 @@ export const createEntitlement = (
       // A refusal is the server's to explain and the session's to act on. It
       // is not evidence that the subscription ended.
       logger?.warn(`Entitlement check was answered ${response.status}.`);
+      if (response.status >= 500) {
+        heard({ kind: 'unreachable', accountId, at: now() });
+      }
       return status();
     }
     let body: unknown;
@@ -290,7 +325,9 @@ export const createEntitlement = (
     if (!current()) {
       return status();
     }
-    remember(readEntitlementRow(body, accountId, now()));
+    const read = readEntitlementRow(body, accountId, now());
+    remember(read);
+    heard({ kind: 'answered', accountId, record: read, at: now() });
     if (accessEndedAt !== undefined && askedAt >= accessEndedAt) {
       accessEndedAt = undefined;
     }
@@ -322,10 +359,17 @@ export const createEntitlement = (
 
   return {
     status,
+    record: ownRecord,
     subscribe: (listener) => {
       listeners.add(listener);
       return () => {
         listeners.delete(listener);
+      };
+    },
+    onRead: (reader) => {
+      readers.add(reader);
+      return () => {
+        readers.delete(reader);
       };
     },
     checkNow,

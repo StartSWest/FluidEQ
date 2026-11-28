@@ -110,7 +110,7 @@ it.each(['launch', 'sign-in'])(
         ? json([
             {
               status: 'active',
-              plan: 'gift',
+              plan: 'library-yearly',
               current_period_end: new Date(Date.now() + day).toISOString(),
               cancel_at_period_end: true,
             },
@@ -131,11 +131,11 @@ it.each(['launch', 'sign-in'])(
 
     expect(check).toHaveBeenCalledTimes(1);
     await check.mock.results[0].value;
-    const activeGift = { state: 'active', plan: 'gift' };
-    expect(registration.entitlement.status()).toMatchObject(activeGift);
+    const activePlus = { state: 'active', plan: 'library-yearly' };
+    expect(registration.entitlement.status()).toMatchObject(activePlus);
     expect(fetchImpl).toHaveBeenCalledTimes(1);
 
-    await expect(mockRefresh()).resolves.toMatchObject(activeGift);
+    await expect(mockRefresh()).resolves.toMatchObject(activePlus);
     expect(fetchImpl).toHaveBeenCalledTimes(2);
     fetchImpl.mock.calls.forEach(([input, init]) => {
       const url = new URL(String(input));
@@ -165,7 +165,7 @@ it.each([
   const cached: IEntitlementRecord = {
     userId: 'user-1',
     status: 'active',
-    plan: 'gift',
+    plan: 'library-yearly',
     periodEndsAt: Date.now() + day,
     verifiedAt: Date.now(),
     cancelAtPeriodEnd: true,

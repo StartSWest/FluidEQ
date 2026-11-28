@@ -37,7 +37,7 @@ const record = (
   status: 'active',
   periodEndsAt: NOW + 20 * DAY,
   verifiedAt: NOW - DAY,
-  plan: 'plus',
+  plan: 'library-monthly',
   cancelAtPeriodEnd: false,
   ...over,
 });
@@ -51,7 +51,7 @@ describe('what a stored subscription means at a given moment', () => {
   it('is active while the paid period is still running', () => {
     expect(resolveEntitlementState(record(), NOW)).toMatchObject({
       state: 'active',
-      plan: 'plus',
+      plan: 'library-monthly',
       renewing: true,
     });
   });
@@ -117,15 +117,60 @@ describe('what a stored subscription means at a given moment', () => {
 
   /**
    * A clock set backwards would otherwise buy another fortnight for free.
-   * The confirmation cannot have happened later than now.
+   * A confirmation dated later than the period's end counts from that end.
    */
-  it('clamps a confirmation dated in the future to now', () => {
+  it('gives a confirmation dated in the future nothing past the period’s end', () => {
     const status = resolveEntitlementState(
       record({ periodEndsAt: NOW - DAY, verifiedAt: NOW + 365 * DAY }),
       NOW,
     );
     expect(status.state).toBe('grace');
-    expect(status.graceEndsAt).toBe(NOW + ENTITLEMENT_GRACE_MS);
+    expect(status.graceEndsAt).toBe(NOW - DAY + ENTITLEMENT_GRACE_MS);
+  });
+
+  /**
+   * A read made after the period ended confirms nothing paid: the row just
+   * has not moved. Counted from that read, the grace started again at every
+   * answer, and an old membership's row that ended on 2026-10-20 and was
+   * never moved read as Plus for as long as the server could be reached.
+   */
+  it('counts the grace from the period’s end when the row was read after it', () => {
+    const at = Date.parse('2026-11-27T12:00:00.000Z');
+    const stale = record({
+      periodEndsAt: Date.parse('2026-10-20T00:00:00.000Z'),
+      verifiedAt: at,
+    });
+    expect(resolveEntitlementState(stale, at)).toEqual({ state: 'none' });
+    // The control: a period that ended yesterday, read now, is a renewal
+    // whose notice may still be on its way, and keeps its fortnight.
+    const late = record({ periodEndsAt: at - DAY, verifiedAt: at });
+    expect(resolveEntitlementState(late, at)).toMatchObject({
+      state: 'grace',
+      graceEndsAt: at - DAY + ENTITLEMENT_GRACE_MS,
+    });
+  });
+
+  /**
+   * Plus is the scene subscription's two plans. Nobody holds the old
+   * membership (Buy Me a Coffee, trials, gifts, earned months), and a row
+   * of it still on the server must never read as Plus.
+   */
+  it.each(['plus', 'trial', 'maker', 'gift', '', 'library-weekly'])(
+    'reads a row under the plan %p as no Plus, period running or not',
+    (plan) => {
+      expect(resolveEntitlementState(record({ plan }), NOW)).toEqual({
+        state: 'none',
+      });
+    },
+  );
+
+  it('reads both of Plus’s plans as Plus', () => {
+    expect(
+      resolveEntitlementState(record({ plan: 'library-yearly' }), NOW).state,
+    ).toBe('active');
+    expect(
+      resolveEntitlementState(record({ plan: 'library-monthly' }), NOW).state,
+    ).toBe('active');
   });
 
   /**
@@ -249,7 +294,7 @@ describe('the entitlement controller', () => {
     {
       status: 'active',
       current_period_end: new Date(NOW + 20 * DAY).toISOString(),
-      plan: 'plus',
+      plan: 'library-monthly',
       cancel_at_period_end: false,
       ...over,
     },

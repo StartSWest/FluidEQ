@@ -509,6 +509,33 @@ describe('adding', () => {
     });
     expect(store.list()).toEqual([]);
   });
+
+  // What Plus keeps of an add (`subscriptionAdds.ts`): the scenes it brought
+  // are the only downloads its ending may delete, so every add that lands
+  // must say so, and one that does not must not.
+  it('tells Plus of each scene it put in the looks, and of none it refused', async () => {
+    const added: string[] = [];
+    const registration = setup();
+    registration.dispose();
+    handlers.clear();
+    registerPlusGalleryIpc({
+      access: access(),
+      store,
+      refreshBlocked: async () => undefined,
+      announce: () => undefined,
+      onAdded: (lookId) => added.push(lookId),
+    });
+    publishScene(SOMEONE);
+    await invoke('plus-gallery-add', SOMEONE, 'neon-city', 1);
+    expect(added).toEqual([memberLookId(SOMEONE, 'neon-city')]);
+
+    entitled = false;
+    expect(await invoke('plus-gallery-add', SOMEONE, 'neon-city', 1)).toEqual({
+      ok: false,
+      reason: 'not-entitled',
+    });
+    expect(added).toHaveLength(1);
+  });
 });
 
 describe('pictures', () => {

@@ -20,7 +20,12 @@ import { app } from 'electron';
  * sign-up (`ipc/creator.ts`): `creators/ready` when Stripe sent them back
  * finished or not, `creators/continue` when Stripe's link had expired.
  *
- * Only these four are understood, and all any of them can do is ask the
+ * Plus comes back the same way from Stripe's checkout and portal
+ * (`ipc/plusSubscription.ts`): `plus/subscribed` from fluideq.com's
+ * `/subscribed`, `plus/cancelled` from `/subscribe-cancelled`, and
+ * `plus/managed` from `/subscription`, the portal's return.
+ *
+ * Only these seven are understood, and all any of them can do is ask the
  * server again and bring the window forward: a page that opens one on its own
  * costs a request, nothing more.
  */
@@ -28,13 +33,22 @@ import { app } from 'electron';
 export const APP_LINK_SCHEME = 'fluideq';
 
 export type TAppLink =
-  'credits-paid' | 'credits-cancelled' | 'creators-ready' | 'creators-continue';
+  | 'credits-paid'
+  | 'credits-cancelled'
+  | 'creators-ready'
+  | 'creators-continue'
+  | 'plus-subscribed'
+  | 'plus-cancelled'
+  | 'plus-managed';
 
 const LINKS: ReadonlyMap<string, TAppLink> = new Map<string, TAppLink>([
   ['credits/paid', 'credits-paid'],
   ['credits/cancelled', 'credits-cancelled'],
   ['creators/ready', 'creators-ready'],
   ['creators/continue', 'creators-continue'],
+  ['plus/subscribed', 'plus-subscribed'],
+  ['plus/cancelled', 'plus-cancelled'],
+  ['plus/managed', 'plus-managed'],
 ]);
 
 /** What a `fluideq://` address asks for; anything else is not a link. */

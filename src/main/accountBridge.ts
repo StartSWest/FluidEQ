@@ -18,6 +18,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ipcRenderer, IpcRendererEvent } from 'electron';
+import {
+  PLUS_SUBSCRIPTION_CHANNELS,
+  type ISubscriptionState,
+  type TLibraryPlanId,
+  type TManageResult,
+  type TPlusReturn,
+  type TSubscribeResult,
+} from '../common/subscription';
 import type { IAccountState } from './account/session';
 import type { IEntitlementStatus } from './account/entitlement';
 
@@ -111,6 +119,51 @@ const onEntitlementChanged = (
   };
 };
 
+const PLUS = PLUS_SUBSCRIPTION_CHANNELS;
+
+/** Plus as the account stands with it now (`common/subscription.ts`). */
+const getPlusState = () =>
+  ipcRenderer.invoke(PLUS.state) as Promise<ISubscriptionState>;
+
+/**
+ * Stripe's checkout for a plan, opened in the browser by main, under the
+ * terms revision this window showed beside Continue.
+ */
+const getPlus = (plan: TLibraryPlanId, locale: string, termsShown: number) =>
+  ipcRenderer.invoke(
+    PLUS.subscribe,
+    plan,
+    locale,
+    termsShown,
+  ) as Promise<TSubscribeResult>;
+
+/** Stripe's portal (cancel, card, monthly or yearly), opened by main. */
+const managePlus = (locale: string) =>
+  ipcRenderer.invoke(PLUS.manage, locale) as Promise<TManageResult>;
+
+/** Puts away the offer made when Plus ended. */
+const dismissPlusLapse = (id: string) =>
+  ipcRenderer.invoke(PLUS.dismissLapse, id) as Promise<void>;
+
+const onPlusChanged = (listener: (state: ISubscriptionState) => void) => {
+  const wrapped = (_event: IpcRendererEvent, state: ISubscriptionState) =>
+    listener(state);
+  ipcRenderer.on(PLUS.changed, wrapped);
+  return () => {
+    ipcRenderer.removeListener(PLUS.changed, wrapped);
+  };
+};
+
+/** Back from Stripe through fluideq.com's "Back to FluidEQ". */
+const onPlusReturned = (listener: (returned: TPlusReturn) => void) => {
+  const wrapped = (_event: IpcRendererEvent, returned: TPlusReturn) =>
+    listener(returned);
+  ipcRenderer.on(PLUS.returned, wrapped);
+  return () => {
+    ipcRenderer.removeListener(PLUS.returned, wrapped);
+  };
+};
+
 const accountBridge = {
   getAccountState,
   signUpAccount,
@@ -128,6 +181,12 @@ const accountBridge = {
   getEntitlementStatus,
   refreshEntitlement,
   onEntitlementChanged,
+  getPlusState,
+  getPlus,
+  managePlus,
+  dismissPlusLapse,
+  onPlusChanged,
+  onPlusReturned,
 };
 
 export default accountBridge;

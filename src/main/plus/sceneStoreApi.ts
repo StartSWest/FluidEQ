@@ -17,6 +17,10 @@ import {
   type TSuspensionRefundFailure,
 } from '../../common/sceneStore';
 import { PLUS_TERMS_VERSION } from '../../common/plusTerms';
+import {
+  parseLibraryFields,
+  type ILibraryFields,
+} from '../../common/subscription';
 import type { IGalleryAuth } from './galleryAccess';
 import { headers, rpc } from './galleryApi';
 
@@ -49,10 +53,18 @@ export const storeFailureOf = (status: number): TStoreFailure => {
   return status === 404 ? 'unavailable' : 'server';
 };
 
+/**
+ * What the account holds, and what the same answer says of Plus (premium
+ * 0122's `libraryPlans` and `library`, `common/subscription.ts`). Plus's
+ * fields travel beside the store rather than in it: the store is kept on
+ * disk as the account's, and what Plus is doing is only ever decided on an
+ * answer heard in this run.
+ */
 export const fetchSceneStore = async (
   auth: IGalleryAuth,
 ): Promise<
-  { ok: true; store: ISceneStore } | { ok: false; reason: TStoreFailure }
+  | { ok: true; store: ISceneStore; library: ILibraryFields }
+  | { ok: false; reason: TStoreFailure }
 > => {
   let response: Response;
   try {
@@ -64,8 +76,11 @@ export const fetchSceneStore = async (
     return { ok: false, reason: storeFailureOf(response.status) };
   }
   try {
-    const store = parseSceneStore(await response.json());
-    return store ? { ok: true, store } : { ok: false, reason: 'server' };
+    const body: unknown = await response.json();
+    const store = parseSceneStore(body);
+    return store
+      ? { ok: true, store, library: parseLibraryFields(body) }
+      : { ok: false, reason: 'server' };
   } catch {
     return { ok: false, reason: 'server' };
   }

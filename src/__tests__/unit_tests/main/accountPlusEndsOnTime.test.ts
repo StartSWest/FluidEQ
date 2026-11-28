@@ -1,12 +1,24 @@
-/** @jest-environment node */
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+
+@jest-environment node
+*/
 
 import {
   createEntitlement,
   resolveEntitlementState,
   type IEntitlementRecord,
   type IEntitlementStatus,
+  type TEntitlementRead,
 } from '../../../main/account/entitlement';
 import type { IAccountSession } from '../../../main/account/session';
+
+// Plus cancelled to end with its period stops exactly then, on the record
+// alone, and the server is asked again the moment it does. Rows of the old
+// membership (Buy Me a Coffee, trials, gifts, earned months) read as no
+// Plus, whatever they say.
 
 const NOW = 1789819200000;
 const END = NOW + 60_000;
@@ -14,7 +26,7 @@ const record = (
   over: Partial<IEntitlementRecord> = {},
 ): IEntitlementRecord => ({
   userId: 'account-a',
-  plan: 'trial',
+  plan: 'library-monthly',
   status: 'active',
   periodEndsAt: END,
   verifiedAt: NOW,
@@ -29,7 +41,7 @@ const config = {
 const row = (over: Record<string, unknown> = {}) => [
   {
     status: 'active',
-    plan: 'trial',
+    plan: 'library-monthly',
     current_period_end: new Date(END).toISOString(),
     cancel_at_period_end: true,
     ...over,
@@ -44,7 +56,8 @@ const deferred = <T>() => {
   });
   return { promise, complete };
 };
-const reply = (body: unknown) => new Response(JSON.stringify(body));
+const reply = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status });
 
 let clock: number;
 let account: string | undefined;
@@ -89,55 +102,58 @@ beforeEach(() => {
   accessToken = jest.fn(async () => 'account-a-token');
 });
 
-it('never renews a free trial or grants paid grace, even with an incorrect cancellation flag', () => {
-  const trial = record({ cancelAtPeriodEnd: false });
-  expect(resolveEntitlementState(trial, END - 1)).toMatchObject({
+it('ends Plus cancelled to end with its period exactly then, with no grace', () => {
+  const cancelled = record();
+  expect(resolveEntitlementState(cancelled, END - 1)).toMatchObject({
     state: 'active',
     renewing: false,
   });
-  expect(resolveEntitlementState(trial, END)).toEqual({ state: 'none' });
+  expect(resolveEntitlementState(cancelled, END)).toEqual({ state: 'none' });
+  // The control: the same row still renewing goes into its grace instead.
   expect(
-    resolveEntitlementState({ ...trial, plan: 'plus' }, END),
+    resolveEntitlementState({ ...cancelled, cancelAtPeriodEnd: false }, END),
   ).toMatchObject({ state: 'grace', renewing: true });
 });
 
-it('a month earned by publishing ends when it ends, with no paid grace either', () => {
-  // The grace window is for a renewal the app may have missed offline. An
-  // earned month has no renewal to miss, and a fortnight of it would leave
-  // Plus on for two weeks after the app had already said the month ended
-  // (server migration 0041).
-  const earned = record({ plan: 'maker', cancelAtPeriodEnd: false });
-  expect(resolveEntitlementState(earned, END - 1)).toMatchObject({
-    state: 'active',
-    plan: 'maker',
-    renewing: false,
-  });
-  expect(resolveEntitlementState(earned, END)).toEqual({ state: 'none' });
+it.each(['plus', 'trial', 'maker', 'gift'])(
+  'reads the old membership’s %p row as no Plus, fresh from the server',
+  async (plan) => {
+    fetchImpl.mockImplementation(async () =>
+      reply(row({ plan, cancel_at_period_end: false })),
+    );
+    const entitlement = build();
+    expect(await entitlement.checkNow()).toEqual({ state: 'none' });
+    // Kept as the server said it: what it means is decided on every read.
+    expect(stored?.plan).toBe(plan);
+  },
+);
+
+it('reads a row that names no plan as no Plus', async () => {
+  fetchImpl.mockImplementation(async () => reply(row({ plan: null })));
+  expect(await build().checkNow()).toEqual({ state: 'none' });
+  expect(stored?.plan).toBe('');
 });
 
 it('asks the server the moment access ends, even at an ordinary launch', async () => {
   // The launch that matters: the stored record already agrees with the
   // server, so nothing is announced and nothing is learned from announcing.
-  // A maker with a month banked behind this one, or a subscription that
-  // renewed unseen, is on the other side of that question.
-  stored = record({ plan: 'maker', cancelAtPeriodEnd: false });
+  // Plus taken again in FluidWallpapers is on the other side of that
+  // question.
+  stored = record();
   // A fresh answer each time: one Response can only be read once, and a
   // shared one makes the second read look like a server that said nothing.
-  fetchImpl.mockImplementation(async () =>
-    reply(row({ plan: 'maker', cancel_at_period_end: false })),
-  );
+  fetchImpl.mockImplementation(async () => reply(row()));
   const entitlement = build();
   expect(entitlement.status().state).toBe('active');
   await entitlement.checkIfDue('window focused');
   expect(fetchImpl).toHaveBeenCalledTimes(1);
 
-  // The month runs out with the window open. The check is fresh, and the
+  // The period runs out with the window open. The check is fresh, and the
   // staleness rule must not be what decides here.
   clock = END;
   await entitlement.checkIfDue('window focused');
   expect(changes).toEqual([{ state: 'none' }]);
   expect(fetchImpl).toHaveBeenCalledTimes(2);
-
   // And only once: a server with nothing more to give is not asked again at
   // every focus for the rest of the sitting.
   await entitlement.checkIfDue('window focused');
@@ -148,12 +164,8 @@ it('keeps asking until the server has actually answered since access ended', asy
   // The chance was spent on the asking rather than on the answer: a server
   // that refused at the boundary left the app waiting out the whole four
   // hours, which is the wall this exists to skip.
-  stored = record({ plan: 'maker', cancelAtPeriodEnd: false });
-  // A fresh answer each time: one Response can only be read once, and a
-  // shared one makes the second read look like a server that said nothing.
-  fetchImpl.mockImplementation(async () =>
-    reply(row({ plan: 'maker', cancel_at_period_end: false })),
-  );
+  stored = record();
+  fetchImpl.mockImplementation(async () => reply(row()));
   const entitlement = build();
   await entitlement.checkIfDue('window focused');
   expect(fetchImpl).toHaveBeenCalledTimes(1);
@@ -165,7 +177,7 @@ it('keeps asking until the server has actually answered since access ended', asy
   await entitlement.checkIfDue('window focused');
   expect(fetchImpl).toHaveBeenCalledTimes(2);
 
-  // Refused, so nothing has been heard since the month ended: the next
+  // Refused, so nothing has been heard since the period ended: the next
   // event asks again rather than waiting four hours.
   await entitlement.checkIfDue('window focused');
   expect(fetchImpl).toHaveBeenCalledTimes(3);
@@ -178,41 +190,30 @@ it('keeps asking until the server has actually answered since access ended', asy
   expect(fetchImpl).toHaveBeenCalledTimes(4);
 });
 
-it('a gift that ends does not buy a fortnight of grace either', () => {
-  // The grace window is for a renewal missed offline. A gift has none, and
-  // the card offers a merchant page that has never heard of the account
-  // (premium 0021).
-  const gift = record({ plan: 'gift', cancelAtPeriodEnd: false });
-  expect(resolveEntitlementState(gift, END - 1)).toMatchObject({
-    state: 'active',
-    plan: 'gift',
-    renewing: false,
-  });
-  expect(resolveEntitlementState(gift, END)).toEqual({ state: 'none' });
-});
-
-it('announces exact trial expiry on focus even when the server check is still fresh', async () => {
+it('announces the exact end on focus even when the server check is still fresh', async () => {
   const entitlement = build();
   await entitlement.checkNow();
   expect(changes).toHaveLength(1);
   clock = END;
   await entitlement.checkIfDue('window focused');
   expect(changes).toEqual([
-    { state: 'active', plan: 'trial', periodEndsAt: END, renewing: false },
+    {
+      state: 'active',
+      plan: 'library-monthly',
+      periodEndsAt: END,
+      renewing: false,
+    },
     { state: 'none' },
   ]);
-  // The expiry is announced from the record alone — that is what this is
-  // for. The server is then asked once, despite the check being fresh:
-  // something it granted has just ended, which is exactly when its answer
-  // changes (a trial that was paid for, an earned month with another
-  // banked behind it). Once only — the next event finds nothing new.
+  // The end is announced from the record alone. The server is then asked
+  // once, despite the check being fresh; once only.
   expect(fetchImpl).toHaveBeenCalledTimes(2);
   await entitlement.checkIfDue('window focused');
   expect(changes).toHaveLength(2);
   expect(fetchImpl).toHaveBeenCalledTimes(2);
 });
 
-it('publishes elapsed cached trial expiry on an offline refresh without deleting the record', async () => {
+it('publishes an elapsed end on an offline refresh without deleting the record', async () => {
   stored = record();
   fetchImpl.mockRejectedValue(new Error('offline'));
   const entitlement = build();
@@ -220,10 +221,10 @@ it('publishes elapsed cached trial expiry on an offline refresh without deleting
   clock = END;
   expect(await entitlement.checkNow()).toEqual({ state: 'none' });
   expect(changes).toEqual([{ state: 'none' }]);
-  expect(stored?.plan).toBe('trial');
+  expect(stored?.plan).toBe('library-monthly');
 });
 
-it('publishes expiry when the token cannot refresh offline', async () => {
+it('publishes the end when the token cannot refresh offline', async () => {
   stored = record();
   accessToken.mockRejectedValue(new Error('offline'));
   const entitlement = build();
@@ -234,7 +235,7 @@ it('publishes expiry when the token cannot refresh offline', async () => {
   expect(fetchImpl).not.toHaveBeenCalled();
 });
 
-it('publishes expiry that occurs while a network reply is pending', async () => {
+it('publishes an end that occurs while a network reply is pending', async () => {
   stored = record();
   const pending = deferred<Response>();
   fetchImpl.mockReturnValue(pending.promise);
@@ -246,16 +247,105 @@ it('publishes expiry that occurs while a network reply is pending', async () => 
   expect(changes).toEqual([{ state: 'none' }]);
 });
 
-it('forces trial records to stop even if the server cancellation flag is malformed', async () => {
-  fetchImpl.mockResolvedValue(reply(row({ cancel_at_period_end: 'no' })));
-  const entitlement = build();
-  expect(await entitlement.checkNow()).toMatchObject({
-    state: 'active',
-    renewing: false,
+describe('what each read of the row is heard as', () => {
+  const heard = () => {
+    const reads: TEntitlementRead[] = [];
+    const entitlement = build();
+    entitlement.onRead((read) => reads.push(read));
+    return { entitlement, reads };
+  };
+
+  it('hears an answer with the row it gave, after the row is kept', async () => {
+    const { entitlement, reads } = heard();
+    let statusWhenHeard: string | undefined;
+    entitlement.onRead(() => {
+      statusWhenHeard = entitlement.status().state;
+    });
+    await entitlement.checkNow();
+    expect(reads).toEqual([
+      {
+        kind: 'answered',
+        accountId: 'account-a',
+        record: record(),
+        at: NOW,
+      },
+    ]);
+    expect(statusWhenHeard).toBe('active');
+    expect(entitlement.record()).toEqual(record());
   });
-  clock = END;
-  await entitlement.checkIfDue('focus');
-  expect(entitlement.status()).toEqual({ state: 'none' });
+
+  it('hears an answer with no row as one with nothing in it', async () => {
+    fetchImpl.mockImplementation(async () => reply([]));
+    const { entitlement, reads } = heard();
+    await entitlement.checkNow();
+    expect(reads).toEqual([
+      { kind: 'answered', accountId: 'account-a', record: undefined, at: NOW },
+    ]);
+  });
+
+  it.each([
+    [
+      'no network',
+      async () => {
+        throw new TypeError('fetch failed');
+      },
+    ],
+    ['a server failing', async () => reply({ message: 'down' }, 503)],
+  ])('hears %s as the server unreachable', async (_label, answer) => {
+    fetchImpl.mockImplementation(answer);
+    const { entitlement, reads } = heard();
+    await entitlement.checkNow();
+    expect(reads).toEqual([
+      { kind: 'unreachable', accountId: 'account-a', at: NOW },
+    ]);
+  });
+
+  it('hears nothing for a refusal, a token that could not be had or an unreadable body', async () => {
+    const { entitlement, reads } = heard();
+    fetchImpl.mockImplementation(async () => reply({ message: 'no' }, 401));
+    await entitlement.checkNow();
+    accessToken.mockRejectedValueOnce(new Error('offline'));
+    await entitlement.checkNow();
+    fetchImpl.mockImplementation(async () => new Response('<html>'));
+    await entitlement.checkNow();
+    expect(reads).toEqual([]);
+    // The control: the same entitlement hears an answer.
+    fetchImpl.mockImplementation(async () => reply(row()));
+    await entitlement.checkNow();
+    expect(reads.map((read) => read.kind)).toEqual(['answered']);
+  });
+
+  it('hears nothing for an account that changed while it was asked', async () => {
+    const pending = deferred<Response>();
+    const asked = deferred<void>();
+    fetchImpl.mockImplementationOnce(() => {
+      asked.complete();
+      return pending.promise;
+    });
+    const { entitlement, reads } = heard();
+    const checking = entitlement.checkNow();
+    await asked.promise;
+    account = 'account-b';
+    pending.complete(reply(row()));
+    await checking;
+    expect(reads).toEqual([]);
+  });
+
+  it('stops hearing once let go of, and a listener that throws harms nothing', async () => {
+    const { entitlement, reads } = heard();
+    let thrown = 0;
+    const off = entitlement.onRead(() => {
+      thrown += 1;
+      throw new Error('listener');
+    });
+    await expect(entitlement.checkNow()).resolves.toMatchObject({
+      state: 'active',
+    });
+    off();
+    await entitlement.checkNow();
+    expect(thrown).toBe(1);
+    expect(reads).toHaveLength(2);
+  });
 });
 
 it('does not send an entitlement request after the account switches during token refresh', async () => {
@@ -287,7 +377,7 @@ it('does not overwrite the new account when the old access read finishes late', 
   expect(stored?.userId).toBe('account-b');
   expect(entitlement.status()).toMatchObject({
     state: 'active',
-    plan: 'trial',
+    plan: 'library-monthly',
   });
 });
 
@@ -309,7 +399,7 @@ it('cannot restore a signed-out account from a pending server reply', async () =
   expect(changes.some((status) => status.state === 'active')).toBe(false);
 });
 
-it('a grant requests a fresh entitlement instead of reusing the pre-grant request', async () => {
+it('a payment requests a fresh entitlement instead of reusing the one asked before it', async () => {
   const oldReply = deferred<Response>();
   const asked = deferred<void>();
   fetchImpl.mockImplementationOnce(() => {
@@ -322,12 +412,15 @@ it('a grant requests a fresh entitlement instead of reusing the pre-grant reques
   entitlement.expectChange();
   const freshCheck = entitlement.checkNow();
   expect(freshCheck).not.toBe(oldCheck);
-  expect(await freshCheck).toMatchObject({ state: 'active', plan: 'trial' });
+  expect(await freshCheck).toMatchObject({
+    state: 'active',
+    plan: 'library-monthly',
+  });
   oldReply.complete(reply([]));
   await oldCheck;
   expect(entitlement.status()).toMatchObject({
     state: 'active',
-    plan: 'trial',
+    plan: 'library-monthly',
   });
   expect(changes.map((status) => status.state)).toEqual(['active']);
 });

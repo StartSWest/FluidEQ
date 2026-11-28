@@ -97,6 +97,11 @@ export interface IPlusGalleryIpcDeps {
   announce: () => void;
   officialStore?: IScenePackStore;
   announceOfficial?: () => void;
+  /**
+   * A scene the member chose to add is in their looks now: what Plus keeps
+   * of it (`account/subscriptionAdds.ts`). Not awaited by the add.
+   */
+  onAdded?: (lookId: string) => void;
   logger?: { warn(message: string): void };
   /** The clock the list's block-list check reads; replaced in tests. */
   now?: () => number;
@@ -207,6 +212,7 @@ export const registerPlusGalleryIpc = ({
   announce,
   officialStore,
   announceOfficial,
+  onAdded,
   logger,
   now = Date.now,
   pictureDir,
@@ -576,6 +582,7 @@ export const registerPlusGalleryIpc = ({
             return { ok: false, reason: 'refused' };
           }
           announceOfficial?.();
+          onAdded?.(premiumLookId(ref.packId));
           // Kept for the admin's reading of what members add (premium 0047);
           // the scene is in the member's looks whether or not this lands.
           if (auth) {
@@ -622,6 +629,7 @@ export const registerPlusGalleryIpc = ({
         return { ok: false, reason: 'refused' };
       }
       announce();
+      onAdded?.(memberLookId(ref.authorId, ref.packId));
       const auth = await access.auth();
       if (auth) {
         // Counted for the maker's page; the scene is already in the member's

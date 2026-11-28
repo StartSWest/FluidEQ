@@ -56,6 +56,7 @@ import {
 } from './plus/sceneOwnership';
 import { createAccountPush } from './plus/accountPush';
 import { createCreditsPush } from './plus/creditsPush';
+import { registerPlusSubscription } from './plusSubscriptionServices';
 import openExternalIfSafe from './safeExternal';
 import { createStudioAgentDoor } from './studioAgent/studioAgentDoor';
 import { createStudioChat } from './studioChat/studioChat';
@@ -108,7 +109,7 @@ const registerMemberServices = ({
   // against the compiled-in key.
   const developmentEntitlement =
     !app.isPackaged && process.env.FLUIDEQ_DEV_ENTITLED === '1'
-      ? { state: 'active' as const, plan: 'plus (development)', renewing: true }
+      ? { state: 'active' as const, plan: 'library-monthly', renewing: true }
       : undefined;
 
   const accountIpc = registerAccountIpc({
@@ -146,7 +147,7 @@ const registerMemberServices = ({
   });
 
   // Which scenes this account may play: the ones it bought, and every one
-  // while Plus lasts. Every gate below asks it, so a scene is one answer on
+  // while it has Plus. Every gate below asks it, so a scene is one answer on
   // the graph, the desktop and the lamps (premium 0055).
   const sceneOwnership = createSceneOwnership({
     config: ACCOUNT_CONFIG,
@@ -362,6 +363,27 @@ const registerMemberServices = ({
     entitlement: accountIpc.entitlement,
     ownership: sceneOwnership,
   });
+  // Plus, the scene subscription: its checkout and portal, what an add
+  // means to it, and the downloads it brought, deleted once the server
+  // confirms it ended.
+  const plusSubscription = registerPlusSubscription({
+    getMainWindow,
+    userDataDir,
+    config: ACCOUNT_CONFIG,
+    session: accountIpc.session,
+    entitlement: accountIpc.entitlement,
+    onIdentityChange: accountIpc.onIdentityChange,
+    ownership: sceneOwnership,
+    galleryAccess,
+    official: { store: scenePacksIpc.store, announce: scenePacksIpc.announce },
+    members: {
+      store: memberScenesIpc.store,
+      announce: memberScenesIpc.announce,
+    },
+    forgetBuild: (lookId) => builds.forget(lookId),
+    openExternal: openExternalIfSafe,
+    logger: log,
+  });
   const plusGalleryIpc = registerPlusGalleryIpc({
     access: galleryAccess,
     store: memberScenesIpc.store,
@@ -369,6 +391,7 @@ const registerMemberServices = ({
     announce: memberScenesIpc.announce,
     officialStore: scenePacksIpc.store,
     announceOfficial: scenePacksIpc.announce,
+    onAdded: plusSubscription.added,
     logger: log,
     // Gallery pictures kept between sessions, so a card seen before is not
     // downloaded again (`plus/pictureDiskCache.ts`).
@@ -598,6 +621,7 @@ const registerMemberServices = ({
     plusTermsNoticeIpc.dispose();
     sceneStoreIpc.dispose();
     creatorIpc.dispose();
+    plusSubscription.dispose();
     sceneOwnership.dispose();
     scenePacksIpc.dispose();
     plusReviewIpc.dispose();
