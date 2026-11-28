@@ -29,6 +29,8 @@ const termsNotice = {
     'FluidEQ ora conta quanti computer usano ciascun motore audio, una volta al giorno, come totali anonimi: si invia solo il nome del motore, senza nulla che lo colleghi a te, al tuo account o al tuo computer.',
   'termsNotice.change.14':
     'I nuovi account ora ricevono un credito gratis per iniziare, invece di tre.',
+  'termsNotice.change.15':
+    'Plus ora è un abbonamento, mensile o annuale, che riproduce ogni scena di Scene in FluidEQ e FluidWallpapers finché dura. Quando termina, le scene che avevi solo tramite Plus smettono di riprodursi e i loro download vengono cancellati; le scene ottenute con i crediti restano tue per sempre.',
 } as const;
 
 export default termsNotice;

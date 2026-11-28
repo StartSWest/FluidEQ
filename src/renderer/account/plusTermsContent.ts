@@ -62,22 +62,26 @@ const sentRows = (payoutsOpen: boolean): readonly ITermsSentRow[] => [
     who: 'terms.sent.signIn.who',
   },
   {
-    id: 'membership',
+    // Plus, the scene subscription (revision 15; premium 0122): whether the
+    // account has it, read on the same events as the store.
+    id: 'subscription',
     glyph: 'refresh',
-    what: 'terms.sent.membership.what',
-    when: 'terms.sent.membership.when',
-    who: 'terms.sent.membership.who',
+    what: 'terms.sent.subscription.what',
+    when: 'terms.sent.subscription.when',
+    who: 'terms.sent.subscription.who',
   },
   {
-    id: 'payment',
+    // Its checkout and Stripe's page for it, and what Stripe tells the
+    // server about it.
+    id: 'subscription-payment',
     glyph: 'card',
-    what: 'terms.sent.payment.what',
-    when: 'terms.sent.payment.when',
-    who: 'terms.sent.payment.who',
+    what: 'terms.sent.subscriptionPayment.what',
+    when: 'terms.sent.subscriptionPayment.when',
+    who: 'terms.sent.subscriptionPayment.who',
   },
   {
-    // Credits and the scenes owned, read on the same events as the
-    // membership (`plus/sceneOwnership.ts`).
+    // Credits and the scenes owned, read on the same events as Plus
+    // (`plus/sceneOwnership.ts`).
     id: 'store',
     glyph: 'credit',
     what: 'terms.sent.store.what',
@@ -123,6 +127,15 @@ const sentRows = (payoutsOpen: boolean): readonly ITermsSentRow[] => [
     who: payoutsOpen
       ? 'terms.sent.sceneGet.whoPayouts'
       : 'terms.sent.sceneGet.who',
+  },
+  {
+    // A Plus member's first deliberate set, install or add of a member's
+    // scene, which earns its maker half a credit once (premium 0122).
+    id: 'subscription-claim',
+    glyph: 'check',
+    what: 'terms.sent.subscriptionClaim.what',
+    when: 'terms.sent.subscriptionClaim.when',
+    who: 'terms.sent.subscriptionClaim.who',
   },
   {
     // Recorded by the checkout, the export and the publish alike, and kept
@@ -241,18 +254,19 @@ const sections = (payoutsOpen: boolean): readonly ITermsSection[] => [
     ],
   },
   {
-    id: 'membership',
+    // Plus, the scene subscription (revision 15), where the old membership
+    // of that name stood: the other way to play scenes.
+    id: 'subscription',
     glyph: 'card',
-    title: 'terms.membership.title',
+    title: 'terms.subscription.title',
     body: 'paragraphs',
     lines: [
-      'terms.membership.p1',
-      'terms.membership.p2',
-      // p3 was a fourteen-day refund. Withdrawn in revision 8 (Ivan,
-      // 2026-09-15); the keys after it keep their numbers, which are
-      // identifiers rather than an order to be tidied.
-      'terms.membership.p4',
-      'terms.membership.p5',
+      'terms.subscription.p1',
+      'terms.subscription.p2',
+      'terms.subscription.p3',
+      'terms.subscription.p4',
+      'terms.subscription.p5',
+      'terms.subscription.p6',
     ],
   },
   {

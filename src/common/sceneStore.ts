@@ -131,13 +131,6 @@ export const isCheckoutLocale = (value: unknown): value is TCheckoutLocale =>
 export const STARTER_CREDITS = 1;
 
 /**
- * The least an account that paid for Plus gets when Plus members move to
- * credits (Ivan, 2026-10-21: "que tengan al menos 5"). The terms promise it,
- * so the server's move has to grant at least this many.
- */
-export const PLUS_MOVE_CREDITS = 5;
-
-/**
  * The earlier versions of an owned scene this computer kept, newest first,
  * and the one it plays while that is not the newest (main's
  * `keptVersions.ts`). Empty for a scene not owned.

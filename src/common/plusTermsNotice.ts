@@ -42,6 +42,7 @@ export const PLUS_TERMS_CHANGES: Readonly<Record<number, TranslationKey>> = {
   12: 'termsNotice.change.12',
   13: 'termsNotice.change.13',
   14: 'termsNotice.change.14',
+  15: 'termsNotice.change.15',
 };
 
 export interface IPlusTermsNoticeFacts {

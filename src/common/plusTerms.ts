@@ -180,25 +180,54 @@
  * the release that carries this, after 0119. Publishing's and checkout's
  * floors do not move: nobody who already agreed loses anything they have.
  */
+/**
+ * 15: Plus is the scene subscription (Ivan, 2026-11-27: Plus starts now and
+ * ships in 2.6; premium 0122). One Stripe subscription, monthly or yearly,
+ * plays every scene in Scenes — FluidEQ's and members' — in FluidEQ and in
+ * FluidWallpapers while it lasts, for one account; its prices are quoted
+ * from the server and Stripe's page, never written here. Scenes got with
+ * credits stay the account's for good; when Plus ends, every scene the
+ * account had only through it stops at once and its downloaded copies are
+ * deleted. A Plus member's first set, install or add of a member's scene
+ * earns its maker half a credit, once. What it sends and keeps, renewal and
+ * cancelling on Stripe's page, the offline grace, and what a refund or a
+ * dispute does. The old membership of the same name — Buy Me a Coffee,
+ * gifts, free trials, earned months, the move to credits — is gone from the
+ * text, because nobody holds it ("No hay nadie con plus viejo"). Edition 9:
+ * what may be bought, and what ends with it, changed.
+ *
+ * The English and Spanish are FluidWallpapers' revision 15 word for word,
+ * which carried them first as an override of this file's 14; it vendors
+ * these terms and drops its own copy once this lands. The other ten
+ * languages are translated from them and from each language's own revision
+ * 14, keeping its register (pt você, de Sie, fr vous) and its words for every
+ * sentence the change does not touch.
+ *
+ * The server's `plus_terms_version()` is 15 from premium 0122, and its
+ * subscription checkout refuses anything below 15; the credit checkout and
+ * publishing keep their older floors.
+ */
 /** Internal acceptance revision used by checkout, publishing and saved agreements.
  * Do not reset it: pre-release revisions may already be recorded by the server.
  *
- * Checkout and publishing only need it to reach a floor. The free trial needs
- * it to EQUAL the server's `plus_terms_version()`: an app ahead of the server
- * tells every eligible new account to update FluidEQ, on the newest build
- * there is. Raise both in the same release.
+ * Checkout and publishing only need it to reach a floor: the server refuses
+ * an agreement below its own floors and never one above them, so a build
+ * carrying a newer revision than the server's `plus_terms_version()` still
+ * buys and publishes. Raise the server's number with the release that
+ * carries the text all the same, or its record names a text it has not
+ * published.
  */
-export const PLUS_TERMS_VERSION = 14;
+export const PLUS_TERMS_VERSION = 15;
 
 /** Published editions. Pre-release acceptance revisions are not editions. */
-export const PLUS_TERMS_EDITION = 8;
+export const PLUS_TERMS_EDITION = 9;
 export const PLUS_TERMS_FIRST_PUBLIC_REVISION = 7;
 
 /** The day this version took effect, as a calendar date. */
-export const PLUS_TERMS_EFFECTIVE = '2026-11-25';
+export const PLUS_TERMS_EFFECTIVE = '2026-11-27';
 
 /**
- * Days Plus keeps working without the server confirming the membership: a
+ * Days Plus keeps working without the server confirming the subscription: a
  * fortnight away from the internet, or a studio machine that never sees it.
  */
 export const PLUS_OFFLINE_GRACE_DAYS = 14;
@@ -209,9 +238,10 @@ export const PLUS_ACCOUNT_DELETION_DAYS = 30;
 /**
  * The youngest a person may be to create an account.
  *
- * Buy Me a Coffee, which takes the payment, requires every account holder to
- * be 18 or old enough to sign a binding contract. Sixteen here promised a
- * membership the payment side would not sell.
+ * Raised from 16 when Buy Me a Coffee took the old membership's payments and
+ * required every account holder to be 18 or old enough to sign a binding
+ * contract, and kept at 18 for the Plus subscription: lowering it would be a
+ * change to the terms of its own, and nobody has asked for one.
  */
 export const PLUS_MINIMUM_AGE = 18;
 

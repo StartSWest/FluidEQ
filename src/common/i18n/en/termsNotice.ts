@@ -39,6 +39,8 @@ const termsNotice = {
     'FluidEQ now counts how many computers use each audio engine, once a day, as anonymous totals: only the engine’s name is sent, with nothing that ties it to you, your account or your computer.',
   'termsNotice.change.14':
     'New accounts now get one free credit to start, instead of three.',
+  'termsNotice.change.15':
+    'Plus is now a subscription, monthly or yearly, that plays every scene in Scenes, in FluidEQ and FluidWallpapers, while it lasts. When it ends, the scenes you had only through Plus stop playing and their downloads are deleted; scenes you got with credits stay yours for good.',
 } as const;
 
 export default termsNotice;

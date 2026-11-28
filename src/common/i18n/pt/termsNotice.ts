@@ -29,6 +29,8 @@ const termsNotice = {
     'O FluidEQ agora conta quantos computadores usam cada motor de áudio, uma vez por dia, como totais anônimos: só o nome do motor é enviado, sem nada que o ligue a você, à sua conta ou ao seu computador.',
   'termsNotice.change.14':
     'Contas novas agora recebem um crédito grátis para começar, em vez de três.',
+  'termsNotice.change.15':
+    'O Plus agora é uma assinatura, mensal ou anual, que reproduz todas as cenas de Cenas no FluidEQ e no FluidWallpapers enquanto durar. Quando ele termina, as cenas que você tinha só pelo Plus deixam de tocar e os downloads delas são apagados; as cenas que você obteve com créditos continuam sendo suas para sempre.',
 } as const;
 
 export default termsNotice;

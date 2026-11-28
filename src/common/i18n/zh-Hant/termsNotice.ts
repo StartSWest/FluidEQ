@@ -31,6 +31,8 @@ const termsNotice = {
   'termsNotice.change.13':
     'FluidEQ 現在每天一次以匿名總數統計各個音訊引擎有多少台電腦在使用：只傳送引擎名稱，不含任何將它與您、您的帳戶或您的電腦連結起來的資訊。',
   'termsNotice.change.14': '新帳戶現在開始時可免費獲得 1 個點數，而不是 3 個。',
+  'termsNotice.change.15':
+    'Plus 現在是按月或按年的訂閱，在有效期間可在 FluidEQ 和 FluidWallpapers 中播放「場景」裡的所有場景。Plus 結束後，您只透過 Plus 擁有的場景會停止播放，其下載內容會被刪除；您用點數取得的場景永遠屬於您。',
 } satisfies Partial<Dictionary>;
 
 export default termsNotice;

@@ -13,11 +13,11 @@ import {
   CREATOR_SHARE_PERCENT,
   CREDIT_REFUND_DAYS,
   PLUS_MINIMUM_AGE,
+  PLUS_OFFLINE_GRACE_DAYS,
   PLUS_TERMS_EDITION,
   PLUS_TERMS_VERSION,
 } from '../../../common/plusTerms';
 import { LOCALES, loadLocale, translate } from '../../../common/i18n';
-import { PLUS_MOVE_CREDITS } from '../../../common/sceneStore';
 import { CREATOR_PAYOUTS_OPEN } from '../../../common/creatorPayouts';
 import AccountDialog from '../../../renderer/account/AccountDialog';
 import { termsValues } from '../../../renderer/account/PlusTermsDocument';
@@ -134,30 +134,65 @@ describe('the Plus terms', () => {
   });
 
   /**
-   * What a Plus member is promised at the move to credits is a number the
-   * server's move has to honour (Ivan, 2026-10-21: at least 5 for anyone who
-   * paid), so it comes from the constant, in every language, and no
-   * language still quotes a price or a renewal to subscribe to.
+   * Revision 15: Plus is the scene subscription (premium 0122), where the
+   * old membership of that name stood, with what it sends: whether the
+   * account has it, its checkout and Stripe's page for it, and a Plus
+   * member's first add of a member's scene. Nobody holds the old membership,
+   * so none of its section or rows are left. Its offline grace is the number
+   * the entitlement check keeps, in every language, and its price is the
+   * one the server and Stripe quote, never typed into the text.
    */
-  it('promise Plus members the credits of the move, and sell no Plus, in every language', () => {
+  it('describe Plus, the scene subscription, with what it sends, in every language', () => {
+    [OPEN, CLOSED].forEach((layout) => {
+      const plus = layout.sections.find(
+        (section) => section.id === 'subscription',
+      );
+      expect(plus?.title).toBe('terms.subscription.title');
+      expect(plus?.lines).toEqual([
+        'terms.subscription.p1',
+        'terms.subscription.p2',
+        'terms.subscription.p3',
+        'terms.subscription.p4',
+        'terms.subscription.p5',
+        'terms.subscription.p6',
+      ]);
+      const rows = layout.sentRows.map((row) => row.id);
+      expect(rows).toEqual(
+        expect.arrayContaining([
+          'subscription',
+          'subscription-payment',
+          'subscription-claim',
+        ]),
+      );
+      expect(rows).not.toContain('membership');
+      expect(rows).not.toContain('payment');
+      expect(keysOf(layout).filter((key) => /membership/.test(key))).toEqual(
+        [],
+      );
+    });
     const values = termsValues();
-    const p1 = LOCALES.map(({ code }) => [
-      code,
-      translate(code, 'terms.membership.p1', values),
-    ]);
-    expect(
-      p1.filter(([, text]) => !text.includes(String(PLUS_MOVE_CREDITS))),
-    ).toEqual([]);
-    expect(
-      LOCALES.filter(({ code }) =>
-        /\{price\}|\$\d/.test(translate(code, 'terms.membership.p1', {})),
-      ),
-    ).toEqual([]);
-    // The positive control: the number is there because the value filled it,
-    // not because the text carries it by hand.
-    expect(translate('en', 'terms.membership.p1', {})).toContain(
-      '{moveCredits}',
+    const graceless = LOCALES.filter(
+      ({ code }) =>
+        !translate(code, 'terms.subscription.p6', values).includes(
+          String(PLUS_OFFLINE_GRACE_DAYS),
+        ),
+    ).map(({ code }) => code);
+    expect(graceless).toEqual([]);
+    // The positive control: the number is there because the value filled
+    // it, not because the text carries it by hand.
+    expect(translate('en', 'terms.subscription.p6', {})).toContain(
+      '{graceDays}',
     );
+    const priced = LOCALES.flatMap(({ code }) =>
+      keysOf(SHOWN)
+        .filter((key) =>
+          /[$€£¥₹]|\bUSD\b|\bEUR\b|\d+[.,]\d\d\b/.test(
+            translate(code, key, values),
+          ),
+        )
+        .map((key) => `${code} ${key}`),
+    );
+    expect(priced).toEqual([]);
   });
 
   /** Every section, and every thing the app sends with when and who sees it. */
@@ -291,8 +326,11 @@ describe('the Plus terms', () => {
     ).toBeUndefined();
     expect(CLOSED.sentRows.find((row) => row.id === 'payouts')).toBeUndefined();
     const values = termsValues();
+    // A Plus renewal that "cannot be paid" (revision 15) is a payment by the
+    // member, not to a creator.
+    const paysCreators = /payout|(?<!cannot )be paid|getting paid|money/i;
     const mentions = closed.filter((key) =>
-      /payout|be paid|getting paid|money/i.test(translate('en', key, values)),
+      paysCreators.test(translate('en', key, values)),
     );
     expect(mentions).toEqual([]);
     // The positive control: the open form says all of it, and each twin
@@ -307,10 +345,13 @@ describe('the Plus terms', () => {
       ]),
     );
     expect(
-      opened.filter((key) =>
-        /payout|be paid|getting paid|money/i.test(translate('en', key, values)),
-      ).length,
+      opened.filter((key) => paysCreators.test(translate('en', key, values)))
+        .length,
     ).toBeGreaterThan(0);
+    // And the exception is only the renewal's: a creator who can be paid
+    // still counts.
+    expect(paysCreators.test('can be paid for them through Stripe')).toBe(true);
+    expect(paysCreators.test('If a renewal cannot be paid')).toBe(false);
     const twins = opened.filter((key) => key.endsWith('Payouts'));
     // The sixth is a suspension's (premium 0105): its held creator money.
     expect(twins).toHaveLength(6);
@@ -435,9 +476,9 @@ describe('the Plus terms', () => {
   });
 
   /**
-   * Buy Me a Coffee, which takes the payment, requires every account holder
-   * to be 18. Terms that let a younger person join promise a membership the
-   * payment side will not sell.
+   * Eighteen since Buy Me a Coffee took the old membership's payments and
+   * required it, and kept for the Plus subscription: terms that let a
+   * younger person join would be a change of their own.
    */
   it('never admit anyone younger than the payment side allows', () => {
     expect(PLUS_MINIMUM_AGE).toBeGreaterThanOrEqual(18);

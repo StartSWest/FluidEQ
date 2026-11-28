@@ -32,6 +32,8 @@ const termsNotice = {
     '이제 FluidEQ는 각 오디오 엔진을 사용하는 컴퓨터 수를 하루에 한 번 익명 합계로 셉니다. 엔진 이름만 보내며, 사용자, 계정, 컴퓨터와 연결되는 것은 보내지 않습니다.',
   'termsNotice.change.14':
     '이제 새 계정은 시작할 때 무료 크레딧을 3개가 아닌 1개 받습니다.',
+  'termsNotice.change.15':
+    '이제 Plus는 월간 또는 연간 구독으로, 유지되는 동안 FluidEQ와 FluidWallpapers에서 ‘장면’의 모든 장면을 재생합니다. 종료되면 Plus로만 이용하던 장면은 재생이 중지되고 다운로드한 사본은 삭제됩니다. 크레딧으로 얻은 장면은 영원히 귀하의 것입니다.',
 } satisfies Partial<Dictionary>;
 
 export default termsNotice;

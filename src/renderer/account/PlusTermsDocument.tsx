@@ -20,7 +20,7 @@ import {
   PLUS_TERMS_EDITION,
   termsEffectiveDate,
 } from 'common/plusTerms';
-import { PLUS_MOVE_CREDITS, STARTER_CREDITS } from 'common/sceneStore';
+import { STARTER_CREDITS } from 'common/sceneStore';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { TERMS_HIGHLIGHTS, termsLayout } from './plusTermsContent';
@@ -42,7 +42,6 @@ export const termsValues = (
   computers: PLUS_MAX_COMPUTERS,
   tasteSeconds: PLUS_TASTE_SECONDS,
   starterCredits: STARTER_CREDITS,
-  moveCredits: PLUS_MOVE_CREDITS,
   sharesPerHour: PLUS_SHARES_PER_HOUR,
   maxPublished: PLUS_MAX_PUBLISHED_SCENES,
   suspensionDays: PLUS_SUSPENSION_DAYS,

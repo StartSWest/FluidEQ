@@ -29,6 +29,8 @@ const termsNotice = {
     'FluidEQ zählt jetzt einmal am Tag als anonyme Summe, wie viele Computer welche Audio-Engine nutzen: Gesendet wird nur der Name der Engine, ohne etwas, das ihn mit Ihnen, Ihrem Konto oder Ihrem Computer verbindet.',
   'termsNotice.change.14':
     'Neue Konten erhalten zum Start jetzt einen kostenlosen Credit statt drei.',
+  'termsNotice.change.15':
+    'Plus ist jetzt ein Abonnement, monatlich oder jährlich, das jede Szene aus „Szenen“ in FluidEQ und FluidWallpapers abspielt, solange es läuft. Endet es, laufen die Szenen, die Sie nur über Plus hatten, nicht mehr, und ihre Downloads werden gelöscht; mit Credits geholte Szenen gehören Ihnen für immer.',
 } as const;
 
 export default termsNotice;
