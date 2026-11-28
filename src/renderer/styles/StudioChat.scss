@@ -219,7 +219,12 @@ $studio-chat-head-height: 42px;
 
 // ---------------------------------------------------------------- thread
 
+// The thread keeps the member's place itself, by message
+// (`chatThreadPlace.ts`): positioned so its messages' `offsetTop` is from its
+// own top, and without the browser's scroll anchoring, whose moves would read
+// as the member's own.
 .studio-chat__thread {
+  position: relative;
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -228,6 +233,7 @@ $studio-chat-head-height: 42px;
   padding: 16px 14px;
   overflow-x: hidden;
   overflow-y: auto;
+  overflow-anchor: none;
   overscroll-behavior: contain;
   @include slim-scrollbar;
 

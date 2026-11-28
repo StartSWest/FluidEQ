@@ -157,6 +157,8 @@ export default function StudioChatReply({
   return (
     <article
       className={`studio-chat__reply is-${reply.state}`}
+      // Where the member was is kept by message (`chatThreadPlace.ts`).
+      data-entry={reply.id}
       aria-busy={working}
       aria-label={t('studioChat.claude')}
     >

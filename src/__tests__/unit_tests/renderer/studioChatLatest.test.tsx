@@ -101,7 +101,9 @@ it('glides to the end on a press, and stays away on the way down', () => {
     />,
   );
   const thread = screen.getByRole('log');
-  scrolled(thread, 0);
+  // Not 0: jsdom laid the thread out at 0, and a scroll event at the offset
+  // the thread put itself at is its own, never the member's.
+  scrolled(thread, 50);
   expect(latest()).toHaveAccessibleName('studioChat.latest');
   expect(latest()?.querySelector('.studio-chat__dots')).toBeNull();
   fireEvent.click(latest() as HTMLElement);
