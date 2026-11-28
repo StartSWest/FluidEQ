@@ -263,6 +263,10 @@ const KEPT_FILES = [
   // The account, what it owns, and what it has agreed to or been told.
   'account.json',
   'entitlement.json',
+  // Plus, the scene subscription, as the server last answered it
+  // (`subscriptionRecord.ts`): reset away, a member would read as not
+  // subscribed and their scenes' downloads would be judged ended.
+  'plus-subscription.json',
   'scene-store.json',
   'version-pins.json',
   'publications.json',
