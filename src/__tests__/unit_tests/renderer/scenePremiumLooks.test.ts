@@ -181,18 +181,20 @@ describe('premium looks in the look store', () => {
   });
 
   /**
-   * A scene the account no longer has stays chosen: the graph says so in its
-   * place, and no standard look is put up for it, on screen or on disk.
+   * A scene the account no longer has cannot come back by itself: the graph
+   * goes to the Analyzer, on screen and on disk, instead of a card saying it
+   * is gone (Ivan, 2026-11-28: "jump to analizer instead of snhowing that
+   * error"). Set aside, below, it stays chosen.
    */
-  it('keeps the choice when the account no longer has the scene', () => {
+  it('goes to the Analyzer when the account no longer has the scene', () => {
     const { graphStyle, scenePacks } = load('premium:aurora');
     scenePacks.adoptScenePackListingForTesting(listing(true));
     expect(graphStyle.getGraphLookId()).toBe('premium:aurora');
 
     scenePacks.adoptScenePackListingForTesting(listing(false));
-    expect(graphStyle.getGraphLookId()).toBe('premium:aurora');
+    expect(graphStyle.getGraphLookId()).toBe('analyzer-auto');
     expect(window.localStorage.getItem('fluideq-graph-style')).toBe(
-      'premium:aurora',
+      'analyzer-auto',
     );
   });
 

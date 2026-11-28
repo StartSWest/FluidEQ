@@ -9,11 +9,15 @@
  * graphics - and the graph drew that form. Held here on the real graph store
  * and scene lists: the selection stays the scene, on screen and on disk, the
  * reason is the scene's own, and the chart never mounts the 2D drawing for it.
+ *
+ * Except a scene gone from every list, which cannot come back by itself: the
+ * graph goes to the Analyzer instead of a card saying it is gone (Ivan,
+ * 2026-11-28: "jump to analizer instead of snhowing that error").
  */
 
 import '@testing-library/jest-dom';
 import { act, render, renderHook, screen } from '@testing-library/react';
-import { graphLookId } from 'common/graphStyles';
+import { DEFAULT_GRAPH_LOOK_ID, graphLookId } from 'common/graphStyles';
 import { memberLookId } from 'common/memberScenes';
 import type { IMemberSceneSummary } from 'main/memberScenes/store';
 import Chart from 'renderer/graph/Chart';
@@ -130,16 +134,17 @@ it('keeps the scene chosen when it is set aside, and says why in its place', () 
   expect(screen.queryByTestId('standard-look')).toBeNull();
 });
 
-it('keeps it chosen, on disk too, when the account no longer has it', () => {
+it('goes to the Analyzer, on disk too, when the scene is in no list any more', () => {
   act(() => adoptMemberSceneListingForTesting({ scenes: [], locked: [] }));
 
-  expect(getGraphLookId()).toBe(LOOK);
-  expect(window.localStorage.getItem(STORAGE_KEY)).toBe(LOOK);
-  expect(trouble().current?.reason).toBe('gone');
+  expect(getGraphLookId()).toBe(DEFAULT_GRAPH_LOOK_ID);
+  expect(window.localStorage.getItem(STORAGE_KEY)).toBe(DEFAULT_GRAPH_LOOK_ID);
+  expect(trouble().current).toBeUndefined();
   chart();
-  expect(screen.queryByTestId('standard-look')).toBeNull();
-  // Gone is not mended by trying again.
-  expect(screen.queryByRole('button', { name: 'graph.look.retry' })).toBeNull();
+  expect(screen.getByTestId('standard-look')).toBeInTheDocument();
+  expect(screen.queryByText(/graph.look.refused.gone/i)).toBeNull();
+  // The controls are the cases around it: set aside, or no graphics, the
+  // scene stays chosen and says why.
 });
 
 it('names the graphics, never "gone", on a computer that can draw no scene', () => {

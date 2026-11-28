@@ -24,7 +24,11 @@ import {
   useLockedMemberScenes,
   useUsableMemberScenes,
 } from '../utils/memberScenes';
-import { getScenePackSummary, useUsableScenes } from '../utils/scenePacks';
+import {
+  getScenePackSummary,
+  useAwayScenes,
+  useUsableScenes,
+} from '../utils/scenePacks';
 import {
   FAMILY_KEYS,
   memberSceneThumbnail,
@@ -77,6 +81,7 @@ export const useLookGallery = (selectedLookId: string): ILookGallery => {
   const customLooks = useCustomLooks();
   const palette = useGraphPalette();
   const usable = useUsableScenes();
+  const away = useAwayScenes();
   const members = useUsableMemberScenes();
   const lockedMembers = useLockedMemberScenes();
   const { catalogue: sort } = useLookSorts();
@@ -91,11 +96,12 @@ export const useLookGallery = (selectedLookId: string): ILookGallery => {
         palette,
         scenes: usable,
         memberScenes: members,
+        away,
         sort,
         locale,
         findInGallery,
       }),
-    [customLooks, palette, usable, members, sort, locale, findInGallery],
+    [customLooks, palette, usable, members, away, sort, locale, findInGallery],
   );
 
   return useMemo(() => {

@@ -57,14 +57,13 @@ export interface ILockedScene {
 
 /**
  * One of FluidEQ's scenes this account may play and this computer does not
- * hold. Never a row of its own: the picker reads it only to know the
- * publisher's own copy of it, which is listed in its place
- * (`withoutOfficialCopies`).
+ * hold - removed from the looks, or never added. Never a row of its own: the
+ * lists read it only to know the publisher's own copy of it, which stays out
+ * with it (`withoutOfficialCopies`).
  */
 export interface IAwayScene {
   id: string;
   lookId: string;
-  away: true;
 }
 
 const EMPTY: IScenePacksListing = { packs: [], locked: [], away: [] };
@@ -122,7 +121,6 @@ const recompute = () => {
     ? (listing.away ?? []).map((entry) => ({
         id: entry.id,
         lookId: premiumLookId(entry.id),
-        away: true as const,
       }))
     : [];
 };

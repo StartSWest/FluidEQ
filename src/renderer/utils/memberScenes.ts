@@ -72,8 +72,6 @@ interface IOfficialFacts {
   lookId: string;
   /** None for a locked one, whose catalogue entry carries no version. */
   version?: number;
-  /** Not on this computer, though the account may play it (`IAwayScene`). */
-  away?: true;
 }
 
 /** The member's own copy of this one of FluidEQ's scenes, by its pack id. */
@@ -84,15 +82,13 @@ const isCopyOf = (scene: ICopyFacts, official: IOfficialFacts) =>
  * Whether a member's own copy of one of FluidEQ's scenes is listed in
  * FluidEQ's row's place: kept from the Studio's bench, and no older than
  * FluidEQ's version held, which a copy kept before a later publication on
- * another computer is. Or whatever the copy, when FluidEQ's scene is not on
- * this computer at all: the copy is then the only one there is to play.
+ * another computer is.
  */
 const standsInFor = (scene: ICopyFacts, official: IOfficialFacts) =>
   isCopyOf(scene, official) &&
-  (official.away === true ||
-    (scene.fromBench === true &&
-      (official.version === undefined ||
-        (scene.version !== undefined && scene.version >= official.version))));
+  scene.fromBench === true &&
+  (official.version === undefined ||
+    (scene.version !== undefined && scene.version >= official.version));
 
 /**
  * THE COPY KEPT BY WHOEVER PUBLISHES FLUIDEQ'S OWN SCENES IS NOT A SECOND
@@ -103,6 +99,12 @@ const standsInFor = (scene: ICopyFacts, official: IOfficialFacts) =>
  * A member's own copy of a scene FluidEQ ships is left out of the lists, and
  * FluidEQ's own stands for it. Nobody else can hold one: the server refuses
  * to publish a copy of FluidEQ's own.
+ *
+ * Left out too when FluidEQ's scene is not on this computer (`IAwayScene`):
+ * removing it from the looks removes the copy publishing kept of it as well.
+ * Matched only against the scenes held, every such copy came back the moment
+ * its scene was removed, as forty "Made by you" tiles with no picture and no
+ * category (Ivan, 2026-11-28: "I deleted all of them from my looks").
  *
  * Except a copy kept from the Studio's bench, which stands for FluidEQ's
  * row instead (`withoutStoodInFor`): the scene is still listed once, and it

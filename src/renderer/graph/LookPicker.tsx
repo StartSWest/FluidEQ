@@ -166,10 +166,10 @@ const LookPicker = ({
   const styleRows = useMemo(
     () =>
       buildStyleRows(
-        getSelectableLooks(customLooks, palette, usable, members),
+        getSelectableLooks(customLooks, palette, usable, members, away),
         t,
       ),
-    [customLooks, palette, usable, members, t],
+    [customLooks, palette, usable, members, away, t],
   );
   // The standard looks' stills fetched while the picker is still shut, in
   // the colours the window wears, so its first frame finds every one in

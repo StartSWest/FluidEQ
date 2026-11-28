@@ -48,6 +48,8 @@ import {
 import {
   getUsableMemberScene,
   getUsableMemberScenes,
+  isMemberSceneBlocked,
+  isMemberSceneListingLoaded,
   listedLookOf,
   subscribeMemberScenes,
   withoutOfficialCopies,
@@ -55,12 +57,17 @@ import {
   type IUsableMemberScene,
 } from './memberScenes';
 import {
+  getAwayScenes,
   getUsableScene,
   getUsableScenes,
+  isSceneBlocked,
+  isScenePackListingLoaded,
   subscribeScenePacks,
+  type IAwayScene,
   type IUsableScene,
 } from './scenePacks';
 import type { TDrawableScene } from '../graph/SceneCanvas';
+import { isSceneRenderingAvailable } from '../graph/sceneHealth';
 import { findGalleryScene } from '../plus/galleryStore';
 import { forgetLooks, noteLookChange, takeLookToReturnTo } from './lookHistory';
 import {
@@ -321,6 +328,11 @@ export const getSelectableLooks = (
   scenes: readonly IUsableScene[] = getUsableScenes(),
   /** Scenes the member made, on the same terms: only ones that can draw. */
   memberScenes: readonly IUsableMemberScene[] = getUsableMemberScenes(),
+  /**
+   * FluidEQ's scenes off this computer, whose publisher's copies stay out
+   * with them (`withoutOfficialCopies`).
+   */
+  away: readonly IAwayScene[] = getAwayScenes(),
 ): IResolvedLook[] => {
   const selected = getGraphLook(selectedId).style;
   return [
@@ -346,7 +358,9 @@ export const getSelectableLooks = (
     // A publisher's own copy of one of those is the same scene again, walked
     // once: as FluidEQ's, or as the copy when it was kept from the Studio.
     ...withoutStoodInFor(scenes, memberScenes).map(resolveSceneRow),
-    ...withoutOfficialCopies(memberScenes, scenes).map(resolveSceneRow),
+    ...withoutOfficialCopies(memberScenes, [...scenes, ...away]).map(
+      resolveSceneRow,
+    ),
   ];
 };
 
@@ -424,6 +438,8 @@ export interface ILookWalkSources {
   palette: GraphPalette;
   scenes: readonly IUsableScene[];
   memberScenes: readonly IUsableMemberScene[];
+  /** FluidEQ's scenes off this computer; none where left out (tests). */
+  away?: readonly IAwayScene[];
   /** The catalogue's order, from the picker's Sort menu (`lookOrder.ts`). */
   sort: TLookSort;
   /** The window's language: scenes go by their names in it. */
@@ -438,6 +454,7 @@ const liveWalkSources = (): ILookWalkSources => ({
   palette: getGraphPalette(),
   scenes: getUsableScenes(),
   memberScenes: getUsableMemberScenes(),
+  away: getAwayScenes(),
   sort: getLookSorts().catalogue,
   locale: getWindowLocale(),
   findInGallery: findGalleryScene,
@@ -460,6 +477,7 @@ export const getLookWalk = (
     sources.palette,
     sources.scenes,
     sources.memberScenes,
+    sources.away ?? [],
   );
   const sceneOf = new Map<string, IUsableScene | IUsableMemberScene>(
     [...sources.scenes, ...sources.memberScenes].map((scene) => [
@@ -624,14 +642,43 @@ subscribeCustomLooks(() => {
   refresh();
 });
 
-// A scene can stop being playable underneath the selection: set aside this
-// session after it failed, or gone from the account. The selection stays the
-// scene, on screen and on disk, and the graph says what happened in the
-// scene's place (`sceneTrouble.ts`). It used to land on the scene's fallback
-// form - a standard look standing in for it, which is what Ivan took out
-// (2026-11-14: "only the full scene can show, always").
-subscribeScenePacks(refresh);
-subscribeMemberScenes(refresh);
+/**
+ * Whether the selection names a scene no list on this computer has any more:
+ * its list has answered, graphics can draw scenes here, and it is neither
+ * drawable nor set aside this session. Removed from the looks, no longer the
+ * account's, or the account signed out.
+ */
+const selectionIsGone = (): boolean => {
+  if (draft || !isSceneLookId(selectedId) || drawableSceneOf(selectedId)) {
+    return false;
+  }
+  if (!isSceneRenderingAvailable()) {
+    return false;
+  }
+  return isMemberLookId(selectedId)
+    ? isMemberSceneListingLoaded() && !isMemberSceneBlocked(selectedId)
+    : isScenePackListingLoaded() && !isSceneBlocked(packIdOfLook(selectedId));
+};
+
+// A scene can stop being playable underneath the selection. Set aside this
+// session after it failed, the selection stays the scene and the graph says
+// why in its place (`sceneTrouble.ts`): it may come back, and no standard look
+// stands in for it (Ivan, 2026-11-14: "only the full scene can show,
+// always"). Gone from every list, it cannot come back by itself, and the
+// graph goes to the Analyzer at once instead of a card saying it is gone
+// (Ivan, 2026-11-28: "jump to analizer instead of snhowing that error"). In
+// one change, straight there, as a deleted look of the member's lands.
+const leaveGoneScene = () => {
+  if (selectionIsGone()) {
+    const gone = selectedId;
+    forgetLooks((id) => id === gone);
+    selectedId = canonicalLookId(DEFAULT_GRAPH_LOOK_ID);
+    persistSelection();
+  }
+  refresh();
+};
+subscribeScenePacks(leaveGoneScene);
+subscribeMemberScenes(leaveGoneScene);
 
 const subscribe = (listener: () => void) => {
   listeners.add(listener);
