@@ -78,7 +78,7 @@ export default function StudioChat({
   onFold,
 }: IStudioChatProps) {
   const { t, locale } = useTranslation();
-  const { availability, chat, ask, zoom } = useStudioChat();
+  const { availability, chat, ask, zoom, limits } = useStudioChat();
   const models = useStudioChatModels();
   const pane = useRef<HTMLElement>(null);
   useChatZoomWheel(pane);
@@ -169,7 +169,7 @@ export default function StudioChat({
 
   const ready = availability.state === 'ready';
   const canChat = ready && project !== undefined && !project.official;
-  const plan = planShown(availability, models);
+  const plan = planShown(availability, models, limits);
   // A project that already holds a scene is named by it: its chat starts on
   // what to change, not on what to make.
   const sceneName = project?.names

@@ -6,8 +6,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useSyncExternalStore } from 'react';
 import {
+  studioChatLimitsKey,
   type IStudioChat,
   type IStudioChatLimits,
+  type IStudioChatLimitsNews,
   type IStudioChatPast,
   type TStudioChatAnswer,
   type TStudioChatAsk,
@@ -54,8 +56,13 @@ interface IChatState {
   past?: IStudioChatPast[];
   /** How large the conversation is drawn, one of STUDIO_CHAT_ZOOMS. */
   zoom: number;
-  /** The Claude plan's limits, as Claude Code last reported them. */
+  /**
+   * The Claude plan's last reading for the account `availability` names,
+   * and never another account's (`limitsShown`).
+   */
   limits?: IStudioChatLimits;
+  /** Claude Code is being asked for a new reading now. */
+  limitsChecking: boolean;
   /**
    * What each project's chat is doing, whether or not it is open (Ivan,
    * 2026-11-07: "I should be able to keep working in parallel on every
@@ -125,10 +132,35 @@ const initialState = (): IChatState => ({
   zoom: storedZoom(),
   availability: { state: 'checking' },
   signingIn: false,
+  limitsChecking: false,
   work: {},
 });
 
 let state: IChatState = initialState();
+
+/**
+ * Every account's last reading heard in this window, by its key
+ * (`studioChatLimitsKey`): a member switching back finds that account's
+ * figures at once while new ones are read.
+ */
+let readings = new Map<string, IStudioChatLimits>();
+
+/** The key of the account Claude Code says is signed in; none while it says nobody is. */
+const shownKey = (availability: TStudioChatAvailability) =>
+  availability.state === 'ready'
+    ? studioChatLimitsKey(availability.email)
+    : undefined;
+
+/**
+ * The reading shown beside an account: that account's own, or none. The
+ * card once showed the previous account's figures under a new account's
+ * name (Ivan, 2026-11-28), and while the new account's are read it shows
+ * that they are being read instead (`StudioChatLimits.tsx`).
+ */
+const limitsShown = (availability: TStudioChatAvailability) => {
+  const key = shownKey(availability);
+  return key === undefined ? undefined : readings.get(key);
+};
 
 /**
  * The open chat's own model and effort (`chatPicks.ts`), which every chat
@@ -155,6 +187,24 @@ const bridge = () => window.electron?.ipcRenderer;
 const set = (next: Partial<IChatState>) => {
   state = { ...state, ...next };
   listeners.forEach((listener) => listener());
+};
+
+/** Who Claude Code says is signed in, and the reading shown beside them with it. */
+const setAvailability = (availability: TStudioChatAvailability) =>
+  set({ availability, limits: limitsShown(availability) });
+
+/** What main said of the plan's usage, kept under the account it is of. */
+const hearLimits = (news: IStudioChatLimitsNews | undefined) => {
+  if (!news) {
+    return;
+  }
+  if (news.limits) {
+    readings.set(studioChatLimitsKey(news.limits.account), news.limits);
+  }
+  set({
+    limits: limitsShown(state.availability),
+    limitsChecking: news.checking === true,
+  });
 };
 
 /** A changed entry put in its place, or added at the end. */
@@ -205,7 +255,22 @@ const listen = () => {
         set({ chat: { ...state.chat, context } });
       }
     }),
-    api?.onStudioChatLimits?.((limits) => set({ limits })),
+    api?.onStudioChatLimits?.((news) => {
+      hearLimits(news);
+      // A new reading names someone other than the account shown: Claude
+      // Code has been signed in to another account since it was last asked
+      // (in a terminal, or another app), so it is asked again, and the card
+      // follows it to that account and its figures.
+      const read = news.limits?.account;
+      const key = shownKey(state.availability);
+      if (
+        read !== undefined &&
+        key !== undefined &&
+        studioChatLimitsKey(read) !== key
+      ) {
+        checkStudioChat().catch(() => undefined);
+      }
+    }),
     api?.onStudioChatAsk?.(({ projectId, ask }) => {
       const work = workAsked(state.work, projectId, ask !== undefined);
       if (state.chat?.projectId === projectId) {
@@ -276,7 +341,7 @@ export const isStudioChatBusy = (projectId: string): boolean =>
 export const checkStudioChat = async () => {
   const answer = await bridge()?.studioChatAvailability?.();
   if (answer) {
-    set({ availability: answer });
+    setAvailability(answer);
   }
 };
 
@@ -286,7 +351,7 @@ export const signInToStudioChat = async () => {
   try {
     const answer = await bridge()?.studioChatSignIn?.();
     if (answer) {
-      set({ availability: answer });
+      setAvailability(answer);
     }
     return answer;
   } finally {
@@ -329,12 +394,24 @@ export const loadStudioChat = async () => {
   set({ chat: taken(chat), ask: chat?.ask, work });
 };
 
-/** The Claude plan's limits as last reported, kept from earlier sittings too. */
-export const checkStudioChatLimits = async () => {
-  const limits = await bridge()?.studioChatLimits?.();
-  if (limits) {
-    set({ limits });
-  }
+/**
+ * The plan's usage for the account shown: its last reading at once, kept
+ * from earlier sittings too, and a new one asked of Claude Code unless that
+ * account was read within the last minute (main decides, `planUsage.ts`).
+ * `fresh` asks for a new reading whatever the minute says.
+ */
+export const checkStudioChatLimits = async ({
+  fresh = false,
+}: { fresh?: boolean } = {}) => {
+  const { availability } = state;
+  const account =
+    availability.state === 'ready' ? availability.email : undefined;
+  hearLimits(
+    await bridge()?.studioChatLimits?.({
+      ...(account ? { account } : {}),
+      ...(fresh ? { fresh } : {}),
+    }),
+  );
 };
 
 /** The member's answer to the card standing in the chat. */
@@ -480,4 +557,5 @@ export const resetStudioChatStore = () => {
   unlisten?.();
   unlisten = undefined;
   state = initialState();
+  readings = new Map();
 };

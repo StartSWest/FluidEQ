@@ -241,7 +241,7 @@ const studioChat = {
   'studioChat.limits.resets': '{time}를 재설정합니다.',
   'studioChat.limits.asOf': '{time} 기준 · Claude가 답변할 때마다 업데이트됨',
   'studioChat.limits.none':
-    'Claude가 메시지에 응답하면 여기에 5시간 및 주간 한도가 표시됩니다.',
+    'Claude Code에서 이 계정의 5시간 및 주간 한도를 받지 못했습니다. 다음에 열 때 다시 확인합니다.',
   'studioChat.context.tokensOf': '{window} 토큰의 {used}',
   'studioChat.context.explain':
     '모든 메시지는 전체 대화를 전달합니다. Compact는 지금까지의 내용을 요약하므로 이후의 메시지는 더 적게 전달됩니다.',

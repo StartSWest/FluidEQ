@@ -116,7 +116,9 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .studio-chat-accounts__shape-line,
-.studio-chat-accounts__shape-button {
+.studio-chat-accounts__shape-button,
+.studio-chat-limits__shape::before,
+.studio-chat-limits.is-shaped .studio-chat-limits__bar {
   display: block;
   background: linear-gradient(
     100deg,
@@ -150,7 +152,9 @@ it under the terms of the GNU General Public License version 3 or later.
 
 @media (prefers-reduced-motion: reduce) {
   .studio-chat-accounts__shape-line,
-  .studio-chat-accounts__shape-button {
+  .studio-chat-accounts__shape-button,
+  .studio-chat-limits__shape::before,
+  .studio-chat-limits.is-shaped .studio-chat-limits__bar {
     animation: none;
   }
 }
@@ -228,4 +232,41 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .studio-chat-limits__none {
   margin-top: 6px;
+}
+
+// The shape of a word before an account's first reading (`LimitShapes`):
+// a band centred in the line the word will stand in, which the no-break
+// space inside it keeps at the words' own height on every platform's font.
+.studio-chat-limits__shape {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  color: transparent;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: 0.7em;
+    border-radius: $radius-pill;
+    transform: translateY(-50%);
+  }
+
+  &.is-name {
+    width: 9em;
+  }
+
+  &.is-percent {
+    width: 4.5em;
+  }
+
+  &.is-resets {
+    width: 8em;
+  }
+
+  &.is-as-of {
+    width: 18em;
+  }
 }

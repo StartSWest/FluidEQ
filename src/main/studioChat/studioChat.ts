@@ -32,6 +32,7 @@ import { readNoteFirst, readNotePressed, readNoteTranslation } from './noteDue';
 import createChatUsage from './chatUsage';
 import createUsageRead from './chatUsageRead';
 import createChatWindow from './chatWindow';
+import createPlanUsage from './planUsage';
 import registerChatHandlers from './chatHandlers';
 import { createPastChats } from './pastChats';
 import { createTranscripts } from './chatTranscript';
@@ -151,17 +152,15 @@ export const createStudioChat = ({
   };
 
   const usage = createChatUsage({
-    root,
     contextOf: (projectId) => transcriptOf(projectId).context,
     setContext: (projectId, context) => {
       transcriptOf(projectId).context = context;
     },
     send: (channel, payload) => pageOf()?.send(channel, payload),
-    ...(logger ? { logger } : {}),
   });
 
-  // The plan's usage, asked of Claude Code: of a chat's own process when one
-  // runs (`askUsage`), of one started for the question when none does.
+  // The plan's usage, always asked of a Claude Code started for the question,
+  // which names the account it read it for (`planUsage.ts`).
   const usageRead = createUsageRead({
     executable: () => findClaudeCode(systemEnv()),
     start: (executable, args, cwd) =>
@@ -171,7 +170,14 @@ export const createStudioChat = ({
         windowsHide: true,
       }),
     cwd: root,
-    onUsage: (use) => usage.note(undefined, use),
+    onReading: (reading) => planUsage.reading(reading),
+    onEnded: () => planUsage.ended(),
+  });
+  const planUsage = createPlanUsage({
+    root,
+    read: usageRead.read,
+    send: (news) => pageOf()?.send('studio-chat-limits', news),
+    ...(logger ? { logger } : {}),
   });
   const queue = createChatQueue((projectId, queued) =>
     pageOf()?.send('studio-chat-queue', { projectId, queued }),
@@ -238,6 +244,7 @@ export const createStudioChat = ({
     queue,
     pictures,
     noteUsage: (projectId, use) => usage.note(projectId, use),
+    answered: () => planUsage.answered(),
     skills: () => {
       const dir = shippedPluginDir();
       try {
@@ -254,7 +261,7 @@ export const createStudioChat = ({
     },
     ...(logger ? { logger } : {}),
   });
-  const { sessionFor, askUsage } = chatSessions;
+  const { sessionFor } = chatSessions;
 
   const { sceneChat } = createChatTargets(agentProject);
 
@@ -487,17 +494,9 @@ export const createStudioChat = ({
     },
     entriesOf: (projectId) => transcriptOf(projectId).entries,
     versionsOf: transcripts.versionsOf,
-    // The card shows the last reading at once and asks for a new one, which
-    // reaches it as a report.
-    limits: () => {
-      const running = sessions.values().next().value;
-      if (running) {
-        askUsage(running.process);
-      } else {
-        usageRead.read();
-      }
-      return usage.limits();
-    },
+    // The card shows the account's last reading at once and, past the
+    // minute, asks for a new one, which reaches it as news.
+    limits: planUsage.ask,
   });
 
   return {

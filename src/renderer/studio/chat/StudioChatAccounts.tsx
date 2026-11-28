@@ -235,7 +235,8 @@ function HiggsfieldAccount({ canAsk }: { canAsk: boolean }) {
  * studio which claude account … is logged in"): the Claude account Claude
  * Code is signed in to, with its plan and the way to sign in with another,
  * and Higgsfield, which makes the scene's pictures, videos and models. Both
- * are asked again whenever this opens, so it is never yesterday's answer.
+ * are asked again whenever this opens, so it is never yesterday's answer;
+ * the plan's usage too, at most once a minute (`StudioChatLimits`).
  */
 export default function StudioChatAccounts({
   closeRef,
@@ -247,8 +248,8 @@ export default function StudioChatAccounts({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
-  const { availability, signingIn } = useStudioChat();
-  const plan = planShown(availability, useStudioChatModels());
+  const { availability, signingIn, limits, limitsChecking } = useStudioChat();
+  const plan = planShown(availability, useStudioChatModels(), limits);
 
   useEffect(() => {
     checkStudioChat().catch(() => undefined);
@@ -312,6 +313,13 @@ export default function StudioChatAccounts({
       <AccountCard
         service={t('studioChat.accounts.claude')}
         lamp={claudeReady ? 'ready' : 'off'}
+        // The account's usage being read again: its last figures, or their
+        // shapes, stay where they are meanwhile (`StudioChatLimits`).
+        checking={
+          claudeReady && limitsChecking
+            ? t('studioChat.accounts.checking')
+            : undefined
+        }
         email={
           claudeReady
             ? (availability.email ?? t('studioChat.accounts.unknown'))

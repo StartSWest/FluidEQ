@@ -83,6 +83,54 @@ describe('the plan the head names', () => {
     ).toBe('Ultra');
   });
 
+  it("is the usage reading's name for it, only where that reading is this account's", () => {
+    // Every reading of the plan's usage names its account and its plan, in
+    // the same run (Ivan, 2026-11-28: the plan "needs to update properly
+    // when I switch accounts").
+    const reading = (account: string | undefined, plan: string) => ({
+      ...(account ? { account } : {}),
+      plan,
+      at: 1,
+    });
+    expect(
+      planShown(
+        ready('max'),
+        answered(),
+        reading('Member@Example.com', 'Ultra'),
+      ),
+    ).toBe('Ultra');
+    // Newer than the model list's answer, read once a run: it wins.
+    expect(
+      planShown(
+        ready('max'),
+        answered({ email: EMAIL, plan: 'Max' }),
+        reading(EMAIL, 'Ultra'),
+      ),
+    ).toBe('Ultra');
+    // Another account's reading, or one naming nobody, never names this
+    // account's plan: its own kind does until its own reading comes.
+    expect(
+      planShown(
+        ready('pro', 'other@example.com'),
+        answered(),
+        reading(EMAIL, 'Ultra'),
+      ),
+    ).toBe('Pro');
+    expect(
+      planShown(ready('pro'), answered(), reading(undefined, 'Ultra')),
+    ).toBe('Pro');
+  });
+
+  it("never takes the model list's plan from an answer that named no account", () => {
+    // The model list is asked once a run: an answer naming nobody may be of
+    // the account before a switch.
+    expect(planShown(ready('pro'), answered({ plan: 'Ultra' }))).toBe('Pro');
+    // The control: the same answer naming this account is taken.
+    expect(
+      planShown(ready('pro'), answered({ email: EMAIL, plan: 'Ultra' })),
+    ).toBe('Ultra');
+  });
+
   it('is nothing where nothing named one, so the head says Claude Code alone', () => {
     expect(planShown(ready(), answered())).toBe('');
     expect(

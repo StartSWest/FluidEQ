@@ -29,12 +29,12 @@ import type { IChatMessage } from './chatMessage';
 import { startedCareful, startKey } from './chatForeign';
 import { answerPermission } from './chatPermission';
 import type { TChatPictures } from './chatPictures';
-import type { IChatAdoption, IChatLauncher, IChatProcess } from './chatProcess';
+import type { IChatAdoption, IChatLauncher } from './chatProcess';
 import type { TChatQueue } from './chatQueue';
 import { takeChatQueues, writeChatQueues } from './chatQueueFile';
 import type { TChatTurns } from './chatTurns';
 import type { IChatTranscript } from './chatTranscript';
-import { usageRequestLine, type TChatUsage } from './chatUsage';
+import type { TChatUsage } from './chatUsage';
 import { findClaudeCode, systemEnv } from './claudeCode';
 
 interface IChatSessionsDeps {
@@ -49,6 +49,12 @@ interface IChatSessionsDeps {
   queue: TChatQueue;
   pictures: TChatPictures;
   noteUsage(projectId: string, use: TChatUsage): void;
+  /**
+   * An answer finished, and spent some of the plan: the plan's usage is read
+   * again (`planUsage.ts`), never asked of this chat's own Claude Code, which
+   * keeps the sign-in it started with.
+   */
+  answered?(): void;
   /**
    * FluidEQ's agent skills as it ships them (`studioSkills.ts`): the plugin
    * folder Claude Code loads, and a hash of what they say.
@@ -86,6 +92,7 @@ const createChatSessions = ({
   queue,
   pictures,
   noteUsage,
+  answered,
   skills,
   offered,
   refuse,
@@ -124,10 +131,6 @@ const createChatSessions = ({
   const ownOf = (projectId: string) =>
     path.join(root, encodeURIComponent(projectId));
 
-  const askUsage = (process: IChatProcess) => {
-    process.write(usageRequestLine());
-  };
-
   /** What a project's Claude Code says, into its chat. */
   const follow = (projectId: string, sessionOf: () => IChatSession) =>
     claudeCodeEvents(
@@ -160,7 +163,7 @@ const createChatSessions = ({
         turns.onEvent(projectId, session, event);
         // Each answer spent some of the plan: the card reads it again.
         if (event.type === 'end') {
-          askUsage(session.process);
+          answered?.();
         }
         // A Claude Code that answered "signed out" holds the sign-in it
         // started with, and a sign-in renewed since does not reach it: it
@@ -247,7 +250,6 @@ const createChatSessions = ({
     };
     sessions.set(projectId, session);
     serversAt.set(session, pictures.serversChanged());
-    askUsage(session.process);
     return session;
   };
 
@@ -335,7 +337,6 @@ const createChatSessions = ({
     );
 
   return {
-    askUsage,
     /**
      * Settled once every chat a FluidEQ before this one left running is
      * taken up: until then a project looks idle that is not.

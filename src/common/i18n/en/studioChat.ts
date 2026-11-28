@@ -242,7 +242,7 @@ const studioChat = {
   'studioChat.limits.resets': 'Resets {time}',
   'studioChat.limits.asOf': 'As of {time} · updated each time Claude answers',
   'studioChat.limits.none':
-    'Your 5-hour and weekly limits show here once Claude has answered a message.',
+    "Claude Code did not give this account's 5-hour and weekly limits. They are asked again the next time you open this.",
   'studioChat.context.tokensOf': '{used} of {window} tokens',
   'studioChat.context.explain':
     'Every message carries the whole conversation. Compact sums it up so far, so the messages after it carry less.',

@@ -135,7 +135,7 @@ const WINDOW_OF: Record<string, TStudioChatLimitHit | 'fable'> = {
   seven_day: 'week',
   seven_day_opus: 'opus',
   // The per-model weekly bucket, which Claude Code calls the "Fable limit"
-  // wherever it speaks of it (`chatUsage.ts`).
+  // wherever it speaks of it ("You've reached your Fable limit").
   seven_day_overage_included: 'fable',
 };
 

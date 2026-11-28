@@ -227,7 +227,7 @@ const studioChat = {
   'studioChat.limits.resets': '{time} 重置',
   'studioChat.limits.asOf': '截至 {time} · Claude 每次回答时更新',
   'studioChat.limits.none':
-    'Claude 回答过一条消息后，这里会显示 5 小时和每周的限额。',
+    'Claude Code 没有给出这个账户的 5 小时和每周限额。下次打开这里时会再次查询。',
   'studioChat.context.tokensOf': '{window} 个 token 中已用 {used}',
   'studioChat.context.explain':
     '每条消息都会带上整个对话。压缩会总结到目前为止的内容，之后的消息负担更小。',

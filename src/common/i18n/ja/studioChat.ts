@@ -239,7 +239,7 @@ const studioChat = {
   'studioChat.limits.resets': '{time} にリセット',
   'studioChat.limits.asOf': '{time} 時点 · Claude が答えるたびに更新',
   'studioChat.limits.none':
-    'Claude がメッセージに答えると、5 時間と週ごとの上限がここに表示されます。',
+    'Claude Code からこのアカウントの 5 時間と週ごとの上限を取得できませんでした。次に開いたときにもう一度確認します。',
   'studioChat.context.tokensOf': '{window} トークン中 {used}',
   'studioChat.context.explain':
     'メッセージごとに会話全体が送られます。圧縮するとここまでが要約され、以降のメッセージが軽くなります。',

@@ -232,7 +232,7 @@ const studioChat = {
   'studioChat.limits.resets': '重設 {time}',
   'studioChat.limits.asOf': '自 {time} · 每次克勞德回答時更新',
   'studioChat.limits.none':
-    '克勞德回覆訊息後，您的 5 小時和每週限制就會顯示在此。',
+    'Claude Code 沒有提供此帳戶的 5 小時和每週限制。下次開啟這裡時會再次查詢。',
   'studioChat.context.tokensOf': '{window} 代幣的 {used}',
   'studioChat.context.explain':
     '每條訊息都承載著整個對話。到目前為止，Compact 總結了它，因此它後面的訊息攜帶的資訊較少。',

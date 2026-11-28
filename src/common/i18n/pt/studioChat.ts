@@ -241,7 +241,7 @@ const studioChat = {
   'studioChat.limits.resets': 'Reinicia {time}',
   'studioChat.limits.asOf': 'Às {time} · atualizado a cada resposta do Claude',
   'studioChat.limits.none':
-    'Seus limites de 5 horas e semanal aparecem aqui depois que o Claude responder a uma mensagem.',
+    'O Claude Code não informou os limites de 5 horas e semanal desta conta. Eles serão consultados de novo na próxima vez que você abrir isto.',
   'studioChat.context.tokensOf': '{used} de {window} tokens',
   'studioChat.context.explain':
     'Cada mensagem leva a conversa inteira. Compactar a resume até aqui, para que as mensagens seguintes levem menos.',

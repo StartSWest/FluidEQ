@@ -43,11 +43,12 @@ export default function StudioChatFableLimit({
   const [declined, setDeclined] = useState(false);
   const [switching, setSwitching] = useState(false);
 
-  // A reading of the plan after the wall: the one asked at the reply's end
-  // usually lands first; a chat opened later asks for its own.
+  // A reading of the plan after the wall, asked now whatever the minute
+  // says: one read just before it is no use here (`planUsage.ts`). One the
+  // reply's end already started is waited for instead of asked twice.
   useEffect(() => {
     if (canRetry) {
-      checkStudioChatLimits().catch(() => undefined);
+      checkStudioChatLimits({ fresh: true }).catch(() => undefined);
     }
   }, [canRetry]);
 

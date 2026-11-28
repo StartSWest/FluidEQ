@@ -301,8 +301,12 @@ const listOf = (given: IEntry[], named: Set<string>) => {
   };
 };
 
-/** The answer's account: its email and Claude Code's name for its plan. */
-const accountOf = (raw: unknown): IStudioChatModels['account'] => {
+/**
+ * The account in an `initialize` answer: its email and Claude Code's name
+ * for its plan. Read here for the model list, and by the plan's usage
+ * reading (`chatUsageRead.ts`), which asks it of the run it reads usage in.
+ */
+export const accountOf = (raw: unknown): IStudioChatModels['account'] => {
   if (!isRecord(raw)) {
     return undefined;
   }

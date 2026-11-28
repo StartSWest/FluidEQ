@@ -240,7 +240,7 @@ const studioChat = {
   'studioChat.limits.resets': '{time} को रीसेट होगा',
   'studioChat.limits.asOf': '{time} तक · Claude के हर उत्तर पर अपडेट होता है',
   'studioChat.limits.none':
-    'Claude के किसी संदेश का उत्तर देने के बाद आपकी 5-घंटे और साप्ताहिक सीमाएँ यहाँ दिखेंगी।',
+    'Claude Code ने इस खाते की 5-घंटे और साप्ताहिक सीमाएँ नहीं बताईं। अगली बार इसे खोलने पर ये फिर से पूछी जाएँगी।',
   'studioChat.context.tokensOf': '{window} में से {used} टोकन',
   'studioChat.context.explain':
     'हर संदेश पूरी बातचीत साथ ले जाता है। संक्षिप्त करना अब तक का सार बनाता है, ताकि आगे के संदेश कम भार ले जाएँ।',

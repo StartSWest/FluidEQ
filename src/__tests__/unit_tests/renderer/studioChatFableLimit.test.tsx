@@ -27,7 +27,10 @@ import {
 import StudioChatFableLimit from '../../../renderer/studio/chat/StudioChatFableLimit';
 import StudioChatLimits from '../../../renderer/studio/chat/StudioChatLimits';
 import { resetStudioChatModelsForTesting } from '../../../renderer/studio/chat/studioChatModels';
-import { resetStudioChatStore } from '../../../renderer/studio/chat/studioChatStore';
+import {
+  checkStudioChat,
+  resetStudioChatStore,
+} from '../../../renderer/studio/chat/studioChatStore';
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
@@ -39,6 +42,9 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 
 const HOUR = 3600 * 1000;
 const NOW = Date.now();
+/** The account Claude Code is signed in to, whose readings main answers with. */
+const EMAIL = 'member@example.com';
+const signedIn = jest.fn(async () => ({ state: 'ready', email: EMAIL }));
 
 const MODELS: IStudioChatModels = {
   checked: true,
@@ -99,8 +105,12 @@ describe('whether Opus has room', () => {
 describe('the card where the reply stopped', () => {
   let retried: jest.Mock;
 
-  /** The bridge, answering every reading with `limits` taken `age` ago. */
-  const bridge = (
+  /**
+   * The bridge, answering every reading with `limits` taken `age` ago, for
+   * the account Claude Code is signed in to, as the chat has it by the time
+   * a reply stops.
+   */
+  const bridge = async (
     limits: Omit<IStudioChatLimits, 'at'>,
     {
       age = 0,
@@ -117,15 +127,17 @@ describe('the card where the reply stopped', () => {
       configurable: true,
       value: {
         ipcRenderer: {
+          studioChatAvailability: signedIn,
           studioChatLimits: jest.fn(async () => ({
-            ...limits,
-            at: Date.now() - age,
+            limits: { ...limits, account: EMAIL, at: Date.now() - age },
+            checking: false,
           })),
           studioChatModels: jest.fn(async () => models),
           studioChatRetry: retried,
         },
       },
     });
+    await checkStudioChat();
   };
 
   const ROOM = {
@@ -135,7 +147,7 @@ describe('the card where the reply stopped', () => {
   };
 
   it('offers Opus, loud, beside a quiet decline, and says when Fable is back', async () => {
-    bridge(ROOM);
+    await bridge(ROOM);
     render(<StudioChatFableLimit canRetry />);
     const offer = await screen.findByRole('button', {
       name: 'studioChat.fable.switch',
@@ -158,7 +170,7 @@ describe('the card where the reply stopped', () => {
   });
 
   it('switches this chat to Opus and sends the message again on the press', async () => {
-    bridge(ROOM);
+    await bridge(ROOM);
     render(<StudioChatFableLimit canRetry />);
     const offer = await screen.findByRole('button', {
       name: 'studioChat.fable.switch',
@@ -173,7 +185,7 @@ describe('the card where the reply stopped', () => {
   });
 
   it('leaves the chat as it is on “Not now”', async () => {
-    bridge(ROOM);
+    await bridge(ROOM);
     render(<StudioChatFableLimit canRetry />);
     fireEvent.click(
       await screen.findByRole('button', { name: 'studioChat.fable.notNow' }),
@@ -186,7 +198,7 @@ describe('the card where the reply stopped', () => {
   });
 
   it('says Opus is at its limit too, with each window’s reset, and offers nothing', async () => {
-    bridge({ ...ROOM, fiveHour: { used: 1, resetsAt: NOW + HOUR } });
+    await bridge({ ...ROOM, fiveHour: { used: 1, resetsAt: NOW + HOUR } });
     render(<StudioChatFableLimit canRetry />);
     expect(
       await screen.findByText('studioChat.fable.opusFull'),
@@ -206,7 +218,7 @@ describe('the card where the reply stopped', () => {
   });
 
   it('does not believe a reading from before the wall: it checks instead', async () => {
-    bridge(ROOM, { age: 60 * 1000 });
+    await bridge(ROOM, { age: 60 * 1000 });
     render(<StudioChatFableLimit canRetry />);
     expect(
       await screen.findByText('studioChat.fable.checking'),
@@ -217,7 +229,7 @@ describe('the card where the reply stopped', () => {
   });
 
   it('offers nothing on a reply that cannot go again, or where Opus is not offered', async () => {
-    bridge(ROOM);
+    await bridge(ROOM);
     const { unmount } = render(<StudioChatFableLimit canRetry={false} />);
     expect(
       await screen.findByText(/studioChat\.failed\.fableLimit/),
@@ -229,7 +241,7 @@ describe('the card where the reply stopped', () => {
 
     // Opus is offered unless Claude Code refused it in this run: a list
     // that does not name it is not a plan without it.
-    bridge(ROOM, {
+    await bridge(ROOM, {
       models: {
         checked: true,
         lines: [{ id: 'fable', name: 'Fable 5.2' }],
@@ -253,15 +265,21 @@ it('shows Fable’s window on the accounts card beside the plan’s', async () =
     configurable: true,
     value: {
       ipcRenderer: {
+        studioChatAvailability: signedIn,
         studioChatLimits: jest.fn(async () => ({
-          fiveHour: { used: 0.4, resetsAt: Date.now() + HOUR },
-          week: { used: 0.6, resetsAt: Date.now() + 50 * HOUR },
-          fable: { used: 0.83, resetsAt: Date.now() + 40 * HOUR },
-          at: Date.now(),
+          limits: {
+            account: EMAIL,
+            fiveHour: { used: 0.4, resetsAt: Date.now() + HOUR },
+            week: { used: 0.6, resetsAt: Date.now() + 50 * HOUR },
+            fable: { used: 0.83, resetsAt: Date.now() + 40 * HOUR },
+            at: Date.now(),
+          },
+          checking: false,
         })),
       },
     },
   });
+  await checkStudioChat();
   render(<StudioChatLimits />);
   expect(
     await screen.findByRole('meter', { name: 'studioChat.limits.fable' }),

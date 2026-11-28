@@ -9,21 +9,26 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * `chatUsageRead.ts`). They were read only from `rate_limit_event`, which
  * Claude Code sends when the limit status changes: the card showed one
  * reading from October 18 for a week, 31% where the week was at 12% (Ivan,
- * 2026-10-24: "31% weecly is not refreshing"). Now FluidEQ asks
- * (`get_usage`), and the answer is read like any other report.
+ * 2026-10-24: "31% weecly is not refreshing"). Then FluidEQ asked
+ * (`get_usage`) - of a chat's own Claude Code when one ran, and that one
+ * keeps the sign-in it started with: after a switch of accounts the card
+ * showed the previous account's usage under the new one's name (Ivan,
+ * 2026-11-28). Now the usage is asked only of a run started for it, which
+ * names its account in the same run.
  */
 
 import type { ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
-import fs from 'fs';
 import os from 'os';
-import path from 'path';
 import { PassThrough } from 'stream';
-import createChatUsage, {
+import {
+  readLimitsLine,
   readUsageLine,
   usageRequestLine,
 } from '../../../main/studioChat/chatUsage';
-import createUsageRead from '../../../main/studioChat/chatUsageRead';
+import createUsageRead, {
+  type IPlanReading,
+} from '../../../main/studioChat/chatUsageRead';
 
 /** Claude Code 2.1.302's answer to `get_usage`, cut to what is read. */
 const answer = (requestId: string) =>
@@ -49,8 +54,20 @@ const answer = (requestId: string) =>
     },
   });
 
-const askedId = () => {
-  const asked: unknown = JSON.parse(usageRequestLine());
+/** The two windows `answer` carries, as they are read. */
+const READ = {
+  fiveHour: {
+    used: 0.08,
+    resetsAt: Date.parse('2026-10-25T06:59:59.760401+00:00'),
+  },
+  week: {
+    used: 0.12,
+    resetsAt: Date.parse('2026-10-31T20:59:59.760419+00:00'),
+  },
+};
+
+const idOf = (line: string): string => {
+  const asked: unknown = JSON.parse(line);
   if (
     typeof asked !== 'object' ||
     asked === null ||
@@ -61,6 +78,8 @@ const askedId = () => {
   }
   return asked.request_id;
 };
+
+const askedId = () => idOf(usageRequestLine());
 
 describe('reading the plan usage', () => {
   it('asks Claude Code for its usage without a transcript scan', () => {
@@ -73,32 +92,21 @@ describe('reading the plan usage', () => {
   });
 
   it('reads the answer to its own ask as both windows, used as a share', () => {
-    expect(readUsageLine(answer(askedId()))).toEqual([
-      {
-        type: 'limits',
-        limits: {
-          fiveHour: {
-            used: 0.08,
-            resetsAt: Date.parse('2026-10-25T06:59:59.760401+00:00'),
-          },
-          week: {
-            used: 0.12,
-            resetsAt: Date.parse('2026-10-31T20:59:59.760419+00:00'),
-          },
-        },
-      },
-    ]);
+    expect(readLimitsLine(answer(askedId()))).toEqual(READ);
   });
 
   it('takes no control answer it did not ask for', () => {
     // The control: the same body under FluidEQ's id is read, above.
-    expect(readUsageLine(answer('another-client-request'))).toEqual([]);
+    expect(readLimitsLine(answer('another-client-request'))).toBeUndefined();
     // An id that only carries FluidEQ's words further in is not one of its asks.
-    expect(readUsageLine(answer(`other-${askedId()}`))).toEqual([]);
+    expect(readLimitsLine(answer(`other-${askedId()}`))).toBeUndefined();
   });
 
-  it('still reads the limit status Claude Code sends of its own accord', () => {
-    const line = JSON.stringify({
+  it("never takes the plan's usage from a chat's own stream", () => {
+    // A chat's Claude Code keeps the sign-in it started with: whatever it
+    // says of the plan may be the account before a switch.
+    const usage = answer(askedId());
+    const event = JSON.stringify({
       type: 'rate_limit_event',
       rate_limit_info: {
         unifiedWindows: {
@@ -107,150 +115,119 @@ describe('reading the plan usage', () => {
         },
       },
     });
-    expect(readUsageLine(line)).toEqual([
-      {
-        type: 'limits',
-        limits: {
-          fiveHour: { used: 0.1, resetsAt: 1792371000000 },
-          week: { used: 0.31, resetsAt: 1792875600000 },
-        },
-      },
-    ]);
-  });
-});
-
-describe('keeping the plan usage', () => {
-  let root: string;
-  beforeEach(() => {
-    root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-chat-usage-'));
-  });
-  afterEach(() => {
-    fs.rmSync(root, { recursive: true, force: true });
-  });
-
-  const usageIn = () => {
-    const send = jest.fn();
-    const usage = createChatUsage({
-      root,
-      contextOf: () => undefined,
-      setContext: () => undefined,
-      send,
-    });
-    return { usage, send };
-  };
-
-  it('replaces the reading with every report, and tells the window', () => {
-    const { usage, send } = usageIn();
-    const hour = Date.now() + 3600 * 1000;
-    usage.note(undefined, {
-      type: 'limits',
-      limits: {
-        fiveHour: { used: 0.1, resetsAt: hour },
-        week: { used: 0.31, resetsAt: hour * 2 },
-      },
-    });
-    usage.note(undefined, {
-      type: 'limits',
-      limits: {
-        fiveHour: { used: 0.2, resetsAt: hour },
-        week: { used: 0.12, resetsAt: hour * 2 },
-      },
-    });
-    expect(usage.limits()).toMatchObject({
-      fiveHour: { used: 0.2 },
-      week: { used: 0.12 },
-    });
-    expect(send).toHaveBeenCalledTimes(2);
-    // Kept for the next start too.
+    expect(readUsageLine(usage)).toEqual([]);
+    expect(readUsageLine(event)).toEqual([]);
+    // The controls: the same answer is read where it was asked for, and the
+    // chat's stream still says the size of its conversation.
+    expect(readLimitsLine(usage)).toEqual(READ);
     expect(
-      JSON.parse(fs.readFileSync(path.join(root, 'limits.json'), 'utf8')),
-    ).toMatchObject({ week: { used: 0.12 } });
-  });
-
-  it('keeps a window a report leaves out, until that window resets', () => {
-    const { usage } = usageIn();
-    const now = Date.now();
-    usage.note(undefined, {
-      type: 'limits',
-      limits: {
-        fiveHour: { used: 0.4, resetsAt: now - 1000 },
-        week: { used: 0.3, resetsAt: now + 86400 * 1000 },
-      },
-    });
-    usage.note(undefined, {
-      type: 'limits',
-      limits: { fiveHour: { used: 0.05, resetsAt: now + 3600 * 1000 } },
-    });
-    // The week is still the week it was read in; nothing new said otherwise.
-    expect(usage.limits()?.week).toMatchObject({ used: 0.3 });
-
-    usage.note(undefined, {
-      type: 'limits',
-      limits: { week: { used: 0.5, resetsAt: now + 86400 * 1000 } },
-    });
-    // The five hours read before still stands; the first one, already
-    // reset when it was left out, was never carried.
-    expect(usage.limits()?.fiveHour).toMatchObject({ used: 0.05 });
-  });
-
-  it('drops a left-out window whose reset has passed', () => {
-    const { usage } = usageIn();
-    const now = Date.now();
-    usage.note(undefined, {
-      type: 'limits',
-      limits: {
-        fiveHour: { used: 0.4, resetsAt: now + 3600 * 1000 },
-        week: { used: 0.31, resetsAt: now - 1000 },
-      },
-    });
-    usage.note(undefined, {
-      type: 'limits',
-      limits: { fiveHour: { used: 0.1, resetsAt: now + 3600 * 1000 } },
-    });
-    expect(usage.limits()?.week).toBeUndefined();
+      readUsageLine(
+        JSON.stringify({
+          type: 'assistant',
+          message: { model: 'opus', usage: { input_tokens: 1200 } },
+        }),
+      ),
+    ).toEqual([{ type: 'context', used: 1200, model: 'opus' }]);
   });
 });
 
-describe('asking with no chat running', () => {
-  /** A Claude Code that answers what it is asked, as the real one does. */
-  const fakeClaude = () => {
+describe('asking a Claude Code started for the question', () => {
+  const EMAIL = 'member@example.com';
+
+  /**
+   * A Claude Code that answers what it is asked, as the real one does: the
+   * account (`initialize`) and the usage (`get_usage`), in the order given,
+   * or the usage alone where it names no account.
+   */
+  const fakeClaude = ({
+    account = { email: EMAIL, subscriptionType: 'Claude Ultra' },
+    usageFirst = false,
+  }: {
+    account?: Record<string, string> | 'unanswered';
+    usageFirst?: boolean;
+  } = {}) => {
+    const written: string[] = [];
     const child = new EventEmitter() as EventEmitter & {
       stdin: PassThrough;
       stdout: PassThrough;
     };
     child.stdin = new PassThrough();
     child.stdout = new PassThrough();
-    let written = '';
+    let input = '';
     child.stdin.on('data', (chunk: Buffer) => {
-      written += chunk.toString('utf8');
+      input += chunk.toString('utf8');
     });
     child.stdin.on('finish', () => {
-      const asked: unknown = JSON.parse(written);
-      const id =
-        typeof asked === 'object' && asked !== null && 'request_id' in asked
-          ? String(asked.request_id)
-          : '';
-      child.stdout.end(`${answer(id)}\n`, () => child.emit('close', 0));
+      const lines = input.split('\n').filter(Boolean);
+      written.push(...lines);
+      const answers = lines.flatMap((line) => {
+        const asked: unknown = JSON.parse(line);
+        const subtype =
+          typeof asked === 'object' &&
+          asked !== null &&
+          'request' in asked &&
+          typeof asked.request === 'object' &&
+          asked.request !== null &&
+          'subtype' in asked.request
+            ? asked.request.subtype
+            : undefined;
+        if (subtype === 'get_usage') {
+          return [answer(idOf(line))];
+        }
+        if (subtype === 'initialize' && account !== 'unanswered') {
+          return [
+            JSON.stringify({
+              type: 'control_response',
+              response: {
+                subtype: 'success',
+                request_id: idOf(line),
+                response: { models: [], account },
+              },
+            }),
+          ];
+        }
+        return [];
+      });
+      const ordered = usageFirst ? [...answers].reverse() : answers;
+      child.stdout.end(`${ordered.join('\n')}\n`, () => child.emit('close', 0));
     });
-    return child as unknown as ChildProcess;
+    return { child: child as unknown as ChildProcess, written };
   };
 
-  it('starts one Claude Code for the question and reads its answer', async () => {
-    const start = jest.fn(() => fakeClaude());
-    const heard = new Promise((resolve) => {
+  /** One run's reading, and its end, as they are told. */
+  const readOnce = (claude: ReturnType<typeof fakeClaude>) => {
+    const told: { reading?: IPlanReading; ended: boolean } = { ended: false };
+    const start = jest.fn(() => claude.child);
+    const ended = new Promise<void>((resolve) => {
       const read = createUsageRead({
         executable: () => 'claude',
         start,
         cwd: os.tmpdir(),
-        onUsage: resolve,
+        onReading: (reading) => {
+          // A reading is told before the run's end, never after it.
+          expect(told.ended).toBe(false);
+          told.reading = reading;
+        },
+        onEnded: () => {
+          told.ended = true;
+          resolve();
+        },
       });
-      read.read();
+      expect(read.read()).toBe(true);
       // A second ask while the first is out starts nothing more.
-      read.read();
+      expect(read.read()).toBe(false);
     });
-    await expect(heard).resolves.toMatchObject({
-      type: 'limits',
-      limits: { week: { used: 0.12 } },
+    return { start, ended, told };
+  };
+
+  it('asks one run for its account and its usage, and tells them together', async () => {
+    const claude = fakeClaude();
+    const { start, ended, told } = readOnce(claude);
+    await ended;
+    expect(told.reading).toEqual({
+      windows: READ,
+      account: EMAIL,
+      plan: 'Ultra',
     });
     expect(start).toHaveBeenCalledTimes(1);
     expect(start.mock.calls[0]).toEqual([
@@ -263,16 +240,47 @@ describe('asking with no chat running', () => {
       ]),
       os.tmpdir(),
     ]);
+    // Both questions on the same run's input, the account first.
+    expect(
+      claude.written.map(
+        (line) =>
+          (JSON.parse(line) as { request: { subtype: string } }).request
+            .subtype,
+      ),
+    ).toEqual(['initialize', 'get_usage']);
+  });
+
+  it('waits for the account where the usage answer comes first', async () => {
+    const { ended, told } = readOnce(fakeClaude({ usageFirst: true }));
+    await ended;
+    expect(told.reading).toEqual({
+      windows: READ,
+      account: EMAIL,
+      plan: 'Ultra',
+    });
+  });
+
+  it('tells a reading whose run named no account as nobody’s', async () => {
+    const unanswered = readOnce(fakeClaude({ account: 'unanswered' }));
+    await unanswered.ended;
+    expect(unanswered.told.reading).toEqual({ windows: READ });
+    // An answer naming no account (an API key) is nobody's too; the
+    // control above it names one and is told under it.
+    const none = readOnce(fakeClaude({ account: {} }));
+    await none.ended;
+    expect(none.told.reading).toEqual({ windows: READ });
   });
 
   it('starts nothing where Claude Code is not installed', () => {
-    const start = jest.fn(() => fakeClaude());
-    createUsageRead({
+    const start = jest.fn(() => fakeClaude().child);
+    const read = createUsageRead({
       executable: () => undefined,
       start,
       cwd: os.tmpdir(),
-      onUsage: () => undefined,
-    }).read();
+      onReading: () => undefined,
+      onEnded: () => undefined,
+    });
+    expect(read.read()).toBe(false);
     expect(start).not.toHaveBeenCalled();
   });
 });

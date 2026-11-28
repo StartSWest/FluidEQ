@@ -8,19 +8,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * Fable's own limit (Ivan, 2026-11-13: "show fable session limit too … and
  * when fable reaches the session limit show that in the chat"). Claude Code
  * keeps no five-hour window per model: Fable's is a week long, reported as
- * one of `get_usage`'s `model_scoped` windows and as the
- * `seven_day_overage_included` window of a limit event, both shapes and
- * words taken from Claude Code 2.1.321. Each case beside its control.
+ * one of `get_usage`'s `model_scoped` windows, shapes and words taken from
+ * Claude Code 2.1.321. Each case beside its control.
  */
 
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { failureOf } from '../../../main/studioChat/chatStream';
-import createChatUsage, {
-  readUsageLine,
+import {
+  readLimitsLine,
   usageRequestLine,
 } from '../../../main/studioChat/chatUsage';
+import createPlanUsage from '../../../main/studioChat/planUsage';
 
 const askedId = (): string => {
   const asked: unknown = JSON.parse(usageRequestLine());
@@ -52,7 +52,7 @@ const FABLE_RESET = '2026-11-16T09:00:00+00:00';
 describe('reading Fable’s window', () => {
   it('reads Fable’s bucket among the per-model windows, and Opus’s own', () => {
     expect(
-      readUsageLine(
+      readLimitsLine(
         answer({
           five_hour: FIVE,
           seven_day: WEEK,
@@ -63,60 +63,30 @@ describe('reading Fable’s window', () => {
           ],
         }),
       ),
-    ).toEqual([
-      {
-        type: 'limits',
-        limits: {
-          fiveHour: { used: 0.4, resetsAt: Date.parse(FIVE.resets_at) },
-          week: { used: 0.55, resetsAt: Date.parse(WEEK.resets_at) },
-          fable: { used: 1, resetsAt: Date.parse(FABLE_RESET) },
-          opus: { used: 0.2, resetsAt: Date.parse(FABLE_RESET) },
-        },
-      },
-    ]);
+    ).toEqual({
+      fiveHour: { used: 0.4, resetsAt: Date.parse(FIVE.resets_at) },
+      week: { used: 0.55, resetsAt: Date.parse(WEEK.resets_at) },
+      fable: { used: 1, resetsAt: Date.parse(FABLE_RESET) },
+      opus: { used: 0.2, resetsAt: Date.parse(FABLE_RESET) },
+    });
   });
 
   it('reads no Fable window where the answer lists none for it', () => {
-    const [read] = readUsageLine(
-      answer({
-        five_hour: FIVE,
-        seven_day: WEEK,
-        model_scoped: [
-          { display_name: 'Sonnet', utilization: 5, resets_at: FABLE_RESET },
-          { display_name: 'Fable', utilization: null, resets_at: null },
-        ],
-      }),
-    );
-    expect(read).toEqual({
-      type: 'limits',
-      limits: {
-        fiveHour: { used: 0.4, resetsAt: Date.parse(FIVE.resets_at) },
-        week: { used: 0.55, resetsAt: Date.parse(WEEK.resets_at) },
-      },
+    expect(
+      readLimitsLine(
+        answer({
+          five_hour: FIVE,
+          seven_day: WEEK,
+          model_scoped: [
+            { display_name: 'Sonnet', utilization: 5, resets_at: FABLE_RESET },
+            { display_name: 'Fable', utilization: null, resets_at: null },
+          ],
+        }),
+      ),
+    ).toEqual({
+      fiveHour: { used: 0.4, resetsAt: Date.parse(FIVE.resets_at) },
+      week: { used: 0.55, resetsAt: Date.parse(WEEK.resets_at) },
     });
-  });
-
-  it('reads the per-model weekly bucket of a limit event as Fable’s', () => {
-    const line = JSON.stringify({
-      type: 'rate_limit_event',
-      rate_limit_info: {
-        status: 'rejected',
-        rateLimitType: 'seven_day_overage_included',
-        unifiedWindows: {
-          five_hour: { utilization: 0.3, resetsAt: 1794600000 },
-          seven_day_overage_included: { utilization: 1, resetsAt: 1794900000 },
-        },
-      },
-    });
-    expect(readUsageLine(line)).toEqual([
-      {
-        type: 'limits',
-        limits: {
-          fiveHour: { used: 0.3, resetsAt: 1794600000000 },
-          fable: { used: 1, resetsAt: 1794900000000 },
-        },
-      },
-    ]);
   });
 });
 
@@ -137,6 +107,7 @@ describe('a reply Fable’s limit stopped', () => {
 });
 
 describe('keeping Fable’s window', () => {
+  const ACCOUNT = 'member@example.com';
   let root: string;
   beforeEach(() => {
     root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-fable-limit-'));
@@ -146,52 +117,42 @@ describe('keeping Fable’s window', () => {
   });
 
   const usageIn = () =>
-    createChatUsage({
-      root,
-      contextOf: () => undefined,
-      setContext: () => undefined,
-      send: () => undefined,
-    });
+    createPlanUsage({ root, read: () => true, send: () => undefined });
 
-  it('keeps it through a report that leaves it out, and across a restart', () => {
+  it('keeps it with the account’s reading, across a restart', () => {
     const now = Date.now();
-    const usage = usageIn();
-    usage.note(undefined, {
-      type: 'limits',
-      limits: {
+    usageIn().reading({
+      windows: {
         fiveHour: { used: 0.2, resetsAt: now + 3600 * 1000 },
         fable: { used: 1, resetsAt: now + 86400 * 1000 },
       },
-    });
-    // A limit event carrying the plan's windows alone.
-    usage.note(undefined, {
-      type: 'limits',
-      limits: { fiveHour: { used: 0.3, resetsAt: now + 3600 * 1000 } },
-    });
-    expect(usage.limits()?.fable).toEqual({
-      used: 1,
-      resetsAt: now + 86400 * 1000,
+      account: ACCOUNT,
     });
     // The next start reads it back from the kept copy.
-    expect(usageIn().limits()).toMatchObject({
-      fiveHour: { used: 0.3 },
-      fable: { used: 1 },
+    expect(usageIn().ask({ account: ACCOUNT }).limits).toMatchObject({
+      fiveHour: { used: 0.2 },
+      fable: { used: 1, resetsAt: now + 86400 * 1000 },
     });
   });
 
-  it('drops it once its week has reset', () => {
+  it('takes each reading whole: one without Fable leaves none from before', () => {
     const now = Date.now();
     const usage = usageIn();
-    usage.note(undefined, {
-      type: 'limits',
-      limits: { fable: { used: 1, resetsAt: now - 1000 } },
+    usage.reading({
+      windows: {
+        fiveHour: { used: 0.2, resetsAt: now + 3600 * 1000 },
+        fable: { used: 1, resetsAt: now + 86400 * 1000 },
+      },
+      account: ACCOUNT,
     });
-    usage.note(undefined, {
-      type: 'limits',
-      limits: { fiveHour: { used: 0.1, resetsAt: now + 3600 * 1000 } },
+    // The control: Fable's window stands while the reading has it.
+    expect(usage.ask({ account: ACCOUNT }).limits?.fable).toMatchObject({
+      used: 1,
     });
-    expect(usage.limits()?.fable).toBeUndefined();
-    // The control: the window read with it is kept.
-    expect(usage.limits()?.fiveHour).toMatchObject({ used: 0.1 });
+    usage.reading({
+      windows: { fiveHour: { used: 0.3, resetsAt: now + 3600 * 1000 } },
+      account: ACCOUNT,
+    });
+    expect(usage.ask({ account: ACCOUNT }).limits?.fable).toBeUndefined();
   });
 });

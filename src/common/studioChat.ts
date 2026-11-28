@@ -139,10 +139,19 @@ export interface IStudioChatLimit {
 
 /**
  * The member's Claude plan limits (Ivan, 2026-10-14: "show the 5h and weekly
- * limits … under accounts"), as Claude Code last reported them while
- * answering: there is no asking for them without sending something.
+ * limits … under accounts"), as one Claude Code run read them, together with
+ * the account that run was signed in to (`main/studioChat/planUsage.ts`).
  */
 export interface IStudioChatLimits {
+  /**
+   * The account the reading is of, as the same run of Claude Code named it
+   * (Ivan, 2026-11-28: after switching accounts the card still showed the
+   * other one's usage). Undefined where it named none. A reading is shown
+   * only under the account it names (`studioChatLimitsKey`).
+   */
+  account?: string;
+  /** Claude Code's own name for that account's plan ("Ultra"), from the same run. */
+  plan?: string;
   fiveHour?: IStudioChatLimit;
   week?: IStudioChatLimit;
   /**
@@ -166,6 +175,29 @@ export const STUDIO_CHAT_LIMIT_WINDOWS = [
   'opus',
 ] as const;
 export type TStudioChatLimitWindow = (typeof STUDIO_CHAT_LIMIT_WINDOWS)[number];
+
+/**
+ * What the window is told of the plan's usage: a reading, when there is
+ * one, and whether Claude Code is being asked for a new one right now.
+ */
+export interface IStudioChatLimitsNews {
+  limits?: IStudioChatLimits;
+  checking: boolean;
+}
+
+/** What the window asks: the account it shows, and whether the reading must be new. */
+export interface IStudioChatLimitsAsk {
+  account?: string;
+  /** Read now even within the minute (a Fable stop needs a reading after it). */
+  fresh?: boolean;
+}
+
+/**
+ * Which account a reading or a sign-in is, for telling them apart: its
+ * email in lower case, '' where Claude Code named none.
+ */
+export const studioChatLimitsKey = (account: string | undefined) =>
+  (account ?? '').toLowerCase();
 
 /**
  * A message the member sent while Claude was still answering (Ivan,

@@ -23,6 +23,7 @@ import {
 } from '../../../common/studioChatStop';
 import StudioChatReply from '../../../renderer/studio/chat/StudioChatReply';
 import {
+  checkStudioChat,
   checkStudioChatLimits,
   resetStudioChatStore,
 } from '../../../renderer/studio/chat/studioChatStore';
@@ -52,7 +53,10 @@ const failed = (
   ...more,
 });
 
+const EMAIL = 'member@example.com';
+
 let bridge: {
+  studioChatAvailability: jest.Mock;
   studioChatLimits: jest.Mock;
   studioChatSignIn: jest.Mock;
   studioChatCompact: jest.Mock;
@@ -80,6 +84,10 @@ beforeEach(() => {
   resetStudioChatStore();
   onRetry.mockReset();
   bridge = {
+    studioChatAvailability: jest.fn(async () => ({
+      state: 'ready',
+      email: EMAIL,
+    })),
     studioChatLimits: jest.fn(async () => undefined),
     studioChatSignIn: jest.fn(async () => ({ state: 'ready' })),
     studioChatCompact: jest.fn(async () => undefined),
@@ -152,21 +160,29 @@ describe('the notice where a reply stopped', () => {
     );
   });
 
+  /** The plan's last reading, as the chat holds it for the account signed in. */
+  const holdReading = async (limits: IStudioChatLimits) => {
+    bridge.studioChatLimits.mockResolvedValue({
+      limits: { ...limits, account: EMAIL },
+      checking: false,
+    });
+    await checkStudioChat();
+    await checkStudioChatLimits();
+  };
+
   it('takes the reset from the plan’s last reading where the stop named none, if it is still ahead', async () => {
     const limits = (resetsAt: number): IStudioChatLimits => ({
       week: { used: 1, resetsAt },
       at: NOW,
     });
-    bridge.studioChatLimits.mockResolvedValue(limits(NOW + 30 * HOUR));
-    await checkStudioChatLimits();
+    await holdReading(limits(NOW + 30 * HOUR));
     const { unmount } = show(failed('limit', { limit: { window: 'week' } }));
     expect(screen.getByRole('alert')).toHaveTextContent(
       'studioChat.limits.resets',
     );
     unmount();
     // The control: a reading whose week has reset since says nothing.
-    bridge.studioChatLimits.mockResolvedValue(limits(NOW - HOUR));
-    await checkStudioChatLimits();
+    await holdReading(limits(NOW - HOUR));
     show(failed('limit', { limit: { window: 'week' } }));
     expect(screen.getByRole('alert')).not.toHaveTextContent(
       'studioChat.limits.resets',
@@ -174,11 +190,10 @@ describe('the notice where a reply stopped', () => {
   });
 
   it('says no reset on any other reason, whatever the plan’s reading', async () => {
-    bridge.studioChatLimits.mockResolvedValue({
+    await holdReading({
       week: { used: 1, resetsAt: NOW + 30 * HOUR },
       at: NOW,
     });
-    await checkStudioChatLimits();
     // Even on a reply that somehow kept a limit beside another reason.
     show(
       failed('server', {

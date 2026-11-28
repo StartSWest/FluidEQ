@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   NO_STUDIO_CHAT_MODELS,
   type IStudioChat,
-  type IStudioChatLimits,
+  type IStudioChatLimitsNews,
   type IStudioChatModels,
   type TStudioChatAvailability,
   type TStudioChatEntry,
@@ -39,7 +39,8 @@ interface IChatHandlersDeps {
   sendNow(raw: unknown): Promise<void>;
   entriesOf(projectId: string): readonly TStudioChatEntry[];
   versionsOf(projectId: string): string;
-  limits(): IStudioChatLimits | undefined;
+  /** The plan's usage for the account the window shows (`planUsage.ts`). */
+  limits(raw: unknown): IStudioChatLimitsNews;
   /** The models Claude Code offers (`claudeModels.ts`). */
   models(): Promise<IStudioChatModels>;
   /** Ask Claude Code for them again: a sign-in may be another account's. */
@@ -83,7 +84,11 @@ const registerChatHandlers = ({
   handle('studio-chat-compact', undefined, compact);
   handle('studio-chat-ask-note', Promise.resolve(false), askForNote);
   handle('studio-chat-retry', undefined, retry);
-  handle('studio-chat-limits', undefined, limits);
+  handle<IStudioChatLimitsNews>(
+    'studio-chat-limits',
+    { checking: false },
+    limits,
+  );
   handle('studio-chat-unqueue', undefined, (id) => {
     const project = agentProject();
     if (project.ok && typeof id === 'string') {

@@ -12,10 +12,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import type { IStudioChatLimits } from '../../../common/studioChat';
 import StudioChatLimits from '../../../renderer/studio/chat/StudioChatLimits';
-import { resetStudioChatStore } from '../../../renderer/studio/chat/studioChatStore';
+import {
+  checkStudioChat,
+  resetStudioChatStore,
+} from '../../../renderer/studio/chat/studioChatStore';
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
@@ -26,19 +29,36 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 }));
 
 const HOUR = 3600 * 1000;
+const EMAIL = 'member@example.com';
 
-const showing = (limits: IStudioChatLimits) => {
+/** The card under a signed-in account, main answering with that account's reading. */
+const showing = async (limits: IStudioChatLimits) => {
   resetStudioChatStore();
   Object.defineProperty(window, 'electron', {
     configurable: true,
-    value: { ipcRenderer: { studioChatLimits: jest.fn(async () => limits) } },
+    value: {
+      ipcRenderer: {
+        studioChatAvailability: jest.fn(async () => ({
+          state: 'ready',
+          email: EMAIL,
+        })),
+        studioChatLimits: jest.fn(async () => ({
+          limits: { ...limits, account: EMAIL },
+          checking: false,
+        })),
+      },
+    },
   });
-  render(<StudioChatLimits />);
+  await checkStudioChat();
+  // Main's answer lands inside the render's own act.
+  await act(async () => {
+    render(<StudioChatLimits />);
+  });
 };
 
 it('shows both windows of a reading taken now, at its time alone', async () => {
   const now = Date.now();
-  showing({
+  await showing({
     fiveHour: { used: 0.08, resetsAt: now + 2 * HOUR },
     week: { used: 0.12, resetsAt: now + 100 * HOUR },
     at: now,
@@ -61,7 +81,7 @@ it('shows both windows of a reading taken now, at its time alone', async () => {
 it('leaves out a window whose reset has passed, and dates an old reading', async () => {
   const now = Date.now();
   const at = now - 48 * HOUR;
-  showing({
+  await showing({
     fiveHour: { used: 0.1, resetsAt: now + HOUR },
     week: { used: 0.31, resetsAt: now - HOUR },
     at,
@@ -82,7 +102,7 @@ it('leaves out a window whose reset has passed, and dates an old reading', async
 
 it('says there is no reading when every window has reset', async () => {
   const now = Date.now();
-  showing({
+  await showing({
     fiveHour: { used: 0.4, resetsAt: now - HOUR },
     week: { used: 0.31, resetsAt: now - HOUR },
     at: now - 200 * HOUR,

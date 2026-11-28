@@ -3,7 +3,8 @@ import type {
   IStudioChat,
   IStudioChatCompact,
   IStudioChatContext,
-  IStudioChatLimits,
+  IStudioChatLimitsAsk,
+  IStudioChatLimitsNews,
   IStudioChatModels,
   IStudioChatMessage,
   IStudioChatPackAsk,
@@ -113,12 +114,17 @@ const studioChatBridge = {
       ipcRenderer.removeListener('studio-chat-context', wrapped);
     };
   },
-  /** The plan's limits as Claude Code last reported them, if ever. */
-  studioChatLimits: (): Promise<IStudioChatLimits | undefined> =>
-    ipcRenderer.invoke('studio-chat-limits'),
-  onStudioChatLimits: (listener: (limits: IStudioChatLimits) => void) => {
-    const wrapped = (_event: IpcRendererEvent, limits: IStudioChatLimits) =>
-      listener(limits);
+  /**
+   * The plan's usage for the account the window shows: its last reading, if
+   * any, and whether a new one is being read (`planUsage.ts`).
+   */
+  studioChatLimits: (
+    ask: IStudioChatLimitsAsk,
+  ): Promise<IStudioChatLimitsNews> =>
+    ipcRenderer.invoke('studio-chat-limits', ask),
+  onStudioChatLimits: (listener: (news: IStudioChatLimitsNews) => void) => {
+    const wrapped = (_event: IpcRendererEvent, news: IStudioChatLimitsNews) =>
+      listener(news);
     ipcRenderer.on('studio-chat-limits', wrapped);
     return () => {
       ipcRenderer.removeListener('studio-chat-limits', wrapped);

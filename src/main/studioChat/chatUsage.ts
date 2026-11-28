@@ -5,45 +5,46 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { randomUUID } from 'crypto';
-import fs from 'fs';
-import path from 'path';
 import {
   STUDIO_CHAT_LIMIT_WINDOWS,
   type IStudioChatContext,
   type IStudioChatLimit,
-  type IStudioChatLimits,
   type TStudioChatLimitWindow,
 } from '../../common/studioChat';
-import writeFileAtomically from '../atomicWrite';
 
 /**
  * What the chat shows of the member's use (Ivan, 2026-10-14: "show the
- * session usage and the context windows … the 5h and weekly limits"), read
- * from the same stream the replies come in on, never asked for on its own:
+ * session usage and the context windows … the 5h and weekly limits"):
  *
  * - each message Claude writes carries the tokens it was sent, which is the
  *   conversation's size at that moment, and the turn's result names each
- *   model's whole window;
- * - a compaction says the size it left;
- * - the plan's usage windows, five hours and seven days, are asked for
- *   (`usageRequestLine`) when a chat starts, after each answer and when the
- *   accounts card opens, and Claude Code answers on the same stream.
+ *   model's whole window; a compaction says the size it left. These are read
+ *   from the chat's own stream (`readUsageLine`).
+ * - the plan's usage windows, five hours and seven days, are asked of a
+ *   Claude Code started for that question alone (`chatUsageRead.ts`), which
+ *   is asked in the same run which account it is signed in to, and read from
+ *   its answer (`readLimitsLine`; kept per account by `planUsage.ts`).
  *
- * The windows used to be read only from `rate_limit_event`, which Claude
- * Code sends when the plan's limit status changes, not on every request:
- * for a member who never nears a limit it came once, and the card showed
- * that one reading for days (Ivan, 2026-10-24: "31% weecly is not
- * refreshing" - it was 12% that evening, the week having reset at 5 PM).
- * It is still read when it comes.
+ * The plan's windows are no longer read from a chat's own Claude Code, by
+ * `get_usage` or from `rate_limit_event`: a Claude Code keeps the sign-in it
+ * started with for as long as it runs, so once the member had switched
+ * accounts the chat's process went on reporting the previous account's
+ * usage, and the card showed it under the new account's name (Ivan,
+ * 2026-11-28).
  *
  * Read as untrusted like the rest of the stream: a line that is not what
  * this expects reports nothing.
  */
 
+/** What a chat's own stream says of its conversation's size. */
 export type TChatUsage =
   | { type: 'context'; used: number; model?: string }
-  | { type: 'windows'; sizes: Record<string, number> }
-  | { type: 'limits'; limits: Omit<IStudioChatLimits, 'at'> };
+  | { type: 'windows'; sizes: Record<string, number> };
+
+/** The plan's windows one answer carried, without the ones it did not. */
+export type TPlanWindows = Partial<
+  Record<TStudioChatLimitWindow, IStudioChatLimit>
+>;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -57,23 +58,6 @@ const contextOf = (usage: Record<string, unknown>) =>
   count(usage.cache_creation_input_tokens) +
   count(usage.cache_read_input_tokens) +
   count(usage.output_tokens);
-
-const limitOf = (raw: unknown): IStudioChatLimit | undefined => {
-  if (
-    !isRecord(raw) ||
-    typeof raw.utilization !== 'number' ||
-    typeof raw.resetsAt !== 'number' ||
-    !Number.isFinite(raw.utilization) ||
-    !Number.isFinite(raw.resetsAt)
-  ) {
-    return undefined;
-  }
-  // The server's time is in seconds.
-  return {
-    used: Math.min(1, Math.max(0, raw.utilization)),
-    resetsAt: raw.resetsAt * 1000,
-  };
-};
 
 /**
  * The request ids FluidEQ gives its usage asks: an answer is taken only to
@@ -115,13 +99,11 @@ const answeredLimitOf = (raw: unknown): IStudioChatLimit | undefined => {
     : undefined;
 };
 
-type TWindows = Partial<Record<TStudioChatLimitWindow, IStudioChatLimit>>;
-
-/** The windows read, without the ones the line did not carry. */
+/** The windows read, without the ones the answer did not carry. */
 const known = (
   windows: Record<TStudioChatLimitWindow, IStudioChatLimit | undefined>,
-): TWindows => {
-  const kept: TWindows = {};
+): TPlanWindows => {
+  const kept: TPlanWindows = {};
   STUDIO_CHAT_LIMIT_WINDOWS.forEach((name) => {
     const limit = windows[name];
     if (limit) {
@@ -130,9 +112,6 @@ const known = (
   });
   return kept;
 };
-
-const limitsUsage = (windows: TWindows): TChatUsage[] =>
-  Object.keys(windows).length > 0 ? [{ type: 'limits', limits: windows }] : [];
 
 /**
  * Fable's window in a `get_usage` answer: one of `model_scoped`, the
@@ -153,28 +132,50 @@ const answeredFableOf = (scoped: unknown): IStudioChatLimit | undefined => {
   return answeredLimitOf(fable);
 };
 
-const usageOfMessage = (message: Record<string, unknown>): TChatUsage[] => {
-  if (message.type === 'control_response' && isRecord(message.response)) {
-    const { response } = message;
-    if (
-      response.subtype !== 'success' ||
-      typeof response.request_id !== 'string' ||
-      !response.request_id.startsWith(USAGE_REQUEST) ||
-      !isRecord(response.response) ||
-      !isRecord(response.response.rate_limits)
-    ) {
-      return [];
-    }
-    const windows = response.response.rate_limits;
-    return limitsUsage(
-      known({
-        fiveHour: answeredLimitOf(windows.five_hour),
-        week: answeredLimitOf(windows.seven_day),
-        fable: answeredFableOf(windows.model_scoped),
-        opus: answeredLimitOf(windows.seven_day_opus),
-      }),
-    );
+/**
+ * The plan's windows in Claude Code's answer to one of FluidEQ's own
+ * `get_usage` asks; undefined for any other line, for an answer to an ask
+ * that was not FluidEQ's, and for an answer that carries no window at all.
+ */
+export const readLimitsLine = (line: string): TPlanWindows | undefined => {
+  // Most lines are something else entirely: passed over unread.
+  if (!line.includes(USAGE_REQUEST)) {
+    return undefined;
   }
+  let message: unknown;
+  try {
+    message = JSON.parse(line);
+  } catch {
+    return undefined;
+  }
+  if (
+    !isRecord(message) ||
+    message.type !== 'control_response' ||
+    !isRecord(message.response)
+  ) {
+    return undefined;
+  }
+  const { response } = message;
+  if (
+    response.subtype !== 'success' ||
+    typeof response.request_id !== 'string' ||
+    !response.request_id.startsWith(USAGE_REQUEST) ||
+    !isRecord(response.response) ||
+    !isRecord(response.response.rate_limits)
+  ) {
+    return undefined;
+  }
+  const windows = response.response.rate_limits;
+  const read = known({
+    fiveHour: answeredLimitOf(windows.five_hour),
+    week: answeredLimitOf(windows.seven_day),
+    fable: answeredFableOf(windows.model_scoped),
+    opus: answeredLimitOf(windows.seven_day_opus),
+  });
+  return Object.keys(read).length > 0 ? read : undefined;
+};
+
+const usageOfMessage = (message: Record<string, unknown>): TChatUsage[] => {
   if (
     message.type === 'assistant' &&
     // A subagent's messages are its own conversation, not this one.
@@ -214,37 +215,16 @@ const usageOfMessage = (message: Record<string, unknown>): TChatUsage[] => {
       { type: 'context', used: count(message.compact_metadata.post_tokens) },
     ];
   }
-  if (
-    message.type === 'rate_limit_event' &&
-    isRecord(message.rate_limit_info)
-  ) {
-    const windows = message.rate_limit_info.unifiedWindows;
-    if (!isRecord(windows)) {
-      return [];
-    }
-    // `seven_day_overage_included` is the per-model weekly bucket, which
-    // Claude Code names "Fable limit" wherever it speaks of it.
-    return limitsUsage(
-      known({
-        fiveHour: limitOf(windows.five_hour),
-        week: limitOf(windows.seven_day),
-        fable: limitOf(windows.seven_day_overage_included),
-        opus: undefined,
-      }),
-    );
-  }
   return [];
 };
 
-/** What one line of the stream says of the member's use; nothing for most. */
+/** What one line of a chat's stream says of its conversation; nothing for most. */
 export const readUsageLine = (line: string): TChatUsage[] => {
   // Most lines are words as they are written: they are passed over unread.
   if (
     !line.includes('"usage"') &&
     !line.includes('"modelUsage"') &&
-    !line.includes('compact_boundary') &&
-    !line.includes('rate_limit_event') &&
-    !line.includes(USAGE_REQUEST)
+    !line.includes('compact_boundary')
   ) {
     return [];
   }
@@ -267,67 +247,22 @@ export const readChatContext = (
       }
     : undefined;
 
-const readLimits = (raw: unknown): IStudioChatLimits | undefined => {
-  if (!isRecord(raw) || count(raw.at) === 0) {
-    return undefined;
-  }
-  const keep = (limit: unknown) => {
-    if (!isRecord(limit)) {
-      return undefined;
-    }
-    const used = count(limit.used);
-    const resetsAt = count(limit.resetsAt);
-    return used <= 1 && resetsAt > 0 ? { used, resetsAt } : undefined;
-  };
-  return {
-    at: count(raw.at),
-    ...known({
-      fiveHour: keep(raw.fiveHour),
-      week: keep(raw.week),
-      fable: keep(raw.fable),
-      opus: keep(raw.opus),
-    }),
-  };
-};
-
 interface IChatUsageDeps {
-  root: string;
   /** A project's context, kept with its chat. */
   contextOf(projectId: string): IStudioChatContext | undefined;
   setContext(projectId: string, context: IStudioChatContext): void;
   /** The window is told of a change. */
   send(channel: string, payload: unknown): void;
-  logger?: { warn(message: string): void };
 }
 
-/**
- * The member's use, as it is reported: each project's context, and the
- * plan's limits, which are the account's and kept in one file for all.
- */
+/** Each project's context, as its chat's Claude Code reports it. */
 const createChatUsage = ({
-  root,
   contextOf: keptContextOf,
   setContext,
   send,
-  logger,
 }: IChatUsageDeps) => {
-  const limitsFile = path.join(root, 'limits.json');
   /** The model each project's last message was written by. */
   const models = new Map<string, string>();
-  let limits: IStudioChatLimits | undefined;
-  let limitsRead = false;
-
-  const currentLimits = () => {
-    if (!limitsRead) {
-      limitsRead = true;
-      try {
-        limits = readLimits(JSON.parse(fs.readFileSync(limitsFile, 'utf8')));
-      } catch {
-        limits = undefined;
-      }
-    }
-    return limits;
-  };
 
   const changeContext = (projectId: string, context: IStudioChatContext) => {
     setContext(projectId, context);
@@ -335,43 +270,8 @@ const createChatUsage = ({
   };
 
   return {
-    limits: currentLimits,
-
-    /** A report from a project's chat, or from no chat (`projectId` none). */
-    note: (projectId: string | undefined, usage: TChatUsage) => {
-      if (usage.type === 'limits') {
-        // A report with some windows leaves the others as they were read,
-        // each until its own reset makes the old figure wrong.
-        const now = Date.now();
-        const still = (limit: IStudioChatLimit | undefined) =>
-          limit && limit.resetsAt > now ? limit : undefined;
-        const before = currentLimits();
-        const latest = (name: TStudioChatLimitWindow) =>
-          usage.limits[name] ?? still(before?.[name]);
-        limits = {
-          ...known({
-            fiveHour: latest('fiveHour'),
-            week: latest('week'),
-            fable: latest('fable'),
-            opus: latest('opus'),
-          }),
-          at: now,
-        };
-        limitsRead = true;
-        try {
-          writeFileAtomically(limitsFile, JSON.stringify(limits), 0o600);
-        } catch (error) {
-          // Shown all the same; only the copy for the next start is missing.
-          logger?.warn(
-            `The Studio chat's limits were not kept: ${String(error)}`,
-          );
-        }
-        send('studio-chat-limits', limits);
-        return;
-      }
-      if (projectId === undefined) {
-        return;
-      }
+    /** A report from a project's chat. */
+    note: (projectId: string, usage: TChatUsage) => {
       const kept = keptContextOf(projectId);
       if (usage.type === 'context') {
         if (usage.model) {
