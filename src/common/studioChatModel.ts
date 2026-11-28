@@ -136,10 +136,11 @@ export interface IStudioChatModels {
   others?: IStudioChatLine[];
   /**
    * The ids Claude Code listed a line by, where it gave the line's own name
-   * no entry: `claude-fable-5-2[1m]` for Fable. The line's name starts the
-   * same model (`fable` and that id both start Fable 5.2 with a million
-   * tokens of context, asked of Claude Code 2.1.332), so a chat that chose
-   * one of them chose the line, and the picker shows it on the line's row.
+   * no entry (`claude-fable-5-2[1m]` for Fable), and a line's long-context
+   * variants beside it (`opus[1m]`). The line's name starts the same model
+   * (`fable` and that id both start Fable 5.2 with a million tokens of
+   * context, asked of Claude Code 2.1.332), so a chat that chose one of
+   * them chose the line, and the picker shows it on the line's row.
    */
   standIns?: { id: TStudioChatModel; line: TStudioChatModel }[];
   /** The model `default` starts, by its name, where Claude Code said it. */

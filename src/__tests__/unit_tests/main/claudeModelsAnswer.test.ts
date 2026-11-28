@@ -116,7 +116,9 @@ describe("Claude Code's answer", () => {
     expect(read?.defaultName).toBe('Opus 5.5');
   });
 
-  it('keeps a long-context variant of a named line apart, named for its model', () => {
+  // Session 0, 2026-11-27: "[1m]-style suffixes never show to the member as
+  // a separate model".
+  it('never shows a long-context variant as a model of its own: it is the row that starts the same model', () => {
     const line = answered((models) => [
       ...models,
       {
@@ -124,10 +126,33 @@ describe("Claude Code's answer", () => {
         resolvedModel: 'claude-opus-5-5',
         displayName: 'Opus (1M context)',
       },
+      {
+        value: 'claude-haiku-4-5-20251001[1m]',
+        resolvedModel: 'claude-haiku-4-5-20251001',
+        displayName: 'Haiku 4.5 (1M context)',
+      },
+    ]);
+    const read = readModelsAnswer(line);
+    expect(read?.lines).toEqual(LIST.lines);
+    expect(read?.others).toEqual(LIST.others);
+    // A chat that chose the line's variant chose the line.
+    expect(read?.standIns).toEqual([{ id: 'opus[1m]', line: 'opus' }]);
+  });
+
+  // The control: a long-context id with no plain row of its model is the
+  // only row that model has, and stays.
+  it('keeps a long-context id that is the only row of its model', () => {
+    const line = answered((models) => [
+      ...models,
+      {
+        value: 'claude-sonnet-4-6[1m]',
+        resolvedModel: 'claude-sonnet-4-6',
+        displayName: 'Sonnet 4.6',
+      },
     ]);
     expect(readModelsAnswer(line)?.others).toContainEqual({
-      id: 'opus[1m]',
-      name: 'Opus 5.5 (1M context)',
+      id: 'claude-sonnet-4-6[1m]',
+      name: 'Sonnet 4.6',
     });
   });
 
@@ -194,10 +219,10 @@ describe("Claude Code's answer", () => {
     expect(read?.lines.map(({ id }) => id)).toEqual(
       LIST.lines.map(({ id }) => id),
     );
-    // By line, in the lines' order, newest first.
+    // By line, in the lines' order, newest first; the long-context variant
+    // of Opus is Opus.
     expect(read?.others?.map(({ id }) => id)).toEqual([
       'claude-opus-5-6',
-      'opus[1m]',
       'claude-haiku-4-5-20251001',
     ]);
   });

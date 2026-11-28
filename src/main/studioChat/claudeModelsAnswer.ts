@@ -268,14 +268,36 @@ const listOf = (given: IEntry[], named: Set<string>) => {
     others.push(entry);
   });
   const shownLines = distinct(lines, MOST_LINES);
+  // A long-context id is never a model of its own to the member: beside
+  // the row that starts the same model (its id without `[1m]`, or the same
+  // model by Claude Code's word) it is that row, and a chat that chose it
+  // chose the line. Every model it was measured on already runs with a
+  // million tokens by its plain name (`fable`, `opus`, `claude-opus-4-8`,
+  // Claude Code 2.1.332), so the variant offers nothing the row does not.
+  const sameModel = (long: IEntry) => (row: IEntry) =>
+    row.line.id === long.line.id.replace(LONG, '') ||
+    (long.started !== undefined && row.started === long.started);
+  const plainOthers = others.filter(({ line }) => !LONG.test(line.id));
+  const longStandIns: { id: string; line: string }[] = [];
+  const keptOthers = others.filter((entry) => {
+    if (!LONG.test(entry.line.id)) {
+      return true;
+    }
+    const line = shownLines.find(sameModel(entry));
+    if (line) {
+      longStandIns.push({ id: entry.line.id, line: line.line.id });
+      return false;
+    }
+    return !plainOthers.some(sameModel(entry));
+  });
   return {
     lines: shownLines,
     others: distinct(
-      others,
+      keptOthers,
       MOST_OTHERS,
       shownLines.map(({ line }) => line),
     ),
-    standIns,
+    standIns: [...standIns, ...longStandIns],
   };
 };
 
