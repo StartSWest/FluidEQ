@@ -847,7 +847,7 @@ const studio = {
   'studio.problem.model-too-heavy':
     'The 3D models together have more than 500,000 triangles or more than 16 million pixels of pictures.',
   'studio.problem.pack-too-large':
-    'The whole scene is larger than 9 MB, the most a scene can be shared as. Use lighter models or a smaller picture.',
+    'The whole scene is larger than 10 MB, the most a scene can be shared as. Use lighter models or a smaller picture.',
   'studio.problem.bad-json': 'pack.json is not valid JSON.',
   'studio.problem.missing-file': 'A file the scene needs is missing.',
   'studio.problem.unsafe-path':

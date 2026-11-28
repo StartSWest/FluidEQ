@@ -744,7 +744,7 @@ const studio = {
   'studio.problem.model-too-heavy':
     '3D 模型加起来超过了 50 万个三角形或 1600 万像素的图片。',
   'studio.problem.pack-too-large':
-    '整个场景超过了 9 MB，这是可分享场景的上限。请使用更轻的模型或更小的图片。',
+    '整个场景超过了 10 MB，这是可分享场景的上限。请使用更轻的模型或更小的图片。',
   'studio.problem.bad-json': 'pack.json 不是有效的 JSON。',
   'studio.problem.missing-file': '缺少场景需要的文件。',
   'studio.problem.unsafe-path': '文件名必须是本文件夹中文件的普通名称。',

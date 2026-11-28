@@ -296,7 +296,7 @@ terrain up to 256 by 256 with 256 rows. Models: 16, and between them 6 MB,
 500,000 triangles and 16 million pixels of pictures; each at most 1024
 nodes, 8 morph targets a mesh and 1024 channels in a clip. 32 KB per GLSL
 piece and 256 KB for all of a world's GLSL together; material and model ids
-distinct however they are capitalised; the pack as a whole at most 9 MB.
+distinct however they are capitalised; the pack as a whole at most 10 MB.
 
 And a frame's budget (`src/common/sceneWorldCost.ts`): 2 million vertices
 across every mesh, copy, point, ribbon, terrain and model placement — the
@@ -310,7 +310,7 @@ spheres.
 
 Past a bound, a part is left out, not the world — and past the budget with
 its shadows counted, the last shadow casters stop casting before anything is
-left out. Two bounds are the whole scene's, not a part's: a pack over 9 MB
+left out. Two bounds are the whole scene's, not a part's: a pack over 10 MB
 cannot travel, and in the Studio a file too large, a model that is not one
 FluidEQ reads, models too heavy together or a pack too large stop the build
 and say which.

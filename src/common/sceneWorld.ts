@@ -387,8 +387,8 @@ export const WORLD_LIMITS = {
   frames: 256,
   models: 16,
   /**
-   * Decoded glTF bytes across every model: 8 MB as base64, inside the 9 MB a
-   * whole pack may be (`MAX_PACK_BYTES`). At 8 MB decoded a world's models
+   * Decoded glTF bytes across every model: 8 MB as base64, inside the 10 MB
+   * a whole pack may be (`MAX_PACK_BYTES`). At 8 MB decoded a world's models
    * alone made a pack no listener could download.
    */
   modelBytes: 6 * 1024 * 1024,

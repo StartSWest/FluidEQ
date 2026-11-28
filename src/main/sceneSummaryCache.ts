@@ -12,7 +12,7 @@ import fs from 'fs';
  *
  * Listing used to read every scene afresh: decrypt it (`sceneCacheFile.ts`),
  * verify its signature or run every member rule again, then stringify and
- * hash the whole pack for its revision — up to 9 MB a pack. It is asked on
+ * hash the whole pack for its revision — up to 10 MB a pack. It is asked on
  * every focus of the window (`comeBackSignals.ts`: the gallery wants the
  * makers of the installed scenes, the official packs their versions), and
  * once per synced scene inside that, so coming back to FluidEQ held main for

@@ -33,7 +33,7 @@ const bridgeCall = (name: string): TBridgeCall | undefined => {
  * that saved version stays theirs even after it leaves the server").
  *
  * One save at a time; it shows as running from the press until main
- * answers — a pack of up to 9 MB read whole, so there is no amount to
+ * answers — a pack of up to 10 MB read whole, so there is no amount to
  * count — and it can be cancelled. Main finishes a save whatever this page
  * does, so leaving the page only stops this page listening for the answer;
  * the version is then among the scene's kept ones the next time it opens.

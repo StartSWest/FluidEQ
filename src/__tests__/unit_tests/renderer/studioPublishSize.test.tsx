@@ -67,8 +67,12 @@ describe("a scene's weight", () => {
     ).toBe(true);
   });
 
+  it('is 10 MB (Ivan, 2026-11-28: "time to increase the limit to 10 mb")', () => {
+    expect(MAX_PUBLISH_BYTES).toBe(10 * 1024 * 1024);
+  });
+
   it('reads in megabytes to one decimal where it counts', () => {
-    expect(formatPackBytes(MAX_PUBLISH_BYTES, 'en')).toBe('5 MB');
+    expect(formatPackBytes(MAX_PUBLISH_BYTES, 'en')).toBe('10 MB');
     expect(formatPackBytes(4.8 * 1024 * 1024, 'en')).toBe('4.8 MB');
     expect(formatPackBytes(4.8 * 1024 * 1024, 'de')).toBe('4,8 MB');
     // Under a tenth of a megabyte "0 MB" says nothing.
@@ -91,7 +95,7 @@ describe('the publish screen', () => {
       />,
     );
     expect(
-      screen.getByText('studio.publish.sizeOf {"size":"3 MB","limit":"5 MB"}'),
+      screen.getByText('studio.publish.sizeOf {"size":"3 MB","limit":"10 MB"}'),
     ).toBeInTheDocument();
     expect(screen.getByRole('meter')).toHaveAttribute(
       'aria-valuenow',
@@ -104,20 +108,45 @@ describe('the publish screen', () => {
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
+  it('lets a 5.7 MB 3D scene through, which the old 5 MB limit refused', () => {
+    // The scene in Ivan's report of 2026-11-28: 2.5 MB of artwork, 3.1 MB of
+    // models and 0.1 MB of code, shown red as "5.7 MB of 5 MB".
+    const { container } = render(
+      <StudioPublishSize
+        size={{
+          total: 5.7 * 1048576,
+          artwork: 2.5 * 1048576,
+          models: 3.1 * 1048576,
+          rest: 0.1 * 1048576,
+          limit: MAX_PUBLISH_BYTES,
+        }}
+      />,
+    );
+    expect(
+      screen.getByText(
+        'studio.publish.sizeOf {"size":"5.7 MB","limit":"10 MB"}',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(container.querySelector('.studio-publish-size')).not.toHaveClass(
+      'is-over',
+    );
+  });
+
   it('past the limit, says so and what to make smaller', () => {
     const { container } = render(
       <StudioPublishSize
         size={{
-          total: 6 * 1048576,
-          artwork: 5.5 * 1048576,
-          models: 0,
+          total: 10.5 * 1048576,
+          artwork: 6 * 1048576,
+          models: 4 * 1048576,
           rest: 0.5 * 1048576,
           limit: MAX_PUBLISH_BYTES,
         }}
       />,
     );
     expect(screen.getByRole('alert')).toHaveTextContent(
-      'studio.publish.tooLarge {"limit":"5 MB"}',
+      'studio.publish.tooLarge {"limit":"10 MB"}',
     );
     expect(container.querySelector('.studio-publish-size')).toHaveClass(
       'is-over',

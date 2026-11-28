@@ -805,7 +805,7 @@ const studio = {
   'studio.problem.model-too-heavy':
     '3D 모델에는 총 500,000개 이상의 삼각형 또는 1,600만 개 이상의 픽셀이 포함되어 있습니다.',
   'studio.problem.pack-too-large':
-    '전체 장면은 9MB보다 크며, 이는 장면을 공유할 수 있는 최대 크기입니다. 더 가벼운 모델이나 더 작은 사진을 사용하십시오.',
+    '전체 장면은 10MB보다 크며, 이는 장면을 공유할 수 있는 최대 크기입니다. 더 가벼운 모델이나 더 작은 사진을 사용하십시오.',
   'studio.problem.bad-json': 'pack.json은 유효한 JSON이 아닙니다.',
   'studio.problem.missing-file': '장면에 필요한 파일이 누락되었습니다.',
   'studio.problem.unsafe-path':

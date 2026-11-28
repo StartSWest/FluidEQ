@@ -75,7 +75,7 @@ people, its hanami a garden of cherry trees. So:
   drawn smaller. Standing on water, sink its thin, see-through bottom rows
   just under the waterline, so the picture and its reflection meet without
   a line.
-- THE WHOLE SCENE PUBLISHES AT 5 MB AT MOST - artwork, models,
+- THE WHOLE SCENE PUBLISHES AT 10 MB AT MOST - artwork, models,
   code and all - because everybody who picks it downloads all of it, and
   the publish screen refuses more. The artwork is nearly all of it: give
   each picture the pixels it shows on screen and no more, share one strip

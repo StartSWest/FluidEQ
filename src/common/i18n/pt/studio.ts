@@ -833,7 +833,7 @@ const studio = {
   'studio.problem.model-too-heavy':
     'Juntos, os modelos 3D passam de 500.000 triângulos ou de 16 milhões de pixels de imagem.',
   'studio.problem.pack-too-large':
-    'A cena inteira passa de 9 MB, o máximo que uma cena pode ter para ser compartilhada. Use modelos mais leves ou uma imagem menor.',
+    'A cena inteira passa de 10 MB, o máximo que uma cena pode ter para ser compartilhada. Use modelos mais leves ou uma imagem menor.',
   'studio.problem.bad-json': 'O pack.json não é um JSON válido.',
   'studio.problem.missing-file': 'Falta um arquivo de que a cena precisa.',
   'studio.problem.unsafe-path':

@@ -1,5 +1,6 @@
 import {
   isScenePackEnvelope,
+  MAX_PACK_BYTES,
   parseScenePackPayload,
   type IScenePack,
   type IScenePackEnvelope,
@@ -8,8 +9,15 @@ import { verifyScenePackEnvelope } from '../scenePackVerify';
 import type { IGalleryAuth } from './galleryAccess';
 import { fetchSceneMedia } from './sceneMediaApi';
 
-/** Same bounded envelope as the official pack download, including artwork. */
-export const MAX_ENVELOPE_BYTES = 12 * 1024 * 1024;
+/**
+ * Same bounded envelope as the official pack download, including artwork:
+ * the pack as base64, four bytes for every three, with its key and
+ * signature — 1.4 times the largest pack, the room a member's scene file
+ * gets (`MAX_MEMBER_SCENE_FILE_BYTES`). It was a fixed 12 MiB, which held a
+ * 9 MiB pack and would have refused a 10 MiB one once packs could be that
+ * large (2026-11-28).
+ */
+export const MAX_ENVELOPE_BYTES = Math.ceil(MAX_PACK_BYTES * 1.4);
 
 export interface IFetchedOfficialScene {
   pack: IScenePack;

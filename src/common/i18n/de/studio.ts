@@ -854,7 +854,7 @@ const studio = {
   'studio.problem.model-too-heavy':
     'Die 3D-Modelle haben zusammen mehr als 500.000 Dreiecke oder mehr als 16 Millionen Bildpixel.',
   'studio.problem.pack-too-large':
-    'Die ganze Szene ist größer als 9 MB, die eine geteilte Szene höchstens haben darf. Verwenden Sie leichtere Modelle oder ein kleineres Bild.',
+    'Die ganze Szene ist größer als 10 MB, die eine geteilte Szene höchstens haben darf. Verwenden Sie leichtere Modelle oder ein kleineres Bild.',
   'studio.problem.bad-json': 'pack.json ist kein gültiges JSON.',
   'studio.problem.missing-file': 'Eine Datei, die die Szene braucht, fehlt.',
   'studio.problem.unsafe-path':

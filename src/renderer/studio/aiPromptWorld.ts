@@ -1,4 +1,5 @@
 import { SCENE_DAYLIGHT_PARAM } from 'common/sceneDaylight';
+import { MAX_PACK_BYTES } from 'common/scenePacks';
 import {
   WORLD_INSTANCE_SIGNALS,
   WORLD_LIMITS,
@@ -233,7 +234,7 @@ of it in the world, below.
 
 BOUNDS AND THE FRAME'S BUDGET. ${WORLD_LIMITS.nodes} nodes, ${WORLD_LIMITS.depth} deep; ${WORLD_LIMITS.instances.toLocaleString('en-US')} copies and
 points in all; ${WORLD_LIMITS.materials} materials; ribbons of ${WORLD_LIMITS.ribbonSegments} segments; the pack at most
-9 MB. Every frame may draw ${(WORLD_LIMITS.frameVertices / 1_000_000).toString()} million vertices across everything - the
+${MAX_PACK_BYTES / MB} MB. Every frame may draw ${(WORLD_LIMITS.frameVertices / 1_000_000).toString()} million vertices across everything - the
 world again for a mirror and again behind glass, a shadow caster again for
 every pass of a light that shadows it (six for a point light), each placed
 model the whole model again - and work out ${WORLD_LIMITS.frameFormulas.toLocaleString('en-US')} per-copy and

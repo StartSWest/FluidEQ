@@ -833,7 +833,7 @@ const studio = {
   'studio.problem.model-too-heavy':
     '3D モデルの合計が、三角形 50 万個または画像 1,600 万ピクセルを超えています。',
   'studio.problem.pack-too-large':
-    'シーン全体が、共有できる上限の 9 MB を超えています。軽いモデルか小さい画像を使ってください。',
+    'シーン全体が、共有できる上限の 10 MB を超えています。軽いモデルか小さい画像を使ってください。',
   'studio.problem.bad-json': 'pack.json が正しい JSON ではありません。',
   'studio.problem.missing-file': 'シーンに必要なファイルがありません。',
   'studio.problem.unsafe-path':

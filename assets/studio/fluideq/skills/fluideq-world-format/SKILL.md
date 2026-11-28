@@ -190,7 +190,7 @@ of it in the world, below.
 
 BOUNDS AND THE FRAME'S BUDGET. 512 nodes, 8 deep; 60,000 copies and
 points in all; 64 materials; ribbons of 2048 segments; the pack at most
-9 MB. Every frame may draw 2 million vertices across everything - the
+10 MB. Every frame may draw 2 million vertices across everything - the
 world again for a mirror and again behind glass, a shadow caster again for
 every pass of a light that shadows it (six for a point light), each placed
 model the whole model again - and work out 100,000 per-copy and

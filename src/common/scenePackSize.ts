@@ -13,12 +13,15 @@ import { MAX_PACK_BYTES, type IScenePack } from './scenePacks';
  *
  * Every listener downloads the whole pack to play it, so its weight is paid
  * by everybody who picks it. FluidEQ's own scenes weigh 1 to 7 MB and the
- * member scenes in the gallery 2.0, 2.6 and 4.8 MB (measured 2026-11-07):
- * 5 MB leaves a finished scene room and makes a heavy one look at its
- * artwork first. A download is still accepted up to `MAX_PACK_BYTES`, so
- * nothing already published stops playing.
+ * member scenes in the gallery 2.0, 2.6 and 4.8 MB (measured 2026-11-07).
+ * It was 5 MB from then until a 3D scene with 2.5 MB of artwork and 3.1 MB
+ * of models could not be published (Ivan, 2026-11-28: "time to increase the
+ * limit to 10 mb"). The server signs to the same number
+ * (`MAX_PACK_JSON_BYTES`), and every FluidEQ up to 2.5 downloads a member's
+ * scene to about 9.4 MB, so one between that and 10 MB opens only on a
+ * FluidEQ that has this limit.
  */
-export const MAX_PUBLISH_BYTES = 5 * 1024 * 1024;
+export const MAX_PUBLISH_BYTES = 10 * 1024 * 1024;
 
 export interface IScenePackSize {
   /** The pack as it travels, whole. */

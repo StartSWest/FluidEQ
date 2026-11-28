@@ -727,7 +727,7 @@ const studio = {
   'studio.problem.model-too-heavy':
     '3D 模型總共有超過 50 萬個三角形或超過 1,600 萬畫素的圖片。',
   'studio.problem.pack-too-large':
-    '整個場景大於9MB，最大一個場景可以共享。使用較輕的模型或較小的圖片。',
+    '整個場景超過了 10 MB，這是可分享場景的上限。請使用較輕的模型或較小的圖片。',
   'studio.problem.bad-json': 'pack.json 不是有效的 JSON。',
   'studio.problem.missing-file': '場景所需的檔案遺失。',
   'studio.problem.unsafe-path': '檔案名稱必須是該資料夾中檔案的普通名稱。',

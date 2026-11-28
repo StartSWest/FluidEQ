@@ -100,7 +100,10 @@ export type { IScenePaletteValue } from './scenePalette';
 
 // Accommodate a 6 MiB lossless atlas after base64 expansion, plus the bounded
 // shader and metadata. Decoded artwork dimensions are checked separately.
-export const MAX_PACK_BYTES = 9 * 1024 * 1024;
+// 10 MiB from 2026-11-28, with the publish limit (`MAX_PUBLISH_BYTES`): a
+// reader that stopped at 9 would refuse a scene the Studio let through. Every
+// FluidEQ up to 2.5 still stops at 9 MiB for an official pack.
+export const MAX_PACK_BYTES = 10 * 1024 * 1024;
 
 export interface IScenePack {
   schema: number;

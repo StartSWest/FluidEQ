@@ -7,6 +7,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { CSSProperties, ReactNode } from 'react';
 import aurora from '../../../../assets/tour/scene-aurora.jpg';
 import type { TranslationKey } from '../../../common/i18n';
+import {
+  formatPackBytes,
+  MAX_PUBLISH_BYTES,
+} from '../../../common/scenePackSize';
 import { PALETTE_PRESETS } from '../../../common/scenePalette';
 import { useTranslation } from '../../utils/I18nContext';
 
@@ -57,8 +61,16 @@ const CHOICES = ['clear', 'rain', 'snow'] as const;
 
 const VERSIONS = [12, 11, 10] as const;
 
+/**
+ * The package drawn at 68% of the limit, which is what the meter's three
+ * parts fill (`_tour-release24b.scss`: 44, 18 and 6), against the limit the
+ * Studio holds a scene to now — so a raise of the limit never leaves the
+ * picture quoting the old one.
+ */
+const SHOWN_SHARE = 0.68;
+
 export default function SceneControlsVisual() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   return (
     <div
       className="controls-visual"
@@ -131,7 +143,10 @@ export default function SceneControlsVisual() {
           <span>
             <strong>{t('studio.publish.size')}</strong>
             <small>
-              {t('studio.publish.sizeOf', { size: '3.4 MB', limit: '5 MB' })}
+              {t('studio.publish.sizeOf', {
+                size: formatPackBytes(MAX_PUBLISH_BYTES * SHOWN_SHARE, locale),
+                limit: formatPackBytes(MAX_PUBLISH_BYTES, locale),
+              })}
             </small>
           </span>
           <span className="controls-visual__meter">
