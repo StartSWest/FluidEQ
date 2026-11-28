@@ -159,3 +159,37 @@ export const withMadePictures = (
         ],
       };
 };
+
+/**
+ * The project's pictures as each running step that may write one began, by
+ * its tool use's id: a picture new or changed since is that step's. Only a
+ * step of the member's own tools writes pictures this way; reads, edits and
+ * FluidEQ's tools say what they did themselves.
+ */
+export const createStepPictures = () => {
+  const began = new Map<string, TPictureSnapshot>();
+  return {
+    /** A step began. */
+    began: (step: IStudioChatStep, folder: string) => {
+      if (step.kind === 'other' && !began.has(step.id)) {
+        began.set(step.id, snapshotPictures(folder));
+      }
+    },
+    /** A step ended: the reply with what it wrote, when it went well. */
+    ended: (
+      reply: TReply,
+      stepId: string,
+      failed: boolean,
+      folder: string,
+    ): TReply => {
+      const before = began.get(stepId);
+      began.delete(stepId);
+      return before && !failed
+        ? withMadePictures(reply, stepId, folder, before)
+        : reply;
+    },
+    /** A reply closed: what its steps began with is let go. */
+    forget: (reply: TReply) =>
+      reply.steps.forEach((step) => began.delete(step.id)),
+  };
+};

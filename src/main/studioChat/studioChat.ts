@@ -38,8 +38,15 @@ import { createPastChats } from './pastChats';
 import { createTranscripts } from './chatTranscript';
 import createTranscriptCache from './transcriptCache';
 import { stageViewLine } from '../studioAgent/viewsTool';
-import { findClaudeCode, startClaudeCode, systemEnv } from './claudeCode';
-import { createClaudeModels } from './claudeModels';
+import createAccountSwitch from './accountSwitch';
+import {
+  claudeConfigFolder,
+  findClaudeCode,
+  signedInAccount,
+  startClaudeCode,
+  systemEnv,
+} from './claudeCode';
+import { createClaudeModels, CREDENTIALS, watchFolder } from './claudeModels';
 import {
   readShippedSkills,
   removeOldChatPlugin,
@@ -230,9 +237,36 @@ export const createStudioChat = ({
     );
   }
 
+  // The Claude account signed in, followed from the first chat on: a switch
+  // ends the chats still on the account left (`chatSessions.switched`).
+  const accountSwitch = createAccountSwitch({
+    who: () => signedInAccount(),
+    folder: () => claudeConfigFolder(systemEnv()),
+    file: CREDENTIALS,
+    watch: watchFolder,
+    switched: () => chatSessions.switched(),
+  });
+
   const chatSessions = createChatSessions({
     root,
     ...(mustAsk ? { mustAsk } : {}),
+    following: accountSwitch.follow,
+    // What waited on a chat ended for a switch goes on, on the new account,
+    // as it would have on the old one; a chat answering again by then reads
+    // it at its next step.
+    retired: (projectId, folder) => {
+      if (isBusy(projectId)) {
+        return;
+      }
+      const waiting = queue.takeWaiting(projectId);
+      if (waiting.length > 0) {
+        dispatch(projectId, folder, waiting).catch((error: unknown) => {
+          logger?.warn(
+            `What waited in a Studio chat did not go on after the Claude account changed: ${String(error)}`,
+          );
+        });
+      }
+    },
     offered: (model) => isStudioChatModelOffered(claudeModels.known(), model),
     refuse: claudeModels.refuse,
     sessions,
@@ -474,7 +508,10 @@ export const createStudioChat = ({
   registerChatHandlers({
     handle,
     models: claudeModels.list,
-    refreshModels: claudeModels.refresh,
+    signedIn: () => {
+      claudeModels.refresh();
+      accountSwitch.check();
+    },
     agentProject,
     isBusy,
     activeChat,
@@ -509,6 +546,7 @@ export const createStudioChat = ({
     trusted: (projectId: string) => pictures.asks.trusted(projectId),
     dispose: () => {
       chatWindow.dispose();
+      accountSwitch.dispose();
       usageRead.dispose();
       pictures.dispose().catch(() => undefined);
       past.dispose();

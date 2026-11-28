@@ -68,8 +68,11 @@ import {
  * only true of the run that heard it.
  */
 
-/** Claude Code's sign-in, in its config folder (`signInWindow.ts` waits on it too). */
-const CREDENTIALS = '.credentials.json';
+/**
+ * Claude Code's sign-in, in its config folder (`signInWindow.ts` waits on it
+ * too, and `accountSwitch.ts` follows it).
+ */
+export const CREDENTIALS = '.credentials.json';
 
 /** Watches a folder: `changed` hears each name that changed in it. */
 export type TWatchFolder = (
@@ -78,7 +81,7 @@ export type TWatchFolder = (
 ) => (() => void) | undefined;
 
 /** `fs.watch`, holding nothing open that would keep the app from quitting. */
-const watchFolder: TWatchFolder = (folder, changed) => {
+export const watchFolder: TWatchFolder = (folder, changed) => {
   try {
     const watcher = fs.watch(folder, { persistent: false }, (_event, name) =>
       changed(typeof name === 'string' ? name : undefined),

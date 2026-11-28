@@ -16,33 +16,15 @@ import type { TChatQueue } from './chatQueue';
 import { stopFields, type IChatStop } from './chatStop';
 import type { TChatStreamEvent } from './chatStream';
 import { keepReplyVersion, nextReplyVersion } from './chatVersions';
-import {
-  snapshotPictures,
-  withMadePictures,
-  type TPictureSnapshot,
-} from './madePictures';
+import { createStepPictures } from './madePictures';
 import {
   clearOldNote,
   noteDue,
+  noteAskWords,
   noteMarkOf,
-  noteTranslationAsk,
-  FIRST_VERSION_NOTE_ASK,
-  VERSION_NOTE_ASK,
   type INoteTranslation,
 } from './noteDue';
 import withEvent from './replyEvents';
-
-/** What the chat is asked: the member's line in every language, a first
- * publication's line (what the scene is), or an update's (what changed). */
-const noteAskWords = (
-  translation: INoteTranslation | undefined,
-  first: boolean,
-) => {
-  if (translation) {
-    return noteTranslationAsk(translation);
-  }
-  return first ? FIRST_VERSION_NOTE_ASK : VERSION_NOTE_ASK;
-};
 
 type TReply = Extract<TStudioChatEntry, { kind: 'claude' }>;
 type TWords = Pick<IChatMessage, 'words' | 'picture'>;
@@ -107,10 +89,7 @@ const createChatTurns = ({
   const write = (session: IChatSession, line: string) => {
     session.process.write(line);
   };
-  // The project's pictures as each running step that may write one began,
-  // by its tool use's id: a picture new or changed since is that step's
-  // (`madePictures.ts`).
-  const stepPictures = new Map<string, TPictureSnapshot>();
+  const stepPictures = createStepPictures();
 
   /** A new reply, working, shown before Claude has said a word. */
   const open = (projectId: string, session: IChatSession, id?: string) => {
@@ -143,7 +122,7 @@ const createChatTurns = ({
     }
     session.reply = undefined;
     session.replyFrom = undefined;
-    reply.steps.forEach((step) => stepPictures.delete(step.id));
+    stepPictures.forget(reply);
     session.controller?.abort();
     session.controller = undefined;
     dropAsks(projectId);
@@ -170,6 +149,11 @@ const createChatTurns = ({
    * next step. The line's uuid, or nothing when nothing waited.
    */
   const hand = (projectId: string, session: IChatSession) => {
+    // On the account the member left: what waits goes to the Claude Code
+    // that follows this one, on the account signed in now.
+    if (session.retiring) {
+      return undefined;
+    }
     const line = randomUUID();
     const messages = queue.send(projectId, line);
     if (messages.length === 0) {
@@ -218,6 +202,20 @@ const createChatTurns = ({
     if (noteDue(mark, noteMarkOf(session.folder))) {
       askNote(projectId, session);
     }
+  };
+
+  /** Lines handed over and not read yet taken back from Claude Code: they wait again. */
+  const withdraw = (projectId: string, session: IChatSession) => {
+    queue.lines(projectId).forEach((line) =>
+      write(
+        session,
+        controlLine({
+          subtype: 'cancel_async_message',
+          message_uuid: line,
+        }),
+      ),
+    );
+    queue.unsend(projectId);
   };
 
   /** Claude Code read a line: when it was queued, it joins the chat there. */
@@ -342,6 +340,16 @@ const createChatTurns = ({
       if (!session.reply) {
         return false;
       }
+      // On the account the member left, nothing more is handed to it: the
+      // step it is on ends, and so does the reply, so that what waits is
+      // read next by a Claude Code on the account signed in now.
+      if (session.retiring) {
+        if (queue.list(projectId).length > 0) {
+          session.sendingNow = true;
+          write(session, controlLine({ subtype: 'interrupt' }));
+        }
+        return true;
+      }
       const handed = queue.lines(projectId);
       const line = hand(projectId, session) ?? handed[handed.length - 1];
       if (line === undefined) {
@@ -359,7 +367,10 @@ const createChatTurns = ({
       return true;
     },
 
-    /** One event of Claude Code's stream, into the reply it belongs to. */
+    /**
+     * One event of Claude Code's stream, into the reply it belongs to. At a
+     * reply's end, how it ended.
+     */
     onEvent: (
       projectId: string,
       session: IChatSession,
@@ -368,14 +379,14 @@ const createChatTurns = ({
         TChatStreamEvent,
         { type: 'session' } | { type: 'permission' }
       >,
-    ) => {
+    ): 'done' | 'stopped' | 'failed' | undefined => {
       if (event.type === 'read') {
         read(projectId, session, event);
-        return;
+        return undefined;
       }
       const { reply } = session;
       if (!reply) {
-        return;
+        return undefined;
       }
       if (event.type === 'end') {
         let state: 'done' | 'stopped' | 'failed' = 'done';
@@ -392,6 +403,14 @@ const createChatTurns = ({
           state,
           event.failure ? { ...event, failure: event.failure } : undefined,
         );
+        // On the account the member left, it takes nothing more: lines it
+        // was handed before the switch and has not read wait again, for the
+        // Claude Code that follows, and the note is judged at that one's
+        // next good end, against the scene as this turn found it.
+        if (session.retiring) {
+          withdraw(projectId, session);
+          return state;
+        }
         // Stopped or done, what waits goes on, read as Claude's next turn
         // (2026-10-16: "stop but read any pending message and continue with
         // those until user stop them"). A failure keeps it waiting: the
@@ -402,26 +421,18 @@ const createChatTurns = ({
             settleNote(projectId, session);
           }
         }
-        return;
+        return state;
       }
       session.reply = withEvent(reply, event);
       if (event.type === 'step') {
-        // Only a step of the member's own tools writes pictures this way;
-        // reads, edits and FluidEQ's tools say what they did themselves.
-        if (event.step.kind === 'other' && !stepPictures.has(event.step.id)) {
-          stepPictures.set(event.step.id, snapshotPictures(session.folder));
-        }
+        stepPictures.began(event.step, session.folder);
       } else if (event.type === 'step-end') {
-        const before = stepPictures.get(event.id);
-        stepPictures.delete(event.id);
-        if (before && !event.failed) {
-          session.reply = withMadePictures(
-            session.reply,
-            event.id,
-            session.folder,
-            before,
-          );
-        }
+        session.reply = stepPictures.ended(
+          session.reply,
+          event.id,
+          event.failed,
+          session.folder,
+        );
       }
       if (event.type !== 'text') {
         saveWith(projectId, { ...session.reply });
@@ -431,6 +442,7 @@ const createChatTurns = ({
       if (event.type === 'step') {
         hand(projectId, session);
       }
+      return undefined;
     },
 
     /**
@@ -442,17 +454,7 @@ const createChatTurns = ({
      */
     stop: (projectId: string, session: IChatSession) => {
       if (!session.reply) {
-        const lines = queue.lines(projectId);
-        lines.forEach((line) =>
-          write(
-            session,
-            controlLine({
-              subtype: 'cancel_async_message',
-              message_uuid: line,
-            }),
-          ),
-        );
-        queue.unsend(projectId);
+        withdraw(projectId, session);
         return;
       }
       if (session.stopping) {

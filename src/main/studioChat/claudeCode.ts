@@ -11,6 +11,7 @@ import path from 'path';
 import {
   accountEmailOf,
   accountPlanOf,
+  studioChatLimitsKey,
   type TStudioChatAvailability,
 } from '../../common/studioChat';
 import untilSignedIn from './signInWindow';
@@ -177,6 +178,26 @@ export const claudeCodeAvailability = async (
   // Installed but answering nothing readable: an older Claude Code without
   // `auth status`, which the chat's own reply will say more about.
   return readAuthStatus(await askAuthStatus(executable)) ?? { state: 'ready' };
+};
+
+/**
+ * Which account Claude Code is signed in to, one key per account, compared
+ * the way the accounts card tells readings apart (`studioChatLimitsKey`), or
+ * `signed-out`; undefined when Claude Code is missing or gave no answer that
+ * can be read, which says nothing about who is signed in. Only the email
+ * leaves `auth status`, and only to be compared.
+ */
+export const signedInAccount = async (
+  where: IClaudeCodeEnv = systemEnv(),
+): Promise<string | undefined> => {
+  const executable = findClaudeCode(where);
+  const status = executable
+    ? readAuthStatus(await askAuthStatus(executable))
+    : undefined;
+  if (status?.state === 'ready') {
+    return `ready:${studioChatLimitsKey(status.email)}`;
+  }
+  return status?.state;
 };
 
 /** Who Claude Code says is signed in, or nothing for nobody. */

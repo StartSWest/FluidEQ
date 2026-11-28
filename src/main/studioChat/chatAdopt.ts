@@ -38,6 +38,8 @@ export interface IKeptSession {
   door?: { url: string; key: string };
   /** The brief its Claude Code was started with, as `briefKey` says it. */
   brief?: string;
+  /** The member switched Claude accounts while it answered (`IChatSession`). */
+  retiring?: boolean;
 }
 
 export const keepSession = (
@@ -56,6 +58,7 @@ export const keepSession = (
   stopping: session.stopping,
   sendingNow: session.sendingNow,
   ...(session.door ? { door: session.door } : {}),
+  ...(session.retiring ? { retiring: true } : {}),
 });
 
 export const writeKeptSessions = (
@@ -102,6 +105,7 @@ const readKept = (raw: unknown): IKeptSession | undefined => {
     sendingNow: raw.sendingNow === true,
     ...(typeof raw.brief === 'string' ? { brief: raw.brief } : {}),
     ...(door ? { door } : {}),
+    ...(raw.retiring === true ? { retiring: true } : {}),
   };
 };
 

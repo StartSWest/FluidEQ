@@ -31,6 +31,7 @@ import { answerPermission } from './chatPermission';
 import type { TChatPictures } from './chatPictures';
 import type { IChatAdoption, IChatLauncher } from './chatProcess';
 import type { TChatQueue } from './chatQueue';
+import createChatRetire from './chatRetire';
 import { takeChatQueues, writeChatQueues } from './chatQueueFile';
 import type { TChatTurns } from './chatTurns';
 import type { IChatTranscript } from './chatTranscript';
@@ -72,6 +73,17 @@ interface IChatSessionsDeps {
    * FluidEQ did not make, until the member trusts it (`projectOrigin.ts`).
    */
   mustAsk?: (projectId: string) => boolean;
+  /**
+   * A Claude Code was started or taken up: from now on a switch of Claude
+   * account has a chat to reach (`accountSwitch.ts`).
+   */
+  following?: () => void;
+  /**
+   * A chat left on the account the member switched from ended at its reply's
+   * end, and the reply ended well: what waits for it goes on, on a Claude
+   * Code started on the account signed in now.
+   */
+  retired?: (projectId: string, folder: string) => void;
   logger?: { info(message: string): void; warn(message: string): void };
 }
 
@@ -97,6 +109,8 @@ const createChatSessions = ({
   offered,
   refuse,
   mustAsk,
+  following,
+  retired,
   logger,
 }: IChatSessionsDeps) => {
   /**
@@ -116,6 +130,11 @@ const createChatSessions = ({
    * up across a restart counts as current.
    */
   const serversAt = new WeakMap<IChatSession, number>();
+  const retiring = createChatRetire({
+    sessions,
+    turns,
+    ...(logger ? { logger } : {}),
+  });
   const keptFile = path.join(root, 'relay-sessions.json');
   const queueFile = path.join(root, 'queued.json');
   // What the member queued before FluidEQ last closed waits again now.
@@ -160,34 +179,38 @@ const createChatSessions = ({
           ).catch(() => undefined);
           return;
         }
-        turns.onEvent(projectId, session, event);
+        const ended = turns.onEvent(projectId, session, event);
+        if (event.type !== 'end') {
+          return;
+        }
         // Each answer spent some of the plan: the card reads it again.
-        if (event.type === 'end') {
-          answered?.();
-        }
-        // A Claude Code that answered "signed out" holds the sign-in it
-        // started with, and a sign-in renewed since does not reach it: it
-        // ends, and the next message starts one that reads the sign-in
-        // afresh (the head said "Max plan" over a reply saying signed out).
-        if (event.type === 'end' && event.failure === 'signed-out') {
-          session.process.end();
-        }
+        answered?.();
         // The model it was started on was refused: the picker marks it, and
         // the next message starts on Default. A model not offered when it
         // started was started as `default` already, and is not the one
         // refused.
-        if (
-          event.type === 'end' &&
+        const refused =
           event.failure === 'model' &&
           session.model !== 'default' &&
-          (offered?.(session.model) ?? true)
-        ) {
+          (offered?.(session.model) ?? true);
+        if (refused) {
           refuse?.(session.model);
+        }
+        if (session.retiring) {
+          // On the account the member switched from (`chatRetire.ts`).
+          retiring.retire(projectId, session, ended !== 'failed');
+        } else if (event.failure === 'signed-out' || refused) {
+          // A Claude Code that answered "signed out" holds the sign-in it
+          // started with, and a sign-in renewed since does not reach it: it
+          // ends, and the next message starts one that reads the sign-in
+          // afresh (the head said "Max plan" over a reply saying signed
+          // out). One refused its model ends for the next to start on
+          // Default.
           session.process.end();
         }
         // A stop the chat has no notice for: what Claude Code named, kept
         // for the bug report that will give it one.
-        if (event.type === 'end' && event.report) {
+        if (event.report) {
           logger?.warn(
             `A Studio reply ended on something the chat has no notice for: ${event.report}`,
           );
@@ -205,6 +228,9 @@ const createChatSessions = ({
           );
         }
         turns.ended(projectId, session, failure);
+        if (retiring.goesOn(session)) {
+          retired?.(projectId, session.folder);
+        }
       },
       (servers) => pictures.noteServers(servers),
     );
@@ -232,6 +258,10 @@ const createChatSessions = ({
       ...(shipped ? { skills: shipped.dir } : {}),
       careful,
     });
+    // Followed before it starts, so a switch that lands while it reads its
+    // sign-in is heard.
+    following?.();
+    const noteMark = retiring.takeMark(projectId);
     // Its events reach the session only once it exists: a process reports
     // nothing from inside its own start.
     const session: IChatSession = {
@@ -247,6 +277,7 @@ const createChatSessions = ({
       brief: startKey(startedOn(brief, shipped?.digest ?? ''), careful),
       stopping: false,
       sendingNow: false,
+      ...(noteMark ? { noteMark } : {}),
     };
     sessions.set(projectId, session);
     serversAt.set(session, pictures.serversChanged());
@@ -300,7 +331,9 @@ const createChatSessions = ({
       brief: one.brief ?? '',
       stopping: one.stopping,
       sendingNow: one.sendingNow,
+      ...(one.retiring ? { retiring: true } : {}),
     };
+    following?.();
     sessions.set(projectId, session);
     const at = one.door ? doorAt(one.door) : undefined;
     if (at) {
@@ -378,8 +411,11 @@ const createChatSessions = ({
         running?.reply !== undefined ||
         startedAfter === undefined ||
         startedAfter === pictures.serversChanged();
+      // One left on the account the member switched from is never answered
+      // again.
       if (
         running &&
+        !running.retiring &&
         serversCurrent &&
         running.model === picks.model &&
         running.effort === picks.effort &&
@@ -409,6 +445,12 @@ const createChatSessions = ({
         careful,
       );
     },
+
+    /**
+     * The member switched Claude accounts: every chat ends now, or at its
+     * reply's end when it is answering (`chatRetire.ts`).
+     */
+    switched: retiring.switched,
 
     /** The project's Claude Code ended, when one runs. */
     end: (projectId: string) => {

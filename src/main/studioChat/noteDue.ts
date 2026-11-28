@@ -148,3 +148,17 @@ export const readNoteTranslation = (
  */
 export const noteTranslationAsk = ({ line, from }: INoteTranslation): string =>
   `FLUIDEQ, NOT THE MEMBER: the member set this version's "What's new" line, in ${from}: ${JSON.stringify(line)}. Write it with write_whats_new in every language: ${VERSION_NOTE_LOCALES.join(', ')}, each one line of at most ${MAX_VERSION_NOTE} characters saying the same as a listener would, and "${from}" exactly the member's words. Change nothing in the scene. ${STUDIO_NOTES_CONTRACT} Then answer with the English line alone.`;
+
+/**
+ * What the chat is asked: the member's line in every language, a first
+ * publication's line (what the scene is), or an update's (what changed).
+ */
+export const noteAskWords = (
+  translation: INoteTranslation | undefined,
+  first: boolean,
+): string => {
+  if (translation) {
+    return noteTranslationAsk(translation);
+  }
+  return first ? FIRST_VERSION_NOTE_ASK : VERSION_NOTE_ASK;
+};

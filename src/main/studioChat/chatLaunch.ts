@@ -153,6 +153,13 @@ export interface IChatSession {
   noteMark?: INoteMark;
   /** The turn running is FluidEQ asking for the update note, not the member. */
   askingNote?: boolean;
+  /**
+   * The member switched Claude accounts while it was answering: it keeps the
+   * sign-in it started with, so it is handed nothing more and ends at its
+   * reply's end, and what waits goes to one started on the account signed
+   * in now (`chatSessions.ts`).
+   */
+  retiring?: boolean;
 }
 
 export interface IClaudeLaunch {
