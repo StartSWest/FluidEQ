@@ -27,7 +27,7 @@ export default function LookPickerDiscover({
     openLookPickerPlace(place, onLeave, account.status === 'signed-in');
   return (
     <div className="look-picker__discover">
-      <div className="look-picker__discover-story" data-anchored-menu-scroll>
+      <div className="look-picker__discover-story">
         <h4 className="plus-welcome__title">
           {t('graph.picker.discover.title')}
         </h4>

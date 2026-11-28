@@ -1,28 +1,49 @@
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'libraryTokens' as *;
 
-// The empty picker's scene montage and its fixed, native action row.
+// The way to the first scene (`LookPickerDiscover`): a card in the picker's
+// list, under the standard looks or alone where a place has none.
 @mixin styles {
+  // Its outer edge is the list's own column, where the tiles above it start
+  // and end, and its words and pictures stand a gutter inside that edge.
+  //
+  // It scrolls with the list and is never a scroller itself. Its upper part
+  // was one, with `overscroll-behavior: contain`, from when the card filled
+  // the list and that part scrolled under a fixed row of buttons: the glow
+  // behind the pictures reaches past their right edge, which made it a real
+  // scroll container with nothing to scroll up or down, and `contain` then
+  // kept every wheel over the title, the pictures and the two lines under
+  // them from reaching the list (Ivan, 2026-11-28: "I cannot use scrolweel
+  // stnading there to scroll up"). The card cuts that glow at its rounded
+  // edge with `clip`: `hidden` would make the card a scroll container in
+  // turn, one a wheel passes but focus and `scrollIntoView` can still move.
+  // `lookPickerDiscoverWheel.test.tsx` holds the card's every part.
   .look-picker__discover {
     display: flex;
     min-width: 0;
-    min-height: 0;
-    flex: 1 1 auto;
     flex-direction: column;
-    gap: $spacing-s;
-    padding: $spacing-s;
+    gap: $spacing-m;
+    padding: $spacing-m;
     color: $text-muted;
+    border: 1px solid $studio-hair;
+    border-radius: $radius-l;
+    background: $studio-surface;
     font-size: $text-body;
     line-height: 1.6;
+    overflow: clip;
     overflow-wrap: anywhere;
-    overflow-y: auto;
+
+    // Under the tiles: a section's distance from them, not a tile's.
+    &:not(:first-child) {
+      margin-top: $spacing-l;
+    }
 
     p {
       margin: 0;
     }
 
     h4 {
-      flex: none;
       color: $text-primary;
       line-height: 1.3;
 
@@ -32,21 +53,10 @@
     }
   }
 
-  .look-picker__list--discover {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
   .look-picker__discover-story {
     display: grid;
-    min-height: 0;
-    flex: 1 1 auto;
     align-content: start;
     gap: $spacing-m;
-    overflow-x: hidden;
-    overflow-y: auto;
-    overscroll-behavior: contain;
   }
 
   .look-picker__discover-scenes {
@@ -70,12 +80,9 @@
   }
 
   .look-picker__discover-footer {
-    position: relative;
-    z-index: 1;
     display: grid;
-    flex: none;
     gap: $spacing-s;
-    padding-top: $spacing-s;
+    padding-top: $spacing-m;
     border-top: 1px solid $menu-rule;
   }
 
