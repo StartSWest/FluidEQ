@@ -32,11 +32,21 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * the GPU; it is only distorted when the PAGE stalls, which the low quartile
  * above is there to shrug off. Taking the smaller keeps that and drops the
  * other.
+ *
+ * Never under `paceMs`, the pace the frames are held to: a rate the
+ * listener capped gives every frame the cap's time, and a scene that keeps
+ * up at sixty is not slow for missing a hundred. Held to sixty on a 100 Hz
+ * display the frames alternate one refresh and two (`createPaceSchedule`),
+ * and the low quartile of those gaps is one refresh: judged against it,
+ * Auto would hold the picture to the panel's size for a rate it was never
+ * asked to draw. A fixed number, so a GPU too slow for the cap is still
+ * judged slow: its frames cost more than the cap whichever gap they came in.
  */
 export const judgedIntervalMs = (
   displayMs: number,
   drawnMs: number | undefined,
-): number => Math.min(drawnMs ?? displayMs, displayMs);
+  paceMs: number,
+): number => Math.max(paceMs, Math.min(drawnMs ?? displayMs, displayMs));
 
 /** Gaps remembered. Two dozen is under half a second at any rate that matters. */
 const CADENCE_WINDOW = 24;

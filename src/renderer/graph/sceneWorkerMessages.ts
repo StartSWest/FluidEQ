@@ -70,8 +70,8 @@ export type TSceneWorkerRequest =
       clip: readonly [number, number, number, number];
       /**
        * The least time the page leaves between frames, 0 for every frame the
-       * display offers: the pace the worker keeps when the page falls behind,
-       * and how it tells a page that fell behind from one that is pacing.
+       * display offers: the pace the worker keeps on its own frames, on the
+       * page's schedule (`createPaceSchedule`).
        */
       paceMs: number;
     }

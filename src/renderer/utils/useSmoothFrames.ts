@@ -17,7 +17,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useCallback, useEffect, useRef, type RefObject } from 'react';
-import { displayTickMs, isFrameDue, WINDOW_DRAWING_PACE_MS } from './framePace';
+import {
+  createPaceSchedule,
+  displayTickMs,
+  isFrameDue,
+  WINDOW_DRAWING_PACE_MS,
+} from './framePace';
 import observeShown from './observeShown';
 import { watchCanvasLoss } from './canvasLoss';
 
@@ -46,7 +51,9 @@ import { watchCanvasLoss } from './canvasLoss';
  * whatever the pace, so a new reading is never held back a frame.
  * `minFrameMs` is a consumer's own pace instead, read every frame: a
  * scene's, which is the rate the listener chose for it or the thirty its
- * ladder or a rest in silence asks for (`useSceneRunner.ts`).
+ * ladder or a rest in silence asks for (`useSceneRunner.ts`). It is kept on
+ * a schedule (`createPaceSchedule`), so sixty is sixty on a 100 Hz display
+ * and not the fifty that whole refreshes between frames would round it to.
  */
 const useSmoothFrames = (
   onFrame: (deltaMs: number) => boolean,
@@ -72,6 +79,7 @@ const useSmoothFrames = (
   targetRef.current = target;
   const paceRef = useRef(minFrameMs);
   paceRef.current = minFrameMs;
+  const scheduleRef = useRef(createPaceSchedule());
   const shownRef = useRef(true);
   const watchRef = useRef<{ element: Element; dispose: () => void }>(undefined);
   const kickRef = useRef<() => void>(() => undefined);
@@ -140,6 +148,9 @@ const useSmoothFrames = (
       return;
     }
     lastDrawRef.current = performance.now();
+    // A consumer's own pace keeps a schedule from the kick, so its rate is
+    // the one it asked for on any display (`createPaceSchedule`).
+    scheduleRef.current.restart(lastDrawRef.current);
     // The display's frame, measured from the loop's own animation frames:
     // what a pace is judged against as well as its own length (`framePace.ts`).
     let lastTickAt: number | undefined;
@@ -160,15 +171,19 @@ const useSmoothFrames = (
       // stepped back. Braid's did, and a mote born a moment "later" had a
       // negative age that indexed past its bands and threw.
       const elapsed = Math.max(0, now - lastDrawRef.current);
-      const pace = paceRef.current;
-      const isDue = pace
-        ? isFrameDue(elapsed, pace(), tickMs)
-        : isFirstFrame || isFrameDue(elapsed, WINDOW_DRAWING_PACE_MS, tickMs);
+      const paceMs = paceRef.current?.();
+      const isDue =
+        paceMs === undefined
+          ? isFirstFrame || isFrameDue(elapsed, WINDOW_DRAWING_PACE_MS, tickMs)
+          : scheduleRef.current.isDue(now, paceMs, tickMs);
       if (!isDue) {
         // Too soon for the consumer's pace. Still queued, so the next frame
         // is considered — skipping is how a pace is held without a timer.
         frameRef.current = requestAnimationFrame(tick);
         return;
+      }
+      if (paceMs !== undefined) {
+        scheduleRef.current.drawn(now, paceMs);
       }
       lastDrawRef.current = now;
       isFirstFrame = false;

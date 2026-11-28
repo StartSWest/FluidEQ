@@ -75,10 +75,20 @@ export type { ISceneRunnerOptions, ISceneSource } from './sceneRunnerTypes';
 export type { ISceneTuning } from './sceneTuner';
 
 /**
- * The least time to leave between frames: the listener's choice — every
- * frame in euphoria, sixty on battery — unless the ladder's slow rung or a
- * rest in silence holds frames to thirty, because the machine cannot keep
- * up or nobody is listening.
+ * The least time to leave between frames, for every surface a scene is drawn
+ * on — the graph, the amp, the Studio's stage, the desktop: the listener's
+ * choice — the display held to sixty on battery — unless the ladder's slow
+ * rung or a rest in silence holds frames to thirty, because the machine
+ * cannot keep up or nobody is listening. The page's loop and the worker
+ * both keep it (`createPaceSchedule`).
+ *
+ * Nothing else lifts it. Euphoria used to ("every frame in euphoria"), and
+ * since colourful mode is always on (1216c5142, 2026-11-18) `is-euphoric`
+ * sits on the main window's root for good, so the frame rate the listener
+ * chose was ignored on the graph, the amp and the Studio's stage - a stage
+ * at "60 a second" drew 100 on a 100 Hz display - while the desktop, a
+ * window without the class, kept it (Ivan, 2026-11-28: "make sure the
+ * frametate limit works on studio asw well").
  */
 const paceMsOf = (
   performance: IScenePerformance,
@@ -86,9 +96,7 @@ const paceMsOf = (
   rest: IRestWatch,
 ): number =>
   Math.max(
-    document.documentElement.classList.contains('is-euphoric')
-      ? 0
-      : scenePaceMs(performance.frameRate, isOnBattery()),
+    scenePaceMs(performance.frameRate, isOnBattery()),
     ladder.slowed() ? SCENE_SLOW_PACE_MS : 0,
     rest.resting() ? SCENE_REST_PACE_MS : 0,
   );
@@ -644,6 +652,7 @@ export default function useSceneRunner({
           const drawnIntervalMs = judgedIntervalMs(
             intervalMs,
             result.intervalMs,
+            paceMs,
           );
           if (
             ladder === ladderRef.current &&
@@ -716,8 +725,8 @@ export default function useSceneRunner({
   );
 
   // Every frame the display offers, or the cap the listener chose — sixty on
-  // battery; euphoria has always asked for every frame and still does — or
-  // thirty where the ladder or a rest in silence says so (`paceMsOf`).
+  // battery — or thirty where the ladder or a rest in silence says so
+  // (`paceMsOf`).
   const scenePace = useCallback(
     () => paceMsOf(performanceRef.current, ladderRef.current, restRef.current),
     [],

@@ -1,5 +1,5 @@
 import type { IScenePack } from 'common/scenePacks';
-import { displayTickMs, isFrameDue } from '../utils/framePace';
+import { createPaceSchedule, displayTickMs } from '../utils/framePace';
 import type { ISceneCostReading } from './sceneHealth';
 import { decodeSceneArtwork } from './sceneArtwork';
 import { linksSettled } from './sceneCompile';
@@ -472,6 +472,26 @@ const render = (request: TDrawRequest, now: number): TSceneWorkerReply => {
 };
 
 /**
+ * The listener's frame rate, kept on the display's own frames: the page's
+ * loop keeps the same schedule (`useSmoothFrames.ts`), so "60 a second" is
+ * sixty frames on the canvas on any display (`createPaceSchedule`).
+ */
+const paceSchedule = createPaceSchedule();
+
+/**
+ * Draws `request` at `now`; a frame that reached the canvas takes its slot
+ * in the listener's rate, and one the GPU made wait is tried again on the
+ * display's next frame.
+ */
+const drawPaced = (request: TDrawRequest, now: number): TSceneWorkerReply => {
+  const reply = render(request, now);
+  if (reply.kind === 'drawn' && !reply.skipped) {
+    paceSchedule.drawn(now, request.paceMs);
+  }
+  return reply;
+};
+
+/**
  * One of the worker's own animation frames: the display's beat, on which
  * every frame is drawn from the page's latest, at the listener's pace. `now`
  * is the frame's own timestamp, so the scene's clock steps by whole
@@ -485,14 +505,15 @@ const tick = (now: number) => {
   if (latest === undefined) {
     return;
   }
-  const drawnAt = sceneClock.drawnAt();
-  if (
-    drawnAt !== undefined &&
-    !isFrameDue(now - drawnAt, latest.paceMs, tickMs)
-  ) {
+  // Nothing drawn since a pause or a new scene: this frame is drawn, and the
+  // listener's rate is kept from it.
+  if (sceneClock.drawnAt() === undefined) {
+    paceSchedule.restart();
+  }
+  if (!paceSchedule.isDue(now, latest.paceMs, tickMs)) {
     return;
   }
-  render(latest, now);
+  drawPaced(latest, now);
 };
 
 /**
@@ -532,7 +553,8 @@ const draw = (request: TDrawRequest): TSceneWorkerReply => {
     pacingFrame = scope.requestAnimationFrame(tick);
   }
   if (sceneClock.drawnAt() === undefined) {
-    return render(request, performance.now());
+    paceSchedule.restart();
+    return drawPaced(request, performance.now());
   }
   return {
     kind: 'drawn',

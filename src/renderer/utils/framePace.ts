@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * When a frame loop held to a pace draws: the page's (`useSmoothFrames.ts`)
- * and the scene worker's own, on the same rule.
+ * and the scene worker's own, on the same rules.
  *
  * Animation frames arrive a fraction of a millisecond either side of the
  * display's beat, so a pace judged against its exact length skips a whole
@@ -15,11 +15,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * 20 as the pair of frames before it fell, and the Studio's stage - and the
  * meters it fed - ran at 18 to 30. The worker drew once nine tenths of the
  * pace had gone by, which on a 100 Hz screen is exactly three frames, and
- * there it flickered between 33 and 25. So a frame is due once the pace,
- * less a quarter of the display's own frame, has gone by: the jitter of a
- * fraction of a millisecond is allowed for, a pace is never overrun by a
- * whole frame, and every display settles on one rate - 30 at 60 Hz, 25 at
- * 100, 30 at 120, 29 at 144.
+ * there it flickered between 33 and 25. So a frame is due once its time,
+ * less a quarter of the display's own frame, has come: the jitter of a
+ * fraction of a millisecond is allowed for, and a pace is never overrun by a
+ * whole frame.
+ *
+ * Two rules stand on that allowance. A ceiling on the window's own drawings
+ * (`isFrameDue`) counts from the last frame drawn, so every display settles
+ * on one even rate at or under it - 30 at 60 Hz, 25 at 100, 30 at 120, 29 at
+ * 144. A rate somebody chose (`createPaceSchedule`) keeps a schedule
+ * instead, and averages the rate itself on every display.
  */
 const JITTER_SHARE = 0.25;
 
@@ -70,3 +75,61 @@ export const displayTickMs = (
  */
 export const isFrameDue = (elapsedMs: number, paceMs: number, tickMs: number) =>
   paceMs <= 0 || elapsedMs >= paceMs - tickMs * JITTER_SHARE;
+
+/**
+ * The frames of a rate somebody chose: a scene's "60 a second", a
+ * consumer's own pace. One schedule for the page's loop and the scene
+ * worker's, so the rate the listener picked is the rate the picture changes
+ * at, on any display.
+ *
+ * Counting from the last frame drawn, as `isFrameDue` does, a rate is
+ * rounded down to a whole number of the display's frames between every two:
+ * sixty a second was fifty on a 100 Hz screen, forty-eight on a 144 Hz one,
+ * and the row saying "60 a second" stood over a stage reading fifty. Here
+ * each frame has a slot, and the next slot is one pace after this one's
+ * rather than after the moment it was drawn, so a beat that does not divide
+ * the pace draws it on average - sixty on a 100 Hz screen is two refreshes,
+ * two, then one. Where the beat divides the pace (sixty at 60, 120 or 240 Hz,
+ * thirty at 60) every gap is the same and nothing differs from counting.
+ *
+ * A frame more than a pace past its slot (a stall, a window that was away,
+ * a pace just made much shorter) starts the schedule again from itself
+ * instead of drawing the missed frames back to back.
+ */
+export interface IPaceSchedule {
+  /**
+   * Whether the display's frame at `now` is due, held to `paceMs` on a
+   * display whose frames are `tickMs` apart. A pace of zero is every frame
+   * the display offers.
+   */
+  isDue(now: number, paceMs: number, tickMs: number): boolean;
+  /**
+   * A frame was drawn at `now`, held to `paceMs`: it takes its slot. Told
+   * only of frames that reached the screen, so one the GPU made wait is
+   * tried again on the display's next frame rather than a pace later.
+   */
+  drawn(now: number, paceMs: number): void;
+  /**
+   * Starts the schedule again: from the slot of a frame at `at`, whose next
+   * is a pace later, or from none, so the next frame is due at once.
+   */
+  restart(at?: number): void;
+}
+
+export const createPaceSchedule = (): IPaceSchedule => {
+  /** The slot of the last frame drawn, on the frames' own clock. */
+  let slotAt: number | undefined;
+  return {
+    isDue: (now, paceMs, tickMs) =>
+      slotAt === undefined ||
+      paceMs <= 0 ||
+      now >= slotAt + paceMs - tickMs * JITTER_SHARE,
+    drawn: (now, paceMs) => {
+      const next = slotAt === undefined || paceMs <= 0 ? now : slotAt + paceMs;
+      slotAt = now - next >= paceMs ? now : next;
+    },
+    restart: (at) => {
+      slotAt = at;
+    },
+  };
+};

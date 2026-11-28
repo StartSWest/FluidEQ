@@ -75,22 +75,38 @@ describe('the interval a cost is judged against', () => {
   const DISPLAY = 1000 / 60;
 
   it('never takes a gap longer than the display’s own beat', () => {
-    expect(judgedIntervalMs(DISPLAY, 500)).toBeCloseTo(DISPLAY, 6);
-    expect(judgedIntervalMs(DISPLAY, DISPLAY * 3)).toBeCloseTo(DISPLAY, 6);
+    expect(judgedIntervalMs(DISPLAY, 500, 0)).toBeCloseTo(DISPLAY, 6);
+    expect(judgedIntervalMs(DISPLAY, DISPLAY * 3, 0)).toBeCloseTo(DISPLAY, 6);
   });
 
   it('takes the worker’s when the page is the slower of the two', () => {
-    expect(judgedIntervalMs(100, 16)).toBe(16);
+    expect(judgedIntervalMs(100, 16, 0)).toBe(16);
   });
 
   it('falls back to the display’s beat when there is no other', () => {
-    expect(judgedIntervalMs(DISPLAY, undefined)).toBeCloseTo(DISPLAY, 6);
+    expect(judgedIntervalMs(DISPLAY, undefined, 0)).toBeCloseTo(DISPLAY, 6);
   });
 
   // What the defect looked like from the ladder's side: a scene costing a
   // third of a second, pacing itself, read as comfortably inside its budget.
   it('stops a frame being measured against itself', () => {
     const cost = 333;
-    expect(cost / judgedIntervalMs(DISPLAY, cost)).toBeGreaterThan(10);
+    expect(cost / judgedIntervalMs(DISPLAY, cost, 0)).toBeGreaterThan(10);
+  });
+
+  // Held to sixty on a 100 Hz display, frames come one refresh and two
+  // refreshes apart, and the low quartile of the gaps is the one refresh.
+  it('gives a frame held to a rate the rate’s own time', () => {
+    const SIXTY = 1000 / 60;
+    expect(judgedIntervalMs(10, 10, SIXTY)).toBeCloseTo(SIXTY, 6);
+    expect(judgedIntervalMs(10, 20, SIXTY)).toBeCloseTo(SIXTY, 6);
+  });
+
+  // The control: a GPU slower than the cap is still slow against it.
+  it('still judges a GPU too slow for the rate as slow', () => {
+    const SIXTY = 1000 / 60;
+    const cost = 25;
+    expect(judgedIntervalMs(SIXTY, cost, SIXTY)).toBeCloseTo(SIXTY, 6);
+    expect(cost / judgedIntervalMs(SIXTY, cost, SIXTY)).toBeGreaterThan(1);
   });
 });

@@ -16,8 +16,8 @@ import useSmoothFrames from '../../../renderer/utils/useSmoothFrames';
 
 const HZ = 144;
 
-/** How many frames one second of a 144 Hz display draws. */
-const drawnInASecond = (minFrameMs?: () => number) => {
+/** How many frames `seconds` of a `hz` display draw: one of 144 Hz unless said. */
+const drawnInASecond = (minFrameMs?: () => number, hz = HZ, seconds = 1) => {
   const frames: FrameRequestCallback[] = [];
   const raf = jest
     .spyOn(window, 'requestAnimationFrame')
@@ -38,8 +38,8 @@ const drawnInASecond = (minFrameMs?: () => number) => {
       ),
     );
     act(() => result.current());
-    for (let frame = 1; frame <= HZ; frame += 1) {
-      act(() => frames.shift()?.(1000 + (frame * 1000) / HZ));
+    for (let frame = 1; frame <= hz * seconds; frame += 1) {
+      act(() => frames.shift()?.(1000 + (frame * 1000) / hz));
     }
     unmount();
   } finally {
@@ -64,4 +64,11 @@ it('holds a consumer to the pace it asks for', () => {
   const drawn = drawnInASecond(() => 1000 / 30);
   expect(drawn).toBeGreaterThanOrEqual(28);
   expect(drawn).toBeLessThanOrEqual(36);
+});
+
+// A scene's "60 a second" on a 100 Hz display: whole refreshes between
+// frames would round it to fifty (`createPaceSchedule`).
+it('keeps a consumer to its own rate where the display does not divide it', () => {
+  const drawn = drawnInASecond(() => 1000 / 60, 100, 5);
+  expect(drawn / 5).toBeCloseTo(60, 0);
 });
