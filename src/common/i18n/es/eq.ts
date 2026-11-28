@@ -693,42 +693,10 @@ const eq: Partial<Dictionary> = {
     'Elige unos auriculares y un objetivo, y aplica su EQ: la corrección que produce se dibuja aquí.',
   'autoeq.curveAria': 'Respuesta de la corrección de auriculares aplicada',
   'opra.curveCount': '{count} curvas',
-  'squigImport.eyebrow': 'TRAE TU CURVA',
-  'squigImport.title': 'Importar un EQ de Squiglink',
-  'squigImport.intro':
-    'Usa la calculadora de Squiglink y pega aquí su exportación. Aplicar como EQ reemplaza las bandas editables. Aplicar como curva reemplaza la corrección de auriculares, como OPRA, con su propia intensidad e interruptor; tus bandas de EQ se mantienen.',
   'squigImport.open': 'Abrir Squiglink',
-  'squigImport.stepOne': 'En Squiglink, elige tus auriculares y un objetivo',
-  'squigImport.stepTwo':
-    'Abre su panel de EQ y copia la exportación ParametricEQ',
-  'squigImport.stepThree': 'Pégalo abajo y elige EQ o curva',
-  'squigImport.pasteLabel': 'Importación de EQ',
-  'squigImport.about':
-    'Squiglink aloja bases de datos de mediciones de analistas independientes, cada una con una calculadora que ajusta un EQ al objetivo que elijas.',
-  'squigImport.placeholder':
-    'Pega aquí el texto ParametricEQ o GraphicEQ de Squiglink…',
-  'squigImport.fileAria': 'Elegir un archivo de texto con un EQ exportado',
-  'squigImport.chooseFile': 'Elegir un archivo .txt',
-  'squigImport.applyAria': 'Aplicar como EQ',
-  'squigImport.importing': 'Aplicando…',
   'squigImport.apply': 'Aplicar como EQ',
   'squigImport.applyCurve': 'Aplicar como curva',
-  'squigImport.replaceTitle': '¿Reemplazar el EQ actual?',
-  'squigImport.replaceBody':
-    'Reemplazar el EQ elimina sus bandas actuales. También puedes aplicar esta importación como una curva de corrección independiente. Cambiar de modo elimina la importación anterior.',
-  'squigImport.replaceEq': 'Reemplazar EQ',
-  'squigImport.applied': 'Curva aplicada',
-  'squigImport.livePreview': 'Vista previa en directo',
   'squigImport.notApplied': 'No aplicada',
-  'squigImport.currentText': 'Texto de EQ actual',
-  'squigImport.flatPreview': 'Vista previa plana',
-  'squigImport.flatCurve': 'Sin curva aplicada · 0 dB',
-  'squigImport.bands': '{count} bandas',
-  'squigImport.clear': 'Quitar importación',
-  'squigImport.chartAria': 'Respuesta en frecuencia del EQ importado',
-  'squigImport.emptyTitle': 'Tu curva importada aparecerá aquí',
-  'squigImport.emptyHint':
-    'Pega una exportación para ver su forma antes de seguir afinándola en el EQ.',
   'eq.title': 'EQ paramétrico',
   'eq.smart': 'Corrección inteligente',
   'eq.smart.continuousAria':

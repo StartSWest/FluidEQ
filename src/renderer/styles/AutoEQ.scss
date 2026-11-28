@@ -153,14 +153,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   // What the applied correction does, on the surface where it was chosen. Its
-  // own box because it is its own layer: the import panel below draws its own
-  // curve and neither belongs on the other's axis.
-  // Controls on the left, the curve they produce on the right — the same two
-  // halves as the Squiglink card below it.
-  // Deliberately the same columns and gap as `.squig-import__workspace`, and
-  // the card's padding is matched to the Squiglink card's in AutoEQPanel.scss:
-  // the two graphs sit one above the other, and a split that lands 20px apart
-  // in two stacked cards reads as a mistake rather than as two panels.
+  // own box because it is its own layer.
+  // Controls on the left, the curve they produce on the right.
   .autoeq-split {
     display: grid;
     align-items: stretch;
@@ -457,8 +451,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // squeezed picker costs more than a stacked one.
 // `.autoeq-section` is repeated here on purpose. The two-column rule above is
 // nested inside it, so a bare `.autoeq-split` in this query loses the cascade to
-// it and the card stayed side-by-side at every width while the Squiglink card
-// below stacked — a graph squeezed into a 280px column beside two dropdowns.
+// it and the card stayed side-by-side at every width — a graph squeezed into a
+// 280px column beside two dropdowns.
 @container autoeq-workspace (max-width: 1080px) {
   .autoeq-section .autoeq-split {
     grid-template-columns: minmax(0, 1fr);

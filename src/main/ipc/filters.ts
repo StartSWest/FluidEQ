@@ -462,8 +462,8 @@ export const registerFiltersIpc = ({
      * afterwards written nowhere, nothing left to say why. The full reset
      * always released it (`resetEqToDefaults`); this handler stopped going
      * through that reset when clearing learned to keep the layout, and the
-     * release was left behind with it. Clear EQ, the chip's ×, and the
-     * Squiglink import's clear all arrive here.
+     * release was left behind with it. Clear EQ and the chip's × both arrive
+     * here.
      */
     applyingLayer('eq');
 

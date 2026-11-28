@@ -754,7 +754,7 @@ export const importEqFile = (): Promise<string> => {
   return sendRequest(channel, [], simpleResponseHandler<string>());
 };
 
-/** Apply EQ text pasted or read by the Squiglink import panel. */
+/** Apply EQ text — a saved curve, or one pasted or read in Add my curve. */
 export const importEqText = (
   text: string,
   label = 'Squiglink export',

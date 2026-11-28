@@ -324,10 +324,8 @@ const OpraPicker = () => {
       eyebrow={t('autoeq.eyebrow')}
       title={t('autoeq.title')}
     >
-      {/* Controls left, curve right — the same halves the Squiglink card below
-          uses, so the two ways of getting a curve read as the same shape of
-          thing. What is applied is named in the corner of the curve it drew,
-          which is where somebody looks to check it. */}
+      {/* Controls left, curve right. What is applied is named in the corner
+          of the curve it drew, which is where somebody looks to check it. */}
       <div className="autoeq-split">
         <div className="autoeq-split__controls">
           <div className="auto-eq">

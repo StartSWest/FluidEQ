@@ -243,8 +243,8 @@ export const registerReferencesIpc = ({
        * touch a band — the correction goes into `state.headphone`. Clearing it
        * was left over from when applying a reference replaced the bands, and it
        * made two independent layers look like one: applying a headphone
-       * correction blanked the Squiglink card below, which was still applied and
-       * still audible.
+       * correction made an imported EQ read as gone while it was still applied
+       * and still audible.
        */
       applyingLayer('headphone');
       await handleUpdate(event, channel, false, true);

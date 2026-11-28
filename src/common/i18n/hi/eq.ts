@@ -677,42 +677,10 @@ const eq: Partial<Dictionary> = {
     'कोई हेडफ़ोन और लक्ष्य चुनें, फिर लागू करें — उससे होने वाला सुधार यहाँ दिखेगा।',
   'autoeq.curveAria': 'लागू हेडफ़ोन सुधार की आवृत्ति प्रतिक्रिया',
   'opra.curveCount': '{count} कर्व',
-  'squigImport.eyebrow': 'अपना कर्व साथ लाएँ',
-  'squigImport.title': 'Squiglink से EQ आयात करें',
-  'squigImport.intro':
-    'Squiglink कैलकुलेटर का इस्तेमाल करें और उसका एक्सपोर्ट यहाँ पेस्ट करें। EQ के रूप में लागू करने से संपादन योग्य बैंड बदल जाते हैं। कर्व के रूप में लागू करने से OPRA की तरह हेडफ़ोन सुधार बदलता है, जिसकी अपनी तीव्रता और स्विच होते हैं; आपके EQ बैंड नहीं बदलते।',
   'squigImport.open': 'Squiglink खोलें',
-  'squigImport.stepOne': 'Squiglink पर अपना हेडफ़ोन और कोई लक्ष्य चुनें',
-  'squigImport.stepTwo':
-    'वहाँ EQ पैनल खोलें और ParametricEQ एक्सपोर्ट कॉपी करें',
-  'squigImport.stepThree': 'नीचे पेस्ट करें, फिर EQ या कर्व चुनें',
-  'squigImport.pasteLabel': 'EQ आयात',
-  'squigImport.about':
-    'Squiglink पर स्वतंत्र समीक्षकों के माप डेटाबेस हैं। हर डेटाबेस के साथ एक कैलकुलेटर है, जो आपके चुने हुए लक्ष्य के अनुसार EQ तैयार करता है।',
-  'squigImport.placeholder':
-    'Squiglink का ParametricEQ या GraphicEQ टेक्स्ट यहाँ पेस्ट करें…',
-  'squigImport.fileAria': 'EQ एक्सपोर्ट की टेक्स्ट फ़ाइल चुनें',
-  'squigImport.chooseFile': '.txt फ़ाइल चुनें',
-  'squigImport.applyAria': 'EQ के रूप में लागू करें',
-  'squigImport.importing': 'लागू किया जा रहा है…',
   'squigImport.apply': 'EQ के रूप में लागू करें',
   'squigImport.applyCurve': 'कर्व के रूप में लागू करें',
-  'squigImport.replaceTitle': 'मौजूदा EQ बदलें?',
-  'squigImport.replaceBody':
-    'EQ बदलने से उसके मौजूदा बैंड हट जाएंगे। इसके बजाय इस आयात को अलग सुधार कर्व के रूप में लागू कर सकते हैं। आयात मोड बदलने से पिछला आयात हट जाता है।',
-  'squigImport.replaceEq': 'EQ बदलें',
-  'squigImport.applied': 'लागू कर्व',
-  'squigImport.livePreview': 'लाइव पूर्वावलोकन',
   'squigImport.notApplied': 'अभी लागू नहीं',
-  'squigImport.currentText': 'मौजूदा EQ टेक्स्ट',
-  'squigImport.flatPreview': 'सपाट पूर्वावलोकन',
-  'squigImport.flatCurve': 'कोई कर्व लागू नहीं · 0 dB',
-  'squigImport.bands': '{count} बैंड',
-  'squigImport.clear': 'आयात हटाएँ',
-  'squigImport.chartAria': 'आयात किए गए EQ की आवृत्ति प्रतिक्रिया',
-  'squigImport.emptyTitle': 'आपका आयात किया गया कर्व यहाँ दिखेगा',
-  'squigImport.emptyHint':
-    'कोई एक्सपोर्ट पेस्ट करें, ताकि EQ में उसे आगे बारीक़ी से सेट करने से पहले आप उसका आकार देख सकें।',
   'eq.title': 'पैरामीट्रिक EQ',
   'eq.smart': 'स्मार्ट सुधार',
   'eq.smart.continuousAria':

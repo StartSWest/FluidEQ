@@ -685,42 +685,10 @@ const eq: Partial<Dictionary> = {
     'Выберите модель наушников и целевую кривую, затем примените — здесь будет показана получившаяся коррекция.',
   'autoeq.curveAria': 'АЧХ применённой коррекции наушников',
   'opra.curveCount': 'кривых: {count}',
-  'squigImport.eyebrow': 'ПЕРЕНЕСИТЕ СВОЮ КРИВУЮ',
-  'squigImport.title': 'Импорт EQ из Squiglink',
-  'squigImport.intro':
-    'Используйте калькулятор Squiglink и вставьте экспорт сюда. Применение как EQ заменяет редактируемые полосы. Применение как кривой заменяет коррекцию наушников, как в OPRA, с отдельной интенсивностью и переключателем; полосы EQ остаются без изменений.',
   'squigImport.open': 'Открыть Squiglink',
-  'squigImport.stepOne': 'На Squiglink выберите свои наушники и целевую кривую',
-  'squigImport.stepTwo':
-    'Откройте его панель EQ и скопируйте экспорт ParametricEQ',
-  'squigImport.stepThree': 'Вставьте ниже и выберите EQ или кривую',
-  'squigImport.pasteLabel': 'Импорт EQ',
-  'squigImport.about':
-    'На Squiglink размещены базы измерений независимых обозревателей, и у каждой есть калькулятор, который подбирает EQ под выбранную вами целевую кривую.',
-  'squigImport.placeholder':
-    'Вставьте сюда текст ParametricEQ или GraphicEQ из Squiglink…',
-  'squigImport.fileAria': 'Выбрать текстовый файл экспорта EQ',
-  'squigImport.chooseFile': 'Выбрать файл .txt',
-  'squigImport.applyAria': 'Применить как EQ',
-  'squigImport.importing': 'Применение…',
   'squigImport.apply': 'Применить как EQ',
   'squigImport.applyCurve': 'Применить как кривую',
-  'squigImport.replaceTitle': 'Заменить текущий EQ?',
-  'squigImport.replaceBody':
-    'Замена EQ удалит его текущие полосы. Вместо этого можно применить импорт как отдельную кривую коррекции. Смена режима удаляет предыдущий импорт.',
-  'squigImport.replaceEq': 'Заменить EQ',
-  'squigImport.applied': 'Применённая кривая',
-  'squigImport.livePreview': 'Предпросмотр',
   'squigImport.notApplied': 'Не применено',
-  'squigImport.currentText': 'Текущий текст EQ',
-  'squigImport.flatPreview': 'Плоская АЧХ',
-  'squigImport.flatCurve': 'Кривая не применена · 0 дБ',
-  'squigImport.bands': 'полос: {count}',
-  'squigImport.clear': 'Убрать импорт',
-  'squigImport.chartAria': 'АЧХ импортированного EQ',
-  'squigImport.emptyTitle': 'Здесь появится импортированная кривая',
-  'squigImport.emptyHint':
-    'Вставьте экспорт, чтобы увидеть его форму, прежде чем продолжить точную настройку в EQ.',
   'eq.title': 'Параметрический эквалайзер',
   'eq.smart': 'Умная коррекция',
   'eq.smart.continuousAria':

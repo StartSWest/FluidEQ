@@ -206,7 +206,6 @@ import './PresetsBar.scss';
 import './SidebarSection.scss';
 import './AutoEQ.scss';
 import './EqCurveChart.scss';
-import './SquiglinkImport.scss';
 import './ImportEarsPick.scss';
 import './AutoEQPanel.scss';
 import './MyCurves.scss';

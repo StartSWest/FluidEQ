@@ -19,10 +19,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 /**
  * A layer's combined response, as one SVG path.
  *
- * The maths the Squiglink import panel grew for its preview, lifted out so the
- * headphone correction can draw its applied curve the same way rather than a
- * second approximation of it. Everything here is pure: points in, path string
- * out, no React and no styling.
+ * Shared so the headphone correction and My curves draw a curve the same way
+ * rather than each with its own approximation of it. Everything here is pure:
+ * points in, path string out, no React and no styling.
  */
 
 import { AutoEqFormat, IFiltersMap, IGraphicEqPoint } from 'common/constants';
