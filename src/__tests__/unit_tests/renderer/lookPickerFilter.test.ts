@@ -11,7 +11,6 @@ import {
   offersFrom,
   pickerFroms,
   selectLooks,
-  sortScenes,
   type TPickerFrom,
   type TPickerPlace,
 } from 'renderer/graph/lookPickerFilter';
@@ -21,6 +20,7 @@ import {
   type IStyleRow,
 } from 'renderer/graph/lookPickerRows';
 import { getSelectableLooks } from 'renderer/utils/graphStyle';
+import { orderScenes } from 'renderer/utils/lookOrder';
 import { markSceneVersionSeen } from 'renderer/utils/seenSceneVersions';
 
 const DAY = 86_400_000;
@@ -231,13 +231,13 @@ describe('the sorts', () => {
     scene({ id: 'fresh', publishedAt: '2026-11-10T00:00:00Z', adds: 10 }),
   ];
 
-  it('puts what the gallery has not described last, in the order it was built', () => {
-    expect(sortScenes(rows, 'newest', 'en').map((row) => row.id)).toEqual([
+  it('puts what the gallery has not described last', () => {
+    expect(orderScenes(rows, 'newest', 'en').map((row) => row.id)).toEqual([
       'fresh',
       'old',
       'unknown',
     ]);
-    expect(sortScenes(rows, 'used', 'en').map((row) => row.id)).toEqual([
+    expect(orderScenes(rows, 'used', 'en').map((row) => row.id)).toEqual([
       'old',
       'fresh',
       'unknown',
@@ -245,7 +245,7 @@ describe('the sorts', () => {
   });
 
   it('sorts by name in the reader’s language', () => {
-    expect(sortScenes(rows, 'name', 'en').map((row) => row.id)).toEqual([
+    expect(orderScenes(rows, 'name', 'en').map((row) => row.id)).toEqual([
       'fresh',
       'old',
       'unknown',

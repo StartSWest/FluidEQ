@@ -24,12 +24,18 @@ export const SORT_KEYS: Record<TPickerSort, TranslationKey> = {
  * the gallery's order menu (`GallerySortMenu`): an AnchoredMenu, so a press
  * in it is inside a menu and leaves the picker open, and Escape shuts this
  * list before the picker (`useChatPopover` listens first, and stops it).
+ *
+ * Disabled where there is nothing for it to order: the standard looks keep
+ * their fixed order under every sort (`lookOrder.ts`). Still there and
+ * still saying the order, so the bar keeps its shape from place to place.
  */
 export default function LookPickerSort({
   sort,
+  disabled = false,
   onSort,
 }: {
   sort: TPickerSort;
+  disabled?: boolean;
   onSort: (sort: TPickerSort) => void;
 }) {
   const { t } = useTranslation();
@@ -42,6 +48,7 @@ export default function LookPickerSort({
         className="look-picker__sort"
         aria-haspopup="menu"
         aria-expanded={menu.isOpen}
+        disabled={disabled}
         onClick={menu.toggle}
       >
         <span className="look-picker__sort-text">

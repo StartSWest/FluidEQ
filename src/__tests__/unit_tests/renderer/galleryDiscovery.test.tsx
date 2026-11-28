@@ -34,7 +34,6 @@ const renderPicker = (rows: IPlusRow[] = [], query = '') => {
       query={query}
       place="everything"
       from="all"
-      sort="newest"
       view="grid"
       onQuery={onQuery}
       onPlace={jest.fn()}

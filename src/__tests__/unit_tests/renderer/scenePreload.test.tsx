@@ -29,10 +29,7 @@ import {
   useGraphAutoCycle,
   useHoldGraphAutoCycle,
 } from '../../../renderer/utils/graphAutoCycle';
-import {
-  getSelectableLooks,
-  setGraphLook,
-} from '../../../renderer/utils/graphStyle';
+import { getLookWalk, setGraphLook } from '../../../renderer/utils/graphStyle';
 import { adoptScenePackListingForTesting } from '../../../renderer/utils/scenePacks';
 
 const mockCreated: { pack?: IScenePack; dispose: jest.Mock }[] = [];
@@ -99,7 +96,7 @@ const runFrame = async () => {
   });
 };
 
-const looks = () => getSelectableLooks().map((look) => look.id);
+const looks = () => getLookWalk().map((look) => look.id);
 /** The look that comes before `id` in the walk. */
 const before = (id: string) => {
   const ids = looks();

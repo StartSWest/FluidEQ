@@ -8,11 +8,8 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {
-  I18nProvider,
-  readInitialLocale,
-  useTranslation,
-} from '../../renderer/utils/I18nContext';
+import { I18nProvider, useTranslation } from '../../renderer/utils/I18nContext';
+import { readInitialLocale } from '../../renderer/utils/windowLocale';
 import LanguagePicker from '../../renderer/components/LanguagePicker';
 
 const LanguageProbe = () => {

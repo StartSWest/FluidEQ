@@ -8,6 +8,12 @@ import type { RefObject } from 'react';
 import { isPlusCategory } from 'common/plusGallery';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
+import {
+  DEFAULT_LOOK_SORTS,
+  orderLooks,
+  type TLookSorts,
+  type TSortShelf,
+} from '../utils/lookOrder';
 import LookPickerDetails from './LookPickerDetails';
 import LookPickerDiscover from './LookPickerDiscover';
 import LookPickerEmptyCategory from './LookPickerEmptyCategory';
@@ -25,8 +31,7 @@ import {
   pickerFroms,
   placeHoldsScenes,
   selectLooks,
-  sortScenes,
-  sortStyles,
+  sortShelfOf,
   stylePlaces,
   type TFreshness,
   type TPickerFrom,
@@ -49,7 +54,12 @@ interface ILookPickerBodyProps {
   query: string;
   place: TPickerPlace;
   from: TPickerFrom;
-  sort: TPickerSort;
+  /**
+   * The catalogue's order and New and updated's own (`TSortShelf`); the
+   * Sort menu shows and changes the one of the place on show. Help's
+   * drawing passes none and shows the picker as it first opens.
+   */
+  sorts?: TLookSorts;
   view: TPickerView;
   /** When the picker opened, for what counts as new; none marks nothing. */
   openedAt?: number;
@@ -61,7 +71,7 @@ interface ILookPickerBodyProps {
   onQuery: (query: string) => void;
   onPlace: (place: TPickerPlace) => void;
   onFrom: (from: TPickerFrom) => void;
-  onSort: (sort: TPickerSort) => void;
+  onSort: (shelf: TSortShelf, sort: TPickerSort) => void;
   onView: (view: TPickerView) => void;
   onChoose: (lookId: string) => void;
   searchRef: RefObject<HTMLInputElement | null>;
@@ -91,7 +101,7 @@ const LookPickerBody = ({
   query,
   place,
   from,
-  sort,
+  sorts = DEFAULT_LOOK_SORTS,
   view,
   openedAt,
   ownsOfficialScenes = false,
@@ -143,8 +153,20 @@ const LookPickerBody = ({
       ownsOfficialScenes,
     );
   const picked = select(activePlace, activeFrom, query);
-  const scenes = sortScenes(picked.scenes, sort, locale);
-  const styles = sortStyles(picked.styles, sort, locale);
+  // In the order the arrows walk (`orderLooks`): every place but New and
+  // updates is the walk with what it does not hold left out.
+  const shelf = sortShelfOf(activePlace);
+  const sort = sorts[shelf];
+  const {
+    scenes,
+    styles,
+    all: ordered,
+  } = orderLooks(picked.styles, picked.scenes, sort, locale);
+  // The standard looks keep their fixed order under every sort, so a place
+  // of them alone, or a picker with no scene at all, has nothing to order.
+  const sortable =
+    plusRows.length > 0 &&
+    (activePlace === undefined || placeHoldsScenes(activePlace));
   const countIn = (at: TPickerPlace) => {
     const { styles: s, scenes: c } = select(at, activeFrom, '');
     return s.length + c.length;
@@ -175,7 +197,6 @@ const LookPickerBody = ({
     onLeave !== undefined &&
     activePlace !== undefined &&
     placeHoldsScenes(activePlace);
-  const ordered = [...scenes, ...styles];
   const shownIds = ordered.map((row) => row.id);
   // Only the chosen look, or the first, is a Tab stop: forty Tab presses to
   // get past the grid is not a way past it. The arrows walk it.
@@ -320,7 +341,11 @@ const LookPickerBody = ({
             </button>
           ))}
         </div>
-        <LookPickerSort sort={sort} onSort={onSort} />
+        <LookPickerSort
+          sort={sort}
+          disabled={!sortable}
+          onSort={(next) => onSort(shelf, next)}
+        />
       </div>
       <div ref={bodyRef} className="look-picker__body">
         <LookPickerRail

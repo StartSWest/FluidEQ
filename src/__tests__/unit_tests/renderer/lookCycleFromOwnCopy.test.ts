@@ -101,10 +101,12 @@ describe('the look a selection stands for', () => {
 describe('the cycle from a publisher’s own copy', () => {
   it('walks on from FluidEQ’s row, never from the first look', () => {
     const { graphStyle, members } = load();
-    const own = copy(ME, 'alpine', true);
+    // Borealis, not Alpine: the walk opens on the scenes by name, and the
+    // control below needs the row somewhere other than the start.
+    const own = copy(ME, 'borealis', true);
     members.adoptMemberSceneListingForTesting({ scenes: [own], locked: [] });
-    const ids = graphStyle.getSelectableLooks().map((look) => look.id);
-    const at = ids.indexOf('premium:alpine');
+    const ids = graphStyle.getLookWalk().map((look) => look.id);
+    const at = ids.indexOf('premium:borealis');
     expect(at).toBeGreaterThan(0);
     // The copy itself is not listed: this is the state that lost the place.
     expect(ids).not.toContain(own.lookId);
@@ -120,7 +122,7 @@ describe('the cycle from a publisher’s own copy', () => {
 
   it('walks on from a listed look exactly as before', () => {
     const { graphStyle } = load();
-    const ids = graphStyle.getSelectableLooks().map((look) => look.id);
+    const ids = graphStyle.getLookWalk().map((look) => look.id);
     graphStyle.setGraphLook('premium:alpine');
     graphStyle.cycleGraphLookUnattended(1);
     expect(graphStyle.getGraphLookId()).toBe(

@@ -23,10 +23,11 @@ import {
   isPremiumLookId,
   LOCKED_LOOK_PREFIX,
   premiumLookId,
-  resolveSceneName,
+  type TLocalizedName,
 } from 'common/scenePacks';
 import { FLUIDEQ_MAKER, type IMakerRef } from '../plus/plusNavigation';
 import foldForSearch from '../utils/foldForSearch';
+import { sceneOrderFacts } from '../utils/lookOrder';
 import { searchMatcher } from '../../common/searchText';
 import {
   loadMemberScene,
@@ -99,7 +100,7 @@ export interface IPlusRow {
    * When the gallery first published it, when its newest version went up and
    * how many members have added it - read from the gallery's own listing,
    * so absent for a scene this session's gallery has not described. The
-   * picker's sorts put those last (`lookPickerFilter.ts`).
+   * picker's sorts put those last (`orderScenes` in `lookOrder.ts`).
    */
   publishedAt?: string;
   updatedAt?: string;
@@ -225,7 +226,8 @@ interface IPlusSources {
 /**
  * FluidEQ's own first (its helper accounts' among them), then the member's
  * own, then other members'; within each, what can be played before what is
- * locked.
+ * locked. That is only the order they are built in: the picker shows them
+ * in the order `orderScenes` gives, which reads their facts alone.
  */
 export const buildPlusRows = ({
   usable,
@@ -297,20 +299,15 @@ export const buildPlusRows = ({
         };
   };
 
+  // Its id, its name and what the gallery's listing says of it, worked out
+  // as the arrows' walk works them out, so the two order it alike.
+  const orderFacts = (
+    scene: { lookId: string; names: TLocalizedName },
+    gallery: IGalleryScene | undefined,
+  ) => sceneOrderFacts(scene.lookId, scene, gallery, locale);
+
   // A newer version than the one here, when a gallery list has seen it: the
   // member keeps theirs until they update it, by design.
-  // What the gallery's listing says of it, for the picker's sorts.
-  const listingFor = (gallery: ReturnType<IPlusSources['findInGallery']>) =>
-    gallery
-      ? {
-          updatedAt: gallery.updatedAt,
-          adds: gallery.adds,
-          ...(gallery.firstPublishedAt
-            ? { publishedAt: gallery.firstPublishedAt }
-            : {}),
-        }
-      : {};
-
   const latestFor = (
     gallery: ReturnType<IPlusSources['findInGallery']>,
     version: number,
@@ -332,8 +329,7 @@ export const buildPlusRows = ({
   const official = usable.map((scene) => {
     const gallery = findInGallery(scene.lookId);
     return row({
-      id: scene.lookId,
-      name: resolveSceneName(scene, locale),
+      ...orderFacts(scene, gallery),
       swatch: scene.swatch,
       maker: 'fluideq',
       makerPage: FLUIDEQ_MAKER,
@@ -344,7 +340,6 @@ export const buildPlusRows = ({
       version: scene.version,
       ...noteFor(gallery, scene.version),
       ...latestFor(gallery, scene.version),
-      ...listingFor(gallery),
       thumbnail: officialSceneThumbnail(scene, gallery),
     });
   });
@@ -353,8 +348,7 @@ export const buildPlusRows = ({
   const officialLocked = locked.map((scene) => {
     const gallery = findInGallery(premiumLookId(scene.id));
     return row({
-      id: scene.lookId,
-      name: resolveSceneName(scene, locale),
+      ...orderFacts(scene, gallery),
       swatch: scene.swatch,
       maker: 'fluideq',
       makerPage: FLUIDEQ_MAKER,
@@ -362,7 +356,6 @@ export const buildPlusRows = ({
         officialSceneCategory(scene.id),
       ],
       locked: true,
-      ...listingFor(gallery),
       thumbnail: gallery && {
         lookId: scene.lookId,
         version: String(gallery.version),
@@ -385,8 +378,7 @@ export const buildPlusRows = ({
     (scene) => {
       const gallery = findInGallery(scene.lookId);
       return row({
-        id: scene.lookId,
-        name: resolveSceneName(scene, locale),
+        ...orderFacts(scene, gallery),
         swatch: scene.swatch,
         ...makerOf(scene, gallery),
         categories: galleryCategories(gallery) ?? [],
@@ -394,7 +386,6 @@ export const buildPlusRows = ({
         version: scene.version,
         ...noteFor(gallery, scene.version),
         ...latestFor(gallery, scene.version),
-        ...listingFor(gallery),
         thumbnail: memberSceneThumbnail(scene, gallery),
       });
     },
@@ -402,8 +393,7 @@ export const buildPlusRows = ({
   const memberLocked = withoutOfficialCopies(lockedMembers, officialIds).map(
     (scene) =>
       row({
-        id: scene.lookId,
-        name: resolveSceneName(scene, locale),
+        ...orderFacts(scene, undefined),
         swatch: scene.swatch,
         ...makerOf(scene, undefined),
         categories: [],

@@ -14,11 +14,13 @@ import {
   packIdOfLook,
   resolveSceneName,
 } from 'common/scenePacks';
-import { findGalleryScene } from '../plus/galleryStore';
+import { findGalleryScene, useGalleryFinder } from '../plus/galleryStore';
 import { useCustomLooks } from '../utils/customLooks';
-import { getSelectableLooks, useGraphPalette } from '../utils/graphStyle';
+import { getLookWalk, useGraphPalette } from '../utils/graphStyle';
 import { useTranslation } from '../utils/I18nContext';
+import { stepAlong, useLookSorts } from '../utils/lookOrder';
 import {
+  listedLookOf,
   useLockedMemberScenes,
   useUsableMemberScenes,
 } from '../utils/memberScenes';
@@ -35,9 +37,10 @@ import type { ILikedScene } from './SceneLikeButton';
  * The graph's looks as a gallery (Ivan, 2026-11-19, round 3's "I"): the one
  * on the graph, the ones either side of it, and where it stands in the walk.
  *
- * The walk is `getSelectableLooks`, in its own order, which is the one the
- * arrows, Space and Ctrl+Space step through (`cycleGraphLook`), so a
- * neighbour pictured at an edge is exactly the look that edge puts on.
+ * The walk is `getLookWalk`, the picker's own order, which is the one the
+ * arrows, Space and Ctrl+Space step through (`cycleGraphLook`), and the
+ * neighbours are found by the step's own `stepAlong`, so a neighbour
+ * pictured at an edge is exactly the look that edge puts on.
  */
 
 export interface IGalleryEntry {
@@ -76,10 +79,23 @@ export const useLookGallery = (selectedLookId: string): ILookGallery => {
   const usable = useUsableScenes();
   const members = useUsableMemberScenes();
   const lockedMembers = useLockedMemberScenes();
+  const { catalogue: sort } = useLookSorts();
+  // Drawn again when a gallery list comes in: the orders by date and by
+  // adds read it.
+  const findInGallery = useGalleryFinder();
 
   const looks = useMemo(
-    () => getSelectableLooks(customLooks, palette, usable, members),
-    [customLooks, palette, usable, members],
+    () =>
+      getLookWalk({
+        customLooks,
+        palette,
+        scenes: usable,
+        memberScenes: members,
+        sort,
+        locale,
+        findInGallery,
+      }),
+    [customLooks, palette, usable, members, sort, locale, findInGallery],
   );
 
   return useMemo(() => {
@@ -168,20 +184,21 @@ export const useLookGallery = (selectedLookId: string): ILookGallery => {
     };
 
     const count = looks.length;
-    const index = looks.findIndex((look) => look.id === selectedLookId);
+    // As the walk finds it: a publisher's own copy of one of FluidEQ's
+    // scenes is that scene's row (`listedLookOf`), there as in the picker.
+    const shown = listedLookOf(selectedLookId, members, usable);
+    const index = looks.findIndex((look) => look.id === shown);
     const current = entryOf(looks[index]) ?? asideOf(selectedLookId);
     if (count < 2) {
       return { current, index, count };
     }
-    // From the walk's first look when this one is out of it, and wrapping
-    // with `+ count` before the remainder, both as `stepLook` does: an edge
-    // pictures exactly the look its step puts on.
-    const from = Math.max(0, index);
-    const at = (step: number) => looks[(from + step + count) % count];
+    const ids = looks.map((look) => look.id);
+    const lookOf = (id: string | undefined) =>
+      looks.find((look) => look.id === id);
     return {
-      previous: entryOf(at(-1)),
+      previous: entryOf(lookOf(stepAlong(ids, shown, -1))),
       current,
-      next: entryOf(at(1)),
+      next: entryOf(lookOf(stepAlong(ids, shown, 1))),
       index,
       count,
     };

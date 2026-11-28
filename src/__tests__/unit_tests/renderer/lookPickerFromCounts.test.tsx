@@ -71,7 +71,6 @@ const open = (
         query=""
         place={place}
         from={from}
-        sort="newest"
         view="grid"
         ownsOfficialScenes={ownsOfficialScenes}
         onQuery={jest.fn()}

@@ -8,8 +8,12 @@ import {
   GRAPH_STYLE_FAMILIES,
   type TGraphStyleFamily,
 } from 'common/graphStyleFamilies';
-import type { LocaleCode } from 'common/i18n';
 import { isPlusCategory, type TPlusCategory } from 'common/plusGallery';
+import {
+  LOOK_SORTS,
+  type TLookSort,
+  type TSortShelf,
+} from '../utils/lookOrder';
 import {
   isUnseenSceneVersion,
   seenSceneVersion,
@@ -33,16 +37,20 @@ export type TPickerPlace =
 
 export type TPickerFrom = 'all' | 'fluideq' | 'members' | 'yours';
 
-export type TPickerSort = 'newest' | 'updated' | 'name' | 'used';
+/** The order a place is shown in, shared with the arrows (`lookOrder.ts`). */
+export type TPickerSort = TLookSort;
 
 export type TPickerView = 'grid' | 'details';
 
-export const PICKER_SORTS: readonly TPickerSort[] = [
-  'newest',
-  'updated',
-  'name',
-  'used',
-];
+export const PICKER_SORTS = LOOK_SORTS;
+
+/**
+ * Which order a place is laid out in: New and updated by its own, every
+ * other place, a search included, by the catalogue's - the one the arrows
+ * walk (`TSortShelf`).
+ */
+export const sortShelfOf = (place: TPickerPlace | undefined): TSortShelf =>
+  place === 'fresh' ? 'fresh' : 'catalogue';
 
 /**
  * How a scene has changed for this listener: a version newer than the one
@@ -194,64 +202,6 @@ export const offersFrom = (
   place: TPickerPlace | undefined,
   froms: readonly TPickerFrom[],
 ) => froms.length > 1 && (place === undefined || placeHoldsScenes(place));
-
-/**
- * A scene the gallery has not described yet has no date and no count: it
- * goes after those that have one, in the order the rows were built, so a
- * sort never shuffles what it knows nothing about.
- */
-const byKnown =
-  <T>(
-    read: (row: IPlusRow) => T | undefined,
-    higherFirst: (a: T, b: T) => number,
-  ) =>
-  (a: IPlusRow, b: IPlusRow) => {
-    const left = read(a);
-    const right = read(b);
-    if (left === undefined || right === undefined) {
-      return Number(left === undefined) - Number(right === undefined);
-    }
-    return higherFirst(left, right);
-  };
-
-const time = (value: string | undefined) => {
-  const parsed = value ? Date.parse(value) : NaN;
-  return Number.isNaN(parsed) ? undefined : parsed;
-};
-
-export const sortScenes = (
-  rows: readonly IPlusRow[],
-  sort: TPickerSort,
-  locale: LocaleCode,
-): IPlusRow[] => {
-  const compare = {
-    newest: byKnown(
-      (row) => time(row.publishedAt),
-      (a, b) => b - a,
-    ),
-    updated: byKnown(
-      (row) => time(row.updatedAt),
-      (a, b) => b - a,
-    ),
-    used: byKnown(
-      (row) => row.adds,
-      (a, b) => b - a,
-    ),
-    name: (a: IPlusRow, b: IPlusRow) => a.name.localeCompare(b.name, locale),
-  }[sort];
-  // `sort` is stable, so equal rows keep the order they were built in.
-  return [...rows].sort(compare);
-};
-
-/** Styles have no dates or counts: only Name reorders them. */
-export const sortStyles = (
-  rows: readonly IStyleRow[],
-  sort: TPickerSort,
-  locale: LocaleCode,
-): IStyleRow[] =>
-  sort === 'name'
-    ? [...rows].sort((a, b) => a.name.localeCompare(b.name, locale))
-    : [...rows];
 
 export interface ISelectedLooks {
   styles: IStyleRow[];

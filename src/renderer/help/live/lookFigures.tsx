@@ -151,7 +151,6 @@ const LookPickerDrawing = () => {
         query=""
         place="everything"
         from="all"
-        sort="newest"
         view="grid"
         onQuery={nothing}
         onPlace={nothing}

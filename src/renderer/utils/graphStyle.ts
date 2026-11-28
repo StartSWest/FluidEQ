@@ -36,7 +36,9 @@ import {
   resolveBuiltInLook,
   resolveCustomLook,
 } from 'common/customLooks';
+import type { LocaleCode } from 'common/i18n';
 import { isMemberLookId } from 'common/memberScenes';
+import type { IGalleryScene } from 'common/plusGallery';
 import { isPremiumLookId, packIdOfLook } from 'common/scenePacks';
 import {
   getCustomLook,
@@ -58,7 +60,17 @@ import {
   type IUsableScene,
 } from './scenePacks';
 import type { TDrawableScene } from '../graph/SceneCanvas';
+import { findGalleryScene } from '../plus/galleryStore';
 import { forgetLooks, noteLookChange, takeLookToReturnTo } from './lookHistory';
+import {
+  getLookSorts,
+  orderLooks,
+  sceneOrderFacts,
+  stepAlong,
+  type ISceneOrderFacts,
+  type TLookSort,
+} from './lookOrder';
+import { getWindowLocale } from './windowLocale';
 
 import {
   lookFamilyOf,
@@ -243,19 +255,6 @@ const select = (next: string) => {
 };
 
 /**
- * Every look that can be selected, built-ins first.
- *
- * Rebuilt per call rather than cached because it changes whenever a look is
- * saved or deleted, and the two things that ask for it — the picker and the
- * click-to-cycle — are both user actions rather than frames.
- *
- * The user's own looks are a parameter, defaulted to the store, because the two
- * callers reach them differently: the cycle reads the store as it stands, and
- * React has to pass what it subscribed to. Reading the store here in both cases
- * would leave the component's memo depending on a value it never mentions,
- * which is a stale list waiting to happen and a lint error besides.
- */
-/**
  * Every saved variation directly under the view it was made from.
  *
  * A look somebody tunes and saves is a version of one of these drawings, and
@@ -264,9 +263,9 @@ const select = (next: string) => {
  * viz under it so tghey are grouped even if differnt name is same viz").
  *
  * THIS IS THE CYCLE ORDER TOO, which is the half that matters: the picker
- * reads this list and so do the next and previous arrows, so stepping past a
- * view now walks its own variations before moving on rather than leaving them
- * twenty presses away.
+ * lays the standard looks out in this order and the next and previous arrows
+ * walk them in it (`getLookWalk`), so stepping past a view walks its own
+ * variations before moving on rather than leaving them twenty presses away.
  *
  * A variation of a form that is no longer offered keeps its place at the end:
  * it still draws, and it has no root to sit under.
@@ -284,6 +283,21 @@ const nestCustomLooks = (
   return [...nested, ...custom.filter((look) => !placed.has(look.id))];
 };
 
+/**
+ * Every look that can be selected: the standard looks in their fixed order,
+ * then the scenes as their listings came. What the arrows walk and in what
+ * order is `getLookWalk`, which puts the scenes in the picker's order.
+ *
+ * Rebuilt per call rather than cached because it changes whenever a look is
+ * saved or deleted, and the two things that ask for it — the picker and the
+ * click-to-cycle — are both user actions rather than frames.
+ *
+ * The user's own looks are a parameter, defaulted to the store, because the two
+ * callers reach them differently: the cycle reads the store as it stands, and
+ * React has to pass what it subscribed to. Reading the store here in both cases
+ * would leave the component's memo depending on a value it never mentions,
+ * which is a stale list waiting to happen and a lint error besides.
+ */
 export const getSelectableLooks = (
   customLooks: readonly ICustomLook[] = getCustomLooks(),
   /**
@@ -387,17 +401,6 @@ export const getGraphLookId = () => selectedId;
 export const getResolvedLook = (): IResolvedLook => resolved;
 
 /**
- * The next look along, for the click on the plot.
- *
- * The picker is for reaching a particular one out of ninety-odd; this is for
- * flicking through them while listening, without moving the pointer off the
- * graph. Backwards with a modifier held, because with a list this long
- * overshooting by one otherwise means going all the way round again.
- *
- * Walks the user's own looks too, at the end of the list, so a look somebody
- * made is reachable the same way as one that shipped.
- */
-/**
  * A look the app may put on by itself, with nobody having pressed anything.
  *
  * FluidEQ's own forms and looks, the member's own scenes, and the Plus looks
@@ -416,42 +419,97 @@ const playsUnattended = (id: string) => {
   );
 };
 
+/** Everything the walk is made from, each as `getSelectableLooks` takes it. */
+export interface ILookWalkSources {
+  customLooks: readonly ICustomLook[];
+  palette: GraphPalette;
+  scenes: readonly IUsableScene[];
+  memberScenes: readonly IUsableMemberScene[];
+  /** The catalogue's order, from the picker's Sort menu (`lookOrder.ts`). */
+  sort: TLookSort;
+  /** The window's language: scenes go by their names in it. */
+  locale: LocaleCode;
+  /** The gallery's word on a scene, for the orders by date and by adds. */
+  findInGallery: (lookId: string) => IGalleryScene | undefined;
+}
+
+/** The walk's sources as the stores hold them right now. */
+const liveWalkSources = (): ILookWalkSources => ({
+  customLooks: getCustomLooks(),
+  palette: getGraphPalette(),
+  scenes: getUsableScenes(),
+  memberScenes: getUsableMemberScenes(),
+  sort: getLookSorts().catalogue,
+  locale: getWindowLocale(),
+  findInGallery: findGalleryScene,
+});
+
+/**
+ * Every look that can be put on, in the order the arrows walk them: the
+ * picker's Everything as it shows, scenes in the chosen order and then the
+ * standard looks (`orderLooks`, where the whole rule is written down).
+ *
+ * What is in it is `getSelectableLooks`; only the order is added here. The
+ * pictures at the graph's edges pass what React subscribed to (`lookGallery`),
+ * the step reads the stores as they stand.
+ */
+export const getLookWalk = (
+  sources: ILookWalkSources = liveWalkSources(),
+): IResolvedLook[] => {
+  const looks = getSelectableLooks(
+    sources.customLooks,
+    sources.palette,
+    sources.scenes,
+    sources.memberScenes,
+  );
+  const sceneOf = new Map<string, IUsableScene | IUsableMemberScene>(
+    [...sources.scenes, ...sources.memberScenes].map((scene) => [
+      scene.lookId,
+      scene,
+    ]),
+  );
+  const styles: { look: IResolvedLook }[] = [];
+  const scenes: (ISceneOrderFacts & { look: IResolvedLook })[] = [];
+  looks.forEach((look) => {
+    const scene = sceneOf.get(look.id);
+    if (scene) {
+      scenes.push({
+        ...sceneOrderFacts(
+          look.id,
+          scene,
+          sources.findInGallery(look.id),
+          sources.locale,
+        ),
+        look,
+      });
+    } else {
+      styles.push({ look });
+    }
+  });
+  return orderLooks(styles, scenes, sources.sort, sources.locale).all.map(
+    (entry) => entry.look,
+  );
+};
+
 /**
  * The next look along from the selection, skipping any `allowed` refuses, or
- * undefined when nothing in the list qualifies. Changes nothing: the step
+ * undefined when nothing in the walk qualifies. Changes nothing: the step
  * below and the look prepared ahead of it (`scenePreload.ts`) both ask this,
  * so what is prepared is exactly what the step will put on.
- *
- * The order is the whole list, so the walk keeps its place and its direction
- * whatever is skipped, and it gives up after a full turn rather than looping
- * for ever when nothing in the list qualifies.
  */
 const nextLookId = (
   direction: 1 | -1,
   allowed: (id: string) => boolean,
-): string | undefined => {
-  const ids = getSelectableLooks().map((look) => look.id);
-  const count = ids.length;
-  // Found as the look the lists show for it: a publisher's own copy of one
-  // of FluidEQ's scenes is that scene's row (`listedLookOf`). Found nowhere,
-  // the walk used to start again from the first look.
-  const from = Math.max(
-    0,
-    ids.indexOf(
-      listedLookOf(selectedId, getUsableMemberScenes(), getUsableScenes()),
-    ),
+): string | undefined =>
+  stepAlong(
+    getLookWalk().map((look) => look.id),
+    // Found as the look the lists show for it: a publisher's own copy of one
+    // of FluidEQ's scenes is that scene's row (`listedLookOf`). Found
+    // nowhere, the walk used to start again from the first look.
+    listedLookOf(selectedId, getUsableMemberScenes(), getUsableScenes()),
+    direction,
+    allowed,
   );
-  for (let step = 1; step <= count; step += 1) {
-    // `+ count` before the remainder, so a backwards walk past the start
-    // lands on the end rather than on a negative index.
-    const at = (((from + direction * step) % count) + count) % count;
-    const next = ids[at];
-    if (next !== undefined && allowed(next)) {
-      return next;
-    }
-  }
-  return undefined;
-};
 
 /** The selection moved one look along the walk above. */
 const stepLook = (direction: 1 | -1, allowed: (id: string) => boolean) => {
@@ -478,6 +536,19 @@ export const peekGraphLookUnattended = (
   direction: 1 | -1 = 1,
 ): string | undefined => nextLookId(direction, playsUnattended);
 
+/**
+ * The next look along: the arrows at the graph's edges, the view menu's
+ * Next and Previous, Space and Ctrl+Space.
+ *
+ * The picker is for reaching a particular one out of ninety-odd; this is for
+ * flicking through them while listening, without moving the pointer off the
+ * graph. Backwards with a modifier held, because with a list this long
+ * overshooting by one otherwise means going all the way round again.
+ *
+ * Walks the user's own looks too, each under the look it was made from, so
+ * a look somebody made is reachable the same way as one that shipped, and
+ * every look in the order the picker shows it (`getLookWalk`).
+ */
 export const cycleGraphLook = (direction: 1 | -1 = 1) => {
   // Deliberately live while the designer is open.
   //

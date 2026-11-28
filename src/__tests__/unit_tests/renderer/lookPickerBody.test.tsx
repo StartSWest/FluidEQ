@@ -86,7 +86,6 @@ const open = ({
         query={query}
         place={place}
         from={from}
-        sort="newest"
         view={view}
         onQuery={jest.fn()}
         onPlace={jest.fn()}

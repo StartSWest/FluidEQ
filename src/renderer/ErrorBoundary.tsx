@@ -20,7 +20,7 @@ import { Component, ErrorInfo, ReactNode } from 'react';
 import { PRODUCT_NAME } from 'common/branding';
 import ChannelEnum from 'common/channels';
 import { translate } from 'common/i18n';
-import { readInitialLocale } from './utils/I18nContext';
+import { readInitialLocale } from './utils/windowLocale';
 import {
   getRendererFailure,
   onRendererFailure,

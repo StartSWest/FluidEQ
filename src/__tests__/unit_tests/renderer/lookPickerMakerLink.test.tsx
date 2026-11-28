@@ -157,7 +157,6 @@ const open = (
         query=""
         place="all-scenes"
         from="all"
-        sort="newest"
         view={view}
         onQuery={jest.fn()}
         onPlace={jest.fn()}

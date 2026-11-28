@@ -81,7 +81,6 @@ const open = (
         query=""
         place={place}
         from="all"
-        sort="newest"
         view="grid"
         onQuery={jest.fn()}
         onPlace={onPlace}

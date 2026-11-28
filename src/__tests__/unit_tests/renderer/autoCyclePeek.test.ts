@@ -92,7 +92,7 @@ const peekThenStep = (graphStyle: TGraphStyleModule, from: string) => {
 describe('the look Auto prepares', () => {
   it('is the one the step puts on, from every look in the list', () => {
     const graphStyle = load();
-    const ids = graphStyle.getSelectableLooks().map((look) => look.id);
+    const ids = graphStyle.getLookWalk().map((look) => look.id);
     expect(ids).toEqual(
       expect.arrayContaining(['premium:alpine', 'premium:borealis']),
     );
@@ -104,7 +104,7 @@ describe('the look Auto prepares', () => {
 
   it('passes over a stranger’s scene as the step does', () => {
     const graphStyle = load();
-    const ids = graphStyle.getSelectableLooks().map((look) => look.id);
+    const ids = graphStyle.getLookWalk().map((look) => look.id);
     const at = ids.indexOf(STRANGER.lookId);
     expect(at).toBeGreaterThan(0);
     const before = ids[at - 1];
@@ -121,7 +121,7 @@ describe('the look Auto prepares', () => {
 
   it('walks on from FluidEQ’s row while its publisher’s own copy plays', () => {
     const graphStyle = load();
-    const ids = graphStyle.getSelectableLooks().map((look) => look.id);
+    const ids = graphStyle.getLookWalk().map((look) => look.id);
     const { peeked, stepped } = peekThenStep(graphStyle, OWN_COPY.lookId);
     expect(peeked).toBe(stepped);
     expect(peeked).toBe(ids[ids.indexOf('premium:alpine') + 1]);

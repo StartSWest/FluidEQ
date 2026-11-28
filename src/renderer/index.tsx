@@ -30,7 +30,7 @@ import ErrorBoundary from './ErrorBoundary';
 import { installGlobalErrorHandlers, reportError } from './utils/logger';
 import installTooltipLayer from './utils/tooltipLayer';
 import forgetReactTimings from './utils/forgetReactTimings';
-import { readInitialLocale } from './utils/I18nContext';
+import { readInitialLocale } from './utils/windowLocale';
 import { preloadLaunchPages } from './workspacePages';
 
 // Before the first render, whose own entries are the first React writes.

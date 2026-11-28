@@ -18,7 +18,7 @@ import type { IMemberScenesListing } from 'main/ipc/memberScenes';
 import type { IScenePacksListing } from 'main/ipc/scenePacks';
 import { useLookGallery } from 'renderer/graph/lookGallery';
 import { setSceneRenderingAvailableForTesting } from 'renderer/graph/sceneHealth';
-import { getSelectableLooks, setGraphLook } from 'renderer/utils/graphStyle';
+import { getLookWalk, setGraphLook } from 'renderer/utils/graphStyle';
 import { I18nProvider } from 'renderer/utils/I18nContext';
 import {
   adoptMemberSceneListingForTesting,
@@ -72,7 +72,7 @@ afterEach(() => {
 
 describe('the looks either side', () => {
   it('are the walk’s neighbours, wrapping at both ends as the arrows do', () => {
-    const ids = getSelectableLooks().map((look) => look.id);
+    const ids = getLookWalk().map((look) => look.id);
     const first = gallery(ids[0]).current;
     expect(first.index).toBe(0);
     expect(first.count).toBe(ids.length);
@@ -85,7 +85,7 @@ describe('the looks either side', () => {
   });
 
   it('start from the walk’s first look when the one shown is out of it, as Space does', () => {
-    const ids = getSelectableLooks().map((look) => look.id);
+    const ids = getLookWalk().map((look) => look.id);
     const out = gallery('premium:not-here').current;
     expect(out.index).toBe(-1);
     expect(out.next?.id).toBe(ids[1]);

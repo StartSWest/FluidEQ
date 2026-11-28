@@ -38,8 +38,11 @@ import {
   TranslationKey,
 } from 'common/i18n';
 import { reportError } from './logger';
-
-const STORAGE_KEY = 'fluideq.locale';
+import {
+  LOCALE_STORAGE_KEY,
+  noteLocalePicked,
+  readInitialLocale,
+} from './windowLocale';
 
 interface II18nContext {
   locale: LocaleCode;
@@ -48,30 +51,6 @@ interface II18nContext {
 }
 
 const I18nContext = createContext<II18nContext | undefined>(undefined);
-
-/**
- * First run picks the language from the machine, not from a menu.
- *
- * Someone whose Windows is in Portuguese should not have to find a language
- * setting written in English before the app makes sense. Once they choose one
- * explicitly, that choice wins forever after — the stored value is only ever
- * written by the picker.
- */
-export const readInitialLocale = (): LocaleCode => {
-  try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      return resolveLocale(stored);
-    }
-  } catch {
-    // Private mode, a locked-down profile, a test environment without storage.
-    // Falling through to the browser language is the right answer for all of
-    // them, and none of them is worth an error on screen.
-  }
-  return resolveLocale(
-    typeof navigator === 'undefined' ? DEFAULT_LOCALE : navigator.language,
-  );
-};
 
 export const I18nProvider = ({ children }: { children: ReactNode }) => {
   const [locale, setLocaleState] = useState<LocaleCode>(readInitialLocale);
@@ -148,10 +127,11 @@ export const I18nProvider = ({ children }: { children: ReactNode }) => {
       if (requested.current !== next) {
         return;
       }
+      noteLocalePicked(next);
       setLocaleState(next);
       setSpeaking(next);
       try {
-        window.localStorage.setItem(STORAGE_KEY, next);
+        window.localStorage.setItem(LOCALE_STORAGE_KEY, next);
       } catch {
         // The language still changes for this session; it just will not be
         // remembered. Better than refusing to switch at all.

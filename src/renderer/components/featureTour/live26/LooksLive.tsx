@@ -34,7 +34,6 @@ export default function LooksLive() {
         query=""
         place="scenes"
         from="all"
-        sort="newest"
         view="grid"
         onQuery={nothing}
         onPlace={nothing}

@@ -24,6 +24,7 @@ import { useCustomLooks } from '../utils/customLooks';
 import { useHoldGraphAutoCycle } from '../utils/graphAutoCycle';
 import { getSelectableLooks, useGraphPalette } from '../utils/graphStyle';
 import { useTranslation } from '../utils/I18nContext';
+import { setLookSort, useLookSorts } from '../utils/lookOrder';
 import {
   isUnseenSceneVersion,
   useSeenSceneVersions,
@@ -51,7 +52,6 @@ import {
   keepStyleIn,
   type TPickerFrom,
   type TPickerPlace,
-  type TPickerSort,
   type TPickerView,
 } from './lookPickerFilter';
 import {
@@ -81,10 +81,13 @@ import '../styles/LookPicker.scss';
  * (`useHoldGraphAutoCycle`).
  */
 
-/** Remembered for the session, so reopening lands where it was left. */
+/**
+ * Remembered for the session, so reopening lands where it was left. The
+ * order is the arrows' as well, so it is kept where they read it
+ * (`lookOrder.ts`).
+ */
 let lastPlace: TPickerPlace = 'everything';
 let lastFrom: TPickerFrom = 'all';
-let lastSort: TPickerSort = 'newest';
 let lastView: TPickerView = 'grid';
 
 interface ILookPickerProps {
@@ -145,7 +148,7 @@ const LookPicker = ({
   const [query, setQuery] = useState('');
   const [place, setPlace] = useState(lastPlace);
   const [from, setFrom] = useState(lastFrom);
-  const [sort, setSort] = useState(lastSort);
+  const sorts = useLookSorts();
   const [view, setView] = useState(lastView);
   // What counts as new is decided as the picker opens, not while it is open.
   const [openedAt, setOpenedAt] = useState<number | undefined>(undefined);
@@ -312,10 +315,6 @@ const LookPicker = ({
     lastFrom = next;
     setFrom(next);
   };
-  const chooseSort = (next: TPickerSort) => {
-    lastSort = next;
-    setSort(next);
-  };
   const chooseView = (next: TPickerView) => {
     lastView = next;
     setView(next);
@@ -430,14 +429,14 @@ const LookPicker = ({
           query={query}
           place={place}
           from={from}
-          sort={sort}
+          sorts={sorts}
           view={view}
           openedAt={openedAt}
           ownsOfficialScenes={ownsOfficialScenes}
           onQuery={search}
           onPlace={choosePlace}
           onFrom={chooseFrom}
-          onSort={chooseSort}
+          onSort={setLookSort}
           onView={chooseView}
           onChoose={choose}
           searchRef={searchRef}
