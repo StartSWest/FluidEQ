@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   GRAPH_STYLES,
   GRAPH_STYLE_LABELS,
+  GraphPalette,
   GraphStyle,
   MAX_GRAPH_COLUMNS,
   MIN_GRAPH_COLUMNS,
@@ -27,6 +28,7 @@ import {
   isFilledGraphStyle,
 } from 'common/graphStyles';
 import { ACCENT_STYLES, hasGraphAccent } from 'common/graphShapes';
+import type { ILookStop } from 'common/lookGradient';
 import {
   MAX_PATTERN_SIZE,
   MAX_TEXTURE_SIZE,
@@ -75,9 +77,11 @@ import {
   normalizeLookName,
   normalizeTuning,
   parseCustomLooks,
+  lookToKeep,
   rebaseDraftLook,
   recolourDraftLook,
   resolveCustomLook,
+  withLookStops,
   serializeCustomLooks,
 } from 'common/customLooks';
 
@@ -494,11 +498,6 @@ describe('palette colours', () => {
     (['auto', 'signal', 'rainbow', 'level', 'heat'] as const).forEach(
       (palette) => {
         expect(createDraftLook('ledbars', palette).colours).toEqual([]);
-        const coloured = {
-          ...createDraftLook('ledbars', palette === 'heat' ? 'level' : 'heat'),
-          colours: ['#123456', '#abcdef'],
-        };
-        expect(recolourDraftLook(coloured, palette).colours).toEqual([]);
       },
     );
   });
@@ -562,15 +561,104 @@ describe('normalizeLookColours', () => {
 });
 
 describe('recolourDraftLook', () => {
-  it('takes the new palette’s colours rather than carrying the old ones', () => {
-    // Four colours running quiet-to-loud up the decibel axis are not four
-    // colours running bass-to-treble across the frequency axis. Carried over,
-    // a level ramp would silently start reading as a spectrum.
-    const level = { ...draftOf('bars'), palette: 'level' as const };
-    const coloured = { ...level, colours: ['#111111', '#222222'] };
-    const rebased = recolourDraftLook(coloured, 'rainbow');
-    expect(rebased.palette).toBe('rainbow');
-    expect(rebased.colours).toEqual([]);
+  // Three points somebody placed by hand: nowhere a seed would put them.
+  const PICKED: ILookStop[] = [
+    { colour: '#1a2b3c', at: 0 },
+    { colour: '#f0a020', at: 0.35 },
+    { colour: '#e0e0ff', at: 1 },
+  ];
+  const picked = (palette: GraphPalette, style: GraphStyle = 'bars') =>
+    withLookStops({ ...createDraftLook(style, palette, 'Mine') }, PICKED);
+
+  it("keeps the member's gradient through every Colour by, Flat included", () => {
+    // Session 0, 2026-11-28: picking a gradient and choosing what it runs
+    // along are two decisions, and the second used to throw the first away.
+    const start = picked('rainbow');
+    const steps: GraphPalette[] = ['level', 'heat', 'signal', 'rainbow'];
+    let draft = start;
+    steps.forEach((palette) => {
+      draft = recolourDraftLook(draft, palette);
+      expect(draft.palette).toBe(palette);
+      expect(draft.stops).toEqual(PICKED);
+    });
+    // Back on a gradient, it is the look it was, colour for colour.
+    expect(draft).toEqual(start);
+    expect(resolveCustomLook(draft).colours).toEqual(
+      resolveCustomLook(start).colours,
+    );
+  });
+
+  it('draws Flat in the gradient’s first colour, and saves only that', () => {
+    const flat = recolourDraftLook(picked('heat'), 'signal');
+    expect(flat.colours).toEqual(['#1a2b3c']);
+    // The drawing sees one colour, not the gradient held beside it.
+    expect(resolveCustomLook(flat).colours).toEqual(['#1a2b3c']);
+    // What is kept of it is the colour; the gradient was the editor's.
+    const kept = lookToKeep(flat);
+    expect(kept.stops).toBeUndefined();
+    expect(normalizeCustomLook(JSON.parse(JSON.stringify(kept)))).toEqual(kept);
+    // Control: a gradient look keeps its points when it is kept.
+    const gradient = picked('level');
+    expect(lookToKeep(gradient)).toBe(gradient);
+  });
+
+  it('keeps a flat colour picked over the gradient, and the gradient under it', () => {
+    const flat = {
+      ...recolourDraftLook(picked('level'), 'signal'),
+      colours: ['#00ff00'],
+    };
+    expect(resolveCustomLook(flat).colours).toEqual(['#00ff00']);
+    expect(recolourDraftLook(flat, 'level').stops).toEqual(PICKED);
+  });
+
+  it('keeps it under Auto, on a form Auto paints flat and back', () => {
+    // Bars under Auto are a frequency gradient, an oscilloscope one colour.
+    const auto = recolourDraftLook(picked('rainbow'), 'auto');
+    expect(auto.stops).toEqual(PICKED);
+    expect(resolveCustomLook(auto).colours).toEqual(
+      resolveCustomLook(picked('rainbow')).colours,
+    );
+    const onScope = rebaseDraftLook(auto, 'scope');
+    expect(onScope.stops).toEqual(PICKED);
+    expect(resolveCustomLook(onScope).colours).toEqual(['#1a2b3c']);
+    const backOnBars = rebaseDraftLook(onScope, 'bars');
+    expect(backOnBars.stops).toEqual(PICKED);
+    expect(backOnBars.colours).toEqual(auto.colours);
+    // Saved there with a colour of its own, it reads back as that colour:
+    // the points would otherwise rewrite `colours` from themselves.
+    const stored = normalizeCustomLook(
+      JSON.parse(JSON.stringify({ ...onScope, colours: ['#00ff00'] })),
+    );
+    expect(stored?.colours).toEqual(['#00ff00']);
+    expect(stored?.stops).toBeUndefined();
+  });
+
+  it('brings back a gradient saved before points, drawn as it was', () => {
+    const legacy = {
+      ...createDraftLook('bars', 'level'),
+      colours: ['#111111', '#777777', '#eeeeee'],
+    };
+    const back = recolourDraftLook(recolourDraftLook(legacy, 'signal'), 'heat');
+    expect(resolveCustomLook(back).colours).toEqual(legacy.colours);
+  });
+
+  it('still follows the window colours on a look whose colours were never touched', () => {
+    // The control for all of the above: nothing of the member's to keep, so
+    // every palette seeds from the window's set as before.
+    let draft = createDraftLook('bars', 'signal');
+    (['rainbow', 'level', 'heat', 'signal', 'auto'] as const).forEach(
+      (palette) => {
+        draft = recolourDraftLook(draft, palette);
+        expect(draft.colours).toEqual([]);
+        expect(draft.stops).toBeUndefined();
+      },
+    );
+    // A flat colour is not stretched into a gradient of one.
+    const coloured = {
+      ...createDraftLook('bars', 'signal'),
+      colours: ['#123456'],
+    };
+    expect(recolourDraftLook(coloured, 'rainbow').colours).toEqual([]);
   });
 
   it('leaves the form and its tuning completely alone', () => {

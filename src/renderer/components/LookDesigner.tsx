@@ -50,6 +50,7 @@ import {
   MIN_STROKE_WIDTH,
   createDraftLook,
   getDefaultTuning,
+  lookToKeep,
   normalizeLookName,
   parseLookFile,
   serializeLookFile,
@@ -248,13 +249,12 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
     setDraft((current) => withLookStops(current, stops));
   }, []);
 
-  /** A flat figure's one colour. */
+  /**
+   * A flat figure's one colour. Any gradient the draft holds stays beside it,
+   * for when the look is a gradient again (`recolourDraftLook`).
+   */
   const setFlatColour = useCallback((colour: string) => {
-    setDraft((current) => ({
-      ...current,
-      colours: [colour],
-      stops: undefined,
-    }));
+    setDraft((current) => ({ ...current, colours: [colour] }));
   }, []);
 
   const followWindow = useCallback(() => {
@@ -311,10 +311,10 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
   const handleSave = () => {
     // A blank name is not an error — the placeholder has been showing what it
     // will be called all along, so saving simply takes that.
-    const look: ICustomLook = {
+    const look = lookToKeep({
       ...draft,
       name: normalizeLookName(draft.name) || fallbackName,
-    };
+    });
     saveCustomLook(look);
     setGraphLook(look.id);
     // It is in the list now, and the list is the truth. Left behind, the
@@ -344,10 +344,10 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
    * something the platform does in three lines.
    */
   const handleExport = () => {
-    const look: ICustomLook = {
+    const look = lookToKeep({
       ...draft,
       name: normalizeLookName(draft.name) || fallbackName,
-    };
+    });
     const url = URL.createObjectURL(
       new Blob([serializeLookFile([look])], { type: 'application/json' }),
     );
@@ -432,10 +432,10 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
                 aria-pressed={draft.palette === choice.value}
                 title={t(choice.hint)}
                 onClick={() =>
-                  // The stops belong to the palette and do not survive it — see
-                  // `recolourDraftLook` — and the new palette follows the
-                  // window's colours until somebody changes one: seeding them
-                  // here froze a look in the colours the window had that day.
+                  // The member's gradient survives the change — see
+                  // `recolourDraftLook` — and an untouched look goes on
+                  // following the window's colours: seeding them here froze a
+                  // look in the colours the window had that day.
                   setDraft((current) =>
                     recolourDraftLook(current, choice.value),
                   )

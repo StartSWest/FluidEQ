@@ -31,6 +31,7 @@ import {
   getGraphBarGap,
   getGraphFillOpacity,
   isFilledGraphStyle,
+  resolveGraphPalette,
 } from './graphStyles';
 import {
   ACCENT_STYLES,
@@ -59,8 +60,10 @@ import {
 import { PRODUCT_NAME } from './branding';
 import {
   type ILookStop,
+  MIN_LOOK_STOPS,
   legacyColoursFromStops,
   lookRampFromStops,
+  lookStopsFromColours,
   normalizeLookStops,
 } from './lookGradient';
 
@@ -219,6 +222,8 @@ export interface ICustomLook {
   /**
    * The gradient's points, where somebody put them; absent on every look
    * saved before points existed, which draws from `colours` as it always did.
+   * A flat look in the editor may hold them too, unseen: the member's
+   * gradient, kept for a change of Colour by back to one (`carryLookColours`).
    */
   stops?: ILookStop[];
 }
@@ -271,6 +276,13 @@ export const getMaxLookColours = (palette: GraphPalette): number =>
   // there is no axis to run it along — so it is not an option that does nothing,
   // it is not an option.
   palette === 'signal' ? 1 : MAX_LOOK_COLOURS;
+
+/**
+ * Whether this form under this palette is painted in one colour: Flat, and
+ * Auto on a form whose own colouring is flat (an oscilloscope, a needle).
+ */
+export const isFlatLook = (style: GraphStyle, palette: GraphPalette): boolean =>
+  resolveGraphPalette(style, palette) === 'signal';
 
 export const normalizeLookColours = (
   raw: unknown,
@@ -641,7 +653,12 @@ export const normalizeCustomLook = (raw: unknown): ICustomLook | null => {
   const name =
     typeof source.name === 'string' ? normalizeLookName(source.name) : '';
   const palette = isGraphPalette(source.palette) ? source.palette : 'signal';
-  const stops = normalizeLookStops(source.stops, palette);
+  // A look drawn in one colour is read as that colour: under Auto on a form
+  // painted flat, points kept from a gradient would otherwise rewrite
+  // `colours` from themselves and lose the colour somebody picked.
+  const stops = isFlatLook(style, palette)
+    ? []
+    : normalizeLookStops(source.stops, palette);
   if (stops.length) {
     return {
       id,
@@ -728,42 +745,6 @@ export const createDraftLook = (
 });
 
 /**
- * The same look, retuned for a different base form.
- *
- * Changing the form mid-edit is a change of geometry, so the settings that
- * described the old one no longer mean anything — sixty-four columns of stems
- * is not twenty-six of skyline, and a fill on a form that is drawn as strokes
- * is a different picture. Everything moves to the new form's own defaults, and
- * only the name and the palette carry over, because those are choices about the
- * look rather than about the shape.
- */
-export const rebaseDraftLook = (
-  draft: ICustomLook,
-  style: GraphStyle,
-): ICustomLook =>
-  draft.style === style
-    ? draft
-    : { ...draft, style, tuning: getDefaultTuning(style) };
-
-/**
- * The same look, recoloured for a different palette.
- *
- * The stops go with the palette rather than surviving it, because they mean
- * different things in each: four colours running quiet-to-loud up the decibel
- * axis are not four colours running bass-to-treble across the frequency axis,
- * and carrying them over would hand somebody a level ramp that reads as a
- * spectrum. The form and its tuning are untouched — this is a change of
- * colouring, not of shape.
- */
-export const recolourDraftLook = (
-  draft: ICustomLook,
-  palette: GraphPalette,
-): ICustomLook =>
-  draft.palette === palette
-    ? draft
-    : { ...draft, palette, colours: [], stops: undefined };
-
-/**
  * The look with these points as its gradient, and `colours` worked out from
  * them for older versions. No points is back to the window's colours.
  */
@@ -774,6 +755,108 @@ export const withLookStops = (
   stops.length
     ? { ...look, stops: [...stops], colours: legacyColoursFromStops(stops) }
     : { ...look, stops: undefined, colours: [] };
+
+/**
+ * A gradient saved before points existed, as its points: evenly spaced, so
+ * they draw exactly the colours they came from. One colour or none is not a
+ * gradient.
+ */
+const gradientStopsOf = (colours: readonly string[]): ILookStop[] =>
+  colours.length >= MIN_LOOK_STOPS ? lookStopsFromColours(colours) : [];
+
+/**
+ * The draft's colours as they stand under another form or palette.
+ *
+ * - Between two gradients (Frequency, Level, Heat, Auto on a form it paints
+ *   as one), nothing moves: the same points, the same `colours`.
+ * - Into one colour (Flat, or Auto on a form it paints flat) the gradient
+ *   stays in `stops` and `colours` becomes its first colour, the one a
+ *   gradient read as Flat has always been cut to (`getMaxLookColours`); a
+ *   gradient saved before points existed is turned into its points first,
+ *   which draw exactly the same, so that it can come back too.
+ * - Out of one colour, those points come back. With none — the gradient was
+ *   never touched — the look follows the window's colours, as it did before
+ *   the change (`windowInk.ts`); the flat colour is not stretched into a
+ *   gradient of one.
+ *
+ * What is saved of a flat look is its colour alone (`lookToKeep`): the
+ * gradient waits in the draft, for as long as the editor is open.
+ */
+const carryLookColours = (
+  draft: ICustomLook,
+  style: GraphStyle,
+  palette: GraphPalette,
+): ICustomLook => {
+  const next = { ...draft, style, palette };
+  const wasFlat = isFlatLook(draft.style, draft.palette);
+  const isFlat = isFlatLook(style, palette);
+  if (wasFlat === isFlat) {
+    return next;
+  }
+  if (!isFlat) {
+    return withLookStops(next, draft.stops ?? []);
+  }
+  const stops = draft.stops?.length
+    ? draft.stops
+    : gradientStopsOf(draft.colours);
+  return stops.length
+    ? { ...next, stops, colours: lookRampFromStops(stops).slice(0, 1) }
+    : { ...next, stops: undefined, colours: draft.colours.slice(0, 1) };
+};
+
+/**
+ * What a flat look is kept as, in the list and in a file: its one colour.
+ * The gradient `carryLookColours` held for it is the editor's, and a look
+ * file carrying a gradient its own drawing never shows would hand it to
+ * whoever opens that file (`normalizeCustomLook` reads a flat look without
+ * one in any case).
+ */
+export const lookToKeep = (look: ICustomLook): ICustomLook =>
+  isFlatLook(look.style, look.palette) && look.stops
+    ? { ...look, stops: undefined }
+    : look;
+
+/**
+ * The same look, retuned for a different base form.
+ *
+ * Changing the form mid-edit is a change of geometry, so the settings that
+ * described the old one no longer mean anything — sixty-four columns of stems
+ * is not twenty-six of skyline, and a fill on a form that is drawn as strokes
+ * is a different picture. Everything moves to the new form's own defaults, and
+ * only the name, the palette and the colours carry over, because those are
+ * choices about the look rather than about the shape. Under Auto a new form
+ * can turn a gradient into one colour or back, the same move as a change of
+ * palette (`carryLookColours`).
+ */
+export const rebaseDraftLook = (
+  draft: ICustomLook,
+  style: GraphStyle,
+): ICustomLook =>
+  draft.style === style
+    ? draft
+    : {
+        ...carryLookColours(draft, style, draft.palette),
+        tuning: getDefaultTuning(style),
+      };
+
+/**
+ * The same look, recoloured for a different palette.
+ *
+ * Only how the colours are applied changes; the member's colours stay theirs
+ * (session 0, 2026-11-28, deciding a question the gradient points raised on
+ * 11-26). Their gradient goes from Frequency to Level to Heat exactly as they
+ * left it, points and positions, because picking a gradient and choosing
+ * what it runs along are two decisions, and the second used to throw the
+ * first away. The form and its tuning are untouched — a change of colouring,
+ * not of shape. See `carryLookColours` for Flat and Auto.
+ */
+export const recolourDraftLook = (
+  draft: ICustomLook,
+  palette: GraphPalette,
+): ICustomLook =>
+  draft.palette === palette
+    ? draft
+    : carryLookColours(draft, draft.style, palette);
 
 /**
  * The version of the look file format.
@@ -882,7 +965,12 @@ export const resolveCustomLook = (look: ICustomLook): IResolvedLook => ({
   palette: look.palette,
   tuning: look.tuning,
   // The drawing reads an evenly spaced ramp everywhere; with points it is
-  // the ramp that retraces them exactly (`lookRampFromStops`).
-  colours: look.stops?.length ? lookRampFromStops(look.stops) : look.colours,
+  // the ramp that retraces them exactly (`lookRampFromStops`). A flat look
+  // draws its one colour; points beside it are a gradient the editor is
+  // keeping for when it is a gradient again (`carryLookColours`).
+  colours:
+    look.stops?.length && !isFlatLook(look.style, look.palette)
+      ? lookRampFromStops(look.stops)
+      : look.colours,
   isCustom: true,
 });
