@@ -36,6 +36,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 export const SETTING_STEMS: readonly string[] = [
   // The graph: its look, its views and what each shows.
   'fluideq-graph-style',
+  // The looks played before it (`lookHistory.ts`): the reset puts the look
+  // back to the default, and a delete after it must not return to a look
+  // from before the reset, which a new install never had.
+  'fluideq-graph-look-history',
   'fluideq-graph-auto-cycle-seconds',
   'fluideq-graph-palette-by-form',
   'fluideq-meter-style',

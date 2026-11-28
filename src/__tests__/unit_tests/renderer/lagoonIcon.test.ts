@@ -100,10 +100,15 @@ describe('Lagoon, everywhere it is written', () => {
 
   // The name runs the window's colours as one ramp — the accent's greener
   // end, the accent, the window's second colour (Ivan, 2026-11-26) — which a
-  // visualizer or Colourful mode leans toward its own colours.
+  // visualizer or Colourful mode leans toward its own colours. The tail
+  // carries the same stops, so it keeps them in the amp's header, which has
+  // no `.header-wordmark` around it.
   it('is not what the header’s name is drawn in', () => {
     const sheet = css('SignalBrand.scss');
-    const name = ruleBody(sheet, '.wordmark-letters,\n.header-wordmark');
+    const name = ruleBody(
+      sheet,
+      '.wordmark-letters,\n.header-wordmark,\n.header-wordmark__tail',
+    );
     expect(name).toContain('--wordmark-from: var(--accent-start)');
     expect(name).toContain('--wordmark-mid: var(--accent)');
     expect(name).toContain('--wordmark-to: var(--active)');
