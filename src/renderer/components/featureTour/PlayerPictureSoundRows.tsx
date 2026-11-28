@@ -43,6 +43,14 @@ export const PictureSoundHead = ({ face }: { face: 'tone' | 'bands' }) => {
   );
   return (
     <div className="player-eq__keys player-sound__head">
+      <button
+        type="button"
+        className="player-sound__power"
+        aria-pressed
+        aria-label={t('sidebar.systemEq')}
+      >
+        <PlayerIcon name="power" />
+      </button>
       <div className="eq-layer-tabs__list player-sound__tabs" role="tablist">
         {tab(
           'bands',
@@ -63,14 +71,6 @@ export const PictureSoundHead = ({ face }: { face: 'tone' | 'bands' }) => {
           <Chevron className="rich-pick__caret" />
         </button>
       </div>
-      <button
-        type="button"
-        className="player-sound__power"
-        aria-pressed
-        aria-label={t('sidebar.systemEq')}
-      >
-        <PlayerIcon name="power" />
-      </button>
       <button
         type="button"
         className="player-shelf__key player-sound__fold"

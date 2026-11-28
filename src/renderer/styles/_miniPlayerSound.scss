@@ -27,9 +27,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // ============================================================ the head =====
 .player-sound__head {
   gap: 6px;
-  padding: 6px 10px 6px 14px;
+  // The round power key leads at the left, so the left end is the right
+  // end's 10px: each end's round key sits the same distance from its edge.
+  padding: 6px 10px;
 
-  // The tabs at the left; the preset, the power and the fold at the right.
+  // The power and the tabs at the left; the preset and the fold at the right.
   > .player-sound__tabs + * {
     margin-left: auto;
   }

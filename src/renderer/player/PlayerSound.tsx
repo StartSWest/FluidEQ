@@ -129,6 +129,21 @@ const PlayerSound = () => {
       aria-label={t('player.eq.aria')}
     >
       <div className="player-eq__keys player-sound__head" ref={headRef}>
+        {/* FluidEQ's own switch leads the row, ahead of what it switches
+            (Ivan, 2026-11-27: "put the EQ power button to the left"). */}
+        <button
+          type="button"
+          className="player-sound__power"
+          aria-pressed={power.isEnabled}
+          aria-label={t('sidebar.systemEq')}
+          title={t('player.eq.onHint')}
+          disabled={power.isBlockingError}
+          onClick={() => {
+            power.toggle().catch(() => undefined);
+          }}
+        >
+          <PlayerIcon name="power" />
+        </button>
         <div
           className="eq-layer-tabs__list player-sound__tabs"
           role="tablist"
@@ -163,19 +178,6 @@ const PlayerSound = () => {
           ))}
         </div>
         <VoicingQuickPick />
-        <button
-          type="button"
-          className="player-sound__power"
-          aria-pressed={power.isEnabled}
-          aria-label={t('sidebar.systemEq')}
-          title={t('player.eq.onHint')}
-          disabled={power.isBlockingError}
-          onClick={() => {
-            power.toggle().catch(() => undefined);
-          }}
-        >
-          <PlayerIcon name="power" />
-        </button>
         <button
           type="button"
           className="player-shelf__key player-sound__fold"
