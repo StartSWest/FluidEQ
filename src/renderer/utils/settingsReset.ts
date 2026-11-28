@@ -117,6 +117,8 @@ export const SETTING_STEMS: readonly string[] = [
   // The amp.
   'fluideq.player.decks',
   'fluideq.player.eqFace',
+  // Whether the pet sits on its picture (`playerPet.ts`): shown again.
+  'fluideq.player.petShown',
   'fluideq.player.queuePage',
   'fluideq.player.sheet',
   'fluideq.player.shelfOpen',
