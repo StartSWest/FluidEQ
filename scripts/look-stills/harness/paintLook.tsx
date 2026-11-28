@@ -52,6 +52,25 @@ const clock = { running: false, at: 0 };
 const CLOCK_START = 1_000_000;
 performance.now = () => (clock.running ? clock.at : wallNow());
 
+/**
+ * The page's CSS animations held at the song's instant as well. Colourful
+ * mode's sweep is one: `--euphoria-hue` turns on the graph's canvas by a CSS
+ * animation (`Euphoria.scss`), which runs on the document's timeline - the
+ * wall's clock, which the `performance.now` above never reaches - and the
+ * trace painter reads it every frame for a Rainbow border's colour
+ * (`readEuphoriaHue`). So each drawing caught the sweep wherever real time
+ * had turned it: Slope's many-colour stills came out different bytes on
+ * every run, and its sixteen drawings disagreed about the halo's colour,
+ * which the fit then explained with whichever stray role fitted best. One
+ * colour hid it: every stop the sweep walks is the same colour there.
+ */
+const holdAnimations = () =>
+  document.getAnimations().forEach((animation) => {
+    animation.pause();
+    // eslint-disable-next-line no-param-reassign -- the Web Animations API moves an animation by its own currentTime
+    animation.currentTime = clock.at - CLOCK_START;
+  });
+
 const startSongClock = () => {
   clock.at = CLOCK_START;
   clock.running = true;
@@ -91,6 +110,7 @@ const Painter = ({
     const draw = async () => {
       await song.play((deltaMs) => {
         clock.at += deltaMs;
+        holdAnimations();
         driver.draw(deltaMs);
       });
       const canvas = driver.canvas();

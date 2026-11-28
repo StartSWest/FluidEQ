@@ -14,14 +14,16 @@ import BUILT from './built';
  * The stills' page (`harness/index.tsx`), built for a browser through the
  * app's own loaders, as the gallery's ground is
  * (`scripts/gallery-ground/webpack.config.ts`). Its stats name every module
- * the drawing is made of, which is what the stills' freshness is hashed
- * over (`generate.ts`).
+ * in it, whose load-time code runs with the page, and its source map says
+ * where each function that runs was written (`coverage.ts`).
  */
 
 const configuration: webpack.Configuration = {
   mode: 'production',
   target: 'web',
-  devtool: false,
+  // Where each place in the bundle was written: coverage counts places in
+  // the bundle, and the freshness pieces of the sources (`coverage.ts`).
+  devtool: 'source-map',
   entry: { stills: path.join(__dirname, 'harness', 'index.tsx') },
   output: { path: BUILT, publicPath: './', filename: '[name].js' },
   resolve: {
@@ -72,8 +74,7 @@ merged.externals = [];
 if (merged.output) {
   delete merged.output.library;
 }
-// Every module, the concatenated ones' insides too: what the stills are
-// drawn from is read off this list.
+// Every module, the concatenated ones' insides too.
 merged.stats = {
   all: false,
   errors: true,
