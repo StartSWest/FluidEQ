@@ -172,7 +172,10 @@ describe('the Performance tab', () => {
     const rows = within(
       screen.getByRole('group', { name: 'studio.performance.title' }),
     ).getAllByRole('menuitem');
-    expect(rows.length).toBeGreaterThan(3);
+    // Exactly the frame rate and the quality (Ivan, 2026-11-27: "I dont want
+    // that many options"): every scale, smoothing and upscaler row went into
+    // Auto, Balanced and Full (86c52fef0).
+    expect(rows).toHaveLength(2);
     expect(screen.getByText('studio.cost.full:100')).toBeInTheDocument();
   });
 
