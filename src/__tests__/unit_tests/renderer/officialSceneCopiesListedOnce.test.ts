@@ -21,6 +21,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { translate } from 'common/i18n';
 import { memberLookId } from 'common/memberScenes';
+import type { IGalleryScene } from 'common/plusGallery';
 import { buildPlusRows } from 'renderer/graph/lookPickerRows';
 import {
   listedLookOf,
@@ -131,6 +132,54 @@ it('lists the copy in place of FluidEQ’s locked row too', () => {
     findInGallery: () => undefined,
   });
   expect(listed.map((row) => row.id)).toEqual([copy.lookId]);
+});
+
+// Ivan, 2026-11-28: "and the update thumails too?". FluidEQ's row shows the
+// picture published to the gallery, which has none of the bench's changes;
+// the copy in its place is pictured from itself, again for every save,
+// whatever the gallery holds for FluidEQ's version.
+it('pictures the copy from the copy, again after each save', () => {
+  const published = {
+    lookId: 'premium:alpine',
+    authorId: '00000000-0000-4000-8000-000000000001',
+    sceneId: 'alpine',
+    version: 83,
+    category: 'nature',
+    updatedAt: '2026-11-27T00:00:00Z',
+  } as unknown as IGalleryScene;
+  const picture = (revision: string) =>
+    buildPlusRows({
+      usable: [official],
+      locked: [],
+      members: [{ ...benchCopy(), revision }],
+      lockedMembers: [],
+      locale: 'en',
+      t,
+      findInGallery: (lookId) =>
+        lookId === 'premium:alpine' ? published : undefined,
+    })[0].thumbnail;
+  const first = picture('rev-a');
+  // The control: FluidEQ's own row reads the gallery's picture.
+  expect(
+    buildPlusRows({
+      usable: [official],
+      locked: [],
+      members: [],
+      lockedMembers: [],
+      locale: 'en',
+      t,
+      findInGallery: () => published,
+    })[0].thumbnail?.published,
+  ).toBeDefined();
+  expect(first).toEqual(
+    expect.objectContaining({
+      lookId: memberLookId(ME, 'alpine'),
+      version: 'rev-a',
+    }),
+  );
+  expect(first?.published).toBeUndefined();
+  expect(first?.load).toBeDefined();
+  expect(picture('rev-b')?.version).toBe('rev-b');
 });
 
 it('keeps FluidEQ’s row when its version is newer than the copy kept', () => {
