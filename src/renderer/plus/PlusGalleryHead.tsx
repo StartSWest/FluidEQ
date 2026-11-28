@@ -8,16 +8,15 @@ import type { ISubscriptionState } from 'common/subscription';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import GetPlusButton from './GetPlusButton';
-import { useGalleryList } from './galleryStore';
-import { OPENING_SORT } from './plusNavigation';
 import PlusMark from './PlusMark';
+import PlusNotOnSale from './PlusNotOnSale';
+import PLUS_STILLS from './plusStills';
 import {
   plusOnSale,
   usePlusBackFromCheckout,
   usePlusSubscription,
 } from './plusSubscriptionStore';
 import { planPriceText, plusDate } from './plusWords';
-import { ScenePicture } from './GalleryParts';
 import { useManagePlus } from './useGetPlus';
 
 /**
@@ -28,28 +27,84 @@ import { useManagePlus } from './useGetPlus';
  */
 export const FLUIDWALLPAPERS_DOWNLOAD = 'https://fluidwallpapers.com/#download';
 
-/** How many of the newest scenes stand behind the offer's words. */
-const ART_PICTURES = 6;
+/**
+ * Whether a member's Plus was cancelled to end at its period's end: it still
+ * plays every scene until then, and the way on is Renew Plus.
+ */
+export const plusEnding = (plus: ISubscriptionState): boolean =>
+  plus.subscribed && plus.status?.renewing === false;
+
+/**
+ * Manage Plus, or Renew Plus once it is cancelled to end (Ivan, 2026-11-28:
+ * "when user cancel sub fluid needs to know and show renew"). Both open
+ * Stripe's portal, where a cancelled subscription is renewed in one press;
+ * the window then says "Renews on" again by itself, when main reads it.
+ */
+export function ManagePlusButton({
+  plus,
+  className,
+}: {
+  plus: ISubscriptionState;
+  className: string;
+}) {
+  const { t } = useTranslation();
+  const manage = useManagePlus();
+  if (!plus.manageable) {
+    return null;
+  }
+  return (
+    <span className="plus-manage">
+      <button
+        type="button"
+        className={`${className}${manage.busy ? ' is-running' : ''}`}
+        aria-busy={manage.busy}
+        disabled={manage.busy}
+        onClick={manage.manage}
+      >
+        {t(plusEnding(plus) ? 'subscription.renew' : 'subscription.manage')}
+      </button>
+      {manage.said && (
+        <span
+          className={`plus-manage__said${manage.failed ? ' is-failed' : ''}`}
+          role="status"
+        >
+          {t(manage.said)}
+        </span>
+      )}
+    </span>
+  );
+}
 
 /**
  * For an account without Plus: Plus as the main thing - every scene in the
- * gallery, one subscription for FluidEQ and FluidWallpapers, its price and
- * the loud Get Plus - and a credit as the extra, for a scene to keep for
- * good even without Plus (Ivan, 2026-11-28: "make crlear plus is the main
- * thing", "if they want they can aditionally purchase scenes for good").
+ * gallery, shown with real scenes, one subscription for FluidEQ and
+ * FluidWallpapers, the price set large and the loud Get Plus - and a credit
+ * as the extra, for a scene to keep for good even without Plus (Ivan,
+ * 2026-11-28: "make crlear plus is the main thing", "if they want they can
+ * aditionally purchase scenes for good"). The account panel shows the same
+ * block ("nice banner like in the gallery").
  */
-function PlusOffer({ plus }: { plus: ISubscriptionState }) {
+export function PlusOffer({
+  plus,
+  className,
+}: {
+  plus: ISubscriptionState;
+  /** The place's own fit: the account panel's narrower column. */
+  className?: string;
+}) {
   const { t, locale } = useTranslation();
   const backFromCheckout = usePlusBackFromCheckout();
-  const { list } = useGalleryList({ sort: OPENING_SORT });
   const monthly = plus.plans.find((plan) => plan.id === 'monthly');
   const yearly = plus.plans.find((plan) => plan.id === 'yearly');
   const first = monthly ?? yearly;
   return (
-    <section className="plus-offer" aria-labelledby="plus-offer-title">
+    <section
+      className={`plus-offer${className ? ` ${className}` : ''}`}
+      aria-labelledby="plus-offer-title"
+    >
       <span className="plus-offer__art" aria-hidden="true">
-        {list.scenes.slice(0, ART_PICTURES).map((scene) => (
-          <ScenePicture key={scene.lookId} scene={scene} />
+        {PLUS_STILLS.map((still) => (
+          <img key={still.id} src={still.src} alt="" draggable={false} />
         ))}
       </span>
       <PlusMark className="plus-offer__mark" />
@@ -77,7 +132,9 @@ function PlusOffer({ plus }: { plus: ISubscriptionState }) {
               </span>
             )}
             <GetPlusButton
-              label={t('subscription.get')}
+              label={t(
+                plus.lapse ? 'subscription.getAgain' : 'subscription.get',
+              )}
               className="button plus-offer__get"
             />
             {first === monthly && yearly && (
@@ -95,26 +152,23 @@ function PlusOffer({ plus }: { plus: ISubscriptionState }) {
 }
 
 /**
- * For a member: one quiet line - every scene is theirs to play, when it
- * renews or ends, that it works in FluidWallpapers too - with the way to
- * make scenes there and Manage Plus. The gallery under it is the rest.
+ * For a member: one line - every scene is theirs to play, when it renews or,
+ * once cancelled, when it ends, that it works in FluidWallpapers too - with
+ * the way to make scenes there and Manage Plus, or Renew Plus.
  */
 function PlusMemberLine({ plus }: { plus: ISubscriptionState }) {
   const { t, locale } = useTranslation();
-  const manage = useManagePlus();
   const { status } = plus;
+  const ending = plusEnding(plus);
   const date = status?.until ? plusDate(status.until, locale) : undefined;
   let said = t('subscription.line.plain');
   if (date) {
-    said = t(
-      status?.renewing === false
-        ? 'subscription.line.ends'
-        : 'subscription.line.renews',
-      { date },
-    );
+    said = t(ending ? 'subscription.line.ends' : 'subscription.line.renews', {
+      date,
+    });
   }
   return (
-    <section className="plus-line">
+    <section className={`plus-line${ending ? ' is-ending' : ''}`}>
       <PlusMark className="plus-line__mark" />
       <p className="plus-line__words">
         <strong>{t('subscription.name')}</strong>
@@ -124,14 +178,6 @@ function PlusMemberLine({ plus }: { plus: ISubscriptionState }) {
             {t('subscription.status.grace', {
               date: plusDate(status.graceUntil, locale),
             })}
-          </span>
-        )}
-        {manage.said && (
-          <span
-            className={manage.failed ? 'plus-line__warn' : undefined}
-            role="status"
-          >
-            {t(manage.said)}
           </span>
         )}
       </p>
@@ -146,17 +192,10 @@ function PlusMemberLine({ plus }: { plus: ISubscriptionState }) {
           <path d="M6 3h7v7M13 3 5 11" />
         </svg>
       </a>
-      {plus.manageable && (
-        <button
-          type="button"
-          className={`button small subtle${manage.busy ? ' is-running' : ''}`}
-          aria-busy={manage.busy}
-          disabled={manage.busy}
-          onClick={manage.manage}
-        >
-          {t('subscription.manage')}
-        </button>
-      )}
+      <ManagePlusButton
+        plus={plus}
+        className={`button small${ending ? '' : ' subtle'}`}
+      />
     </section>
   );
 }
@@ -178,5 +217,6 @@ export default function PlusGalleryHead() {
   if (plusOnSale(plus) && !plus.lapse) {
     return <PlusOffer plus={plus} />;
   }
-  return null;
+  // In a development build, why nothing is offered (`PlusNotOnSale`).
+  return plus.lapse ? null : <PlusNotOnSale plus={plus} />;
 }

@@ -112,6 +112,20 @@ const subscription: Partial<Dictionary> = {
     'FluidEQ और FluidWallpapers के लिए एक ही सदस्यता: किसी भी ऐप में लें, दोनों में चलेगी।',
   'subscription.sheet.keepOne':
     'या Plus के बिना भी सिर्फ़ {name} को हमेशा के लिए रखें:',
+
+  'subscription.account.yours': 'गैलरी का हर सीन आपके लिए',
+  'subscription.account.renews': '{date} को नवीनीकरण · FluidWallpapers में भी',
+  'subscription.account.ends': '{date} को समाप्त · FluidWallpapers में भी',
+  'subscription.welcome.title': 'या Plus के साथ हर सीन',
+  'subscription.welcome.body':
+    'सदस्य रहने तक गैलरी का हर सीन, नए भी। FluidEQ और FluidWallpapers के लिए एक ही सदस्यता।',
+  'subscription.welcome.signIn': 'Plus लेने के लिए साइन इन करें',
+  'subscription.dev.notOnSale':
+    'डेवलपमेंट: इस खाते के लिए Plus बिक्री पर नहीं है। जब तक Stripe टेस्ट मोड में है, सिर्फ़ एडमिन और सर्वर की टेस्टर सूची के खातों को इसकी कीमतें मिलती हैं: इस खाते को उस सूची में जोड़ें।',
+  'subscription.renew': 'Plus नवीनीकृत करें',
+  'subscription.pass.member': 'सदस्य',
+  'subscription.pass.ending': 'रद्द · तब तक आपका ही',
+  'subscription.chip.until': 'Plus {date} तक',
 };
 
 export default subscription;

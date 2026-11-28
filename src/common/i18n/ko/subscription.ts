@@ -112,6 +112,20 @@ const subscription = {
   'subscription.sheet.both':
     'FluidEQ와 FluidWallpapers에서 하나의 구독입니다. 어느 앱에서 가입해도 두 앱 모두에 적용됩니다.',
   'subscription.sheet.keepOne': '또는 Plus 없이도 {name}만 영원히 소장하기:',
+
+  'subscription.account.yours': '갤러리의 모든 장면을 재생할 수 있습니다',
+  'subscription.account.renews': '{date}에 갱신 · FluidWallpapers에서도 사용',
+  'subscription.account.ends': '{date}에 종료 · FluidWallpapers에서도 사용',
+  'subscription.welcome.title': '또는 Plus로 모든 장면',
+  'subscription.welcome.body':
+    '회원인 동안 새 장면까지 갤러리의 모든 장면. FluidEQ와 FluidWallpapers에서 하나의 구독입니다.',
+  'subscription.welcome.signIn': '로그인하고 Plus 가입',
+  'subscription.dev.notOnSale':
+    '개발: 이 계정에는 Plus를 판매하지 않습니다. Stripe가 테스트 모드인 동안에는 관리자와 서버의 테스터 목록에 있는 계정만 가격을 받습니다. 이 계정을 그 목록에 추가하세요.',
+  'subscription.renew': 'Plus 갱신',
+  'subscription.pass.member': '회원',
+  'subscription.pass.ending': '해지됨 · 그날까지는 계속 사용',
+  'subscription.chip.until': 'Plus {date}까지',
 } satisfies Partial<Dictionary>;
 
 export default subscription;

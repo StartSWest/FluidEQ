@@ -79,36 +79,41 @@ it under the terms of the GNU General Public License version 3 or later.
   );
 }
 
-// Pictures only, tilted and faded at both sides, so they never stand under
-// the words or the price.
+// Real scenes, tilted in two rows behind the price's side and faded toward
+// the words, so they never stand under them. Shipped stills (`plusStills`):
+// whole from the first frame, so nothing moves when they arrive.
 .plus-offer__art {
   position: absolute;
   z-index: -1;
-  top: -40px;
-  right: 170px;
-  bottom: -40px;
+  top: -46px;
+  right: 130px;
+  bottom: -46px;
   display: grid;
-  width: 360px;
+  width: 400px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-content: center;
-  gap: 8px;
-  opacity: 0.55;
+  gap: 10px;
+  opacity: 0.8;
   transform: rotate(-10deg);
   mask-image: linear-gradient(
     90deg,
-    transparent,
-    $black 35%,
-    $black 70%,
-    transparent
+    transparent 0%,
+    $black 40%,
+    $black 72%,
+    transparent 100%
   );
   pointer-events: none;
 
-  .gallery-picture {
+  img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
     border-radius: $radius-m;
   }
 
   :root[data-window-ink='dark'] & {
-    opacity: 0.35;
+    opacity: 0.55;
   }
 }
 
@@ -167,13 +172,15 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .plus-offer__price {
   color: $text-primary;
-  font-size: 1.3rem;
+  font-size: 1.6rem;
+  letter-spacing: -0.01em;
   font-weight: $weight-bold;
 }
 
 .button.plus-offer__get {
-  min-height: 40px;
-  padding: 0 28px;
+  min-height: 44px;
+  padding: 0 32px;
+  font-weight: $weight-bold;
   font-size: $text-lead;
 }
 
@@ -616,4 +623,196 @@ it under the terms of the GNU General Public License version 3 or later.
 .plus-sheet__facts .plus-mark {
   margin-top: 2px;
   color: $secondary-light;
+}
+
+// Development only (`PlusNotOnSale`): why no Plus shows for this account.
+.plus-not-on-sale {
+  margin: 0;
+  padding: 8px 12px;
+  color: $ink-caution;
+  border: 1px dashed color-mix(in srgb, $ink-caution 55%, transparent);
+  border-radius: $radius-m;
+  font-size: $text-small;
+}
+
+// Manage Plus or Renew Plus, and what the press came to under it.
+.plus-manage {
+  display: inline-grid;
+  justify-items: end;
+  gap: 4px;
+}
+
+.plus-manage__said {
+  color: $text-muted;
+  font-size: $text-micro;
+
+  &.is-failed {
+    color: $ink-caution;
+  }
+}
+
+// Cancelled to end: the line keeps Plus's colours and leads with Renew.
+.plus-line.is-ending {
+  border-color: color-mix(in srgb, $active 45%, transparent);
+}
+
+// ---------------------------------------------------------------- the pass
+
+// A member's Plus in the account panel, as a ticket: the window's own
+// gradient from the accent's start through the accent to the purple of the
+// active state, ink in the colour type takes on the accent, a stub holding
+// the pass mark large, cut from the rest by a perforation with a notch at
+// each end. No shadow; the gradient is the light.
+.plus-pass {
+  --pass-stub: 116px;
+
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--pass-stub) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 20px;
+  min-height: 132px;
+  padding-right: 20px;
+  overflow: hidden;
+  color: $on-accent;
+  border-radius: $radius-xl;
+  background:
+    radial-gradient(
+      120% 140% at 0% 0%,
+      color-mix(in srgb, $white 18%, transparent),
+      transparent 55%
+    ),
+    linear-gradient(
+      115deg,
+      var(--accent-start) 0%,
+      var(--accent) 48%,
+      var(--active) 100%
+    );
+  mask-image:
+    radial-gradient(circle 10px at var(--pass-stub) 0, transparent 97%, $black),
+    radial-gradient(
+      circle 10px at var(--pass-stub) 100%,
+      transparent 97%,
+      $black
+    );
+  mask-composite: intersect;
+}
+
+.plus-pass__stub {
+  display: grid;
+  align-self: stretch;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+  border-right: 2px dashed color-mix(in srgb, $on-accent 35%, transparent);
+}
+
+.plus-pass__mark.plus-mark {
+  width: 58px;
+  height: 58px;
+  stroke-width: 1.3;
+}
+
+.plus-pass__brand {
+  font-size: $text-small;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  @include tracking(0.16em);
+}
+
+.plus-pass__words {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  padding: 16px 0;
+}
+
+.plus-pass__eyebrow {
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  opacity: 0.85;
+  @include tracking(0.13em);
+}
+
+.plus-pass__title {
+  font-size: 1.15rem;
+  font-weight: $weight-bold;
+  letter-spacing: -0.01em;
+}
+
+.plus-pass__line {
+  font-size: $text-small;
+  opacity: 0.9;
+}
+
+.plus-pass__fw {
+  display: inline-flex;
+  justify-self: start;
+  align-items: center;
+  gap: 5px;
+  margin-top: 3px;
+  color: inherit;
+  font-size: $text-small;
+  font-weight: $weight-bold;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+
+  svg {
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &:focus-visible {
+    @include focus-outline(2px);
+  }
+}
+
+// The one action, inverted against the gradient: the ink's colour as its
+// face and the accent as its words, so it reads on any window's accent.
+.button.plus-pass__action {
+  min-height: 40px;
+  padding: 0 18px;
+  color: var(--accent);
+  border-color: transparent;
+  background: $on-accent;
+  font-weight: $weight-bold;
+
+  &:hover {
+    background: color-mix(in srgb, $on-accent 88%, var(--accent));
+  }
+}
+
+.plus-pass .plus-manage__said {
+  color: inherit;
+  opacity: 0.85;
+}
+
+// Cancelled to end: the same pass, turned toward the purple, Renew loud.
+.plus-pass.is-ending {
+  background:
+    radial-gradient(
+      120% 140% at 0% 0%,
+      color-mix(in srgb, $white 14%, transparent),
+      transparent 55%
+    ),
+    linear-gradient(115deg, var(--accent) 0%, var(--active) 70%);
+}
+
+// A narrow panel: the action under the words, the stub kept.
+@container (max-width: 520px) {
+  .plus-pass {
+    grid-template-columns: var(--pass-stub) minmax(0, 1fr);
+  }
+
+  .plus-pass .plus-manage {
+    grid-column: 2;
+    justify-items: start;
+    padding-bottom: 16px;
+  }
 }

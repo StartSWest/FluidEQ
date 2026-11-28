@@ -112,6 +112,21 @@ const subscription: Partial<Dictionary> = {
     'Un solo abbonamento per FluidEQ e FluidWallpapers: preso in una delle due app, vale in entrambe.',
   'subscription.sheet.keepOne':
     'Oppure tieni solo {name} per sempre, anche senza Plus:',
+
+  'subscription.account.yours': 'Tutte le scene della galleria sono tue',
+  'subscription.account.renews':
+    'Si rinnova il {date} · anche in FluidWallpapers',
+  'subscription.account.ends': 'Termina il {date} · anche in FluidWallpapers',
+  'subscription.welcome.title': 'Oppure tutte le scene, con Plus',
+  'subscription.welcome.body':
+    'Tutte le scene della galleria, anche le nuove, finché sei membro. Un solo abbonamento per FluidEQ e FluidWallpapers.',
+  'subscription.welcome.signIn': 'Accedi per passare a Plus',
+  'subscription.dev.notOnSale':
+    'Sviluppo: Plus non è in vendita per questo account. Finché Stripe è in modalità di prova, solo l’amministratore e gli account nell’elenco dei tester del server ricevono i prezzi: aggiungi questo account a quell’elenco.',
+  'subscription.renew': 'Rinnova Plus',
+  'subscription.pass.member': 'Membro',
+  'subscription.pass.ending': 'Disdetto · resta tuo fino ad allora',
+  'subscription.chip.until': 'Plus fino al {date}',
 };
 
 export default subscription;

@@ -10,6 +10,7 @@ import AccountPublished from './AccountPublished';
 import AccountScenes from './AccountScenes';
 import AccountStats from './AccountStats';
 import CreatorPayoutsCard from './CreatorPayoutsCard';
+import AccountPlusCard from './AccountPlusCard';
 import CreditsCard from './CreditsCard';
 import ProfileNameForm from './ProfileNameForm';
 import SignOutConfirm from './SignOutConfirm';
@@ -173,8 +174,10 @@ export function ProfileBody({
         <SignOutConfirm ownsScenes={ownsScenes} onCancel={onSignOutCancel} />
       )}
 
-      {/* What gets scenes: credits. Plus is not sold any more, and nothing
-          about a subscription is shown (Ivan, 2026-10-21). */}
+      {/* What gets scenes: Plus first - every scene, in both apps - and
+          credits under it, the extra that keeps a scene for good (Ivan,
+          2026-11-28: "need to see get plus from the account too"). */}
+      <AccountPlusCard />
       <CreditsCard />
       {store && (
         <AccountScenes

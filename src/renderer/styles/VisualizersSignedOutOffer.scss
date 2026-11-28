@@ -276,3 +276,96 @@ $signed-out-face: color-mix(in srgb, $surface-panel 85%, $surface-base);
     padding: 18px 14px 22px;
   }
 }
+
+// Plus, under the free offer: a band of its own - real scenes across its
+// top, the pass, every scene, both apps, the price large and the way in.
+// Lit from the purple of Plus, and a step under the free account above it,
+// which stays the lead for somebody without one.
+.signed-out__plus {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  margin-top: 22px;
+  padding: 0 16px 16px;
+  overflow: hidden;
+  text-align: start;
+  border: 1px solid color-mix(in srgb, $active 45%, transparent);
+  border-radius: $radius-l;
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, $secondary-default 12%, transparent),
+    color-mix(in srgb, $active 18%, transparent)
+  );
+}
+
+.signed-out__plus-stills {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0 -16px 6px;
+  mask-image: linear-gradient(180deg, $black 55%, transparent);
+
+  img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+  }
+}
+
+.signed-out__plus-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: $text-primary;
+  font-size: $text-lead;
+
+  b {
+    font-weight: $weight-bold;
+  }
+}
+
+.signed-out__plus-mark.plus-mark {
+  width: 28px;
+  height: 28px;
+  color: $text-accent;
+}
+
+.signed-out__plus-body {
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+.signed-out__plus-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  margin-top: 4px;
+
+  .button {
+    gap: 7px;
+  }
+
+  .plus-mark {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.signed-out__plus-price {
+  display: grid;
+  color: $text-primary;
+  font-size: 1.3rem;
+  font-weight: $weight-bold;
+  letter-spacing: -0.01em;
+
+  small {
+    color: $text-muted;
+    font-size: $text-small;
+    font-weight: $weight-regular;
+    letter-spacing: 0;
+  }
+}

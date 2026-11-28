@@ -608,3 +608,42 @@ it under the terms of the GNU General Public License version 3 or later.
     border-color: color-mix(in srgb, $complementary 50%, transparent);
   }
 }
+
+// The member's card at the rail's foot, a step fuller (Ivan, 2026-11-28:
+// "make this nicer"): a larger portrait with its ring, and a Plus member's
+// quiet "Plus" with the pass beside the handle, the card's edge taking the
+// accent. Nothing for anybody else.
+.community__account {
+  grid-template-columns: 36px minmax(0, 1fr) 10px;
+  min-height: 58px;
+  padding: 9px 12px 9px 9px;
+  border-radius: $radius-m;
+
+  .community__avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .community__name {
+    font-weight: $weight-bold;
+  }
+
+  &.is-plus {
+    border-color: color-mix(in srgb, $secondary-default 40%, transparent);
+  }
+}
+
+.community__plus {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  color: $text-accent;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+
+  .plus-mark {
+    width: 13px;
+    height: 13px;
+  }
+}

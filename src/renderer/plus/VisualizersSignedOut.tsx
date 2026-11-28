@@ -14,6 +14,7 @@ import prismBloom from '../../../assets/plus/prism-bloom.jpg';
 import reefLight from '../../../assets/plus/reef-light.jpg';
 import CreditCoin from './CreditCoin';
 import { landInGalleryOnSignIn } from './signedOutLanding';
+import SignedOutPlus from './SignedOutPlus';
 import '../styles/VisualizersSignedOutOffer.scss';
 import '../styles/VisualizersSignedOut.scss';
 
@@ -244,6 +245,10 @@ export default function VisualizersSignedOut({
               ))}
             </ol>
             <SignInLink onSignIn={onSignIn} />
+
+            {/* Plus, under the free offer that stays the lead: every scene,
+                in both apps, got once signed in. */}
+            <SignedOutPlus onSignIn={onSignIn} />
 
             {/* What an account opens, under the offer it is for: it fills
                 what was the offer pane's empty middle, and the two halves

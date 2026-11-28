@@ -104,6 +104,20 @@ const subscription = {
   'subscription.sheet.both':
     'FluidEQ 和 FluidWallpapers 共用一個訂閱：在任一應用程式中開通，兩個都有效。',
   'subscription.sheet.keepOne': '或者只永久保留 {name}，即使沒有 Plus：',
+
+  'subscription.account.yours': '畫廊中的所有場景都可播放',
+  'subscription.account.renews': '{date} 續訂 · FluidWallpapers 中同樣可用',
+  'subscription.account.ends': '{date} 結束 · FluidWallpapers 中同樣可用',
+  'subscription.welcome.title': '或者用 Plus 取得所有場景',
+  'subscription.welcome.body':
+    '會員期間，畫廊中的所有場景，新的也包括。FluidEQ 和 FluidWallpapers 共用一個訂閱。',
+  'subscription.welcome.signIn': '登入以開通 Plus',
+  'subscription.dev.notOnSale':
+    '開發：此帳戶無法購買 Plus。Stripe 處於測試模式時，只有管理員和伺服器測試者名單中的帳戶能看到價格：請把此帳戶加入該名單。',
+  'subscription.renew': '續訂 Plus',
+  'subscription.pass.member': '會員',
+  'subscription.pass.ending': '已取消 · 到期前仍可使用',
+  'subscription.chip.until': 'Plus 至 {date}',
 } satisfies Partial<Dictionary>;
 
 export default subscription;

@@ -30,6 +30,8 @@ import StudioRail from '../widgets/StudioRail';
 import VisualizersSignedOut from '../plus/VisualizersSignedOut';
 import { forgetProfile, loadProfile, useProfile } from '../plus/profileStore';
 import VisualizersView from '../plus/VisualizersView';
+import PlusMark from '../plus/PlusMark';
+import { usePlusSubscription } from '../plus/plusSubscriptionStore';
 import LightingPanel from '../plus/lighting/LightingPanel';
 import StudioPanel from '../studio/StudioPanel';
 import VisualsNewsNotice, { VisualsNewsEntry } from './VisualsNews';
@@ -93,7 +95,7 @@ export default function CommunityPanel({
   onSignIn,
   onShowGraph,
 }: ICommunityPanelProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const account = useAccount();
   const accountKnown = useAccountKnown();
   const entitlementKnown = useEntitlementKnown();
@@ -103,6 +105,16 @@ export default function CommunityPanel({
   const pinned = usePlusRailPinned();
   const rail = useRailWidth(PLUS_RAIL_WIDTH_KEY);
   const accountId = signedIn ? account.identity?.id : undefined;
+  const plus = usePlusSubscription();
+  const member = plus?.subscribed === true;
+  // Cancelled to end: the chip says until when, as every Plus surface does.
+  const plusUntil =
+    member && plus?.status?.renewing === false && plus.status.until
+      ? new Intl.DateTimeFormat(locale, {
+          month: 'short',
+          day: 'numeric',
+        }).format(new Date(plus.status.until))
+      : undefined;
 
   useEffect(() => {
     if (accountId) {
@@ -223,7 +235,7 @@ export default function CommunityPanel({
             {/* The member as the gallery shows them, in their own colour; the whole card is the way to their account. */}
             <button
               type="button"
-              className="community__account"
+              className={`community__account${member ? ' is-plus' : ''}`}
               style={identityStyle(ownHandle)}
               title={t('account.menu')}
               onClick={() => requestAccountPanel()}
@@ -239,6 +251,16 @@ export default function CommunityPanel({
                   <span className="community__handle">
                     {profile ? `@${profile.handle}` : t('account.menu')}
                   </span>
+                  {/* A member says so here quietly, with Plus's pass; nothing
+                      for anybody else - the gallery's head offers Plus. */}
+                  {member && (
+                    <span className="community__plus">
+                      <PlusMark />
+                      {plusUntil
+                        ? t('subscription.chip.until', { date: plusUntil })
+                        : t('subscription.name')}
+                    </span>
+                  )}
                   {rendererAddons().map(
                     ({ name, AccountBadge }) =>
                       AccountBadge && <AccountBadge key={name} />,

@@ -116,6 +116,21 @@ const subscription = {
     'One subscription for FluidEQ and FluidWallpapers: get it in either app and it counts in both.',
   'subscription.sheet.keepOne':
     'Or keep just {name} for good, even without Plus:',
+
+  'subscription.account.yours': 'Every scene in the gallery is yours to play',
+  'subscription.account.renews':
+    'Renews on {date} · works in FluidWallpapers too',
+  'subscription.account.ends': 'Ends on {date} · works in FluidWallpapers too',
+  'subscription.welcome.title': 'Or every scene, with Plus',
+  'subscription.welcome.body':
+    "Every scene in the gallery, new ones too, while you're a member. One subscription for FluidEQ and FluidWallpapers.",
+  'subscription.welcome.signIn': 'Sign in to get Plus',
+  'subscription.dev.notOnSale':
+    "Development: Plus isn't on sale to this account. While Stripe is in test mode, only the admin and the accounts on the server's testers list get its prices: add this account to that list.",
+  'subscription.renew': 'Renew Plus',
+  'subscription.pass.member': 'Member',
+  'subscription.pass.ending': 'Cancelled · still yours until then',
+  'subscription.chip.until': 'Plus until {date}',
 };
 
 export default subscription;

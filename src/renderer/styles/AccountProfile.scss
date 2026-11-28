@@ -214,3 +214,63 @@ it under the terms of the GNU General Public License version 3 or later.
     justify-content: center;
   }
 }
+
+// ---------------------------------------------------------------- Plus
+
+// The gallery's Plus block in the panel's narrower column: the same block,
+// fitted so its price and Get Plus stay at its end, beside the words.
+.plus-offer.account-plus-offer {
+  flex-wrap: nowrap;
+  gap: 16px;
+  min-height: 0;
+  padding: 18px 20px;
+
+  .plus-offer__mark {
+    width: 42px;
+    height: 42px;
+  }
+
+  .plus-offer__words {
+    flex: 1 1 auto;
+  }
+
+  .plus-offer__title {
+    font-size: $text-title;
+  }
+
+  .plus-offer__body {
+    font-size: $text-small;
+  }
+
+  .plus-offer__price {
+    font-size: $text-lead;
+  }
+
+  // The price stands on a veil of the panel over the stills, so it reads
+  // on any picture in either window.
+  .plus-offer__buy {
+    padding: 8px 10px;
+    border-radius: $radius-m;
+    background: color-mix(in srgb, $surface-panel 78%, transparent);
+  }
+
+  .button.plus-offer__get {
+    min-height: 36px;
+    padding: 0 18px;
+    font-size: $text-body;
+  }
+
+  // Behind the price and Get Plus alone, fading out before the words.
+  .plus-offer__art {
+    right: -24px;
+    width: 230px;
+    opacity: 0.5;
+    mask-image: linear-gradient(90deg, transparent 0%, $black 55%);
+  }
+}
+
+@container (max-width: 460px) {
+  .plus-offer.account-plus-offer {
+    flex-wrap: wrap;
+  }
+}

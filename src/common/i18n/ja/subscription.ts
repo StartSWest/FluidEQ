@@ -117,6 +117,20 @@ const subscription: Partial<Dictionary> = {
     'FluidEQ と FluidWallpapers で共通のサブスクリプションです。どちらで登録しても両方で使えます。',
   'subscription.sheet.keepOne':
     'または、{name} だけを Plus がなくてもずっと持つ:',
+
+  'subscription.account.yours': 'ギャラリーのすべてのシーンが使えます',
+  'subscription.account.renews': '{date} に更新 · FluidWallpapers でも有効',
+  'subscription.account.ends': '{date} に終了 · FluidWallpapers でも有効',
+  'subscription.welcome.title': 'または Plus ですべてのシーン',
+  'subscription.welcome.body':
+    'メンバーの間、新作も含めてギャラリーのすべてのシーン。FluidEQ と FluidWallpapers で共通のサブスクリプションです。',
+  'subscription.welcome.signIn': 'サインインして Plus に登録',
+  'subscription.dev.notOnSale':
+    '開発: このアカウントには Plus が販売されていません。Stripe がテストモードの間は、管理者とサーバーのテスター一覧にあるアカウントだけに価格が届きます。このアカウントをその一覧に追加してください。',
+  'subscription.renew': 'Plus を再開',
+  'subscription.pass.member': 'メンバー',
+  'subscription.pass.ending': '解約済み · その日までは使えます',
+  'subscription.chip.until': 'Plus {date} まで',
 };
 
 export default subscription;
