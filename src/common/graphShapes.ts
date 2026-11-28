@@ -47,9 +47,12 @@ export {
 export type { AccentStyle, IGraphPeak } from './graphAccents';
 export {
   LED_CELL_BUDGET,
+  SKYLINE_SETBACK_INSET,
   createGraphPieces,
   createSkylineTowers,
+  graphPieceWidth,
   hasGraphPieces,
+  skylineSetback,
 } from './graphShapePieces';
 export type { IGraphPiece } from './graphShapePieces';
 export {

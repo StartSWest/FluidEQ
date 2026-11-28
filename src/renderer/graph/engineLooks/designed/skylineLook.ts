@@ -9,6 +9,7 @@ import { parseCssColour } from '../../../utils/oklab';
 import {
   CITY_DAY_INKS,
   CITY_INKS,
+  CITY_PANE_TALL,
   type CitySkylineLayout,
   TOWER_EDGE_DAY,
   TOWER_EDGE_MIN_WIDTH,
@@ -49,8 +50,12 @@ import {
  *   uLook[13] the stars' grid: its left and top, a cell's size
  *   uLook[14] the grid's cells across and down, the beacons, the panes a
  *             floor has across
+ *   uLook[15] a setback's top storey's width for its windows, the windows'
+ *             inset, the panes a floor of it has across
  *   texel (i, BLOCK_ROW + b)  tower i's block b: its corner and size
- *   texel (i, TOWER_ROW)      tower i's middle and floors
+ *   texel (i, TOWER_ROW)      tower i's middle and floors, the floors laid
+ *                             across its full width, the first floor of its
+ *                             setback's top storey (`ICityTower`)
  *   texel (i, HEAT_ROW)       tower i's own colour
  *   texel (i, FLOOR_ROW + r)  tower i's floors 4r to 4r + 3: each a floor's
  *                             lit panes as bits
@@ -93,10 +98,20 @@ const int CIRCLE_ROW = ${CIRCLE_ROW};
 const int BEACON_ROW = ${BEACON_ROW};
 const int FLOOR_ROW = ${FLOOR_ROW};
 
-// How lit tower i's pane is on floor fl, column c: 1 lit, 0 dark, -1 none.
-float skylinePane(int i, int fl, int c) {
-  vec4 tower = texelFetch(uLookData, ivec2(i, TOWER_ROW), 0);
-  if (fl < 0 || fl >= int(tower.y + 0.5) || c < 0 || c >= int(uLook[14].w + 0.5)) {
+// The window grid floor fl of a tower stands on (cityFloorGrid on the
+// page): its width, its first pane's inset, its panes across. None, 0
+// across, for the wall at a setback's ledge.
+vec3 skylineGrid(vec4 tower, int fl) {
+  if (fl < int(tower.z + 0.5)) {
+    return vec3(uLook[9].x, uLook[9].w, uLook[14].w);
+  }
+  return fl >= int(tower.w + 0.5) ? uLook[15].xyz : vec3(0.0);
+}
+
+// How lit tower i's pane is on floor fl, column c of its grid: 1 lit,
+// 0 dark, -1 none.
+float skylinePane(vec4 tower, int i, int fl, int c, int across) {
+  if (fl < 0 || fl >= int(tower.y + 0.5) || c < 0 || c >= across) {
     return -1.0;
   }
   vec4 floors = texelFetch(uLookData, ivec2(i, FLOOR_ROW + fl / ${FLOORS_A_TEXEL}), 0);
@@ -201,7 +216,6 @@ vec4 skylineCopy(vec4 picture, vec2 p, int copy) {
 
   // The windows, dark then lit, on filled towers.
   if (dsFilled()) {
-    float width = uLook[9].x;
     float pane = uLook[9].y;
     float storey = uLook[9].z;
     // Dark, lit.
@@ -211,19 +225,20 @@ vec4 skylineCopy(vec4 picture, vec2 p, int copy) {
       if (i < 0 || i >= towers) {
         continue;
       }
-      float x = texelFetch(uLookData, ivec2(i, TOWER_ROW), 0).x;
-      float from = x - width * 0.5 + uLook[9].w;
+      vec4 tower = texelFetch(uLookData, ivec2(i, TOWER_ROW), 0);
       int row = int(floor((floorY - q.y) / storey));
-      int column = int(floor((q.x - from) / (pane * 2.0)));
       for (int n = 0; n < 4; n++) {
         int fl = row - 1 + n / 2;
-        int c = column + n % 2;
-        float state = skylinePane(i, fl, c);
+        // Each floor on its own grid: a setback's top storey is narrower.
+        vec3 grid = skylineGrid(tower, fl);
+        float from = tower.x - grid.x * 0.5 + grid.y;
+        int c = int(floor((q.x - from) / (pane * 2.0))) + n % 2;
+        float state = skylinePane(tower, i, fl, c, int(grid.z + 0.5));
         if (state < 0.0) {
           continue;
         }
         vec2 corner = vec2(from + float(c) * pane * 2.0, floorY - float(fl + 1) * storey);
-        vec2 size = vec2(pane, pane * 1.35);
+        vec2 size = vec2(pane, pane * ${f(CITY_PANE_TALL)});
         float cover = lookFill(nightBox(q, corner + size * 0.5, size * 0.5));
         if (state > 0.5) {
           panes.y = max(panes.y, cover);
@@ -306,8 +321,14 @@ const step = (
     blocks.slice(0, BLOCKS).forEach((block, at) => {
       put(BLOCK_ROW + at, index, [...block]);
     });
-    const floors = windows.towers[index]?.floors ?? [];
-    put(TOWER_ROW, index, [windows.towers[index]?.x ?? 0, floors.length, 0, 0]);
+    const tower = windows.towers[index];
+    const floors = tower?.floors ?? [];
+    put(TOWER_ROW, index, [
+      tower?.x ?? 0,
+      floors.length,
+      tower?.lower ?? 0,
+      tower?.upper ?? 0,
+    ]);
     const [red, green, blue] = parseCssColour(heat?.[index] ?? '')?.rgb ?? [
       0, 0, 0,
     ];
@@ -379,6 +400,14 @@ const step = (
     grid.rows,
     city.beacons.length,
     windows.across,
+  );
+  setLookVector(
+    input,
+    15,
+    windows.upper.width,
+    windows.upper.insetX,
+    windows.upper.across,
+    0,
   );
 };
 

@@ -1,3 +1,8 @@
+import {
+  SKYLINE_SETBACK_INSET,
+  graphPieceWidth,
+  skylineSetback,
+} from 'common/graphShapes';
 import type { Projected } from 'common/graphStyles';
 import { getEaseFactor } from 'common/smoothing';
 import noise from 'common/seededNoise';
@@ -191,11 +196,73 @@ export const CITY_DAY_INKS: typeof CITY_INKS = {
 export const cityInks = (): typeof CITY_INKS =>
   isLightWindow() ? CITY_DAY_INKS : CITY_INKS;
 
-/** One tower's windows: its middle, and each floor's lit panes as bits. */
+/**
+ * One tower's windows: its middle, and each floor's lit panes as bits.
+ *
+ * Floors below `lower` are laid across the tower's full width; floors from
+ * `upper` on stand in a setback's narrower top storey and are laid across
+ * that (`ICityWindows.upper`). The floors between are the wall at the ledge
+ * and carry no windows. A tower without a setback has both at its floor
+ * count.
+ */
 export interface ICityTower {
   x: number;
   floors: number[];
+  lower: number;
+  upper: number;
 }
+
+/** A window grid across one block: its width, its panes, the first one's inset. */
+export interface ICityWindowGrid {
+  width: number;
+  across: number;
+  insetX: number;
+}
+
+/**
+ * The grid the windows are laid on: the tower's full width, a pane, a
+ * floor's height, and the grid across a setback's top storey.
+ */
+export interface ICityWindowGrids extends ICityWindowGrid {
+  pane: number;
+  pitch: number;
+  upper: ICityWindowGrid;
+}
+
+/** The grids, and every tower's windows on them. */
+export interface ICityWindows extends ICityWindowGrids {
+  towers: ICityTower[];
+}
+
+/**
+ * How much wall a window keeps from a setback's ledge, in panes: half a
+ * pane under it for the block below, a quarter over it for the storey
+ * above, so the ledge reads as a band of wall and its outline crosses no
+ * window.
+ */
+const LEDGE_BELOW = 0.5;
+const LEDGE_ABOVE = 0.25;
+
+/** A pane's height, as a multiple of its width. */
+export const CITY_PANE_TALL = 1.35;
+
+/** Panes centred across a block of this width, a pane between them. */
+const windowGrid = (width: number, pane: number): ICityWindowGrid => {
+  const across = Math.max(1, Math.floor(width / (pane * 2.1)));
+  return { width, across, insetX: (width - (across * pane * 2 - pane)) / 2 };
+};
+
+/** Which grid floor `floor` of a tower is laid on, if any. */
+export const cityFloorGrid = (
+  windows: ICityWindowGrids,
+  tower: ICityTower,
+  floor: number,
+): ICityWindowGrid | undefined => {
+  if (floor < tower.lower) {
+    return windows;
+  }
+  return floor >= tower.upper ? windows.upper : undefined;
+};
 
 /**
  * The city as it stands this frame, in numbers: the moon and its craters,
@@ -217,8 +284,9 @@ export const citySkylineLayout = (
   const right = columns[columns.length - 1]?.[0] ?? 1;
   const span = Math.max(1, right - left);
   const depth = Math.max(1, bottom - top);
-  const step = span / Math.max(1, columns.length - 1);
-  const width = Math.max(1, step * (1 - Math.max(0, Math.min(0.85, gap))));
+  // The towers' own width (`createSkylineTowers`), so the windows are
+  // measured off the walls they stand in.
+  const width = graphPieceWidth('skyline', span, columns.length, gap);
   const size = Math.max(0.7, Math.min(3.2, sizeHeight / 230));
   const frameWidth = Math.max(1, frame.right - frame.left);
   const skyDepth = Math.max(1, bottom - frame.top);
@@ -263,32 +331,60 @@ export const citySkylineLayout = (
    * ones are lit comes from stable noise plus a slow shift, so the city
    * changes without flickering; a beat lowers the threshold and a scatter
    * of extra rooms come on for as long as the thump lasts.
+   *
+   * A setback's top storey is narrower than the block it stands on, so its
+   * floors take a grid of their own across it — the same panes on the same
+   * floors, fewer of them — and the floor at the ledge is wall. Laid across
+   * the full width, its outer windows stood out in the air past its walls.
    */
   const pane = Math.max(1.2, width * 0.15);
-  const across = Math.max(1, Math.floor(width / (pane * 2.1)));
   const pitch = pane * 2.5;
-  const insetX = (width - (across * pane * 2 - pane)) / 2;
+  const grids: ICityWindowGrids = {
+    ...windowGrid(width, pane),
+    pane,
+    pitch,
+    upper: windowGrid(width * (1 - SKYLINE_SETBACK_INSET * 2), pane),
+  };
   const shift = Math.floor(seconds / WINDOW_SHIFT);
   const wake = state.thump * 0.25;
   const towers: ICityTower[] = columns.map(([x, y], index) => {
     const height = bottom - y;
     if (height < pitch * 1.6) {
-      return { x, floors: [] };
+      return { x, floors: [], lower: 0, upper: 0 };
     }
-    const floors: number[] = [];
     const count = Math.floor((height - pane) / pitch);
+    const setback = skylineSetback(height, width, index);
+    // Floor f's pane reaches pitch * (f + 1) up from the street, and its
+    // foot a pane's height below that; the ledge stands at height - depth.
+    const ledge = setback ? height - setback.depth : height;
+    const lower = setback
+      ? Math.max(
+          0,
+          Math.min(count, Math.floor((ledge - pane * LEDGE_BELOW) / pitch)),
+        )
+      : count;
+    const upper = setback
+      ? Math.max(
+          lower,
+          Math.ceil((ledge + pane * (LEDGE_ABOVE + CITY_PANE_TALL)) / pitch) -
+            1,
+        )
+      : count;
+    const tower: ICityTower = { x, floors: [], lower, upper };
     for (let floor = 0; floor < count; floor += 1) {
       let lit = 0;
+      const across = cityFloorGrid(grids, tower, floor)?.across ?? 0;
       for (let column = 0; column < across; column += 1) {
         const seed = index * 977 + floor * 61 + column * 13;
         if (noise(seed + shift * 7) < 0.34 + wake) {
           lit += 2 ** column;
         }
       }
-      floors.push(lit);
+      tower.floors.push(lit);
     }
-    return { x, floors };
+    return tower;
   });
+  const windows: ICityWindows = { ...grids, towers };
 
   /**
    * The beacons: a red aircraft light on top of every mast, each on its
@@ -319,7 +415,7 @@ export const citySkylineLayout = (
     starAlphas: [0.4 + state.treble * 0.5, 0.2] as const,
     /** The moon's halo breathes with the bass. */
     haloAlpha: 0.4 + state.bass * 0.5,
-    windows: { width, pane, across, pitch, insetX, towers },
+    windows,
     litAlpha: 0.75 + state.thump * 0.25,
     beacons,
     /** How far the city's glow reaches up from the foot of the block. */
@@ -365,16 +461,21 @@ export const createCitySkylinePaths = (
     stars[bright ? 0 : 1].path.rect(x - r, y - r, r * 2, r * 2);
   });
 
-  const { width, pane, across, pitch, insetX } = layout.windows;
+  const { windows } = layout;
+  const { pane, pitch } = windows;
   const lit = new Path2D();
   const dim = new Path2D();
-  layout.windows.towers.forEach(({ x, floors }) => {
-    floors.forEach((mask, floor) => {
+  windows.towers.forEach((tower) => {
+    tower.floors.forEach((mask, floor) => {
+      const grid = cityFloorGrid(windows, tower, floor);
+      if (!grid) {
+        return;
+      }
       const row = bottom - (floor + 1) * pitch;
-      for (let column = 0; column < across; column += 1) {
-        const wx = x - width / 2 + insetX + column * pane * 2;
+      for (let column = 0; column < grid.across; column += 1) {
+        const wx = tower.x - grid.width / 2 + grid.insetX + column * pane * 2;
         const target = Math.floor(mask / 2 ** column) % 2 === 1 ? lit : dim;
-        target.rect(wx, row, pane, pane * 1.35);
+        target.rect(wx, row, pane, pane * CITY_PANE_TALL);
       }
     });
   });

@@ -216,7 +216,10 @@ export const engineAnalysisStep = (
 // two curves into a lift and a cut instead of stacking a before-body under
 // the reading (2026-11-27; written as 9 on its own branch, landed after the
 // removal and the Skyline's 9 and 10).
-const LOOK_PACK_VERSION = 11;
+// 12: a Skyline setback's top storey lays its windows across its own
+// narrower width, and the floor at the ledge is wall (`cityFloorGrid`,
+// 2026-11-27).
+const LOOK_PACK_VERSION = 12;
 
 const packs = new Map<GraphStyle, IScenePack>();
 

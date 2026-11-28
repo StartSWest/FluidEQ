@@ -73,6 +73,28 @@ export interface IGraphPiece {
  */
 export const LED_CELL_BUDGET = 48 * MAX_GRAPH_COLUMNS;
 
+/** How far a setback's top storey stands in from each wall, of the width. */
+export const SKYLINE_SETBACK_INSET = 0.17;
+
+/**
+ * A setback tower's top storey: how deep it is from the roof down to the
+ * ledge, and how far it stands in from each wall below. Nothing for a tower
+ * of another roof. The one definition both the silhouette below and the
+ * city's window grid (`citySkyline.ts`) read, so a window never stands past
+ * the narrower storey's walls.
+ */
+export const skylineSetback = (
+  height: number,
+  width: number,
+  index: number,
+): { depth: number; inset: number } | undefined =>
+  noise(index * 41 + 7) < 0.34
+    ? {
+        depth: Math.min(height * 0.34, width * 0.85),
+        inset: width * SKYLINE_SETBACK_INSET,
+      }
+    : undefined;
+
 /**
  * A TOWER, not a bar with holes in it.
  *
@@ -101,19 +123,18 @@ const skylineTower = (
   if (height < 1) {
     return [];
   }
-  const kind = noise(index * 41 + 7);
   const half = width / 2;
-  if (kind < 0.34) {
+  const setback = skylineSetback(height, width, index);
+  if (setback) {
     // A setback: the top storey stands in from the walls below it.
-    const setback = Math.min(height * 0.34, width * 0.85);
-    const inset = width * 0.17;
+    const { depth, inset } = setback;
     return [
-      [x - half, y + setback, width, height - setback],
-      [x - half + inset, y, width - inset * 2, setback],
+      [x - half, y + depth, width, height - depth],
+      [x - half + inset, y, width - inset * 2, depth],
     ];
   }
   const blocks: PixelRect[] = [[x - half, y, width, height]];
-  if (kind > 0.72 && height > (baseline - ceiling) * 0.35) {
+  if (noise(index * 41 + 7) > 0.72 && height > (baseline - ceiling) * 0.35) {
     // A mast, and a housing at its foot so it does not read as a hair.
     const mast = Math.max(4, width * 0.55);
     const stem = Math.max(1, width * 0.06);
@@ -219,13 +240,25 @@ const pieceLayout = (
     columns === undefined ? getColumnCount(style) : clampGraphColumns(columns),
   );
   const span = figure[figure.length - 1][0] - figure[0][0];
-  const step = Math.max(1, span / Math.max(1, figure.length - 1));
-  const width = Math.max(
-    PIECE_WIDTH_FLOORS[style] ?? 1,
-    step * (1 - Math.max(0, Math.min(0.85, gap))),
-  );
-  return { figure, width };
+  return { figure, width: graphPieceWidth(style, span, figure.length, gap) };
 };
+
+/**
+ * How wide each of a form's pieces is, for `count` of them across `span`.
+ * Also what the city lays its window grid across (`citySkyline.ts`), so a
+ * tower's windows are measured off the tower itself.
+ */
+export const graphPieceWidth = (
+  style: GraphStyle,
+  span: number,
+  count: number,
+  gap: number,
+): number =>
+  Math.max(
+    PIECE_WIDTH_FLOORS[style] ?? 1,
+    Math.max(1, span / Math.max(1, count - 1)) *
+      (1 - Math.max(0, Math.min(0.85, gap))),
+  );
 
 /**
  * The skyline's towers, block by block, laid out exactly as its pieces are:
