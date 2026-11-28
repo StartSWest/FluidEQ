@@ -123,15 +123,6 @@ export const plusOnSale = (plus: ISubscriptionState | undefined): boolean =>
   plus.suspended !== true &&
   plus.plans.length > 0;
 
-/**
- * Whether a scene that plays only through Plus says so on its picture: while
- * the account has Plus, or can get it. Not once nothing is on sale to it,
- * where the mark would offer what cannot be had.
- */
-export const plusMarksScenes = (
-  plus: ISubscriptionState | undefined,
-): boolean => plus !== undefined && (plus.subscribed || plusOnSale(plus));
-
 /** How a trip to Stripe ended, as fluideq.com's "Back to FluidEQ" says it. */
 export const subscribePlusReturns = (
   listener: (returned: TPlusReturn) => void,

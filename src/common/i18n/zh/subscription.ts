@@ -13,10 +13,6 @@ const subscription: Partial<Dictionary> = {
   'subscription.manage': '管理 Plus',
   'subscription.included': 'Plus 包含',
 
-  'subscription.rail.blurb': '会员期间，所有场景',
-  'subscription.rail.get': '开通',
-  'subscription.rail.member': '会员',
-
   'subscription.plan.monthly': '按月',
   'subscription.plan.yearly': '按年',
   'subscription.plan.perMonth': '每月 {price}',
@@ -26,41 +22,16 @@ const subscription: Partial<Dictionary> = {
   'subscription.plan.monthlyEquivalent': '相当于每月 {price}。',
   'subscription.plan.save': '省 {percent}%',
 
-  'subscription.page.lead':
-    '场景中的所有场景都可以使用，在这里和 FluidWallpapers 中都可以。',
-  'subscription.page.new': 'Plus 新增',
-
-  'subscription.status.member': '会员',
-  'subscription.status.renews': '{plan} · {date} 续订',
-  'subscription.status.ends': '{plan} · {date} 结束',
-  'subscription.status.renewsNote':
-    '在 Stripe 页面上更改方案或银行卡，或取消。',
-  'subscription.status.endsNote':
-    '届时它播放的场景会停止。用点数获取的场景仍然归你。要保留 Plus，请在“管理 Plus”中续订。',
   'subscription.status.grace':
     'FluidEQ 无法在服务器上确认你的 Plus。它会继续使用到 {date}。',
   'subscription.status.waiting':
     '正在等待 Stripe 确认付款。Plus 会在这里自动开启。',
-  'subscription.status.ended.title': '你的 Plus 会员已结束',
-  'subscription.status.ended.body':
-    '它播放的场景已停止，其下载内容已从这台电脑上删除。用点数获取的场景仍然归你。',
 
   'subscription.ways.title': 'Plus 还是点数？',
-  'subscription.ways.credits.have': '点数 · 你有 {credits}',
-  'subscription.ways.credits.body':
-    '获取一个场景并永久保留，即使 Plus 结束也一样。',
   'subscription.ways.credits.each': '一次一个场景，每个 {credits}',
   'subscription.ways.credits.keep': '永久归你，即使没有 Plus',
-  'subscription.ways.plus.body': '会员期间，所有场景。随意添加，无需点数。',
   'subscription.ways.plus.every': '场景中的所有场景，新的也包括',
   'subscription.ways.plus.while': '会员期间',
-
-  'subscription.choice.credits.title': '点数：一个场景',
-  'subscription.choice.credits.body': '永久归你。每个 {credits}。',
-  'subscription.choice.or': '或',
-  'subscription.choice.plus.title': 'Plus：所有场景',
-  'subscription.choice.plus.body': '会员期间。{price}。',
-  'subscription.choice.hide': '隐藏',
 
   'subscription.scene.twoWays': '两种获取方式',
   'subscription.scene.keep.title': '保留这个场景',
@@ -116,6 +87,23 @@ const subscription: Partial<Dictionary> = {
   'subscription.manage.none': '此账户没有可管理的 Plus 会员。',
   'subscription.manage.signedOut': '请重新登录以管理 Plus。',
   'subscription.manage.failed': '无法打开 Stripe 页面。请检查网络连接后重试。',
+
+  'subscription.cardGet': '获取',
+  'subscription.makeScenes': '在 FluidWallpapers 中制作你自己的场景',
+  'subscription.banner.title': 'Plus：图库中的所有场景',
+  'subscription.banner.body':
+    '播放并添加所有场景，新的也包括。FluidEQ 和 FluidWallpapers 共用一个订阅。',
+  'subscription.banner.credit':
+    '没有 Plus 也想要某个场景？用点数获取，它就永久归你。',
+  'subscription.banner.or': '或 {price}',
+  'subscription.line.renews':
+    '所有场景都可播放 · {date} 续订 · FluidWallpapers 中同样可用',
+  'subscription.line.ends':
+    '所有场景可播放至 {date} · FluidWallpapers 中同样可用',
+  'subscription.line.plain': '所有场景都可播放 · FluidWallpapers 中同样可用',
+  'subscription.sheet.both':
+    'FluidEQ 和 FluidWallpapers 共用一个订阅：在任一应用中开通，两个应用都有效。',
+  'subscription.sheet.keepOne': '或者只永久保留 {name}，即使没有 Plus：',
 };
 
 export default subscription;

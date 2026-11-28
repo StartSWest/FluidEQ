@@ -13,10 +13,6 @@ const subscription: Partial<Dictionary> = {
   'subscription.manage': 'Plus प्रबंधित करें',
   'subscription.included': 'Plus में शामिल',
 
-  'subscription.rail.blurb': 'सदस्य रहने तक हर सीन',
-  'subscription.rail.get': 'Plus लें',
-  'subscription.rail.member': 'सदस्य',
-
   'subscription.plan.monthly': 'मासिक',
   'subscription.plan.yearly': 'वार्षिक',
   'subscription.plan.perMonth': '{price} प्रति माह',
@@ -26,42 +22,16 @@ const subscription: Partial<Dictionary> = {
   'subscription.plan.monthlyEquivalent': 'यानी {price} प्रति माह।',
   'subscription.plan.save': '{percent}% बचाएँ',
 
-  'subscription.page.lead':
-    'सीन का हर सीन आपके लिए चलता है, यहाँ और FluidWallpapers में।',
-  'subscription.page.new': 'Plus में नए',
-
-  'subscription.status.member': 'सदस्य',
-  'subscription.status.renews': '{plan} · {date} को नवीनीकरण',
-  'subscription.status.ends': '{plan} · {date} को समाप्त',
-  'subscription.status.renewsNote':
-    'प्लान या कार्ड बदलें, या रद्द करें, Stripe के पेज पर।',
-  'subscription.status.endsNote':
-    'उस दिन इससे चलने वाले सीन रुक जाएँगे। क्रेडिट से लिए गए सीन आपके ही रहेंगे। Plus बनाए रखने के लिए, Plus प्रबंधित करें में इसे नवीनीकृत करें।',
   'subscription.status.grace':
     'FluidEQ सर्वर से आपके Plus की जाँच नहीं कर पाया। यह {date} तक चलता रहेगा।',
   'subscription.status.waiting':
     'Stripe के भुगतान की पुष्टि का इंतज़ार है। Plus यहाँ अपने आप चालू हो जाएगा।',
-  'subscription.status.ended.title': 'आपकी Plus सदस्यता समाप्त हो गई',
-  'subscription.status.ended.body':
-    'इससे चलने वाले सीन रुक गए, और उनके डाउनलोड इस कंप्यूटर से हटा दिए गए। क्रेडिट से लिए गए सीन आपके ही रहेंगे।',
 
   'subscription.ways.title': 'Plus या क्रेडिट?',
-  'subscription.ways.credits.have': 'क्रेडिट · आपके पास {credits}',
-  'subscription.ways.credits.body':
-    'एक सीन लें और उसे हमेशा रखें, Plus के बाद भी।',
   'subscription.ways.credits.each': 'एक बार में एक सीन, हर एक {credits}',
   'subscription.ways.credits.keep': 'हमेशा के लिए आपका, Plus के बिना भी',
-  'subscription.ways.plus.body':
-    'सदस्य रहने तक हर सीन। कोई भी जोड़ें, बिना क्रेडिट।',
   'subscription.ways.plus.every': 'सीन का हर सीन, नए भी',
   'subscription.ways.plus.while': 'सदस्य रहने तक',
-
-  'subscription.choice.credits.title': 'क्रेडिट: एक सीन',
-  'subscription.choice.credits.body': 'हमेशा के लिए आपका। हर एक {credits}।',
-  'subscription.choice.or': 'या',
-  'subscription.choice.plus.title': 'Plus: हर सीन',
-  'subscription.choice.plus.body': 'सदस्य रहने तक। {price}।',
-  'subscription.choice.hide': 'छिपाएँ',
 
   'subscription.scene.twoWays': 'इसे पाने के दो तरीके',
   'subscription.scene.keep.title': 'यह सीन रखें',
@@ -124,6 +94,24 @@ const subscription: Partial<Dictionary> = {
     'Plus प्रबंधित करने के लिए फिर से साइन इन करें।',
   'subscription.manage.failed':
     'Stripe का पेज नहीं खुल सका। अपना कनेक्शन जाँचें और फिर से कोशिश करें।',
+
+  'subscription.cardGet': 'पाएँ',
+  'subscription.makeScenes': 'FluidWallpapers में अपने सीन बनाएँ',
+  'subscription.banner.title': 'Plus: गैलरी का हर सीन',
+  'subscription.banner.body':
+    'सब चलाएँ और जोड़ें, नए भी। FluidEQ और FluidWallpapers के लिए एक ही सदस्यता।',
+  'subscription.banner.credit':
+    'Plus के बिना भी कोई सीन चाहिए? उसे क्रेडिट से लें, वह हमेशा आपका रहेगा।',
+  'subscription.banner.or': 'या {price}',
+  'subscription.line.renews':
+    'हर सीन आपके लिए · {date} को नवीनीकरण · FluidWallpapers में भी',
+  'subscription.line.ends':
+    '{date} तक हर सीन आपके लिए · FluidWallpapers में भी',
+  'subscription.line.plain': 'हर सीन आपके लिए · FluidWallpapers में भी',
+  'subscription.sheet.both':
+    'FluidEQ और FluidWallpapers के लिए एक ही सदस्यता: किसी भी ऐप में लें, दोनों में चलेगी।',
+  'subscription.sheet.keepOne':
+    'या Plus के बिना भी सिर्फ़ {name} को हमेशा के लिए रखें:',
 };
 
 export default subscription;

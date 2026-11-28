@@ -13,10 +13,6 @@ const subscription = {
   'subscription.manage': '管理 Plus',
   'subscription.included': 'Plus 包含',
 
-  'subscription.rail.blurb': '會員期間，所有場景',
-  'subscription.rail.get': '開通',
-  'subscription.rail.member': '會員',
-
   'subscription.plan.monthly': '按月',
   'subscription.plan.yearly': '按年',
   'subscription.plan.perMonth': '每月 {price}',
@@ -26,41 +22,16 @@ const subscription = {
   'subscription.plan.monthlyEquivalent': '相當於每月 {price}。',
   'subscription.plan.save': '省 {percent}%',
 
-  'subscription.page.lead':
-    '場景中的所有場景都可以使用，在這裡和 FluidWallpapers 中都可以。',
-  'subscription.page.new': 'Plus 新增',
-
-  'subscription.status.member': '會員',
-  'subscription.status.renews': '{plan} · {date} 續訂',
-  'subscription.status.ends': '{plan} · {date} 結束',
-  'subscription.status.renewsNote':
-    '在 Stripe 頁面上更改方案或信用卡，或取消。',
-  'subscription.status.endsNote':
-    '屆時它播放的場景會停止。用點數取得的場景仍然屬於你。要保留 Plus，請在「管理 Plus」中續訂。',
   'subscription.status.grace':
     'FluidEQ 無法在伺服器上確認你的 Plus。它會繼續使用到 {date}。',
   'subscription.status.waiting':
     '正在等待 Stripe 確認付款。Plus 會在這裡自動開啟。',
-  'subscription.status.ended.title': '你的 Plus 會員已結束',
-  'subscription.status.ended.body':
-    '它播放的場景已停止，其下載內容已從這台電腦上刪除。用點數取得的場景仍然屬於你。',
 
   'subscription.ways.title': 'Plus 還是點數？',
-  'subscription.ways.credits.have': '點數 · 你有 {credits}',
-  'subscription.ways.credits.body':
-    '取得一個場景並永久保留，即使 Plus 結束也一樣。',
   'subscription.ways.credits.each': '一次一個場景，每個 {credits}',
   'subscription.ways.credits.keep': '永遠屬於你，即使沒有 Plus',
-  'subscription.ways.plus.body': '會員期間，所有場景。隨意新增，無需點數。',
   'subscription.ways.plus.every': '場景中的所有場景，新的也包括',
   'subscription.ways.plus.while': '會員期間',
-
-  'subscription.choice.credits.title': '點數：一個場景',
-  'subscription.choice.credits.body': '永遠屬於你。每個 {credits}。',
-  'subscription.choice.or': '或',
-  'subscription.choice.plus.title': 'Plus：所有場景',
-  'subscription.choice.plus.body': '會員期間。{price}。',
-  'subscription.choice.hide': '隱藏',
 
   'subscription.scene.twoWays': '兩種取得方式',
   'subscription.scene.keep.title': '保留這個場景',
@@ -116,6 +87,23 @@ const subscription = {
   'subscription.manage.none': '此帳戶沒有可管理的 Plus 會員。',
   'subscription.manage.signedOut': '請重新登入以管理 Plus。',
   'subscription.manage.failed': '無法開啟 Stripe 頁面。請檢查網路連線後重試。',
+
+  'subscription.cardGet': '取得',
+  'subscription.makeScenes': '在 FluidWallpapers 中製作你自己的場景',
+  'subscription.banner.title': 'Plus：畫廊中的所有場景',
+  'subscription.banner.body':
+    '播放並新增所有場景，新的也包括。FluidEQ 和 FluidWallpapers 共用一個訂閱。',
+  'subscription.banner.credit':
+    '沒有 Plus 也想要某個場景？用點數取得，它就永遠屬於你。',
+  'subscription.banner.or': '或 {price}',
+  'subscription.line.renews':
+    '所有場景都可播放 · {date} 續訂 · FluidWallpapers 中同樣可用',
+  'subscription.line.ends':
+    '所有場景可播放至 {date} · FluidWallpapers 中同樣可用',
+  'subscription.line.plain': '所有場景都可播放 · FluidWallpapers 中同樣可用',
+  'subscription.sheet.both':
+    'FluidEQ 和 FluidWallpapers 共用一個訂閱：在任一應用程式中開通，兩個都有效。',
+  'subscription.sheet.keepOne': '或者只永久保留 {name}，即使沒有 Plus：',
 } satisfies Partial<Dictionary>;
 
 export default subscription;

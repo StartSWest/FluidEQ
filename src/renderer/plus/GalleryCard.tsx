@@ -19,11 +19,10 @@ import { useKnownWithoutClip, useSceneClip } from './cardClip';
 import SceneClip from './SceneClip';
 import GalleryMoveTag from './GalleryMoveTag';
 import { FLUIDEQ_MAKER, type IMakerRef } from './plusNavigation';
-import SceneGet, { officialLine } from './SceneGet';
+import { officialLine } from './SceneGet';
+import SceneGetPlusFirst from './SceneGetPlusFirst';
 import { galleryCameraOf } from './sceneMoveGestures';
 import { useMoveTip } from './SceneMoveTip';
-import PlusMark from './PlusMark';
-import { plusMarksScenes, usePlusSubscription } from './plusSubscriptionStore';
 import { useKeepsLook, useOwnsLook } from './sceneStore';
 import type { TGalleryLocalScene } from './useGalleryLocalScenes';
 
@@ -60,10 +59,8 @@ export default function GalleryCard({
   const { t, locale } = useTranslation();
   const owned = useOwnsLook(scene.lookId);
   // Kept for good - its own, or got with a credit - as against playing only
-  // while Plus lasts: only a kept scene says "Yours for good", and only one
-  // that is not wears the Plus mark (owned wins).
+  // while Plus lasts: only a kept scene says "Yours for good" (owned wins).
   const keeps = useKeepsLook(scene.lookId);
-  const withPlus = plusMarksScenes(usePlusSubscription()) && !keeps;
   // FluidEQ's own count no adds (`ScenePage`), so their line says whether
   // the scene is this account's or what getting it does.
   const officialLabel = officialLine(t, keeps);
@@ -136,16 +133,6 @@ export default function GalleryCard({
         )}
         {isNewVersion && (
           <span className="gallery-card__new">{t('plus.version.new')}</span>
-        )}
-        {/* On the picture's foot, where the category and "New" never stand. */}
-        {withPlus && (
-          <span
-            className="gallery-card__plus"
-            title={t('subscription.included')}
-          >
-            <PlusMark />
-            {t('subscription.name')}
-          </span>
         )}
       </button>
       <div className="gallery-card__body">
@@ -221,7 +208,7 @@ export default function GalleryCard({
           <span className="gallery-card__controls">
             <SceneHeart scene={scene} name={name} own={own} />
             {!owned && (
-              <SceneGet
+              <SceneGetPlusFirst
                 scene={scene}
                 name={name}
                 className="button small subtle gallery-card__get"

@@ -13,10 +13,6 @@ const subscription: Partial<Dictionary> = {
   'subscription.manage': 'Gestisci Plus',
   'subscription.included': 'Inclusa in Plus',
 
-  'subscription.rail.blurb': 'Tutte le scene, finché sei membro',
-  'subscription.rail.get': 'Passa a Plus',
-  'subscription.rail.member': 'Membro',
-
   'subscription.plan.monthly': 'Mensile',
   'subscription.plan.yearly': 'Annuale',
   'subscription.plan.perMonth': '{price} al mese',
@@ -26,42 +22,16 @@ const subscription: Partial<Dictionary> = {
   'subscription.plan.monthlyEquivalent': 'Sono {price} al mese.',
   'subscription.plan.save': 'Risparmi il {percent}%',
 
-  'subscription.page.lead':
-    'Puoi usare tutte le scene di Scene, qui e in FluidWallpapers.',
-  'subscription.page.new': 'Novità con Plus',
-
-  'subscription.status.member': 'Membro',
-  'subscription.status.renews': '{plan} · Si rinnova il {date}',
-  'subscription.status.ends': '{plan} · Termina il {date}',
-  'subscription.status.renewsNote':
-    'Cambia piano o carta, o disdici, sulla pagina di Stripe.',
-  'subscription.status.endsNote':
-    'Quel giorno le scene che riproduce si fermano. Le scene ottenute con i crediti restano tue. Per tenere Plus, rinnovalo da Gestisci Plus.',
   'subscription.status.grace':
     'FluidEQ non è riuscito a verificare il tuo Plus con il server. Continua a funzionare fino al {date}.',
   'subscription.status.waiting':
     'In attesa che Stripe confermi il pagamento. Plus si attiva qui da solo.',
-  'subscription.status.ended.title': 'Il tuo abbonamento Plus è terminato',
-  'subscription.status.ended.body':
-    'Le scene che riproduceva si sono fermate e i loro download sono stati rimossi da questo computer. Le scene ottenute con i crediti restano tue.',
 
   'subscription.ways.title': 'Plus o crediti?',
-  'subscription.ways.credits.have': 'Crediti · ne hai {credits}',
-  'subscription.ways.credits.body':
-    'Ottieni una scena e tienila per sempre, anche dopo Plus.',
   'subscription.ways.credits.each': 'Una scena alla volta, {credits} ciascuna',
   'subscription.ways.credits.keep': 'Tua per sempre, anche senza Plus',
-  'subscription.ways.plus.body':
-    'Tutte le scene, finché sei membro. Aggiungi quelle che vuoi, senza crediti.',
   'subscription.ways.plus.every': 'Tutte le scene di Scene, anche le nuove',
   'subscription.ways.plus.while': 'Finché sei membro',
-
-  'subscription.choice.credits.title': 'Crediti: una scena',
-  'subscription.choice.credits.body': 'Tua per sempre. {credits} ciascuna.',
-  'subscription.choice.or': 'o',
-  'subscription.choice.plus.title': 'Plus: tutte le scene',
-  'subscription.choice.plus.body': 'Finché sei membro. {price}.',
-  'subscription.choice.hide': 'Nascondi',
 
   'subscription.scene.twoWays': 'Due modi per averla',
   'subscription.scene.keep.title': 'Tieni questa scena',
@@ -123,6 +93,25 @@ const subscription: Partial<Dictionary> = {
   'subscription.manage.signedOut': 'Accedi di nuovo per gestire Plus.',
   'subscription.manage.failed':
     'Impossibile aprire la pagina di Stripe. Controlla la connessione e riprova.',
+
+  'subscription.cardGet': 'Ottieni',
+  'subscription.makeScenes': 'Crea le tue scene in FluidWallpapers',
+  'subscription.banner.title': 'Plus: tutte le scene della galleria',
+  'subscription.banner.body':
+    'Avviale e aggiungile tutte, anche le nuove. Un solo abbonamento per FluidEQ e FluidWallpapers.',
+  'subscription.banner.credit':
+    'Vuoi una scena anche senza Plus? Ottienila con un credito e resta tua per sempre.',
+  'subscription.banner.or': 'o {price}',
+  'subscription.line.renews':
+    'Tutte le scene sono tue · si rinnova il {date} · anche in FluidWallpapers',
+  'subscription.line.ends':
+    'Tutte le scene sono tue fino al {date} · anche in FluidWallpapers',
+  'subscription.line.plain':
+    'Tutte le scene sono tue · anche in FluidWallpapers',
+  'subscription.sheet.both':
+    'Un solo abbonamento per FluidEQ e FluidWallpapers: preso in una delle due app, vale in entrambe.',
+  'subscription.sheet.keepOne':
+    'Oppure tieni solo {name} per sempre, anche senza Plus:',
 };
 
 export default subscription;

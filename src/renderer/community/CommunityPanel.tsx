@@ -1,4 +1,4 @@
-import { Fragment, useEffect } from 'react';
+import { useEffect } from 'react';
 import type { TranslationKey } from 'common/i18n/en';
 import { requestAccountPanel } from '../account/accountPanel';
 import { useAccount, useAccountKnown } from '../account/accountStore';
@@ -30,9 +30,6 @@ import StudioRail from '../widgets/StudioRail';
 import VisualizersSignedOut from '../plus/VisualizersSignedOut';
 import { forgetProfile, loadProfile, useProfile } from '../plus/profileStore';
 import VisualizersView from '../plus/VisualizersView';
-import PlusPage from '../plus/PlusPage';
-import PlusRailRow from '../plus/PlusRailRow';
-import { plusShown, usePlusSubscription } from '../plus/plusSubscriptionStore';
 import LightingPanel from '../plus/lighting/LightingPanel';
 import StudioPanel from '../studio/StudioPanel';
 import VisualsNewsNotice, { VisualsNewsEntry } from './VisualsNews';
@@ -103,7 +100,6 @@ export default function CommunityPanel({
   const { profile, loaded } = useProfile();
   const signedIn = account.status === 'signed-in';
   const { place: view } = usePlusNavigation();
-  const plus = usePlusSubscription();
   const pinned = usePlusRailPinned();
   const rail = useRailWidth(PLUS_RAIL_WIDTH_KEY);
   const accountId = signedIn ? account.identity?.id : undefined;
@@ -154,13 +150,9 @@ export default function CommunityPanel({
   const ownName = profile?.displayName || account.identity?.name || '';
   const ownHandle = profile?.handle ?? account.identity?.email ?? '';
 
-  // A place remembered from an add-on that is not loaded is the gallery, and
-  // so is Plus's page once main has said there is no Plus to be had.
+  // A place remembered from an add-on that is not loaded is the gallery.
   const addon = isAddonPlace(view) ? addonForPlace(view) : undefined;
-  const gone =
-    (isAddonPlace(view) && !addon) ||
-    (view === 'plus' && plus !== undefined && !plusShown(plus));
-  const shown: TPlusPlace = gone ? 'visualizers' : view;
+  const shown: TPlusPlace = isAddonPlace(view) && !addon ? 'visualizers' : view;
 
   const openPlace = (place: TPlusPlace) => {
     if (place !== shown) {
@@ -186,36 +178,28 @@ export default function CommunityPanel({
             {PLACES.map((entry) => {
               const isActive = shown === entry.place;
               return (
-                <Fragment key={entry.place}>
-                  <button
-                    type="button"
-                    className={`community__channel${isActive ? ' is-active' : ''}`}
-                    aria-current={isActive ? 'true' : undefined}
-                    // What the place is for: the row is one line now, as the
-                    // Library's shelves are, and this was its second.
-                    title={t(entry.blurb)}
-                    onClick={() => openPlace(entry.place)}
-                  >
-                    <span className="community__channel-mark">
-                      <Glyph name={entry.glyph} />
+                <button
+                  key={entry.place}
+                  type="button"
+                  className={`community__channel${isActive ? ' is-active' : ''}`}
+                  aria-current={isActive ? 'true' : undefined}
+                  // What the place is for: the row is one line now, as the
+                  // Library's shelves are, and this was its second.
+                  title={t(entry.blurb)}
+                  onClick={() => openPlace(entry.place)}
+                >
+                  <span className="community__channel-mark">
+                    <Glyph name={entry.glyph} />
+                  </span>
+                  <span className="community__channel-text studio-rail__word">
+                    <span className="community__channel-name">
+                      {t(entry.name)}
                     </span>
-                    <span className="community__channel-text studio-rail__word">
-                      <span className="community__channel-name">
-                        {t(entry.name)}
-                      </span>
-                      <span className="community__channel-blurb">
-                        {t(entry.blurb)}
-                      </span>
+                    <span className="community__channel-blurb">
+                      {t(entry.blurb)}
                     </span>
-                  </button>
-                  {/* Plus under the gallery whose scenes it plays. */}
-                  {entry.place === 'visualizers' && (
-                    <PlusRailRow
-                      isActive={shown === 'plus'}
-                      onOpen={() => openPlace('plus')}
-                    />
-                  )}
-                </Fragment>
+                  </span>
+                </button>
               );
             })}
             {accountId &&
@@ -289,7 +273,6 @@ export default function CommunityPanel({
         {shown === 'visualizers' && (
           <VisualizersView onShowGraph={onShowGraph} />
         )}
-        {shown === 'plus' && <PlusPage />}
         {shown === 'studio' && <StudioPanel onShowGraph={onShowGraph} />}
         {shown === 'lighting' && <LightingPanel onShowGraph={onShowGraph} />}
         {isAddonPlace(shown) && addon?.Place && accountId && (

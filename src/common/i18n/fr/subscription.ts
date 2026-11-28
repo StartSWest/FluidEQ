@@ -13,10 +13,6 @@ const subscription: Partial<Dictionary> = {
   'subscription.manage': 'Gérer Plus',
   'subscription.included': 'Incluse avec Plus',
 
-  'subscription.rail.blurb': 'Toutes les scènes, tant que vous êtes membre',
-  'subscription.rail.get': 'Passer à Plus',
-  'subscription.rail.member': 'Membre',
-
   'subscription.plan.monthly': 'Mensuel',
   'subscription.plan.yearly': 'Annuel',
   'subscription.plan.perMonth': '{price} par mois',
@@ -26,44 +22,17 @@ const subscription: Partial<Dictionary> = {
   'subscription.plan.monthlyEquivalent': 'Soit {price} par mois.',
   'subscription.plan.save': '{percent} % d’économie',
 
-  'subscription.page.lead':
-    'Toutes les scènes de Scènes jouent pour vous, ici et dans FluidWallpapers.',
-  'subscription.page.new': 'Nouveautés avec Plus',
-
-  'subscription.status.member': 'Membre',
-  'subscription.status.renews': '{plan} · Renouvelé le {date}',
-  'subscription.status.ends': '{plan} · Se termine le {date}',
-  'subscription.status.renewsNote':
-    'Changez de formule ou de carte, ou résiliez, sur la page de Stripe.',
-  'subscription.status.endsNote':
-    'Ce jour-là, les scènes qu’il fait jouer s’arrêtent. Les scènes obtenues avec des crédits restent à vous. Pour garder Plus, renouvelez-le dans Gérer Plus.',
   'subscription.status.grace':
     'FluidEQ n’a pas pu vérifier votre Plus auprès du serveur. Il continue de jouer jusqu’au {date}.',
   'subscription.status.waiting':
     'En attente de la confirmation de votre paiement par Stripe. Plus s’active ici tout seul.',
-  'subscription.status.ended.title': 'Votre abonnement Plus est terminé',
-  'subscription.status.ended.body':
-    'Les scènes qu’il faisait jouer se sont arrêtées et leurs téléchargements ont été supprimés de cet ordinateur. Les scènes obtenues avec des crédits restent à vous.',
 
   'subscription.ways.title': 'Plus ou crédits ?',
-  'subscription.ways.credits.have': 'Crédits · vous en avez {credits}',
-  'subscription.ways.credits.body':
-    'Obtenez une scène et gardez-la pour toujours, même après Plus.',
   'subscription.ways.credits.each': 'Une scène à la fois, {credits} chacune',
   'subscription.ways.credits.keep': 'À vous pour toujours, même sans Plus',
-  'subscription.ways.plus.body':
-    'Toutes les scènes, tant que vous êtes membre. Ajoutez-en autant que vous voulez, sans crédits.',
   'subscription.ways.plus.every':
     'Toutes les scènes de Scènes, les nouvelles aussi',
   'subscription.ways.plus.while': 'Tant que vous êtes membre',
-
-  'subscription.choice.credits.title': 'Crédits : une scène',
-  'subscription.choice.credits.body':
-    'À vous pour toujours. {credits} chacune.',
-  'subscription.choice.or': 'ou',
-  'subscription.choice.plus.title': 'Plus : toutes les scènes',
-  'subscription.choice.plus.body': 'Tant que vous êtes membre. {price}.',
-  'subscription.choice.hide': 'Masquer',
 
   'subscription.scene.twoWays': 'Deux façons de l’avoir',
   'subscription.scene.keep.title': 'Garder cette scène',
@@ -127,6 +96,25 @@ const subscription: Partial<Dictionary> = {
   'subscription.manage.signedOut': 'Reconnectez-vous pour gérer Plus.',
   'subscription.manage.failed':
     'Impossible d’ouvrir la page de Stripe. Vérifiez votre connexion et réessayez.',
+
+  'subscription.cardGet': 'Obtenir',
+  'subscription.makeScenes': 'Créez vos propres scènes dans FluidWallpapers',
+  'subscription.banner.title': 'Plus : toutes les scènes de la galerie',
+  'subscription.banner.body':
+    'Lancez-les et ajoutez-les toutes, les nouvelles aussi. Un seul abonnement pour FluidEQ et FluidWallpapers.',
+  'subscription.banner.credit':
+    'Vous voulez une scène même sans Plus ? Obtenez-la avec un crédit, elle reste à vous pour toujours.',
+  'subscription.banner.or': 'ou {price}',
+  'subscription.line.renews':
+    'Toutes les scènes sont à vous · renouvelé le {date} · aussi dans FluidWallpapers',
+  'subscription.line.ends':
+    'Toutes les scènes sont à vous jusqu’au {date} · aussi dans FluidWallpapers',
+  'subscription.line.plain':
+    'Toutes les scènes sont à vous · aussi dans FluidWallpapers',
+  'subscription.sheet.both':
+    'Un seul abonnement pour FluidEQ et FluidWallpapers : prenez-le dans l’une ou l’autre, il compte dans les deux.',
+  'subscription.sheet.keepOne':
+    'Ou gardez seulement {name} pour toujours, même sans Plus :',
 };
 
 export default subscription;

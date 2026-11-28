@@ -8,6 +8,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { SCENE_PRICE_CREDITS } from 'common/sceneStore';
 import type { ILibraryPlan, TLibraryPlanId } from 'common/subscription';
+import type { IGalleryScene } from 'common/plusGallery';
 import DialogFrame from '../components/DialogFrame';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
@@ -19,6 +20,8 @@ import { OPENING_SORT, openPlusPlace } from './plusNavigation';
 import PlusMark from './PlusMark';
 import { holdPlusSheet, usePlusSubscription } from './plusSubscriptionStore';
 import { planName, planNote, planPriceText, planSaving } from './plusWords';
+import BuySceneDialog from './BuySceneDialog';
+import { addGalleryScene } from './galleryActions';
 import StoreTermsDialog from './StoreTermsDialog';
 import { useGetPlusCheckout, useManagePlus } from './useGetPlus';
 import '../styles/Gallery.scss';
@@ -156,9 +159,51 @@ function PlanRows({
   );
 }
 
+/**
+ * Keeping just the scene a card's Get was pressed on, with a credit, under
+ * Plus: the extra, which stays even without Plus. The credit's own dialog,
+ * and the scene in the looks the moment it is bought, as `SceneGet` does.
+ */
+function KeepOne({ scene, name }: { scene: IGalleryScene; name: string }) {
+  const { t, locale } = useTranslation();
+  const [buying, setBuying] = useState(false);
+  return (
+    <div className="plus-sheet__keep">
+      <span>{t('subscription.sheet.keepOne', { name })}</span>
+      <button
+        type="button"
+        className="button small subtle coin-action store-get"
+        onClick={() => setBuying(true)}
+      >
+        <Glyph name="credit" />
+        {t('store.get', {
+          credits: creditsText(t, locale, SCENE_PRICE_CREDITS),
+        })}
+      </button>
+      {buying && (
+        <BuySceneDialog
+          scene={scene}
+          name={name}
+          onClose={(bought) => {
+            setBuying(false);
+            if (bought) {
+              addGalleryScene(scene, name).catch(() => undefined);
+            }
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
 interface IGetPlusDialogProps {
   /** The plan to start on, when the press that opened it named one. */
   plan?: TLibraryPlanId;
+  /**
+   * The scene a card's Get was pressed on: kept for good with a credit is
+   * offered under Plus, as the extra it is.
+   */
+  keep?: { scene: IGalleryScene; name: string };
   onClose: () => void;
 }
 
@@ -171,7 +216,11 @@ interface IGetPlusDialogProps {
  * Stripe's page opens in the browser and the sheet stays, waiting on the
  * account itself: the moment main says it has Plus, the sheet says so.
  */
-export default function GetPlusDialog({ plan, onClose }: IGetPlusDialogProps) {
+export default function GetPlusDialog({
+  plan,
+  keep,
+  onClose,
+}: IGetPlusDialogProps) {
   const { t } = useTranslation();
   const ids = useId();
   const surfaceRef = useRef<HTMLDivElement>(null);
@@ -221,6 +270,7 @@ export default function GetPlusDialog({ plan, onClose }: IGetPlusDialogProps) {
       >
         <GetPlusBody
           plan={plan}
+          keep={keep}
           plansId={`${ids}-plans`}
           onReadTerms={() => setReadingTerms(true)}
           onDone={() => {
@@ -239,6 +289,7 @@ export default function GetPlusDialog({ plan, onClose }: IGetPlusDialogProps) {
 
 interface IGetPlusBodyProps {
   plan: TLibraryPlanId | undefined;
+  keep: IGetPlusDialogProps['keep'];
   plansId: string;
   onReadTerms: () => void;
   onDone: () => void;
@@ -247,6 +298,7 @@ interface IGetPlusBodyProps {
 /** The sheet's body as the checkout stands: choosing, waiting, or done. */
 function GetPlusBody({
   plan,
+  keep,
   plansId,
   onReadTerms,
   onDone,
@@ -314,6 +366,10 @@ function GetPlusBody({
           <Glyph name="alert" />
           {t('subscription.sheet.ends')}
         </li>
+        <li>
+          <PlusMark />
+          {t('subscription.sheet.both')}
+        </li>
       </ul>
       {chosen && (
         <div className="store-pay">
@@ -363,6 +419,7 @@ function GetPlusBody({
           {t(manage.said)}
         </p>
       )}
+      {keep && <KeepOne scene={keep.scene} name={keep.name} />}
       <div className="store-fine">
         <p className="gallery-fine">{t('subscription.sheet.fine')}</p>
         <button

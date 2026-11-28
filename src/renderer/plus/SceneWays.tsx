@@ -32,10 +32,10 @@ interface ISceneWaysProps {
 /**
  * How a scene becomes this account's, on its page, beside its figures.
  *
- * Without it and without Plus: the two ways side by side - keep this scene
- * with a credit, the loud one, or every scene with Plus - so the choice is
- * made knowing what each does (Ivan, 2026-11-28: "make sure users doent get
- * confusued if they should get plus or buy credits"). Played through Plus:
+ * Without it and without Plus: Plus first and loud - this scene and every
+ * other - and keeping just this one with a credit under it, the extra that
+ * stays even without Plus (Ivan, 2026-11-28: "make crlear plus is the main
+ * thing"). Played through Plus:
  * included, with the way to keep it past Plus. Kept: as it always was.
  */
 export default function SceneWays({
@@ -59,16 +59,6 @@ export default function SceneWays({
           </span>
           {heart}
         </div>
-        <div className="scene-ways__way">
-          <span className="scene-ways__name">
-            <Glyph name="credit" />
-            {t('subscription.scene.keep.title')}
-          </span>
-          <span className="scene-ways__body">
-            {t('subscription.scene.keep.body', { credits })}
-          </span>
-          <SceneGet scene={scene} name={name} className="button small" />
-        </div>
         <div className="scene-ways__way scene-ways__way--plus">
           <span className="scene-ways__name">
             <PlusMark />
@@ -81,8 +71,18 @@ export default function SceneWays({
           </span>
           <GetPlusButton
             label={t(plus.lapse ? 'subscription.getAgain' : 'subscription.get')}
-            className="button small subtle"
+            className="button small"
           />
+        </div>
+        <div className="scene-ways__way scene-ways__way--extra">
+          <span className="scene-ways__name">
+            <Glyph name="credit" />
+            {t('subscription.scene.keep.title')}
+          </span>
+          <span className="scene-ways__body">
+            {t('subscription.scene.keep.body', { credits })}
+          </span>
+          <SceneGet scene={scene} name={name} className="button small subtle" />
         </div>
       </section>
     );

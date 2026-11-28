@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * Plus, the scene subscription, inside Scenes (`renderer/plus/PlusPage.tsx`
+ * Plus, the scene subscription, inside Scenes (`renderer/plus/PlusGalleryHead.tsx`
  * and the sheet, strip, card and scene parts beside it). The `plus.` keys are
  * the Scenes gallery's, from when the whole tab was called Plus; these are
  * the subscription's own. Credits and Plus are always said the same two ways:
@@ -18,10 +18,6 @@ const subscription = {
   'subscription.manage': 'Manage Plus',
   'subscription.included': 'Included with Plus',
 
-  'subscription.rail.blurb': "Every scene, while you're a member",
-  'subscription.rail.get': 'Get Plus',
-  'subscription.rail.member': 'Member',
-
   'subscription.plan.monthly': 'Monthly',
   'subscription.plan.yearly': 'Yearly',
   'subscription.plan.perMonth': '{price} a month',
@@ -31,42 +27,16 @@ const subscription = {
   'subscription.plan.monthlyEquivalent': "That's {price} a month.",
   'subscription.plan.save': 'Save {percent}%',
 
-  'subscription.page.lead':
-    'Every scene in Scenes plays for you, here and in FluidWallpapers.',
-  'subscription.page.new': 'New with Plus',
-
-  'subscription.status.member': 'Member',
-  'subscription.status.renews': '{plan} · Renews on {date}',
-  'subscription.status.ends': '{plan} · Ends on {date}',
-  'subscription.status.renewsNote':
-    "Change your plan or card, or cancel, on Stripe's page.",
-  'subscription.status.endsNote':
-    'The scenes it plays stop on that day. Scenes you got with credits stay yours. To keep Plus, renew it with Manage Plus.',
   'subscription.status.grace':
     "FluidEQ couldn't check your Plus with the server. It keeps playing until {date}.",
   'subscription.status.waiting':
     'Waiting for Stripe to confirm your payment. Plus switches on here by itself.',
-  'subscription.status.ended.title': 'Your Plus membership ended',
-  'subscription.status.ended.body':
-    'The scenes it played stopped, and their downloads were removed from this computer. Scenes you got with credits stay yours.',
 
   'subscription.ways.title': 'Plus or credits?',
-  'subscription.ways.credits.have': 'Credits · you have {credits}',
-  'subscription.ways.credits.body':
-    'Get one scene and keep it forever, even after Plus.',
   'subscription.ways.credits.each': 'One scene at a time, {credits} each',
   'subscription.ways.credits.keep': 'Yours forever, even without Plus',
-  'subscription.ways.plus.body':
-    "Every scene, while you're a member. Add any, no credits.",
   'subscription.ways.plus.every': 'Every scene in Scenes, new ones too',
   'subscription.ways.plus.while': "While you're a member",
-
-  'subscription.choice.credits.title': 'Credits: one scene',
-  'subscription.choice.credits.body': 'Yours forever. {credits} each.',
-  'subscription.choice.or': 'or',
-  'subscription.choice.plus.title': 'Plus: every scene',
-  'subscription.choice.plus.body': "While you're a member. {price}.",
-  'subscription.choice.hide': 'Hide',
 
   'subscription.scene.twoWays': 'Two ways to play it',
   'subscription.scene.keep.title': 'Keep this scene',
@@ -127,6 +97,25 @@ const subscription = {
   'subscription.manage.signedOut': 'Sign in again to manage Plus.',
   'subscription.manage.failed':
     "Stripe's page could not be opened. Check your connection and try again.",
+
+  'subscription.cardGet': 'Get',
+  'subscription.makeScenes': 'Make your own scenes in FluidWallpapers',
+  'subscription.banner.title': 'Plus: every scene in the gallery',
+  'subscription.banner.body':
+    'Play and add all of them, new ones too. One subscription for FluidEQ and FluidWallpapers.',
+  'subscription.banner.credit':
+    'Want a scene even without Plus? Get it with a credit and it stays yours for good.',
+  'subscription.banner.or': 'or {price}',
+  'subscription.line.renews':
+    'Every scene is yours to play · renews on {date} · works in FluidWallpapers too',
+  'subscription.line.ends':
+    'Every scene is yours to play until {date} · works in FluidWallpapers too',
+  'subscription.line.plain':
+    'Every scene is yours to play · works in FluidWallpapers too',
+  'subscription.sheet.both':
+    'One subscription for FluidEQ and FluidWallpapers: get it in either app and it counts in both.',
+  'subscription.sheet.keepOne':
+    'Or keep just {name} for good, even without Plus:',
 };
 
 export default subscription;

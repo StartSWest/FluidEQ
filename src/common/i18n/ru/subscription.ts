@@ -13,10 +13,6 @@ const subscription: Partial<Dictionary> = {
   'subscription.manage': 'Управление Plus',
   'subscription.included': 'Входит в Plus',
 
-  'subscription.rail.blurb': 'Все сцены, пока вы участник',
-  'subscription.rail.get': 'Оформить',
-  'subscription.rail.member': 'Участник',
-
   'subscription.plan.monthly': 'Ежемесячно',
   'subscription.plan.yearly': 'Ежегодно',
   'subscription.plan.perMonth': '{price} в месяц',
@@ -26,42 +22,16 @@ const subscription: Partial<Dictionary> = {
   'subscription.plan.monthlyEquivalent': 'Это {price} в месяц.',
   'subscription.plan.save': 'Экономия {percent}%',
 
-  'subscription.page.lead':
-    'Все сцены из раздела «Сцены» доступны вам — здесь и в FluidWallpapers.',
-  'subscription.page.new': 'Новое в Plus',
-
-  'subscription.status.member': 'Участник',
-  'subscription.status.renews': '{plan} · Продлится {date}',
-  'subscription.status.ends': '{plan} · Закончится {date}',
-  'subscription.status.renewsNote':
-    'Сменить план или карту либо отменить подписку можно на странице Stripe.',
-  'subscription.status.endsNote':
-    'В этот день сцены, которые он открывает, остановятся. Сцены, полученные за кредиты, останутся вашими. Чтобы сохранить Plus, продлите его в разделе «Управление Plus».',
   'subscription.status.grace':
     'FluidEQ не удалось проверить ваш Plus на сервере. Он продолжит работать до {date}.',
   'subscription.status.waiting':
     'Ждём, пока Stripe подтвердит оплату. Plus включится здесь сам.',
-  'subscription.status.ended.title': 'Ваша подписка Plus закончилась',
-  'subscription.status.ended.body':
-    'Сцены, которые она открывала, остановились, а их загрузки удалены с этого компьютера. Сцены, полученные за кредиты, остались вашими.',
 
   'subscription.ways.title': 'Plus или кредиты?',
-  'subscription.ways.credits.have': 'Кредиты · у вас {credits}',
-  'subscription.ways.credits.body':
-    'Получите сцену и оставьте её себе навсегда, даже после Plus.',
   'subscription.ways.credits.each': 'По одной сцене, {credits} за каждую',
   'subscription.ways.credits.keep': 'Ваша навсегда, даже без Plus',
-  'subscription.ways.plus.body':
-    'Все сцены, пока вы участник. Добавляйте любые, без кредитов.',
   'subscription.ways.plus.every': 'Все сцены из раздела «Сцены», и новые тоже',
   'subscription.ways.plus.while': 'Пока вы участник',
-
-  'subscription.choice.credits.title': 'Кредиты: одна сцена',
-  'subscription.choice.credits.body': 'Ваша навсегда. {credits} за сцену.',
-  'subscription.choice.or': 'или',
-  'subscription.choice.plus.title': 'Plus: все сцены',
-  'subscription.choice.plus.body': 'Пока вы участник. {price}.',
-  'subscription.choice.hide': 'Скрыть',
 
   'subscription.scene.twoWays': 'Два способа получить её',
   'subscription.scene.keep.title': 'Оставить эту сцену',
@@ -124,6 +94,25 @@ const subscription: Partial<Dictionary> = {
   'subscription.manage.signedOut': 'Войдите снова, чтобы управлять Plus.',
   'subscription.manage.failed':
     'Не удалось открыть страницу Stripe. Проверьте подключение и попробуйте снова.',
+
+  'subscription.cardGet': 'Получить',
+  'subscription.makeScenes': 'Создавайте свои сцены в FluidWallpapers',
+  'subscription.banner.title': 'Plus: все сцены галереи',
+  'subscription.banner.body':
+    'Запускайте и добавляйте их все, и новые тоже. Одна подписка для FluidEQ и FluidWallpapers.',
+  'subscription.banner.credit':
+    'Хотите сцену и без Plus? Получите её за кредит, и она останется вашей навсегда.',
+  'subscription.banner.or': 'или {price}',
+  'subscription.line.renews':
+    'Все сцены доступны вам · продлится {date} · работает и в FluidWallpapers',
+  'subscription.line.ends':
+    'Все сцены доступны вам до {date} · работает и в FluidWallpapers',
+  'subscription.line.plain':
+    'Все сцены доступны вам · работает и в FluidWallpapers',
+  'subscription.sheet.both':
+    'Одна подписка для FluidEQ и FluidWallpapers: оформите её в любом из приложений, она действует в обоих.',
+  'subscription.sheet.keepOne':
+    'Или оставьте себе только «{name}» навсегда, даже без Plus:',
 };
 
 export default subscription;

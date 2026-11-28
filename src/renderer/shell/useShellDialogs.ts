@@ -83,13 +83,14 @@ const useShellDialogs = (
     [selectTopWorkspaceTab],
   );
   // Back from Stripe's checkout or portal through "Back to FluidEQ", with no
-  // Get Plus sheet open to say how it went: Plus's own page, in Scenes, says
-  // it. A cancelled checkout changed nothing, so it moves nobody.
+  // Get Plus sheet open to say how it went: the gallery, whose head says
+  // where the account stands with Plus. A cancelled checkout changed
+  // nothing, so it moves nobody.
   useEffect(
     () =>
       subscribePlusReturns((returned) => {
         if (returned !== 'cancelled' && !plusSheetOpen()) {
-          openPlusPlace('plus');
+          openPlusPlace('visualizers');
           setAccountDialogPage(undefined);
           selectTopWorkspaceTab('community');
         }

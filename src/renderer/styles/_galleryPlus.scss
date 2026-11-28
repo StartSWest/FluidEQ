@@ -14,41 +14,22 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'theme' as *;
 
 // Plus, the scene subscription, inside Scenes and nowhere else (Ivan,
-// 2026-11-28): its emblem, its row in the rail, its page, the gallery's
-// "credits or Plus" strip, the card it leaves when it ends, the mark on a
-// scene's picture, a scene page's two ways, and the Get Plus sheet. Plus's one
-// colour of its own is the emblem's band - the wordmark's, from the accent's
-// start through the accent to the purple of the active state - and the Plus
-// side of every pair leans toward that purple, the credits side toward the
-// accent, so the two read apart at a glance on every surface.
+// 2026-11-28): the gallery's head (the offer, or a member's line), the card
+// it leaves when it ends, a scene page's two ways, and the Get Plus sheet.
+// Plus gives the whole gallery, so no scene wears a mark of its own. Plus's
+// mark is a pass drawn in one line; the Plus side of every pair leans toward
+// the purple of the active state, a credit's toward the accent.
 
-// ---------------------------------------------------------------- the emblem
+// ---------------------------------------------------------------- the mark
 
 .plus-mark {
   display: block;
   flex: 0 0 auto;
   width: 18px;
   height: 18px;
-}
-
-.plus-mark__start {
-  stop-color: var(--accent-start);
-}
-
-.plus-mark__middle {
-  stop-color: var(--accent);
-}
-
-.plus-mark__end {
-  stop-color: var(--active);
-}
-
-// Cut out of the tile in the colour type takes on the accent: the dark
-// window's ink on a dark window, white on a white one.
-.plus-mark__cross {
   fill: none;
-  stroke: $on-accent;
-  stroke-width: 2.6;
+  stroke: currentColor;
+  stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -73,169 +54,221 @@ it under the terms of the GNU General Public License version 3 or later.
   background: color-mix(in srgb, $secondary-default $wash, $surface-panel);
 }
 
-// ---------------------------------------------------------------- the rail
+// ---------------------------------------------------------------- the gallery's head
 
-// The emblem is its own tile: no tile drawn under it, lit or not.
-.community__channel-mark.plus-rail-row__mark {
-  background: none;
-
-  .plus-mark {
-    width: 22px;
-    height: 22px;
-  }
-
-  .community__channel.is-active & {
-    background: none;
-    box-shadow: none;
-  }
-}
-
-.plus-rail-row__state {
-  color: $text-accent;
-  font-size: $text-small;
-  font-weight: $weight-bold;
-  white-space: nowrap;
-
-  &.is-member {
-    color: $text-muted;
-    font-weight: $weight-semibold;
-  }
-}
-
-// ---------------------------------------------------------------- a card
-
-// On the picture's foot, where the category and "New" never stand; the
-// picture keeps a dark plate under it in both windows, as those two do, and
-// no blur (`.gallery-card__tag`).
-.gallery-card__plus {
-  position: absolute;
-  bottom: 7px;
-  left: 7px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  height: 22px;
-  padding: 0 9px 0 3px;
-  color: rgba($white, 0.94);
-  border: 1px solid color-mix(in srgb, $active 60%, transparent);
-  border-radius: $radius-pill;
-  background: rgba($black, 0.74);
-  font-size: $text-micro;
-  font-weight: $weight-bold;
-  pointer-events: none;
-
-  .plus-mark {
-    width: 16px;
-    height: 16px;
-  }
-}
-
-// ---------------------------------------------------------------- the strip
-
-.plus-choice {
+// Without Plus: Plus as the main thing, the newest scenes fading in behind
+// its words, the price and the loud Get Plus at its end; a credit is the
+// one small line under it.
+.plus-offer {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px 18px;
-  padding: 10px 10px 10px 16px;
-  border: 1px solid color-mix(in srgb, $active 28%, transparent);
-  border-radius: $radius-l;
+  gap: 14px 22px;
+  min-height: 132px;
+  padding: 20px 26px;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid color-mix(in srgb, $secondary-default 45%, transparent);
+  border-radius: $radius-xl;
   background: linear-gradient(
     100deg,
-    color-mix(in srgb, $secondary-default 6%, $surface-panel),
-    color-mix(in srgb, $active 9%, $surface-panel)
+    color-mix(in srgb, $secondary-default 18%, $surface-panel) 0%,
+    color-mix(in srgb, $active 16%, $surface-panel) 60%,
+    $surface-panel 100%
   );
 }
 
-.plus-choice__way {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 10px;
+// Pictures only, tilted and faded at both sides, so they never stand under
+// the words or the price.
+.plus-offer__art {
+  position: absolute;
+  z-index: -1;
+  top: -40px;
+  right: 170px;
+  bottom: -40px;
+  display: grid;
+  width: 360px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: center;
+  gap: 8px;
+  opacity: 0.55;
+  transform: rotate(-10deg);
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    $black 35%,
+    $black 70%,
+    transparent
+  );
+  pointer-events: none;
 
-  > svg {
-    flex: 0 0 auto;
-    width: 20px;
-    height: 20px;
-    color: $secondary-light;
+  .gallery-picture {
+    border-radius: $radius-m;
   }
 
-  .plus-mark {
-    width: 22px;
-    height: 22px;
+  :root[data-window-ink='dark'] & {
+    opacity: 0.35;
   }
 }
 
-.plus-choice__words {
+.plus-offer__mark.plus-mark {
+  width: 54px;
+  height: 54px;
+  color: $text-accent;
+  stroke-width: 1.3;
+}
+
+.plus-offer__words {
   display: grid;
+  flex: 1 1 320px;
   min-width: 0;
-  gap: 1px;
+  gap: 5px;
+}
+
+.plus-offer__title {
+  margin: 0;
+  color: $text-primary;
+  font-size: 1.15rem;
+  font-weight: $weight-bold;
+  letter-spacing: -0.01em;
+}
+
+.plus-offer__body {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-body;
+  line-height: 1.5;
+}
+
+.plus-offer__extra {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 4px 0 0;
   color: $text-muted;
   font-size: $text-small;
-  line-height: 1.4;
-  text-wrap: pretty;
 
-  b {
-    color: $text-primary;
-    font-size: $text-body;
+  svg {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    color: $secondary-light;
+  }
+}
+
+.plus-offer__buy {
+  display: grid;
+  flex: 0 0 auto;
+  justify-items: stretch;
+  gap: 6px;
+  text-align: center;
+}
+
+.plus-offer__price {
+  color: $text-primary;
+  font-size: 1.3rem;
+  font-weight: $weight-bold;
+}
+
+.button.plus-offer__get {
+  min-height: 40px;
+  padding: 0 28px;
+  font-size: $text-lead;
+}
+
+.plus-offer__year {
+  color: $text-muted;
+  font-size: $text-small;
+}
+
+.plus-offer__waiting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 260px;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  text-align: left;
+}
+
+// With Plus: one quiet line, the things to do with it at its end.
+.plus-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 9px 10px 9px 16px;
+  border: 1px solid color-mix(in srgb, $secondary-default 35%, transparent);
+  border-radius: $radius-l;
+  background: color-mix(in srgb, $secondary-default 9%, $surface-panel);
+}
+
+.plus-line__mark.plus-mark {
+  width: 20px;
+  height: 20px;
+  color: $text-accent;
+}
+
+.plus-line__words {
+  display: flex;
+  flex: 1 1 320px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  min-width: 0;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+
+  strong {
+    color: $text-accent;
     font-weight: $weight-bold;
   }
 }
 
-.plus-choice__or {
-  color: $text-faint;
-  font-size: $text-eyebrow;
-  font-weight: $weight-bold;
-  text-transform: uppercase;
-  @include tracking(0.12em);
+.plus-line__warn {
+  color: $ink-caution;
 }
 
-.plus-choice__actions {
-  display: flex;
+.plus-line__fw {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-left: auto;
-}
-
-.plus-choice__hide {
-  display: grid;
-  width: $control-height-xs;
-  height: $control-height-xs;
-  padding: 0;
-  place-items: center;
-  color: $text-muted;
-  border: 0;
-  border-radius: $radius-s;
-  background: transparent;
-  cursor: pointer;
-  transition: $transition-control;
+  gap: 5px;
+  color: $text-accent;
+  font-size: $text-small;
+  font-weight: $weight-bold;
+  text-decoration: none;
+  white-space: nowrap;
 
   svg {
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
   &:hover {
-    color: $text-primary;
-    background: $hover-accent;
+    text-decoration: underline;
   }
 
   &:focus-visible {
-    @include focus-outline(-2px);
+    @include focus-outline(2px);
   }
 }
 
-// A narrow gallery: each way on its own line, "or" between them, the
-// buttons under both.
+// A narrow gallery: the offer's price and button go under its words.
 @container plus (max-width: 640px) {
-  .plus-choice {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
+  .plus-offer__art {
+    display: none;
   }
 
-  .plus-choice__actions {
-    margin-left: 0;
+  .plus-offer__buy {
+    flex-basis: 100%;
   }
 }
 
@@ -399,241 +432,6 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// ---------------------------------------------------------------- Plus's page
-
-.plus-page {
-  gap: 18px;
-  padding: 0 12px 0 4px;
-}
-
-.plus-page__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px 16px;
-  padding-top: 6px;
-}
-
-.plus-page__emblem.plus-mark {
-  width: 52px;
-  height: 52px;
-}
-
-.plus-page__heading {
-  display: grid;
-  flex: 1 1 260px;
-  min-width: 0;
-  gap: 2px;
-}
-
-.plus-page__title {
-  margin: 0;
-  color: $text-primary;
-  font-size: 1.45rem;
-  font-weight: $weight-bold;
-  letter-spacing: -0.01em;
-}
-
-.plus-page__lead {
-  margin: 0;
-  color: $text-muted;
-  font-size: $text-body;
-}
-
-.plus-page__manage {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px 12px;
-}
-
-.plus-page__said {
-  color: $text-muted;
-  font-size: $text-small;
-
-  &.is-failed {
-    color: $ink-caution;
-  }
-}
-
-.plus-page__wait {
-  margin: 48px auto;
-}
-
-.plus-page__new {
-  display: grid;
-  gap: $spacing-m;
-}
-
-.plus-status {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px 16px;
-  padding: 16px 18px;
-  border-radius: $radius-l;
-  @include plus-side(9%);
-}
-
-.plus-status__mark.plus-mark {
-  width: 30px;
-  height: 30px;
-}
-
-.plus-status__words {
-  display: grid;
-  flex: 1 1 260px;
-  min-width: 0;
-  gap: 4px;
-}
-
-.plus-status__title {
-  margin: 0;
-  color: $text-primary;
-  font-size: $text-lead;
-  font-weight: $weight-bold;
-}
-
-.plus-status__note {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  color: $text-muted;
-  font-size: $text-body;
-  line-height: 1.5;
-
-  svg {
-    flex: 0 0 auto;
-    width: 15px;
-    height: 15px;
-  }
-}
-
-.plus-status__note--warn {
-  color: $ink-caution;
-}
-
-.plus-status__chip {
-  padding: 3px 12px;
-  color: $on-accent;
-  border-radius: $radius-pill;
-  background: $secondary-default;
-  font-size: $text-small;
-  font-weight: $weight-bold;
-}
-
-// The plans side by side, each its own way in, as the packs are each their
-// own row: the one that saves wears the accent's ring.
-.plus-offer {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  gap: 14px;
-}
-
-.plus-offer__plan {
-  position: relative;
-  display: grid;
-  align-content: start;
-  gap: 4px;
-  padding: 16px 18px;
-  border-radius: $radius-xl;
-  background: linear-gradient(90deg, $studio-surface, transparent 92%);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, $edge-tint 9%, transparent);
-
-  &.is-saving {
-    background: linear-gradient(
-      90deg,
-      color-mix(in srgb, $secondary-default 14%, transparent),
-      color-mix(in srgb, $active 6%, transparent)
-    );
-    box-shadow: inset 0 0 0 1.5px $secondary-light;
-  }
-
-  .button {
-    justify-self: start;
-    margin-top: 10px;
-  }
-}
-
-.plus-offer__name {
-  color: $text-primary;
-  font-size: $text-body;
-  font-weight: $weight-bold;
-}
-
-.plus-offer__price {
-  color: $text-primary;
-  font-size: 1.2rem;
-  font-weight: $weight-bold;
-  letter-spacing: -0.01em;
-}
-
-.plus-offer__note {
-  color: $text-faint;
-  font-size: $text-small;
-}
-
-.plus-offer__saving {
-  position: absolute;
-  top: -9px;
-  right: 16px;
-  padding: 2px 9px;
-  color: $surface-base;
-  border-radius: $radius-2xs;
-  background: $secondary-light;
-  font-size: $text-small;
-  font-weight: $weight-bold;
-}
-
-// Credits and Plus, a line each, side by side.
-.plus-ways {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
-  gap: 12px;
-}
-
-.plus-ways__way {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  border-radius: $radius-l;
-  @include credits-side(5%);
-
-  > svg {
-    flex: 0 0 auto;
-    width: 26px;
-    height: 26px;
-    color: $secondary-light;
-  }
-
-  .plus-mark {
-    width: 28px;
-    height: 28px;
-  }
-}
-
-.plus-ways__way--plus {
-  @include plus-side(8%);
-}
-
-.plus-ways__words {
-  display: grid;
-  min-width: 0;
-  gap: 2px;
-  color: $text-muted;
-  font-size: $text-small;
-  line-height: 1.45;
-}
-
-.plus-ways__name {
-  color: $text-primary;
-  font-size: $text-body;
-  font-weight: $weight-bold;
-}
-
 // ---------------------------------------------------------------- the sheet
 
 .dialog-frame.plus-sheet {
@@ -787,4 +585,35 @@ it under the terms of the GNU General Public License version 3 or later.
     width: 56px;
     height: 56px;
   }
+}
+
+// A credit under Plus, on a scene's page: the extra, so quieter than Plus.
+.scene-ways__way--extra {
+  border-color: $border-subtle;
+  background: transparent;
+}
+
+.scene-ways__name .plus-mark {
+  width: 18px;
+  height: 18px;
+  color: $text-accent;
+}
+
+// A card's Get, opened on Plus: keeping just that scene, under Plus.
+.plus-sheet__keep {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 10px 14px;
+  color: $text-muted;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  font-size: $text-small;
+}
+
+.plus-sheet__facts .plus-mark {
+  margin-top: 2px;
+  color: $secondary-light;
 }

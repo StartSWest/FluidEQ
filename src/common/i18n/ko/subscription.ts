@@ -13,10 +13,6 @@ const subscription = {
   'subscription.manage': 'Plus 관리',
   'subscription.included': 'Plus에 포함',
 
-  'subscription.rail.blurb': '회원인 동안 모든 장면',
-  'subscription.rail.get': '가입',
-  'subscription.rail.member': '회원',
-
   'subscription.plan.monthly': '월간',
   'subscription.plan.yearly': '연간',
   'subscription.plan.perMonth': '월 {price}',
@@ -26,42 +22,16 @@ const subscription = {
   'subscription.plan.monthlyEquivalent': '월 {price}에 해당합니다.',
   'subscription.plan.save': '{percent}% 절약',
 
-  'subscription.page.lead':
-    '장면의 모든 장면을 여기와 FluidWallpapers에서 사용할 수 있습니다.',
-  'subscription.page.new': 'Plus 신작',
-
-  'subscription.status.member': '회원',
-  'subscription.status.renews': '{plan} · {date}에 갱신',
-  'subscription.status.ends': '{plan} · {date}에 종료',
-  'subscription.status.renewsNote':
-    '요금제나 카드 변경, 해지는 Stripe 페이지에서 할 수 있습니다.',
-  'subscription.status.endsNote':
-    '그날 Plus로 재생되는 장면이 멈춥니다. 크레딧으로 받은 장면은 계속 당신의 것입니다. Plus를 유지하려면 Plus 관리에서 갱신하세요.',
   'subscription.status.grace':
     'FluidEQ가 서버에서 Plus를 확인하지 못했습니다. {date}까지는 계속 재생됩니다.',
   'subscription.status.waiting':
     'Stripe의 결제 확인을 기다리는 중입니다. Plus는 여기서 자동으로 켜집니다.',
-  'subscription.status.ended.title': 'Plus 멤버십이 종료되었습니다',
-  'subscription.status.ended.body':
-    'Plus로 재생되던 장면이 멈추고, 그 다운로드는 이 컴퓨터에서 삭제되었습니다. 크레딧으로 받은 장면은 계속 당신의 것입니다.',
 
   'subscription.ways.title': 'Plus와 크레딧 중 무엇을?',
-  'subscription.ways.credits.have': '크레딧 · {credits} 보유',
-  'subscription.ways.credits.body':
-    '장면 하나를 받아 Plus가 끝나도 영원히 가질 수 있습니다.',
   'subscription.ways.credits.each': '한 번에 장면 하나, 각 {credits}',
   'subscription.ways.credits.keep': 'Plus 없이도 영원히 당신의 것',
-  'subscription.ways.plus.body':
-    '회원인 동안 모든 장면. 크레딧 없이 원하는 만큼 추가하세요.',
   'subscription.ways.plus.every': '장면의 모든 장면, 새 장면까지',
   'subscription.ways.plus.while': '회원인 동안',
-
-  'subscription.choice.credits.title': '크레딧: 장면 하나',
-  'subscription.choice.credits.body': '영원히 당신의 것. 각 {credits}.',
-  'subscription.choice.or': '또는',
-  'subscription.choice.plus.title': 'Plus: 모든 장면',
-  'subscription.choice.plus.body': '회원인 동안. {price}.',
-  'subscription.choice.hide': '숨기기',
 
   'subscription.scene.twoWays': '받는 두 가지 방법',
   'subscription.scene.keep.title': '이 장면 소장하기',
@@ -124,6 +94,24 @@ const subscription = {
   'subscription.manage.signedOut': 'Plus를 관리하려면 다시 로그인하세요.',
   'subscription.manage.failed':
     'Stripe 페이지를 열 수 없습니다. 연결을 확인하고 다시 시도하세요.',
+
+  'subscription.cardGet': '받기',
+  'subscription.makeScenes': 'FluidWallpapers에서 나만의 장면 만들기',
+  'subscription.banner.title': 'Plus: 갤러리의 모든 장면',
+  'subscription.banner.body':
+    '새 장면까지 모두 재생하고 추가하세요. FluidEQ와 FluidWallpapers에서 하나의 구독입니다.',
+  'subscription.banner.credit':
+    'Plus 없이도 장면을 원하나요? 크레딧으로 받으면 영원히 당신의 것입니다.',
+  'subscription.banner.or': '또는 {price}',
+  'subscription.line.renews':
+    '모든 장면을 재생할 수 있습니다 · {date}에 갱신 · FluidWallpapers에서도 사용',
+  'subscription.line.ends':
+    '{date}까지 모든 장면을 재생할 수 있습니다 · FluidWallpapers에서도 사용',
+  'subscription.line.plain':
+    '모든 장면을 재생할 수 있습니다 · FluidWallpapers에서도 사용',
+  'subscription.sheet.both':
+    'FluidEQ와 FluidWallpapers에서 하나의 구독입니다. 어느 앱에서 가입해도 두 앱 모두에 적용됩니다.',
+  'subscription.sheet.keepOne': '또는 Plus 없이도 {name}만 영원히 소장하기:',
 } satisfies Partial<Dictionary>;
 
 export default subscription;

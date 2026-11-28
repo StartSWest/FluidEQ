@@ -13,10 +13,6 @@ const subscription: Partial<Dictionary> = {
   'subscription.manage': 'Plus を管理',
   'subscription.included': 'Plus に含まれます',
 
-  'subscription.rail.blurb': 'メンバーの間はすべてのシーン',
-  'subscription.rail.get': '登録',
-  'subscription.rail.member': 'メンバー',
-
   'subscription.plan.monthly': '月額',
   'subscription.plan.yearly': '年額',
   'subscription.plan.perMonth': '月 {price}',
@@ -26,42 +22,16 @@ const subscription: Partial<Dictionary> = {
   'subscription.plan.monthlyEquivalent': '月あたり {price} です。',
   'subscription.plan.save': '{percent}% お得',
 
-  'subscription.page.lead':
-    'シーンのすべてのシーンを、ここでも FluidWallpapers でも使えます。',
-  'subscription.page.new': 'Plus の新着',
-
-  'subscription.status.member': 'メンバー',
-  'subscription.status.renews': '{plan} · {date} に更新',
-  'subscription.status.ends': '{plan} · {date} に終了',
-  'subscription.status.renewsNote':
-    'プランやカードの変更、解約は Stripe のページで行えます。',
-  'subscription.status.endsNote':
-    'その日に Plus で再生しているシーンは止まります。クレジットで入手したシーンはそのままあなたのものです。Plus を続けるには「Plus を管理」から更新してください。',
   'subscription.status.grace':
     'FluidEQ はサーバーで Plus を確認できませんでした。{date} までは引き続き使えます。',
   'subscription.status.waiting':
     'Stripe による支払いの確認を待っています。Plus はここで自動的に有効になります。',
-  'subscription.status.ended.title': 'Plus メンバーシップが終了しました',
-  'subscription.status.ended.body':
-    'Plus で再生していたシーンは止まり、そのダウンロードはこのコンピューターから削除されました。クレジットで入手したシーンはそのままあなたのものです。',
 
   'subscription.ways.title': 'Plus とクレジット、どちら?',
-  'subscription.ways.credits.have': 'クレジット · {credits} 保有',
-  'subscription.ways.credits.body':
-    'シーンを 1 つ入手して、Plus が終わってもずっと持てます。',
   'subscription.ways.credits.each': '1 回に 1 シーン、各 {credits}',
   'subscription.ways.credits.keep': 'Plus がなくてもずっとあなたのもの',
-  'subscription.ways.plus.body':
-    'メンバーの間はすべてのシーン。クレジットなしで自由に追加できます。',
   'subscription.ways.plus.every': 'シーンのすべてのシーン、新作も',
   'subscription.ways.plus.while': 'メンバーの間',
-
-  'subscription.choice.credits.title': 'クレジット: 1 シーン',
-  'subscription.choice.credits.body': 'ずっとあなたのもの。各 {credits}。',
-  'subscription.choice.or': 'または',
-  'subscription.choice.plus.title': 'Plus: すべてのシーン',
-  'subscription.choice.plus.body': 'メンバーの間。{price}。',
-  'subscription.choice.hide': '非表示',
 
   'subscription.scene.twoWays': '手に入れる 2 つの方法',
   'subscription.scene.keep.title': 'このシーンを持つ',
@@ -128,6 +98,25 @@ const subscription: Partial<Dictionary> = {
     'Plus を管理するには、もう一度サインインしてください。',
   'subscription.manage.failed':
     'Stripe のページを開けませんでした。接続を確認して、もう一度お試しください。',
+
+  'subscription.cardGet': '入手',
+  'subscription.makeScenes': 'FluidWallpapers で自分のシーンを作る',
+  'subscription.banner.title': 'Plus: ギャラリーのすべてのシーン',
+  'subscription.banner.body':
+    '新作も含めて、すべて再生・追加できます。FluidEQ と FluidWallpapers で共通のサブスクリプションです。',
+  'subscription.banner.credit':
+    'Plus がなくてもシーンを使いたいですか? クレジットで入手すれば、ずっとあなたのものです。',
+  'subscription.banner.or': 'または {price}',
+  'subscription.line.renews':
+    'すべてのシーンが使えます · {date} に更新 · FluidWallpapers でも有効',
+  'subscription.line.ends':
+    '{date} まですべてのシーンが使えます · FluidWallpapers でも有効',
+  'subscription.line.plain':
+    'すべてのシーンが使えます · FluidWallpapers でも有効',
+  'subscription.sheet.both':
+    'FluidEQ と FluidWallpapers で共通のサブスクリプションです。どちらで登録しても両方で使えます。',
+  'subscription.sheet.keepOne':
+    'または、{name} だけを Plus がなくてもずっと持つ:',
 };
 
 export default subscription;

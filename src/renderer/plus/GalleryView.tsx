@@ -13,7 +13,7 @@ import {
   setBrowseFilters,
   usePlusNavigation,
 } from './plusNavigation';
-import PlusChoiceStrip from './PlusChoiceStrip';
+import PlusGalleryHead from './PlusGalleryHead';
 import PlusLapseCard from './PlusLapseCard';
 import StarterCard from './StarterCard';
 
@@ -84,7 +84,7 @@ export default function GalleryView({ me }: IGalleryViewProps) {
       {/* What stopped when Plus ended, and otherwise, for an account without
           it, the two ways a scene is had: a credit or Plus. */}
       <PlusLapseCard />
-      <PlusChoiceStrip />
+      <PlusGalleryHead />
 
       <GalleryList
         list={list}

@@ -13,10 +13,6 @@ const subscription: Partial<Dictionary> = {
   'subscription.manage': 'Plus verwalten',
   'subscription.included': 'In Plus enthalten',
 
-  'subscription.rail.blurb': 'Alle Szenen, solange Sie Mitglied sind',
-  'subscription.rail.get': 'Plus holen',
-  'subscription.rail.member': 'Mitglied',
-
   'subscription.plan.monthly': 'Monatlich',
   'subscription.plan.yearly': 'Jährlich',
   'subscription.plan.perMonth': '{price} pro Monat',
@@ -26,42 +22,16 @@ const subscription: Partial<Dictionary> = {
   'subscription.plan.monthlyEquivalent': 'Das sind {price} pro Monat.',
   'subscription.plan.save': '{percent} % sparen',
 
-  'subscription.page.lead':
-    'Alle Szenen in Szenen laufen für Sie, hier und in FluidWallpapers.',
-  'subscription.page.new': 'Neu mit Plus',
-
-  'subscription.status.member': 'Mitglied',
-  'subscription.status.renews': '{plan} · Verlängert sich am {date}',
-  'subscription.status.ends': '{plan} · Endet am {date}',
-  'subscription.status.renewsNote':
-    'Tarif oder Karte ändern oder kündigen: auf der Seite von Stripe.',
-  'subscription.status.endsNote':
-    'An diesem Tag stoppen die Szenen, die es abspielt. Szenen, die Sie mit Credits geholt haben, bleiben Ihre. Um Plus zu behalten, verlängern Sie es unter Plus verwalten.',
   'subscription.status.grace':
     'FluidEQ konnte Ihr Plus nicht beim Server prüfen. Es läuft weiter bis zum {date}.',
   'subscription.status.waiting':
     'Warten auf die Zahlungsbestätigung von Stripe. Plus schaltet sich hier von selbst ein.',
-  'subscription.status.ended.title': 'Ihre Plus-Mitgliedschaft ist beendet',
-  'subscription.status.ended.body':
-    'Die Szenen, die sie abgespielt hat, sind gestoppt, und ihre Downloads wurden von diesem Computer entfernt. Szenen, die Sie mit Credits geholt haben, bleiben Ihre.',
 
   'subscription.ways.title': 'Plus oder Credits?',
-  'subscription.ways.credits.have': 'Credits · Sie haben {credits}',
-  'subscription.ways.credits.body':
-    'Holen Sie eine Szene und behalten Sie sie für immer, auch nach Plus.',
   'subscription.ways.credits.each': 'Eine Szene nach der anderen, je {credits}',
   'subscription.ways.credits.keep': 'Für immer Ihre, auch ohne Plus',
-  'subscription.ways.plus.body':
-    'Alle Szenen, solange Sie Mitglied sind. Fügen Sie jede hinzu, ohne Credits.',
   'subscription.ways.plus.every': 'Alle Szenen in Szenen, auch die neuen',
   'subscription.ways.plus.while': 'Solange Sie Mitglied sind',
-
-  'subscription.choice.credits.title': 'Credits: eine Szene',
-  'subscription.choice.credits.body': 'Für immer Ihre. Je {credits}.',
-  'subscription.choice.or': 'oder',
-  'subscription.choice.plus.title': 'Plus: alle Szenen',
-  'subscription.choice.plus.body': 'Solange Sie Mitglied sind. {price}.',
-  'subscription.choice.hide': 'Ausblenden',
 
   'subscription.scene.twoWays': 'Zwei Wege, sie zu haben',
   'subscription.scene.keep.title': 'Diese Szene behalten',
@@ -127,6 +97,25 @@ const subscription: Partial<Dictionary> = {
     'Melden Sie sich erneut an, um Plus zu verwalten.',
   'subscription.manage.failed':
     'Die Seite von Stripe konnte nicht geöffnet werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
+
+  'subscription.cardGet': 'Holen',
+  'subscription.makeScenes': 'Eigene Szenen in FluidWallpapers erstellen',
+  'subscription.banner.title': 'Plus: alle Szenen der Galerie',
+  'subscription.banner.body':
+    'Spielen und fügen Sie alle hinzu, auch die neuen. Ein Abo für FluidEQ und FluidWallpapers.',
+  'subscription.banner.credit':
+    'Sie möchten eine Szene auch ohne Plus? Holen Sie sie mit einem Credit, dann bleibt sie für immer Ihre.',
+  'subscription.banner.or': 'oder {price}',
+  'subscription.line.renews':
+    'Alle Szenen gehören Ihnen · verlängert sich am {date} · auch in FluidWallpapers',
+  'subscription.line.ends':
+    'Alle Szenen gehören Ihnen bis {date} · auch in FluidWallpapers',
+  'subscription.line.plain':
+    'Alle Szenen gehören Ihnen · auch in FluidWallpapers',
+  'subscription.sheet.both':
+    'Ein Abo für FluidEQ und FluidWallpapers: in einer der beiden Apps abgeschlossen, gilt es in beiden.',
+  'subscription.sheet.keepOne':
+    'Oder behalten Sie nur {name} für immer, auch ohne Plus:',
 };
 
 export default subscription;

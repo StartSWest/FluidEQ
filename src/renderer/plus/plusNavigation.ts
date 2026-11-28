@@ -26,17 +26,7 @@ import { getAccountSnapshot, subscribeAccount } from '../account/accountStore';
  * sent away from it every time the window reloaded.
  */
 
-/**
- * `plus` is Plus's own page, the scene subscription: the one place in the
- * app where Plus is got, managed and renewed (Ivan, 2026-11-28: "this is only
- * inside scenes").
- */
-export const PLUS_PLACES = [
-  'visualizers',
-  'plus',
-  'studio',
-  'lighting',
-] as const;
+export const PLUS_PLACES = ['visualizers', 'studio', 'lighting'] as const;
 export type TPlusPlace = (typeof PLUS_PLACES)[number] | TAddonPlace;
 
 const PLACE_KEY = 'fluideq.plusPlace';
