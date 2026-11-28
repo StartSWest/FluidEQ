@@ -8,6 +8,7 @@ import {
   MAX_SCENE_ARTWORK_EDGE,
   MAX_SCENE_ARTWORK_PIXELS,
 } from '../../common/sceneArtwork';
+import type { TStudioArtworkKind } from '../../common/studioChat';
 
 /**
  * Where each piece of a scene's own art goes in its one artwork image.
@@ -15,9 +16,10 @@ import {
  * The brief has always told the member's AI to pack its pictures itself,
  * with a script; Claude in the Studio's chat runs a script only with the
  * member's yes to each command, so FluidEQ does the arithmetic, by the same rules the brief states (`aiPromptArt.ts`):
- * every tile a gutter of its own wrapped pixels (32), every subject a clear
- * margin (16), so a distant mipmap never mixes two pieces; the image within
- * ARTWORK's limits; the member's photo places left exactly where they are.
+ * every tile and every strip a gutter of its own pixels (32), every subject
+ * a clear margin (16), so a distant mipmap never mixes two pieces; the
+ * image within ARTWORK's limits; the member's photo places left exactly
+ * where they are.
  *
  * Shelves, tallest first, on the narrowest width that holds everything in
  * the smallest image — a few dozen pieces at most, so trying every width is
@@ -38,13 +40,13 @@ export interface ILayoutPiece {
   id: string;
   width: number;
   height: number;
-  /** A tile wraps into its gutter; a subject's stays clear. */
-  kind: 'tile' | 'subject';
+  /** What fills its gutter. */
+  kind: TStudioArtworkKind;
 }
 
 export interface IPlacedPiece extends IRect {
   id: string;
-  wrap: boolean;
+  kind: TStudioArtworkKind;
   gutter: number;
 }
 
@@ -61,7 +63,7 @@ const overlaps = (a: IRect, b: IRect) =>
   b.y < a.y + a.height;
 
 const gutterOf = (piece: ILayoutPiece) =>
-  piece.kind === 'tile' ? TILE_GUTTER : SUBJECT_GUTTER;
+  piece.kind === 'subject' ? SUBJECT_GUTTER : TILE_GUTTER;
 
 interface IShelves {
   /** Where the next piece on the current shelf would go. */
@@ -153,7 +155,7 @@ const shelve = (
             y: spot.y + gutter,
             width: piece.width,
             height: piece.height,
-            wrap: piece.kind === 'tile',
+            kind: piece.kind,
             gutter,
           },
         ],

@@ -5,6 +5,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { ShaderChunk } from 'three';
+import {
+  FRACT_DECLARATIONS,
+  withFractAsDefined,
+} from '../../../common/sceneUniformContract';
 
 /**
  * The GLSL a world's material may add to three.js's own lit materials, and
@@ -218,7 +222,9 @@ export const spliceWorldHooks = (
   source: IWorldHookSource,
   declarations: string,
 ): IWorldShaderSources => {
-  const shared = `${CONTRACT_UNIFORMS}${declarations}`;
+  // The member's own GLSL reads `fract` as the language defines it, as the
+  // sky's does (`withFractAsDefined`); three.js' chunks keep their own.
+  const shared = `${CONTRACT_UNIFORMS}${declarations}${FRACT_DECLARATIONS}`;
   const defines = [
     source.vertex ? '#define WORLD_VERTEX' : '',
     source.terrain ? '#define WORLD_TERRAIN' : '',
@@ -229,7 +235,7 @@ export const spliceWorldHooks = (
     VERTEX_HEAD,
     VARYINGS,
     source.terrain ? TERRAIN_FUNCTIONS : '',
-    source.vertex ?? '',
+    source.vertex === undefined ? '' : withFractAsDefined(source.vertex),
     three.vertexShader
       .replace(
         '#include <beginnormal_vertex>',
@@ -273,7 +279,7 @@ ${source.mirror ? MIRROR_BODY : ''}`,
       FRAGMENT_HEAD,
       VARYINGS,
       source.mirror ? MIRROR_UNIFORMS : '',
-      source.fragment ?? '',
+      source.fragment === undefined ? '' : withFractAsDefined(source.fragment),
       fragmentBody,
     ].join('\n'),
   };

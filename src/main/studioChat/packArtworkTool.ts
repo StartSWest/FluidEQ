@@ -6,7 +6,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { pictureFromBytes } from '../safePicture';
 import { adoptPackedSheets } from './sheetAsPicture';
-import type { IStudioChatPackPiece } from '../../common/studioChat';
+import {
+  isStudioArtworkKind,
+  type IStudioChatPackPiece,
+} from '../../common/studioChat';
 import {
   listsOwnPieces,
   readArtworkRegions,
@@ -59,9 +62,9 @@ const PACK_SCHEMA = {
           },
           kind: {
             type: 'string',
-            enum: ['tile', 'subject'],
+            enum: ['tile', 'strip', 'subject'],
             description:
-              'tile: a material that repeats; its gutter is filled with its own wrapped pixels. subject: a cut-out; its gutter stays clear.',
+              'tile: a material that repeats every way; its gutter is filled with its own wrapped pixels. strip: a picture that repeats across only - a far background, a skyline, a shore - and is a cut-out up and down; its sides wrap, and the rows above and below it are its own top and bottom rows (packed as a tile, its own bottom edge shows as a line along its top). subject: a cut-out; its gutter stays clear.',
           },
           width: {
             type: 'integer',
@@ -118,9 +121,9 @@ const readPiece = (
     typeof id !== 'string' ||
     !REGION_ID.test(id) ||
     typeof from !== 'string' ||
-    (kind !== 'tile' && kind !== 'subject')
+    !isStudioArtworkKind(kind)
   ) {
-    return `Piece ${String(id)}: ids are a-z, 0-9, - and _, starting with a letter; from is a string; kind is tile or subject.`;
+    return `Piece ${String(id)}: ids are a-z, 0-9, - and _, starting with a letter; from is a string; kind is tile, strip or subject.`;
   }
   if (!isSize(width) || !isSize(height)) {
     return `Piece ${id}: its width and height are whole pixels, 1 to ${MAX_PIECE_EDGE}.`;
@@ -290,7 +293,7 @@ const createPackArtworkTool = ({
         y: piece.y,
         width: piece.width,
         height: piece.height,
-        wrap: piece.wrap,
+        kind: piece.kind,
         gutter: piece.gutter,
         ...sources.get(piece.id),
       })),

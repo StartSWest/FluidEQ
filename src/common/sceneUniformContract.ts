@@ -85,6 +85,49 @@ void main() {
 }
 `;
 
+/**
+ * GLSL's `fract` written out as the language defines it, `x - floor(x)`, for
+ * a scene's own GLSL to call in its place (`withFractAsDefined`).
+ *
+ * The cause it removes: Direct3D's shader compiler, which ANGLE hands every
+ * scene to on Windows, turns `fract(y * 16.0 + 5.0)` into `fract(y * 16.0)`
+ * while `floor` keeps the rounded `+ 5.0`, so on a pixel row a hair under a
+ * lattice line the two disagree and a value noise reads the next cell up.
+ *
+ * Neon City's clouds vanished along the middle row of its picture
+ * (2026-11-28: "there are some weird lines appearing on some scenes"), and
+ * nearly every scene's noise carries such a whole-number offset. Drawn at
+ * 843 x 359 on Ivan's RTX 4080 through ANGLE's Direct3D 11, that row read
+ * -33 to +50 luma off its neighbours with the builtin and within 1 with
+ * this; SwiftShader drew it clean either way, pixel for pixel the same.
+ * fxc's output for that noise has `frc` of the product beside `round_ni` of
+ * the sum at every optimisation level, IEEE strictness included; written
+ * out, both come from one rounded sum, which is what `fract` is on every
+ * other GPU. Hashes built on `fract` land as they do on those GPUs too, so
+ * a scene's random details - which windows are lit - change once on Windows.
+ */
+export const FRACT_DECLARATIONS = `
+float fluideqFract(float x) { return x - floor(x); }
+vec2 fluideqFract(vec2 x) { return x - floor(x); }
+vec3 fluideqFract(vec3 x) { return x - floor(x); }
+vec4 fluideqFract(vec4 x) { return x - floor(x); }
+`;
+
+const FRACT_ON = '#define fract fluideqFract\n';
+// The empty line after the source is the one a trailing backslash would
+// splice away, as the wrapper's own leading newline always was.
+const FRACT_OFF = '\n\n#undef fract\n';
+
+/**
+ * A scene's own GLSL with `fract` read as `FRACT_DECLARATIONS`' definition,
+ * and only its own: the macro ends with it, so nothing after it - the
+ * wrapper, three.js' chunks round a world's material - is rewritten. A
+ * scene cannot undo it: its rules refuse every preprocessor line
+ * (`memberSceneRules.ts`).
+ */
+export const withFractAsDefined = (source: string): string =>
+  `${FRACT_ON}${source}${FRACT_OFF}`;
+
 const PREAMBLE_HEAD = `#version 300 es
 precision highp float;
 precision highp sampler2D;
@@ -156,7 +199,7 @@ uniform vec4 uTap;
 uniform vec3 uCamera;
 in vec2 vUv;
 out vec4 fragColor;
-`;
+${FRACT_DECLARATIONS}`;
 
 const PREAMBLE_TAIL = `
 void main() {
@@ -211,9 +254,9 @@ export const controlDeclarations = (pack: IScenePack): string =>
 export const assembleFragmentSource = (
   pack: IScenePack,
 ): IAssembledFragment => {
-  const head = `${PREAMBLE_HEAD}${controlDeclarations(pack)}`;
+  const head = `${PREAMBLE_HEAD}${controlDeclarations(pack)}${FRACT_ON}`;
   return {
-    source: `${head}${pack.source}\n${PREAMBLE_TAIL}`,
+    source: `${head}${pack.source}${FRACT_OFF}${PREAMBLE_TAIL}`,
     sourceLineOffset: head.split('\n').length - 1,
   };
 };
@@ -232,4 +275,4 @@ export const assembleSceneDeclarations = (pack: IScenePack): string =>
  * anyway linked the whole sky — seconds, for a heavy one — for nothing.
  */
 export const assembleSceneFunctions = (pack: IScenePack): string =>
-  `${assembleSceneDeclarations(pack)}${pack.source}\n`;
+  `${assembleSceneDeclarations(pack)}${withFractAsDefined(pack.source)}`;

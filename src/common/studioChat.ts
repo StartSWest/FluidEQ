@@ -338,6 +338,26 @@ export const isStudioChatAnswer = (
 ): value is TStudioChatAnswer =>
   value === 'yes' || value === 'chat' || value === 'no';
 
+/**
+ * What a piece of a scene's artwork is, which decides what fills its gutter:
+ * a tile is a material that repeats every way, and its gutter is its own
+ * wrapped pixels; a strip repeats across and is a cut-out up and down - a
+ * far shore, a skyline - so its sides wrap and the rows above and below it
+ * are its own top and bottom rows; a subject is a cut-out, and its gutter
+ * stays clear.
+ *
+ * A strip packed as a tile drew a line along its top edge (Neon City,
+ * 2026-11-28): its wrapped gutter put its own opaque bottom rows right above
+ * its see-through top row, and a mipmap of that edge - any picture drawn
+ * smaller than the panel - mixed them into a dark line across the sky.
+ */
+export type TStudioArtworkKind = 'tile' | 'strip' | 'subject';
+
+export const isStudioArtworkKind = (
+  value: unknown,
+): value is TStudioArtworkKind =>
+  value === 'tile' || value === 'strip' || value === 'subject';
+
 /** One piece laid into the scene's artwork by the window. */
 export interface IStudioChatPackPiece {
   /** Where it goes in the artwork, in pixels from the top-left. */
@@ -349,11 +369,8 @@ export interface IStudioChatPackPiece {
   image?: Uint8Array;
   /** A part of the artwork as it is now, moved: a piece kept from before. */
   fromArtwork?: { x: number; y: number; width: number; height: number };
-  /**
-   * A material that tiles: its gutter is filled with its own wrapped pixels.
-   * A subject's gutter stays clear.
-   */
-  wrap: boolean;
+  /** What fills its gutter (`TStudioArtworkKind`). */
+  kind: TStudioArtworkKind;
   /** The gutter around it, in pixels. */
   gutter: number;
 }

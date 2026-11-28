@@ -118,6 +118,22 @@ describe('pack_artwork beside a region it cannot read', () => {
     expect(asks[0]?.keep).toEqual([]);
   });
 
+  // A far background repeats across and is a cut-out up and down; packed as
+  // a tile its own bottom rows sat above its top, and Neon City drew them as
+  // a line across the sky whenever it was drawn smaller (2026-11-28).
+  it('packs a far strip as a strip: wrapped at its sides, its own edge rows above and below', async () => {
+    const folder = projectWith({ artworkRegions: [AURORA] });
+
+    const { result, asks } = await pack(folder, [
+      { id: 'aurora', from: 'artwork:aurora', kind: 'strip' },
+    ]);
+
+    expect(result.isError).toBeUndefined();
+    expect(asks[0]?.pieces).toEqual([
+      expect.objectContaining({ kind: 'strip', gutter: 32, x: 32, y: 32 }),
+    ]);
+  });
+
   // The control: an older artwork that is one photo of the member's and
   // nothing else lists no regions, and stays one place, kept whole - so the
   // same bird has no room beside it, and the refusal is what this test sees.
