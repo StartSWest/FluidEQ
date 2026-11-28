@@ -70,7 +70,9 @@ people, its hanami a garden of cherry trees. So:
   edge at the same height, crossfade its last columns into its first, and
   repeat it with fract() across any width. Read it with textureGrad and
   gradients taken from the unwrapped coordinate, or the wrap shows as a
-  blurred seam. Standing on water, sink its thin, see-through bottom rows
+  blurred seam. Pack it as a strip, never a tile: wrapped top to bottom,
+  its own bottom edge shows as a line along its top whenever the scene is
+  drawn smaller. Standing on water, sink its thin, see-through bottom rows
   just under the waterline, so the picture and its reflection meet without
   a line.
 - THE WHOLE SCENE PUBLISHES AT 5 MB AT MOST - artwork, models,
@@ -93,8 +95,10 @@ people, its hanami a garden of cherry trees. So:
   photos, with a script kept outside this folder so it can be packed again:
   one WebP within ARTWORK's limits, its exact size as pack.json's
   artworkWidth and artworkHeight (artworkFile "artwork.webp"). Give every
-  tile a gutter of its own wrapped pixels (32) and every subject a
-  transparent margin (16), so distant mipmaps never mix two of them. A
+  tile a gutter of its own wrapped pixels (32), every strip a gutter
+  wrapped at its sides and filled above and below with its own top and
+  bottom rows (32), and every subject a transparent margin (16), so
+  distant mipmaps never mix two of them. A
   piece whose top-left pixel is (x, y), w by h, in an image W by H, is the
   region vec4(x / W, 1 - (y + h) / H, w / W, h / H): the origin is the
   image's BOTTOM-left. It arrives premultiplied and in sRGB: the linear
