@@ -9,66 +9,38 @@ import os from 'os';
 import path from 'path';
 import { PassThrough } from 'stream';
 import { EventEmitter } from 'events';
+import type { IStudioChatModels } from '../../../common/studioChat';
+import {
+  ANSWER_2_1_321,
+  ANSWER_2_1_332,
+  CATALOG_ROWS,
+  LIST_2_1_321,
+  ORGANIZATION,
+  catalogFile,
+} from '../../utils/claudeCodeAnswers';
 
 /**
- * The Studio chat's model list, read from Claude Code itself once in each run
- * of the app (Ivan, 2026-11-09: "make sure model list gets updated when app is
- * restarted"): never a table of versions in the app, which went on offering
- * Haiku 4.5 after Haiku 5.5 shipped.
+ * The Studio chat's model list, read from Claude Code itself (Ivan,
+ * 2026-11-09: "make sure model list gets updated when app is restarted"):
+ * never a table of versions in the app, which went on offering Haiku 4.5
+ * after Haiku 5.5 shipped. Asked at the first picker, and again whenever
+ * Claude Code changes, with no restart (2026-11-27: "where are the other
+ * models and why not showing the version"); the older versions from the
+ * catalog Claude Code keeps, which its answer no longer carries.
  */
 
-/** Claude Code's answer to `initialize`, as 2.1.321 wrote it (trimmed). */
-const ANSWER = {
-  type: 'control_response',
-  response: {
-    subtype: 'success',
-    request_id: 'fluideq-models',
-    response: {
-      models: [
-        {
-          value: 'default',
-          resolvedModel: 'claude-opus-5-5',
-          displayName: 'Default (recommended)',
-        },
-        {
-          value: 'opus',
-          resolvedModel: 'claude-opus-5-5',
-          displayName: 'Opus 5.5',
-          description: 'Best for everyday, complex tasks',
-        },
-        {
-          value: 'fable',
-          resolvedModel: 'claude-fable-5-2',
-          displayName: 'Fable 5.2',
-        },
-        {
-          value: 'sonnet',
-          resolvedModel: 'claude-sonnet-5-5',
-          displayName: 'Sonnet 5.5',
-        },
-        {
-          value: 'haiku',
-          resolvedModel: 'claude-haiku-5-5',
-          displayName: 'Haiku 5.5',
-        },
-        {
-          value: 'claude-haiku-4-5-20251001',
-          resolvedModel: 'claude-haiku-4-5-20251001',
-          displayName: 'Haiku 4.5',
-        },
-      ],
-    },
-  },
-};
-
-/** What the stand-in Claude Code does when asked: answer, or end with nothing. */
-let mockReply: 'answer' | 'nothing' = 'answer';
+/** What the stand-in Claude Code answers when asked, or `nothing`. */
+let mockAnswer: object | 'nothing' = ANSWER_2_1_321;
 let mockInstalled = true;
+/** What the stand-in `claude auth status --json` prints. */
+let mockAuth = '';
 const mockStarted: string[][] = [];
 
 jest.mock('../../../main/studioChat/claudeCode', () => ({
   systemEnv: () => ({}),
-  findClaudeCode: () => (mockInstalled ? 'claude' : undefined),
+  findClaudeCode: () => (mockInstalled ? '/bin/claude' : undefined),
+  claudeConfigFolder: () => '/nowhere',
+  askAuthStatus: () => Promise.resolve(mockAuth),
   startClaudeCode: (_executable: string, args: string[]) => {
     mockStarted.push(args);
     const child = new EventEmitter() as EventEmitter & {
@@ -78,12 +50,12 @@ jest.mock('../../../main/studioChat/claudeCode', () => ({
     child.stdout = new PassThrough();
     child.stdin = {
       write: jest.fn(() => {
-        if (mockReply === 'answer') {
-          child.stdout.write('{"type":"system","subtype":"hook_started"}\n');
-          child.stdout.write(`${JSON.stringify(ANSWER)}\n`);
-        } else {
+        if (mockAnswer === 'nothing') {
           child.stdout.end();
           child.emit('close', 1);
+        } else {
+          child.stdout.write('{"type":"system","subtype":"hook_started"}\n');
+          child.stdout.write(`${JSON.stringify(mockAnswer)}\n`);
         }
         return true;
       }),
@@ -100,214 +72,67 @@ jest.mock('../../../main/studioChat/claudeCode', () => ({
 // eslint-disable-next-line import/first -- the mock above has to be in place first
 import {
   createClaudeModels,
-  readKeptModels,
-  readModelsAnswer,
+  type TWatchFolder,
 } from '../../../main/studioChat/claudeModels';
 
-const LIST = {
-  checked: true,
-  lines: [
-    {
-      id: 'opus',
-      name: 'Opus 5.5',
-      description: 'Best for everyday, complex tasks',
-    },
-    { id: 'fable', name: 'Fable 5.2' },
-    { id: 'sonnet', name: 'Sonnet 5.5' },
-    { id: 'haiku', name: 'Haiku 5.5' },
-  ],
-  others: [{ id: 'claude-haiku-4-5-20251001', name: 'Haiku 4.5' }],
-  defaultName: 'Opus 5.5',
+const LIST = LIST_2_1_321;
+
+/** The watches the list set, by folder, each told a name when asked. */
+let watched: Map<string, (name: string | undefined) => void>;
+const watch: TWatchFolder = (folder, changed) => {
+  watched.set(folder, changed);
+  return () => watched.delete(folder);
 };
 
-/** The answer with `models` changed by `change`. */
-const answered = (change: (models: Record<string, unknown>[]) => unknown[]) => {
-  const answer = JSON.parse(JSON.stringify(ANSWER));
-  answer.response.response.models = change(answer.response.response.models);
-  return JSON.stringify(answer);
-};
-const idsOf = (line: string) =>
-  readModelsAnswer(line)?.lines.map(({ id }) => id);
+/** Where the next change the window is told of goes. */
+let told: (models: IStudioChatModels) => void;
+/** The next list the window is told of. */
+const nextChange = () =>
+  new Promise<IStudioChatModels>((resolve) => {
+    told = resolve;
+  });
 
 let dir: string;
+let config: string;
+let catalogs: string;
 beforeEach(() => {
   dir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-models-'));
-  mockReply = 'answer';
+  config = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-config-'));
+  catalogs = path.join(config, 'cache', 'model-catalog');
+  mockAnswer = ANSWER_2_1_321;
   mockInstalled = true;
+  mockAuth = '';
   mockStarted.length = 0;
+  watched = new Map();
+  told = () => undefined;
 });
 afterEach(() => {
   fs.rmSync(dir, { recursive: true, force: true });
+  fs.rmSync(config, { recursive: true, force: true });
 });
 
-describe("Claude Code's answer", () => {
-  it('names each line by the model it starts, and what Default starts', () => {
-    // Its own order, and the exact older models it lists beside them apart.
-    expect(readModelsAnswer(JSON.stringify(ANSWER))).toEqual(LIST);
+const make = (extra: Partial<Parameters<typeof createClaudeModels>[0]> = {}) =>
+  createClaudeModels({
+    dir,
+    watch,
+    onChange: (models) => told(models),
+    ...extra,
   });
 
-  // 2026-11-25: on a Max account the answer named Fable only by its exact
-  // model, and the chat called Fable "not on your Claude plan".
-  it('names a known line Claude Code listed only by its exact model, as that model', () => {
-    const line = answered((models) =>
-      models.map((entry) =>
-        entry.value === 'fable'
-          ? { ...entry, value: 'claude-fable-5-2' }
-          : entry,
-      ),
-    );
-    const read = readModelsAnswer(line);
-    expect(read?.lines).toContainEqual({ id: 'fable', name: 'Fable 5.2' });
-    expect(read?.others?.map(({ id }) => id)).toEqual([
-      'claude-haiku-4-5-20251001',
-    ]);
+/** Claude Code signed in to `ORGANIZATION`, its catalog kept in `config`. */
+const signedIn = () => {
+  mockAuth = JSON.stringify({
+    loggedIn: true,
+    orgId: ORGANIZATION,
+    configDirectory: config,
+    email: 'member@example.com',
   });
+  fs.mkdirSync(catalogs, { recursive: true });
+};
 
-  it('names such a line by its newest exact model, and keeps the older ones as versions', () => {
-    const line = answered((models) => [
-      ...models.filter(({ value }) => value !== 'opus'),
-      { value: 'claude-opus-5-5', displayName: 'Opus 5.5' },
-      { value: 'claude-opus-5-6', displayName: 'Opus 5.6' },
-      { value: 'claude-3-opus-20240229', displayName: 'Opus 3' },
-    ]);
-    const read = readModelsAnswer(line);
-    expect(read?.lines).toContainEqual({ id: 'opus', name: 'Opus 5.6' });
-    expect(read?.others?.map(({ id }) => id)).toEqual([
-      'claude-haiku-4-5-20251001',
-      'claude-opus-5-5',
-      'claude-3-opus-20240229',
-    ]);
-  });
-
-  it('keeps a newer exact model beside its line as a version, and the line by its name', () => {
-    const line = answered((models) => [
-      ...models,
-      { value: 'claude-opus-5-6', displayName: 'Opus 5.6' },
-      { value: 'opus[1m]', displayName: 'Opus (1M context)' },
-    ]);
-    const read = readModelsAnswer(line);
-    expect(read?.lines.map(({ id }) => id)).toEqual(
-      LIST.lines.map(({ id }) => id),
-    );
-    expect(read?.others?.map(({ id }) => id)).toEqual([
-      'claude-haiku-4-5-20251001',
-      'claude-opus-5-6',
-      'opus[1m]',
-    ]);
-  });
-
-  it('keeps an unknown family listed only by exact models as versions, never by a name nobody gave', () => {
-    const line = answered((models) => [
-      ...models,
-      { value: 'claude-mythos-1-0', displayName: 'Mythos 1' },
-    ]);
-    expect(idsOf(line)).not.toContain('mythos');
-    expect(readModelsAnswer(line)?.others).toContainEqual({
-      id: 'claude-mythos-1-0',
-      name: 'Mythos 1',
-    });
-  });
-
-  it("names the plan as Claude Code does, Ultra or any other, and the account's email", () => {
-    const withAccount = (subscriptionType: unknown) => {
-      const answer = JSON.parse(JSON.stringify(ANSWER));
-      answer.response.response.account = {
-        email: 'member@example.com',
-        subscriptionType,
-      };
-      return readModelsAnswer(JSON.stringify(answer))?.account;
-    };
-    expect(withAccount('Claude Ultra')).toEqual({
-      email: 'member@example.com',
-      plan: 'Ultra',
-    });
-    expect(withAccount('Claude Max')?.plan).toBe('Max');
-    expect(withAccount('Claude Platinum 2x')?.plan).toBe('Platinum 2x');
-    // "Claude API" is what it says of an account with no plan.
-    expect(withAccount('Claude API')).toEqual({ email: 'member@example.com' });
-    expect(withAccount('<b>Max</b>')?.plan).toBeUndefined();
-    expect(readModelsAnswer(JSON.stringify(ANSWER))?.account).toBeUndefined();
-  });
-
-  // Ivan, 2026-11-09: "claude can launch new models and we want to pick up
-  // smartly automatically".
-  it("offers a family it never knew of, in Claude Code's own words", () => {
-    const line = answered((models) => [
-      ...models,
-      {
-        value: 'mythos',
-        resolvedModel: 'claude-mythos-1',
-        displayName: 'Mythos 1',
-        description: 'For the longest creative work',
-      },
-    ]);
-    expect(readModelsAnswer(line)?.lines).toContainEqual({
-      id: 'mythos',
-      name: 'Mythos 1',
-      description: 'For the longest creative work',
-    });
-  });
-
-  it('takes no name that could not be a line, or crossed into a command line', () => {
-    const line = answered((models) => [
-      ...models,
-      { value: '--dangerously-skip-permissions', displayName: 'Evil' },
-      { value: 'Mythos', displayName: 'Upper case' },
-      { value: 'a b', displayName: 'Spaced' },
-      { value: 'claude-opus 5" --x', displayName: 'Evil exact' },
-      { value: 'claude-', displayName: 'Empty exact' },
-    ]);
-    expect(idsOf(line)).toEqual(['opus', 'fable', 'sonnet', 'haiku']);
-    expect(readModelsAnswer(line)?.others).toEqual(LIST.others);
-  });
-
-  it('is nothing but the answer to its own request', () => {
-    const other = {
-      ...ANSWER,
-      response: { ...ANSWER.response, request_id: 'someone-else' },
-    };
-    expect(readModelsAnswer(JSON.stringify(other))).toBeUndefined();
-    expect(readModelsAnswer('{"type":"system"}')).toBeUndefined();
-    expect(readModelsAnswer('not json')).toBeUndefined();
-  });
-
-  it('leaves out a line it did not offer, and a name that is not a name', () => {
-    const line = answered((models) =>
-      models
-        .filter(({ value }) => value !== 'fable')
-        .map((entry) =>
-          entry.value === 'haiku'
-            ? { ...entry, displayName: '<img src=x>' }
-            : entry,
-        ),
-    );
-    expect(idsOf(line)).toEqual(['opus', 'sonnet']);
-  });
-
-  it('names what Default starts by the line that starts the same model', () => {
-    const answer = JSON.parse(JSON.stringify(ANSWER));
-    answer.response.response.models[0].resolvedModel = 'claude-sonnet-5-5';
-    expect(readModelsAnswer(JSON.stringify(answer))?.defaultName).toBe(
-      'Sonnet 5.5',
-    );
-  });
-
-  it('takes no name longer than a name', () => {
-    const answer = JSON.parse(JSON.stringify(ANSWER));
-    answer.response.response.models[1].displayName = 'Opus '.repeat(12);
-    expect(idsOf(JSON.stringify(answer))).not.toContain('opus');
-  });
-
-  it('reads back what was kept, and nothing of any other shape', () => {
-    expect(readKeptModels(JSON.stringify(LIST))).toEqual(LIST);
-    expect(readKeptModels('{"checked":false,"lines":[]}')).toBeUndefined();
-    expect(readKeptModels('[]')).toBeUndefined();
-  });
-});
-
-describe('the list for a run of the app', () => {
+describe('the list', () => {
   it('asks Claude Code once, without its hooks, and keeps the answer', async () => {
-    const models = createClaudeModels({ dir });
+    const models = make();
     expect(await models.list()).toEqual(LIST);
     expect(await models.list()).toEqual(LIST);
     expect(mockStarted).toHaveLength(1);
@@ -318,65 +143,184 @@ describe('the list for a run of the app', () => {
     });
     expect(models.known()).toEqual(LIST);
     // The next run of the app starts from it before it asks again.
-    expect(createClaudeModels({ dir }).known()).toEqual(LIST);
+    expect(make().known()).toEqual(LIST);
   });
 
   it('marks what Claude Code refused for the rest of the run, and never keeps it', async () => {
-    const models = createClaudeModels({ dir });
+    const models = make();
     await models.list();
     models.refuse('fable');
     models.refuse('default');
     expect((await models.list()).refused).toEqual(['fable']);
     expect(models.known().refused).toEqual(['fable']);
     // The next run of the app has heard no refusal.
-    expect(createClaudeModels({ dir }).known()).toEqual(LIST);
+    expect(make().known()).toEqual(LIST);
   });
 
   it('keeps the list, never the account it came from', async () => {
-    const answer = JSON.parse(JSON.stringify(ANSWER));
-    answer.response.response.account = {
-      email: 'member@example.com',
-      subscriptionType: 'Claude Ultra',
-    };
-    const real = ANSWER.response.response;
-    ANSWER.response.response = answer.response.response;
-    try {
-      const models = createClaudeModels({ dir });
-      expect((await models.list()).account?.plan).toBe('Ultra');
-      const kept = fs.readFileSync(
-        path.join(dir, 'claude-models.json'),
-        'utf8',
-      );
-      expect(kept).not.toContain('member@example.com');
-      expect(createClaudeModels({ dir }).known()).toEqual(LIST);
-    } finally {
-      ANSWER.response.response = real;
-    }
+    mockAnswer = ANSWER_2_1_332;
+    const models = make();
+    expect((await models.list()).account?.plan).toBe('Max');
+    const kept = fs.readFileSync(path.join(dir, 'claude-models.json'), 'utf8');
+    expect(kept).not.toContain('member@example.com');
+    expect(make().known().account).toBeUndefined();
+    expect(make().known().standIns).toEqual([
+      { id: 'claude-fable-5-2[1m]', line: 'fable' },
+    ]);
   });
 
   it('keeps the last list when Claude Code answers nothing', async () => {
-    await createClaudeModels({ dir }).list();
-    mockReply = 'nothing';
+    await make().list();
+    mockAnswer = 'nothing';
     const warn = jest.fn();
-    expect(await createClaudeModels({ dir, logger: { warn } }).list()).toEqual(
-      LIST,
-    );
+    expect(await make({ logger: { warn } }).list()).toEqual(LIST);
     expect(warn).toHaveBeenCalled();
   });
 
   it('keeps the last list when Claude Code is not installed', async () => {
-    await createClaudeModels({ dir }).list();
+    await make().list();
     mockInstalled = false;
-    expect(await createClaudeModels({ dir }).list()).toEqual(LIST);
+    expect(await make().list()).toEqual(LIST);
   });
 
   // The control: with nothing ever kept, nothing is known, and every line is
   // offered under its bare name rather than called unavailable.
   it('knows nothing before Claude Code has ever answered', async () => {
-    mockReply = 'nothing';
-    expect(await createClaudeModels({ dir }).list()).toEqual({
-      checked: false,
-      lines: [],
-    });
+    mockAnswer = 'nothing';
+    expect(await make().list()).toEqual({ checked: false, lines: [] });
+  });
+});
+
+// Claude Code 2.1.332 stopped listing the older versions; its own "More
+// models" reads them from the catalog it keeps, and so does the Studio.
+describe("the older versions, from Claude Code's catalog", () => {
+  it("lists them by line, newest first, from the signed-in organization's newest catalog", async () => {
+    mockAnswer = ANSWER_2_1_332;
+    signedIn();
+    const write = (name: string, text: string) =>
+      fs.writeFileSync(path.join(catalogs, name), text);
+    // Beside it an older one, another organization's newer one, and the
+    // retry marker Claude Code keeps: none of them is read. Nor is a row
+    // that needs a newer Claude Code than the one that answered, or one its
+    // own picker no longer offers.
+    write(
+      `${ORGANIZATION}-0ec732dde858-ccd.json`,
+      catalogFile([
+        ...CATALOG_ROWS,
+        {
+          id: 'claude-opus-6',
+          name: 'Opus 6',
+          section: 'overflow',
+          min_claude_code_version: '2.2.0',
+        },
+        { id: 'claude-opus-4-1', name: 'Opus 4.1', section: 'deprecated' },
+      ]),
+    );
+    write(
+      `${ORGANIZATION}-0ec732dde858-cc.json`,
+      catalogFile(
+        [{ id: 'claude-opus-4-1', name: 'Opus 4.1', section: 'overflow' }],
+        1,
+      ),
+    );
+    write(
+      '00000000-0000-4000-8000-0000000000bb-0ec732dde858-ccd.json',
+      catalogFile(
+        [{ id: 'claude-opus-4-5', name: 'Opus 4.5', section: 'overflow' }],
+        9e12,
+      ),
+    );
+    write(
+      `${ORGANIZATION}-0ec732dde858-cc.headless-failed.json`,
+      '{"failedAt":1,"failures":1}',
+    );
+    const listed = await make().list();
+    expect(listed.others?.map(({ name }) => name)).toEqual([
+      'Opus 5',
+      'Opus 4.8',
+      'Opus 4.7',
+      'Opus 4.6',
+      'Fable 5.1',
+      'Fable 5',
+      'Sonnet 5',
+      'Sonnet 4.6',
+      'Haiku 4.5',
+    ]);
+    // The lines are the answer's, every one once and with its version.
+    expect(listed.lines.map(({ name }) => name)).toEqual([
+      'Opus 5.5',
+      'Fable 5.2',
+      'Sonnet 5.5',
+      'Haiku 5.5',
+    ]);
+  });
+
+  // The control: the same answer, nobody's catalog to read.
+  it('lists none where Claude Code keeps no catalog', async () => {
+    mockAnswer = ANSWER_2_1_332;
+    signedIn();
+    expect((await make().list()).others).toBeUndefined();
+  });
+});
+
+describe('a change in Claude Code', () => {
+  it('reaches the window when Claude Code is updated, with no restart', async () => {
+    const models = make();
+    await models.list();
+    const program = watched.get(path.dirname('/bin/claude'));
+    expect(program).toBeDefined();
+    // Another file beside it is not Claude Code: nothing is asked.
+    program?.('claude.exe.old.1795839249138');
+    expect(mockStarted).toHaveLength(1);
+    mockAnswer = ANSWER_2_1_332;
+    const changed = nextChange();
+    program?.('claude');
+    expect(mockStarted).toHaveLength(2);
+    expect((await changed).lines.map(({ name }) => name)).toEqual([
+      'Opus 5.5',
+      'Fable 5.2',
+      'Sonnet 5.5',
+      'Haiku 5.5',
+    ]);
+    expect((await models.list()).standIns).toHaveLength(1);
+  });
+
+  it('reads a new catalog when Claude Code writes one, without asking it again', async () => {
+    signedIn();
+    const models = make();
+    await models.list();
+    const catalog = watched.get(catalogs);
+    expect(catalog).toBeDefined();
+    const name = `${ORGANIZATION}-0ec732dde858-ccd.json`;
+    fs.writeFileSync(path.join(catalogs, name), catalogFile(CATALOG_ROWS));
+    const changed = nextChange();
+    catalog?.(name);
+    expect((await changed).others).toHaveLength(9);
+    expect(mockStarted).toHaveLength(1);
+  });
+
+  it('asks again when anyone signs in to Claude Code, and for nothing else in its folder', async () => {
+    const models = make();
+    await models.list();
+    const account = watched.get('/nowhere');
+    expect(account).toBeDefined();
+    // Every session's history is written beside the sign-in.
+    account?.('history.jsonl');
+    account?.(undefined);
+    expect(mockStarted).toHaveLength(1);
+    mockAnswer = ANSWER_2_1_332;
+    const changed = nextChange();
+    account?.('.credentials.json');
+    expect(mockStarted).toHaveLength(2);
+    expect((await changed).account?.plan).toBe('Max');
+  });
+
+  it('asks again on a sign-in in the Studio', async () => {
+    const models = make();
+    await models.list();
+    mockAnswer = ANSWER_2_1_332;
+    const changed = nextChange();
+    models.refresh();
+    expect((await changed).account?.plan).toBe('Max');
   });
 });

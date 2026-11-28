@@ -46,13 +46,24 @@ const NO_HAIKU: IStudioChatModels = {
 };
 
 let answer: Promise<IStudioChatModels>;
+/** Main telling the window Claude Code's list changed. */
+let tell: ((models: IStudioChatModels) => void) | undefined;
 beforeEach(() => {
   window.localStorage.clear();
   resetStudioChatModelsForTesting();
   answer = Promise.resolve(NO_HAIKU);
+  tell = undefined;
   Object.defineProperty(window, 'electron', {
     configurable: true,
-    value: { ipcRenderer: { studioChatModels: () => answer } },
+    value: {
+      ipcRenderer: {
+        studioChatModels: () => answer,
+        onStudioChatModels: (listener: (models: IStudioChatModels) => void) => {
+          tell = listener;
+          return () => undefined;
+        },
+      },
+    },
   });
   resetChatPicksForTesting();
   setChatModel(undefined, 'default');
@@ -200,6 +211,51 @@ describe("the chat's model picker", () => {
     ).toBeInTheDocument();
     await user.click(mythos);
     expect(screen.getByRole('status')).toHaveTextContent('mythos');
+  });
+
+  // 2026-11-27: Claude Code 2.1.332 listed Fable only as
+  // `claude-fable-5-2[1m]`, which the picker showed as a second Fable under
+  // the other versions, and a chat had chosen it there.
+  it("shows a chat that chose the id Claude Code listed Fable by on Fable's row, and keeps Fable", async () => {
+    const STAND_IN = 'claude-fable-5-2[1m]';
+    answer = Promise.resolve({
+      ...NO_HAIKU,
+      standIns: [{ id: STAND_IN, line: 'fable' }],
+    });
+    setChatModel(undefined, STAND_IN);
+    await open();
+    expect(row('Fable 5.2')).toHaveClass('selected');
+    expect(screen.getAllByRole('menuitem', { name: /^Fable/ })).toHaveLength(1);
+    expect(screen.getByRole('status')).toHaveTextContent(/^fable$/);
+  });
+
+  // The control: the same choice, with nothing saying what it stands for,
+  // is a model no longer offered.
+  it('falls back to Default for an id nothing says stands for a line', async () => {
+    setChatModel(undefined, 'claude-fable-5-2[1m]');
+    await open();
+    expect(row('studioChat.modelDefault')).toHaveClass('selected');
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'claude-fable-5-2[1m]',
+    );
+  });
+
+  it("shows Claude Code's new list in a picker already open, with no restart", async () => {
+    await open();
+    expect(screen.queryByRole('menuitem', { name: /Opus 5\.6/ })).toBeNull();
+    act(() => {
+      tell?.({
+        ...NO_HAIKU,
+        lines: [{ id: 'opus', name: 'Opus 5.6' }, ...NO_HAIKU.lines.slice(1)],
+        defaultName: 'Opus 5.6',
+      });
+    });
+    expect(row('Opus 5.6')).toBeInTheDocument();
+    expect(
+      within(row('studioChat.modelDefault')).getByText(
+        'studioChat.modelHintDefaultNamed:Opus 5.6',
+      ),
+    ).toBeInTheDocument();
   });
 
   it('offers every line under its bare name before Claude Code ever answered', async () => {

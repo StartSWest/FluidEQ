@@ -10,6 +10,7 @@ import {
   isStudioChatModel,
   isStudioChatModelOffered,
   NO_STUDIO_CHAT_MODELS,
+  studioChatLineOf,
   type IStudioChatModels,
 } from '../../../common/studioChat';
 
@@ -97,6 +98,27 @@ describe('a model offered', () => {
     expect(isStudioChatModelOffered(refused, 'mythos')).toBe(false);
     expect(isStudioChatModelOffered(refused, 'opus')).toBe(true);
     expect(isStudioChatModelOffered(refused, 'default')).toBe(true);
+  });
+
+  // 2026-11-27: Claude Code 2.1.332 listed Fable only by this id.
+  it('is an id Claude Code listed a line by, and that choice is the line', () => {
+    const standing = {
+      ...LISTED,
+      standIns: [{ id: 'claude-fable-5-2[1m]', line: 'fable' }],
+    };
+    expect(isStudioChatModelOffered(standing, 'claude-fable-5-2[1m]')).toBe(
+      true,
+    );
+    expect(studioChatLineOf(standing, 'claude-fable-5-2[1m]')).toBe('fable');
+    // The controls: without it, the id is offered by nothing and stands
+    // for nothing; any other choice stands for itself.
+    expect(isStudioChatModelOffered(LISTED, 'claude-fable-5-2[1m]')).toBe(
+      false,
+    );
+    expect(studioChatLineOf(LISTED, 'claude-fable-5-2[1m]')).toBe(
+      'claude-fable-5-2[1m]',
+    );
+    expect(studioChatLineOf(standing, 'opus')).toBe('opus');
   });
 });
 

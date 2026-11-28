@@ -100,8 +100,6 @@ export const createStudioChat = ({
   logger,
 }: IStudioChatDeps) => {
   const root = path.join(userDataDir, 'studio-chat');
-  // What Claude Code offers, asked once in this run of the app.
-  const claudeModels = createClaudeModels({ dir: root, logger });
   const transcripts = createTranscripts(root);
   const { transcriptOf, save, saveWith, unload } = createTranscriptCache(
     transcripts,
@@ -109,6 +107,13 @@ export const createStudioChat = ({
   );
   const chatWindow = createChatWindow(getMainWindow);
   const { pageOf, fromWindow, handle } = chatWindow;
+  // What Claude Code offers, asked at the first picker and again whenever
+  // Claude Code changes; every picker in the window hears a change.
+  const claudeModels = createClaudeModels({
+    dir: root,
+    logger,
+    onChange: (models) => pageOf()?.send('studio-chat-models-changed', models),
+  });
   // The message being written, kept per project until it is sent.
   createChatDrafts({ root, handle });
 
@@ -462,6 +467,7 @@ export const createStudioChat = ({
   registerChatHandlers({
     handle,
     models: claudeModels.list,
+    refreshModels: claudeModels.refresh,
     agentProject,
     isBusy,
     activeChat,

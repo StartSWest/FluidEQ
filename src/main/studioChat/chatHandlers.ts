@@ -40,8 +40,10 @@ interface IChatHandlersDeps {
   entriesOf(projectId: string): readonly TStudioChatEntry[];
   versionsOf(projectId: string): string;
   limits(): IStudioChatLimits | undefined;
-  /** The models Claude Code offers, asked once in each run (`claudeModels.ts`). */
+  /** The models Claude Code offers (`claudeModels.ts`). */
   models(): Promise<IStudioChatModels>;
+  /** Ask Claude Code for them again: a sign-in may be another account's. */
+  refreshModels(): void;
 }
 
 /** What the window asks of the chat, each answered for the open project only. */
@@ -62,13 +64,17 @@ const registerChatHandlers = ({
   versionsOf,
   limits,
   models,
+  refreshModels,
 }: IChatHandlersDeps) => {
   const missing: Promise<TStudioChatAvailability> = Promise.resolve({
     state: 'missing',
   });
   handle('studio-chat-availability', missing, () => claudeCodeAvailability());
   handle('studio-chat-sign-in', missing, () =>
-    signInToClaudeCode().then(() => claudeCodeAvailability()),
+    signInToClaudeCode().then(() => {
+      refreshModels();
+      return claudeCodeAvailability();
+    }),
   );
   handle('studio-chat-load', undefined, activeChat);
   handle('studio-chat-picks', undefined, setPicks);

@@ -22,8 +22,10 @@ import untilSignedIn from './signInWindow';
  *
  * FluidEQ does not read the member's sign-in: `auth status` is asked only
  * whether it is signed in, the plan's name and the account's email, to show
- * whose plan the chat runs on, and the sign-in itself is
- * Claude Code's own (`auth login`), on Anthropic's page in the browser.
+ * whose plan the chat runs on, and which organization and config folder,
+ * to find the model catalog Claude Code keeps for it (`claudeCatalog.ts`);
+ * the sign-in itself is Claude Code's own (`auth login`), on Anthropic's
+ * page in the browser.
  */
 
 export interface IClaudeCodeEnv {
@@ -149,6 +151,21 @@ const outputOf = (child: ChildProcess) =>
     child.on('close', (code) => resolve({ code, stdout }));
   });
 
+/** What `claude auth status --json` wrote, read by the caller as untrusted. */
+export const askAuthStatus = async (executable: string) =>
+  (
+    await outputOf(
+      startClaudeCode(executable, ['auth', 'status', '--json'], {
+        stdio: ['ignore', 'pipe', 'ignore'],
+        windowsHide: true,
+      }),
+    )
+  ).stdout;
+
+/** Claude Code's config folder, where `auth status` names none. */
+export const claudeConfigFolder = ({ env, home }: IClaudeCodeEnv) =>
+  env.CLAUDE_CONFIG_DIR ?? path.join(home, '.claude');
+
 /** Whether the chat can be used here, asked of Claude Code itself. */
 export const claudeCodeAvailability = async (
   where: IClaudeCodeEnv = systemEnv(),
@@ -157,15 +174,9 @@ export const claudeCodeAvailability = async (
   if (!executable) {
     return { state: 'missing' };
   }
-  const { stdout } = await outputOf(
-    startClaudeCode(executable, ['auth', 'status', '--json'], {
-      stdio: ['ignore', 'pipe', 'ignore'],
-      windowsHide: true,
-    }),
-  );
   // Installed but answering nothing readable: an older Claude Code without
   // `auth status`, which the chat's own reply will say more about.
-  return readAuthStatus(stdout) ?? { state: 'ready' };
+  return readAuthStatus(await askAuthStatus(executable)) ?? { state: 'ready' };
 };
 
 /** Who Claude Code says is signed in, or nothing for nobody. */
@@ -204,7 +215,7 @@ export const signInToClaudeCode = async (
       : startClaudeCode(executable, ['auth', 'login'], { stdio: 'ignore' });
   await untilSignedIn({
     child,
-    folder: where.env.CLAUDE_CONFIG_DIR ?? path.join(where.home, '.claude'),
+    folder: claudeConfigFolder(where),
     file: '.credentials.json',
     who: () => signedInAs(where),
     before,

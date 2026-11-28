@@ -109,17 +109,19 @@ export interface IStudioChatLine {
  * What Claude Code says it offers (Ivan, 2026-11-09: "make sure model list
  * gets updated when app is restarted"; and 2026-10-09: "we need to show
  * models version, like opus 5.5"): each line's model under its own name -
- * "Haiku 5.5" - read from Claude Code once in each run of the app
+ * "Haiku 5.5" - read from Claude Code at the first picker of each run of
+ * the app and again whenever Claude Code changes
  * (`main/studioChat/claudeModels.ts`), so the list names the model that
  * answers and never ages. It used to be a table of exact versions written
  * into the app, and it went on offering Haiku 4.5 after 5.5 shipped.
  *
  * `lines` are the lines Claude Code offered, in its own order, a family it
  * added after this app was built among them; a known line it listed only by
- * an exact model stands there under its own name, named for that model.
- * `others` are the other versions it listed (Ivan, 2026-11-25: "the other
- * models ... in every version"). `checked`: Claude Code has answered at
- * least once, ever.
+ * another id stands there under its own name, named for that model, and the
+ * id it was listed by is one of its `standIns`. `others` are the other
+ * versions Claude Code offers (Ivan, 2026-11-25: "the other models ... in
+ * every version"), by line and newest first. `checked`: Claude Code has
+ * answered at least once, ever.
  *
  * Nothing here says a model is out of the member's plan except `refused`:
  * the models Claude Code itself refused in this run of the app, from the
@@ -132,6 +134,14 @@ export interface IStudioChatModels {
   checked: boolean;
   lines: IStudioChatLine[];
   others?: IStudioChatLine[];
+  /**
+   * The ids Claude Code listed a line by, where it gave the line's own name
+   * no entry: `claude-fable-5-2[1m]` for Fable. The line's name starts the
+   * same model (`fable` and that id both start Fable 5.2 with a million
+   * tokens of context, asked of Claude Code 2.1.332), so a chat that chose
+   * one of them chose the line, and the picker shows it on the line's row.
+   */
+  standIns?: { id: TStudioChatModel; line: TStudioChatModel }[];
   /** The model `default` starts, by its name, where Claude Code said it. */
   defaultName?: string;
   /** Refused by Claude Code in this run of the app; never kept. */
@@ -166,6 +176,16 @@ export const NO_STUDIO_CHAT_MODELS: IStudioChatModels = {
 };
 
 /**
+ * The model a choice stands for: the line, for an id Claude Code listed
+ * that line by (`standIns`); the choice itself otherwise.
+ */
+export const studioChatLineOf = (
+  models: IStudioChatModels,
+  model: TStudioChatModel,
+): TStudioChatModel =>
+  (models.standIns ?? []).find(({ id }) => id === model)?.line ?? model;
+
+/**
  * Whether `model` can be started here: `default` always; anything Claude
  * Code refused in this run, never; a line this app knows of, or anything
  * Claude Code listed, otherwise.
@@ -178,4 +198,5 @@ export const isStudioChatModelOffered = (
   (!(models.refused ?? []).includes(model) &&
     (isStudioChatFamily(model) ||
       models.lines.some(({ id }) => id === model) ||
-      (models.others ?? []).some(({ id }) => id === model)));
+      (models.others ?? []).some(({ id }) => id === model) ||
+      (models.standIns ?? []).some(({ id }) => id === model)));

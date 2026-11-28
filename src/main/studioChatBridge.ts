@@ -36,9 +36,18 @@ const studioChatBridge = {
   /** Claude Code's own sign-in; settles when it has ended. */
   studioChatSignIn: (): Promise<TStudioChatAvailability> =>
     ipcRenderer.invoke('studio-chat-sign-in'),
-  /** The models Claude Code offers, read from it once in this run. */
+  /** The models Claude Code offers, as main last read them from it. */
   studioChatModels: (): Promise<IStudioChatModels> =>
     ipcRenderer.invoke('studio-chat-models'),
+  /** The models again, each time Claude Code's list changes. */
+  onStudioChatModels: (listener: (models: IStudioChatModels) => void) => {
+    const wrapped = (_event: IpcRendererEvent, models: IStudioChatModels) =>
+      listener(models);
+    ipcRenderer.on('studio-chat-models-changed', wrapped);
+    return () => {
+      ipcRenderer.removeListener('studio-chat-models-changed', wrapped);
+    };
+  },
   studioChatLoad: (): Promise<IStudioChat | undefined> =>
     ipcRenderer.invoke('studio-chat-load'),
   /** The member's model and effort for a project's open chat, kept in it. */

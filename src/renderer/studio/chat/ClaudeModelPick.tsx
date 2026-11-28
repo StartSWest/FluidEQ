@@ -4,11 +4,13 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { useEffect } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import {
   isStudioChatFamily,
   isStudioChatModel,
   isStudioChatModelOffered,
+  studioChatLineOf,
   STUDIO_CHAT_FAMILIES,
   type IStudioChatLine,
   type IStudioChatModels,
@@ -91,7 +93,10 @@ const othersOf = (models: IStudioChatModels, rows: IRow[]): IRow[] =>
  * choice of it falls back to Default, and its row says so. Nothing else
  * makes a row unavailable: a line missing from Claude Code's answer was
  * read as one the plan lacked, and a Max account was told Fable was not on
- * its plan (2026-11-25). The app's dropdown: open, each model stands
+ * its plan (2026-11-25). A choice of an id Claude Code listed a line by
+ * (`standIns`: `claude-fable-5-2[1m]`, which the picker once showed as a
+ * second Fable under the other versions) is that line's row, and is kept
+ * as the line from then on. The app's dropdown: open, each model stands
  * over a line saying what it is for, and the closed trigger keeps the name
  * alone. Its owner keeps the pick.
  */
@@ -115,9 +120,18 @@ export default function ClaudeModelPick({
   const models = useStudioChatModels();
   const rows = rowsOf(models);
   const others = othersOf(models, rows);
-  const shown: TStudioChatModel = isStudioChatModelOffered(models, model)
-    ? model
+  const chosen = studioChatLineOf(models, model);
+  const shown: TStudioChatModel = isStudioChatModelOffered(models, chosen)
+    ? chosen
     : 'default';
+  // A chat that chose the id Claude Code listed a line by keeps the line
+  // itself from now on: it then follows the line to its next model, where
+  // the id would be dropped from the list and the chat moved to Default.
+  useEffect(() => {
+    if (chosen !== model) {
+      onPick(chosen);
+    }
+  }, [chosen, model, onPick]);
   const hintOf = ({ line, offered }: IRow) => {
     if (!offered) {
       return t(
