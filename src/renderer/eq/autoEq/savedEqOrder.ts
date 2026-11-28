@@ -8,9 +8,9 @@ import type { ISavedEqSummary } from 'common/songSoundMemory';
 import type { ISavedEqStates } from '../../audio/savedEqActions';
 
 /**
- * How the Save EQ menu lists saved EQs, in its short list and its manage
- * view alike: newest changed first, and the one on — playing or changed —
- * above all.
+ * How the saved EQ's name lists saved EQs to load, in its short list and its
+ * manage view alike: newest changed first, and the one on — playing or
+ * changed — above all.
  */
 export const orderSavedEqs = (
   eqs: readonly ISavedEqSummary[],

@@ -145,7 +145,7 @@ export const goBackToSaved = (
  * happen"): "Song · Warm" while the song's own sound plays, "Album · Pop"
  * while its album's does, "Changed · K-pop" while one of them was changed by
  * hand. Anything else — the listener's own sound, a saved EQ, None, nothing
- * saved — is no tag: a saved EQ's name is on the Save EQ button and the
+ * saved — is no tag: a saved EQ's name is on its key beside Clear and the
  * preset on the titlebar's plate. The preset named is always the one that
  * plays (`live`, read the way the plate reads it), never a remembered id.
  */

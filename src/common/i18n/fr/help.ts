@@ -259,8 +259,10 @@ const help: Record<keyof typeof en, string> = {
     'Égalisation auto : le son enregistré de chaque chanson, le son de son album depuis la Bibliothèque, et la Correction intelligente par-dessus.',
   'help.eq.clear':
     'Remet chaque gain, et la Tonalité, à 0 dB et garde vos bandes. Demande d’abord.',
+  'help.eq.loadEq':
+    'L’EQ enregistré appliqué, par son nom. Ouvre vos EQ enregistrés pour en charger un, ramène celui qui est appliqué à sa version enregistrée ou les ouvre tous pour les gérer.',
   'help.eq.saveEq':
-    'Garde ce qui joue comme un EQ enregistré, met à jour celui qui est en place, en remet un autre ou les ouvre tous pour les gérer.',
+    'Enregistre vos modifications dans l’EQ enregistré appliqué, avec Annuler jusqu’à votre prochaine modification, ou enregistre ce qui joue comme un nouvel EQ.',
   'help.eq.mode':
     'La force avec laquelle votre égaliseur et les courbes s’appliquent, le Q des bandes, la phase, les aigus et le lissage ; il indique Normal tant que rien n’est changé. Avec la carte Mode EQ épinglée, il l’amène à l’écran.',
   'help.eq.add':

@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { playsSavedEq } from 'common/savedEq';
 import type { ISongSound } from 'common/songSound';
 import type { ISavedEqSummary } from 'common/songSoundMemory';
@@ -91,8 +91,28 @@ export const putOnSavedEq = (eq: ISavedEqSummary): boolean => {
   return true;
 };
 
+/**
+ * The last save over a saved EQ, so it can be undone (Ivan, 2026-11-27,
+ * option A: a save over somebody's EQ is destructive, and the Save menu
+ * offers Undo in the saved row). What it held before and what was written.
+ */
+export interface ISaveOver {
+  eqId: string;
+  before: ISongSound;
+  after: ISongSound;
+}
+
+let lastSaveOver: ISaveOver | undefined;
+
+const keepSaveOver = (record: ISaveOver | undefined) => {
+  if (record !== lastSaveOver) {
+    lastSaveOver = record;
+    listeners.forEach((listener) => listener());
+  }
+};
+
 /** Update one with what plays, keeping or leaving out the preset as it was
- * saved: every song and album on it follows. */
+ * saved: every song and album on it follows. Kept to be undone. */
 export const updateSavedEqWithLive = async (
   eq: ISavedEqSummary,
 ): Promise<void> => {
@@ -100,8 +120,69 @@ export const updateSavedEqWithLive = async (
   if (!live) {
     return;
   }
-  await updateEq(eq.id, soundToKeep(live, eq.sound.presetId !== ''));
+  const after = soundToKeep(live, eq.sound.presetId !== '');
+  await updateEq(eq.id, after);
+  // Worn first: a record for an EQ that is not yet the one on reads as
+  // stale, and `useSaveOverUndo` would forget it.
   wear(eq.id);
+  keepSaveOver({ eqId: eq.id, before: eq.sound, after });
+};
+
+/**
+ * Put back what the saved EQ held before the last save over it. What plays is
+ * left as it is: the edits are still there, now unsaved again, so the EQ reads
+ * Changed and can be saved once more.
+ */
+export const undoSaveOver = async (): Promise<void> => {
+  const record = lastSaveOver;
+  if (!record) {
+    return;
+  }
+  keepSaveOver(undefined);
+  await updateEq(record.eqId, record.before);
+};
+
+/**
+ * The save over the saved EQ that is on, while it can still be undone: only
+ * until what plays moves off what was written. Compared with what was
+ * written, never with the index, which hears of the update a moment later
+ * and would read the EQ as changed in between.
+ */
+export const saveOverToUndo = (
+  onId: string | undefined,
+  live: ISongSound | undefined,
+  record: ISaveOver | undefined,
+): ISaveOver | undefined =>
+  record &&
+  live &&
+  record.eqId === onId &&
+  playsSavedEq(live, {
+    id: record.eqId,
+    name: '',
+    sound: record.after,
+    updatedAt: 0,
+  })
+    ? record
+    : undefined;
+
+const readSaveOver = () => lastSaveOver;
+
+/** The undoable save over the EQ that is on; forgotten at the next change. */
+export const useSaveOverUndo = (
+  onId: string | undefined,
+): ISaveOver | undefined => {
+  const live = useLiveSongSound();
+  const record = useSyncExternalStore(subscribe, readSaveOver, readSaveOver);
+  const offered = saveOverToUndo(onId, live, record);
+  // An edit, or another EQ put on, ends it for good: the Undo does not come
+  // back if the edits happen to return to what was saved.
+  const isStale = record !== undefined && live !== undefined && !offered;
+  useEffect(() => {
+    if (isStale) {
+      keepSaveOver(undefined);
+    }
+  }, [isStale]);
+  return offered;
 };
 
 /**
@@ -169,5 +250,9 @@ export const useSavedEqStates = (
   return savedEqStates(eqs, live, now, worn);
 };
 
-/** Forget which one was worn, between isolated sessions. */
-export const resetSavedEqActions = (): void => wear(undefined);
+/** Forget which one was worn and the save to undo, between isolated
+ * sessions. */
+export const resetSavedEqActions = (): void => {
+  keepSaveOver(undefined);
+  wear(undefined);
+};

@@ -260,8 +260,10 @@ const help: Record<keyof typeof en, string> = {
     'Auto-EQ: der gespeicherte Klang jedes Songs, der Klang seines Albums aus der Bibliothek und darüber die Smart-Korrektur.',
   'help.eq.clear':
     'Stellt jede Verstärkung und den Klang auf 0 dB und behält Ihre Bänder. Fragt vorher.',
+  'help.eq.loadEq':
+    'Der aufgelegte gespeicherte EQ, mit Namen. Öffnet Ihre gespeicherten EQs, um einen zu laden, setzt den aufgelegten auf die gespeicherte Fassung zurück oder öffnet alle zum Verwalten.',
   'help.eq.saveEq':
-    'Bewahrt, was spielt, als gespeicherten EQ, aktualisiert den aktiven, wendet einen anderen an oder öffnet alle zum Verwalten.',
+    'Speichert Ihre Änderungen im aufgelegten gespeicherten EQ, mit Rückgängig bis zur nächsten Änderung, oder speichert das Laufende als neuen EQ.',
   'help.eq.mode':
     'Wie stark Ihr EQ und die Kurven wirken, Band-Q, Phase, Höhen und Glättung; dort steht Normal, bis Sie etwas ändern. Ist die Karte EQ-Modus angeheftet, holt es die Karte in den Blick.',
   'help.eq.add':

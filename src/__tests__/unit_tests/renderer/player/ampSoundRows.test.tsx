@@ -58,7 +58,7 @@ jest.mock('renderer/player/PlayerTone', () => mockStub('dials'));
 jest.mock('renderer/components/BandLayoutMenu', () => mockStub('count'));
 jest.mock('renderer/player/PlayerAddBand', () => mockStub('add'));
 jest.mock('renderer/components/ClearEqButton', () => mockStub('clear'));
-jest.mock('renderer/eq/autoEq/SaveEqMenu', () => mockStub('save'));
+jest.mock('renderer/eq/autoEq/SavedEqKeys', () => mockStub('saved EQs'));
 // The Curves menu as its way to a headphone correction alone, to see where
 // the amp sends it.
 jest.mock('renderer/components/CurvesPicker', () => ({
@@ -126,7 +126,7 @@ describe('the amp’s sound rows', () => {
       'count',
       'add',
       'clear',
-      'save',
+      'saved EQs',
       'curves',
       'mode',
       'auto eq',

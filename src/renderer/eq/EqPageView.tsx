@@ -35,7 +35,7 @@ import EqPageModeSelect from '../components/eqMode/EqPageModeSelect';
 import BandLayoutMenu from '../components/BandLayoutMenu';
 import CurvesPicker from '../components/CurvesPicker';
 import ClearEqButton from '../components/ClearEqButton';
-import SaveEqMenu from './autoEq/SaveEqMenu';
+import SavedEqKeys from './autoEq/SavedEqKeys';
 import BandLevels from '../components/BandLevels';
 import { attachRail } from './bandsRail';
 import OverflowArrow from '../components/OverflowArrow';
@@ -166,9 +166,9 @@ const EqPageView = ({ bands, actions, tab }: TEqPageViewProps) => {
             <span className="eq-toolbar__word">{t('eq.tools.add')}</span>
           </Button>
           <ClearEqButton label={t('eq.tools.clear')} />
-          {/* Keep what plays as a saved EQ, update it, put one on (Ivan,
-            2026-11-20: "we have it next to Clear"). */}
-          <SaveEqMenu />
+          {/* The saved EQs next to Clear (Ivan, 2026-11-20): the name of the
+            one on, which loads, and the disk, which saves (2026-11-27). */}
+          <SavedEqKeys />
         </EqToolGroup>
         {rule}
         <EqToolGroup caption={t('eq.tools.view')}>

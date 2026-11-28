@@ -11,20 +11,21 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'motion' as *;
 
 // WHAT A SOUND HOLDS, in Auto EQ's panel (`AutoEqSongHolds`), AND THE SAVED
-// EQS, in the Save EQ menu beside Clear (`SaveEqMenu`, `AutoEqEqRow`,
-// `AutoEqSaveEqForm`): flat like the panel (`EqAutoPanel.scss`), no box under
-// a row, a row lit only while it plays, no shadow anywhere (Ivan, 2026-11-19).
+// EQS, in the name's and the disk's menus beside Clear (`LoadEqMenu`,
+// `SaveEqMenu`, `AutoEqEqRow`, `AutoEqSaveEqForm`): flat like the panel
+// (`EqAutoPanel.scss`), no box under a row, a row lit only while it plays,
+// no shadow anywhere (Ivan, 2026-11-19).
 
-// A button's icon in the Save EQ menu, the size of its words. An svg with no size of
-// its own fills its parent.
-.eq-save-menu .button > .menu-icon {
+// A button's icon in the saved EQs' menus, the size of its words. An svg with
+// no size of its own fills its parent.
+.eq-saved-menu .button > .menu-icon {
   flex: 0 0 auto;
   width: 14px;
   height: 14px;
 }
 
 // The word beside an icon a breath away from it, never touching.
-.eq-save-menu .button:has(> .menu-icon) {
+.eq-saved-menu .button:has(> .menu-icon) {
   gap: 6px;
 }
 
@@ -328,10 +329,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
   height: 16px;
 }
 
-// Save EQ's menu in the bands toolbar (`SaveEqMenu`): the band menu's rows,
-// wide enough for a saved EQ's name and what it says beside it, and the
-// panel's own form in its place while saving.
-.band-menu.eq-save-menu {
+// The saved EQs' two menus in the bands toolbar: the name's, which loads
+// (`LoadEqMenu`), and the disk's, which saves (`SaveEqMenu`). The band menu's
+// rows, wide enough for a saved EQ's name and what it says beside it; the
+// panel's own form in the disk's place while saving, and Manage at the
+// panel's width in the name's.
+.band-menu.eq-saved-menu {
   width: 300px;
   // Its width runs to each view's as its height does (`AnimatedHeight`).
   transition: width $motion-base $ease-out;
@@ -358,40 +361,116 @@ SPDX-License-Identifier: GPL-3.0-or-later
     }
   }
 
-  .eq-save-menu__update {
-    grid-template-columns: 16px minmax(0, 1fr) auto;
-  }
-
-  .eq-save-menu__eq {
+  .eq-saved-menu__eq {
     grid-template-columns: 44px minmax(0, 1fr) auto;
     gap: 10px;
   }
+
+  // Save changes, and the saved row that takes its place, at one height so
+  // the menu does not move when the save lands: a button does not inherit
+  // the menu's line height, so both rows set their words' own (below), and
+  // each holds the other's words and end unseen (`__stack`). Measured 44
+  // against 48 before.
+  .eq-saved-menu__save {
+    min-height: 48px;
+    box-sizing: border-box;
+    grid-template-columns: 16px minmax(0, 1fr) auto;
+  }
 }
 
-.eq-save-menu__curve {
+// The saved row says what is so rather than being pressed: the band menu's
+// row without its hover, its tick in the green a kept sound wears.
+.eq-saved-menu__save.is-saved {
+  display: grid;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  color: $text-primary;
+  border: 1px solid transparent;
+  border-radius: $radius-xs;
+  font-size: $text-body;
+
+  > .band-menu__icon {
+    color: $sound-own;
+  }
+}
+
+// Undo in the saved row, the quiet style at the row's own height.
+.band-menu .button.eq-saved-menu__undo {
+  min-height: 26px;
+  height: 26px;
+  padding: 0 9px;
+  font-size: $text-small;
+}
+
+// The two rows' sentences, and their ends (Changed, Undo), laid on one
+// another: the one not shown keeps its room, so Save changes and the saved
+// row are one size in every language (`SaveEqMenu`).
+.eq-saved-menu__stack {
+  display: grid;
+
+  > * {
+    grid-area: 1 / 1;
+  }
+
+  &.is-end {
+    align-items: center;
+    justify-items: end;
+  }
+
+  > .is-reserved {
+    visibility: hidden;
+  }
+}
+
+// The row's sentence and, under it, who follows the saved EQ.
+.eq-saved-menu__words {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+  line-height: 1.3;
+}
+
+.eq-saved-menu__sub {
+  overflow: hidden;
+  color: $text-faint;
+  font-size: $text-small;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eq-saved-menu__curve {
   width: 44px;
   height: 18px;
 }
 
-.eq-save-menu__name {
+.eq-saved-menu__name {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-// "Put on", quiet until the row is pointed at.
-.eq-save-menu__put {
+// What a saved EQ's row says at its end: Playing or Changed, then the verb.
+.eq-saved-menu__end {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+// "Load" and "Reload", quiet until the row is pointed at.
+.eq-saved-menu__verb {
   color: $text-faint;
   font-size: $text-micro;
 
-  button:hover > &,
-  button:focus-visible > & {
+  button:hover &,
+  button:focus-visible & {
     color: $secondary-light;
   }
 }
 
-.eq-save-menu__empty {
+.eq-saved-menu__empty {
   margin: 0;
   padding: 6px 10px;
   color: $text-faint;
@@ -399,7 +478,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 // The form at the panel's own size and ink, as it is drawn there.
-.eq-save-menu__form {
+.eq-saved-menu__form {
   display: grid;
   gap: 6px;
   padding: 0 6px 6px;
@@ -412,7 +491,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 // The manage view's head: back to the menu, and its name.
-.eq-save-menu__head {
+.eq-saved-menu__head {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -422,7 +501,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-.eq-save-menu__back {
+.eq-saved-menu__back {
   width: 28px;
   height: 28px;
   justify-content: center;
@@ -452,7 +531,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 // The menu's own list view, laid out as the band menu lays its rows.
-.eq-save-menu__list {
+.eq-saved-menu__list {
   display: grid;
   gap: 1px;
 }
@@ -479,9 +558,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
   @include animate(fade-in, $motion-fast);
 }
 
-// The Save EQ face (`SaveEqMenu`): the saved EQ that is loaded, by name, cut
-// short past a word's width (the tooltip holds the whole of it), and Changed
-// as an amber dot on the glyph, which stays when the row is down to glyphs.
+// The saved EQs' keys: the name of the one that is on (`LoadEqMenu`), cut
+// short past a word's width (the tooltip holds the whole of it), and the disk
+// (`SaveEqMenu`), with Changed as an amber dot on its glyph, which stays when
+// the row is down to glyphs.
 .eq-save-trigger__glyph {
   position: relative;
   display: inline-flex;
@@ -497,13 +577,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
   background: $sound-album;
 }
 
-.eq-save-trigger__name {
+.eq-load-trigger__name {
   max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 // A saved EQ put on, or taken off, swaps the name in.
-.eq-save-trigger.is-swap .eq-save-trigger__name {
+.eq-load-trigger.is-swap .eq-load-trigger__name {
   @include animate(fade-in, $motion-fast);
 }

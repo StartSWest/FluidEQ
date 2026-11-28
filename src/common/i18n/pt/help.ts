@@ -254,8 +254,10 @@ const help: Record<keyof typeof en, string> = {
     'EQ automático: o som salvo de cada música, o som do álbum vindo da Biblioteca e, por cima, a Correção inteligente.',
   'help.eq.clear':
     'Põe cada ganho, e o Tom, em 0 dB e mantém suas bandas. Pergunta antes.',
+  'help.eq.loadEq':
+    'O EQ salvo que está ativo, pelo nome. Abre seus EQs salvos para carregar um, volta o ativo para como foi salvo ou abre todos para gerenciar.',
   'help.eq.saveEq':
-    'Guarda o que está tocando como um EQ salvo, atualiza o que está ativo, coloca outro ou abre todos para gerenciar.',
+    'Salva suas alterações no EQ salvo que está ativo, com Desfazer até a sua próxima alteração, ou salva o que está tocando como um novo EQ.',
   'help.eq.mode':
     'Com que força seu EQ e as curvas se aplicam, o Q das bandas, a fase, os agudos e a suavização; mostra Normal até você mudar algo. Com o cartão Modo EQ fixado, ele traz o cartão à vista.',
   'help.eq.add':

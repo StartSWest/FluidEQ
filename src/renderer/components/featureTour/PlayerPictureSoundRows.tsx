@@ -161,14 +161,22 @@ export const PictureBandsTools = () => {
           </button>
           <button
             type="button"
+            className="button small subtle eq-load-trigger"
+            aria-label={t('eq.tools.loadEq')}
+          >
+            <MenuIcon name="openEq" className="eq-toolbar__icon" />
+            <span className="eq-toolbar__word eq-load-trigger__name">
+              {t('autoEq.eqs.title')}
+            </span>
+            <Chevron />
+          </button>
+          <button
+            type="button"
             className="button small subtle eq-save-trigger"
             aria-label={t('eq.tools.saveEq')}
           >
             <span className="eq-save-trigger__glyph">
               <MenuIcon name="saveEq" className="eq-toolbar__icon" />
-            </span>
-            <span className="eq-toolbar__word eq-save-trigger__name">
-              {t('eq.tools.saveEq')}
             </span>
           </button>
         </>,

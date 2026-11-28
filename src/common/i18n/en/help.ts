@@ -256,8 +256,10 @@ const help = {
     'Auto EQ: each song’s saved sound, its album’s sound from the Library, and Smart correction on top.',
   'help.eq.clear':
     'Sets every gain, and the Tone, to 0 dB and keeps your bands. Asks first.',
+  'help.eq.loadEq':
+    'The saved EQ that is on, by name. Opens your saved EQs to load one, takes the one on back to how it was saved, or opens them all to manage.',
   'help.eq.saveEq':
-    'Keeps what plays as a saved EQ, updates the one that is on, puts another on, or opens them all to manage.',
+    'Saves your changes to the saved EQ that is on, with Undo until you change something, or saves what plays as a new EQ.',
   'help.eq.mode':
     'How strongly your EQ and the curves apply, band Q, phase, treble and smoothing; it says Normal until you change something. With the EQ mode card pinned, it brings the card into view.',
   'help.eq.add':

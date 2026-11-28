@@ -283,6 +283,20 @@ $eq-row-ink-quiet: color-mix(in srgb, $text-primary 62%, transparent);
     display: none;
   }
 
+  // The disk is its glyph alone at every width: the saved EQ's name is the
+  // key before it (`SavedEqKeys`). Classed as the flat tools' rule above is,
+  // or its padding wins.
+  .button.small.subtle.eq-save-trigger {
+    width: 32px;
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  // The name's chevron a breath from the name, as the other dropdowns'.
+  .button.small.subtle.eq-load-trigger {
+    gap: 6px;
+  }
+
   // The EQ mode's own name says what the VIEW name and its glyph already do;
   // the button is its state, "Normal ▾", and keeps the name for a screen
   // reader and its tooltip.
@@ -320,9 +334,9 @@ $eq-row-ink-quiet: color-mix(in srgb, $text-primary 62%, transparent);
 }
 
 // Add and Clear give their words up next, before the tabs give up what they
-// hold: a plus and a turning arrow say what they do, while Save EQ's word is
-// the name of the saved EQ that is loaded and a tab's "15" or "Off" is its
-// state. From the glyphs-only fit on, the rule below covers them with the
+// hold: a plus and a turning arrow say what they do, while the saved EQ key's
+// word is the name of the saved EQ that is loaded and a tab's "15" or "Off" is
+// its state. From the glyphs-only fit on, the rule below covers them with the
 // others.
 .eq-layer-tabs:is([data-fit='quiet-bands'], [data-fit='bare-tabs']) {
   .clear-eq-trigger,
@@ -374,16 +388,37 @@ $eq-row-ink-quiet: color-mix(in srgb, $text-primary 62%, transparent);
   }
 
   .clear-eq-trigger,
-  .eq-save-trigger,
   .eq-toolbar__add {
     justify-content: center;
     width: 32px;
     padding-inline: 0;
   }
 
+  // The saved EQ's name, its word gone, is the folder and its chevron, held
+  // close: the amp's row is all glyphs at its one width.
+  .button.small.subtle.eq-load-trigger {
+    gap: 3px;
+    padding-inline: 7px 6px;
+  }
+
   // The EQ mode, its state gone, is its glyph again.
   .eq-mode-trigger .eq-toolbar__icon {
     display: block;
+  }
+}
+
+// Last, where even the glyphs run short — the amp at its one width since
+// Auto EQ took Smart's place there (455 px of tools in 452) — the saved EQ's
+// name is its folder alone, square like the disk beside it: 9 px back.
+.eq-layer-tabs[data-fit='icon-tabs']
+  .eq-layer-tabs__tools
+  .button.small.subtle.eq-load-trigger {
+  width: 32px;
+  justify-content: center;
+  padding-inline: 0;
+
+  .chevron {
+    display: none;
   }
 }
 

@@ -33,7 +33,7 @@ import '../../styles/EqLayers.scss';
  * The section pills and the bands are the page's own components fed the
  * made-up EQ (`helpEqState`); the engine's name, Game mode and the delay,
  * and the tab row with its tools, are their markup, class for class, as
- * `FluidEngineLabel`, `ListenedLatency`, `EqLayerTabs`, `SaveEqMenu`,
+ * `FluidEngineLabel`, `ListenedLatency`, `EqLayerTabs`, `SavedEqKeys`,
  * `AutoEqButton` and the pinned EQ mode trigger draw them: those read the
  * reader's engine, presets, saved EQs and songs, and act on them. The tab
  * row keeps the page's own rule for what fits (`useToolRowFit`), so a long
@@ -145,14 +145,23 @@ const BandTools = () => {
         </button>
         <button
           type="button"
+          className="button small subtle eq-load-trigger"
+          aria-haspopup="menu"
+        >
+          <MenuIcon name="openEq" className="eq-toolbar__icon" />
+          <span className="eq-toolbar__word eq-load-trigger__name">
+            {t('autoEq.eqs.title')}
+          </span>
+          <Chevron />
+        </button>
+        <button
+          type="button"
           className="button small subtle eq-save-trigger"
+          aria-label={t('eq.tools.saveEq')}
           aria-haspopup="menu"
         >
           <span className="eq-save-trigger__glyph">
             <MenuIcon name="saveEq" className="eq-toolbar__icon" />
-          </span>
-          <span className="eq-toolbar__word eq-save-trigger__name">
-            {t('eq.tools.saveEq')}
           </span>
         </button>
       </Group>

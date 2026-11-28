@@ -43,7 +43,7 @@ const report = (error: unknown) =>
  *
  * Other players' songs are counted and not listed: the store never keeps
  * their names (`songMemoryNames.ts`, Ivan 2026-10-26), so they are forgotten
- * together. Saved EQs are managed in the Save EQ menu beside Clear, their
+ * together. Saved EQs are managed from their own keys beside Clear, their
  * one home (Ivan, 2026-11-20: "remove from there dude").
  */
 const AutoEqManage = ({

@@ -15,10 +15,10 @@ import { orderSavedEqs, rowStateOf } from './savedEqOrder';
 
 /**
  * Every saved EQ, the one on first and then the newest, each with the panel's
- * own row (Put on, Update, Rename, Duplicate, Delete): Manage's Saved EQs tab
- * in Auto EQ's panel, and the manage view of the bands toolbar's Save EQ
- * menu (Ivan, 2026-11-20: "put that inside the same save EQ menu"). Narrowed
- * by the search its owner holds.
+ * own row (Load, Update, Rename, Duplicate, Delete): Manage saved EQs…, in
+ * the menu of the saved EQ's name in the bands toolbar (Ivan, 2026-11-20:
+ * "put that inside the same save EQ menu"; it moved with loading to the name
+ * on 2026-11-27). Narrowed by the search its owner holds.
  */
 const AutoEqEqList = ({ search }: { search: string }) => {
   const { t } = useTranslation();

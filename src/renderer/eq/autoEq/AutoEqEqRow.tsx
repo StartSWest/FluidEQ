@@ -12,7 +12,6 @@ import type { ISavedEqSummary } from 'common/songSoundMemory';
 import MenuIcon from '../../icons/MenuIcon';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../../widgets/AnchoredMenu';
 import { useTranslation } from '../../utils/I18nContext';
-import { countText } from '../../library/libraryFormat';
 import { deleteEq, renameEq, saveEq } from '../../utils/songSoundApi';
 import {
   putOnSavedEq,
@@ -21,18 +20,10 @@ import {
 import AutoEqMiniCurve from './AutoEqMiniCurve';
 import { type TRowPhase, rowPhaseClass } from '../../utils/usePresenceList';
 import { bandsLine, isToneFlat, presetLine } from './AutoEqSongHolds';
+import { usedOf } from './useSavedEqOn';
 
 const report = (what: string) => (error: unknown) =>
   log.error(`A saved EQ could not be ${what}`, error);
-
-/** Who follows it: "12 songs, 1 album", or nothing. */
-const usedOf = (eq: ISavedEqSummary, t: Translate): string =>
-  [
-    eq.songCount > 0 ? countText(t, 'library.trackCount', eq.songCount) : '',
-    eq.albumCount > 0 ? countText(t, 'library.albumCount', eq.albumCount) : '',
-  ]
-    .filter(Boolean)
-    .join(', ');
 
 /** What it holds, and who follows it, in one quiet line. */
 const metaOf = (eq: ISavedEqSummary, t: Translate): string => {
@@ -49,13 +40,16 @@ const metaOf = (eq: ISavedEqSummary, t: Translate): string => {
     .join(' · ');
 };
 
-type TRowMode = 'idle' | 'renaming' | 'deleting';
+type TRowMode = 'idle' | 'renaming' | 'deleting' | 'replacing';
 
 /**
- * One saved EQ in Auto EQ's panel and in Manage: its curve, its name and what
- * it holds, and the one thing to do about it — Put on, or Update once what
- * plays has moved off it. Its menu holds the rest: Rename and Delete happen
- * in the row itself, and Delete says what becomes of the songs on it.
+ * One saved EQ in Manage saved EQs…: its curve, its name and what it holds,
+ * and the one thing to do about it — Load, or Update once what plays has
+ * moved off it. Its menu holds the rest: Rename and Delete happen in the row
+ * itself, and Delete says what becomes of the songs on it. Updating a saved
+ * EQ that is not the one on writes what plays over somebody's other EQ, so
+ * the row asks first, as Delete does; the one on updates at once, as the
+ * disk's Save changes does.
  */
 const AutoEqEqRow = ({
   eq,
@@ -127,9 +121,9 @@ const AutoEqEqRow = ({
 
   const items = [
     {
-      key: 'putOn',
+      key: 'load',
       icon: 'play' as const,
-      label: t('autoEq.eqs.putOn'),
+      label: t('autoEq.eqs.load'),
       run: putOn,
       isDisabled: !canPutOn,
     },
@@ -137,7 +131,7 @@ const AutoEqEqRow = ({
       key: 'update',
       icon: 'save' as const,
       label: t('autoEq.eqs.updateWithLive'),
-      run: update,
+      run: state === 'changed' ? update : () => setMode('replacing'),
       isDisabled: !canPutOn || state === 'playing',
     },
     {
@@ -165,6 +159,44 @@ const AutoEqEqRow = ({
       isDanger: true,
     },
   ];
+
+  if (mode === 'replacing') {
+    const used = usedOf(eq, t);
+    return (
+      <li
+        className={['eq-auto-eq is-asking', rowPhaseClass(phase)]
+          .filter(Boolean)
+          .join(' ')}
+        onAnimationEnd={onAnimationEnd}
+      >
+        <div className="eq-auto-eq__words">
+          <strong>{t('autoEq.eqs.replaceAsk', { name: eq.name })}</strong>
+          {used !== '' && (
+            <span>{t('autoEq.eqs.replaceReach', { what: used })}</span>
+          )}
+        </div>
+        <div className="eq-auto-eq__actions">
+          <button
+            type="button"
+            className="button small subtle"
+            onClick={() => setMode('idle')}
+          >
+            {t('autoEq.eqs.cancel')}
+          </button>
+          <button
+            type="button"
+            className="button small"
+            onClick={() => {
+              setMode('idle');
+              update();
+            }}
+          >
+            {t('autoEq.eqs.replace')}
+          </button>
+        </div>
+      </li>
+    );
+  }
 
   if (mode === 'deleting') {
     const users = eq.songCount + eq.albumCount;
@@ -275,7 +307,7 @@ const AutoEqEqRow = ({
             onClick={putOn}
           >
             <MenuIcon name="playSolid" />
-            {t('autoEq.eqs.putOn')}
+            {t('autoEq.eqs.load')}
           </button>
         )}
         <button

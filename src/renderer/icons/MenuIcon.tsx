@@ -207,6 +207,11 @@ const PATHS: Record<string, string> = {
   // when the row is down to glyphs.
   saveEq:
     'M5 4.5h11l3 3V19a.5.5 0 0 1-.5.5h-13A.5.5 0 0 1 5 19V4.5zM8 4.5v4.5h7V4.5M7.5 16c1.5-3 3-3 4.5 0s3 3 4.5 0',
+  // The folder with the same curve in it: open a saved EQ (the name of the
+  // one on, beside the disk), told apart from the disk when the row is down
+  // to glyphs.
+  openEq:
+    'M3.5 7.5h6l2-2h3l2 2h4v10.5a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18V7.5zM7.5 14.5c1.5-3 3-3 4.5 0s3 3 4.5 0',
   // A screen on its stand: the desktop.
   monitor: 'M3.5 5h17v11h-17zM9 20h6M12 16v4',
   // An arrow coming in from the right: sound arriving from another computer.

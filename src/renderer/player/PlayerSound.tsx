@@ -13,7 +13,7 @@ import EqModeSelect from '../components/EqModeSelect';
 import VoicingQuickPick from '../components/VoicingQuickPick';
 import AutoEqButton from '../eq/autoEq/AutoEqButton';
 import { OPEN_AUTO_EQ_EVENT } from '../eq/autoEq/autoEqOpen';
-import SaveEqMenu from '../eq/autoEq/SaveEqMenu';
+import SavedEqKeys from '../eq/autoEq/SavedEqKeys';
 import EqToolGroup from '../eq/EqToolGroup';
 import { cutCorners, isToneInUse } from '../eq/toneCuts';
 import MenuIcon from '../icons/MenuIcon';
@@ -40,10 +40,11 @@ const FACE_ICON: Record<TPlayerSoundFace, 'eqBars' | 'waveform'> = {
 /**
  * Under the faders, the EQ page's Your EQ tools in the page's order (Ivan,
  * 2026-11-27: "same order as in the full app"): BANDS — how many, Add,
- * Clear, Save EQ; VIEW — the curves and the EQ mode; and Auto EQ at the end,
- * the page's own button, with Smart correction inside its panel (Ivan,
- * 2026-11-27: "smart eq button need to go, instead we show the auto eq with
- * that menu that have smart eq inside"). Its panel opens over its button.
+ * Clear, the saved EQs' name and disk; VIEW — the curves and the EQ mode;
+ * and Auto EQ at the end, the page's own button, with Smart correction inside
+ * its panel (Ivan, 2026-11-27: "smart eq button need to go, instead we show
+ * the auto eq with that menu that have smart eq inside"). Its panel opens
+ * over its button.
  *
  * Every one opens over the amp, anchored to itself (Ivan, 2026-11-27: "it
  * tries to show on side pane not good for amp"): the EQ mode is the menu,
@@ -64,7 +65,7 @@ const BandsTools = ({
         <BandLayoutMenu formatLabel={String} />
         <PlayerAddBand />
         <ClearEqButton label={t('eq.tools.clear')} />
-        <SaveEqMenu />
+        <SavedEqKeys />
       </EqToolGroup>
       <span className="eq-layer-tabs__rule" aria-hidden="true" />
       <EqToolGroup caption={t('eq.tools.view')}>

@@ -71,7 +71,7 @@ export const AutoEqPart = ({
  * that plays and what decides its sound, the parts — Song sounds for what a
  * song keeps (a saved EQ among what it can be given), Album sounds for what
  * the Library set for its album, Smart correction on top — and how much is
- * kept, with Manage. The saved EQs themselves live in the Save EQ menu beside
+ * kept, with Manage. The saved EQs themselves live in their own keys beside
  * Clear (Ivan, 2026-11-20: "remove from there dude").
  *
  * Flat inside one surface (Ivan, 2026-11-19: no boxes in boxes, no shadows):
@@ -113,7 +113,7 @@ const AutoEqPanel = ({ button }: { button: TAutoEqButton }) => {
   }
 
   // The saved EQ a saved song follows, named where its preset would be: it is
-  // the song's sound. A saved EQ the listener put on is the Save EQ menu's to
+  // the song's sound. A saved EQ the listener put on is its own key's to
   // name, beside Clear (Ivan, 2026-11-20: "aqui debe decir el EQ que esta
   // cargado no en auto eq").
   const songEq = now.eqId === undefined ? undefined : eqById.get(now.eqId);

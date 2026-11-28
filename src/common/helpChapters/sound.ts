@@ -53,6 +53,11 @@ const SOUND_CHAPTERS = [
             text: 'help.eq.clear',
           },
           {
+            target: '.eq-load-trigger',
+            name: 'eq.tools.loadEq',
+            text: 'help.eq.loadEq',
+          },
+          {
             target: '.eq-save-trigger',
             name: 'eq.tools.saveEq',
             text: 'help.eq.saveEq',
