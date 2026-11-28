@@ -23,7 +23,7 @@ import {
   isFrameDue,
   WINDOW_DRAWING_PACE_MS,
 } from '../utils/framePace';
-import { useSceneLook } from '../utils/graphStyle';
+import { useShownGraphScene } from '../graph/shownGraphScene';
 import {
   loadMemberScene,
   type IUsableMemberScene,
@@ -89,12 +89,15 @@ const prefersReducedMotion = () =>
  *
  * One mode for the whole app decides whether it is drawn, and the same
  * precedence as the window's colour decides whose: the Studio's
- * project while it owns the window, the graph's look otherwise.
+ * project while it owns the window, the graph's look otherwise - the scene
+ * whose picture the graph shows, not the one just chosen, so the next scene's
+ * elements never fly round the last one's picture while it waits for its
+ * first frame (`shownGraphScene.ts`).
  */
 export default function SceneAmbient() {
   const mode = useWindowTintMode();
   const studio = useStudioTintSource();
-  const scene = useSceneLook();
+  const scene = useShownGraphScene();
   const studioValues = useStudioAmbientValues();
   const { readFrame, isPaused } = useLiveAudioControl();
   const [reduced, setReduced] = useState(prefersReducedMotion);

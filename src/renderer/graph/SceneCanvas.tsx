@@ -222,6 +222,15 @@ export default function SceneCanvas({
   // The automatic switching counts a look's time from its first frame, not
   // from the moment it was chosen (`graphAutoCycle.ts`).
   useHoldGraphAutoCycle(drawnIdentity !== key);
+  // The pack of the scene ON SCREEN, for what it throws from the hand
+  // (`ScenePointerLayer`): the pack built is held until its first frame is
+  // drawn. Taken as it was built, the next scene's pieces were thrown over
+  // the last one's picture, which stays up until that frame
+  // (`shownGraphScene.ts`).
+  const builtRef = useRef<{ identity: string; pack: IScenePack } | undefined>(
+    undefined,
+  );
+  const [shownPack, setShownPack] = useState<IScenePack>();
   const panel = plot?.panel;
   const onDrawn = useCallback(
     (
@@ -234,6 +243,10 @@ export default function SceneCanvas({
       if (frame.fade > 0 && drawnRef.current !== key) {
         drawnRef.current = key;
         setDrawnIdentity(key);
+        const built = builtRef.current;
+        if (built?.identity === key) {
+          setShownPack(built.pack);
+        }
       }
       // The Processes dialog says what it is costing.
       reportSceneDraw('graph', name, report);
@@ -262,11 +275,14 @@ export default function SceneCanvas({
     [chosen, chosenParams],
   );
   const authorId = isMemberScene(scene) ? scene.authorId : undefined;
-  // The pack drawn, for what it throws from the hand (`ScenePointerLayer`).
-  const [drawnPack, setDrawnPack] = useState<IScenePack>();
   const onLoaded = useCallback(
     (pack: IScenePack) => {
-      setDrawnPack(pack);
+      builtRef.current = { identity: key, pack };
+      // A new version of the scene on screen is drawn from the next frame,
+      // swapped in place; any other waits for its first (`onDrawn`).
+      if (drawnRef.current === key) {
+        setShownPack(pack);
+      }
       reportOwnResponse(lookId, pack.response);
       // What the menu draws a row from: the controls this pack declares.
       reportOwnParams(lookId, pack.params);
@@ -281,7 +297,7 @@ export default function SceneCanvas({
         ...(authorId ? { authorId } : {}),
       }).catch(() => undefined);
     },
-    [lookId, authorId],
+    [key, lookId, authorId],
   );
 
   // The viewer's hands on the scene: a camera to turn where the scene has
@@ -296,14 +312,22 @@ export default function SceneCanvas({
   const layerName = target.dataset.sceneLayer;
   // The same test as `layer` below: a layer is an element that names one.
   const isOnLayer = Boolean(layerName);
-  // The plot's loading and its reset read this (`ScenePlot`).
+  // Whether anybody can see the canvas, as the runner answers it (`onShown`).
+  // Assumed seen until it answers, as the runner assumes: assumed unseen,
+  // the window would let the scene of the picture on screen go before the
+  // runner had said a word (`shownGraphScene.ts`).
+  const [isShown, setIsShown] = useState(true);
+  // The plot's loading and its reset read this (`ScenePlot`), and the
+  // window's elements whether there is a picture to keep them for
+  // (`GraphScene`).
   useLayoutEffect(() => {
     publishGraphSceneRun({
       interaction,
       isOnLayer,
+      isShown,
       ...(drawnIdentity === undefined ? {} : { drawnIdentity }),
     });
-  }, [interaction, drawnIdentity, isOnLayer]);
+  }, [interaction, drawnIdentity, isOnLayer, isShown]);
   useLayoutEffect(() => () => publishGraphSceneRun(undefined), []);
   // A scene Auto built ahead goes on without the plot's loading ring
   // (`scenePreload.ts`) until its first frame says so through the run above,
@@ -420,6 +444,7 @@ export default function SceneCanvas({
     tuning,
     onDrawn,
     onLoaded,
+    onShown: setIsShown,
     interaction,
     placement: target,
     ...(ink ? { probe: ink } : {}),
@@ -471,14 +496,14 @@ export default function SceneCanvas({
           the mouse anywhere over the window; on the plot, over its panel,
           following the hands the plot gives the scene. */}
       {sparks &&
-        drawnPack?.pointer &&
+        shownPack?.pointer &&
         (layer
           ? createPortal(
               <ScenePointerLayer
                 gestures={windowGestures}
-                pointer={drawnPack.pointer}
-                ambient={drawnPack.ambient}
-                artwork={drawnPack.artwork}
+                pointer={shownPack.pointer}
+                ambient={shownPack.ambient}
+                artwork={shownPack.artwork}
               />,
               container,
             )
@@ -486,9 +511,9 @@ export default function SceneCanvas({
             createPortal(
               <ScenePointerLayer
                 gestures={interaction.onGesture}
-                pointer={drawnPack.pointer}
-                ambient={drawnPack.ambient}
-                artwork={drawnPack.artwork}
+                pointer={shownPack.pointer}
+                ambient={shownPack.ambient}
+                artwork={shownPack.artwork}
               />,
               panel,
             ))}

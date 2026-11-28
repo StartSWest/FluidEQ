@@ -54,6 +54,13 @@ export interface IGraphSceneRun {
   /** The scene that has drawn its first frame: the plot's loading goes. */
   drawnIdentity?: string;
   /**
+   * Whether anybody can see the canvas (`observeShown`): false in the amp,
+   * under a page over the graph, in a hidden window. Its picture is then
+   * nothing the window has to keep its scene's pieces for
+   * (`shownGraphScene.ts`).
+   */
+  isShown: boolean;
+  /**
    * Whether the canvas stands on a layer of the window behind the plot - the
    * EQ column's or the Backdrop - rather than in the plot's own slot. The
    * plot's loading floor is in front of a layer, so the plot puts none up

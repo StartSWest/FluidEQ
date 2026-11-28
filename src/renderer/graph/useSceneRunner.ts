@@ -152,6 +152,7 @@ export default function useSceneRunner({
   onLoaded,
   onWaiting,
   onUpdating,
+  onShown,
   interaction,
   probe,
   adopt,
@@ -278,6 +279,8 @@ export default function useSceneRunner({
   const updatingCallbackRef = useRef(onUpdating);
   updatingCallbackRef.current = onUpdating;
   const updatingRef = useRef(false);
+  const shownCallbackRef = useRef(onShown);
+  shownCallbackRef.current = onShown;
   /**
    * The build whose program the worker holds ready to draw. Frames are
    * tagged with it when they are sent, so the last frame of the version being
@@ -798,6 +801,7 @@ export default function useSceneRunner({
     const stopObserving = observeShown(host, (shown) => {
       const active = shown || (captureFrames && !document.hidden);
       shownRef.current = active;
+      shownCallbackRef.current?.(active);
       keptThroughHide = !active && document.hidden && !!rendererRef.current;
       if (!active && rendererRef.current && !document.hidden) {
         shelve();

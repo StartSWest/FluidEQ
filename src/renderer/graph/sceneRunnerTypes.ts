@@ -256,6 +256,12 @@ export interface ISceneRunnerOptions {
    */
   onUpdating?: (updating: boolean) => void;
   /**
+   * Whether anybody can see the canvas (`observeShown`), as the runner
+   * answers it for itself: false in the amp, under a page over it, in a
+   * hidden window, where it gives its worker back. Told on every answer.
+   */
+  onShown?: (shown: boolean) => void;
+  /**
    * The viewer's hands on this surface (`sceneInteraction.ts`): the pointer,
    * taps and the camera the scene's `camera` limits allow. Absent, a scene
    * is pointed at by nobody and seen from where its author put the camera.

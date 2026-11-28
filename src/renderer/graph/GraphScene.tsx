@@ -14,11 +14,14 @@ import { useSceneColumnHost } from '../utils/sceneCover';
 import {
   graphScenePlace,
   isGraphWaveDrawn,
+  useGraphSceneRun,
   useScenePlot,
 } from './graphScenePlace';
 import SceneCanvas from './SceneCanvas';
+import { sceneIdentityOf } from './sceneIdentity';
 import { useGraphSceneStoodIn } from './sceneStandIn';
 import { useScenePreload } from './scenePreload';
+import { useKeepShownGraphScene } from './shownGraphScene';
 
 /**
  * The graph's Plus visualizer, run once for the whole window.
@@ -51,6 +54,17 @@ export default function GraphScene() {
     plot,
     column,
   });
+  // What of a scene the window shows outside its picture: the chosen
+  // scene's, unless this canvas, in sight, is still putting it up - mounting
+  // for it, or holding the last scene's picture until its first frame - when
+  // the window goes on showing the last one's (`shownGraphScene.ts`).
+  const run = useGraphSceneRun();
+  const isPuttingUp =
+    scene !== null &&
+    target !== undefined &&
+    (run === undefined ||
+      (run.isShown && run.drawnIdentity !== sceneIdentityOf(scene)));
+  useKeepShownGraphScene(scene, isPuttingUp);
   if (!scene || !target) {
     return null;
   }
