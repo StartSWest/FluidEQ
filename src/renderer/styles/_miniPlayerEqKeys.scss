@@ -8,7 +8,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'theme' as *;
 @use 'miniPlayerParts' as *;
 
-// The equalizer's section in the amp: its head row, and Smart's split key.
+// The equalizer's section in the amp: its head row.
 // Each control's face is the sound section's (`_miniPlayerSound.scss`).
 
 // The section itself: the pane is its face, so it draws none of its own.
@@ -70,40 +70,4 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 .mini-player .rich-pick__glyph {
   color: var(--player-text-soft);
-}
-
-// ======================================================= Smart EQ's key ====
-//
-// ONE KEY, DRAWN ONCE (Ivan, 2026-09-22: "needs to be integrated, not two
-// separated things"). It held the switch and a caret that chose how Smart
-// correction listened; there is one way now (2026-11-27), and the switch
-// fills the key. Its face and its colours are the sound section's; here,
-// only that the switch draws none of its own.
-.mini-player .player-split {
-  display: inline-flex;
-  align-items: center;
-
-  > .button.player-split__main {
-    &,
-    &:hover:not(:disabled),
-    &:active:not(:disabled) {
-      border: 0;
-      border-radius: 0;
-      background: none;
-      box-shadow: none;
-      color: inherit;
-      transform: none;
-    }
-
-    &:hover:not(:disabled) {
-      background: var(--player-hover);
-    }
-  }
-}
-
-// Smart's spark breathes while it listens (`_miniPlayerSound.scss`).
-@keyframes player-lamp-breathe {
-  50% {
-    opacity: 0.35;
-  }
 }

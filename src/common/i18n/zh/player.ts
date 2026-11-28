@@ -32,7 +32,6 @@ export default {
   'player.seekNone': '此来源无法跳转到歌曲中的其他位置',
   'player.eq.aria': '均衡器',
   'player.eq.onHint': '打开或关闭 FluidEQ',
-  'player.eq.smart': '智能',
   'player.eq.pre': '前级',
   'player.eq.auto': '自动',
   'player.eq.autoHint': '开启自动归一化',

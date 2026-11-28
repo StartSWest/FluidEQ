@@ -765,7 +765,6 @@ const eq = {
     'Paste an export to see its shape before you continue fine-tuning it in the EQ.',
   'eq.title': 'Parametric EQ',
   'eq.smart': 'Smart correction',
-  'eq.smart.cancel': 'Cancel',
   'eq.smart.continuousAria':
     'Keep Smart correction measuring and adjusting while music plays',
   'eq.layers.aria': 'Also shaping this output',

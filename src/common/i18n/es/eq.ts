@@ -763,7 +763,6 @@ const eq: Partial<Dictionary> = {
     'Pega una exportación para ver su forma antes de seguir afinándola en el EQ.',
   'eq.title': 'EQ paramétrico',
   'eq.smart': 'Corrección inteligente',
-  'eq.smart.cancel': 'Cancelar',
   'eq.smart.continuousAria':
     'Mantener la corrección inteligente midiendo y ajustando mientras suena la música',
   'eq.layers.aria': 'Otros ajustes que afectan a esta salida',

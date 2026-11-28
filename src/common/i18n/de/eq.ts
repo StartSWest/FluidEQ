@@ -766,7 +766,6 @@ const eq: Partial<Dictionary> = {
     'Fügen Sie einen Export ein, um seine Form zu sehen, bevor Sie mit der Feinabstimmung im EQ weitermachen.',
   'eq.title': 'Parametrischer EQ',
   'eq.smart': 'Smart-Korrektur',
-  'eq.smart.cancel': 'Abbrechen',
   'eq.smart.continuousAria':
     'Smart-Korrektur misst und justiert weiter, solange Musik läuft',
   'eq.layers.aria': 'Was diesen Ausgang außerdem formt',

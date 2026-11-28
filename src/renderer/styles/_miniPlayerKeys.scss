@@ -8,30 +8,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'theme' as *;
 @use 'miniPlayerParts' as *;
 
-// The keys that are lit while on — Smart's split key — and the bare glyph
-// keys.
-
-// ============================================================ lamp keys ====
-//
-// A pill lit while it is on. `button small subtle`
-// underneath, so it disables and takes focus as every quiet button in the
-// app does; its face is the amp's pill, and on it is lit.
-.mini-player,
-.player-menu {
-  .button.player-led {
-    @include player-pill;
-
-    &[aria-pressed='true']:not(:disabled) {
-      @include player-key-on;
-    }
-  }
-}
-
-// What a key is set to, quieter than its name beside it.
-.player-led__value {
-  color: var(--player-text-muted);
-  font-weight: $weight-medium;
-}
+// The bare glyph keys.
 
 // ========================================================== glyph keys =====
 .player-icon-button {

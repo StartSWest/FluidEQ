@@ -30,7 +30,6 @@ const player = {
   'player.seekNone': '該來源無法跳到歌曲中的另一點',
   'player.eq.aria': '等化器',
   'player.eq.onHint': '開啟或關閉 FluidEQ',
-  'player.eq.smart': '智慧',
   'player.eq.pre': '前級',
   'player.eq.auto': '自動',
   'player.eq.autoHint': '開啟自動標準化',

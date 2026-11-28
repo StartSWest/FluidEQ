@@ -34,7 +34,6 @@ export default {
     'Bei dieser Quelle lässt sich keine andere Stelle im Titel ansteuern',
   'player.eq.aria': 'Equalizer',
   'player.eq.onHint': 'FluidEQ ein- oder ausschalten',
-  'player.eq.smart': 'Smart',
   'player.eq.pre': 'Vor',
   'player.eq.auto': 'Auto',
   'player.eq.autoHint': 'Automatische Normalisierung einschalten',

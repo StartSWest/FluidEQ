@@ -32,7 +32,6 @@ export default {
   'player.seekNone': 'Esta fonte não permite ir para outro ponto da música',
   'player.eq.aria': 'Equalizador',
   'player.eq.onHint': 'Ligar ou desligar o FluidEQ',
-  'player.eq.smart': 'Inteligente',
   'player.eq.pre': 'Pré',
   'player.eq.auto': 'Auto',
   'player.eq.autoHint': 'Ativar a normalização automática',

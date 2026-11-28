@@ -39,7 +39,6 @@ export default {
   'player.seekNone': 'This source cannot jump to another point in the song',
   'player.eq.aria': 'Equalizer',
   'player.eq.onHint': 'Turn FluidEQ on or off',
-  'player.eq.smart': 'Smart',
   'player.eq.pre': 'Pre',
   'player.eq.auto': 'Auto',
   'player.eq.autoHint': 'Turn on Auto normalize',

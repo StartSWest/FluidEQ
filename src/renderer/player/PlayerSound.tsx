@@ -11,6 +11,7 @@ import ClearEqButton from '../components/ClearEqButton';
 import CurvesPicker from '../components/CurvesPicker';
 import EqModeSelect from '../components/EqModeSelect';
 import VoicingQuickPick from '../components/VoicingQuickPick';
+import AutoEqButton from '../eq/autoEq/AutoEqButton';
 import SaveEqMenu from '../eq/autoEq/SaveEqMenu';
 import EqToolGroup from '../eq/EqToolGroup';
 import { cutCorners, isToneInUse } from '../eq/toneCuts';
@@ -24,7 +25,6 @@ import PlayerIcon from './PlayerIcon';
 import PlayerTone from './PlayerTone';
 import PlayerToolRow from './PlayerToolRow';
 import type { TPlayerPage } from './PlayerMarkMenu';
-import SmartEqKey from './SmartEqKey';
 import { type TPlayerSoundFace, usePlayerSound } from './playerLayout';
 import useRowNeed from './useRowNeed';
 
@@ -39,8 +39,10 @@ const FACE_ICON: Record<TPlayerSoundFace, 'eqBars' | 'waveform'> = {
 /**
  * Under the faders, the EQ page's Your EQ tools in the page's order (Ivan,
  * 2026-11-27: "same order as in the full app"): BANDS — how many, Add,
- * Clear, Save EQ; VIEW — the curves and the EQ mode; Smart at the end, where
- * the page keeps Auto EQ.
+ * Clear, Save EQ; VIEW — the curves and the EQ mode; and Auto EQ at the end,
+ * the page's own button, with Smart correction inside its panel (Ivan,
+ * 2026-11-27: "smart eq button need to go, instead we show the auto eq with
+ * that menu that have smart eq inside"). Its panel opens over its button.
  *
  * Every one opens over the amp, anchored to itself (Ivan, 2026-11-27: "it
  * tries to show on side pane not good for amp"): the EQ mode is the menu,
@@ -68,7 +70,7 @@ const BandsTools = ({
         <CurvesPicker onAddCorrection={() => onOpenPage('presets')} />
         <EqModeSelect />
       </EqToolGroup>
-      <SmartEqKey />
+      <AutoEqButton />
     </PlayerToolRow>
   );
 };

@@ -33,7 +33,6 @@ export default {
   'player.seekNone': 'Этот источник не позволяет перейти к другому месту трека',
   'player.eq.aria': 'Эквалайзер',
   'player.eq.onHint': 'Включить или выключить FluidEQ',
-  'player.eq.smart': 'Умный',
   'player.eq.pre': 'Пред',
   'player.eq.auto': 'Авто',
   'player.eq.autoHint': 'Включить автонормализацию',

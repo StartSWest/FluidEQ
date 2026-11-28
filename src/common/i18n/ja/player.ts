@@ -32,7 +32,6 @@ export default {
   'player.seekNone': 'このソースでは曲の別の位置に移動できません',
   'player.eq.aria': 'イコライザー',
   'player.eq.onHint': 'FluidEQ のオン/オフ',
-  'player.eq.smart': 'スマート',
   'player.eq.pre': 'プリ',
   'player.eq.auto': '自動',
   'player.eq.autoHint': '自動ノーマライズをオンにする',

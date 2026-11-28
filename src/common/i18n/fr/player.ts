@@ -34,7 +34,6 @@ export default {
     "Cette source ne permet pas d'aller à un autre point du morceau",
   'player.eq.aria': 'Égaliseur',
   'player.eq.onHint': 'Activer ou désactiver FluidEQ',
-  'player.eq.smart': 'Auto',
   'player.eq.pre': 'Pré',
   'player.eq.auto': 'Auto',
   'player.eq.autoHint': 'Activer la normalisation automatique',

@@ -710,7 +710,6 @@ const eq: Partial<Dictionary> = {
   'squigImport.emptyHint': '粘贴导出内容，先看看它的形状，再到 EQ 中继续微调。',
   'eq.title': '参数均衡',
   'eq.smart': '智能校正',
-  'eq.smart.cancel': '取消',
   'eq.smart.continuousAria': '播放期间持续测量并调整智能校正',
   'eq.layers.aria': '还有什么在影响这个输出',
   'eq.layers.addCorrection': '添加耳机校正',

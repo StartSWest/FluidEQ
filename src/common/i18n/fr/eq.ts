@@ -766,7 +766,6 @@ const eq: Partial<Dictionary> = {
     'Collez un export pour voir sa forme avant de continuer à l’affiner dans l’EQ.',
   'eq.title': 'Égaliseur paramétrique',
   'eq.smart': 'Correction intelligente',
-  'eq.smart.cancel': 'Annuler',
   'eq.smart.continuousAria':
     'Continuer à mesurer et ajuster la correction intelligente pendant la lecture',
   'eq.layers.aria': 'Autres traitements appliqués à cette sortie',

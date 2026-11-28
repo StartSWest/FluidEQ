@@ -295,6 +295,11 @@ const START_CHAPTERS = [
         still: 'help/player-sound.png',
         controls: [
           {
+            target: '.player-sound__power',
+            name: 'sidebar.systemEq',
+            text: 'help.window.systemEq',
+          },
+          {
             target: '.player-sound__tabs',
             name: 'eq.tabs.bands',
             text: 'help.player.tone',
@@ -303,11 +308,6 @@ const START_CHAPTERS = [
             target: '.voicing-pick',
             name: 'dsp.presets',
             text: 'help.eq.voicing',
-          },
-          {
-            target: '.player-sound__power',
-            name: 'sidebar.systemEq',
-            text: 'help.window.systemEq',
           },
           {
             target: '.player-sound__fold',
@@ -340,8 +340,8 @@ const START_CHAPTERS = [
             text: 'help.player.mode',
           },
           {
-            target: '.player-split',
-            name: 'eq.smart',
+            target: '.eq-auto',
+            name: 'autoEq.title',
             text: 'help.eq.smart',
           },
         ],

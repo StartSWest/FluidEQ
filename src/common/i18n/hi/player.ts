@@ -32,7 +32,6 @@ export default {
   'player.seekNone': 'इस स्रोत में गाने के किसी और हिस्से पर नहीं जाया जा सकता',
   'player.eq.aria': 'इक्वलाइज़र',
   'player.eq.onHint': 'FluidEQ चालू या बंद करें',
-  'player.eq.smart': 'स्मार्ट',
   'player.eq.pre': 'प्री',
   'player.eq.auto': 'ऑटो',
   'player.eq.autoHint': 'ऑटो नॉर्मलाइज़ चालू करें',

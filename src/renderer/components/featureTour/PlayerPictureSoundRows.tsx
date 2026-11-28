@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { ReactNode } from 'react';
 import '../../styles/EqLayers.scss';
+import '../../styles/EqAutoPanel.scss';
 import EqModeTriggerFace from '../eqMode/EqModeTriggerFace';
 import Chevron from '../../icons/Chevron';
 import MenuIcon from '../../icons/MenuIcon';
@@ -83,17 +84,19 @@ export const PictureSoundHead = ({ face }: { face: 'tone' | 'bands' }) => {
   );
 };
 
-const PictureSmart = () => {
+/** Auto EQ, as the page's button draws it while every part is off. */
+const PictureAutoEq = () => {
   const { t } = useTranslation();
   return (
-    <span className="player-split">
+    <span className="eq-mode eq-auto is-subtle">
       <button
         type="button"
-        className="button small subtle player-led player-split__main"
-        aria-pressed={false}
+        className="button small subtle eq-mode__main"
+        aria-label={t('autoEq.aria')}
       >
-        <PlayerIcon name="spark" className="player-icon player-split__spark" />
-        {t('player.eq.smart')}
+        <MenuIcon name="smart" className="eq-toolbar__icon" />
+        {t('autoEq.title')}
+        <Chevron />
       </button>
     </span>
   );
@@ -120,7 +123,7 @@ const group = (caption: string, children: ReactNode) => (
   </div>
 );
 
-/** Your EQ's tools: BANDS, then VIEW, then Smart. */
+/** Your EQ's tools: BANDS, then VIEW, then Auto EQ. */
 export const PictureBandsTools = () => {
   const { t } = useTranslation();
   return (
@@ -199,12 +202,12 @@ export const PictureBandsTools = () => {
           </div>
         </>,
       )}
-      <PictureSmart />
+      <PictureAutoEq />
     </PictureToolRow>
   );
 };
 
-/** The Tone's tools: Reset Tone, then Smart. */
+/** The Tone's tools: Reset Tone, then Auto EQ. */
 export const PictureToneTools = () => {
   const { t } = useTranslation();
   return (
@@ -213,7 +216,7 @@ export const PictureToneTools = () => {
         <MenuIcon name="reset" className="eq-toolbar__icon" />
         <span className="eq-toolbar__word">{t('eq.tone.reset')}</span>
       </button>
-      <PictureSmart />
+      <PictureAutoEq />
     </PictureToolRow>
   );
 };

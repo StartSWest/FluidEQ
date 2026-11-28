@@ -687,7 +687,6 @@ const eq = {
     '在繼續在 EQ 中對其進行微調之前，請貼上匯出以檢視其形狀。',
   'eq.title': '參數等化器',
   'eq.smart': '智慧校正',
-  'eq.smart.cancel': '取消',
   'eq.smart.continuousAria': '在音樂播放時讓智慧校正持續測量和調整',
   'eq.layers.aria': '也塑造這個輸出',
   'eq.layers.addCorrection': '加入耳機校正',

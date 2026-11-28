@@ -749,7 +749,6 @@ const eq: Partial<Dictionary> = {
     'エクスポートを貼り付けると、EQで微調整を続ける前にその形を確認できます。',
   'eq.title': 'パラメトリック EQ',
   'eq.smart': 'スマート補正',
-  'eq.smart.cancel': 'キャンセル',
   'eq.smart.continuousAria': '再生中もスマート補正の測定と調整を続ける',
   'eq.layers.aria': 'この出力に効いているその他の処理',
   'eq.layers.addCorrection': 'ヘッドホン補正を追加',

@@ -757,7 +757,6 @@ const eq: Partial<Dictionary> = {
     'Incolla un’esportazione per vederne la forma prima di continuare a rifinirla nell’EQ.',
   'eq.title': 'EQ parametrico',
   'eq.smart': 'Correzione intelligente',
-  'eq.smart.cancel': 'Annulla',
   'eq.smart.continuousAria':
     'Continua a misurare e regolare la correzione intelligente mentre suona la musica',
   'eq.layers.aria': 'Cos’altro sta modellando questa uscita',

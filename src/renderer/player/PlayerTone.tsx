@@ -9,6 +9,7 @@ import { MAX_GAIN, PREAMP_MIN_GAIN } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
 import { TONE_MAX_DB } from 'common/tone';
 import useAutoPreAmp from '../components/useAutoPreAmp';
+import AutoEqButton from '../eq/autoEq/AutoEqButton';
 import { isToneInUse, resetToneAndCuts } from '../eq/toneCuts';
 import useTone, { TONE_CONTROLS } from '../eq/useTone';
 import MenuIcon from '../icons/MenuIcon';
@@ -20,7 +21,6 @@ import { useTranslation } from '../utils/I18nContext';
 import Button from '../widgets/Button';
 import ToneKnob from '../widgets/ToneKnob';
 import PlayerToolRow from './PlayerToolRow';
-import SmartEqKey from './SmartEqKey';
 
 /**
  * The equalizer's other face: Bass, Mid and Treble, the EQ page's own three
@@ -30,7 +30,7 @@ import SmartEqKey from './SmartEqKey';
  * 2026-10-25, the one amp: "your three tone knobs and the preamp").
  * Ctrl+click puts one back to flat. Under them, the EQ page's Tone tools:
  * Reset Tone, which puts the three dials and the cuts back together, as the
- * page's does, and Smart at the row's end as under the faders.
+ * page's does, and Auto EQ at the row's end as under the faders.
  *
  * The preamp is the side bar's dial in every way: -60 to +20 with unity at
  * the top of its sweep, and under Auto normalize set for the listener —
@@ -142,7 +142,7 @@ const PlayerTone = () => {
           <MenuIcon name="reset" className="eq-toolbar__icon" />
           <span className="eq-toolbar__word">{t('eq.tone.reset')}</span>
         </Button>
-        <SmartEqKey />
+        <AutoEqButton />
       </PlayerToolRow>
     </>
   );

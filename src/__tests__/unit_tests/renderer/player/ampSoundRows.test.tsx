@@ -74,7 +74,7 @@ jest.mock('renderer/components/EqModeSelect', () => mockStub('mode'));
 jest.mock('renderer/components/eqMode/EqPageModeSelect', () =>
   mockStub('pinnable mode'),
 );
-jest.mock('renderer/player/SmartEqKey', () => mockStub('smart'));
+jest.mock('renderer/eq/autoEq/AutoEqButton', () => mockStub('auto eq'));
 jest.mock('renderer/player/useRowNeed', () => ({
   __esModule: true,
   default: () => undefined,
@@ -117,7 +117,7 @@ describe('the amp’s sound rows', () => {
     fireEvent.click(screen.getByRole('tab', { name: /Your EQ/ }));
   });
 
-  it('lays the EQ page’s tools under the faders in the page’s order, Smart at the end', () => {
+  it('lays the EQ page’s tools under the faders in the page’s order, Auto EQ at the end', () => {
     const { container } = render(<PlayerSound onOpenPage={() => undefined} />);
     const row = container.querySelector('.player-sound__tools');
     expect(row).not.toBeNull();
@@ -128,7 +128,7 @@ describe('the amp’s sound rows', () => {
       'save',
       'curves',
       'mode',
-      'smart',
+      'auto eq',
     ]);
   });
 });

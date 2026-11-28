@@ -34,7 +34,6 @@ export default {
     'Questa sorgente non permette di spostarsi in un altro punto del brano',
   'player.eq.aria': 'Equalizzatore',
   'player.eq.onHint': 'Attiva o disattiva FluidEQ',
-  'player.eq.smart': 'Intelligente',
   'player.eq.pre': 'Pre',
   'player.eq.auto': 'Auto',
   'player.eq.autoHint': 'Attiva la normalizzazione automatica',

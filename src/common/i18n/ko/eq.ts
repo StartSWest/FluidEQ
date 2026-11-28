@@ -717,7 +717,6 @@ const eq = {
     'EQ에서 계속해서 미세 조정하기 전에 내보내기를 붙여넣어 모양을 확인하세요.',
   'eq.title': '파라메트릭 EQ',
   'eq.smart': '스마트 보정',
-  'eq.smart.cancel': '취소',
   'eq.smart.continuousAria':
     '음악이 재생되는 동안 스마트 보정이 계속 측정하고 조정하도록 유지',
   'eq.layers.aria': '또한 이 출력을 형성합니다.',

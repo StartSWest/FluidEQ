@@ -30,7 +30,6 @@ const player = {
   'player.seekNone': '이 소스는 노래의 다른 지점으로 이동할 수 없습니다.',
   'player.eq.aria': '이퀄라이저',
   'player.eq.onHint': 'FluidEQ 켜기 또는 끄기',
-  'player.eq.smart': '스마트',
   'player.eq.pre': '프리',
   'player.eq.auto': '자동',
   'player.eq.autoHint': '자동 정규화 켜기',
