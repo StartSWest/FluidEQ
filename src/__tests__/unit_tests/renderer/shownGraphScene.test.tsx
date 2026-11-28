@@ -11,13 +11,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Auto puts the next scene on, and the graph keeps the last one's picture up
  * until the next one's first frame is drawn; the elements the window's
- * Ambient flies (`SceneAmbient`) and the pieces thrown from the hand
- * (`ScenePointerLayer`) used to change to the next scene's at the choice, or
- * as soon as it was built, and flew over the picture still on screen. Here
- * the real host, canvas and runner draw two scenes with a worker that draws
- * when it is asked, the window's own layer paints what it is given, and each
- * case looks at the wait between the choice and the first frame - beside the
- * frame after it, where the new scene's pieces must be there.
+ * Ambient flies (`SceneAmbient`), the pieces thrown from the hand
+ * (`ScenePointerLayer`) and the window's colours (`SceneTint`; Ivan,
+ * 2026-11-27: "que los colores también esperen a la imagen") used to change
+ * to the next scene's at the choice, or as soon as it was built, over the
+ * picture still on screen. Here the real host, canvas and runner draw two
+ * scenes with a worker that draws when it is asked, the window's own layer
+ * paints what it is given, the window's colours are asked for by look, and
+ * each case looks at the wait between the choice and the first frame -
+ * beside the frame after it, where the new scene's must be there.
  */
 
 import '@testing-library/jest-dom';
@@ -25,6 +27,7 @@ import { act, render, screen } from '@testing-library/react';
 import type { IScenePack } from '../../../common/scenePacks';
 import { SCENE_CONTRACT_VERSION } from '../../../common/sceneUniformContract';
 import SceneAmbient from '../../../renderer/ambient/SceneAmbient';
+import SceneTint from '../../../renderer/components/SceneTint';
 import GraphScene from '../../../renderer/graph/GraphScene';
 import {
   publishScenePlot,
@@ -98,20 +101,34 @@ const mockKick = jest.fn();
 const mockPainted: string[][] = [];
 const mockPacks: Record<string, IScenePack> = {};
 
+/** Whose window colours the window was asked for, render by render. */
+const mockColoursOf: string[] = [];
+
 jest.mock('../../../renderer/utils/graphStyle', () => {
   const { useSyncExternalStore } = jest.requireActual('react');
+  const subscribe = (listener: () => void) => {
+    mockChoice.listeners.add(listener);
+    return () => mockChoice.listeners.delete(listener);
+  };
   return {
     ...jest.requireActual('../../../renderer/utils/graphStyle'),
-    useSceneLook: () =>
+    useSceneLook: () => useSyncExternalStore(subscribe, () => mockChoice.scene),
+    // A standard look when no scene is chosen.
+    useSelectedLookId: () =>
       useSyncExternalStore(
-        (listener: () => void) => {
-          mockChoice.listeners.add(listener);
-          return () => mockChoice.listeners.delete(listener);
-        },
-        () => mockChoice.scene,
+        subscribe,
+        () => mockChoice.scene?.lookId ?? 'analyzer',
       ),
   };
 });
+// The colours the window wears are the ones of the look it asks for here.
+jest.mock('../../../renderer/utils/useSceneWindowColours', () => ({
+  __esModule: true,
+  default: (lookId: string) => {
+    mockColoursOf.push(lookId);
+    return { sides: {}, own: {}, chosen: {}, measured: [] };
+  },
+}));
 jest.mock('../../../renderer/graph/sceneWorkerClient', () => ({
   createSceneWorkerClient: () => {
     const started = mockFakeClient();
@@ -285,6 +302,12 @@ const windowShows = () => {
 /** What the hand throws over the graph's scene right now. */
 const thrown = () => screen.queryByTestId('thrown')?.textContent;
 
+/** Whose colours the window wears now: a scene's look id, or the theme. */
+const coloursOf = () => {
+  const asked = mockColoursOf[mockColoursOf.length - 1];
+  return asked === undefined || asked === '' ? 'theme' : asked;
+};
+
 const AMBIENT_CONTEXT = {
   setTransform: jest.fn(),
   clearRect: jest.fn(),
@@ -303,13 +326,17 @@ const plot = (): IScenePlot => ({
   isPartOfWindow: true,
 });
 
-/** The graph on an EQ page with its scene on the column, and the window's Ambient. */
+/**
+ * The graph on an EQ page with its scene on the column, the window's Ambient
+ * and the window's colours.
+ */
 const mount = () => {
   act(() => publishScenePlot(plot()));
   return render(
     <>
       <GraphScene />
       <SceneAmbient />
+      <SceneTint />
     </>,
   );
 };
@@ -326,6 +353,7 @@ const playAlpine = async () => {
 beforeEach(() => {
   mockClients.length = 0;
   mockPainted.length = 0;
+  mockColoursOf.length = 0;
   mockTake.mockReset();
   mockFrame = undefined;
   windowFrames = [];
@@ -389,6 +417,7 @@ describe('the next scene’s pieces wait for its first frame', () => {
       await playAlpine();
       expect(windowShows()).toBe('glints');
       expect(thrown()).toBe('glints');
+      expect(coloursOf()).toBe('premium:alpine');
 
       if (isAhead) {
         const prepared = mockFakeClient();
@@ -413,12 +442,14 @@ describe('the next scene’s pieces wait for its first frame', () => {
       expect(alpineDrawn.dispose).toHaveBeenCalledTimes(isAhead ? 0 : 1);
       expect(windowShows()).toBe('glints');
       expect(thrown()).toBe('glints');
+      expect(coloursOf()).toBe('premium:alpine');
 
       // CONTROL: Aurora's first frame, and everything of Aurora's with it.
       drawSceneFrame();
       await settle();
       expect(windowShows()).toBe('snow stars');
       expect(thrown()).toBe('snow stars');
+      expect(coloursOf()).toBe('premium:aurora');
     },
   );
 
@@ -434,12 +465,14 @@ describe('the next scene’s pieces wait for its first frame', () => {
     expect(mockClients).toHaveLength(1);
     expect(windowShows()).toBeUndefined();
     expect(thrown()).toBeUndefined();
+    expect(coloursOf()).toBe('theme');
 
-    // CONTROL: its first frame brings its elements.
+    // CONTROL: its first frame brings its elements and its colours.
     drawSceneFrame();
     await settle();
     expect(windowShows()).toBe('snow stars');
     expect(thrown()).toBe('snow stars');
+    expect(coloursOf()).toBe('premium:aurora');
   });
 });
 
@@ -451,6 +484,8 @@ describe('with no picture of the graph’s to keep', () => {
     await settle();
     expect(mockClients[0]?.draw).not.toHaveBeenCalled();
     expect(windowShows()).toBe('glints');
+    // The colour it closed in, at once.
+    expect(coloursOf()).toBe('premium:alpine');
   });
 
   // The amp, or a page over the graph: its canvas is out of sight and draws
@@ -472,5 +507,6 @@ describe('with no picture of the graph’s to keep', () => {
     choose(AURORA);
     await settle();
     expect(windowShows()).toBe('snow stars');
+    expect(coloursOf()).toBe('premium:aurora');
   });
 });

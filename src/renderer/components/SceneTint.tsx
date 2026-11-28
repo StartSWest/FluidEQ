@@ -16,7 +16,7 @@ import {
   sceneSkyVersion,
 } from '../graph/sceneSky';
 import useStudioDayColours from '../studio/useStudioDayColours';
-import { useSelectedLookId } from '../utils/graphStyle';
+import { useShownGraphLookId } from '../graph/shownGraphScene';
 import {
   isWornAsNamed,
   MEASURED_STOPS,
@@ -98,6 +98,10 @@ const paintKey = (
  * looks and the scenes members make, the only looks drawn by a scene whose
  * sky can be measured. Choosing an ordinary look puts the theme back, and so
  * does Plus lapsing: the selection leaves the scene, and this follows it.
+ * The graph's look is the one whose PICTURE is on screen
+ * (`shownGraphScene.ts`): a scene chosen while the graph still shows the
+ * last one lends its colours with its first frame, never before it (Ivan,
+ * 2026-11-27: "que los colores también esperen a la imagen").
  * And with no visualizer chosen at all: the window in some of Lagoon's
  * colours, Rainbow mode's own palette (`rainbowPalette.ts`), whether the
  * mode is on or not.
@@ -127,7 +131,7 @@ const SceneTint = () => {
   const tintSecond = useWindowTintSecondary();
   const tintSecondChosen = useWindowTintSecondChosen();
   const studio = useStudioTintSource();
-  const lookId = useSelectedLookId();
+  const lookId = useShownGraphLookId();
   const scenes = useUsableScenes();
   const memberScenes = useUsableMemberScenes();
   const hasPainted = useRef(false);
@@ -375,8 +379,8 @@ const SceneTint = () => {
       showSceneSky(remembered.sky ?? undefined, fade, tone);
       return;
     }
-    // Never measured: its swatch's colour as it is chosen, not the last
-    // scene's held until this one has loaded and been measured.
+    // Never measured: its swatch's colour as its picture comes on, not the
+    // last scene's held until this one has been measured.
     const provisional = swatch ? skyFromSwatch(swatch.split(' ')) : undefined;
     if (provisional) {
       showSceneSky(provisional, fade, tone);

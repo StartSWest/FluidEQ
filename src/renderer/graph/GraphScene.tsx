@@ -9,6 +9,7 @@ import {
   useGraphContents,
   useGraphWaveHidden,
   useSceneLook,
+  useSelectedLookId,
 } from '../utils/graphStyle';
 import { useSceneColumnHost } from '../utils/sceneCover';
 import {
@@ -54,17 +55,18 @@ export default function GraphScene() {
     plot,
     column,
   });
-  // What of a scene the window shows outside its picture: the chosen
-  // scene's, unless this canvas, in sight, is still putting it up - mounting
-  // for it, or holding the last scene's picture until its first frame - when
-  // the window goes on showing the last one's (`shownGraphScene.ts`).
+  // Whose elements and colours the window shows: the chosen look's, unless
+  // this canvas, in sight, is still putting it up - mounting for it, or
+  // holding the last scene's picture until its first frame - when the window
+  // goes on showing the last one's (`shownGraphScene.ts`).
+  const lookId = useSelectedLookId();
   const run = useGraphSceneRun();
   const isPuttingUp =
     scene !== null &&
     target !== undefined &&
     (run === undefined ||
       (run.isShown && run.drawnIdentity !== sceneIdentityOf(scene)));
-  useKeepShownGraphScene(scene, isPuttingUp);
+  useKeepShownGraphScene(lookId, scene, isPuttingUp);
   if (!scene || !target) {
     return null;
   }
