@@ -128,6 +128,9 @@ const subscription: Partial<Dictionary> = {
   'subscription.renew': 'Plus を再開',
   'subscription.pass.member': 'メンバー',
   'subscription.pass.ending': '解約済み · その日までは使えます',
+  'subscription.everyScene.title': 'すべてのシーンがあなたのものです',
+  'subscription.everyScene.body':
+    'このアカウントはギャラリーのすべてのシーンを所有しているため、Plus で増えるものはありません。',
   'subscription.chip.until': 'Plus {date} まで',
 };
 

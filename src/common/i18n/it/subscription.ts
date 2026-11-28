@@ -124,6 +124,9 @@ const subscription: Partial<Dictionary> = {
   'subscription.renew': 'Rinnova Plus',
   'subscription.pass.member': 'Membro',
   'subscription.pass.ending': 'Disdetto · resta tuo fino ad allora',
+  'subscription.everyScene.title': 'Tutte le scene sono tue',
+  'subscription.everyScene.body':
+    'Questo account possiede tutte le scene della galleria, quindi Plus non gli aggiunge nulla.',
   'subscription.chip.until': 'Plus fino al {date}',
 };
 

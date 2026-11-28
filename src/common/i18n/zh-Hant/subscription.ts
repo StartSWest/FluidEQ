@@ -115,6 +115,9 @@ const subscription = {
   'subscription.renew': '續訂 Plus',
   'subscription.pass.member': '會員',
   'subscription.pass.ending': '已取消 · 到期前仍可使用',
+  'subscription.everyScene.title': '所有場景都屬於你',
+  'subscription.everyScene.body':
+    '此帳戶擁有畫廊中的所有場景，因此 Plus 不會為它增加任何內容。',
   'subscription.chip.until': 'Plus 至 {date}',
 } satisfies Partial<Dictionary>;
 

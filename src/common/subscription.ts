@@ -335,6 +335,14 @@ export interface ISubscriptionState {
   plansRemembered?: true;
   /** The account's own answer says it is suspended: it can get nothing now. */
   suspended?: true;
+  /**
+   * The account owns every scene there is (the admin: `my_store`'s
+   * `everything`, premium 0061), so Plus gives it nothing: no plans, no pass,
+   * no Renew (Ivan, 2026-11-28: "admin doesnt need to see renew plus admin
+   * own all scenes"). `manageable` stays only while a subscription of its
+   * still renews, so it can be stopped.
+   */
+  everyScene?: true;
   /** The account plays every scene in Scenes through Plus now. */
   subscribed: boolean;
   /** While subscribed: the plan and the dates the status line says. */

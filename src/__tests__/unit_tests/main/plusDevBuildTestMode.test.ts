@@ -67,6 +67,7 @@ const setup = async ({
   }
   const app = startPlus({ backend, disk, clock: { now: NOW } });
   await app.signIn();
+  const openExternal = jest.fn<boolean, [string]>(() => true);
   const service = createSubscriptionService({
     configured: () => true,
     accountId: () => ACCOUNT_ID,
@@ -78,9 +79,9 @@ const setup = async ({
       accessToken: `access-${ACCOUNT_ID}`,
       fetchImpl: backend.fetchImpl,
     }),
-    openExternal: () => true,
+    openExternal,
   });
-  return { backend, disk, app, service };
+  return { backend, disk, app, service, openExternal };
 };
 
 describe('Plus in a development build', () => {
@@ -103,6 +104,20 @@ describe('Plus in a development build', () => {
         mode: 'test',
       },
     );
+  });
+
+  // A server before 0126 ignores the word and answers a live session:
+  // opened from `pnpm dev`, it would take a real card.
+  it('never opens a live checkout page, whatever the server answered', async () => {
+    const { service, backend, openExternal } = await setup({ testSold: true });
+    backend.state.checkout = {
+      status: 200,
+      body: { url: 'https://checkout.stripe.com/c/pay/cs_live_1' },
+    };
+    await expect(
+      service.subscribe('monthly', 'en', PLUS_TERMS_VERSION),
+    ).resolves.toBe('failed');
+    expect(openExternal).not.toHaveBeenCalled();
   });
 
   // The server opens the portal in the mode of the account's own

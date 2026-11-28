@@ -123,6 +123,9 @@ const subscription = {
   'subscription.renew': 'Plus 갱신',
   'subscription.pass.member': '회원',
   'subscription.pass.ending': '해지됨 · 그날까지는 계속 사용',
+  'subscription.everyScene.title': '모든 장면이 내 것입니다',
+  'subscription.everyScene.body':
+    '이 계정은 갤러리의 모든 장면을 소유하고 있어 Plus로 더해지는 것이 없습니다.',
   'subscription.chip.until': 'Plus {date}까지',
 } satisfies Partial<Dictionary>;
 

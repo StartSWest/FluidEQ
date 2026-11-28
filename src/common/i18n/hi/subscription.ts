@@ -123,6 +123,9 @@ const subscription: Partial<Dictionary> = {
   'subscription.renew': 'Plus नवीनीकृत करें',
   'subscription.pass.member': 'सदस्य',
   'subscription.pass.ending': 'रद्द · तब तक आपका ही',
+  'subscription.everyScene.title': 'हर सीन आपका है',
+  'subscription.everyScene.body':
+    'गैलरी का हर सीन इस खाते का है, इसलिए Plus इसमें कुछ नहीं जोड़ता।',
   'subscription.chip.until': 'Plus {date} तक',
 };
 

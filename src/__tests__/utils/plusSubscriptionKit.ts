@@ -111,6 +111,8 @@ export const fakeBackend = () => {
     /** Member scenes got with a credit, as `my_store` lists them. */
     owned: [] as { authorId: string; sceneId: string }[],
     helpers: [] as string[],
+    /** The admin, who owns every scene (`my_store`'s `everything`, 0061). */
+    everything: false,
     suspended: false,
     storeDown: false,
     entitlementsDown: false,
@@ -161,6 +163,7 @@ export const fakeBackend = () => {
             starterClaimed: true,
             owned: state.owned,
             packs: [],
+            ...(state.everything ? { everything: true } : {}),
             ...(state.helpers.length > 0
               ? { fluideqHelpers: state.helpers }
               : {}),

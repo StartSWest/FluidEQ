@@ -14,6 +14,7 @@ import {
 import PlusMark from '../plus/PlusMark';
 import { plusOnSale, usePlusSubscription } from '../plus/plusSubscriptionStore';
 import { planName, plusDate } from '../plus/plusWords';
+import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 
 /**
@@ -82,6 +83,36 @@ function PlusPass({ plus }: { plus: ISubscriptionState }) {
 }
 
 /**
+ * The account that owns every scene, the admin (Ivan, 2026-11-28: "admin
+ * doesnt need to see renew plus admin own all scenes"): what is true of it,
+ * in the panel's quiet ink - no ticket, no Plus mark, no Renew. Manage Plus
+ * only while a subscription of its still renews, quietly, so it can be
+ * stopped.
+ */
+function EveryScene({ plus }: { plus: ISubscriptionState }) {
+  const { t } = useTranslation();
+  return (
+    <section
+      className="account-every-scene"
+      aria-labelledby="every-scene-title"
+    >
+      <span className="account-every-scene__mark" aria-hidden="true">
+        <Glyph name="crown" />
+      </span>
+      <span className="account-every-scene__words">
+        <span id="every-scene-title" className="account-every-scene__title">
+          {t('subscription.everyScene.title')}
+        </span>
+        <span className="account-every-scene__body">
+          {t('subscription.everyScene.body')}
+        </span>
+      </span>
+      <ManagePlusButton plus={plus} className="button small subtle" />
+    </section>
+  );
+}
+
+/**
  * Plus in the account panel, over the credits (Ivan, 2026-11-28: "if plus
  * somenice plus thing if not plus to get plus nice banner like in the
  * gallery"): a member's pass, or the gallery's own Plus block for anybody
@@ -92,6 +123,9 @@ export default function AccountPlusCard() {
   const plus = usePlusSubscription();
   if (!plus) {
     return null;
+  }
+  if (plus.everyScene) {
+    return <EveryScene plus={plus} />;
   }
   if (plus.subscribed) {
     return <PlusPass plus={plus} />;

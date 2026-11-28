@@ -133,6 +133,62 @@ describe('Plus in the account panel', () => {
 });
 
 /**
+ * Ivan, 2026-11-28, of the admin's panel: "admin doesnt need to see renew
+ * plus admin own all scenes". Main says so with `everyScene`; the panel
+ * says what is true instead, and the gallery's head offers nothing.
+ */
+describe('the account that owns every scene', () => {
+  const cancelled: ISubscriptionState = {
+    ...member,
+    status: { plan: 'monthly', until, renewing: false },
+  };
+  const owner: ISubscriptionState = {
+    signedIn: true,
+    plans: [],
+    everyScene: true,
+    subscribed: false,
+    manageable: false,
+  };
+
+  it('gets no pass and no Renew, where a cancelled member gets both', async () => {
+    withPlus(cancelled);
+    const { unmount } = render(<AccountPlusCard />);
+    await settle();
+    expect(screen.getByText('subscription.pass.ending')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'subscription.renew' }),
+    ).toBeInTheDocument();
+    unmount();
+    resetPlusSubscriptionStore();
+
+    withPlus(owner);
+    render(<AccountPlusCard />);
+    await settle();
+    expect(
+      screen.getByRole('region', { name: 'subscription.everyScene.title' }),
+    ).toHaveTextContent('subscription.everyScene.body');
+    expect(screen.queryByText(/^subscription\.pass\./)).toBeNull();
+    expect(screen.queryByRole('button')).toBeNull();
+    expect(document.querySelector('.plus-mark')).toBeNull();
+  });
+
+  it('may still stop a subscription that renews, quietly', async () => {
+    withPlus({ ...owner, manageable: true });
+    render(<AccountPlusCard />);
+    await settle();
+    const manage = screen.getByRole('button', { name: 'subscription.manage' });
+    expect(manage).toHaveClass('subtle');
+  });
+
+  it('finds no Plus offer at the gallery’s head', async () => {
+    withPlus(owner);
+    const { container } = render(<PlusGalleryHead />);
+    await settle();
+    expect(container).toBeEmptyDOMElement();
+  });
+});
+
+/**
  * Ivan, 2026-11-28: "no more that crap dev is normal as prod just in test
  * env". A development build used to put a dashed note where Plus stood when
  * the server sent it no price; now it shows what a release shows - Plus from

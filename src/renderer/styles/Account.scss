@@ -46,9 +46,10 @@ it under the terms of the GNU General Public License version 3 or later.
   // The sections are told apart by a hairline over each; the first stands at
   // the top of the page, where its line doubled the rail's seam on a narrow
   // window and drew a rule over nothing on a wide one.
-  // Not the sign-out question standing in its place, a card with its own
-  // edge all round.
-  > :first-child:not(.compact-frame) {
+  // Not the sign-out question standing in its place, nor the card of the
+  // account that owns every scene: each is a card with its own edge all
+  // round.
+  > :first-child:not(.compact-frame, .account-every-scene) {
     padding-top: 0;
     border-top: 0;
   }

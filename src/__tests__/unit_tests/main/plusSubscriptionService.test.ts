@@ -277,6 +277,20 @@ describe('the checkout', () => {
     expect(app.records.knownPlans()).toEqual(PLANS);
   });
 
+  it('in a release, opens a live checkout page as always', async () => {
+    const { service, backend, openExternal } = await setup();
+    backend.state.checkout = {
+      status: 200,
+      body: { url: 'https://checkout.stripe.com/c/pay/cs_live_1' },
+    };
+    await expect(
+      service.subscribe('monthly', 'en', PLUS_TERMS_VERSION),
+    ).resolves.toBe('opened');
+    expect(openExternal).toHaveBeenCalledWith(
+      'https://checkout.stripe.com/c/pay/cs_live_1',
+    );
+  });
+
   it("opens Stripe's checkout in the browser, with the plan, the app, the terms and the language, and logs only the origin", async () => {
     const { service, backend, openExternal, lines, app } = await setup();
     await expect(
@@ -542,5 +556,57 @@ describe('the offer when Plus ended', () => {
     await app.comeBack();
     expect(service.state().subscribed).toBe(true);
     expect(service.state().lapse).toBeUndefined();
+  });
+});
+
+/**
+ * Ivan, 2026-11-28, of the admin's account panel showing "Cancelled · still
+ * yours until then" and Renew Plus: "admin doesnt need to see renew plus
+ * admin own all scenes". The server says which account owns every scene
+ * (`my_store`'s `everything`, 0061); Plus has nothing to give it.
+ */
+describe('the account that owns every scene', () => {
+  const asAdmin = async (renewing: boolean) => {
+    const made = await setup({ subscribed: true, cancelled: !renewing });
+    made.backend.state.everything = true;
+    await made.app.ownership.refreshNow();
+    await made.app.idle();
+    return made;
+  };
+
+  it('is offered nothing of Plus and shown no pass, beside a member who is', async () => {
+    const member = await setup({ subscribed: true, cancelled: true });
+    expect(member.service.state()).toMatchObject({
+      subscribed: true,
+      manageable: true,
+      status: { renewing: false },
+    });
+    expect(member.service.state().everyScene).toBeUndefined();
+
+    const admin = await asAdmin(false);
+    expect(admin.service.state()).toEqual({
+      signedIn: true,
+      plans: [],
+      everyScene: true,
+      subscribed: false,
+      // Cancelled: nothing to renew, nothing to stop.
+      manageable: false,
+    });
+  });
+
+  it('can still stop a subscription that renews', async () => {
+    const admin = await asAdmin(true);
+    expect(admin.service.state()).toMatchObject({
+      everyScene: true,
+      manageable: true,
+    });
+  });
+
+  it('never opens a checkout', async () => {
+    const admin = await asAdmin(false);
+    await expect(
+      admin.service.subscribe('monthly', 'en', PLUS_TERMS_VERSION),
+    ).resolves.toBe('not-on-sale');
+    expect(admin.backend.count(CHECKOUT)).toBe(0);
   });
 });

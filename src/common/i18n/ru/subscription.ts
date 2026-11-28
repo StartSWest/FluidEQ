@@ -126,6 +126,9 @@ const subscription: Partial<Dictionary> = {
   'subscription.renew': 'Продлить Plus',
   'subscription.pass.member': 'Участник',
   'subscription.pass.ending': 'Отменено · действует до этой даты',
+  'subscription.everyScene.title': 'Все сцены ваши',
+  'subscription.everyScene.body':
+    'Этому аккаунту принадлежат все сцены галереи, поэтому Plus ему ничего не добавляет.',
   'subscription.chip.until': 'Plus до {date}',
 };
 

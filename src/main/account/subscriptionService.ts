@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { BILLING_MODE } from '../../common/billingMode';
+import { BILLING_MODE, isCheckoutForMode } from '../../common/billingMode';
 import { PLUS_TERMS_VERSION } from '../../common/plusTerms';
 import { isCheckoutLocale, mayPlayLook } from '../../common/sceneStore';
 import {
@@ -276,6 +276,17 @@ export const createSubscriptionService = ({
       };
     }
     const status = subscription.status();
+    if (ownership.known()?.everything) {
+      // The admin owns every scene: nothing of Plus is offered or shown, and
+      // only a subscription that still renews can be managed, to stop it.
+      return {
+        signedIn: true,
+        plans: [],
+        everyScene: true,
+        subscribed: false,
+        manageable: manageable() && status?.renewing === true,
+      };
+    }
     const offer = lapse();
     return {
       signedIn: true,
@@ -350,6 +361,11 @@ export const createSubscriptionService = ({
     if (own !== 'answered') {
       return own;
     }
+    // The admin owns every scene: there is nothing for Plus to sell it, and
+    // the window offers none (`everyScene`).
+    if (ownership.known()?.everything) {
+      return 'not-on-sale';
+    }
     if (!plans().some((each) => each.id === plan)) {
       // Not listed: a server that sells none (before 0122), or not this one.
       // The prices are read again, as the window then says.
@@ -404,9 +420,16 @@ export const createSubscriptionService = ({
       }
       return result;
     }
-    if (
-      !openOn(await urlOf(response), STRIPE_CHECKOUT_ORIGIN, 'Plus checkout')
-    ) {
+    const page = await urlOf(response);
+    if (!isCheckoutForMode(page, BILLING_MODE)) {
+      // Not Stripe's checkout - or, in a development build, a live one from
+      // a server that ignored the test mode, which would take a real card.
+      logger?.warn(
+        `The Plus checkout answered a page that is not a ${BILLING_MODE}-mode Stripe checkout`,
+      );
+      return 'failed';
+    }
+    if (!openOn(page, STRIPE_CHECKOUT_ORIGIN, 'Plus checkout')) {
       return 'failed';
     }
     subscription.expectChange();

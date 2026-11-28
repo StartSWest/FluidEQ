@@ -197,8 +197,8 @@ it under the terms of the GNU General Public License version 3 or later.
   white-space: nowrap;
 
   svg {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
   }
 }
 
@@ -272,5 +272,61 @@ it under the terms of the GNU General Public License version 3 or later.
 @container (max-width: 460px) {
   .plus-offer.account-plus-offer {
     flex-wrap: wrap;
+  }
+}
+
+// The account that owns every scene, in Plus's place: what is true of it,
+// in the panel's own quiet ink - a step of light, no ticket and no Plus
+// colour, the crown in the accent as the one note of it.
+.account-every-scene {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid color-mix(in srgb, $edge-tint 9%, transparent);
+  border-radius: $radius-l;
+  background: color-mix(in srgb, $edge-tint 4%, transparent);
+}
+
+.account-every-scene__mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: $secondary-default;
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.account-every-scene__words {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.account-every-scene__title {
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+}
+
+.account-every-scene__body {
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+// A narrow panel puts Manage Plus under the words rather than squeezing
+// them.
+@container (max-width: 420px) {
+  .account-every-scene .plus-manage {
+    grid-column: 2 / -1;
+    justify-items: start;
   }
 }

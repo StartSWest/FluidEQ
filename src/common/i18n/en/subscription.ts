@@ -128,6 +128,9 @@ const subscription = {
   'subscription.renew': 'Renew Plus',
   'subscription.pass.member': 'Member',
   'subscription.pass.ending': 'Cancelled · still yours until then',
+  'subscription.everyScene.title': 'Every scene is yours',
+  'subscription.everyScene.body':
+    'This account owns every scene in the gallery, so Plus adds nothing to it.',
   'subscription.chip.until': 'Plus until {date}',
 };
 

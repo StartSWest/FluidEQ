@@ -115,6 +115,9 @@ const subscription: Partial<Dictionary> = {
   'subscription.renew': '续订 Plus',
   'subscription.pass.member': '会员',
   'subscription.pass.ending': '已取消 · 到期前仍可使用',
+  'subscription.everyScene.title': '所有场景都属于你',
+  'subscription.everyScene.body':
+    '此账户拥有图库中的所有场景，因此 Plus 不会为它增加任何内容。',
   'subscription.chip.until': 'Plus 至 {date}',
 };
 
