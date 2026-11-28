@@ -349,7 +349,10 @@ it('draws the player from its own parts, out of reach of the keyboard and of scr
   const scene = within(players[0] as HTMLElement);
   const look = within(players[1] as HTMLElement);
   // The player's own words, as the player reads them out.
-  expect(scene.getByText('Sound')).toBeInTheDocument();
+  // The sound section's head is the EQ page's tabs, Your EQ then Tone.
+  expect(scene.getByText('Your EQ')).toBeInTheDocument();
+  expect(scene.getByText('Tone')).toBeInTheDocument();
+  expect(scene.getByText('Auto EQ')).toBeInTheDocument();
   expect(scene.getByText('Up next')).toBeInTheDocument();
   expect(scene.getByText('FluidEQ Engine on')).toBeInTheDocument();
   // Its faders, printing their own levels, and its Tone knobs.
