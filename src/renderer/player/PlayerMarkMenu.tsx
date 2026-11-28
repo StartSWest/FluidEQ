@@ -27,9 +27,13 @@ import {
   useWindowMode,
 } from './windowModeStore';
 
-/** The full app's pages, as the player's menu offers them. */
+/**
+ * The full app's pages the amp can go back to: the seven its menu offers,
+ * and the headphone corrections, which the Curves menu under its faders
+ * opens (that page is the full app's; the amp has no room for it).
+ */
 export type TPlayerPage =
-  'video' | 'share' | 'eq' | 'dsp' | 'library' | 'karaoke' | 'plus';
+  'video' | 'share' | 'eq' | 'dsp' | 'library' | 'karaoke' | 'plus' | 'presets';
 
 // In the tab strip's order, under its names and behind its glyphs, all read
 // from the same keys and the same icon set — this menu stands in for that

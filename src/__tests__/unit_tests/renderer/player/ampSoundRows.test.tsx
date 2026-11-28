@@ -58,9 +58,21 @@ jest.mock('renderer/components/BandLayoutMenu', () => mockStub('count'));
 jest.mock('renderer/player/PlayerAddBand', () => mockStub('add'));
 jest.mock('renderer/components/ClearEqButton', () => mockStub('clear'));
 jest.mock('renderer/eq/autoEq/SaveEqMenu', () => mockStub('save'));
-jest.mock('renderer/components/CurvesPicker', () => mockStub('curves'));
+// The Curves menu as its way to a headphone correction alone, to see where
+// the amp sends it.
+jest.mock('renderer/components/CurvesPicker', () => ({
+  __esModule: true,
+  default: ({ onAddCorrection }: { onAddCorrection?: () => void }) => (
+    <button type="button" data-tool="curves" onClick={onAddCorrection}>
+      Add a headphone correction
+    </button>
+  ),
+}));
+// The menu, never the EQ page's pinnable one: pinned, that one opens a card
+// in the full app's sound panel, which the amp does not have.
+jest.mock('renderer/components/EqModeSelect', () => mockStub('mode'));
 jest.mock('renderer/components/eqMode/EqPageModeSelect', () =>
-  mockStub('mode'),
+  mockStub('pinnable mode'),
 );
 jest.mock('renderer/player/SmartEqKey', () => mockStub('smart'));
 jest.mock('renderer/player/useRowNeed', () => ({
@@ -79,7 +91,7 @@ beforeEach(() => {
 
 describe('the amp’s sound rows', () => {
   it('has Your EQ before the Tone in its head, each saying what it holds, and the fold at the end', () => {
-    const { container } = render(<PlayerSound />);
+    const { container } = render(<PlayerSound onOpenPage={() => undefined} />);
     const tabs = screen.getAllByRole('tab');
     expect(tabs.map((tab) => tab.textContent)).toEqual(['Your EQ3', 'ToneOff']);
     const head = container.querySelector('.player-sound__head');
@@ -87,7 +99,7 @@ describe('the amp’s sound rows', () => {
   });
 
   it('opens the tab pressed, and the drawer with it', () => {
-    const { container } = render(<PlayerSound />);
+    const { container } = render(<PlayerSound onOpenPage={() => undefined} />);
     fireEvent.click(
       screen.getByRole('button', { name: 'Fold the sound controls' }),
     );
@@ -106,7 +118,7 @@ describe('the amp’s sound rows', () => {
   });
 
   it('lays the EQ page’s tools under the faders in the page’s order, Smart at the end', () => {
-    const { container } = render(<PlayerSound />);
+    const { container } = render(<PlayerSound onOpenPage={() => undefined} />);
     const row = container.querySelector('.player-sound__tools');
     expect(row).not.toBeNull();
     expect(toolsIn(row as Element)).toEqual([
@@ -118,6 +130,17 @@ describe('the amp’s sound rows', () => {
       'mode',
       'smart',
     ]);
+  });
+});
+
+describe('what the amp’s tools open', () => {
+  it('takes the way to a headphone correction back to the full app’s page for it', () => {
+    const opened: string[] = [];
+    render(<PlayerSound onOpenPage={(page) => opened.push(page)} />);
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Add a headphone correction' }),
+    );
+    expect(opened).toEqual(['presets']);
   });
 });
 

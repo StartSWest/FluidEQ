@@ -9,7 +9,7 @@ import { hasTone } from 'common/tone';
 import BandLayoutMenu from '../components/BandLayoutMenu';
 import ClearEqButton from '../components/ClearEqButton';
 import CurvesPicker from '../components/CurvesPicker';
-import EqPageModeSelect from '../components/eqMode/EqPageModeSelect';
+import EqModeSelect from '../components/EqModeSelect';
 import VoicingQuickPick from '../components/VoicingQuickPick';
 import SaveEqMenu from '../eq/autoEq/SaveEqMenu';
 import EqToolGroup from '../eq/EqToolGroup';
@@ -23,6 +23,7 @@ import PlayerAddBand from './PlayerAddBand';
 import PlayerIcon from './PlayerIcon';
 import PlayerTone from './PlayerTone';
 import PlayerToolRow from './PlayerToolRow';
+import type { TPlayerPage } from './PlayerMarkMenu';
 import SmartEqKey from './SmartEqKey';
 import { type TPlayerSoundFace, usePlayerSound } from './playerLayout';
 import useRowNeed from './useRowNeed';
@@ -40,8 +41,19 @@ const FACE_ICON: Record<TPlayerSoundFace, 'eqBars' | 'waveform'> = {
  * 2026-11-27: "same order as in the full app"): BANDS — how many, Add,
  * Clear, Save EQ; VIEW — the curves and the EQ mode; Smart at the end, where
  * the page keeps Auto EQ.
+ *
+ * Every one opens over the amp, anchored to itself (Ivan, 2026-11-27: "it
+ * tries to show on side pane not good for amp"): the EQ mode is the menu,
+ * never the page's pinnable one, whose pinned card stands in the full app's
+ * sound panel; and the Curves menu's way to a headphone correction takes the
+ * amp back to the full app's page for it rather than opening that page
+ * unseen behind the amp.
  */
-const BandsTools = () => {
+const BandsTools = ({
+  onOpenPage,
+}: {
+  onOpenPage: (page: TPlayerPage) => void;
+}) => {
   const { t } = useTranslation();
   return (
     <PlayerToolRow>
@@ -53,8 +65,8 @@ const BandsTools = () => {
       </EqToolGroup>
       <span className="eq-layer-tabs__rule" aria-hidden="true" />
       <EqToolGroup caption={t('eq.tools.view')}>
-        <CurvesPicker />
-        <EqPageModeSelect />
+        <CurvesPicker onAddCorrection={() => onOpenPage('presets')} />
+        <EqModeSelect />
       </EqToolGroup>
       <SmartEqKey />
     </PlayerToolRow>
@@ -72,7 +84,11 @@ const BandsTools = () => {
  * No curve screen above the faders: the picture at the top of the amp is
  * already one (Ivan: "dont show double graph").
  */
-const PlayerSound = () => {
+const PlayerSound = ({
+  onOpenPage,
+}: {
+  onOpenPage: (page: TPlayerPage) => void;
+}) => {
   const { t } = useTranslation();
   const { filters } = useFluidEqContext();
   const { tone, eqCuts } = useFluidEqLayers();
@@ -213,7 +229,7 @@ const PlayerSound = () => {
           ) : (
             <>
               <MiniBands />
-              <BandsTools />
+              <BandsTools onOpenPage={onOpenPage} />
             </>
           )}
         </div>

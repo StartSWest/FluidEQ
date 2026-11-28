@@ -36,7 +36,20 @@ import type { TActiveLayers } from './useActiveLayers';
  * One menu trigger: the label and caret perform the same action, so splitting
  * them would suggest a second action and add a redundant keyboard stop.
  */
-const CurvesMenu = ({ active }: { active: TActiveLayers }) => {
+interface ICurvesPickerProps {
+  /**
+   * Where the way to a headphone correction leads: the full app's page, by
+   * default. The amp hands in its own way back to that page, because the
+   * page is not in its window (Ivan, 2026-11-27: "it tries to show on side
+   * pane not good for amp").
+   */
+  onAddCorrection?: () => void;
+}
+
+const CurvesMenu = ({
+  active,
+  onAddCorrection = openHeadphoneCorrections,
+}: ICurvesPickerProps & { active: TActiveLayers }) => {
   const { t } = useTranslation();
   const { layers, isBypassed } = active;
   const [isOpen, setIsOpen] = useState(false);
@@ -117,7 +130,7 @@ const CurvesMenu = ({ active }: { active: TActiveLayers }) => {
           className="button small plain active-layers__add"
           onClick={() => {
             setIsOpen(false);
-            openHeadphoneCorrections();
+            onAddCorrection();
           }}
         >
           <MenuIcon name="model" />
@@ -132,11 +145,13 @@ const CurvesMenu = ({ active }: { active: TActiveLayers }) => {
   );
 };
 
-const CurvesPicker = () => {
+const CurvesPicker = ({ onAddCorrection }: ICurvesPickerProps) => {
   const active = useActiveLayers();
   // Unmounted, not hidden, while nothing is applied: a menu open when the
   // last layer was removed must not pop open again with the next one.
-  return active.layers.length === 0 ? null : <CurvesMenu active={active} />;
+  return active.layers.length === 0 ? null : (
+    <CurvesMenu active={active} onAddCorrection={onAddCorrection} />
+  );
 };
 
 export default CurvesPicker;

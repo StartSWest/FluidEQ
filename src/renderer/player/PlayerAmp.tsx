@@ -206,7 +206,7 @@ const PlayerAmp = ({
               />
               <PlayerDock />
             </div>
-            <PlayerSound />
+            <PlayerSound onOpenPage={onOpenPage} />
             <PlayerQueue
               onOpenLibrary={() => onOpenPage('library')}
               musicDrop={drop}
