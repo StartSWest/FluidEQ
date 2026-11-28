@@ -217,22 +217,16 @@ const AppContent = () => {
 
   // Asked for Auto EQ (the Output panel's note about the old switch, the
   // sound on a song's card): the EQ page, where its button opens its panel
-  // (`autoEqOpen.ts`) — from the amp too, which shows no page: the app comes
-  // back on it, as for the Gaming Lab above, or the press did nothing seen.
+  // (`autoEqOpen.ts`). Not from the amp, which has Auto EQ of its own under
+  // its faders and opens it there, its sound unfolded (`PlayerSound`): the
+  // amp's controls open over the amp and never send the listener to the full
+  // window (Ivan, 2026-11-27). It used to bring the app back on the EQ page,
+  // from before the amp had Auto EQ.
   useEffect(() => {
     const open = () => {
       if (windowMode !== 'player') {
         selectTopWorkspaceTab('eq');
-        return;
       }
-      preloadTab('eq')
-        .catch((error: unknown) => {
-          reportError('Loading the EQ page', error);
-        })
-        .finally(() => {
-          selectTopWorkspaceTab('eq');
-          setWindowMode('app').catch(() => undefined);
-        });
     };
     window.addEventListener(OPEN_AUTO_EQ_EVENT, open);
     return () => window.removeEventListener(OPEN_AUTO_EQ_EVENT, open);

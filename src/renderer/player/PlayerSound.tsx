@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { type KeyboardEvent, useId, useRef } from 'react';
+import { type KeyboardEvent, useEffect, useId, useRef } from 'react';
 import { hasTone } from 'common/tone';
 import BandLayoutMenu from '../components/BandLayoutMenu';
 import ClearEqButton from '../components/ClearEqButton';
@@ -12,6 +12,7 @@ import CurvesPicker from '../components/CurvesPicker';
 import EqModeSelect from '../components/EqModeSelect';
 import VoicingQuickPick from '../components/VoicingQuickPick';
 import AutoEqButton from '../eq/autoEq/AutoEqButton';
+import { OPEN_AUTO_EQ_EVENT } from '../eq/autoEq/autoEqOpen';
 import SaveEqMenu from '../eq/autoEq/SaveEqMenu';
 import EqToolGroup from '../eq/EqToolGroup';
 import { cutCorners, isToneInUse } from '../eq/toneCuts';
@@ -104,6 +105,16 @@ const PlayerSound = ({
   // The tabs give up what they hold, then their words, before the amp's
   // width has to rise for the head (`_miniPlayerEqRows.scss`).
   useRowNeed(headRef, 'soundHead', 2);
+
+  // Asked for Auto EQ — the sound on the song's card, over the picture: the
+  // section unfolds, and its Auto EQ button opens its panel over the amp
+  // (`autoEqOpen.ts` asks every mounted button). Either face holds the
+  // button, so the face stays as it is.
+  useEffect(() => {
+    const unfold = () => setSound({ isOpen: true });
+    window.addEventListener(OPEN_AUTO_EQ_EVENT, unfold);
+    return () => window.removeEventListener(OPEN_AUTO_EQ_EVENT, unfold);
+  }, [setSound]);
 
   const isToneOn = isToneInUse(tone, eqCuts);
   const label: Record<TPlayerSoundFace, string> = {

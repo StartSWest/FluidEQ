@@ -21,6 +21,7 @@ import {
   screen,
 } from '@testing-library/react';
 import { MAX_FREQUENCY, MIN_FREQUENCY } from 'common/constants';
+import { requestAutoEqOpen } from 'renderer/eq/autoEq/autoEqOpen';
 import freeBandFrequency from 'renderer/eq/freeBandFrequency';
 import PlayerSound from 'renderer/player/PlayerSound';
 import {
@@ -141,6 +142,26 @@ describe('what the amp’s tools open', () => {
       screen.getByRole('button', { name: 'Add a headphone correction' }),
     );
     expect(opened).toEqual(['presets']);
+  });
+
+  // The sound on the song's card asks for Auto EQ: the amp answers it itself,
+  // with its section open, rather than sending the listener to the full app.
+  it('unfolds the section when Auto EQ is asked for, on the face it was on', () => {
+    const { container } = render(<PlayerSound onOpenPage={() => undefined} />);
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Fold the sound controls' }),
+    );
+    expect(container.querySelector('.player-sound')).toHaveClass('is-folded');
+    act(() => {
+      requestAutoEqOpen();
+    });
+    expect(container.querySelector('.player-sound')).not.toHaveClass(
+      'is-folded',
+    );
+    expect(screen.getByRole('tab', { name: /Your EQ/ })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
   });
 });
 

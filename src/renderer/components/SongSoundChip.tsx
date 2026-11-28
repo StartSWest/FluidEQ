@@ -38,8 +38,9 @@ import '../styles/SongSoundChip.scss';
  * sound in this one alone would be the one nobody expected.
  *
  * The bars and the amp each place and size it (`className`); what it says
- * and does is the same everywhere. From the amp the press brings the app
- * back on the EQ page (`App.tsx`), the amp showing no page of its own.
+ * and does is the same everywhere. In the full app the press opens the EQ
+ * page's Auto EQ; in the amp, the amp's own, its sound unfolded
+ * (`PlayerSound`), and the amp stays up (`App.tsx`).
  */
 const SongSoundChip = ({ className }: { className: string }) => {
   const { t } = useTranslation();
