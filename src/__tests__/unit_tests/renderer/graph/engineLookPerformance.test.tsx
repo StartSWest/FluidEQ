@@ -25,7 +25,7 @@ afterEach(() => {
 
 it('draws Standard looks with their own saved choices and updates the GPU when those change', () => {
   resetScenePerformanceForTesting();
-  setScenePerformance({ resolution: 'performance', smoothing: 'best' }, 'plus');
+  setScenePerformance({ quality: 'full' }, 'plus');
   const pack = engineLookPack('ledbars');
   if (!pack) {
     throw new Error('LED bars must have a GPU drawing');
@@ -49,29 +49,18 @@ it('draws Standard looks with their own saved choices and updates the GPU when t
   };
   expect(drawing()).toEqual({
     frameRate: 'display',
-    resolution: 'native',
-    autoFloor: 0.35,
-    upscaler: 'simple',
-    smoothing: 'off',
+    quality: 'auto',
   });
+  // Drawn as a look: the quality's size and none of its finishing passes.
+  expect(jest.mocked(useSceneRunner).mock.calls[0]?.[0].picture).toBe('look');
 
   act(() =>
     setScenePerformance(
-      { resolution: 'quality', smoothing: 'fast', frameRate: 'sixty' },
+      { quality: 'balanced', frameRate: 'sixty' },
       'standard',
     ),
   );
-  expect(drawing()).toMatchObject({
-    resolution: 'quality',
-    smoothing: 'fast',
-    frameRate: 'sixty',
-  });
-  act(() =>
-    setScenePerformance({ resolution: 'balanced', smoothing: 'off' }, 'plus'),
-  );
-  expect(drawing()).toMatchObject({
-    resolution: 'quality',
-    smoothing: 'fast',
-    frameRate: 'sixty',
-  });
+  expect(drawing()).toEqual({ quality: 'balanced', frameRate: 'sixty' });
+  act(() => setScenePerformance({ quality: 'auto' }, 'plus'));
+  expect(drawing()).toEqual({ quality: 'balanced', frameRate: 'sixty' });
 });

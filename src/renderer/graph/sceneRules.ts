@@ -5,8 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { TSceneMaker } from 'common/sceneMaker';
-import { createCostLadder, type ICostLadder } from './sceneHealth';
-import { createWarmupLadder } from './sceneWarmup';
+import {
+  createCostLadder,
+  createWarmupLadder,
+  type ICostLadder,
+} from './sceneLadder';
 
 /**
  * How the engine runs a scene, decided by who made it (`sceneMaker.ts`) and
@@ -40,11 +43,12 @@ export interface ISceneRules {
    */
   unwatched: boolean;
   /**
-   * The size ladder the scene is drawn on. FluidEQ's own start at full size,
-   * measured before release (`sceneHealth.ts`). A member's, the listener's
-   * included, climbs to it from the listener's floor (`sceneWarmup.ts`): a
-   * scene nobody has measured can be heavy enough to reset a display driver
-   * for every program on the machine.
+   * The size ladder the scene is drawn on (`sceneLadder.ts`), one set of
+   * rules from either end. FluidEQ's own start at their largest size,
+   * measured before release. A member's, the listener's included, climbs to
+   * it from the smallest the quality allows: a scene nobody has measured can
+   * be heavy enough to reset a display driver for every program on the
+   * machine.
    */
   createLadder(top: number, floor: number): ICostLadder;
   /**

@@ -109,10 +109,7 @@ const running = (over: Partial<IWallpaperSurfaceState> = {}) => ({
   motion: 'music' as const,
   performance: {
     frameRate: 'display' as const,
-    resolution: 'auto' as const,
-    autoFloor: 0.35 as const,
-    upscaler: 'fsr' as const,
-    smoothing: 'off' as const,
+    quality: 'auto' as const,
   },
   interactive: true,
   camera: { move: 'drag' as const, follow: false, orbit: 'off' as const },

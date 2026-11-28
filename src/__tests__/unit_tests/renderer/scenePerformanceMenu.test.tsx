@@ -8,10 +8,10 @@ import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import ScenePerformanceMenu from '../../../renderer/graph/ScenePerformanceMenu';
 import { setOnBatteryForTesting } from '../../../renderer/utils/batteryPower';
-import { resetGraphicsPreferenceForTesting } from '../../../renderer/utils/graphicsPreferenceStore';
 import {
   readScenePerformance,
   resetScenePerformanceForTesting,
+  setScenePerformance,
 } from '../../../renderer/utils/scenePerformanceStore';
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
@@ -21,101 +21,60 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
   }),
 }));
 
-const withGraphicsBridge = (supported: boolean) => {
-  let chosen = 'auto';
-  const state = () => ({ chosen, atLaunch: 'auto', supported });
-  Object.defineProperty(window, 'electron', {
-    configurable: true,
-    value: {
-      ipcRenderer: {
-        graphicsPreference: jest.fn(async () => state()),
-        setGraphicsPreference: jest.fn(async (next: string) => {
-          chosen = next;
-          return state();
-        }),
-      },
-    },
-  });
-};
-
-const settle = () => act(async () => undefined);
-
 beforeEach(() => {
   window.localStorage.removeItem('fluideq.scenePerformance');
   window.localStorage.removeItem('fluideq.standardPerformance');
   resetScenePerformanceForTesting();
-  resetGraphicsPreferenceForTesting();
   setOnBatteryForTesting(false);
-  delete (window as { electron?: unknown }).electron;
 });
 
-describe('the View menu’s performance rows for Plus visualizers', () => {
-  it('keeps every drawing choice with its group when switching between Standard and Plus', () => {
-    const { rerender } = render(<ScenePerformanceMenu group="standard" />);
+describe('the View menu’s drawing rows', () => {
+  // Ivan, 2026-11-27: "I dont want that many options so lets do auto,
+  // blance, and full".
+  it('offers the frame rate and the quality, and nothing else', () => {
+    render(<ScenePerformanceMenu />);
+    expect(screen.getAllByRole('menuitem')).toHaveLength(2);
     expect(
-      screen.getByText('graph.scene.resolution.native'),
+      screen.getByText('graph.scene.frameRate.display'),
     ).toBeInTheDocument();
-    expect(screen.getByText('graph.scene.scaler.simple')).toBeInTheDocument();
-    expect(screen.getByText('graph.scene.smoothing.off')).toBeInTheDocument();
-    ['frameRate', 'resolution', 'floor', 'scaler', 'smoothing'].forEach(
-      (setting) => {
-        fireEvent.click(screen.getByTitle(`graph.scene.${setting}Hint`));
-      },
-    );
+    expect(screen.getByText('scene.quality.auto')).toBeInTheDocument();
+    // The row says what the choice on it does.
+    expect(screen.getByTitle('scene.quality.auto.hint')).toBeInTheDocument();
+  });
+
+  it('cycles the quality through Balanced and Full and back to Auto', () => {
+    render(<ScenePerformanceMenu />);
+    const seen: string[] = [];
+    for (let i = 0; i < 3; i += 1) {
+      fireEvent.click(screen.getAllByRole('menuitem')[1]);
+      seen.push(readScenePerformance().quality);
+    }
+    expect(seen).toEqual(['balanced', 'full', 'auto']);
+    fireEvent.click(screen.getAllByRole('menuitem')[1]);
+    expect(screen.getByText('scene.quality.balanced')).toBeInTheDocument();
+    expect(
+      screen.getByTitle('scene.quality.balanced.hint'),
+    ).toBeInTheDocument();
+  });
+
+  it('keeps each group’s choice when switching between Standard and Plus', () => {
+    const { rerender } = render(<ScenePerformanceMenu group="standard" />);
+    fireEvent.click(screen.getByTitle('scene.quality.auto.hint'));
+    fireEvent.click(screen.getByTitle('graph.scene.frameRateHint'));
     expect(readScenePerformance('standard')).toEqual({
       frameRate: 'sixty',
-      resolution: 'quality',
-      autoFloor: 0.5,
-      upscaler: 'fsr',
-      smoothing: 'fast',
+      quality: 'balanced',
     });
 
     rerender(<ScenePerformanceMenu group="plus" />);
     expect(
       screen.getByText('graph.scene.frameRate.display'),
     ).toBeInTheDocument();
-    expect(screen.getByText('graph.scene.resolution.auto')).toBeInTheDocument();
-    expect(screen.getByText('graph.scene.floor.35')).toBeInTheDocument();
-    fireEvent.click(screen.getByTitle('graph.scene.smoothingHint'));
-    expect(readScenePerformance('plus').smoothing).toBe('off');
+    expect(screen.getByText('scene.quality.auto')).toBeInTheDocument();
 
     rerender(<ScenePerformanceMenu group="standard" />);
     expect(screen.getByText('graph.scene.frameRate.sixty')).toBeInTheDocument();
-    expect(
-      screen.getByText('graph.scene.resolution.quality'),
-    ).toBeInTheDocument();
-    expect(screen.getByText('graph.scene.floor.50')).toBeInTheDocument();
-    expect(screen.getByText('graph.scene.scaler.fsr')).toBeInTheDocument();
-    expect(screen.getByText('graph.scene.smoothing.fast')).toBeInTheDocument();
-  });
-
-  it('shows the display rate, automatic resolution down to a third, AMD FSR and best smoothing to start with', () => {
-    render(<ScenePerformanceMenu />);
-    expect(
-      screen.getByText('graph.scene.frameRate.display'),
-    ).toBeInTheDocument();
-    expect(screen.getByText('graph.scene.resolution.auto')).toBeInTheDocument();
-    expect(screen.getByText('graph.scene.floor.35')).toBeInTheDocument();
-    expect(screen.getByText('graph.scene.scaler.fsr')).toBeInTheDocument();
-    expect(screen.getByText('graph.scene.smoothing.best')).toBeInTheDocument();
-  });
-
-  it('walks the smallest size through the four floors, and says when it counts under a fixed size', () => {
-    render(<ScenePerformanceMenu />);
-    const row = screen.getByTitle('graph.scene.floorHint');
-    const seen: number[] = [];
-    for (let i = 0; i < 4; i += 1) {
-      fireEvent.click(row);
-      seen.push(readScenePerformance().autoFloor);
-    }
-    expect(seen).toEqual([0.5, 0.67, 0.85, 0.35]);
-    expect(screen.getByText('graph.scene.floor.35')).toBeInTheDocument();
-    expect(screen.queryByText('graph.scene.floor.whenAuto')).toBeNull();
-    // A fixed size: the row stays, and says the floor is Automatic's.
-    fireEvent.click(screen.getByTitle('graph.scene.resolutionHint'));
-    expect(readScenePerformance().resolution).toBe('native');
-    expect(screen.getByTitle('graph.scene.floorHint')).toBeInTheDocument();
-    expect(screen.getByText('graph.scene.floor.whenAuto')).toBeInTheDocument();
+    expect(screen.getByText('scene.quality.balanced')).toBeInTheDocument();
   });
 
   it('cycles the frame rate through the caps and back on each click', () => {
@@ -135,6 +94,17 @@ describe('the View menu’s performance rows for Plus visualizers', () => {
     expect(readScenePerformance().frameRate).toBe('display');
   });
 
+  /** Fifteen is FluidWallpapers' battery rate; FluidEQ's row names it and moves on. */
+  it('names a fifteen set elsewhere, and cycles on from it to the display rate', () => {
+    setScenePerformance({ frameRate: 'fifteen' });
+    render(<ScenePerformanceMenu />);
+    expect(
+      screen.getByText('graph.scene.frameRate.fifteen'),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByTitle('graph.scene.frameRateHint'));
+    expect(readScenePerformance().frameRate).toBe('display');
+  });
+
   it('says the display rate is held to sixty while on battery', () => {
     render(<ScenePerformanceMenu />);
     act(() => setOnBatteryForTesting(true));
@@ -147,56 +117,10 @@ describe('the View menu’s performance rows for Plus visualizers', () => {
     ).toBeInTheDocument();
   });
 
-  it('walks the resolution through full and the three presets', () => {
+  /** The graphics card is no choice any more: always the fast one. */
+  it('offers no graphics card row', () => {
     render(<ScenePerformanceMenu />);
-    const row = screen.getByTitle('graph.scene.resolutionHint');
-    const seen: string[] = [];
-    for (let i = 0; i < 5; i += 1) {
-      fireEvent.click(row);
-      seen.push(readScenePerformance().resolution);
-    }
-    expect(seen).toEqual([
-      'native',
-      'quality',
-      'balanced',
-      'performance',
-      'auto',
-    ]);
-    expect(screen.getByText('graph.scene.resolution.auto')).toBeInTheDocument();
-  });
-
-  it('switches the scaler and the smoothing', () => {
-    render(<ScenePerformanceMenu />);
-    fireEvent.click(screen.getByTitle('graph.scene.scalerHint'));
-    expect(readScenePerformance().upscaler).toBe('simple');
-    expect(screen.getByText('graph.scene.scaler.simple')).toBeInTheDocument();
-    const smoothing = screen.getByTitle('graph.scene.smoothingHint');
-    fireEvent.click(smoothing);
-    expect(readScenePerformance().smoothing).toBe('off');
-    expect(screen.getByText('graph.scene.smoothing.off')).toBeInTheDocument();
-    fireEvent.click(smoothing);
-    expect(readScenePerformance().smoothing).toBe('fast');
-    expect(screen.getByText('graph.scene.smoothing.fast')).toBeInTheDocument();
-  });
-
-  it('offers no graphics card row where the choice means nothing', async () => {
-    withGraphicsBridge(false);
-    render(<ScenePerformanceMenu />);
-    await settle();
     expect(screen.queryByTitle('graph.scene.gpuHint')).toBeNull();
-    expect(screen.getAllByRole('menuitem')).toHaveLength(5);
-  });
-
-  it('offers the graphics card row on Windows, and says a restart is owed after a change', async () => {
-    withGraphicsBridge(true);
-    render(<ScenePerformanceMenu />);
-    await settle();
-    expect(screen.getAllByRole('menuitem')).toHaveLength(6);
-    expect(screen.getByText('graph.scene.gpu.auto')).toBeInTheDocument();
-    expect(screen.queryByText('graph.scene.gpu.restart')).toBeNull();
-    fireEvent.click(screen.getByTitle('graph.scene.gpuHint'));
-    await settle();
-    expect(screen.getByText('graph.scene.gpu.high')).toBeInTheDocument();
-    expect(screen.getByText('graph.scene.gpu.restart')).toBeInTheDocument();
+    expect(screen.queryByText(/graph\.scene\.gpu/)).toBeNull();
   });
 });

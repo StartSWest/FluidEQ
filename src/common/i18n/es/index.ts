@@ -81,6 +81,7 @@ import troubleshoot from './troubleshoot';
 import files from './files';
 import libraryTags from './libraryTags';
 import edit from './edit';
+import scene from './scene';
 
 const es: Partial<Dictionary> = {
   ...karaoke,
@@ -146,6 +147,7 @@ const es: Partial<Dictionary> = {
   ...files,
   ...libraryTags,
   ...edit,
+  ...scene,
 };
 
 export default es;

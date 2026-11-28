@@ -1,26 +1,31 @@
 /**
- * Whether this machine can run a scene at all, and how hard it may be pushed.
+ * Whether this machine can run a scene at all, and the numbers every scene's
+ * size controller (`sceneLadder.ts`) is judged by.
  *
- * Two things live here and neither has a timer. The WebGL2 probe is asked once,
- * lazily, the first time anything wants to know — under Jest the canvas answers
- * null and every premium row simply never appears, which is also what happens
- * on a machine with no usable GPU. The resolution controller watches what
- * frames cost the GPU as the readings arrive and moves the drawn size down and
- * back up; every wait in it is counted in frames, from the interval frames
- * are arriving at.
+ * The WebGL2 probe is asked once, lazily, the first time anything wants to
+ * know — under Jest the canvas answers null and every premium row simply
+ * never appears, which is also what happens on a machine with no usable GPU.
  */
 
+import { SCENE_AUTO_FLOOR } from 'common/scenePerformance';
 import { THIRTY_A_SECOND_MS } from 'common/smoothing';
 
 let webgl2Available: boolean | undefined;
 
 /**
- * The attributes a scene asks for, kept in one place so the probe and the real
- * canvas cannot disagree. No depth, no stencil, no multisampling — a single
- * fullscreen triangle needs none of them and each one costs fill. Power
- * preference is `default`, deliberately not `high-performance`: this app sits
- * in the notification area for weeks, and waking a laptop's discrete GPU for a
- * decorative background is a battery bug nobody would trace to the setting.
+ * The attributes a scene asks for, kept in one place so the probe and every
+ * real canvas — the renderer worker's, the still worker's (a 3D world draws
+ * on the context it is handed), the desk lights' — cannot disagree. No
+ * depth, no stencil, no multisampling — a single fullscreen triangle needs
+ * none of them and each one costs fill.
+ *
+ * The fast graphics card, always (Ivan, 2026-11-27: "always to try enforce
+ * fast high performance"). On Windows this attribute alone moves nothing:
+ * Chromium keeps WebGL on its own GPU unless `EGLDualGPURendering` is on,
+ * and it is off by default there (`ui/gl/gl_switches.cc`), which is why main
+ * starts the whole app on the fast card (`force_high_performance_gpu`,
+ * `main.ts`). On a Mac with two graphics chips that feature is on by
+ * default, and this is what puts a scene on the discrete one.
  */
 export const SCENE_CONTEXT_ATTRIBUTES: WebGLContextAttributes = {
   alpha: true,
@@ -29,7 +34,7 @@ export const SCENE_CONTEXT_ATTRIBUTES: WebGLContextAttributes = {
   depth: false,
   stencil: false,
   preserveDrawingBuffer: false,
-  powerPreference: 'default',
+  powerPreference: 'high-performance',
   failIfMajorPerformanceCaveat: false,
 };
 
@@ -90,11 +95,19 @@ export interface ISceneCostReading {
  * a frame at full size and could not keep up even at half, so every one of
  * them stopped there. Two more steps, 0.42 and 0.35 — an eighth and a
  * twelfth of the pixels — keep them running as a soft picture, which a
- * viewer would take over none. Below the last scale the ladder has one more
- * rung: the same picture at `SCENE_SLOW_PACE_MS`.
+ * viewer would take over none; the last is Auto's floor, and Balanced's
+ * half is among them. Below the floor the ladder has one more rung: the
+ * same picture at `SCENE_SLOW_PACE_MS`.
  */
 export const SCENE_RENDER_SCALES: readonly number[] = [
-  1, 0.85, 0.77, 0.67, 0.59, 0.5, 0.42, 0.35,
+  1,
+  0.85,
+  0.77,
+  0.67,
+  0.59,
+  0.5,
+  0.42,
+  SCENE_AUTO_FLOOR,
 ];
 
 /**
@@ -155,24 +168,6 @@ export const SCENE_CEILING_MS = 20000;
 export const SCENE_MAX_CEILING_DOUBLINGS = 3;
 
 /**
- * A frame is badly slow past this many intervals: a member's scene climbing
- * from the floor (`sceneWarmup.ts`) steps back down after a run of them.
- *
- * Three, not two. At a sixty-frame interval that is fifty milliseconds — under
- * twenty frames a second — which is where a scene has visibly stopped being
- * motion.
- */
-export const SCENE_SLOW_FRAME_FACTOR = 3;
-
-/**
- * Consecutive badly slow frames before a member's scene steps down a size.
- *
- * Twenty-four is under half a second at sixty: long enough that a single
- * driver stall does not move the picture.
- */
-export const SCENE_SLOW_FRAMES_TO_STEP = 24;
-
-/**
  * The finishing passes' share of the interval past which they are too dear
  * for this GPU, and the plain scaler is used instead for the session.
  *
@@ -182,332 +177,3 @@ export const SCENE_SLOW_FRAMES_TO_STEP = 24;
  * the compositor's stretch costs nothing.
  */
 export const SCENE_FINISH_SHARE = 0.3;
-
-export interface ICostLadder {
-  scale(): number;
-  /**
-   * On the rung below the smallest picture: the caller holds frames to
-   * `SCENE_SLOW_PACE_MS`, whatever rate the listener chose.
-   */
-  slowed(): boolean;
-  /**
-   * Report one frame's reading against the interval frames arrive at.
-   * Returns `degraded` only where a scene nobody here has watched holds the
-   * GPU so long, at its smallest size, that it would freeze the window and
-   * risk a display-driver reset (`sceneWarmup.ts`): then the caller stops
-   * it. Being slow is never a reason - a slow scene rests on its smallest
-   * size at the slow rate and stays on screen.
-   */
-  frame(
-    reading: ISceneCostReading,
-    intervalMs: number,
-    hidden: boolean,
-  ): 'ok' | 'degraded';
-  /** The finishing passes have proved too dear here: use the plain scaler. */
-  cheapFinish(): boolean;
-  /**
-   * The listener changed the smallest size allowed. The picture stays where
-   * it is and only the rungs move: a ladder made anew started a member's
-   * scene from an eighth again for a change to a setting it had not hit.
-   */
-  refloor(floor: number): void;
-  /**
-   * Start from a size this program has already proved it draws in this
-   * session, rather than from the ladder's own start: a scene built again —
-   * for full screen and back, for a look put away and taken out — began the
-   * warm-up's climb from an eighth every time, a second of blur for a scene
-   * that had just run whole.
-   */
-  resume(scale: number): void;
-  reset(): void;
-}
-
-const framesOf = (ms: number, intervalMs: number) =>
-  Math.max(1, Math.ceil(ms / Math.max(1, intervalMs)));
-
-/**
- * The rungs a ladder climbs: the panel's size and the scales below it, down
- * to the smallest the listener allows, with the supersampled size above when
- * `best` smoothing asks for one.
- */
-export const ladderScales = (
-  top: number,
-  floor: number = SCENE_RENDER_SCALES[SCENE_RENDER_SCALES.length - 1],
-): readonly number[] => {
-  const allowed = SCENE_RENDER_SCALES.filter((scale) => scale >= floor - 1e-6);
-  const scales = allowed.length > 0 ? allowed : [SCENE_RENDER_SCALES[0]];
-  return top > 1 ? [top, ...scales] : scales;
-};
-
-/**
- * Counts the frames whose finishing was too dear and says when it has been
- * so for a run of them. Shared by both ladders; a decision for the session.
- */
-export const createFinishWatch = () => {
-  let streak = 0;
-  let cheap = false;
-  return {
-    frame: ({ postMs }: ISceneCostReading, intervalMs: number) => {
-      if (cheap || postMs === undefined) {
-        return;
-      }
-      streak = postMs > intervalMs * SCENE_FINISH_SHARE ? streak + 1 : 0;
-      if (streak >= SCENE_STEP_DOWN_FRAMES) {
-        cheap = true;
-      }
-    },
-    cheap: () => cheap,
-    reset: () => {
-      streak = 0;
-      cheap = false;
-    },
-  };
-};
-
-/**
- * Whether a reading is over budget, on an exact clock or on the pipeline
- * alone.
- */
-const judge = (
-  { costMs, behind }: ISceneCostReading,
-  intervalMs: number,
-): { over: boolean } => {
-  if (costMs !== undefined) {
-    // On the clock alone. Frames still in hand say nothing here: traced in
-    // the running window at a hundred frames a second, a scene costing
-    // 0.14 ms a frame had one frame in hand on three polls of four and two
-    // on one in ten, because a fence is seen signalled a frame or two after
-    // the GPU is through with it. Counted as late, that held a member's
-    // scene at an eighth of the size for good and reset the clean run every
-    // climb waits for.
-    return { over: costMs > intervalMs * SCENE_OVER_SHARE };
-  }
-  return { over: behind >= 1 };
-};
-
-/**
- * The resolution controller for a scene somebody has already watched run.
- *
- * Starts at full size. Steps down after a run of frames the GPU could not
- * finish inside the budget — straight to the rung the measured cost predicts
- * will fit, since a shader's cost is per pixel — and climbs back the same
- * way after a second of clean frames: straight to the largest rung the same
- * arithmetic says fits with room to spare. A climb that has to be undone
- * shortly after bars that rung for twenty seconds, doubling each time: a
- * picture that pulses between two sizes on the boundary is worse than the
- * smaller one, and this is what stops it. Without an exact clock — a driver
- * with no timer queries — it steps down on the pipeline alone and climbs one
- * rung at a time, by trying.
- *
- * Below the smallest picture the listener allows (`floor`) there is one rung
- * more: the same picture held to `SCENE_SLOW_PACE_MS`, taken only where
- * frames arrive faster than that, and the scene rests there however slow it
- * still is. It is never handed over to a lesser look for being slow (Ivan,
- * 2026-11-08: "remove all low performance laptop fallback scenes ... so only
- * the good one display"): a soft, slower picture of the scene is the scene,
- * and the standard look in its place was not. A scene stops only where it
- * cannot run at all - a context lost, a program that will not build.
- */
-export const createCostLadder = (
-  top = 1,
-  floor: number = SCENE_RENDER_SCALES[SCENE_RENDER_SCALES.length - 1],
-): ICostLadder => {
-  let scales = ladderScales(top, floor);
-  /** The rung past the last scale: the smallest picture at the slow rate. */
-  let slowRung = scales.length;
-  const finish = createFinishWatch();
-  let rung = 0;
-  let slowStreak = 0;
-  let cleanStreak = 0;
-  let holdLeft = 0;
-  let sinceClimb: number | undefined;
-  let ceilingRung = 0;
-  let ceilingLeft = 0;
-  let doublings = 0;
-  let typicalCostMs: number | undefined;
-  /** The interval frames arrived at before the slow rung: the way out of it. */
-  let fastIntervalMs: number | undefined;
-
-  const scaleAt = (at: number) => scales[Math.min(at, slowRung - 1)];
-
-  const predicted = (fromRung: number, toRung: number) =>
-    typicalCostMs === undefined
-      ? undefined
-      : typicalCostMs * (scaleAt(toRung) / scaleAt(fromRung)) ** 2;
-
-  /** Whether holding frames to the slow rate would change anything here. */
-  const canSlow = (intervalMs: number) => intervalMs < SCENE_SLOW_PACE_MS * 0.9;
-
-  /** Nothing below this rung: the slow rate, or the floor where there is none. */
-  const atBottom = (intervalMs: number) =>
-    rung === slowRung || (rung === slowRung - 1 && !canSlow(intervalMs));
-
-  const stepDown = (intervalMs: number) => {
-    const target = SCENE_TARGET_SHARE * intervalMs;
-    let next = rung + 1;
-    // The first rung the measured cost says will fit, so a scene four times
-    // too heavy is not walked down one rung at a time, stuttering at each.
-    while (next < slowRung - 1) {
-      const cost = predicted(rung, next);
-      if (cost === undefined || cost <= target) {
-        break;
-      }
-      next += 1;
-    }
-    // Not even the smallest picture fits: straight to the slow rate, whose
-    // interval is the budget it brings, rather than a stutter at the floor
-    // first. Without a clock the floor is tried first, like every rung.
-    if (next === slowRung - 1 && canSlow(intervalMs)) {
-      const cost = predicted(rung, next);
-      if (cost !== undefined && cost > target) {
-        next = slowRung;
-      }
-    }
-    const bounced =
-      sinceClimb !== undefined &&
-      sinceClimb < framesOf(SCENE_BOUNCE_MS, intervalMs);
-    if (bounced) {
-      ceilingRung = Math.max(ceilingRung, rung + 1);
-      ceilingLeft = framesOf(SCENE_CEILING_MS * 2 ** doublings, intervalMs);
-      doublings = Math.min(SCENE_MAX_CEILING_DOUBLINGS, doublings + 1);
-    }
-    if (next === slowRung) {
-      fastIntervalMs = intervalMs;
-    }
-    rung = next;
-    sinceClimb = undefined;
-    holdLeft = framesOf(SCENE_HOLD_MS, intervalMs);
-  };
-
-  const climb = (intervalMs: number) => {
-    if (rung - 1 < ceilingRung || holdLeft > 0) {
-      return;
-    }
-    if (cleanStreak < framesOf(SCENE_CLIMB_MS, intervalMs)) {
-      return;
-    }
-    // Out of the slow rung the picture stays and the interval halves, so the
-    // same picture is judged against the interval frames arrived at before.
-    const budget =
-      rung === slowRung && fastIntervalMs !== undefined
-        ? fastIntervalMs
-        : intervalMs;
-    const room = SCENE_TARGET_SHARE * budget * 0.9;
-    // The largest rung not barred that the measured cost says fits with room
-    // to spare — the way down is predictive, and the way up is the same, or a
-    // picture dropped for one heavy passage crept back a rung at a time.
-    // Without a clock, the next rung up, by trying.
-    let next = rung - 1;
-    if (typicalCostMs !== undefined) {
-      const cost = predicted(rung, next);
-      if (cost === undefined || cost > room) {
-        cleanStreak = 0;
-        return;
-      }
-      while (next - 1 >= ceilingRung) {
-        const above = predicted(rung, next - 1);
-        if (above === undefined || above > room) {
-          break;
-        }
-        next -= 1;
-      }
-    }
-    rung = next;
-    cleanStreak = 0;
-    sinceClimb = 0;
-  };
-
-  return {
-    scale: () => scaleAt(rung),
-    slowed: () => rung === slowRung,
-    cheapFinish: finish.cheap,
-    refloor: (floor) => {
-      const current = scaleAt(rung);
-      const wasSlow = rung === slowRung;
-      scales = ladderScales(top, floor);
-      slowRung = scales.length;
-      // The same picture where the new rungs still have it, the smallest
-      // allowed where they do not, and the slow rate stays the slow rate. A
-      // rung barred after a bounce is forgotten with the rungs it was among.
-      const at = scales.findIndex((scale) => Math.abs(scale - current) < 1e-6);
-      if (wasSlow) {
-        rung = slowRung;
-      } else {
-        rung = at >= 0 ? at : slowRung - 1;
-      }
-      ceilingRung = 0;
-      ceilingLeft = 0;
-    },
-    resume: (scale) => {
-      // The rung of that size, or the next one down where the rungs have
-      // moved since; larger than every rung means full size, the start.
-      const at = scales.findIndex((entry) => entry <= scale + 1e-6);
-      rung = at >= 0 ? at : slowRung - 1;
-    },
-    frame: (reading, intervalMs, hidden) => {
-      // `backgroundThrottling` drops an occluded window to about one frame a
-      // second. Counting those would ratchet the quality down every minute the
-      // window was minimised, for nobody.
-      if (hidden) {
-        slowStreak = 0;
-        return 'ok';
-      }
-      finish.frame(reading, intervalMs);
-      if (reading.costMs !== undefined) {
-        typicalCostMs =
-          typicalCostMs === undefined
-            ? reading.costMs
-            : typicalCostMs + (reading.costMs - typicalCostMs) * 0.2;
-      }
-      if (sinceClimb !== undefined) {
-        sinceClimb += 1;
-      }
-      if (holdLeft > 0) {
-        holdLeft -= 1;
-      }
-      if (ceilingLeft > 0) {
-        ceilingLeft -= 1;
-        if (ceilingLeft === 0) {
-          ceilingRung = 0;
-        }
-      }
-      const { over } = judge(reading, intervalMs);
-      const bottom = atBottom(intervalMs);
-      if (over) {
-        slowStreak += 1;
-        // A lone late frame — a pause on the page, a frame the compositor
-        // held — is a hiccup, not a load: the run of clean frames a climb
-        // waits for survives one, as the step down needs six in a row.
-        if (slowStreak >= 2) {
-          cleanStreak = 0;
-        }
-        if (slowStreak >= SCENE_STEP_DOWN_FRAMES) {
-          slowStreak = 0;
-          if (!bottom) {
-            stepDown(intervalMs);
-          }
-        }
-      } else {
-        slowStreak = 0;
-        cleanStreak += 1;
-        if (rung > 0) {
-          climb(intervalMs);
-        }
-      }
-      return 'ok';
-    },
-    reset: () => {
-      rung = 0;
-      slowStreak = 0;
-      cleanStreak = 0;
-      holdLeft = 0;
-      sinceClimb = undefined;
-      ceilingRung = 0;
-      ceilingLeft = 0;
-      doublings = 0;
-      typicalCostMs = undefined;
-      fastIntervalMs = undefined;
-      finish.reset();
-    },
-  };
-};

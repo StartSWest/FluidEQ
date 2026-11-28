@@ -140,6 +140,9 @@ export default function EngineLookLayer({
   const hostRef = useSceneRunner({
     source,
     performance,
+    // A look's own shader gives its lines their edges: the quality moves its
+    // size and adds no finishing pass over it.
+    picture: 'look',
     width,
     height,
     spectrumRect: WHOLE_PANEL,

@@ -242,10 +242,7 @@ export const setup = (stored?: IWallpaperArrangement) => {
     pauseOnBattery: true,
     performance: {
       frameRate: 'display',
-      resolution: 'auto',
-      autoFloor: 0.35,
-      upscaler: 'fsr',
-      smoothing: 'off',
+      quality: 'auto',
     },
     cameraControl: { key: 'ctrl', move: 'drag', follow: false, orbit: 'off' },
     tuning: {},

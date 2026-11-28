@@ -139,35 +139,32 @@ describe('the music a background hears', () => {
 describe('how hard the monitors draw', () => {
   const chosen = {
     frameRate: 'display',
-    resolution: 'auto',
-    autoFloor: 0.35,
-    upscaler: 'fsr',
-    smoothing: 'off',
+    quality: 'auto',
   } as const;
 
-  // The page draws by the scaler and the smoothing as much as by the rate and
-  // the size; comparing two of the five left a background on the scaler it
-  // started with, on the desktop and in the file, until something else moved.
+  // The page draws by the quality as much as by the rate; comparing only one
+  // of the two left a background on the choice it started with, on the
+  // desktop and in the file, until something else moved.
   it('takes every part of the window’s choice to the monitors and remembers it', () => {
     const { deps, file } = setup();
     const manager = createWallpaperManager(deps);
     manager.start(request({ displayIds: [2, 3] }));
 
-    manager.setPerformance({ ...chosen, upscaler: 'simple' });
+    manager.setPerformance({ ...chosen, quality: 'balanced' });
     expect(
       mockSurfaces.map((surface) => surface.retunePerformance.mock.calls[0][0]),
     ).toEqual([
-      { ...chosen, upscaler: 'simple' },
-      { ...chosen, upscaler: 'simple' },
+      { ...chosen, quality: 'balanced' },
+      { ...chosen, quality: 'balanced' },
     ]);
-    expect(file().performance).toEqual({ ...chosen, upscaler: 'simple' });
+    expect(file().performance).toEqual({ ...chosen, quality: 'balanced' });
 
-    manager.setPerformance({ ...chosen, smoothing: 'best' });
-    expect(file().performance).toEqual({ ...chosen, smoothing: 'best' });
+    manager.setPerformance({ ...chosen, frameRate: 'fifteen' });
+    expect(file().performance).toEqual({ ...chosen, frameRate: 'fifteen' });
     expect(mockSurfaces[0].retunePerformance).toHaveBeenCalledTimes(2);
 
     // The same choice again is not a change.
-    manager.setPerformance({ ...chosen, smoothing: 'best' });
+    manager.setPerformance({ ...chosen, frameRate: 'fifteen' });
     expect(mockSurfaces[0].retunePerformance).toHaveBeenCalledTimes(2);
   });
 
@@ -228,11 +225,11 @@ describe('how hard the monitors draw', () => {
   it('starts a monitor with the choice it was left with', () => {
     const { deps } = setup();
     const manager = createWallpaperManager(deps);
-    manager.setPerformance({ ...chosen, resolution: 'balanced' });
+    manager.setPerformance({ ...chosen, quality: 'full' });
     manager.start(request());
     expect(mockSurfaces[0].performance).toEqual({
       ...chosen,
-      resolution: 'balanced',
+      quality: 'full',
     });
   });
 });
@@ -313,10 +310,7 @@ describe('stopping', () => {
       pauseOnBattery: false,
       performance: {
         frameRate: 'thirty',
-        resolution: 'native',
-        autoFloor: 0.5,
-        upscaler: 'simple',
-        smoothing: 'off',
+        quality: 'full',
       },
       cameraControl: {
         key: 'ctrl' as const,
@@ -348,10 +342,7 @@ describe('coming back at launch', () => {
     pauseOnBattery: false,
     performance: {
       frameRate: 'display',
-      resolution: 'auto',
-      autoFloor: 0.35,
-      upscaler: 'fsr',
-      smoothing: 'off',
+      quality: 'auto',
     },
     cameraControl: {
       key: 'ctrl' as const,

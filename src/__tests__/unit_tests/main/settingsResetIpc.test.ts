@@ -10,7 +10,6 @@ import os from 'os';
 import path from 'path';
 import ts from 'typescript';
 import type { IpcMainInvokeEvent, WebContents } from 'electron';
-import { readGpuPreference, writeGpuPreference } from 'main/graphicsPreference';
 import {
   registerSettingsResetIpc,
   SETTINGS_RESET_CHANNEL,
@@ -75,7 +74,6 @@ describe('resetting the settings main keeps', () => {
   beforeEach(() => {
     folder = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-reset-'));
     writeMotionPreference(folder, 'reduced');
-    writeGpuPreference(folder, 'high');
     mockLogin.openAtLogin = true;
     mockLogin.refuse = false;
     owner = contents();
@@ -100,7 +98,6 @@ describe('resetting the settings main keeps', () => {
     askFrom(owner);
 
     expect(readMotionPreference(folder)).toBe('full');
-    expect(readGpuPreference(folder)).toBe('auto');
     expect(mockLogin.openAtLogin).toBe(false);
     expect(deps.resetDesktopBackgrounds).toHaveBeenCalledTimes(1);
     expect(deps.resetLighting).toHaveBeenCalledTimes(1);
@@ -203,7 +200,6 @@ describe('resetting the settings main keeps', () => {
     );
 
     expect(readMotionPreference(folder)).toBe('reduced');
-    expect(readGpuPreference(folder)).toBe('high');
     expect(mockLogin.openAtLogin).toBe(true);
     expect(deps.resetDesktopBackgrounds).not.toHaveBeenCalled();
     expect(deps.resetEngineKey).not.toHaveBeenCalled();
@@ -221,7 +217,6 @@ const REPO = path.resolve(__dirname, '../../../..');
 
 /** Put back by "Reset all settings" (`main/ipc/settingsReset.ts`). */
 const RESET_FILES = [
-  'graphics.json',
   'motion.json',
   'desktop-backgrounds.json',
   'lighting.json',

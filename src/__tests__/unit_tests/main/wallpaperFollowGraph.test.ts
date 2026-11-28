@@ -228,10 +228,7 @@ describe('following the graph across launches', () => {
     pauseOnBattery: false,
     performance: {
       frameRate: 'display',
-      resolution: 'auto',
-      autoFloor: 0.35,
-      upscaler: 'fsr',
-      smoothing: 'off',
+      quality: 'auto',
     },
     cameraControl: {
       key: 'ctrl' as const,

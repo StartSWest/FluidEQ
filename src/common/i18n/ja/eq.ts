@@ -342,41 +342,9 @@ const eq: Partial<Dictionary> = {
   'graph.scene.frameRate.display': 'ディスプレイと同じ',
   'graph.scene.frameRate.sixty': '毎秒 60',
   'graph.scene.frameRate.thirty': '毎秒 30',
-  'graph.scene.resolution': '解像度',
+  'graph.scene.frameRate.fifteen': '毎秒 15',
   'graph.scene.frameRate.displayBattery':
     'ディスプレイと同じ · バッテリー時は 60',
-  'graph.scene.resolutionHint':
-    '自動は GPU が追いつかないときだけ小さく描いて拡大します。フルは常にそのままの大きさで描きます。品質・バランス・パフォーマンスは常にその割合で描いて拡大します（ゲームの DLSS や FSR と同じ）',
-  'graph.scene.resolution.auto': '自動',
-  'graph.scene.resolution.native': 'フル',
-  'graph.scene.resolution.quality': '品質 (77%)',
-  'graph.scene.resolution.balanced': 'バランス (67%)',
-  'graph.scene.resolution.performance': 'パフォーマンス (50%)',
-  'graph.scene.floor': '最小サイズ',
-  'graph.scene.floorHint':
-    '自動がフレームレートを下げる前に、どこまで縮小してよいか',
-  'graph.scene.floor.35': '35%',
-  'graph.scene.floor.50': '50%',
-  'graph.scene.floor.67': '67%',
-  'graph.scene.floor.85': '85%',
-  'graph.scene.floor.whenAuto': '自動のとき',
-  'graph.scene.scaler': 'スケーラー',
-  'graph.scene.scalerHint':
-    '小さく描いた絵を元の大きさに戻す方法：AMD FSR は輪郭をシャープに保ち、シンプルは GPU に負担のない柔らかな引き伸ばしです',
-  'graph.scene.scaler.fsr': 'AMD FSR',
-  'graph.scene.scaler.simple': 'シンプル',
-  'graph.scene.smoothing': '輪郭を滑らかに',
-  'graph.scene.smoothingHint':
-    'アンチエイリアス：高速は軽い 1 パスで輪郭を滑らかにし、最高はシーンを大きく描いて平均します（余裕のある GPU 向け）',
-  'graph.scene.smoothing.off': 'オフ',
-  'graph.scene.smoothing.fast': '高速',
-  'graph.scene.smoothing.best': '最高',
-  'graph.scene.gpu': 'グラフィックカード',
-  'graph.scene.gpuHint':
-    'グラフィックカードが 2 枚あるノート PC で FluidEQ を速い方で動かします。次回起動から有効です',
-  'graph.scene.gpu.auto': 'Windows に任せる',
-  'graph.scene.gpu.high': '高パフォーマンス',
-  'graph.scene.gpu.restart': '再起動後',
   'graph.scene.locked':
     'まだあなたのものではありません。選ぶと入手方法が表示されます。',
   'graph.style.next': '次のスタイル',

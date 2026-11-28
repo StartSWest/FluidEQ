@@ -81,6 +81,7 @@ import troubleshoot from './troubleshoot';
 import files from './files';
 import libraryTags from './libraryTags';
 import edit from './edit';
+import scene from './scene';
 
 const ko: Dictionary = {
   ...karaoke,
@@ -146,6 +147,7 @@ const ko: Dictionary = {
   ...files,
   ...libraryTags,
   ...edit,
+  ...scene,
 };
 
 export default ko;

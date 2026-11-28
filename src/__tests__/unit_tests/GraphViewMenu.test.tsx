@@ -105,17 +105,20 @@ describe('GraphViewMenu curve toggles', () => {
     const plus = readScenePerformance('plus');
     const { unmount } = renderMenuForSizing();
     fireEvent.click(screen.getByRole('button', { name: 'View' }));
+    // Two rows: the frame rate and the quality, nothing else to manage.
     expect(
-      screen.getByRole('menuitem', { name: 'Resolution Full' }),
+      screen.getByRole('menuitem', { name: 'Frame rate Display rate' }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Quality Auto' }));
+    expect(
+      screen.getByRole('menuitem', { name: 'Quality Balanced' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('menuitem', { name: 'Scaler Plain' }),
-    ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Smooth edges Off' }));
-    expect(
-      screen.getByRole('menuitem', { name: 'Smooth edges Fast' }),
-    ).toBeInTheDocument();
-    expect(readScenePerformance('standard').smoothing).toBe('fast');
+      screen.queryByRole('menuitem', {
+        name: /Resolution|Scaler|Smooth edges|Graphics card/,
+      }),
+    ).toBeNull();
+    expect(readScenePerformance('standard').quality).toBe('balanced');
     expect(readScenePerformance('plus')).toEqual(plus);
     unmount();
     window.localStorage.removeItem('fluideq.standardPerformance');

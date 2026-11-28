@@ -8,31 +8,17 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import type { TranslationKey } from 'common/i18n';
 import {
-  SCENE_AUTO_FLOORS,
-  SCENE_FRAME_RATES,
-  SCENE_RESOLUTIONS,
-  SCENE_SMOOTHINGS,
-  SCENE_UPSCALERS,
+  SCENE_MENU_FRAME_RATES,
+  SCENE_QUALITIES,
   type IScenePerformance,
   type TScenePerformanceGroup,
-  type TSceneAutoFloor,
   type TSceneFrameRate,
-  type TSceneResolution,
-  type TSceneSmoothing,
-  type TSceneUpscaler,
+  type TSceneQuality,
 } from 'common/scenePerformance';
-import {
-  GPU_PREFERENCES,
-  type TGpuPreference,
-} from 'common/graphicsPreference';
 import { useTranslation } from '../utils/I18nContext';
 import { CycleRow } from './ViewMenuCycleRow';
 import { sceneGpuName } from './sceneGpuName';
 import { useOnBattery } from '../utils/batteryPower';
-import {
-  setGraphicsPreference,
-  useGraphicsPreference,
-} from '../utils/graphicsPreferenceStore';
 import {
   setScenePerformance,
   useScenePerformance,
@@ -42,52 +28,32 @@ const FRAME_RATE_LABEL: Record<TSceneFrameRate, TranslationKey> = {
   display: 'graph.scene.frameRate.display',
   sixty: 'graph.scene.frameRate.sixty',
   thirty: 'graph.scene.frameRate.thirty',
+  fifteen: 'graph.scene.frameRate.fifteen',
 };
 
-const RESOLUTION_LABEL: Record<TSceneResolution, TranslationKey> = {
-  auto: 'graph.scene.resolution.auto',
-  native: 'graph.scene.resolution.native',
-  quality: 'graph.scene.resolution.quality',
-  balanced: 'graph.scene.resolution.balanced',
-  performance: 'graph.scene.resolution.performance',
+const QUALITY_LABEL: Record<TSceneQuality, TranslationKey> = {
+  auto: 'scene.quality.auto',
+  balanced: 'scene.quality.balanced',
+  full: 'scene.quality.full',
 };
 
-const FLOOR_LABEL: Record<TSceneAutoFloor, TranslationKey> = {
-  0.35: 'graph.scene.floor.35',
-  0.5: 'graph.scene.floor.50',
-  0.67: 'graph.scene.floor.67',
-  0.85: 'graph.scene.floor.85',
+const QUALITY_HINT: Record<TSceneQuality, TranslationKey> = {
+  auto: 'scene.quality.auto.hint',
+  balanced: 'scene.quality.balanced.hint',
+  full: 'scene.quality.full.hint',
 };
 
-const SCALER_LABEL: Record<TSceneUpscaler, TranslationKey> = {
-  fsr: 'graph.scene.scaler.fsr',
-  simple: 'graph.scene.scaler.simple',
-};
-
-const SMOOTHING_LABEL: Record<TSceneSmoothing, TranslationKey> = {
-  off: 'graph.scene.smoothing.off',
-  fast: 'graph.scene.smoothing.fast',
-  best: 'graph.scene.smoothing.best',
-};
-
-const GPU_LABEL: Record<TGpuPreference, TranslationKey> = {
-  auto: 'graph.scene.gpu.auto',
-  high: 'graph.scene.gpu.high',
-};
-
+/** The next choice after this one, round again from the start. */
 const after = <T,>(list: readonly T[], current: T): T =>
   list[(list.indexOf(current) + 1) % list.length];
 
 /**
- * How hard visualizers drive the GPU and how their picture is finished,
- * in the View menu (`common/scenePerformance.ts`): the frame rate, the
- * resolution — automatic, full, or a fixed preset brought up to size every
- * frame, as DLSS and FSR do in games — the scaler that does it, the edge
- * smoothing, and on a laptop with two graphics cards, which one the app runs
- * on. Rows that cycle on a click, as the wave orientation row does, each
- * showing its current answer where the other rows show their shortcut. One
- * choice per group; Plus shares its choice with the Studio and desktop.
- * The graphics card itself is app-wide because it is selected at launch.
+ * How visualizers are drawn, in the View menu and the Studio's Performance
+ * tab (`common/scenePerformance.ts`): the frame rate, and the quality —
+ * Auto, Balanced or Full — which decides everything else about the picture.
+ * Rows that cycle on a click, as the wave orientation row does, each showing
+ * its current answer, and under the quality the graphics card drawing it.
+ * One choice per group; Plus shares its choice with the Studio and desktop.
  */
 export default function ScenePerformanceMenu({
   group = 'plus',
@@ -95,22 +61,14 @@ export default function ScenePerformanceMenu({
   group?: TScenePerformanceGroup;
 }) {
   const { t } = useTranslation();
-  const { frameRate, resolution, autoFloor, upscaler, smoothing } =
-    useScenePerformance(group);
+  const { frameRate, quality } = useScenePerformance(group);
   const update = (next: Partial<IScenePerformance>) =>
     setScenePerformance(next, group);
   const onBattery = useOnBattery();
-  const gpu = useGraphicsPreference();
   const frameRateValue =
     frameRate === 'display' && onBattery
       ? t('graph.scene.frameRate.displayBattery')
       : t(FRAME_RATE_LABEL[frameRate]);
-  // What is drawing, under the choice: the two can differ for a whole
-  // session — Remote Desktop starts the app on a laptop's integrated chip and
-  // coming back to the real machine does not move it — and nothing said so.
-  // A pending choice is the more urgent thing to say, so it wins the line.
-  const gpuNote =
-    gpu.chosen === gpu.atLaunch ? undefined : t('graph.scene.gpu.restart');
   return (
     <>
       <CycleRow
@@ -123,102 +81,29 @@ export default function ScenePerformanceMenu({
         }
         onCycle={() =>
           update({
-            frameRate: after(SCENE_FRAME_RATES, frameRate),
+            frameRate: after(SCENE_MENU_FRAME_RATES, frameRate),
           })
         }
       />
       <CycleRow
-        hint="graph.scene.resolutionHint"
-        label="graph.scene.resolution"
-        value={t(RESOLUTION_LABEL[resolution])}
-        // A small picture inside the panel it fills.
+        // What the current choice does, on the row itself.
+        hint={QUALITY_HINT[quality]}
+        label="scene.quality"
+        value={t(QUALITY_LABEL[quality])}
+        // Which graphics card is drawing, because it is not always the fast
+        // one in the machine: Remote Desktop starts the app on a laptop's
+        // built-in graphics, and from the outside that looks like the app
+        // having become slow.
+        report={sceneGpuName()}
+        // A gauge and its needle.
         icon={
           <>
-            <path d="M1.5 2.5h13v11h-13z" />
-            <path d="M4.5 5.5h7v5h-7z" />
+            <path d="M2.5 12a5.5 5.5 0 0 1 11 0" />
+            <path d="M8 12l2.75-3.5" />
           </>
         }
-        onCycle={() =>
-          update({
-            resolution: after(SCENE_RESOLUTIONS, resolution),
-          })
-        }
+        onCycle={() => update({ quality: after(SCENE_QUALITIES, quality) })}
       />
-      <CycleRow
-        hint="graph.scene.floorHint"
-        label="graph.scene.floor"
-        value={t(FLOOR_LABEL[autoFloor])}
-        // Always on the menu, since a row that comes and goes with the row
-        // above it reads as broken; under a fixed size it says when it counts.
-        note={
-          resolution === 'auto' ? undefined : t('graph.scene.floor.whenAuto')
-        }
-        // The panel with a floor line the picture may not sink under.
-        icon={
-          <>
-            <path d="M1.5 2.5h13v11h-13z" />
-            <path d="M5 6h6v4H5z" />
-            <path d="M3.5 11.5h9" />
-          </>
-        }
-        onCycle={() =>
-          update({
-            autoFloor: after(SCENE_AUTO_FLOORS, autoFloor),
-          })
-        }
-      />
-      <CycleRow
-        hint="graph.scene.scalerHint"
-        label="graph.scene.scaler"
-        value={t(SCALER_LABEL[upscaler])}
-        // An arrow out of a corner: the picture growing to the panel.
-        icon={
-          <>
-            <path d="M2.5 13.5v-5M2.5 13.5h5" />
-            <path d="M2.5 13.5l6-6" />
-            <path d="M9.5 2.5h4v4" />
-            <path d="M13.5 2.5l-4 4" />
-          </>
-        }
-        onCycle={() => update({ upscaler: after(SCENE_UPSCALERS, upscaler) })}
-      />
-      <CycleRow
-        hint="graph.scene.smoothingHint"
-        label="graph.scene.smoothing"
-        value={t(SMOOTHING_LABEL[smoothing])}
-        // A stair-stepped edge beside a smooth one.
-        icon={
-          <>
-            <path d="M2.5 13.5v-3h2v-3h2v-3h2v-2" />
-            <path d="M9 13.5c0-6 2.5-9 5-11" />
-          </>
-        }
-        onCycle={() =>
-          update({
-            smoothing: after(SCENE_SMOOTHINGS, smoothing),
-          })
-        }
-      />
-      {gpu.supported && (
-        <CycleRow
-          hint="graph.scene.gpuHint"
-          label="graph.scene.gpu"
-          value={t(GPU_LABEL[gpu.chosen])}
-          note={gpuNote}
-          report={sceneGpuName()}
-          // A card with its fan.
-          icon={
-            <>
-              <path d="M1.5 4.5h13v8h-13z" />
-              <circle cx="6" cy="8.5" r="2.2" />
-              <path d="M10.5 6.5h2M10.5 8.5h2" />
-            </>
-          }
-          onCycle={() =>
-            setGraphicsPreference(after(GPU_PREFERENCES, gpu.chosen))
-          }
-        />
-      )}
     </>
   );
 }

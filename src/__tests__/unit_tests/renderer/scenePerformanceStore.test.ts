@@ -22,7 +22,7 @@ const withBridge = (setScene: jest.Mock) => {
   });
 };
 
-describe('the visualizer performance store', () => {
+describe('the visualizer drawing store', () => {
   afterEach(() => {
     window.localStorage.removeItem(KEY);
     window.localStorage.removeItem(STANDARD_KEY);
@@ -30,58 +30,67 @@ describe('the visualizer performance store', () => {
     resetScenePerformanceForTesting();
   });
 
-  it('answers the defaults on a fresh install', () => {
+  it('answers the display rate and Auto on a fresh install, for both groups', () => {
     resetScenePerformanceForTesting();
     expect(readScenePerformance()).toEqual({
       frameRate: 'display',
-      resolution: 'auto',
-      autoFloor: 0.35,
-      upscaler: 'fsr',
-      smoothing: 'best',
+      quality: 'auto',
+    });
+    expect(readScenePerformance('standard')).toEqual({
+      frameRate: 'display',
+      quality: 'auto',
     });
   });
 
   it('keeps a change on this computer and tells its listeners', () => {
     const listener = jest.fn();
     const unsubscribe = subscribeScenePerformance(listener);
-    setScenePerformance({ frameRate: 'thirty' });
+    setScenePerformance({ quality: 'balanced' });
     expect(listener).toHaveBeenCalledTimes(1);
     expect(readScenePerformance()).toEqual({
-      frameRate: 'thirty',
-      resolution: 'auto',
-      autoFloor: 0.35,
-      upscaler: 'fsr',
-      smoothing: 'best',
+      frameRate: 'display',
+      quality: 'balanced',
     });
     expect(JSON.parse(window.localStorage.getItem(KEY) ?? '{}')).toEqual({
-      frameRate: 'thirty',
-      resolution: 'auto',
-      autoFloor: 0.35,
-      upscaler: 'fsr',
-      smoothing: 'best',
+      frameRate: 'display',
+      quality: 'balanced',
     });
     // The same value again is not a change.
-    setScenePerformance({ frameRate: 'thirty' });
+    setScenePerformance({ quality: 'balanced' });
     expect(listener).toHaveBeenCalledTimes(1);
     unsubscribe();
   });
 
-  it('starts Standard at full size without FSR or smoothing, independently of saved Plus choices', () => {
+  /** Saved before the three existed: kept in the words it stood for. */
+  it('reads a choice saved before Auto, Balanced and Full as the one it stood for', () => {
     window.localStorage.setItem(
       KEY,
-      JSON.stringify({ resolution: 'performance', smoothing: 'best' }),
+      JSON.stringify({
+        frameRate: 'sixty',
+        resolution: 'performance',
+        autoFloor: 0.35,
+        upscaler: 'fsr',
+        smoothing: 'best',
+      }),
+    );
+    window.localStorage.setItem(
+      STANDARD_KEY,
+      JSON.stringify({
+        frameRate: 'display',
+        resolution: 'native',
+        autoFloor: 0.35,
+        upscaler: 'simple',
+        smoothing: 'off',
+      }),
     );
     resetScenePerformanceForTesting();
+    expect(readScenePerformance('plus')).toEqual({
+      frameRate: 'sixty',
+      quality: 'balanced',
+    });
     expect(readScenePerformance('standard')).toEqual({
       frameRate: 'display',
-      resolution: 'native',
-      autoFloor: 0.35,
-      upscaler: 'simple',
-      smoothing: 'off',
-    });
-    expect(readScenePerformance('plus')).toMatchObject({
-      resolution: 'performance',
-      smoothing: 'best',
+      quality: 'full',
     });
   });
 
@@ -89,71 +98,44 @@ describe('the visualizer performance store', () => {
     const setScene = jest.fn();
     withBridge(setScene);
     const plus = readScenePerformance('plus');
-    const standard = {
-      frameRate: 'thirty',
-      resolution: 'balanced',
-      autoFloor: 0.85,
-      upscaler: 'fsr',
-      smoothing: 'best',
-    } as const;
+    const standard = { frameRate: 'thirty', quality: 'balanced' } as const;
     setScenePerformance(standard, 'standard');
     expect(setScene).toHaveBeenCalledTimes(1);
     expect(setScene).toHaveBeenLastCalledWith(plus);
     expect(readScenePerformance('plus')).toEqual(plus);
     resetScenePerformanceForTesting();
     expect(readScenePerformance('standard')).toEqual(standard);
-    setScenePerformance({ frameRate: 'sixty', smoothing: 'off' }, 'plus');
+    setScenePerformance({ frameRate: 'sixty', quality: 'full' }, 'plus');
     expect(readScenePerformance('standard')).toEqual(standard);
-    expect(readScenePerformance('plus')).toMatchObject({
+    expect(readScenePerformance('plus')).toEqual({
       frameRate: 'sixty',
-      smoothing: 'off',
-    });
-  });
-
-  it('repairs damaged Standard settings using Standard defaults', () => {
-    window.localStorage.setItem(
-      STANDARD_KEY,
-      JSON.stringify({ frameRate: 'sixty', smoothing: 'invalid' }),
-    );
-    resetScenePerformanceForTesting();
-    expect(readScenePerformance('standard')).toEqual({
-      frameRate: 'sixty',
-      resolution: 'native',
-      autoFloor: 0.35,
-      upscaler: 'simple',
-      smoothing: 'off',
-    });
-    window.localStorage.setItem(STANDARD_KEY, '{not json');
-    resetScenePerformanceForTesting();
-    expect(readScenePerformance('standard')).toMatchObject({
-      frameRate: 'display',
-      resolution: 'native',
-      upscaler: 'simple',
-      smoothing: 'off',
+      quality: 'full',
     });
   });
 
   it('comes back from storage, repaired', () => {
     window.localStorage.setItem(
       KEY,
-      JSON.stringify({ frameRate: 'sixty', resolution: 'nonsense' }),
+      JSON.stringify({ frameRate: 'sixty', quality: 'nonsense' }),
+    );
+    window.localStorage.setItem(
+      STANDARD_KEY,
+      JSON.stringify({ frameRate: 'nonsense', quality: 'full' }),
     );
     resetScenePerformanceForTesting();
     expect(readScenePerformance()).toEqual({
       frameRate: 'sixty',
-      resolution: 'auto',
-      autoFloor: 0.35,
-      upscaler: 'fsr',
-      smoothing: 'best',
+      quality: 'auto',
+    });
+    expect(readScenePerformance('standard')).toEqual({
+      frameRate: 'display',
+      quality: 'full',
     });
     window.localStorage.setItem(KEY, '{not json');
     resetScenePerformanceForTesting();
     expect(readScenePerformance()).toEqual({
       frameRate: 'display',
-      resolution: 'auto',
-      autoFloor: 0.35,
-      upscaler: 'fsr',
-      smoothing: 'best',
+      quality: 'auto',
     });
   });
 
@@ -161,12 +143,9 @@ describe('the visualizer performance store', () => {
   it('resets both drawing groups through Reset all settings and sends Plus defaults to the desktop after reload', () => {
     const setScene = jest.fn();
     withBridge(setScene);
+    setScenePerformance({ quality: 'full' }, 'plus');
     setScenePerformance(
-      { resolution: 'performance', smoothing: 'off' },
-      'plus',
-    );
-    setScenePerformance(
-      { resolution: 'quality', smoothing: 'best', upscaler: 'fsr' },
+      { quality: 'balanced', frameRate: 'sixty' },
       'standard',
     );
 
@@ -177,17 +156,11 @@ describe('the visualizer performance store', () => {
     resetScenePerformanceForTesting();
     expect(readScenePerformance('standard')).toEqual({
       frameRate: 'display',
-      resolution: 'native',
-      autoFloor: 0.35,
-      upscaler: 'simple',
-      smoothing: 'off',
+      quality: 'auto',
     });
     expect(readScenePerformance('plus')).toEqual({
       frameRate: 'display',
-      resolution: 'auto',
-      autoFloor: 0.35,
-      upscaler: 'fsr',
-      smoothing: 'best',
+      quality: 'auto',
     });
     expect(setScene).toHaveBeenLastCalledWith(readScenePerformance('plus'));
   });
@@ -201,19 +174,13 @@ describe('the visualizer performance store', () => {
     expect(setScene).toHaveBeenCalledTimes(1);
     expect(setScene).toHaveBeenLastCalledWith({
       frameRate: 'display',
-      resolution: 'auto',
-      autoFloor: 0.35,
-      upscaler: 'fsr',
-      smoothing: 'best',
+      quality: 'auto',
     });
-    setScenePerformance({ resolution: 'native' });
+    setScenePerformance({ quality: 'full' });
     expect(setScene).toHaveBeenCalledTimes(2);
     expect(setScene).toHaveBeenLastCalledWith({
       frameRate: 'display',
-      resolution: 'native',
-      autoFloor: 0.35,
-      upscaler: 'fsr',
-      smoothing: 'best',
+      quality: 'full',
     });
   });
 });

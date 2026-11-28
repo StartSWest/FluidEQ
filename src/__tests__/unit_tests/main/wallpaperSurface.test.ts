@@ -80,10 +80,7 @@ const create = (
     },
     performance: {
       frameRate: 'display',
-      resolution: 'auto',
-      autoFloor: 0.35,
-      upscaler: 'fsr',
-      smoothing: 'off',
+      quality: 'auto',
     },
     cameraControl: { key: 'ctrl', move: 'drag', follow: false, orbit: 'off' },
     tuning: pause.tuning,
@@ -410,10 +407,7 @@ describe('a desktop background changing and ending', () => {
         motion: 'calm',
         performance: {
           frameRate: 'display',
-          resolution: 'auto',
-          autoFloor: 0.35,
-          upscaler: 'fsr',
-          smoothing: 'off',
+          quality: 'auto',
         },
         interactive: true,
         camera: { move: 'drag', follow: false, orbit: 'off' },
@@ -431,8 +425,8 @@ describe('a desktop background changing and ending', () => {
     expect(mockWindow.webContents.send).not.toHaveBeenCalled();
   });
 
-  /** The window's frame rate and resolution choice reaches the page the same way. */
-  it('tells its page the new frame rate and resolution, and only a new one', () => {
+  /** The window's frame rate and quality reach the page the same way. */
+  it('tells its page the new frame rate and quality, and only a new one', () => {
     const { surface } = create();
     surface.drawn(1);
     mockHost.report('ready');
@@ -442,10 +436,7 @@ describe('a desktop background changing and ending', () => {
 
     surface.retunePerformance({
       frameRate: 'thirty',
-      resolution: 'native',
-      autoFloor: 0.5,
-      upscaler: 'fsr',
-      smoothing: 'off',
+      quality: 'full',
     });
     expect(mockWindow.webContents.send).toHaveBeenCalledWith(
       'wallpaper-surface-changed',
@@ -456,10 +447,7 @@ describe('a desktop background changing and ending', () => {
         motion: 'music',
         performance: {
           frameRate: 'thirty',
-          resolution: 'native',
-          autoFloor: 0.5,
-          upscaler: 'fsr',
-          smoothing: 'off',
+          quality: 'full',
         },
         interactive: true,
         camera: { move: 'drag', follow: false, orbit: 'off' },
@@ -470,31 +458,22 @@ describe('a desktop background changing and ending', () => {
     mockWindow.webContents.send.mockClear();
     surface.retunePerformance({
       frameRate: 'thirty',
-      resolution: 'native',
-      autoFloor: 0.5,
-      upscaler: 'fsr',
-      smoothing: 'off',
+      quality: 'full',
     });
     expect(mockWindow.webContents.send).not.toHaveBeenCalled();
 
-    // The page draws by the scaler and the smoothing too: a choice that only
-    // swaps FSR for the plain stretch used to stop here.
+    // The page draws by the quality as much as by the rate: a choice that
+    // only moves the quality reaches it too.
     surface.retunePerformance({
       frameRate: 'thirty',
-      resolution: 'native',
-      autoFloor: 0.5,
-      upscaler: 'simple',
-      smoothing: 'fast',
+      quality: 'balanced',
     });
     expect(mockWindow.webContents.send).toHaveBeenCalledWith(
       'wallpaper-surface-changed',
       expect.objectContaining({
         performance: {
           frameRate: 'thirty',
-          resolution: 'native',
-          autoFloor: 0.5,
-          upscaler: 'simple',
-          smoothing: 'fast',
+          quality: 'balanced',
         },
       }),
     );

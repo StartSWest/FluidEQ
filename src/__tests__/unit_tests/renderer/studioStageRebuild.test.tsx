@@ -417,7 +417,7 @@ it('keeps the picture for a save that does not compile, and builds the version t
 
 it('comes back at the size it had climbed to, and a new save starts small again', async () => {
   const { rerender } = await running();
-  // A run of smooth frames climbs one rung of the warm-up (`sceneWarmup.ts`).
+  // A run of smooth frames climbs the warm-up (`sceneLadder.ts`).
   for (let frame = 0; frame < 12; frame += 1) {
     drawFrame();
   }

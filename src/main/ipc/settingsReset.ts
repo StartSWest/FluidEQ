@@ -5,7 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { ipcMain, type IpcMainInvokeEvent, type WebContents } from 'electron';
-import { writeGpuPreference } from '../graphicsPreference';
 import { writeMotionPreference } from '../motionPreference';
 import { writeStartWithWindows } from '../startWithWindows';
 
@@ -39,9 +38,9 @@ export interface ISettingsResetDeps {
  * window forgets its own half (`renderer/utils/settingsReset.ts`) once this
  * answers, and reloads, which reads every one of them again.
  *
- * What main keeps that is a setting: the animations, the graphics card,
- * whether Windows starts FluidEQ, the engine shortcut, the desktop backgrounds,
- * the desk lights, the compact player's Always on top, and the graph's on/off switch (Ivan,
+ * What main keeps that is a setting: the animations, whether Windows starts
+ * FluidEQ, the engine shortcut, the desktop backgrounds, the desk lights, the
+ * compact player's Always on top, and the graph's on/off switch (Ivan,
  * 2026-10-26, from the reset checklist: "do it"). What it keeps that is not,
  * and so is left alone: the engine and the outputs, the EQ in every profile,
  * the song EQs, the band layouts, the account, the Library and the Studio —
@@ -51,9 +50,9 @@ export interface ISettingsResetDeps {
  *
  * Each part is its own step: one Windows refuses (the startup entry is
  * Windows' to write) is logged and does not keep the others from resetting.
- * The animations and the graphics card are launch switches, so like their
- * own rows they apply fully from the next start; the page reads the chosen
- * animations again as it reloads.
+ * The animations are a launch switch, so like their own row they apply
+ * fully from the next start; the page reads the chosen animations again as
+ * it reloads.
  */
 export const registerSettingsResetIpc = (deps: ISettingsResetDeps) => {
   const fromOwner = (event: IpcMainInvokeEvent) =>
@@ -62,7 +61,6 @@ export const registerSettingsResetIpc = (deps: ISettingsResetDeps) => {
 
   const steps: [string, () => void | Promise<void>][] = [
     ['animations', () => writeMotionPreference(deps.userDataDir, 'full')],
-    ['graphics card', () => writeGpuPreference(deps.userDataDir, 'auto')],
     [
       'start with Windows',
       () => {

@@ -33,10 +33,7 @@ const stateAt = (renderGeneration: number): IWallpaperSurfaceState => ({
   motion: 'calm',
   performance: {
     frameRate: 'display',
-    resolution: 'auto',
-    autoFloor: 0.35,
-    upscaler: 'fsr',
-    smoothing: 'off',
+    quality: 'auto',
   },
   interactive: true,
   camera: { move: 'drag', follow: false, orbit: 'off' },

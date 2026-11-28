@@ -8,9 +8,11 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { sceneMakerOf } from '../../../common/sceneMaker';
 import { createFlashGuard } from '../../../renderer/graph/sceneFlashGuardGpu';
-import { createCostLadder } from '../../../renderer/graph/sceneHealth';
+import {
+  createCostLadder,
+  createWarmupLadder,
+} from '../../../renderer/graph/sceneLadder';
 import { sceneRulesFor } from '../../../renderer/graph/sceneRules';
-import { createWarmupLadder } from '../../../renderer/graph/sceneWarmup';
 
 /**
  * How a scene is run, decided by who made it and the same in every place it

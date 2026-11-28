@@ -170,10 +170,7 @@ describe('a look that cannot be loaded at start time', () => {
       pauseOnBattery: true,
       performance: {
         frameRate: 'display',
-        resolution: 'auto',
-        autoFloor: 0.35,
-        upscaler: 'fsr',
-        smoothing: 'off',
+        quality: 'auto',
       },
       cameraControl: {
         key: 'ctrl' as const,

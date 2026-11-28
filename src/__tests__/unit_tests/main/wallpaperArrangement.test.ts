@@ -71,10 +71,7 @@ describe('reading back what each monitor was set to show', () => {
       // A file from before the choice existed means what a fresh install means.
       performance: {
         frameRate: 'display',
-        resolution: 'auto',
-        autoFloor: 0.35,
-        upscaler: 'fsr',
-        smoothing: 'best',
+        quality: 'auto',
       },
       cameraControl: {
         key: 'ctrl' as const,
@@ -248,10 +245,7 @@ describe('the file on disk', () => {
       pauseOnBattery: true,
       performance: {
         frameRate: 'display',
-        resolution: 'auto',
-        autoFloor: 0.35,
-        upscaler: 'fsr',
-        smoothing: 'best',
+        quality: 'auto',
       },
       cameraControl: {
         key: 'ctrl' as const,
@@ -272,10 +266,7 @@ describe('the file on disk', () => {
       pauseOnBattery: false,
       performance: {
         frameRate: 'sixty' as const,
-        resolution: 'native' as const,
-        autoFloor: 0.67 as const,
-        upscaler: 'simple' as const,
-        smoothing: 'best' as const,
+        quality: 'full' as const,
       },
       cameraControl: {
         key: 'ctrl' as const,

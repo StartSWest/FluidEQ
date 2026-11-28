@@ -7,7 +7,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useCallback, useSyncExternalStore } from 'react';
 import {
   DEFAULT_SCENE_PERFORMANCE,
-  DEFAULT_STANDARD_PERFORMANCE,
   normalizeScenePerformance,
   sameScenePerformance,
   type IScenePerformance,
@@ -17,8 +16,8 @@ import { readStored, writeStored } from './graphStorage';
 
 /**
  * Two independent drawing preferences: one for Standard looks and one for
- * Plus scenes. Moving Standard looks onto the scene engine must not make
- * them inherit Plus's lower resolution or its edge smoothing.
+ * Plus scenes, from the same start. Moving Standard looks onto the scene
+ * engine must not make them follow a quality chosen for the scenes.
  *
  * Plus is told to main as well, because the desktop background is another window
  * with a storage of its own and follows the same choice: main keeps it beside
@@ -30,11 +29,6 @@ const STORAGE_KEYS: Record<TScenePerformanceGroup, string> = {
   plus: 'fluideq.scenePerformance',
   standard: 'fluideq.standardPerformance',
 };
-const DEFAULTS = {
-  plus: DEFAULT_SCENE_PERFORMANCE,
-  standard: DEFAULT_STANDARD_PERFORMANCE,
-};
-
 interface IPerformanceBridge {
   setScenePerformance?: (value: IScenePerformance) => void;
 }
@@ -43,16 +37,17 @@ const bridge = (): IPerformanceBridge | undefined =>
   window.electron?.ipcRenderer as IPerformanceBridge | undefined;
 
 const read = (group: TScenePerformanceGroup): IScenePerformance => {
-  const defaults = DEFAULTS[group];
   const stored = readStored(STORAGE_KEYS[group]);
   if (stored === null) {
-    return defaults;
+    return DEFAULT_SCENE_PERFORMANCE;
   }
   try {
-    return normalizeScenePerformance(JSON.parse(stored), defaults);
+    // A choice saved before Auto, Balanced and Full is read as the one of
+    // the three it stood for (`normalizeScenePerformance`).
+    return normalizeScenePerformance(JSON.parse(stored));
   } catch {
     // A damaged entry means the defaults, which is what it stood for.
-    return defaults;
+    return DEFAULT_SCENE_PERFORMANCE;
   }
 };
 
@@ -80,10 +75,7 @@ export const setScenePerformance = (
   next: Partial<IScenePerformance>,
   group: TScenePerformanceGroup = 'plus',
 ) => {
-  const merged = normalizeScenePerformance(
-    { ...values[group], ...next },
-    DEFAULTS[group],
-  );
+  const merged = normalizeScenePerformance({ ...values[group], ...next });
   if (sameScenePerformance(merged, values[group])) {
     return;
   }

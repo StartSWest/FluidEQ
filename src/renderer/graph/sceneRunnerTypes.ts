@@ -1,7 +1,7 @@
 import type { ISceneEditReport } from 'common/sceneEdit';
 import type { TSceneMaker } from 'common/sceneMaker';
 import type { IScenePack } from 'common/scenePacks';
-import type { IScenePerformance } from 'common/scenePerformance';
+import type { IScenePerformance, TScenePicture } from 'common/scenePerformance';
 import type { IWorldReport } from 'common/worldNotes';
 import type { TSceneFailure } from 'main/scenePackStore';
 import type { ISceneFailureEntry, TSceneSurface } from 'common/sceneFailureLog';
@@ -98,7 +98,7 @@ export interface ISceneSource {
   built?(): void;
   /**
    * It held the GPU so long at its smallest size that it would freeze the
-   * window (`sceneWarmup.ts`): a member's scene only. Never called for a
+   * window (`sceneLadder.ts`): a member's scene only. Never called for a
    * scene that is merely slow, which rests at its smallest size.
    */
   tooSlow(): void;
@@ -184,11 +184,17 @@ export interface ISceneRunnerOptions {
    */
   daylight?: () => number;
   /**
-   * The frame rate and resolution to draw at (`common/scenePerformance.ts`).
+   * The frame rate and quality to draw at (`common/scenePerformance.ts`).
    * Absent, the listener's choice from this window's store is read; the
    * desktop's page has no store and is handed main's copy.
    */
   performance?: IScenePerformance;
+  /**
+   * What is drawn: a scene (the default), or a Standard look, whose shader
+   * smooths its own edges and so takes the quality's size and none of its
+   * finishing passes (`sceneQualityPlan`).
+   */
+  picture?: TScenePicture;
   /**
    * The blur, in CSS pixels, laid over the picture where it is shown - the
    * Karaoke's backdrop. Detail finer than the blur is never seen, so the

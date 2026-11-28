@@ -18,10 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ipcRenderer, IpcRendererEvent, webUtils } from 'electron';
-import type {
-  IGraphicsPreferenceState,
-  TGpuPreference,
-} from '../common/graphicsPreference';
 import type { IMotionPreferenceState } from './ipc/motionPreference';
 import type { TMotionPreference } from './motionPreference';
 import type { IStartWithWindows } from './startWithWindows';
@@ -194,18 +190,6 @@ const resetSettings = () =>
  */
 const setTaskbarIcon = (request: TTaskbarIconRequest) =>
   ipcRenderer.invoke(TASKBAR_ICON_CHANNEL, request) as Promise<void>;
-
-/** Which graphics card the whole app runs on; applies from the next start. */
-const graphicsPreference = () =>
-  ipcRenderer.invoke(
-    'graphics-preference-get',
-  ) as Promise<IGraphicsPreferenceState>;
-
-const setGraphicsPreference = (gpu: TGpuPreference) =>
-  ipcRenderer.invoke(
-    'graphics-preference-set',
-    gpu,
-  ) as Promise<IGraphicsPreferenceState>;
 
 /**
  * The release notes that shipped with this build.
@@ -399,8 +383,6 @@ export default {
     setMotionPreference,
     startWithWindows,
     setStartWithWindows,
-    graphicsPreference,
-    setGraphicsPreference,
     resetSettings,
     setTaskbarIcon,
     getChangelog,

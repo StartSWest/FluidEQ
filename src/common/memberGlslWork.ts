@@ -51,9 +51,9 @@ import {
  * it turns away the obvious — and it is NOT what keeps somebody's driver
  * alive. That is done where the work actually happens, by measurement rather
  * than by counting: a member's scene on the graph starts at the smallest
- * picture the listener allows and climbs only after twelve smooth frames,
+ * picture its quality allows and climbs only after twelve smooth frames,
  * never more than four times the pixels it has already drawn
- * (`sceneWarmup.ts`); a kept picture is timed small, extrapolated, refused
+ * (`sceneLadder.ts`); a kept picture is timed small, extrapolated, refused
  * over thirty seconds and otherwise drawn in bands no longer than a
  * quarter-second each (`sceneStill.worker.ts`); and a scene whose frame held
  * the GPU past half a second when the context went is blamed for it and never

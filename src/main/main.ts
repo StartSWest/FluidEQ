@@ -132,12 +132,7 @@ import { resetEngineKey } from './engineKey';
 import { registerTaskbarIconIpc } from './taskbarIcon';
 import { DEFAULT_LIGHTING_SETTINGS } from '../common/lighting/lightingModel';
 import { MOTION_SWITCHES, readMotionPreference } from './motionPreference';
-import {
-  gpuPreferenceSupported,
-  HIGH_PERFORMANCE_GPU_SWITCH,
-  readGpuPreference,
-} from './graphicsPreference';
-import { registerGraphicsPreferenceIpc } from './ipc/graphicsPreference';
+import { startOnTheFastGpu } from './highPerformanceGpu';
 import { registerOutputMirrorIpc } from './ipc/outputMirror';
 import {
   handleLibraryMedia,
@@ -239,13 +234,9 @@ const userDataDir = app.getPath('userData');
 const motionAtLaunch = readMotionPreference(userDataDir);
 app.commandLine.appendSwitch(MOTION_SWITCHES[motionAtLaunch]);
 
-// On the fast graphics card of a laptop with two, when the listener chose it
-// in the graph's View menu (`graphicsPreference.ts`): Chromium takes the
-// choice for the whole app and only at launch.
-const gpuAtLaunch = readGpuPreference(userDataDir);
-if (gpuAtLaunch === 'high' && gpuPreferenceSupported(process.platform)) {
-  app.commandLine.appendSwitch(HIGH_PERFORMANCE_GPU_SWITCH);
-}
+// On the fast graphics card of a computer with two, always
+// (`highPerformanceGpu.ts`): Chromium takes it for the whole app, at launch.
+startOnTheFastGpu(app.commandLine);
 
 /** Where the "I restarted myself" note lives; see unattendedUpdate.ts. */
 const UNATTENDED_RESTART_MARKER_PATH = path.join(
@@ -763,15 +754,6 @@ const motionPreferenceIpc = registerMotionPreferenceIpc({
 // kept here — Windows holds the answer, in this person's own startup entry.
 const startWithWindowsIpc = registerStartWithWindowsIpc({ logger: log });
 
-// The View menu's graphics card row, the same way: the saved choice and the
-// one this launch was started with.
-const graphicsPreferenceIpc = registerGraphicsPreferenceIpc({
-  userDataDir,
-  atLaunch: gpuAtLaunch,
-  platform: process.platform,
-  logger: log,
-});
-
 // The window's Paste buttons: whether the clipboard holds text, and the text
 // on a press.
 const clipboardTextIpc = registerClipboardTextIpc(getMainWindow);
@@ -1118,7 +1100,6 @@ app.on('will-quit', () => {
   motionPreferenceIpc.dispose();
   clipboardTextIpc.dispose();
   startWithWindowsIpc.dispose();
-  graphicsPreferenceIpc.dispose();
 });
 
 const isTheOnlyCopy = claimTheOnlyCopy({ userDataDir, getMainWindow });

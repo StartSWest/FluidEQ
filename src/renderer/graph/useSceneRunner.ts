@@ -10,7 +10,8 @@ import type { IScenePack } from 'common/scenePacks';
 import {
   SCENE_SUPERSAMPLE,
   scenePaceMs,
-  scenePinnedScale,
+  sceneQualityPlan,
+  type ISceneQualityPlan,
   type IScenePerformance,
 } from 'common/scenePerformance';
 import { SCENE_TIME_WRAP_S } from 'common/sceneUniformContract';
@@ -33,11 +34,8 @@ import { useSceneAudio } from '../audio/SceneAudioContext';
 import { createFrameCadence, judgedIntervalMs } from './frameCadence';
 import { NO_POINTS, NO_WAVEFORM } from './liveSpectrumFrames';
 import type { ISceneFrame } from './sceneGl';
-import {
-  SCENE_SLOW_FRAMES_TO_STEP,
-  SCENE_SLOW_PACE_MS,
-  type ICostLadder,
-} from './sceneHealth';
+import { SCENE_SLOW_PACE_MS } from './sceneHealth';
+import type { ICostLadder, TLadderFrame } from './sceneLadder';
 import {
   createRestWatch,
   isSilentWaveform,
@@ -114,8 +112,30 @@ const provenScales = new Map<string, number>();
 const ladderProgramOf = (identity: string, pack: IScenePack): string =>
   `${identity}\n${textDigest(sceneProgramKey(pack))}`;
 
-/** Frames a size has to be held for before it counts as proved. */
-const PROVEN_FRAMES = SCENE_SLOW_FRAMES_TO_STEP;
+/**
+ * Frames a size has to be held for before it counts as proved: under half a
+ * second at sixty, long enough that one passing frame proves nothing.
+ */
+const PROVEN_FRAMES = 24;
+
+/**
+ * The smallest size a ladder may come down to under a quality's plan: its
+ * floor, or the largest size itself where the plan holds the picture there.
+ */
+const ladderFloorOf = (plan: ISceneQualityPlan, top: number): number =>
+  plan.floor === 'top' ? top : plan.floor;
+
+/**
+ * What the ladder is told about a frame: a hidden window's frames are not
+ * judged, and a rest in silence is judged at its own rate and undone at the
+ * first frame with sound (`sceneLadder.ts`).
+ */
+const ladderFrameOf = (rest: IRestWatch): TLadderFrame => {
+  if (document.hidden) {
+    return 'hidden';
+  }
+  return rest.resting() ? 'resting' : 'shown';
+};
 
 /**
  * The GPU loop behind every scene: context, program, frame, recovery.
@@ -141,6 +161,7 @@ export default function useSceneRunner({
   tuning,
   daylight,
   performance: chosenPerformance,
+  picture = 'scene',
   blurPx,
   asleep,
   held,
@@ -158,12 +179,16 @@ export default function useSceneRunner({
   adopt,
 }: ISceneRunnerOptions): RefObject<HTMLDivElement | null> {
   const { points, waveform, isPaused, readFrame } = useSceneAudio();
-  // The listener's frame rate and resolution, from this window's store unless
+  // The listener's frame rate and quality, from this window's store unless
   // the page was handed main's copy (the desktop).
   const storedPerformance = useScenePerformance();
   const performance = chosenPerformance ?? storedPerformance;
   const performanceRef = useRef(performance);
   performanceRef.current = performance;
+  // How that quality draws this picture, read every frame.
+  const plan = sceneQualityPlan(performance.quality, picture);
+  const planRef = useRef(plan);
+  planRef.current = plan;
   // Read every frame: a blur dragged up draws fewer pixels at once.
   const blurPxRef = useRef(blurPx ?? 0);
   blurPxRef.current = blurPx ?? 0;
@@ -203,12 +228,15 @@ export default function useSceneRunner({
   const spectrumRef = useRef(createSpectrumTexels());
   const waveformRef = useRef(createWaveformTexels());
   const ladderRef = useRef<ICostLadder>(
-    sceneRulesFor(source.madeBy).createLadder(1, performance.autoFloor),
+    sceneRulesFor(source.madeBy).createLadder(
+      1,
+      ladderFloorOf(planRef.current, 1),
+    ),
   );
   /** The largest scale the ladder was made for: 1, or the supersampled size. */
   const ladderTopRef = useRef(1);
-  /** The smallest it was made for: the listener's floor at the time. */
-  const ladderFloorRef = useRef<number>(performance.autoFloor);
+  /** The smallest it was made for: the quality's floor at the time. */
+  const ladderFloorRef = useRef<number>(ladderFloorOf(planRef.current, 1));
   /** Whether nothing has played for a while (`sceneRest.ts`). */
   const restRef = useRef<IRestWatch>(createRestWatch());
   /** The size the last frames were drawn at, and for how many in a row. */
@@ -404,12 +432,12 @@ export default function useSceneRunner({
       // not only a property of the element: dragging the window onto a display
       // with a different scale changes it with nothing to observe. Display
       // pixels up to a 4K pixel budget are the panel's own; the ladder draws
-      // the scene at a fraction of them when the GPU cannot keep up, and the
-      // worker brings that picture back up to the panel's pixels. A listener
-      // who chose full resolution or a preset is never drawn by the ladder —
-      // it still watches, so a scene too slow even for that is handed over.
+      // the scene at a fraction of them when the GPU cannot keep up, as far
+      // down as the quality allows, and the worker brings that picture back
+      // up to the panel's pixels. Full is a ladder of one rung: its picture
+      // stays whole and only the rate can give.
       const ratio = Math.min(2, window.devicePixelRatio || 1);
-      const { resolution, smoothing, upscaler } = performanceRef.current;
+      const quality = planRef.current;
       const { width: cssWidth, height: cssHeight } = sizeRef.current;
       const pixelCap = Math.min(
         1,
@@ -421,24 +449,23 @@ export default function useSceneRunner({
         width: Math.max(1, Math.round(cssWidth * ratio * pixelCap)),
         height: Math.max(1, Math.round(cssHeight * ratio * pixelCap)),
       };
-      // `best` smoothing draws larger than the panel and averages down, within
-      // the same pixel budget: twice each way at 1080p, what fits at 1440p,
+      // Auto and Full draw larger than the panel and average down, within the
+      // same pixel budget: twice each way at 1080p, what fits at 1440p,
       // nothing at 4K, where FXAA alone is left to do the smoothing.
-      const supersample =
-        smoothing === 'best'
-          ? Math.min(
-              SCENE_SUPERSAMPLE,
-              Math.sqrt((3840 * 2160) / (output.width * output.height)),
-            )
-          : 1;
+      const supersample = quality.supersample
+        ? Math.min(
+            SCENE_SUPERSAMPLE,
+            Math.sqrt((3840 * 2160) / (output.width * output.height)),
+          )
+        : 1;
       const top = supersample > 1.05 ? supersample : 1;
-      const { autoFloor } = performanceRef.current;
+      const floor = ladderFloorOf(quality, top);
       if (top !== ladderTopRef.current) {
         ladderTopRef.current = top;
-        ladderFloorRef.current = autoFloor;
+        ladderFloorRef.current = floor;
         ladderRef.current = sceneRulesFor(
           sourceRef.current.madeBy,
-        ).createLadder(top, autoFloor);
+        ).createLadder(top, floor);
         const proved =
           ladderProgramRef.current === undefined
             ? undefined
@@ -446,16 +473,12 @@ export default function useSceneRunner({
         if (proved !== undefined) {
           ladderRef.current.resume(proved);
         }
-      } else if (autoFloor !== ladderFloorRef.current) {
+      } else if (floor !== ladderFloorRef.current) {
         // A new floor moves the rungs under the picture, never the picture.
-        ladderFloorRef.current = autoFloor;
-        ladderRef.current.refloor(autoFloor);
+        ladderFloorRef.current = floor;
+        ladderRef.current.refloor(floor);
       }
-      const pinned = scenePinnedScale(resolution);
       let scale = ladderRef.current.scale();
-      if (pinned !== undefined) {
-        scale = resolution === 'native' ? top : pinned;
-      }
       // A recorded frame must be genuinely rendered at its delivered size.
       // Keep the overload checks, but never encode an upscaled low rung.
       if (sizeRef.current.captureSize) {
@@ -484,9 +507,8 @@ export default function useSceneRunner({
         // The plain scaler for good once the FSR passes have proved too dear
         // for this GPU at this size (`SCENE_FINISH_SHARE`).
         // Neither under a blur: it takes away the edges both work on.
-        fsr:
-          !isBlurred && upscaler === 'fsr' && !ladderRef.current.cheapFinish(),
-        fxaa: !isBlurred && smoothing !== 'off' && !supersampled,
+        fsr: !isBlurred && quality.fsr && !ladderRef.current.cheapFinish(),
+        fxaa: !isBlurred && quality.fxaa && !supersampled,
       };
 
       const heardGapMs =
@@ -625,12 +647,15 @@ export default function useSceneRunner({
           );
           if (
             ladder === ladderRef.current &&
-            ladder.frame(result.cost, drawnIntervalMs, document.hidden) ===
-              'degraded'
+            ladder.frame(
+              result.cost,
+              drawnIntervalMs,
+              ladderFrameOf(restRef.current),
+            ) === 'degraded'
           ) {
             // A scene nobody here has watched held the GPU even at an eighth
             // of the panel and the slow rate, after being warmed again there
-            // (`sceneWarmup.ts`): long enough to freeze the window. Never for
+            // (`sceneLadder.ts`): long enough to freeze the window. Never for
             // being slow: a slow scene rests on its smallest size and stays.
             // The source says so in the scene's place, never a standard look.
             console.error(
