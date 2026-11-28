@@ -258,6 +258,11 @@ export interface IPlusApp {
   launch(): Promise<void>;
   /** A come-back: the row if due, and `my_store` read again. */
   comeBack(): Promise<void>;
+  /**
+   * The window coming back as the app hears it (`comeBackSignals.ts`): the
+   * row and the store each read only if due by their own rules.
+   */
+  focus(): Promise<void>;
   /** Every read answered, and an ending acted on if it is one. */
   idle(): Promise<void>;
   stop(): void;
@@ -401,6 +406,11 @@ export const startPlus = ({
     comeBack: async () => {
       await entitlement.checkIfDue('a come-back');
       await ownership.refreshNow();
+      await idle();
+    },
+    focus: async () => {
+      await entitlement.checkIfDue('window focused');
+      await ownership.refreshIfDue('window focused');
       await idle();
     },
     idle,

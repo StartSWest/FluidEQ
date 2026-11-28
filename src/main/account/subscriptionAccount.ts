@@ -226,10 +226,16 @@ export const createSubscriptionAccount = (
     return id && answered?.accountId === id ? answered.answer : undefined;
   };
 
-  /** The row kept on this computer, if it is this account's. */
+  /**
+   * The row kept on this computer, if it is this account's and Plus's. A row
+   * of the old membership is no Plus (`entitlementRecord.ts`), so it dates
+   * no period paid for and can start no ending.
+   */
   const ownRecord = (id: string): IEntitlementRecord | undefined => {
     const record = entitlement.record();
-    return record?.userId === id ? record : undefined;
+    return record?.userId === id && libraryPlanOfRow(record.plan) !== undefined
+      ? record
+      : undefined;
   };
 
   /** The latest word on a suspension: this run's answer, else the store kept. */
@@ -537,6 +543,13 @@ export const createSubscriptionAccount = (
     ) {
       // The row started or stopped playing past the last answer: the
       // status line's plan and dates are asked again, once.
+      askStore();
+    } else if (awaiting && last?.aware) {
+      // Back from Stripe's checkout or portal, the row moved: a renewal
+      // turned off or on, a plan switched. The status line is `my_store`'s,
+      // which the store's own rules would not read again for hours, and the
+      // server's push may never have come; it is asked once here, and the
+      // wait ends when its answer moves the view.
       askStore();
     }
     changed();

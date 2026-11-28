@@ -388,6 +388,46 @@ describe('Plus from 0122 on', () => {
     expect(app.pushes[0].watching).toBe(false);
   });
 
+  // fluideq.com's page after Stripe's portal says FluidEQ shows Plus as it
+  // stands now. The server's push may not come (a socket that dropped), and
+  // the store is not due for hours: the row, read at the window's return
+  // because a change is owed, has moved, and the status line follows it.
+  it('shows Plus as it stands after the portal, when the window comes back with no push', async () => {
+    const { app, backend } = setup();
+    backend.state.aware = true;
+    backend.state.row = liveRow(NOW + 30 * DAY);
+    backend.state.library = library(NOW + 30 * DAY);
+    await app.signIn();
+    expect(app.account.status()?.renewing).toBe(true);
+
+    app.account.expectChange();
+    // Cancelled in the portal: renewal off, the period paid for still runs.
+    backend.state.row = liveRow(NOW + 30 * DAY, true);
+    backend.state.library = library(NOW + 30 * DAY, { renewing: false });
+    const stores = backend.count('POST /rest/v1/rpc/my_store');
+    await app.focus();
+    expect(backend.count('POST /rest/v1/rpc/my_store')).toBe(stores + 1);
+    expect(app.account.status()).toMatchObject({ renewing: false });
+    expect(app.account.subscribed()).toBe(true);
+    // Nothing is owed any more: the next focus reads nothing new.
+    expect(app.pushes[0].watching).toBe(false);
+    await app.focus();
+    expect(backend.count('POST /rest/v1/rpc/my_store')).toBe(stores + 1);
+  });
+
+  it('a row of the old membership dates no Plus period: an absent library starts no ending', async () => {
+    const { app, backend, clock } = setup();
+    backend.state.aware = true;
+    // The admin's old row: ended 2026-10-20, never moved, plan "plus".
+    backend.state.row = { ...liveRow(NOW - 38 * DAY), plan: 'plus' };
+    await app.signIn();
+    app.records.addDownload(ACCOUNT_ID, 'premium:dune');
+    clock.now = NOW + 2 * DAY;
+    await app.comeBack();
+    expect(app.records.watch(ACCOUNT_ID)?.absentSince).toBeUndefined();
+    expect(app.account.endConfirmed()).toBe(false);
+  });
+
   it('stops listening when the account changes while a checkout is owed', async () => {
     const { app, backend } = setup();
     backend.state.aware = true;
