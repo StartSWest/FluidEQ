@@ -256,6 +256,27 @@ describe('the checkout', () => {
     ]);
   });
 
+  // A release buys in live mode exactly as before premium 0124: the
+  // test plans an answer carries beside the live ones are never offered,
+  // and the checkout below names no mode. The development half is
+  // `plusDevBuildTestMode.test.ts`.
+  it('in a release, offers the live plans even beside test plans', async () => {
+    const backend = fakeBackend();
+    backend.state.aware = true;
+    backend.state.testPlans = PLANS.map((plan) => ({
+      ...plan,
+      priceCents: 100,
+    }));
+    const app = startPlus({ backend, disk: {}, clock: { now: NOW } });
+    await app.signIn();
+    const { service } = serviceOver(app, backend, {
+      signedIn: () => ACCOUNT_ID,
+    });
+    expect(service.state().plans).toEqual(PLANS);
+    await app.idle();
+    expect(app.records.knownPlans()).toEqual(PLANS);
+  });
+
   it("opens Stripe's checkout in the browser, with the plan, the app, the terms and the language, and logs only the origin", async () => {
     const { service, backend, openExternal, lines, app } = await setup();
     await expect(

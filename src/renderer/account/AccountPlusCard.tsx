@@ -12,7 +12,6 @@ import {
   plusEnding,
 } from '../plus/PlusGalleryHead';
 import PlusMark from '../plus/PlusMark';
-import PlusNotOnSale from '../plus/PlusNotOnSale';
 import { plusOnSale, usePlusSubscription } from '../plus/plusSubscriptionStore';
 import { planName, plusDate } from '../plus/plusWords';
 import { useTranslation } from '../utils/I18nContext';
@@ -99,7 +98,5 @@ export default function AccountPlusCard() {
   }
   return plusOnSale(plus) ? (
     <PlusOffer plus={plus} className="account-plus-offer" />
-  ) : (
-    <PlusNotOnSale plus={plus} />
-  );
+  ) : null;
 }

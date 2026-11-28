@@ -97,13 +97,47 @@ describe('library', () => {
   });
 
   it('reads both from one body, and nothing from one that is not an object', () => {
-    expect(parseLibraryFields({ libraryPlans: [MONTHLY], balance: 3 })).toEqual(
-      { plans: [MONTHLY], membership: { kind: 'absent' } },
-    );
-    expect(parseLibraryFields(null)).toEqual({
+    expect(
+      parseLibraryFields({ libraryPlans: [MONTHLY], balance: 3 }, 'live'),
+    ).toEqual({ plans: [MONTHLY], membership: { kind: 'absent' } });
+    expect(parseLibraryFields(null, 'live')).toEqual({
       plans: undefined,
       membership: { kind: 'absent' },
     });
+  });
+});
+
+/**
+ * Premium 0124 sells Plus in Stripe's test and live modes at once: live
+ * plans to everybody in `libraryPlans`, test plans in `libraryTestPlans` to
+ * whoever the server sells test mode to. A release reads the live ones exactly
+ * as before; `pnpm dev` reads the test ones, so a try never charges a card.
+ */
+describe('the plans a build buys in its own Stripe mode', () => {
+  const TEST_MONTHLY: ILibraryPlan = { ...MONTHLY, priceCents: 100 };
+  const both = {
+    libraryPlans: [MONTHLY, YEARLY],
+    libraryTestPlans: [TEST_MONTHLY],
+  };
+
+  it('are the live plans in a release, whatever test plans came with them', () => {
+    expect(parseLibraryFields(both, 'live').plans).toEqual([MONTHLY, YEARLY]);
+  });
+
+  it('are the test plans in a development build, never the live ones', () => {
+    expect(parseLibraryFields(both, 'test').plans).toEqual([TEST_MONTHLY]);
+    // No test plans sent: nothing is on sale here - and the live plans
+    // beside them are not offered instead.
+    expect(
+      parseLibraryFields({ libraryPlans: [MONTHLY, YEARLY] }, 'test').plans,
+    ).toEqual([]);
+  });
+
+  it('say the server knows no Plus in either mode when it sends no live plans', () => {
+    expect(
+      parseLibraryFields({ libraryTestPlans: [TEST_MONTHLY] }, 'test').plans,
+    ).toBeUndefined();
+    expect(parseLibraryFields({}, 'live').plans).toBeUndefined();
   });
 });
 

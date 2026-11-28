@@ -16,6 +16,7 @@ import {
   type TStoreFailure,
   type TSuspensionRefundFailure,
 } from '../../common/sceneStore';
+import { BILLING_MODE } from '../../common/billingMode';
 import { PLUS_TERMS_VERSION } from '../../common/plusTerms';
 import {
   parseLibraryFields,
@@ -58,7 +59,8 @@ export const storeFailureOf = (status: number): TStoreFailure => {
  * 0122's `libraryPlans` and `library`, `common/subscription.ts`). Plus's
  * fields travel beside the store rather than in it: the store is kept on
  * disk as the account's, and what Plus is doing is only ever decided on an
- * answer heard in this run.
+ * answer heard in this run. The plans are those of the Stripe mode this
+ * build buys in (`common/billingMode.ts`).
  */
 export const fetchSceneStore = async (
   auth: IGalleryAuth,
@@ -79,7 +81,7 @@ export const fetchSceneStore = async (
     const body: unknown = await response.json();
     const store = parseSceneStore(body);
     return store
-      ? { ok: true, store, library: parseLibraryFields(body) }
+      ? { ok: true, store, library: parseLibraryFields(body, BILLING_MODE) }
       : { ok: false, reason: 'server' };
   } catch {
     return { ok: false, reason: 'server' };

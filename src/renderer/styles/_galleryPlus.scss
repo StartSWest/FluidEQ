@@ -625,16 +625,6 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $secondary-light;
 }
 
-// Development only (`PlusNotOnSale`): why no Plus shows for this account.
-.plus-not-on-sale {
-  margin: 0;
-  padding: 8px 12px;
-  color: $ink-caution;
-  border: 1px dashed color-mix(in srgb, $ink-caution 55%, transparent);
-  border-radius: $radius-m;
-  font-size: $text-small;
-}
-
 // Manage Plus or Renew Plus, and what the press came to under it.
 .plus-manage {
   display: inline-grid;

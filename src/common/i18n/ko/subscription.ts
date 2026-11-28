@@ -120,8 +120,6 @@ const subscription = {
   'subscription.welcome.body':
     '회원인 동안 새 장면까지 갤러리의 모든 장면. FluidEQ와 FluidWallpapers에서 하나의 구독입니다.',
   'subscription.welcome.signIn': '로그인하고 Plus 가입',
-  'subscription.dev.notOnSale':
-    '개발: 이 계정에는 Plus를 판매하지 않습니다. Stripe가 테스트 모드인 동안에는 관리자와 서버의 테스터 목록에 있는 계정만 가격을 받습니다. 이 계정을 그 목록에 추가하세요.',
   'subscription.renew': 'Plus 갱신',
   'subscription.pass.member': '회원',
   'subscription.pass.ending': '해지됨 · 그날까지는 계속 사용',

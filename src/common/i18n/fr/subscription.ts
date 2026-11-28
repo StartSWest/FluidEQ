@@ -125,8 +125,6 @@ const subscription: Partial<Dictionary> = {
   'subscription.welcome.body':
     'Toutes les scènes de la galerie, les nouvelles aussi, tant que vous êtes membre. Un seul abonnement pour FluidEQ et FluidWallpapers.',
   'subscription.welcome.signIn': 'Connectez-vous pour passer à Plus',
-  'subscription.dev.notOnSale':
-    'Développement : Plus n’est pas en vente pour ce compte. Tant que Stripe est en mode test, seuls l’administrateur et les comptes de la liste des testeurs du serveur reçoivent ses prix : ajoutez ce compte à cette liste.',
   'subscription.renew': 'Renouveler Plus',
   'subscription.pass.member': 'Membre',
   'subscription.pass.ending': 'Résilié · toujours à vous jusque-là',

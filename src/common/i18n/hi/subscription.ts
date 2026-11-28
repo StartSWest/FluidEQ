@@ -120,8 +120,6 @@ const subscription: Partial<Dictionary> = {
   'subscription.welcome.body':
     'सदस्य रहने तक गैलरी का हर सीन, नए भी। FluidEQ और FluidWallpapers के लिए एक ही सदस्यता।',
   'subscription.welcome.signIn': 'Plus लेने के लिए साइन इन करें',
-  'subscription.dev.notOnSale':
-    'डेवलपमेंट: इस खाते के लिए Plus बिक्री पर नहीं है। जब तक Stripe टेस्ट मोड में है, सिर्फ़ एडमिन और सर्वर की टेस्टर सूची के खातों को इसकी कीमतें मिलती हैं: इस खाते को उस सूची में जोड़ें।',
   'subscription.renew': 'Plus नवीनीकृत करें',
   'subscription.pass.member': 'सदस्य',
   'subscription.pass.ending': 'रद्द · तब तक आपका ही',

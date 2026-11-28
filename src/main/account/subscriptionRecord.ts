@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { BILLING_MODE, type TBillingMode } from '../../common/billingMode';
 import { isAccountId, parseMemberLookId } from '../../common/memberScenes';
 import { isPremiumLookId } from '../../common/scenePacks';
 import {
@@ -37,7 +38,10 @@ import type {
  *
  * And once, for the whole computer, `plans`: the plans last heard on sale,
  * which the window offers before an account's own answer is read, signed
- * out included, so Get Plus can lead to sign-in.
+ * out included, so Get Plus can lead to sign-in. Kept per Stripe mode
+ * (`plans` live, `testPlans` test; `common/billingMode.ts`), so a
+ * development run never leaves test prices for a release that reads the
+ * same file, nor a release live prices for `pnpm dev`.
  *
  * A record that cannot be read starts again. That fails open: the downloads
  * it listed are no longer known as Plus's, so they are kept when it ends,
@@ -69,7 +73,10 @@ interface IAccountRecord {
 
 export interface ISubscriptionRecordFile {
   version: 1;
+  /** The live plans last heard on sale, by a release. */
   plans?: ILibraryPlan[];
+  /** The test plans last heard on sale, by a development build. */
+  testPlans?: ILibraryPlan[];
   accounts: Record<string, IAccountRecord>;
 }
 
@@ -169,7 +176,8 @@ export const createSubscriptionRecords = ({
   logger?: { warn(message: string): void };
 }): ISubscriptionRecords => {
   let accounts = new Map<string, IAccountRecord>();
-  let plans: ILibraryPlan[] = [];
+  /** Both modes' lists, so a save keeps the one this build does not read. */
+  const plansOf: Record<TBillingMode, ILibraryPlan[]> = { live: [], test: [] };
   let loaded = false;
   const listeners = new Set<() => void>();
 
@@ -183,13 +191,15 @@ export const createSubscriptionRecords = ({
       return;
     }
     accounts = readAccounts(file.accounts);
-    plans = parseLibraryPlans(file.plans) ?? [];
+    plansOf.live = parseLibraryPlans(file.plans) ?? [];
+    plansOf.test = parseLibraryPlans(file.testPlans) ?? [];
   };
 
   const save = () => {
     const out: ISubscriptionRecordFile = {
       version: 1,
-      ...(plans.length > 0 ? { plans } : {}),
+      ...(plansOf.live.length > 0 ? { plans: plansOf.live } : {}),
+      ...(plansOf.test.length > 0 ? { testPlans: plansOf.test } : {}),
       accounts: Object.fromEntries(accounts),
     };
     try {
@@ -298,14 +308,14 @@ export const createSubscriptionRecords = ({
 
     knownPlans: () => {
       load();
-      return plans.map((plan) => ({ ...plan }));
+      return plansOf[BILLING_MODE].map((plan) => ({ ...plan }));
     },
 
     setKnownPlans: (next) => {
       load();
       const read = parseLibraryPlans(next) ?? [];
-      if (JSON.stringify(read) !== JSON.stringify(plans)) {
-        plans = read;
+      if (JSON.stringify(read) !== JSON.stringify(plansOf[BILLING_MODE])) {
+        plansOf[BILLING_MODE] = read;
         save();
       }
     },

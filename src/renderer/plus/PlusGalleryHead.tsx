@@ -9,7 +9,6 @@ import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import GetPlusButton from './GetPlusButton';
 import PlusMark from './PlusMark';
-import PlusNotOnSale from './PlusNotOnSale';
 import PLUS_STILLS from './plusStills';
 import {
   plusOnSale,
@@ -214,9 +213,5 @@ export default function PlusGalleryHead() {
   if (plus.subscribed) {
     return <PlusMemberLine plus={plus} />;
   }
-  if (plusOnSale(plus) && !plus.lapse) {
-    return <PlusOffer plus={plus} />;
-  }
-  // In a development build, why nothing is offered (`PlusNotOnSale`).
-  return plus.lapse ? null : <PlusNotOnSale plus={plus} />;
+  return plusOnSale(plus) && !plus.lapse ? <PlusOffer plus={plus} /> : null;
 }

@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import type { TBillingMode } from './billingMode';
 import type { TLocalizedName } from './scenePacks';
 
 /**
@@ -68,7 +69,10 @@ export type TLibraryMembershipRead =
 
 /** What one `my_store` answer said of Plus, beside the store itself. */
 export interface ILibraryFields {
-  /** Undefined from a server that knows no subscription (no `libraryPlans`). */
+  /**
+   * The plans on sale to this build's Stripe mode (`parseLibraryFields`).
+   * Undefined from a server that knows no subscription (no `libraryPlans`).
+   */
   plans: ILibraryPlan[] | undefined;
   membership: TLibraryMembershipRead;
 }
@@ -184,11 +188,26 @@ export const parseLibraryMembership = (
   };
 };
 
-/** Both of Plus's fields from one `my_store` body. */
-export const parseLibraryFields = (body: unknown): ILibraryFields => {
+/**
+ * Both of Plus's fields from one `my_store` body, as a build buying in
+ * `mode` reads them (premium 0124). `libraryPlans` is the live plans, sent to
+ * everybody by a server that sells Plus at all, so it alone says whether
+ * the server knows Plus; `libraryTestPlans`, the test plans, comes to
+ * whoever the server sells test mode to. A test build offers the test plans
+ * and nothing else - never the live ones, which would charge a real card
+ * from `pnpm dev` - so with no test plans it has nothing on sale.
+ */
+export const parseLibraryFields = (
+  body: unknown,
+  mode: TBillingMode,
+): ILibraryFields => {
   const raw = isRecord(body) ? body : {};
+  const live = parseLibraryPlans(raw.libraryPlans);
   return {
-    plans: parseLibraryPlans(raw.libraryPlans),
+    plans:
+      live !== undefined && mode === 'test'
+        ? (parseLibraryPlans(raw.libraryTestPlans) ?? [])
+        : live,
     membership: parseLibraryMembership(raw.library),
   };
 };

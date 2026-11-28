@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { BILLING_MODE } from '../../common/billingMode';
 import { PLUS_TERMS_VERSION } from '../../common/plusTerms';
 import { isCheckoutLocale, mayPlayLook } from '../../common/sceneStore';
 import {
@@ -372,6 +373,12 @@ export const createSubscriptionService = ({
         // floor (15) as `terms_outdated`.
         termsVersion: PLUS_TERMS_VERSION,
         locale: isCheckoutLocale(locale) ? locale : 'en',
+        // The Stripe mode this build buys in (`common/billingMode.ts`): a
+        // development build asks for a test checkout; a release asks as
+        // every release before 0124 did, with no mode, which the server
+        // reads as live. The portal takes none: it opens in the mode of the
+        // account's own subscription.
+        ...(BILLING_MODE === 'test' ? { mode: 'test' } : {}),
       });
     } catch (error) {
       logger?.warn(`The Plus checkout could not be reached: ${String(error)}`);

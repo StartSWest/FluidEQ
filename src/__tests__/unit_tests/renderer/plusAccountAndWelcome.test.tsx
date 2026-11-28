@@ -9,7 +9,7 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ISubscriptionState } from '../../../common/subscription';
 import AccountPlusCard from '../../../renderer/account/AccountPlusCard';
-import PlusNotOnSale from '../../../renderer/plus/PlusNotOnSale';
+import PlusGalleryHead from '../../../renderer/plus/PlusGalleryHead';
 import SignedOutPlus from '../../../renderer/plus/SignedOutPlus';
 import { resetPlusSubscriptionStore } from '../../../renderer/plus/plusSubscriptionStore';
 
@@ -120,46 +120,46 @@ describe('Plus in the account panel', () => {
     expect(screen.queryByText('subscription.account.yours')).toBeNull();
   });
 
-  it('shows nothing in a release build when nothing is on sale', async () => {
-    process.env.NODE_ENV = 'production';
-    withPlus({ ...onSale, plans: [] });
-    const { container } = render(<AccountPlusCard />);
-    await settle();
-    expect(container).toBeEmptyDOMElement();
-  });
+  it.each(['production', 'development'])(
+    'shows nothing when nothing is on sale, in a %s build alike',
+    async (build) => {
+      process.env.NODE_ENV = build;
+      withPlus({ ...onSale, plans: [] });
+      const { container } = render(<AccountPlusCard />);
+      await settle();
+      expect(container).toBeEmptyDOMElement();
+    },
+  );
 });
 
 /**
- * While Stripe is in test mode only the server's testers get a price, and
- * Plus hid itself everywhere else - read as Plus being gone (Ivan,
- * 2026-11-28). A development build says why; a release never does, because
- * there no price means nothing on sale.
+ * Ivan, 2026-11-28: "no more that crap dev is normal as prod just in test
+ * env". A development build used to put a dashed note where Plus stood when
+ * the server sent it no price; now it shows what a release shows - Plus from
+ * the test prices, or nothing - and the only difference left is that its
+ * Stripe pages are Stripe's test ones (`common/billingMode.ts`).
  */
-describe('the development note on why no Plus shows', () => {
-  it('says why in a development build when no price came back', () => {
-    process.env.NODE_ENV = 'development';
-    render(<PlusNotOnSale plus={{ ...onSale, plans: [] }} />);
-    expect(screen.getByRole('note')).toHaveTextContent(
-      'subscription.dev.notOnSale',
-    );
-  });
+describe('Plus in a development build', () => {
+  it.each(['production', 'development'])(
+    'puts the same Plus block at the gallery’s head in a %s build',
+    async (build) => {
+      process.env.NODE_ENV = build;
+      withPlus(onSale);
+      render(<PlusGalleryHead />);
+      await settle();
+      expect(
+        screen.getByRole('heading', { name: 'subscription.banner.title' }),
+      ).toBeInTheDocument();
+    },
+  );
 
-  it('is never in a release build', () => {
-    process.env.NODE_ENV = 'production';
-    const { container } = render(
-      <PlusNotOnSale plus={{ ...onSale, plans: [] }} />,
-    );
-    expect(container).toBeEmptyDOMElement();
-  });
-
-  it('stays away in development once there is a price, or for a suspended account', () => {
+  it('says nothing of why when no price came back, as a release does not', async () => {
     process.env.NODE_ENV = 'development';
-    const { container, rerender } = render(<PlusNotOnSale plus={onSale} />);
+    withPlus({ ...onSale, plans: [] });
+    const { container } = render(<PlusGalleryHead />);
+    await settle();
     expect(container).toBeEmptyDOMElement();
-    rerender(
-      <PlusNotOnSale plus={{ ...onSale, plans: [], suspended: true }} />,
-    );
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByRole('note')).toBeNull();
   });
 });
 

@@ -103,6 +103,11 @@ export const fakeBackend = () => {
     /** What `my_store` says of Plus (0122 on). */
     library: undefined as Record<string, unknown> | undefined,
     plans: PLANS as unknown[],
+    /**
+     * Premium 0124's `libraryTestPlans`, the test plans: sent only to the
+     * admin and the testers, so undefined is any other account.
+     */
+    testPlans: undefined as unknown[] | undefined,
     /** Member scenes got with a credit, as `my_store` lists them. */
     owned: [] as { authorId: string; sceneId: string }[],
     helpers: [] as string[],
@@ -173,6 +178,13 @@ export const fakeBackend = () => {
             ...(state.aware
               ? {
                   libraryPlans: state.suspended ? [] : state.plans,
+                  ...(state.testPlans
+                    ? {
+                        libraryTestPlans: state.suspended
+                          ? []
+                          : state.testPlans,
+                      }
+                    : {}),
                   ...(state.library && !state.suspended
                     ? { library: state.library }
                     : {}),

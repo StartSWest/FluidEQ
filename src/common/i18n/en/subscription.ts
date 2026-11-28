@@ -125,8 +125,6 @@ const subscription = {
   'subscription.welcome.body':
     "Every scene in the gallery, new ones too, while you're a member. One subscription for FluidEQ and FluidWallpapers.",
   'subscription.welcome.signIn': 'Sign in to get Plus',
-  'subscription.dev.notOnSale':
-    "Development: Plus isn't on sale to this account. While Stripe is in test mode, only the admin and the accounts on the server's testers list get its prices: add this account to that list.",
   'subscription.renew': 'Renew Plus',
   'subscription.pass.member': 'Member',
   'subscription.pass.ending': 'Cancelled · still yours until then',
