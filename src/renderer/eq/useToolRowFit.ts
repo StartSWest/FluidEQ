@@ -14,12 +14,17 @@ import { type RefObject, useLayoutEffect } from 'react';
  * (Ivan, 2026-11-20, choosing it: "yes, my answer is the recommended"); then
  * what each tab holds ("15", the preset's name, Off), the tabs keeping their
  * names; then the tools' words too, each
- * left its glyph and its tooltip (Smart EQ keeps its word at every width);
- * last, the tabs' own words, each tab its glyph and its tooltip, the open
- * one still underlined. The tabs' chips go before the tools' words because a
- * tool without its word is a glyph to learn, and a tab without its chip
- * still says what it is; the tabs' words go last because they are where the
- * page is.
+ * left its glyph and its tooltip (Auto EQ keeps its word); then the tabs' own
+ * words, each tab its glyph and its tooltip, the open one still underlined.
+ * The tabs' chips go before the tools' words because a tool without its word
+ * is a glyph to learn, and a tab without its chip still says what it is; the
+ * tabs' words go last because they are where the page is.
+ *
+ * Last of all, Auto EQ's own name, its glyph and its tooltip left, for a
+ * language whose name for it is long: the amp at its one width ran
+ * "Égalisation auto" 39 px past the row's end (491 px of tools in 452) with
+ * everything else already down to glyphs (2026-11-28). English, German and
+ * Russian never get here; they keep the word.
  */
 const FITS = [
   'full',
@@ -28,6 +33,7 @@ const FITS = [
   'bare-tabs',
   'icons',
   'icon-tabs',
+  'icon-auto',
 ] as const;
 
 /**

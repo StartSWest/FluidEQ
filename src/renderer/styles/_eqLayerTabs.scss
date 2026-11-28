@@ -198,7 +198,8 @@ $eq-row-ink-quiet: color-mix(in srgb, $text-primary 62%, transparent);
     [data-fit='quiet-bands'],
     [data-fit='bare-tabs'],
     [data-fit='icons'],
-    [data-fit='icon-tabs']
+    [data-fit='icon-tabs'],
+    [data-fit='icon-auto']
   )
   .eq-layer-tabs__tools {
   gap: 12px;
@@ -318,16 +319,17 @@ $eq-row-ink-quiet: color-mix(in srgb, $text-primary 62%, transparent);
 
 // Narrower (`useToolRowFit`), each level keeping what the ones before it
 // gave up: the group names first; then what each tab holds, the tabs
-// keeping their names; then every tool's word but Smart EQ's, each tool
-// left its glyph and its tooltip; last the tabs' words, each tab its glyph
-// and its tooltip, its word kept for a screen reader. The tools that are
-// only a glyph then are square.
+// keeping their names; then every tool's word but Auto EQ's, each tool
+// left its glyph and its tooltip; then the tabs' words, each tab its glyph
+// and its tooltip, its word kept for a screen reader; last Auto EQ's name.
+// The tools that are only a glyph then are square.
 .eq-layer-tabs:is(
     [data-fit='uncaptioned'],
     [data-fit='quiet-bands'],
     [data-fit='bare-tabs'],
     [data-fit='icons'],
-    [data-fit='icon-tabs']
+    [data-fit='icon-tabs'],
+    [data-fit='icon-auto']
   )
   .eq-tool-group__caption {
   display: none;
@@ -361,13 +363,14 @@ $eq-row-ink-quiet: color-mix(in srgb, $text-primary 62%, transparent);
 .eq-layer-tabs:is(
     [data-fit='bare-tabs'],
     [data-fit='icons'],
-    [data-fit='icon-tabs']
+    [data-fit='icon-tabs'],
+    [data-fit='icon-auto']
   )
   .eq-layer-tabs__meta {
   display: none;
 }
 
-.eq-layer-tabs[data-fit='icon-tabs'] {
+.eq-layer-tabs:is([data-fit='icon-tabs'], [data-fit='icon-auto']) {
   .eq-layer-tabs__word {
     @include words-hidden;
   }
@@ -380,7 +383,11 @@ $eq-row-ink-quiet: color-mix(in srgb, $text-primary 62%, transparent);
   }
 }
 
-.eq-layer-tabs:is([data-fit='icons'], [data-fit='icon-tabs'])
+.eq-layer-tabs:is(
+    [data-fit='icons'],
+    [data-fit='icon-tabs'],
+    [data-fit='icon-auto']
+  )
   .eq-layer-tabs__tools {
   .eq-toolbar__word,
   .eq-mode-trigger__summary {
@@ -407,10 +414,10 @@ $eq-row-ink-quiet: color-mix(in srgb, $text-primary 62%, transparent);
   }
 }
 
-// Last, where even the glyphs run short — the amp at its one width since
-// Auto EQ took Smart's place there (455 px of tools in 452) — the saved EQ's
-// name is its folder alone, square like the disk beside it: 9 px back.
-.eq-layer-tabs[data-fit='icon-tabs']
+// Where even the glyphs run short — the amp at its one width since Auto EQ
+// took Smart's place there (455 px of tools in 452) — the saved EQ's name is
+// its folder alone, square like the disk beside it: 9 px back.
+.eq-layer-tabs:is([data-fit='icon-tabs'], [data-fit='icon-auto'])
   .eq-layer-tabs__tools
   .button.small.subtle.eq-load-trigger {
   width: 32px;
@@ -419,6 +426,21 @@ $eq-row-ink-quiet: color-mix(in srgb, $text-primary 62%, transparent);
 
   .chevron {
     display: none;
+  }
+}
+
+// Last of all (`useToolRowFit`'s `icon-auto`), Auto EQ's own name, for a
+// language whose name for it is long: the sparkle and its chevron, the name
+// whole on the key's tooltip and its label. French ran "Égalisation auto"
+// off the amp's row (491 px of tools in 452).
+.eq-layer-tabs[data-fit='icon-auto'] .eq-layer-tabs__tools .eq-auto {
+  .eq-auto__name {
+    @include words-hidden;
+  }
+
+  .button.small.eq-mode__main {
+    gap: 4px;
+    padding-inline: 10px 9px;
   }
 }
 

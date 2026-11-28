@@ -96,6 +96,8 @@ const AutoEqButton = () => {
         type="button"
         ref={trigger}
         aria-label={t('autoEq.aria')}
+        // Its name, whole, where the row has given its word up too.
+        title={t('autoEq.aria')}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
         // Running gets the breathing outline and nothing else.
@@ -105,9 +107,10 @@ const AutoEqButton = () => {
         onClick={() => setIsOpen((wasOpen) => !wasOpen)}
       >
         <MenuIcon name="smart" className="eq-toolbar__icon" />
-        {/* Its name kept at every width, as Smart EQ's was: the row's
-          narrowest fit hides the other tools' words, never this one's. */}
-        {t('autoEq.title')}
+        {/* Its name kept while the other tools' words go, as Smart EQ's
+          was, and given up only at the row's last fit (`useToolRowFit`'s
+          `icon-auto`), where a long name ran off the amp. */}
+        <span className="eq-auto__name">{t('autoEq.title')}</span>
         {state && <span className="eq-auto__state">{state}</span>}
         <Chevron />
       </button>

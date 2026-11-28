@@ -35,7 +35,12 @@ $auto-eq-step: color-mix(in srgb, $edge-tint 8%, transparent);
 }
 
 // Down to glyphs (`useToolRowFit`), the state goes before the name does.
-.eq-layer-tabs:is([data-fit='icons'], [data-fit='icon-tabs']) .eq-auto__state {
+.eq-layer-tabs:is(
+    [data-fit='icons'],
+    [data-fit='icon-tabs'],
+    [data-fit='icon-auto']
+  )
+  .eq-auto__state {
   display: none;
 }
 

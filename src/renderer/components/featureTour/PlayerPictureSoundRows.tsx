@@ -4,10 +4,11 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { ReactNode } from 'react';
+import { type ReactNode, useRef } from 'react';
 import '../../styles/EqLayers.scss';
 import '../../styles/EqAutoPanel.scss';
 import EqModeTriggerFace from '../eqMode/EqModeTriggerFace';
+import useToolRowFit from '../../eq/useToolRowFit';
 import Chevron from '../../icons/Chevron';
 import MenuIcon from '../../icons/MenuIcon';
 import VoicingIcon from '../../icons/VoicingIcon';
@@ -95,7 +96,7 @@ const PictureAutoEq = () => {
         aria-label={t('autoEq.aria')}
       >
         <MenuIcon name="smart" className="eq-toolbar__icon" />
-        {t('autoEq.title')}
+        <span className="eq-auto__name">{t('autoEq.title')}</span>
         <Chevron />
       </button>
     </span>
@@ -103,16 +104,26 @@ const PictureAutoEq = () => {
 };
 
 /**
- * The bottom row at the width the amp opens at, where it is down to its
- * glyphs (`useToolRowFit`'s `icons`), as the amp draws it there.
+ * The bottom row as the amp draws it, fitted the amp's own way
+ * (`useToolRowFit`): a fit written in by hand was one level short of the
+ * amp's in English once the saved EQ's name joined the row, and three in
+ * French, whose Auto EQ ran off the picture's end.
  */
-const PictureToolRow = ({ children }: { children: ReactNode }) => (
-  <div className="eq-layer-tabs player-sound__tools" data-fit="icons">
-    <div className="eq-layer-tabs__slot">
-      <div className="eq-layer-tabs__tools">{children}</div>
+const PictureToolRow = ({ children }: { children: ReactNode }) => {
+  const row = useRef<HTMLDivElement>(null);
+  const slot = useRef<HTMLDivElement>(null);
+  const tools = useRef<HTMLDivElement>(null);
+  useToolRowFit(row, slot, tools);
+  return (
+    <div className="eq-layer-tabs player-sound__tools" ref={row}>
+      <div className="eq-layer-tabs__slot" ref={slot}>
+        <div className="eq-layer-tabs__tools" ref={tools}>
+          {children}
+        </div>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const group = (caption: string, children: ReactNode) => (
   <div className="eq-tool-group" role="group" aria-label={caption}>
