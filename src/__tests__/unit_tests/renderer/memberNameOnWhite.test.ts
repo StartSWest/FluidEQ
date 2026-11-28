@@ -35,16 +35,25 @@ describe('a member’s name in their own hue on a white window', () => {
     expect(light[0]).toContain('min(l, var(--ink-ceiling');
   });
 
-  // The account card's hover glow, a coloured smudge on white: none there,
-  // kept on a dark window.
-  it('lifts the account card under the pointer with no glow on white', () => {
-    const shadow = (selector: string) =>
+  // The account card's hover glow was a coloured smudge on white and taken
+  // off there (2026-11-19); the calm card (2026-11-28, "tjhis mega sucks")
+  // has none on any window. The step of light under the pointer is its edge
+  // and its fill.
+  it('lifts the account card under the pointer with no glow on any window', () => {
+    const declared = (selector: string, property: string) =>
       rules
         .filter((rule) => rule.selectors.includes(selector))
-        .map((rule) => rule.declarations.get('box-shadow'))
+        .map((rule) => rule.declarations.get(property))
         .filter(Boolean);
-    expect(shadow('.community__account:hover').join(' ')).toContain('16px');
-    expect(shadow(`${LIGHT} .community__account:hover`)).toEqual(['none']);
+    expect(declared('.community__account:hover', 'box-shadow')).toEqual([]);
+    expect(
+      declared(`${LIGHT} .community__account:hover`, 'box-shadow'),
+    ).toEqual([]);
+    expect(declared('.community__account', 'box-shadow')).toEqual([]);
+    expect(declared('.community__account:hover', 'background')).toHaveLength(1);
+    expect(declared('.community__account:hover', 'border-color')).toHaveLength(
+      1,
+    );
   });
 
   it('keeps its light on a dark window', () => {

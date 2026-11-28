@@ -12,7 +12,6 @@ import {
 import { useTranslation } from '../utils/I18nContext';
 import Avatar from './Avatar';
 import Glyph, { type TCommunityGlyph } from './Glyph';
-import { identityStyle } from './identity';
 import { setGalleryNotice } from '../plus/galleryActions';
 import {
   openPlusPlace,
@@ -108,12 +107,16 @@ export default function CommunityPanel({
   const plus = usePlusSubscription();
   const member = plus?.subscribed === true;
   // Cancelled to end: the chip says until when, as every Plus surface does.
+  // The date is held together, so a narrow rail wraps the line before it and
+  // never between "27" and "déc.".
   const plusUntil =
     member && plus?.status?.renewing === false && plus.status.until
       ? new Intl.DateTimeFormat(locale, {
           month: 'short',
           day: 'numeric',
-        }).format(new Date(plus.status.until))
+        })
+          .format(new Date(plus.status.until))
+          .replace(/\s/g, '\u00a0')
       : undefined;
 
   useEffect(() => {
@@ -232,38 +235,48 @@ export default function CommunityPanel({
           </div>
 
           <div className="community__foot">
-            {/* The member as the gallery shows them, in their own colour; the whole card is the way to their account. */}
+            {/* The member, calm (Ivan, 2026-11-28, of the card before:
+                "tjhis mega sucks"): their colour on the picture alone, the
+                name, and one quiet line under it. The whole card is the way
+                to their account. */}
             <button
               type="button"
-              className={`community__account${member ? ' is-plus' : ''}`}
-              style={identityStyle(ownHandle)}
+              className={`community__account${member ? ' is-plus' : ''}${plusUntil ? ' is-ending' : ''}`}
               title={t('account.menu')}
               onClick={() => requestAccountPanel()}
             >
               <Avatar handle={ownHandle} displayName={ownName} size="rail" />
               <span className="community__account-text studio-rail__word">
-                <span className="community__name community__name--hued">
-                  {ownName || ownHandle}
-                </span>
-                {/* The mark beside the handle, not beside the name: in a rail
-                    this narrow, a name that has to share its line is cut. */}
-                <span className="community__account-line">
-                  <span className="community__handle">
-                    {profile ? `@${profile.handle}` : t('account.menu')}
+                {/* A role an add-on gives stands by the name as a small tag,
+                    off the status line, which has no width to spare. */}
+                <span className="community__account-head">
+                  <span className="community__name">
+                    {ownName || ownHandle}
                   </span>
-                  {/* A member says so here quietly, with Plus's pass; nothing
-                      for anybody else - the gallery's head offers Plus. */}
-                  {member && (
-                    <span className="community__plus">
-                      <PlusMark />
-                      {plusUntil
-                        ? t('subscription.chip.until', { date: plusUntil })
-                        : t('subscription.name')}
-                    </span>
-                  )}
                   {rendererAddons().map(
                     ({ name, AccountBadge }) =>
                       AccountBadge && <AccountBadge key={name} />,
+                  )}
+                </span>
+                {/* One status: a member's pass and "Plus" in the window's
+                    accent, then the handle; cancelled, when Plus ends, quiet
+                    and without the handle, so the date is never the part
+                    that is cut. Anybody else, the handle alone. */}
+                <span className="community__account-line">
+                  {member && (
+                    <span className="community__plus">
+                      <PlusMark />
+                      <span className="community__plus-words">
+                        {plusUntil
+                          ? t('subscription.chip.until', { date: plusUntil })
+                          : t('subscription.name')}
+                      </span>
+                    </span>
+                  )}
+                  {!plusUntil && (
+                    <span className="community__handle">
+                      {profile ? `@${profile.handle}` : t('account.menu')}
+                    </span>
                   )}
                 </span>
               </span>

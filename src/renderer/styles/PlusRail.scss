@@ -200,9 +200,12 @@ $rail-glyph-centre: math.div($studio-rail-folded, 2);
 }
 
 // The member's picture in the glyphs' column, so the folded column is one
-// straight line of them: 6px of foot, the card's edge, 6px, half of 30.
+// straight line of them: 6px of foot, the card's edge, then half the
+// picture. Written as 15px (a 30px picture) after the picture grew to 36px,
+// which put it 3px right of the column.
 .community--plus .community__account {
-  padding-inline-start: $rail-glyph-centre - 6px - 1px - 15px;
+  padding-inline-start: $rail-glyph-centre - 6px -
+    1px - math.div($plus-account-avatar, 2);
   transition:
     border-color $motion-base $ease-out,
     background $motion-base $ease-out,

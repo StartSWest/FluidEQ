@@ -145,6 +145,11 @@ $studio-rail-width: 236px;
 
 $studio-rail-folded: 56px;
 
+// The member's picture on the Scenes rail's account card. Its centre sits on
+// the folded rail's glyph column, so `PlusRail.scss` works the card's inset
+// out from this size: change it there and nowhere else.
+$plus-account-avatar: 36px;
+
 // The rail's name over its places: small spaced capitals a step under the
 // rows' ink, so it reads as the rail's label and never as one of its places
 // (Ivan, 2026-11-17, of the Scenes heading: "less white, so it is distinct

@@ -9,7 +9,6 @@ import {
 import { PLACES } from '../../community/CommunityPanel';
 import Avatar from '../../community/Avatar';
 import Glyph from '../../community/Glyph';
-import { identityStyle } from '../../community/identity';
 import PlaceHead from '../../community/PlaceHead';
 import BrandMark from '../../icons/BrandMark';
 import { useRailWidth } from '../../library/LibraryRailSplitter';
@@ -209,19 +208,15 @@ const PlusRailDrawing = ({ shown }: { shown: TPlusPlace }) => {
           ))}
         </div>
         <div className="community__foot">
-          <button
-            type="button"
-            className="community__account"
-            style={identityStyle(MEMBER.handle)}
-          >
+          <button type="button" className="community__account">
             <Avatar
               handle={MEMBER.handle}
               displayName={MEMBER.name}
               size="rail"
             />
             <span className="community__account-text studio-rail__word">
-              <span className="community__name community__name--hued">
-                {MEMBER.name}
+              <span className="community__account-head">
+                <span className="community__name">{MEMBER.name}</span>
               </span>
               <span className="community__account-line">
                 <span className="community__handle">@{MEMBER.handle}</span>

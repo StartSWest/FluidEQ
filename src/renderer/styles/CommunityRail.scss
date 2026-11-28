@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
+@use 'libraryTokens' as *;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -359,9 +360,8 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // The Plus tab's foot: the member's own card, which opens their account, and
 // under it — until they have one — the way to choose the name the board
-// ranks. The card wears the member's colour as a wash from the left, the
-// same arrangement as the band at the top of the Account panel it opens.
-// After the last place, so the member arrives beneath where they can go.
+// ranks. After the last place, so the member arrives beneath where they can
+// go.
 //
 // A fade, not the rise the places above it make. This card sits on the rail's
 // floor (`margin-top: auto`), and the rail scrolls: eight pixels of rise put
@@ -376,85 +376,171 @@ it under the terms of the GNU General Public License version 3 or later.
   // button").
   margin-top: auto;
   padding-top: 8px;
+  // The account card fits itself to the rail's width, which is dragged.
+  container: plus-account / inline-size;
 
   @container eq-panel (max-width: 600px) {
     display: none;
   }
 }
 
+// The card is calm (Ivan, 2026-11-28, of the one before: "tjhis mega
+// sucks"). That one washed the member's colour across the card, coloured the
+// name, put Plus in the accent beside it and the maker's tag in pink caps:
+// three colours on one line, and on the narrowest rail the tag stood out of
+// the card. Now the card is the rail's own material, the member's colour is on
+// the picture alone, the name is ink, and Plus is the one thing in the accent.
 .community__account {
   position: relative;
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) 10px;
+  grid-template-columns: $plus-account-avatar minmax(0, 1fr) 8px;
   align-items: center;
   gap: 10px;
   width: 100%;
-  min-height: 52px;
-  padding: 7px 10px 7px 7px;
+  min-height: 58px;
+  padding: 9px 12px 9px 9px;
   color: inherit;
-  border: 1px solid hsl(var(--identity-hue, 170deg) 70% 60% / 16%);
-  border-radius: $radius-s;
-  background: linear-gradient(
-    100deg,
-    hsl(var(--identity-hue, 170deg) 60% 50% / 16%),
-    hsl(var(--identity-hue, 170deg) 60% 50% / 3%) 70%
-  );
+  border: 1px solid color-mix(in srgb, $edge-tint 9%, transparent);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $edge-tint 4%, transparent);
   font: inherit;
   text-align: start;
   cursor: pointer;
   transition:
     border-color $motion-fast $ease-out,
-    background $motion-fast $ease-out,
-    box-shadow $motion-fast $ease-out;
-
-  .community__avatar {
-    box-shadow:
-      0 0 0 2px $block-lift,
-      0 0 0 3px hsl(var(--identity-hue, 170deg) 70% 55% / 55%);
-  }
+    background $motion-fast $ease-out;
 
   &:hover {
-    border-color: hsl(var(--identity-hue, 170deg) 70% 60% / 38%);
-    background: linear-gradient(
-      100deg,
-      hsl(var(--identity-hue, 170deg) 60% 50% / 26%),
-      hsl(var(--identity-hue, 170deg) 60% 50% / 7%) 75%
-    );
-    box-shadow: 0 0 16px hsl(var(--identity-hue, 170deg) 60% 50% / 16%);
-
-    // No glow on a white window, where it was a coloured smudge round the
-    // card (Ivan's standing rule, 2026-11-19: "no dropshadow always clean"):
-    // the deeper wash and edge above are the step of light.
-    :root[data-window-ink='dark'] & {
-      box-shadow: none;
-    }
+    border-color: color-mix(in srgb, $edge-tint 16%, transparent);
+    background: color-mix(in srgb, $edge-tint 7%, transparent);
   }
 
   &:focus-visible {
     @include focus-outline(2px);
+  }
+
+  // Larger letters than a board row's: the picture is the card's one colour.
+  .community__avatar {
+    width: $plus-account-avatar;
+    height: $plus-account-avatar;
+    font-size: $text-lead;
+  }
+
+  // A member's picture wears a ring of the accent inside its edge, which is
+  // what says Plus once the rail folds to its pictures. Inside, never round
+  // it: the card's inset is worked out for the folded column and leaves no
+  // room outside the picture. Cancelled, the ring goes quiet with the line.
+  &.is-plus .community__avatar {
+    box-shadow: inset 0 0 0 2px $secondary-default;
+  }
+
+  &.is-ending .community__avatar {
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, $text-faint 55%, transparent);
+  }
+
+  // On a rail dragged narrow the chevron gives its room to the words: the
+  // whole card is still the button.
+  @container plus-account (max-width: 220px) {
+    grid-template-columns: $plus-account-avatar minmax(0, 1fr);
+    padding-inline-end: 9px;
+
+    .community__account-chevron {
+      display: none;
+    }
   }
 }
 
 .community__account-text {
   display: grid;
   min-width: 0;
-  gap: 2px;
-
-  .community__name,
-  .community__handle {
-    @include truncate;
-  }
+  gap: 3px;
 }
 
-.community__account-line {
+// The name, and beside it a role an add-on gives (the maker's): a small tag
+// in the card's own ink, never the loud capitals the boards use for it.
+.community__account-head {
   display: flex;
   align-items: center;
   gap: 6px;
   min-width: 0;
 
+  .community__name {
+    @include truncate;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+  }
+
   .community__role {
     flex: 0 0 auto;
+    padding: 0 5px;
+    color: $text-muted;
+    border: 0;
+    background: color-mix(in srgb, $edge-tint 10%, transparent);
+    font-size: $text-micro;
+    font-weight: $weight-semibold;
+    @include tracking(0);
+    line-height: 1.6;
+    text-transform: none;
   }
+}
+
+// One quiet status under the name. Plus never gives way to the handle: the
+// handle is the part an ellipsis takes.
+.community__account-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: $text-small;
+
+  .community__handle {
+    @include truncate;
+    font-size: inherit;
+  }
+}
+
+.community__plus {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  color: $text-accent;
+  font-weight: $weight-semibold;
+
+  .plus-mark {
+    width: 14px;
+    height: 14px;
+  }
+
+  // Cancelled: the date in the line's own quiet ink, and never cut - on a
+  // narrow rail or in a long language it goes on under, the pass beside its
+  // first line.
+  .is-ending & {
+    flex-shrink: 1;
+    align-items: flex-start;
+    color: $text-muted;
+    font-weight: $weight-regular;
+
+    .plus-mark {
+      margin-top: 1px;
+      color: $text-faint;
+    }
+  }
+}
+
+.community__plus-words {
+  @include truncate;
+
+  .is-ending & {
+    white-space: normal;
+  }
+}
+
+.community__plus + .community__handle::before {
+  content: '·';
+  margin-inline-end: 6px;
+  color: $text-faint;
 }
 
 // A small chevron: the card goes somewhere. It steps right under the pointer.
@@ -606,44 +692,5 @@ it under the terms of the GNU General Public License version 3 or later.
   &--admin {
     color: $complementary;
     border-color: color-mix(in srgb, $complementary 50%, transparent);
-  }
-}
-
-// The member's card at the rail's foot, a step fuller (Ivan, 2026-11-28:
-// "make this nicer"): a larger portrait with its ring, and a Plus member's
-// quiet "Plus" with the pass beside the handle, the card's edge taking the
-// accent. Nothing for anybody else.
-.community__account {
-  grid-template-columns: 36px minmax(0, 1fr) 10px;
-  min-height: 58px;
-  padding: 9px 12px 9px 9px;
-  border-radius: $radius-m;
-
-  .community__avatar {
-    width: 36px;
-    height: 36px;
-  }
-
-  .community__name {
-    font-weight: $weight-bold;
-  }
-
-  &.is-plus {
-    border-color: color-mix(in srgb, $secondary-default 40%, transparent);
-  }
-}
-
-.community__plus {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 4px;
-  color: $text-accent;
-  font-size: $text-micro;
-  font-weight: $weight-bold;
-
-  .plus-mark {
-    width: 13px;
-    height: 13px;
   }
 }
