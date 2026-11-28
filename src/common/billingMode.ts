@@ -31,3 +31,36 @@ export const billingModeOf = (nodeEnv: string | undefined): TBillingMode =>
   nodeEnv === 'development' ? 'test' : 'live';
 
 export const BILLING_MODE: TBillingMode = billingModeOf(process.env.NODE_ENV);
+
+/** Stripe's own checkout, the one place this app sends anybody to pay. */
+const STRIPE_CHECKOUT = 'https://checkout.stripe.com';
+
+/**
+ * A checkout page the server answered is one to open in `mode`: Stripe's
+ * own, over https, with no credentials in it, and in test mode a session
+ * Stripe made in test mode - its id says so (`/c/pay/cs_test_...`, against
+ * `cs_live_...`). The server is asked for a test checkout, but one that
+ * ignored the word (any server before 0126) would answer a live page, and
+ * `pnpm dev` would take a real card on it: such a page is refused instead.
+ * A release opens any page of Stripe's checkout, as it always did.
+ */
+export const isCheckoutForMode = (
+  url: unknown,
+  mode: TBillingMode,
+): boolean => {
+  if (typeof url !== 'string') {
+    return false;
+  }
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+  return (
+    parsed.origin === STRIPE_CHECKOUT &&
+    parsed.username === '' &&
+    parsed.password === '' &&
+    (mode === 'live' || parsed.pathname.startsWith('/c/pay/cs_test_'))
+  );
+};

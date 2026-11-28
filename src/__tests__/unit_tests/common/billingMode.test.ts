@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import fs from 'fs';
 import path from 'path';
-import { billingModeOf } from '../../../common/billingMode';
+import { billingModeOf, isCheckoutForMode } from '../../../common/billingMode';
 
 /**
  * Ivan, 2026-11-28: "dev needs to behave like normal, just point to the
@@ -57,5 +57,42 @@ describe('a release build', () => {
     };
     expect(scripts['build:main']).toContain('NODE_ENV=production');
     expect(scripts['build:renderer']).toContain('NODE_ENV=production');
+  });
+});
+
+/**
+ * A development build asks for a test checkout, but a server that ignored
+ * the word would answer a live page, and `pnpm dev` would take a real card
+ * there. Stripe's session id says which mode it was made in.
+ */
+describe('the checkout page a build opens', () => {
+  const TEST = 'https://checkout.stripe.com/c/pay/cs_test_a1b2#fid';
+  const LIVE = 'https://checkout.stripe.com/c/pay/cs_live_a1b2#fid';
+
+  it('is only a test session in a development build', () => {
+    expect(isCheckoutForMode(TEST, 'test')).toBe(true);
+    expect(isCheckoutForMode(LIVE, 'test')).toBe(false);
+    expect(
+      isCheckoutForMode('https://checkout.stripe.com/pay/cs_test_x', 'test'),
+    ).toBe(false);
+  });
+
+  it('is any page of Stripe’s checkout in a release, as before', () => {
+    expect(isCheckoutForMode(LIVE, 'live')).toBe(true);
+    expect(isCheckoutForMode(TEST, 'live')).toBe(true);
+  });
+
+  it.each([
+    [
+      'another site',
+      'https://checkout.stripe.com.evil.example/c/pay/cs_test_1',
+    ],
+    ['plain http', 'http://checkout.stripe.com/c/pay/cs_test_1'],
+    ['credentials', 'https://a:b@checkout.stripe.com/c/pay/cs_test_1'],
+    ['no address', undefined],
+    ['not an address', 'cs_test_1'],
+  ])('is never %s, in either mode', (_label, url) => {
+    expect(isCheckoutForMode(url, 'test')).toBe(false);
+    expect(isCheckoutForMode(url, 'live')).toBe(false);
   });
 });

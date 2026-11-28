@@ -16,7 +16,11 @@ import {
   type TStoreFailure,
   type TSuspensionRefundFailure,
 } from '../../common/sceneStore';
-import { BILLING_MODE } from '../../common/billingMode';
+import {
+  BILLING_MODE,
+  isCheckoutForMode,
+  type TBillingMode,
+} from '../../common/billingMode';
 import { PLUS_TERMS_VERSION } from '../../common/plusTerms';
 import {
   parseLibraryFields,
@@ -137,23 +141,20 @@ export const claimStarterCredits = async (
 /** Stripe's own page, and nothing else, is a place this app sends somebody to pay. */
 export const STRIPE_CHECKOUT_ORIGIN = 'https://checkout.stripe.com';
 
-const isCheckoutPage = (url: unknown): url is string => {
-  if (typeof url !== 'string') {
-    return false;
-  }
-  try {
-    const parsed = new URL(url);
-    return parsed.origin === STRIPE_CHECKOUT_ORIGIN && parsed.username === '';
-  } catch {
-    return false;
-  }
-};
-
-/** A Stripe Checkout page made for this account and this pack. */
+/**
+ * A Stripe Checkout page made for this account and this pack, in the Stripe
+ * mode this build buys in (`common/billingMode.ts`): test under `pnpm dev`,
+ * live in every build that ships. Who is sold a test page is the server's to
+ * decide (the admin and its testers); anybody else is told the pack is not
+ * on sale, as for a pack with no price. A build that buys in test mode opens
+ * a test session's page alone (`isCheckoutForMode`): a server from before
+ * premium 0125 ignores the mode and answers a live page.
+ */
 export const startCreditCheckout = async (
   auth: IGalleryAuth,
   packId: string,
   locale: TCheckoutLocale,
+  mode: TBillingMode = BILLING_MODE,
 ): Promise<
   { ok: true; url: string } | { ok: false; reason: TCheckoutFailure }
 > => {
@@ -170,11 +171,13 @@ export const startCreditCheckout = async (
         // The terms this app shows; the server records the agreement and
         // refuses one older than the terms credits are sold under. The
         // language picks Stripe's and the page the payment returns to; a
-        // server from before it ignores the field.
+        // server from before it ignores the field. The mode is sent only
+        // when it is test, so a release asks exactly what it always asked.
         body: JSON.stringify({
           packId,
           termsVersion: PLUS_TERMS_VERSION,
           locale,
+          ...(mode === 'test' ? { mode } : {}),
         }),
       },
     );
@@ -202,7 +205,7 @@ export const startCreditCheckout = async (
       typeof body === 'object' && body !== null
         ? (body as Record<string, unknown>).url
         : undefined;
-    return isCheckoutPage(url)
+    return typeof url === 'string' && isCheckoutForMode(url, mode)
       ? { ok: true, url }
       : { ok: false, reason: 'server' };
   } catch {
