@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { RefObject, useLayoutEffect, useSyncExternalStore } from 'react';
+import { PLACE_SHED_ORDER, watchTitlebarPlaces } from './titlebarPlaces';
 
 /**
  * Whether the titlebar is crowded: whether keeping the creature in its right
@@ -44,7 +45,9 @@ import { RefObject, useLayoutEffect, useSyncExternalStore } from 'react';
  * minimise, maximise and close buttons went past its right edge. So, in the
  * order Ivan chose (2026-09-28, "shed small things"), the meter goes
  * (`data-shed-meter`), then Help and the compact-player switch
- * (`data-shed-tools`), and the tabs and the window's buttons always stay.
+ * (`data-shed-tools`), then the places one at a time (`data-shed` on each,
+ * `titlebarPlaces.ts`), and the equaliser's tab, the place on screen and the
+ * window's buttons always stay.
  * Before all of them goes the name beside the logo (`data-shed-name`): the
  * broad-pen wordmark (2026-11-26) is about four times the old name's width
  * in a narrow window, and with it in place the meter went from 1000px down —
@@ -243,6 +246,7 @@ export const watchTitlebarRoom = (
   let nameBack = 0;
   let meterBack = 0;
   let toolsBack = 0;
+  const places = watchTitlebarPlaces(bar);
 
   /** How far the right end runs past the bar's padding box, px. */
   const overrun = () => {
@@ -264,6 +268,16 @@ export const watchTitlebarRoom = (
    */
   const shed = (): boolean | undefined => {
     if (bar.hasAttribute('data-shed-tools')) {
+      // The places go after Help and the switch and come back before them.
+      if (places.isAnyShed() || isShedFromTitlebar(false, fit(0))) {
+        const changed = places.step({
+          overruns: isShedFromTitlebar(false, fit(0)),
+          hasRoomFor: (width) => !isShedFromTitlebar(true, fit(width)),
+        });
+        if (changed || places.isAnyShed()) {
+          return changed;
+        }
+      }
       if (isShedFromTitlebar(true, fit(toolsBack))) {
         return false;
       }
@@ -356,10 +370,12 @@ export const watchTitlebarRoom = (
   // off the layout it produced, so a creature met for the first time while
   // the bar is crowded — whose width was not yet known — can come back and
   // go again in the same frame, and a window that opens at its narrowest
-  // sheds all three steps before its first frame. Five rounds is one more
-  // than the longest of those takes.
+  // sheds every step before its first frame. The longest run is the creature,
+  // the name, the meter, the tools and every place, and the place on screen
+  // coming back first; the bound is one more than that.
+  const rounds = 4 + PLACE_SHED_ORDER.length + 2;
   const measure = () => {
-    for (let round = 0; round < 5; round += 1) {
+    for (let round = 0; round < rounds; round += 1) {
       if (!decide()) {
         return;
       }
@@ -391,6 +407,7 @@ export const watchTitlebarRoom = (
     bar.removeAttribute('data-shed-meter');
     bar.removeAttribute('data-shed-tools');
     setToolsShed(false);
+    places.reset();
   };
 };
 

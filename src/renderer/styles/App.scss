@@ -1037,6 +1037,24 @@ select option {
   display: none;
 }
 
+// Last, the places, one at a time and the least used first, before the
+// window's own buttons could be pushed off its edge — which is what a 1024px
+// window at the largest zoom did with everything above already gone. The
+// actions menu lists each while it is away; the equaliser and the place on
+// screen never go (`titlebarPlaces.ts`).
+.window-titlebar .workspace-tab[data-shed] {
+  display: none;
+}
+
+// The rule between two places belongs to the second, so a strip whose first
+// places are out would draw one in front of the first still there, with
+// nothing before it.
+.window-titlebar
+  .workspace-tabs
+  .workspace-tab:not(.workspace-tab:not([data-shed]) ~ .workspace-tab)::before {
+  content: none;
+}
+
 // A small transport rather than three window buttons. It controls media
 // anywhere in Windows, so it belongs in the titlebar. Flat, from the control
 // set (2026-11-17): the line edge, no fill, and play the one solid key, as

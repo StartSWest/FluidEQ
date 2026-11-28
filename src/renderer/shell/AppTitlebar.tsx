@@ -242,6 +242,7 @@ const AppTitlebar = ({
             onProcesses={actions.onProcesses}
             onSupport={actions.onSupport}
             help={help}
+            onPlace={tabs.onSelect}
           />
           {/* Help, as one more glyph in the capsule beside the engine's
               (Ivan, 2026-09-22: "put the help menu as icon next to the

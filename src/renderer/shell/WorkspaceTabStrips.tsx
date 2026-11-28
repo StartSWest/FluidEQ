@@ -17,14 +17,17 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import type { ReactNode } from 'react';
 import { isAccountConfigured } from 'common/accountConfig';
 import WorkspaceTabStrip from '../components/WorkspaceTabStrip';
 import { useSoundingGame } from '../games/useGameSound';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
+import type { TTitlebarPlace } from '../utils/titlebarPlaces';
 import useMediaQuery from '../utils/useMediaQuery';
 import type { TWorkspaceTab } from '../workspaceTabs';
 import { isEqGroupTab, MEDIA_TAB_ONE_WORD_QUERY } from './workspaceGroups';
+import { WORKSPACE_PLACES } from './workspacePlaces';
 
 /**
  * The main places, drawn either side of the live output meter.
@@ -49,57 +52,57 @@ export interface IWorkspaceTabsProps {
   onApproach: (tab: TWorkspaceTab) => void;
 }
 
-const VisualizersTab = ({
-  activeTab,
-  onSelect,
-  onApproach,
-}: Omit<IWorkspaceTabsProps, 'lastEqTab'>) => {
+/** What every place's tab needs from the strip: where the window is. */
+type TPlaceNav = Omit<IWorkspaceTabsProps, 'lastEqTab'>;
+
+interface IPlaceTabProps {
+  place: TTitlebarPlace;
+  nav: TPlaceNav;
+  /** The word drawn, where it is shorter than the place's full name. */
+  shown?: string;
+  children?: ReactNode;
+}
+
+/**
+ * One place's tab. It carries its place as `data-place`, which is how the bar
+ * takes it out while there is no room for it (`titlebarPlaces.ts`).
+ */
+const PlaceTab = ({ place, nav, shown, children }: IPlaceTabProps) => {
   const { t } = useTranslation();
-  if (!isAccountConfigured()) {
-    return null;
-  }
-  const active = activeTab === 'community';
+  const { activeTab, onSelect, onApproach } = nav;
+  const { icon, label } = WORKSPACE_PLACES[place];
+  const active = activeTab === place;
   return (
     <button
       type="button"
       role="tab"
+      data-place={place}
       aria-selected={active}
-      aria-label={t('tabs.plus')}
+      aria-label={t(label)}
       className={`workspace-tab${active ? ' is-active' : ''}`}
-      onClick={() => onSelect('community')}
-      onPointerEnter={() => onApproach('community')}
-      onFocus={() => onApproach('community')}
+      onClick={() => onSelect(place)}
+      onPointerEnter={() => onApproach(place)}
+      onFocus={() => onApproach(place)}
     >
-      <MenuIcon name="scene" />
-      <span className="workspace-tab__label">{t('tabs.plus')}</span>
+      <MenuIcon name={icon} />
+      <span className="workspace-tab__label">{shown ?? t(label)}</span>
+      {children}
     </button>
   );
 };
 
-const OnlineMediaTab = ({
-  activeTab,
-  onSelect,
-  onApproach,
-}: Omit<IWorkspaceTabsProps, 'lastEqTab'>) => {
+const VisualizersTab = ({ nav }: { nav: TPlaceNav }) =>
+  isAccountConfigured() ? <PlaceTab place="community" nav={nav} /> : null;
+
+const OnlineMediaTab = ({ nav }: { nav: TPlaceNav }) => {
   const { t } = useTranslation();
   const short = useMediaQuery(MEDIA_TAB_ONE_WORD_QUERY);
-  const active = activeTab === 'video';
   return (
-    <button
-      type="button"
-      role="tab"
-      aria-selected={active}
-      aria-label={t('tabs.media')}
-      className={`workspace-tab${active ? ' is-active' : ''}`}
-      onClick={() => onSelect('video')}
-      onPointerEnter={() => onApproach('video')}
-      onFocus={() => onApproach('video')}
-    >
-      <MenuIcon name="video" />
-      <span className="workspace-tab__label">
-        {short ? t('tabs.mediaShort') : t('tabs.media')}
-      </span>
-    </button>
+    <PlaceTab
+      place="video"
+      nav={nav}
+      shown={short ? t('tabs.mediaShort') : undefined}
+    />
   );
 };
 
@@ -111,61 +114,20 @@ export const WorkspaceTabsLeft = ({
   onApproach,
 }: IWorkspaceTabsProps) => {
   const { t } = useTranslation();
-  const isShareTab = activeTab === 'share';
-  const isGamesTab = activeTab === 'games';
-  const isMicTab = activeTab === 'mic';
   const sounding = useSoundingGame();
+  const nav = { activeTab, onSelect, onApproach };
   return (
     <WorkspaceTabStrip label={t('tabs.aria')}>
-      <VisualizersTab
-        activeTab={activeTab}
-        onSelect={onSelect}
-        onApproach={onApproach}
-      />
-      <button
-        type="button"
-        role="tab"
-        aria-selected={isShareTab}
-        aria-label={t('tabs.share')}
-        className={`workspace-tab${isShareTab ? ' is-active' : ''}`}
-        onClick={() => onSelect('share')}
-        onPointerEnter={() => onApproach('share')}
-        onFocus={() => onApproach('share')}
-      >
-        <MenuIcon name="waveform" />
-        <span className="workspace-tab__label">{t('tabs.share')}</span>
-      </button>
+      <VisualizersTab nav={nav} />
+      <PlaceTab place="share" nav={nav} />
       {/* Beside Share Audio, the other place about what others hear of
-          you; its own glyph, since Karaoke already wears the microphone. */}
-      <button
-        type="button"
-        role="tab"
-        aria-selected={isMicTab}
-        aria-label={t('mic.tab')}
-        className={`workspace-tab${isMicTab ? ' is-active' : ''}`}
-        onClick={() => onSelect('mic')}
-        onPointerEnter={() => onApproach('mic')}
-        onFocus={() => onApproach('mic')}
-      >
-        <MenuIcon name="microphoneSettings" />
-        <span className="workspace-tab__label">{t('mic.tab')}</span>
-      </button>
+          you. */}
+      <PlaceTab place="mic" nav={nav} />
       {/* Beside the equaliser, which it stands in for while a game plays:
           a game's whole sound is tuned here (Ivan, 2026-11-02: "put it to the
           left of EQ"). The dot says a game's own sound is the one on, from
           any page, without a banner over anybody's graph. */}
-      <button
-        type="button"
-        role="tab"
-        aria-selected={isGamesTab}
-        aria-label={t('gaming.tab')}
-        className={`workspace-tab${isGamesTab ? ' is-active' : ''}`}
-        onClick={() => onSelect('games')}
-        onPointerEnter={() => onApproach('games')}
-        onFocus={() => onApproach('games')}
-      >
-        <MenuIcon name="gamepad" />
-        <span className="workspace-tab__label">{t('gaming.tab')}</span>
+      <PlaceTab place="games" nav={nav}>
         {sounding && (
           <span
             className="workspace-tab__live"
@@ -173,7 +135,7 @@ export const WorkspaceTabsLeft = ({
             aria-hidden="true"
           />
         )}
-      </button>
+      </PlaceTab>
       {/* Six places, not ten. The equaliser and everything that sets it
           are one tab with a row of pills inside — see EQ_GROUP_TABS.
 
@@ -207,59 +169,17 @@ export const WorkspaceTabsRight = ({
   onApproach,
 }: Omit<IWorkspaceTabsProps, 'lastEqTab'>) => {
   const { t } = useTranslation();
-  const isDspTab = activeTab === 'dsp';
-  const isLibraryTab = activeTab === 'library';
-  const isKaraokeTab = activeTab === 'karaoke';
+  const nav = { activeTab, onSelect, onApproach };
   return (
     <WorkspaceTabStrip label={t('tabs.aria')}>
       {/* First on this side, which keeps it next to the equaliser across the
           meter: the rack is the rest of the signal chain the EQ tab starts,
           and a user who has just set a curve looks for the compressor next —
           not past Library and Karaoke to the far end of the strip. */}
-      <button
-        type="button"
-        role="tab"
-        aria-selected={isDspTab}
-        aria-label={t('tabs.dsp')}
-        className={`workspace-tab${isDspTab ? ' is-active' : ''}`}
-        onClick={() => onSelect('dsp')}
-        onPointerEnter={() => onApproach('dsp')}
-        onFocus={() => onApproach('dsp')}
-      >
-        <MenuIcon name="configure" />
-        <span className="workspace-tab__label">{t('tabs.dsp')}</span>
-      </button>
-      <button
-        type="button"
-        role="tab"
-        aria-selected={isLibraryTab}
-        aria-label={t('tabs.library')}
-        className={`workspace-tab${isLibraryTab ? ' is-active' : ''}`}
-        onClick={() => onSelect('library')}
-        onPointerEnter={() => onApproach('library')}
-        onFocus={() => onApproach('library')}
-      >
-        <MenuIcon name="album" />
-        <span className="workspace-tab__label">{t('tabs.library')}</span>
-      </button>
-      <button
-        type="button"
-        role="tab"
-        aria-selected={isKaraokeTab}
-        aria-label={t('tabs.karaoke')}
-        className={`workspace-tab${isKaraokeTab ? ' is-active' : ''}`}
-        onClick={() => onSelect('karaoke')}
-        onPointerEnter={() => onApproach('karaoke')}
-        onFocus={() => onApproach('karaoke')}
-      >
-        <MenuIcon name="microphone" />
-        <span className="workspace-tab__label">{t('tabs.karaoke')}</span>
-      </button>
-      <OnlineMediaTab
-        activeTab={activeTab}
-        onSelect={onSelect}
-        onApproach={onApproach}
-      />
+      <PlaceTab place="dsp" nav={nav} />
+      <PlaceTab place="library" nav={nav} />
+      <PlaceTab place="karaoke" nav={nav} />
+      <OnlineMediaTab nav={nav} />
       {/* No Forum tab: the forum opens from the Help menu, beside the other
           ways to get help, and still fills the workspace like a tab. */}
     </WorkspaceTabStrip>

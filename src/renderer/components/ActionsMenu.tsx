@@ -21,7 +21,9 @@ import Chevron from '../icons/Chevron';
 import MenuIcon, { type MenuIconName } from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import useExitAnimation from '../utils/useExitAnimation';
+import type { TTitlebarPlace } from '../utils/titlebarPlaces';
 import { useTitlebarToolsShed } from '../utils/useTitlebarRoom';
+import ActionsMenuPlaces from './ActionsMenuPlaces';
 import ForumNewsBadge, {
   forumNewsText,
   useForumNewsCount,
@@ -94,6 +96,8 @@ interface IActionsMenuProps {
    * button (`useTitlebarToolsShed`), with the compact-player switch beside it.
    */
   help?: IHelpHandlers;
+  /** Opens a place the titlebar has no room for (`ActionsMenuPlaces`). */
+  onPlace?: (place: TTitlebarPlace) => void;
 }
 
 interface IItemProps {
@@ -159,6 +163,7 @@ const ActionsMenu = ({
   onProcesses,
   onSupport,
   help,
+  onPlace,
 }: IActionsMenuProps) => {
   const { t, locale } = useTranslation();
   const isToolsShed = useTitlebarToolsShed();
@@ -364,6 +369,14 @@ const ActionsMenu = ({
               for both side by side puts the look under the rest. */}
           <div className="actions-menu__columns">
             <div className="actions-menu__column">
+              {onPlace && (
+                <ActionsMenuPlaces
+                  onPlace={(place) => {
+                    setOpen(false);
+                    onPlace(place);
+                  }}
+                />
+              )}
               {/* The status is the card, so a fault is never a line of text
               with nothing to press: failing, the whole card is the way back
               to the notice with Install and Retry, which is otherwise out of
