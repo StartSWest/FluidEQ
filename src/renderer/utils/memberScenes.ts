@@ -72,6 +72,8 @@ interface IOfficialFacts {
   lookId: string;
   /** None for a locked one, whose catalogue entry carries no version. */
   version?: number;
+  /** Not on this computer, though the account may play it (`IAwayScene`). */
+  away?: true;
 }
 
 /** The member's own copy of this one of FluidEQ's scenes, by its pack id. */
@@ -82,13 +84,15 @@ const isCopyOf = (scene: ICopyFacts, official: IOfficialFacts) =>
  * Whether a member's own copy of one of FluidEQ's scenes is listed in
  * FluidEQ's row's place: kept from the Studio's bench, and no older than
  * FluidEQ's version held, which a copy kept before a later publication on
- * another computer is.
+ * another computer is. Or whatever the copy, when FluidEQ's scene is not on
+ * this computer at all: the copy is then the only one there is to play.
  */
 const standsInFor = (scene: ICopyFacts, official: IOfficialFacts) =>
   isCopyOf(scene, official) &&
-  scene.fromBench === true &&
-  (official.version === undefined ||
-    (scene.version !== undefined && scene.version >= official.version));
+  (official.away === true ||
+    (scene.fromBench === true &&
+      (official.version === undefined ||
+        (scene.version !== undefined && scene.version >= official.version))));
 
 /**
  * THE COPY KEPT BY WHOEVER PUBLISHES FLUIDEQ'S OWN SCENES IS NOT A SECOND

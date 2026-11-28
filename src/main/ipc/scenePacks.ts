@@ -69,6 +69,14 @@ export interface IScenePacksListing {
    * choosing one opens its page to buy it.
    */
   locked: IScenePackCatalogueEntry[];
+  /**
+   * FluidEQ's scenes this account may play that are not on this computer:
+   * bought, or the admin's, and removed from the looks or never added. Never
+   * listed as looks; the picker reads them only to know a publisher's own
+   * copy for one of FluidEQ's scenes (`withoutOfficialCopies`). Absent where
+   * a listing is made up (tests, Help's drawing), which reads as none.
+   */
+  away?: IScenePackCatalogueEntry[];
 }
 
 export interface IScenePacksIpcRegistration {
@@ -155,10 +163,21 @@ export const registerScenePacksIpc = ({
 
   const owns = (id: string) => ownership.owns(premiumLookId(id));
 
-  const listing = (): IScenePacksListing => ({
-    packs: store.list().filter((pack) => owns(pack.id)),
-    locked: catalogue.list().filter((entry) => !owns(entry.id)),
-  });
+  const listing = (): IScenePacksListing => {
+    const held = store.list();
+    const here = new Set(held.map((pack) => pack.id));
+    const listed = catalogue.list();
+    return {
+      packs: held.filter((pack) => owns(pack.id)),
+      locked: listed.filter((entry) => !owns(entry.id)),
+      // Without these the scenes the account owns and this computer lacks
+      // were in neither list, so the publisher's copy of each was matched to
+      // no scene of FluidEQ's and filed as a stranger to it: no category, no
+      // published picture, and "Yours" alone (Ivan, 2026-11-28, after his
+      // FluidEQ scenes were taken off this computer: "categories are emptyy").
+      away: listed.filter((entry) => owns(entry.id) && !here.has(entry.id)),
+    };
+  };
 
   const sceneListeners = new Set<() => void>();
   const announce = () => {

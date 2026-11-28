@@ -39,6 +39,7 @@ import {
 } from '../utils/memberScenes';
 import {
   loadScenePack,
+  type IAwayScene,
   type ILockedScene,
   type IUsableScene,
 } from '../utils/scenePacks';
@@ -210,9 +211,43 @@ export const memberSceneThumbnail = (
   load: () => loadMemberScene(scene.lookId),
 });
 
+/**
+ * How to picture the publisher's copy of one of FluidEQ's scenes kept as
+ * published, in place of FluidEQ's row: the picture FluidEQ published for
+ * that version, as that row reads it (`officialSceneThumbnail`), and a frame
+ * drawn from the copy only where the gallery has none. Drawn from the copy
+ * alone, every such tile waited its turn in the one-at-a-time drawing queue
+ * and the picker opened on a grid of stand-ins.
+ */
+export const publishedCopyThumbnail = (
+  scene: IUsableMemberScene,
+  packId: string,
+  gallery: IGalleryScene | undefined,
+): ILookThumbnailRef => ({
+  lookId: scene.lookId,
+  version: scene.revision ?? String(scene.version),
+  published: {
+    authorId: FLUIDEQ_CREATOR_ID,
+    sceneId: packId,
+    version: scene.version,
+    // The date is what lets a picture already fetched be read back from disk,
+    // and the gallery's date belongs to its own version only.
+    ...(gallery?.version === scene.version
+      ? { revision: gallery.updatedAt }
+      : {}),
+  },
+  load: () => loadMemberScene(scene.lookId),
+});
+
 interface IPlusSources {
   usable: readonly IUsableScene[];
   locked: readonly ILockedScene[];
+  /**
+   * FluidEQ's scenes the account may play that this computer lacks, read only
+   * to know a publisher's copy of one. None where nothing is known of them
+   * (Help's drawing).
+   */
+  away?: readonly IAwayScene[];
   members: readonly IUsableMemberScene[];
   lockedMembers: readonly ILockedMemberScene[];
   locale: LocaleCode;
@@ -234,6 +269,7 @@ interface IPlusSources {
 export const buildPlusRows = ({
   usable,
   locked,
+  away = [],
   members,
   lockedMembers,
   locale,
@@ -330,7 +366,7 @@ export const buildPlusRows = ({
 
   // One row a scene: FluidEQ's own, or its publisher's copy kept from the
   // Studio in its place (`withoutOfficialCopies`, `withoutStoodInFor`).
-  const officials = [...usable, ...locked];
+  const officials = [...usable, ...locked, ...away];
   const official = withoutStoodInFor(usable, members).map((scene) => {
     const gallery = findInGallery(scene.lookId);
     return row({
@@ -380,9 +416,12 @@ export const buildPlusRows = ({
     const stoodFor = officialStoodInFor(scene, officials);
     if (stoodFor) {
       // In FluidEQ's row's place: its order and categories, filed under
-      // FluidEQ as well as Yours. Its picture and its note are its own, as
-      // the gallery has neither of what the bench holds.
+      // FluidEQ as well as Yours. A copy from the bench has its own picture
+      // and no note, as the gallery has neither of what the bench holds; a
+      // copy kept as published is that version of FluidEQ's scene, and
+      // reads its published picture and note as FluidEQ's row would.
       const gallery = findInGallery(stoodFor.lookId);
+      const published = scene.fromBench !== true;
       return row({
         ...orderFacts(scene, gallery),
         swatch: scene.swatch,
@@ -393,8 +432,11 @@ export const buildPlusRows = ({
         ],
         locked: false,
         version: scene.version,
+        ...(published ? noteFor(gallery, scene.version) : {}),
         ...latestFor(gallery, scene.version),
-        thumbnail: memberSceneThumbnail(scene, undefined),
+        thumbnail: published
+          ? publishedCopyThumbnail(scene, stoodFor.id, gallery)
+          : memberSceneThumbnail(scene, undefined),
       });
     }
     const gallery = findInGallery(scene.lookId);

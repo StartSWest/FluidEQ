@@ -55,7 +55,19 @@ export interface ILockedScene {
   swatch: string[];
 }
 
-const EMPTY: IScenePacksListing = { packs: [], locked: [] };
+/**
+ * One of FluidEQ's scenes this account may play and this computer does not
+ * hold. Never a row of its own: the picker reads it only to know the
+ * publisher's own copy of it, which is listed in its place
+ * (`withoutOfficialCopies`).
+ */
+export interface IAwayScene {
+  id: string;
+  lookId: string;
+  away: true;
+}
+
+const EMPTY: IScenePacksListing = { packs: [], locked: [], away: [] };
 
 let listing: IScenePacksListing = EMPTY;
 /** Whether the main process has answered at least once. */
@@ -72,6 +84,7 @@ let subscribed = false;
 const listeners = new Set<() => void>();
 let usable: IUsableScene[] = [];
 let locked: ILockedScene[] = [];
+let away: IAwayScene[] = [];
 
 const bridge = () => window.electron?.ipcRenderer;
 
@@ -103,6 +116,13 @@ const recompute = () => {
         lookId: lockedLookId(entry.id),
         names: entry.names,
         swatch: entry.swatch,
+      }))
+    : [];
+  away = canDraw
+    ? (listing.away ?? []).map((entry) => ({
+        id: entry.id,
+        lookId: premiumLookId(entry.id),
+        away: true as const,
       }))
     : [];
 };
@@ -180,6 +200,11 @@ export const getLockedScenes = (): readonly ILockedScene[] => locked;
 
 export const useLockedScenes = (): readonly ILockedScene[] =>
   useSyncExternalStore(subscribeScenePacks, getLockedScenes, getLockedScenes);
+
+export const getAwayScenes = (): readonly IAwayScene[] => away;
+
+export const useAwayScenes = (): readonly IAwayScene[] =>
+  useSyncExternalStore(subscribeScenePacks, getAwayScenes, getAwayScenes);
 
 export const loadScenePack = async (
   packId: string,

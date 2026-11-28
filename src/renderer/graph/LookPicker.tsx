@@ -36,6 +36,7 @@ import {
 } from '../utils/memberScenes';
 import {
   refreshScenePacks,
+  useAwayScenes,
   useLockedScenes,
   useUsableScenes,
 } from '../utils/scenePacks';
@@ -131,6 +132,7 @@ const LookPicker = ({
   const palette = useGraphPalette();
   const usable = useUsableScenes();
   const locked = useLockedScenes();
+  const away = useAwayScenes();
   const members = useUsableMemberScenes();
   const lockedMembers = useLockedMemberScenes();
   const fluidEqHelpers = useFluidEqHelpers();
@@ -189,6 +191,7 @@ const LookPicker = ({
       buildPlusRows({
         usable,
         locked,
+        away,
         members,
         lockedMembers,
         locale,
@@ -199,6 +202,7 @@ const LookPicker = ({
     [
       usable,
       locked,
+      away,
       members,
       lockedMembers,
       locale,

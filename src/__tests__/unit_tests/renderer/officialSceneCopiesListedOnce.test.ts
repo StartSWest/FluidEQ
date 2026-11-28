@@ -218,3 +218,107 @@ it('names the listed row for either selection', () => {
     'premium:alpine',
   );
 });
+
+// Ivan, 2026-11-28: "dude why this it not working hot snhowing thuma and also
+// the categories are emptyy". His FluidEQ scenes were no longer on this
+// computer, only his own copy of each, which matched nothing of FluidEQ's:
+// "Yours" alone, in no category, and every tile waiting to be drawn from the
+// copy while FluidEQ's published picture sat in the gallery.
+describe('a copy of one of FluidEQ’s scenes this computer does not hold', () => {
+  const away = { id: 'alpine', lookId: 'premium:alpine', away: true as const };
+  const awayRows = (
+    members: IUsableMemberScene[],
+    findInGallery: (lookId: string) => IGalleryScene | undefined = () =>
+      undefined,
+  ) =>
+    buildPlusRows({
+      usable: [],
+      locked: [],
+      away: [away],
+      members,
+      lockedMembers: [],
+      locale: 'en',
+      t,
+      findInGallery,
+    });
+
+  it('is filed as FluidEQ’s scene, under FluidEQ and its category', () => {
+    const copy = member(ME, 'alpine', true);
+    const [row, ...rest] = awayRows([copy]);
+    expect(rest).toEqual([]);
+    expect(row).toEqual(
+      expect.objectContaining({
+        id: copy.lookId,
+        maker: 'mine',
+        alsoFluidEQ: true,
+        categories: ['nature'],
+      }),
+    );
+    // The control, as he saw it: with nothing known of FluidEQ's scene the
+    // copy is his alone and in no category.
+    const [before] = buildPlusRows({
+      usable: [],
+      locked: [],
+      members: [copy],
+      lockedMembers: [],
+      locale: 'en',
+      t,
+      findInGallery: () => undefined,
+    });
+    expect(before.alsoFluidEQ).toBeUndefined();
+    expect(before.categories).toEqual([]);
+  });
+
+  it('kept as published, reads FluidEQ’s published picture of its version', () => {
+    const copy = member(ME, 'alpine', true, { version: 83, revision: 'r1' });
+    const gallery = {
+      lookId: 'premium:alpine',
+      authorId: '00000000-0000-4000-8000-000000000001',
+      sceneId: 'alpine',
+      version: 83,
+      category: 'nature',
+      updatedAt: '2026-11-28T06:49:46Z',
+    } as unknown as IGalleryScene;
+    const [row] = awayRows([copy], (lookId) =>
+      lookId === 'premium:alpine' ? gallery : undefined,
+    );
+    expect(row.thumbnail).toEqual(
+      expect.objectContaining({
+        lookId: copy.lookId,
+        published: {
+          authorId: '00000000-0000-4000-8000-000000000001',
+          sceneId: 'alpine',
+          version: 83,
+          revision: '2026-11-28T06:49:46Z',
+        },
+      }),
+    );
+    // Drawn from the copy only where the gallery has no picture.
+    expect(row.thumbnail?.load).toBeDefined();
+    // The gallery's date belongs to its own version: an older copy asks
+    // for its version's picture without it.
+    const [older] = awayRows(
+      [member(ME, 'alpine', true, { version: 80 })],
+      () => gallery,
+    );
+    expect(older.thumbnail?.published).toEqual({
+      authorId: '00000000-0000-4000-8000-000000000001',
+      sceneId: 'alpine',
+      version: 80,
+    });
+  });
+
+  it('kept from the bench, is still pictured from itself', () => {
+    const [row] = awayRows([benchCopy()]);
+    expect(row.thumbnail?.published).toBeUndefined();
+    expect(row.thumbnail?.load).toBeDefined();
+  });
+
+  it('is never a row of its own, and lends nothing to another member', () => {
+    expect(awayRows([])).toEqual([]);
+    const theirs = member(OTHER, 'alpine', false);
+    const [row] = awayRows([theirs]);
+    expect(row.alsoFluidEQ).toBeUndefined();
+    expect(row.maker).toBe('members');
+  });
+});

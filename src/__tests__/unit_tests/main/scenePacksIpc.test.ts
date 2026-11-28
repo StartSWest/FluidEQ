@@ -285,3 +285,75 @@ describe('bringing installed scenes up to date', () => {
     }
   });
 });
+
+// Ivan, 2026-11-28: "categories are emptyy". His FluidEQ scenes had been
+// taken off this computer while he kept his own copy of each, and the
+// listing named them in neither list - owned, so not locked; not held, so not
+// packs - so the picker had nothing to know those copies by.
+describe('FluidEQ scenes this account may play and this computer lacks', () => {
+  let root: string;
+  beforeEach(() => {
+    root = fs.mkdtempSync(path.join(os.tmpdir(), 'scene-away-'));
+  });
+  afterEach(() => {
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  const entry = (id: string) => ({
+    id,
+    version: 3,
+    names: { en: id },
+    fallback_style: 'dots',
+    swatch: ['#000000', '#ffffff'],
+  });
+
+  it('names them apart from the ones held and the ones not owned', async () => {
+    fs.mkdirSync(path.join(root, 'scene-packs'), { recursive: true });
+    fs.writeFileSync(
+      path.join(root, 'scene-packs', 'catalogue.json'),
+      JSON.stringify(['alpine', 'aurora', 'coral'].map(entry)),
+    );
+    const registration = registerScenePacksIpc({
+      getMainWindow: () => null,
+      userDataDir: root,
+      config: {
+        supabaseUrl: 'https://project.supabase.co',
+        supabaseAnonKey: 'anon',
+      } as IScenePacksIpcDeps['config'],
+      session: {
+        accessToken: async () => 'token',
+      } as IScenePacksIpcDeps['session'],
+      entitlement: {
+        status: () => ({ state: 'active' }),
+        subscribe: () => () => {},
+      } as unknown as IScenePacksIpcDeps['entitlement'],
+      // Alpine and Aurora are this account's; Coral is not.
+      ownership: {
+        owns: (lookId: string) => lookId !== 'premium:coral',
+        subscribe: () => () => undefined,
+      },
+      fetchImpl: (async () => fakeResponse(200, [])) as unknown as typeof fetch,
+    });
+    jest.spyOn(registration.store, 'list').mockReturnValue([
+      {
+        id: 'aurora',
+        version: 3,
+        names: { en: 'aurora' },
+        swatch: ['#000000', '#ffffff'],
+      },
+    ]);
+    try {
+      const listing = (await handlers.get('scene-packs-list')?.({})) as {
+        packs: { id: string }[];
+        locked: { id: string }[];
+        away?: { id: string }[];
+      };
+      expect(listing.packs.map((pack) => pack.id)).toEqual(['aurora']);
+      expect(listing.locked.map((scene) => scene.id)).toEqual(['coral']);
+      // Aurora, owned and held, is the control: only Alpine is away.
+      expect(listing.away?.map((scene) => scene.id)).toEqual(['alpine']);
+    } finally {
+      registration.dispose();
+    }
+  });
+});
