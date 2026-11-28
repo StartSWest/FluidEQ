@@ -39,6 +39,8 @@ export interface IUsableMemberScene {
   /** And at the five hours of its day, when its pack names them. */
   windowColourStops?: IScenePack['windowColourStops'];
   own: boolean;
+  /** Kept from the maker's Studio project as it stood (`IMemberSceneSummary`). */
+  fromBench?: true;
   /** Who sent it, for a scene another member made. */
   authorName?: string | null;
 }
@@ -56,49 +58,104 @@ export interface ILockedMemberScene {
   authorName?: string | null;
 }
 
+/** What the lists read of a member scene to know whether it is a copy. */
+interface ICopyFacts {
+  own: boolean;
+  lookId: string;
+  version?: number;
+  fromBench?: true;
+}
+
+/** What the lists read of one of FluidEQ's scenes held here. */
+interface IOfficialFacts {
+  id: string;
+  lookId: string;
+  /** None for a locked one, whose catalogue entry carries no version. */
+  version?: number;
+}
+
+/** The member's own copy of this one of FluidEQ's scenes, by its pack id. */
+const isCopyOf = (scene: ICopyFacts, official: IOfficialFacts) =>
+  scene.own && parseMemberLookId(scene.lookId)?.packId === official.id;
+
+/**
+ * Whether a member's own copy of one of FluidEQ's scenes is listed in
+ * FluidEQ's row's place: kept from the Studio's bench, and no older than
+ * FluidEQ's version held, which a copy kept before a later publication on
+ * another computer is.
+ */
+const standsInFor = (scene: ICopyFacts, official: IOfficialFacts) =>
+  isCopyOf(scene, official) &&
+  scene.fromBench === true &&
+  (official.version === undefined ||
+    (scene.version !== undefined && scene.version >= official.version));
+
 /**
  * THE COPY KEPT BY WHOEVER PUBLISHES FLUIDEQ'S OWN SCENES IS NOT A SECOND
  * SCENE (Ivan, 2026-11-23: "why they show duplicated???"). Publishing keeps
  * the scene as the publisher's own look as well (`keepPublished`), so the
  * account that publishes FluidEQ's scenes saw each one twice in every list:
  * FluidEQ's row with its maker's note, and its own copy under the same name.
- * A member's own copy of a scene FluidEQ ships (`officialPackIds`) is left
- * out of the lists; FluidEQ's own stands for it. Nobody else can hold one:
- * the server refuses to publish a copy of FluidEQ's own.
+ * A member's own copy of a scene FluidEQ ships is left out of the lists, and
+ * FluidEQ's own stands for it. Nobody else can hold one: the server refuses
+ * to publish a copy of FluidEQ's own.
+ *
+ * Except a copy kept from the Studio's bench, which stands for FluidEQ's
+ * row instead (`withoutStoodInFor`): the scene is still listed once, and it
+ * plays what the publisher put in their looks. Every copy used to be left
+ * out, so "Add to my looks" of changes not yet published kept a copy no list
+ * offered, and FluidEQ's row went on playing the published version (Ivan,
+ * 2026-11-28: "add to my looks of non published scene is not working").
  */
-export const withoutOfficialCopies = <
-  T extends { own: boolean; lookId: string },
->(
+export const withoutOfficialCopies = <T extends ICopyFacts>(
   scenes: readonly T[],
-  officialPackIds: ReadonlySet<string>,
+  officials: readonly IOfficialFacts[],
 ): T[] =>
   scenes.filter((scene) => {
-    const packId = parseMemberLookId(scene.lookId)?.packId;
-    return !(scene.own && packId !== undefined && officialPackIds.has(packId));
+    const official = officials.find((entry) => isCopyOf(scene, entry));
+    return official === undefined || standsInFor(scene, official);
   });
+
+/** The one of FluidEQ's scenes this copy is listed in place of, if any. */
+export const officialStoodInFor = <T extends IOfficialFacts>(
+  scene: ICopyFacts,
+  officials: readonly T[],
+): T | undefined => officials.find((official) => standsInFor(scene, official));
+
+/** FluidEQ's own scenes, less each one a member's own copy is listed for. */
+export const withoutStoodInFor = <T extends IOfficialFacts>(
+  officials: readonly T[],
+  members: readonly ICopyFacts[],
+): T[] =>
+  officials.filter(
+    (official) => !members.some((scene) => standsInFor(scene, official)),
+  );
 
 /**
  * The look a selection stands for in the lists: FluidEQ's own scene when the
  * selection is its publisher's own copy, which the lists leave out
- * (`withoutOfficialCopies`), the selection itself otherwise. Without it a
- * graph playing the copy was in no list: the picker marked nothing as playing
- * and named nothing on its pill, and the cycle, finding the selection
- * nowhere, started again from the first look (Ivan, 2026-11-24: "it's
- * starting from the beginning ... sometimes it doesn't").
+ * (`withoutOfficialCopies`), the copy when the selection is FluidEQ's scene
+ * and the copy is listed in its place, the selection itself otherwise.
+ * Without it a graph playing the one not listed was in no list: the picker
+ * marked nothing as playing and named nothing on its pill, and the cycle,
+ * finding the selection nowhere, started again from the first look (Ivan,
+ * 2026-11-24: "it's starting from the beginning ... sometimes it doesn't").
  */
 export const listedLookOf = (
   lookId: string,
-  members: readonly { own: boolean; lookId: string }[],
-  officials: readonly { id: string; lookId: string }[],
+  members: readonly ICopyFacts[],
+  officials: readonly IOfficialFacts[],
 ): string => {
-  const packId = parseMemberLookId(lookId)?.packId;
-  if (
-    packId === undefined ||
-    !members.some((scene) => scene.lookId === lookId && scene.own)
-  ) {
-    return lookId;
+  const chosen = members.find((scene) => scene.lookId === lookId);
+  const copied =
+    chosen && officials.find((official) => isCopyOf(chosen, official));
+  if (chosen && copied) {
+    return standsInFor(chosen, copied) ? lookId : copied.lookId;
   }
-  return officials.find((scene) => scene.id === packId)?.lookId ?? lookId;
+  const official = officials.find((entry) => entry.lookId === lookId);
+  const standIn =
+    official && members.find((scene) => standsInFor(scene, official));
+  return standIn ? standIn.lookId : lookId;
 };
 
 const EMPTY: IMemberScenesListing = { scenes: [], locked: [] };
@@ -129,6 +186,7 @@ const recompute = () => {
           swatch: scene.swatch,
           own: scene.own,
           ...(scene.own ? {} : { authorName: scene.authorName ?? null }),
+          ...(scene.own && scene.fromBench ? { fromBench: true as const } : {}),
           ...(scene.spectrumRange
             ? { spectrumRange: scene.spectrumRange }
             : {}),

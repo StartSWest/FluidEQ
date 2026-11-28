@@ -31,7 +31,9 @@ import { sceneOrderFacts } from '../utils/lookOrder';
 import { searchMatcher } from '../../common/searchText';
 import {
   loadMemberScene,
+  officialStoodInFor,
   withoutOfficialCopies,
+  withoutStoodInFor,
   type ILockedMemberScene,
   type IUsableMemberScene,
 } from '../utils/memberScenes';
@@ -326,7 +328,10 @@ export const buildPlusRows = ({
     return line ? { versionNote: line } : {};
   };
 
-  const official = usable.map((scene) => {
+  // One row a scene: FluidEQ's own, or its publisher's copy kept from the
+  // Studio in its place (`withoutOfficialCopies`, `withoutStoodInFor`).
+  const officials = [...usable, ...locked];
+  const official = withoutStoodInFor(usable, members).map((scene) => {
     const gallery = findInGallery(scene.lookId);
     return row({
       ...orderFacts(scene, gallery),
@@ -345,7 +350,7 @@ export const buildPlusRows = ({
   });
   // A locked pack is not on this computer and its catalogue entry carries no
   // version, so it can only be pictured once the gallery has named one.
-  const officialLocked = locked.map((scene) => {
+  const officialLocked = withoutStoodInFor(locked, members).map((scene) => {
     const gallery = findInGallery(premiumLookId(scene.id));
     return row({
       ...orderFacts(scene, gallery),
@@ -369,28 +374,43 @@ export const buildPlusRows = ({
     });
   });
   // A publisher's own copy of one of FluidEQ's scenes is that scene again,
-  // under FluidEQ's row (`withoutOfficialCopies`).
-  const officialIds = new Set([
-    ...usable.map((scene) => scene.id),
-    ...locked.map((scene) => scene.id),
-  ]);
-  const memberRows = withoutOfficialCopies(members, officialIds).map(
-    (scene) => {
-      const gallery = findInGallery(scene.lookId);
+  // under FluidEQ's row, unless it was kept from the Studio
+  // (`withoutOfficialCopies`).
+  const memberRows = withoutOfficialCopies(members, officials).map((scene) => {
+    const stoodFor = officialStoodInFor(scene, officials);
+    if (stoodFor) {
+      // In FluidEQ's row's place: its order and categories, filed under
+      // FluidEQ as well as Yours. Its picture and its note are its own, as
+      // the gallery has neither of what the bench holds.
+      const gallery = findInGallery(stoodFor.lookId);
       return row({
         ...orderFacts(scene, gallery),
         swatch: scene.swatch,
-        ...makerOf(scene, gallery),
-        categories: galleryCategories(gallery) ?? [],
+        maker: 'mine',
+        alsoFluidEQ: true,
+        categories: galleryCategories(gallery) ?? [
+          officialSceneCategory(stoodFor.id),
+        ],
         locked: false,
         version: scene.version,
-        ...noteFor(gallery, scene.version),
         ...latestFor(gallery, scene.version),
-        thumbnail: memberSceneThumbnail(scene, gallery),
+        thumbnail: memberSceneThumbnail(scene, undefined),
       });
-    },
-  );
-  const memberLocked = withoutOfficialCopies(lockedMembers, officialIds).map(
+    }
+    const gallery = findInGallery(scene.lookId);
+    return row({
+      ...orderFacts(scene, gallery),
+      swatch: scene.swatch,
+      ...makerOf(scene, gallery),
+      categories: galleryCategories(gallery) ?? [],
+      locked: false,
+      version: scene.version,
+      ...noteFor(gallery, scene.version),
+      ...latestFor(gallery, scene.version),
+      thumbnail: memberSceneThumbnail(scene, gallery),
+    });
+  });
+  const memberLocked = withoutOfficialCopies(lockedMembers, officials).map(
     (scene) =>
       row({
         ...orderFacts(scene, undefined),

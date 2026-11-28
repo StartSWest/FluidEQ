@@ -99,7 +99,14 @@ const createStudioLooksCopy = ({
       const updated = store
         .list()
         .some((kept) => kept.authorId === me && kept.packId === build.pack.id);
-      const scene = store.save(me, build.pack);
+      // Marked as the bench's: for the account that publishes FluidEQ's own
+      // scenes this copy is the one thing that plays what the gallery does
+      // not have yet. Unmarked, the looks took it for the published copy
+      // they list once under FluidEQ's row, and FluidEQ's row went on
+      // playing the published version: the press said added and nothing
+      // played (Ivan, 2026-11-28: "add to my looks of non published scene
+      // is not working").
+      const scene = store.save(me, build.pack, { fromBench: true });
       announceScenes();
       announceStudio();
       return { ok: true, scene, updated };

@@ -87,8 +87,22 @@ export interface IMemberSceneSummary {
    * the account asking, wherever the copy came from.
    */
   own: boolean;
+  /**
+   * An own copy kept from the maker's Studio project as it stood ("Add to
+   * my looks", Play on the graph, the desktop, a setting saved in the
+   * Studio): the maker's own choice of what plays, perhaps ahead of every
+   * version published. Absent for a copy kept as published - by publishing,
+   * from the gallery, from a shared file - and for every copy saved before
+   * the mark existed.
+   */
+  fromBench?: true;
   /** For an imported scene: the name on its author's profile, if they had one. */
   authorName?: string | null;
+}
+
+/** How an own copy came to the looks (`IMemberSceneSummary.fromBench`). */
+export interface IOwnSaveOptions {
+  fromBench: boolean;
 }
 
 export interface IMemberSceneStore {
@@ -100,8 +114,15 @@ export interface IMemberSceneStore {
   load(authorId: string, packId: string): IScenePack | undefined;
   /** The newest version held, whatever plays: what an update is measured against. */
   newest(authorId: string, packId: string): IScenePack | undefined;
-  /** Keeps a scene the member made. Throws if it breaks any rule. */
-  save(authorId: string, pack: IScenePack): IMemberSceneSummary;
+  /**
+   * Keeps a scene the member made. Throws if it breaks any rule. Kept as
+   * published unless `kept` says it comes from the Studio's bench.
+   */
+  save(
+    authorId: string,
+    pack: IScenePack,
+    kept?: IOwnSaveOptions,
+  ): IMemberSceneSummary;
   /**
    * Keeps a scene another member exported. Throws unless the envelope
    * verifies against the member key and its pack passes every rule.
@@ -206,10 +227,10 @@ export const createMemberSceneStore = ({
   const isBlocked = (authorId: string, packId: string) =>
     blocked.has(memberSceneFingerprint(authorId, packId));
 
-  const readOwn = (
+  const readOwnRecord = (
     authorId: string,
     packId: string,
-  ): IScenePack | undefined => {
+  ): { pack: IScenePack; fromBench: boolean } | undefined => {
     return readSceneCache(
       ownFile(authorId, packId),
       `own/${authorId}/${packId}`,
@@ -248,10 +269,15 @@ export const createMemberSceneStore = ({
             logger,
           );
         }
-        return pack;
+        // Only the exact mark counts: anything else is a copy as published,
+        // which is what every copy saved before the mark existed was.
+        return { pack, fromBench: record.fromBench === true };
       },
     );
   };
+
+  const readOwn = (authorId: string, packId: string): IScenePack | undefined =>
+    readOwnRecord(authorId, packId)?.pack;
 
   const readImported = (
     authorId: string,
@@ -341,12 +367,18 @@ export const createMemberSceneStore = ({
       : undefined;
   };
 
+  /** Where a summarised copy came from: another member, or the member's own. */
+  type TCopyOf =
+    { imported: { authorName: string | null } } | { own: IOwnSaveOptions };
+
   const summarise = (
     authorId: string,
     pack: IScenePack,
-    imported?: { authorName: string | null },
+    copy: TCopyOf,
   ): IMemberSceneSummary => {
     const lookId = memberLookId(authorId, pack.id);
+    const imported = 'imported' in copy ? copy.imported : undefined;
+    const fromBench = 'own' in copy && copy.own.fromBench;
     return {
       lookId,
       authorId,
@@ -363,6 +395,7 @@ export const createMemberSceneStore = ({
         : {}),
       ...(pack.camera ? { camera: pack.camera } : {}),
       own: !imported,
+      ...(fromBench ? { fromBench: true as const } : {}),
       ...(imported ? { authorName: imported.authorName } : {}),
     };
   };
@@ -382,8 +415,13 @@ export const createMemberSceneStore = ({
       // moves a legacy copy to the encrypted format, blocked copies included.
       const own = held(ownRoot).flatMap(({ authorId, packId }) => {
         const summary = summaries.get(ownFile(authorId, packId), () => {
-          const pack = readOwn(authorId, packId);
-          return pack && summarise(authorId, pack);
+          const kept = readOwnRecord(authorId, packId);
+          return (
+            kept &&
+            summarise(authorId, kept.pack, {
+              own: { fromBench: kept.fromBench },
+            })
+          );
         });
         return summary && !isBlocked(authorId, packId) ? [summary] : [];
       });
@@ -397,7 +435,9 @@ export const createMemberSceneStore = ({
           const found = readImported(authorId, packId, pinned);
           return (
             found &&
-            summarise(authorId, found.pack, { authorName: found.authorName })
+            summarise(authorId, found.pack, {
+              imported: { authorName: found.authorName },
+            })
           );
         });
         return summary && !isBlocked(authorId, packId) ? [summary] : [];
@@ -417,7 +457,8 @@ export const createMemberSceneStore = ({
       validRef(authorId, packId) && !isBlocked(authorId, packId)
         ? (readOwn(authorId, packId) ?? readImported(authorId, packId)?.pack)
         : undefined,
-    save: (authorId, pack) => {
+    save: (authorId, pack, kept) => {
+      const fromBench = kept?.fromBench === true;
       if (!validRef(authorId, pack.id)) {
         throw new Error('Not a member scene id.');
       }
@@ -448,11 +489,14 @@ export const createMemberSceneStore = ({
               authorId,
               savedAt: new Date().toISOString(),
               pack: storedScenePack(checked.pack),
+              // Beside the pack, which an older FluidEQ reads alone: to it
+              // the copy is simply the maker's own.
+              ...(fromBench ? { fromBench: true } : {}),
             },
           ),
         () => readOwn(authorId, pack.id),
       );
-      return summarise(authorId, checked.pack);
+      return summarise(authorId, checked.pack, { own: { fromBench } });
     },
     saveImported: (envelope) => {
       const payload = verifyMemberSceneEnvelope(envelope);
@@ -483,7 +527,9 @@ export const createMemberSceneStore = ({
             () => readImported(author.id, pack.id)?.pack,
           ),
       );
-      return summarise(author.id, pack, { authorName: author.name });
+      return summarise(author.id, pack, {
+        imported: { authorName: author.name },
+      });
     },
     remove: (authorId, packId) => {
       if (!validRef(authorId, packId)) {

@@ -120,6 +120,25 @@ describe('the cycle from a publisher’s own copy', () => {
     expect(ids[at + 1]).not.toBe(ids[1]);
   });
 
+  // Ivan, 2026-11-28: "add to my looks of non published scene is not
+  // working". The copy kept from the Studio is walked once, in FluidEQ's
+  // place, so the walk plays what the publisher put in their looks.
+  it('walks the copy kept from the Studio once, in place of FluidEQ’s', () => {
+    const { graphStyle, members } = load();
+    const kept = { ...copy(ME, 'borealis', true), fromBench: true as const };
+    members.adoptMemberSceneListingForTesting({ scenes: [kept], locked: [] });
+    const ids = graphStyle.getLookWalk().map((look) => look.id);
+    expect(ids.filter((id) => id === kept.lookId)).toHaveLength(1);
+    expect(ids).not.toContain('premium:borealis');
+    // From FluidEQ's version, still playing from before, the walk goes on
+    // from the copy's place rather than from the first look.
+    graphStyle.setGraphLook('premium:borealis');
+    graphStyle.cycleGraphLookUnattended(1);
+    expect(graphStyle.getGraphLookId()).toBe(
+      ids[(ids.indexOf(kept.lookId) + 1) % ids.length],
+    );
+  });
+
   it('walks on from a listed look exactly as before', () => {
     const { graphStyle } = load();
     const ids = graphStyle.getLookWalk().map((look) => look.id);

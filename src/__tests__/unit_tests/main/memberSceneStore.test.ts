@@ -107,6 +107,39 @@ describe('the member scene store', () => {
     expect(again.load(ME, 'neon-city')).toEqual(pack());
   });
 
+  // Ivan, 2026-11-28: "add to my looks of non published scene is not
+  // working". The looks list a copy kept from the Studio's bench in place of
+  // FluidEQ's own scene, and so have to know it from a copy kept as published.
+  it('remembers a copy kept from the Studio, until a publication replaces it', () => {
+    const store = createMemberSceneStore({ userDataDir });
+    // The control: a copy kept as published carries no mark.
+    expect(store.save(ME, pack()).fromBench).toBeUndefined();
+    expect(store.list()[0].fromBench).toBeUndefined();
+
+    expect(store.save(ME, pack(), { fromBench: true }).fromBench).toBe(true);
+    expect(store.list()[0].fromBench).toBe(true);
+    // Read from disk again, as after a restart.
+    expect(createMemberSceneStore({ userDataDir }).list()[0].fromBench).toBe(
+      true,
+    );
+    // The pack itself is the same scene either way.
+    expect(store.load(ME, 'neon-city')).toEqual(pack());
+
+    store.save(ME, pack({ version: 2 }));
+    expect(store.list()[0]).toMatchObject({ version: 2 });
+    expect(store.list()[0].fromBench).toBeUndefined();
+  });
+
+  it('never marks another member’s scene as kept from the bench', () => {
+    const store = createMemberSceneStore({ userDataDir });
+    store.saveImported(
+      signedEnvelope(memberPayload({ pack: pack(), author: SOMEONE })),
+    );
+    expect(store.list()).toEqual([
+      expect.not.objectContaining({ fromBench: expect.anything() }),
+    ]);
+  });
+
   /**
    * The wave is the room the author framed the scene in, and the graph opens
    * a scene on it — so it has to survive every copy, not just the one written

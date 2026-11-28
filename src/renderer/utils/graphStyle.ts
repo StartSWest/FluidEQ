@@ -51,6 +51,7 @@ import {
   listedLookOf,
   subscribeMemberScenes,
   withoutOfficialCopies,
+  withoutStoodInFor,
   type IUsableMemberScene,
 } from './memberScenes';
 import {
@@ -342,12 +343,10 @@ export const getSelectableLooks = (
       ),
       customLooks.map(resolveCustomLook),
     ),
-    ...scenes.map(resolveSceneRow),
-    // A publisher's own copy of one of those is the same scene again.
-    ...withoutOfficialCopies(
-      memberScenes,
-      new Set(scenes.map((scene) => scene.id)),
-    ).map(resolveSceneRow),
+    // A publisher's own copy of one of those is the same scene again, walked
+    // once: as FluidEQ's, or as the copy when it was kept from the Studio.
+    ...withoutStoodInFor(scenes, memberScenes).map(resolveSceneRow),
+    ...withoutOfficialCopies(memberScenes, scenes).map(resolveSceneRow),
   ];
 };
 

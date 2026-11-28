@@ -209,6 +209,34 @@ describe('member scenes over IPC', () => {
     registration.dispose();
   });
 
+  // Ivan, 2026-11-28: "add to my looks of non published scene is not
+  // working". What the Studio keeps is the bench, which the looks list in
+  // place of FluidEQ's own row for its publisher; what a publication keeps
+  // is the published scene, which they do not.
+  it('keeps the Studio’s copy as the bench’s, and a publication’s as published', async () => {
+    const registration = setup();
+    chosen = await project();
+    await invoke<Promise<IStudioState>>('studio-open');
+    await link();
+    expect(
+      await invoke<Promise<TAddOutcome>>('studio-add-to-looks'),
+    ).toMatchObject({ ok: true, scene: { fromBench: true } });
+    expect(
+      invoke<IMemberScenesListing>('member-scenes-list').scenes.map((scene) => [
+        scene.packId,
+        scene.fromBench,
+      ]),
+    ).toEqual([['my-first-scene', true]]);
+
+    registration.keepPublished(ME, memberPack({ version: 4 }));
+    const kept = invoke<IMemberScenesListing>('member-scenes-list').scenes.find(
+      (scene) => scene.packId === 'neon-city',
+    );
+    expect(kept).toBeDefined();
+    expect(kept?.fromBench).toBeUndefined();
+    registration.dispose();
+  });
+
   // Ivan, 2026-10-21: "after publishing an scene it needs to show in grahp".
   it('keeps what a publication sent out in the looks, and tells the window and the Studio', async () => {
     const registration = setup();

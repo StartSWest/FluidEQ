@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IMemberSceneSummary } from 'main/memberScenes/store';
-import { setGraphLook } from '../utils/graphStyle';
+import { getGraphLookId, setGraphLook } from '../utils/graphStyle';
+import { officialStoodInFor } from '../utils/memberScenes';
+import { getUsableScenes } from '../utils/scenePacks';
 import { useCanSetDesktop } from '../wallpaper/WallpaperControls';
 import { openWallpaperDialog } from '../wallpaper/wallpaperDialogs';
 import { addStudioSceneToLooks } from './studioStore';
@@ -67,8 +69,19 @@ export default function useStudioKeep(
       .catch(failed);
   };
 
+  // A member's own scene keeps its look id through every keep, so a graph
+  // playing it takes the new copy by itself. A copy of one of FluidEQ's own
+  // scenes kept by its publisher is listed in FluidEQ's row's place
+  // (`withoutOfficialCopies`) under a look id of its own, so a graph playing
+  // FluidEQ's version is moved onto the copy, or it would go on playing the
+  // published version beside a press that said the looks were updated.
   const add = () => {
-    keep(() => undefined);
+    keep((scene) => {
+      const stoodFor = officialStoodInFor(scene, getUsableScenes());
+      if (stoodFor && getGraphLookId() === stoodFor.lookId) {
+        setGraphLook(scene.lookId);
+      }
+    });
   };
 
   // The version on the stage, kept or brought up to date in the looks, then

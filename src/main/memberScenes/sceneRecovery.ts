@@ -128,7 +128,7 @@ export const createSceneRecovery = ({
         return false;
       }
       try {
-        store.save(me, pack);
+        store.save(me, pack, { fromBench: true });
       } catch (error) {
         logger?.warn(
           `Scene ${lookId} could not be kept from its Studio project: ${String(error)}`,

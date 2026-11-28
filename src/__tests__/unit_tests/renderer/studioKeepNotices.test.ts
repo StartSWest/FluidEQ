@@ -5,7 +5,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { act, renderHook } from '@testing-library/react';
+import type { IScenePacksListing } from '../../../main/ipc/scenePacks';
+import { setSceneRenderingAvailableForTesting } from '../../../renderer/graph/sceneHealth';
 import useStudioKeep from '../../../renderer/studio/useStudioKeep';
+import {
+  getGraphLookId,
+  setGraphLook,
+} from '../../../renderer/utils/graphStyle';
+import { adoptScenePackListingForTesting } from '../../../renderer/utils/scenePacks';
 import { addStudioSceneToLooks } from '../../../renderer/studio/studioStore';
 import { openWallpaperDialog } from '../../../renderer/wallpaper/wallpaperDialogs';
 
@@ -75,6 +82,69 @@ it('says each failure in its own words, and opens nothing', async () => {
     );
   }
   expect(openWallpaperDialog).not.toHaveBeenCalled();
+});
+
+/**
+ * Ivan, 2026-11-28: "add to my looks of non published scene is not working".
+ * The copy FluidEQ's publisher keeps from the Studio is listed in FluidEQ's
+ * row's place under a look id of its own, so a graph playing FluidEQ's
+ * version goes onto the copy, as a graph playing a member's own scene takes
+ * its new copy by itself.
+ */
+describe('adding the scene the graph is playing', () => {
+  const add = async (scene: Record<string, unknown>) => {
+    setSceneRenderingAvailableForTesting(true);
+    adoptScenePackListingForTesting({
+      packs: [
+        {
+          id: 'alpine',
+          version: 83,
+          revision: 'rev-a',
+          names: { en: 'Alpine' },
+          swatch: ['#000000', '#ffffff'],
+        } as IScenePacksListing['packs'][number],
+      ],
+      locked: [],
+    });
+    jest.mocked(addStudioSceneToLooks).mockResolvedValue({
+      ok: true,
+      updated: true,
+      scene: {
+        lookId: LOOK,
+        authorId: 'faaed582-d6f4-4e70-999b-86e8518a7dc4',
+        packId: 'alpine',
+        version: 83,
+        names: { en: 'Alpine' },
+        swatch: ['#000000', '#ffffff'],
+        own: true,
+        ...scene,
+      },
+    } as never);
+    const { result } = renderHook(() =>
+      useStudioKeep('Alpine', WAVE, jest.fn(), jest.fn()),
+    );
+    await act(async () => {
+      result.current.add();
+    });
+  };
+
+  it('moves a graph playing FluidEQ’s version onto the copy kept', async () => {
+    setGraphLook('premium:alpine');
+    await add({ fromBench: true });
+    expect(getGraphLookId()).toBe(LOOK);
+  });
+
+  it('leaves the graph alone when the copy does not stand for that look', async () => {
+    // The control beside it: the same press, a copy older than FluidEQ's.
+    setGraphLook('premium:alpine');
+    await add({ fromBench: true, version: 82 });
+    expect(getGraphLookId()).toBe('premium:alpine');
+    // And a graph playing anything else stays on it.
+    setGraphLook('bars-rainbow');
+    const before = getGraphLookId();
+    await add({ fromBench: true });
+    expect(getGraphLookId()).toBe(before);
+  });
 });
 
 it('says the save failed when main could not be asked at all', async () => {

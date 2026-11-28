@@ -201,7 +201,8 @@ export const registerStudioSettingsIpc = ({
         return { written, lookUpdated: false };
       }
       try {
-        store.save(me, build.pack);
+        // The look now holds the bench, whatever it held before.
+        store.save(me, build.pack, { fromBench: true });
         announceScenes();
         return { written, lookUpdated: true };
       } catch (error) {
